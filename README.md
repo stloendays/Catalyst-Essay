@@ -100,12 +100,30 @@ The benchmark is designed to test **decision allocation**, not merely tool use. 
 ├── STATUS.md
 ├── docs/
 │   ├── RESEARCH_FRAME.md
-│   └── AGENT_HARNESS.md
+│   ├── AGENT_HARNESS.md
+│   ├── FIGURE_MAP.md
+│   ├── MANUSCRIPT_SKELETON.md
+│   ├── RESULTS_AT_A_GLANCE.md
+│   └── REFERENCES_STARTER.md
+├── figures/
+│   └── README.md
 └── data/
     ├── README.md
     ├── canonical_results_2026-09-06.csv
     └── discover_benchmark_2026-09-06.csv
 ```
+
+## Reading guide
+
+For a fast project overview, read [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md).
+
+For the manuscript storyline, read [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md).
+
+For the nine-figure scientific map and current headline values, read [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md).
+
+For the AI / agent rationale and benchmark design, read [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md).
+
+For citation planning, read [`docs/REFERENCES_STARTER.md`](docs/REFERENCES_STARTER.md).
 
 ## Current manuscript logic
 
@@ -116,8 +134,6 @@ The project is organized around five linked claims:
 3. **Backward design distinguishes a useful catalyst target from an unreachable one.**
 4. **Economic leverage is pathway-specific rather than universal across reactions.**
 5. **A decision-aware AI harness can allocate limited computation according to downstream decision value.**
-
-See [`docs/RESEARCH_FRAME.md`](docs/RESEARCH_FRAME.md) and [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md) for the current research and AI framing.
 
 ## Status
 
