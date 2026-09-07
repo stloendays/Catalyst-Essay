@@ -1,6 +1,6 @@
 # Rank-Preservation Control V1.1 — result
 
-Status: **literature-calibrated physical rank-preservation control**  
+Status: **literature-calibrated physical rank-preservation control; ready for repository integration**  
 Reaction: **CO oxidation on Au/TiO2**  
 Candidate states: **2, 3, 4, 5 and 6 nm Au particle diameter**
 
@@ -70,7 +70,7 @@ The mirror rank-flow figure is:
 
 [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg)
 
-It is deliberately constructed as the visual counterpart to an inversion plot: all candidate trajectories remain non-crossing after downstream propagation.
+It is deliberately the visual counterpart to an inversion plot: all candidate trajectories remain non-crossing after downstream propagation.
 
 ## Source data
 
