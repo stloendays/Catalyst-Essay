@@ -120,6 +120,26 @@ This motivates a pathway-specific view:
 
 The broader claim is therefore: **atomic-to-economic ranking inversion is reaction- and process-dependent because different catalyst properties couple into different downstream cost pools.**
 
+## Decision-aware Agent result
+
+The DISCOVER V1 Agent benchmark tests a different question from the physical ranking analysis: given a frozen scientific environment and a finite CU budget, can an AI model execute the complete downstream decision chain and allocate computation adaptively?
+
+Under the frozen three-tier cross-model evaluation, anonymous complete-decision recovery is:
+
+- nano: **6/35**;
+- mini: **15/35**;
+- strong: **35/35**.
+
+This is the positive result: **workflow-execution capability is strongly model-capability dependent**, and the strong tier reliably completes winner selection, decision-pair formation, backward design and reachability evaluation.
+
+A separate pre-registered claim is negative. Adaptive policy E did **not** establish cross-tier superiority over fixed-VOI policy D. The repeatable 200-CU adaptive-scope advantage occurs only in the strong tier. Therefore the framework should not be described as showing that "Agent E generally beats fixed VOI."
+
+The supported combined statement is:
+
+> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
+
+DISCOVER V1 remains frozen; this negative result is part of the evidence rather than a reason to modify the protocol post hoc.
+
 ## Manuscript-level claim structure
 
 A compact manuscript logic is:
@@ -128,4 +148,4 @@ A compact manuscript logic is:
 2. Multiscale uncertainty can be amplified or attenuated depending on the pathway.
 3. Backward design separates reachable catalyst targets from unreachable ones.
 4. Economic leverage is pathway-specific across reactions.
-5. Decision-aware AI can allocate limited scientific computation according to downstream decision value.
+5. Decision-aware workflow execution improves strongly with model capability, while adaptive policy E does not show universal cross-model superiority over fixed-VOI D.
