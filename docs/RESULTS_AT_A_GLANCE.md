@@ -142,7 +142,29 @@ Intrinsic activity rank      Downstream catalyst-burden rank
 - 6 nm / 2 nm required-mass ratio after literature calibration: **8.064x**
 - relative to V1, that mass-ratio spread decreases by **58.5%** while the order remains unchanged
 
-This control supports the methodological statement that multiscale propagation can preserve an upstream ordering when the downstream mapping remains physically monotonic.
+This V1.1 control remains the **canonical falsification control**: the multiscale implementation can preserve an upstream ordering when the downstream mapping remains physically monotonic.
+
+### Semi-open robustness extension — V1.3
+
+V1.3 relaxes the perfectly fixed operating point without replacing V1.1. Each particle-size state can independently search temperature and O2/CO ratio inside a literature-constrained low-temperature envelope, while candidate-specific activity prefactors and apparent activation energies are perturbed. The process topology and Au/TiO2 chemistry remain common.
+
+For the **primary 273.15–293.15 K window**, the moderate stress case (10% independent activity-prefactor CV and 2 kJ/mol independent Ea perturbation) gives:
+
+- exact full order preserved: **92.16%**
+- mean Spearman rho: **0.99214**
+- fraction with rho >= 0.9: **99.98%**
+- mean pairwise inversions: **0.0786**
+
+For the wider **273.15–313.15 K sensitivity window**, the same moderate stress gives:
+
+- exact full order preserved: **72.62%**
+- mean Spearman rho: **0.96802**
+- fraction with rho >= 0.9: **97.56%**
+- mean pairwise inversions: **0.3012**
+
+The interpretation is deliberately narrower than a full TEA: **rank preservation does not require a perfectly fixed operating point; moderate candidate-specific kinetic and operating freedom can produce occasional local reshuffling while leaving the overall rank structure strongly preserved.** V1.3 remains a supporting robustness result because the operating penalties are generic monotone penalties rather than a fully literature-derived industrial cost model.
+
+Primary evidence: `docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`, `data/rank_preservation_semiopen_v1_3.py`, and `data/rank_preservation_semiopen_v1_3_summary.csv`.
 
 ## Decision-aware AI benchmark — cross-model result
 
