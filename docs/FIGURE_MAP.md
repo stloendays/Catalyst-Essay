@@ -3,7 +3,9 @@
 Snapshot date: **2026-09-07**  
 Scientific basis: **NH3-FINAL-1.1** for ammonia headline values.
 
-This page preserves the original nine-figure logic but updates the ammonia values to the current canonical model. The purpose of each figure is a scientific claim, not simply a visualization of available data.
+This page preserves a compact **nine-figure** main-text architecture. The Au/TiO2 rank-preservation control is integrated into **Figure 9B** as the counterpoint to the ammonia inversion rather than added as a tenth standalone figure.
+
+The purpose of each figure is a scientific claim, not simply a visualization of available data.
 
 ## Figure 1 — NH3 atomic vs economic ranking
 
@@ -142,13 +144,15 @@ This page preserves the original nine-figure logic but updates the ammonia value
 
 ---
 
-## Figure 9 — Cross-reaction catalyst-economic leverage
+## Figure 9 — When catalyst rankings invert and when they survive
 
-**Question:** Is there one universal catalyst property that controls economic ranking across reactions?
+**Question:** Is ranking inversion an inevitable consequence of multiscale propagation, or does it depend on the topology of catalyst-to-process coupling?
+
+### Figure 9A — Cross-reaction catalyst-economic leverage
 
 **Content**
 - Put NH3 TOF and MeOH STY / conversion / CH4 suppression on a common cost-denominator basis.
-- Compare normalized leverage magnitudes and the pathways they activate.
+- Compare normalized leverage magnitudes and the downstream pathways they activate.
 
 **Canonical headline**
 - MeOH CH4-suppression / NH3 TOF normalized leverage ratio = **273–410**.
@@ -156,38 +160,50 @@ This page preserves the original nine-figure logic but updates the ammonia value
 
 **Claim supported:** economic leverage is **reaction- and process-pathway dependent**.
 
----
-
-## Rank-preservation control figure — Au/TiO2 CO oxidation V1.1
-
-**Question:** Does the multiscale implementation preserve an upstream ranking when the downstream mapping is fixed and physically monotonic?
+### Figure 9B — Au/TiO2 rank-preservation control
 
 **Content**
-- Mirror rank-flow figure for the 2–6 nm Au/TiO2 particle-size series.
-- Left: literature-calibrated intrinsic mass-activity order.
-- Right: required catalyst / catalyst-burden order at the same fixed reaction condition.
-- Straight rank-flow lines rather than the crossing lines expected for an inversion figure.
+- Reuse / adapt the existing mirror rank-flow figure `RP1_AuTiO2_rank_preservation_V1_1.svg`.
+- Left: literature-calibrated intrinsic mass-activity ranking across **2, 3, 4, 5 and 6 nm** Au particles.
+- Right: required catalyst-burden ranking at the common fixed process condition.
+- Show the same candidate order on both sides and annotate the fixed-condition / monotonic-mapping nature of the control.
 
-**Headline**
-- Activity order: **2 > 3 > 4 > 5 > 6 nm**.
-- Downstream burden order: **2 > 3 > 4 > 5 > 6 nm**.
+**Canonical headline**
+- Activity rank = burden rank = **2 > 3 > 4 > 5 > 6 nm**.
 - Spearman rho = **1.000**.
 - Kendall tau = **1.000**.
 - Pairwise inversions = **0**.
-- 10,000/10,000 predefined literature-envelope draws preserve the full order.
-- Literature calibration contracts the 6 nm / 2 nm required-mass ratio from **19.42x to 8.064x (-58.5%)** without changing the ranking.
+- Full ranking preserved in **10,000 / 10,000** predefined literature-envelope draws.
+- Literature-calibrated 6 nm / 2 nm required-catalyst ratio = **8.064x**.
 
-**Claim supported:** the framework does not intrinsically destroy catalyst rankings; a rank can remain intact when the catalyst-to-process mapping is monotonic and does not activate a competing downstream penalty.
+**Writing boundary**
+- This is a **rank-preservation control**, not a full industrial TEA.
+- Do not assign unsupported absolute process economics to the Au/TiO2 system.
+- Its scientific role is to show that the implementation does not manufacture inversion when the downstream mapping is monotonic.
 
-Current vector asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).
+**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. It preserves upstream order under a monotonic fixed-condition mapping, but can reshape or invert the decision frontier when catalyst properties couple differently into inventory, process severity, recycle, separation or other downstream cost pools.
+
+Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).
 
 ---
 
 ## Working main-text allocation
 
-A compact main narrative can be built around **F1, F2, F5, F6, F8 and F9**. Figures **F3, F4 and F7** are strong candidates for Extended Data / Supporting Information unless the uncertainty and process-reoptimization story is given more main-text space.
+A compact main narrative can be built around **F1, F2, F5, F6, F8 and F9**. Figures **F3, F4 and F7** remain strong candidates for Extended Data / Supporting Information unless the uncertainty and process-reoptimization story is given more main-text space.
 
-The Au/TiO2 rank-preservation control is currently best treated as a **compact companion to F1 or an Extended Data control**, rather than forcing a tenth full main-text figure.
+Within F9, the preferred main-text structure is:
+
+```text
+F9A  pathway-specific economic leverage across NH3 and MeOH
+F9B  Au/TiO2 rank-preservation counterexample
+```
+
+This closes the manuscript with a falsifiable distinction:
+
+```text
+monotonic downstream mapping -> ranking can survive
+competing / reoptimized downstream pathways -> ranking can reshape or invert
+```
 
 This allocation is a working editorial recommendation, not a frozen scientific result.
 
