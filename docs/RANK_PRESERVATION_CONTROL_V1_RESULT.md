@@ -1,47 +1,16 @@
-# Rank-Preservation Control V1 — Result
+# Rank-Preservation Control V1 — result
 
-Branch: `rank-preservation-au-tio2-v1`  
-GitHub Actions run: `34085636247`  
-Runner conclusion: **success**
+Status: **superseded by the literature-calibrated V1.1 physical mapping for current use**.
 
-## Result
+The original V1 established the control logic and preregistered pass/fail criteria using a relative monotonic downstream burden mapping. Its purpose was methodological: verify that the implementation can preserve an upstream catalyst ordering when no competing downstream penalty is introduced.
 
-The frozen five-state Au/TiO2 control preserved the upstream activity order exactly after downstream inventory/economic propagation:
+V1 produced exact preservation for the 2–6 nm Au/TiO2 particle-size series under the frozen relative mapping.
 
-`2 nm > 3 nm > 4 nm > 5 nm > 6 nm`
+For current manuscript and repository use, refer to:
 
-for both intrinsic activity and lowest catalyst-dependent economic burden.
+- [`RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`](RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md)
+- [`RANK_PRESERVATION_CONTROL_V1_1_RESULT.md`](RANK_PRESERVATION_CONTROL_V1_1_RESULT.md)
+- [`../data/rank_preservation_control_v1_1.csv`](../data/rank_preservation_control_v1_1.csv)
+- [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg)
 
-Frozen metrics:
-
-- full-set Spearman rho = **1.000**;
-- Kendall tau = **1.000**;
-- pairwise inversions = **0**;
-- exact Top-3 preservation = **true**;
-- winner preservation = **true**;
-- preregistered 10,000-draw full-rank preservation probability = **1.0000**;
-- all six preregistered criteria = **PASS**.
-
-The independent slope diagnostics at `n = 0.9`, `1.7` and `1.8` all produced the same preserved ranking with rho = 1, tau = 1 and zero inversions.
-
-## What this result means
-
-This is a **methodological rank-preservation control**. It demonstrates that the implementation does not intrinsically manufacture ranking inversion when:
-
-- all candidates share the same active element and support;
-- catalyst price is common across candidate states;
-- stream temperature, pressure, feed and process topology are fixed externally;
-- activity and dispersion map monotonically into required catalyst inventory;
-- all catalyst-dependent downstream cost terms are positive functions of that inventory.
-
-## What this result does not mean
-
-The control is not an absolute industrial TEA and does not establish a universal particle-size law for every Au/TiO2 preparation. The upstream relation is a relative literature-anchored surrogate, and the economic output is a relative burden index rather than USD/t.
-
-The literature-validation document therefore remains part of the result: the control is restricted to the specific monotonic series and experimentally supported size interval used in the preregistration.
-
-## Promotion status
-
-**Do not merge into the manuscript-facing main branch as a final cross-reaction result yet.**
-
-The present V1 is strong enough to serve as a framework sanity / negative control, but a manuscript claim that compares it directly with the industrial NH3 and methanol cases would be stronger after one additional layer: replace the normalized treatment duty with an independently sourced fixed-condition application duty and validate the inventory/reactor scaling without introducing candidate-dependent process severity.
+V1.1 removes the arbitrary V1 burden coefficients, introduces literature-anchored activity and fixed-condition reactor quantities, documents the full parameter adjustment magnitude, and retains exact ranking preservation.
