@@ -89,20 +89,79 @@ Winner-only accuracy is not sufficient evidence. The scorer also checks whether 
 
 The benchmark contains frozen non-LLM baselines A-D plus a decision-aware policy E.
 
-The important comparison is not whether E always beats every scripted policy. It is whether decision-aware allocation can match or improve decision quality while avoiding unnecessary computation, especially at tight budgets.
-
-Current formal single-model record:
-
-- policy-E formal runs: **70** = 5 seeds x 7 budgets x anonymous/named;
-- all traces including A-D baselines: **392**;
-- infrastructure retries: **0**;
-- action errors: **0**;
-- anonymous complete correct decisions: **35/35**;
-- exact break-even recovery: **34/35**;
-- 250-500 CU: E and fixed-VOI D are effectively indistinguishable in decision quality;
-- E consumed about **218-268 CU** in that regime versus **247-281 CU** for D.
+Policy D is the fixed-VOI comparator. Its constants were frozen before the formal Agent evaluation. The purpose of the benchmark is not to assume E is better, but to test whether adaptive decision allocation improves decision quality or compute efficiency under fixed scientific-compute budgets.
 
 The 200-CU regime is particularly useful because it exposes incomplete or misallocated search rather than allowing every strategy to brute-force the full chain.
+
+## Frozen V1 and cross-model design
+
+DISCOVER V1 was frozen before the cross-model evaluation. Any change to the task, prompt, action schema, cost model, scorer, stopping rule, policy-D constants or other pinned files defines DISCOVER V2 rather than a repair of V1.
+
+Cross-model evaluation:
+
+- weak: `gpt-5.4-nano-2026-03-17`;
+- medium: `gpt-5.4-mini-2026-03-17`;
+- strong: `gpt-5.5-2026-04-23`;
+- budgets: **200, 250, 300, 500, 800, 1200, 2000 CU**;
+- policy E: **5 independent runs per budget per anonymous/named variant**;
+- 140 new traces for nano/mini; strong-tier V1 traces reused and re-scored;
+- frozen hashes PASS before and after;
+- 0 API retries and 0 driver exceptions.
+
+## Cross-model result: workflow execution capability
+
+On the anonymous closed-book task, complete decision recovery was:
+
+```text
+nano        6/35
+mini       15/35
+strong     35/35
+```
+
+A complete decision requires the full chain:
+
+```text
+economic winner
+ -> decision pair
+ -> backward target
+ -> reachability verdict
+```
+
+The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier completes the full chain at every budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
+
+This is a **positive Agent-framework result**: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability.
+
+## Pre-registered E versus fixed-VOI D: negative result
+
+The stronger pre-registered claim was that adaptive policy E would reliably outperform fixed-VOI policy D.
+
+That claim was **not supported across model tiers**.
+
+- The repeatable 200-CU adaptive-scope advantage appeared only in the strong tier.
+- Nano and mini did not reproduce the narrow-window strategy.
+- The pre-registered Agent-specific Go criterion — E beats D in at least 4/5 runs at one budget and in at least two model tiers — was **not met**.
+- D has zero decision regret at every budget where it resolves the decision, so that component can tie but cannot be improved by E.
+
+This negative result is retained exactly as evaluated. It is **not** evidence that the whole Agent framework fails. It rejects only the universal superiority claim:
+
+> **Adaptive Agent E is not generally superior to fixed-VOI D across model capability tiers.**
+
+The supported combined statement is:
+
+> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is capability-dependent rather than universal.**
+
+## Failure structure in weaker tiers
+
+The weak-tier failures are informative rather than being removed as implementation noise:
+
+- wrong or unformed decision pair;
+- BACKWARD omitted or executed on the wrong pair;
+- reachability tested with an invalid/self-referential multiplier;
+- undeclared tool arguments or unaffordable action requests;
+- stopping with unresolved candidates;
+- spending additional CU after the winner is already stable.
+
+These are scored as observed. No run was retried or tuned to improve a benchmark cell.
 
 ## What counts as a meaningful AI result
 
@@ -116,18 +175,20 @@ A scientifically useful agent result should demonstrate one or more of the follo
 
 This is closer to value-of-information / decision-focused acquisition than to generic workflow automation.
 
-## Cross-model stability record (2026-09-06/07)
+## Evidence hierarchy
 
-Items 1–2 of the earlier plan are done on the frozen V1 protocol (`docs/CROSS_MODEL_DISCOVER_V1.md`, `docs/CROSS_MODEL_STATS_V1.md`):
+For current Agent claims, use these sources in order:
 
-- the complete correct decision is a property of the strong tier, not of "an LLM agent": anonymous pooled P(full) 6/35 (nano), 15/35 (mini), 35/35 (gpt-5.5);
-- the discriminating components are the pair decision and the reachability verdict; the winner alone is price-prior-recoverable in every tier;
-- the 200-CU adaptive-scope advantage is strong-tier-only (narrow windows 7/70 vs 0/140);
-- under-resolution → over-confirmation reproduces and is amplified in weaker tiers, which show both at once;
-- weak tiers add a tool-interface error class (undeclared arguments, unaffordable requests) that costs turns, not CU;
-- the pre-registered agent-specific Go against fixed-VOI D is not met across tiers (negative result, kept).
+1. frozen V1 hashes and protocol pins;
+2. scored traces / per-trace failure records;
+3. `docs/CROSS_MODEL_STATS_V1.md`;
+4. `docs/CROSS_MODEL_DISCOVER_V1.md`;
+5. manuscript and README summaries.
+
+Do not revert to older drift/extrapolation-only summaries or describe the cross-model benchmark as pending.
 
 ## Current next tests
 
-1. add a negative-reaction case where atomic ranking should largely survive economic propagation (not started);
-2. keep the same frozen scorer and protocol while testing transfer; protocol changes go to DISCOVER V2.
+1. preserve DISCOVER V1 unchanged as the frozen benchmark record;
+2. move any scorer weighting, tool-schema hardening or protocol redesign into DISCOVER V2;
+3. continue transfer tests without rewriting the V1 negative result.
