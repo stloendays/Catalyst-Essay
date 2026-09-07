@@ -1,0 +1,129 @@
+project:
+  name: Catalyst Economic Leverage
+  reaction: N2O_decomposition
+  harness_version: 0.2.0
+  model_version: N2O-NEGCTRL-0.1
+  run_label: n2o_negctrl
+  role: negative control (rank-preservation reaction) for the NH3-FINAL-1.1 inversion result
+  scientific_scope: >
+    Direct catalytic N2O decomposition (2 N2O -> 2 N2 + O2) in nitric-acid-plant tail gas, tertiary position,
+    once-through fixed bed, no recycle, no separation, no purge. Catalyst activity enters the economics only through
+    catalyst inventory (metal mass, bed volume, vessel) and through the operating temperature needed to reach the
+    fixed conversion target (heating duty, pressure drop). All numbers in `kinetics` and `descriptor` are declared
+    reconstruction values (see NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md, section 3); nothing in this file is
+    inherited from, or feeds back into, configs/nh3_final.yaml.
+inputs:
+  none: descriptor values are declared below; no external workbook
+candidate_set:
+  metals: [Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au]
+  prices_USD_kg_source: identical to harness_core.PRICE (NH3-FINAL-1.1 price basis), copied here by the runner at freeze time, not edited
+  molar_masses_source: identical to harness_core.MW
+descriptor:
+  name: oxygen adsorption energy dE_O
+  unit: eV, relative to 1/2 O2(g), close-packed surface, most stable site
+  status: reconstruction v0.1 (literature-consistent magnitudes; not primary-verified in this session)
+  values_eV:
+    W: -3.45
+    Mo: -3.20
+    Re: -2.90
+    Fe: -2.55
+    Os: -2.30
+    Ru: -2.15
+    Co: -2.05
+    Ni: -1.85
+    Rh: -1.65
+    Ir: -1.55
+    Pd: -1.25
+    Cu: -1.05
+    Pt: -0.90
+    Ag: -0.45
+    Au: 0.25
+  ordering_note: ordering W<Mo<Re<Fe<Os<Ru<Co<Ni<Rh<Ir<Pd<Cu<Pt<Ag<Au on the 1/2 O2 scale (Norskov 2004 / Abild-Pedersen 2007 magnitudes, from memory; hence the +-0.30 eV MC)
+kinetics:
+  mechanism:
+    - "R1: N2O + * -> N2(g) + O*        (irreversible; BEP barrier on dE_O; collision-limited prefactor)"
+    - "R2: 2 O* <-> O2(g) + 2 *         (reversible; associative desorption; mean-field O-O repulsion)"
+  site_balance: theta_* + theta_O = 1 (N2O* not accumulated at 1500 ppmv)
+  lateral_interaction:
+    model: mean-field, effective per-O binding dE_O_eff = dE_O + eps * theta_O
+    eps_eV_per_ML: 1.0
+  R1_BEP:
+    Ea_eV: max(0, a1 * dE_O + b1)
+    a1: 0.30
+    b1: 1.60
+    prefactor_s-1_bar-1: 1.0e8
+    prefactor_note: hard-sphere collision flux of N2O per surface site at 1 bar (~1.2e8 s-1); sticking encoded in Ea
+  R2_desorption:
+    Ea_eV: max(0, -dE_O_eff) + 0.30
+    prefactor_s-1: 1.0e13
+    adsorption_entropy_loss_eV_per_K: 2.0e-4
+    equilibrium: K_O(T, theta) = exp(-(dE_O_eff + T * dS_loss) / kT) per O atom; theta_O / theta_* = sqrt(K_O * pO2) at equilibrium
+  steady_state: r1 = k1 pN2O theta_* ; r2_net = k2 theta_O^2 - k2 * (theta_*^2 * K_O^2 * pO2) [detailed balance] ; solve r1 = 2 r2_net for theta_O in (0,1) with the mean-field dE_O_eff(theta_O)
+  TOF_definition: N2O molecules converted per site per second at the stated (T, pN2O, pO2)
+atomic_reference:
+  temperature_C: 450.0
+  pressure_bar: 10.0
+  yN2O: 0.0015
+  yO2: 0.030
+  activity_metric: log10 TOF at the reference condition (single common condition, before any process optimization)
+tail_gas:
+  flow_Nm3_h: 200000.0
+  pressure_bar: 10.0
+  yN2O_in: 0.0015
+  yO2: 0.030
+  available_temperature_C: 420.0
+  cp_J_mol_K: 30.5
+  gas_molar_mass_kg_mol: 0.0294
+  viscosity_Pa_s: 3.6e-5
+  conversion_target: 0.98
+  note: 1500 t/d nitric acid plant basis (200 000 Nm3/h tail gas, 1500 ppmv N2O, ~1500 t/d-class plants report 800-1900 ppmv); isothermal PFR (adiabatic rise < 5 K)
+process:
+  temperature_C: {start: 350, stop: 650, step: 5}
+  bed_diameter_m: [2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 7.0, 8.0]
+  reoptimised_per_catalyst: true
+engineering:
+  metal_loading_wt_fraction: 0.01
+  dispersion: 0.30
+  bed_bulk_density_kg_m3: 1000.0
+  pellet_diameter_m: 0.004
+  bed_void_fraction: 0.40
+  max_catalyst_bed_m3: 300.0
+  max_pressure_drop_bar: 0.5
+economics:
+  objective: USD per tonne N2O destroyed (reduced catalyst-dependent cost; boundary = metal inventory + reactor vessel incl. pressure premium + heating fuel above available tail-gas temperature + expander work lost to bed pressure drop)
+  discount_rate: 0.12
+  plant_life_y: 25
+  catalyst_life_y: 5.0
+  metal_recovery_fraction: 0.0
+  capacity_factor: 0.95
+  fuel_USD_GJ: 8.0
+  heat_recovery_fraction: 0.60
+  electricity_USD_MWh: 50.0
+  expander_efficiency: 0.85
+  reactor_fixed_USD: 66800.0
+  reactor_variable_USD: 268000.0
+  reactor_reference_m3: 20.0
+  reactor_exponent: 0.52
+  pressure_capex:
+    enabled: true
+    basis: same Turton vertical-vessel pressure-factor method as NH3-FINAL-1.1 (constants copied, not edited)
+    cost_index_base: 397.0
+    cost_index_current: 797.9
+    vessel: {K: [3.4974, 0.4485, 0.1074], A_min_m3: 0.3, A_max_m3: 520.0, extrapolation_exponent: 0.6, B2: 1.82, Fm: 1.0, L_over_D: 3.0, allowable_stress_x_weld_eff_bar: 850.0, corrosion_allowance_m: 0.00315, min_thickness_m: 0.0063}
+uncertainty:
+  draws: 1000
+  seed: 20260907
+  descriptor_uniform_half_width_eV: 0.30
+  applies_to: all 15 candidates independently
+rank_preservation_criteria:
+  evaluated_on: feasible candidates after per-candidate (T, D) re-optimization; infeasible candidates censored to the mean of the remaining ranks (same convention as NH3-FINAL-1.1)
+  C1_atomic_winner_is_economic_winner: true
+  C2_top3_spearman_min: 0.5
+  C3_top5_spearman_min: 0.5
+  C4_full_set_spearman_min: 0.85
+  C5_pairwise_inversion_fraction_max: 0.15
+  C6_kendall_tau_full_min: 0.70
+  pass_rule: all of C1-C6 on the deterministic run; MC reports the fraction of draws satisfying C1 and C2
+reference_comparison:
+  nh3_canonical_run: outputs/nh3_final_20260905T134204Z
+  nh3_metrics_recomputed_from_results_json: [top3_spearman, top5_spearman, full_spearman_raw, kendall_tau_full, pairwise_inversion_fraction, atomic_winner_is_economic_winner]

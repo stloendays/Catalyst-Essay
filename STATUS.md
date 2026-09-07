@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-07**
+Snapshot date: **2026-09-07 (negative control added)**
 
 ## Canonical scientific model
 
@@ -83,11 +83,19 @@ Latest recorded formal run:
 - Pre-registered agent-specific Go (E beats D, ≥ 4/5 runs, ≥ 2 tiers): **not met** — recorded as a negative result.
 - Reports: `docs/CROSS_MODEL_DISCOVER_V1.md`, `docs/CROSS_MODEL_STATS_V1.md`; figures `figures/discover_cross_model/`.
 
+## Negative control N2O-NEGCTRL-0.1 / 0.2 (completed 2026-09-07)
+
+- Pre-registered before computing (`docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md`); V0.2 changes only the O–O repulsion (1.0 → 1.5 eV/ML), registered in the addendum after the V0.1 atomic order contradicted the experimental metal order and before any economic output was read.
+- Both versions **FAIL** all six rank-preservation criteria. V0.2: atomic Rh > Ir > Ni > Pd > Cu; economic Ni > Cu > Co > Ag > Fe > Pd > Ru > Rh; Top-3 rho −0.50; 25/55 feasible pairs inverted; economic winner Ni/Co/Cu in 100 % of 1000 descriptor draws.
+- Mechanism: inventory ↔ severity through metal price (PGMs at the 650 °C bound, heating 347 USD/t > Ni total 93 USD/t at 445 °C). Equal-price diagnostic: full-set rho 0.97.
+- Manuscript consequence: recycle restructuring is sufficient but not necessary for inversion; the cross-reaction section is reframed around the severity variable (pressure in NH3, temperature in N2O, selectivity–recycle in MeOH).
+- Absolute USD/t are reconstruction values (descriptor set and BEP parameters not primary-verified); not citable as process economics.
+
 ## Next validation layer
 
 The project plan currently points to:
 
-1. a negative-reaction control where atomic ranking should largely survive economic propagation (not started);
+1. a genuinely rank-preserving control (candidates within one price class, or a process whose severity variable is externally fixed) if the manuscript still needs one — NEGATIVE CONTROL V0.3, not started;
 2. continued manuscript integration using NH3-FINAL-1.1 only;
 3. any protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
 

@@ -16,3 +16,12 @@ The repository should use NH3-FINAL-1.1 values for current claims. NH3-FINAL-1.0
 - `cross_model_metadata_2026-09-06.json` — run metadata: exact model IDs, token totals, 0 retries / 0 driver exceptions, frozen-hash checks PASS before and after.
 - `discover_frozen_v1_hashes.json` — the 15 SHA-256 hashes that define DISCOVER V1.
 - `cross_model_analysis.py`, `cross_model_stats.py`, `cross_model_stats_figure.py` — the read-only analysis scripts (copied from the harness; they run against the harness directory, not against this repository).
+
+### `negative_control/` (N2O decomposition rank-preservation control, 2026-09-07)
+
+- `NEGATIVE_CONTROL_V0_{1,2}_CANONICAL_RESULTS.csv` — per-metal atomic rank, economic rank, optimum (T, D, bed, metal mass), cost pools, activity elasticity.
+- `NEGATIVE_CONTROL_V0_{1,2}_FROZEN.json` — SHA-256 pins of manifest, pre-registration, price source and the read-only NH3 reference.
+- `n2o_negcontrol_v0_{1,2}.yaml` — frozen manifests (descriptor set, kinetics, plant basis, grids, economics, criteria).
+- `provenance_v0_{1,2}.json` — run provenance (config / frozen / code hashes, platform).
+- `diagnostics_equal_price_v0_2.json` — equal-price diagnostic (not part of the frozen protocol).
+- `n2o_core.py`, `run_negctrl.py`, `make_figures.py`, `diag_equal_price.py` — the chain, runner, figures and diagnostic (run against the harness directory).

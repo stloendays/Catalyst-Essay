@@ -76,6 +76,26 @@ For the current CO2-to-methanol benchmark, the local economic leverages are:
 
 After aligning the cost denominator, the normalized **MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410**, with a midpoint near **328**. This supports a pathway-specific interpretation: ammonia activity mainly acts through the **activity -> inventory / reactor-demand** pathway, while methanol selectivity acts through **feed loss -> purge / recycle**.
 
+## Negative control: N2O decomposition (rank-preservation test, 2026-09-07)
+
+A pre-registered control reaction was built to test whether the ammonia inversion needs recycle / separation / purge restructuring. Direct N2O decomposition in nitric-acid tail gas is once-through, dilute and conversion-fixed, so catalyst activity enters the economics only through inventory and operating temperature. Same 15 metals, same price basis, per-candidate re-optimization of temperature and bed geometry.
+
+| N2O-NEGCTRL-0.2 (feasible-censored) | value | NH3-FINAL-1.1 |
+|---|---:|---:|
+| atomic top-3 | Rh > Ir > Ni | Ru > Os > Fe |
+| economic top-3 | Ni > Cu > Co | Fe > Ru > Os |
+| atomic winner = economic winner | no (Rh → Ni) | no (Ru → Fe) |
+| Top-3 Spearman rho | **−0.50** | −0.50 |
+| full-set Spearman rho / Kendall tau | 0.59 / 0.46 | 0.68 / 0.55 |
+| pairwise inversions among feasible pairs | 25 / 55 | 2 / 3 |
+| economic winner in 1000 descriptor draws (±0.30 eV) | Ni 73 %, Co 17 %, Cu 11 % | — |
+
+**The control fails**: the ranking inverts by the same mechanism as in ammonia. Every precious metal is pushed to the 650 °C bound, where its heating pool alone exceeds the total cost of Ni at 445 °C. With all metals priced equally the full-set correlation rises to 0.97. Recycle restructuring is therefore sufficient but not necessary for a frontier inversion; the necessary condition is an operating variable (pressure in NH3, temperature in N2O) through which an expensive active catalyst can buy down its inventory. Absolute USD/t values are reconstruction-level and not citable process economics.
+
+Report and pre-registration: [`docs/NEGATIVE_CONTROL_V0_1_REPORT.md`](docs/NEGATIVE_CONTROL_V0_1_REPORT.md), [`docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md`](docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md), [`docs/NEGATIVE_CONTROL_V0_2_ADDENDUM.md`](docs/NEGATIVE_CONTROL_V0_2_ADDENDUM.md); figures [`figures/negative_control_n2o/`](figures/negative_control_n2o/).
+
+![N2O rank propagation](figures/negative_control_n2o/F1_ranking_propagation_V0_2.png)
+
 ## Decision-aware DISCOVER benchmark
 
 The current AI benchmark is deliberately closed-book and budgeted. The agent receives an anonymous candidate set and can choose among 11 fine-grained scientific actions rather than requesting the entire answer at once.

@@ -43,3 +43,7 @@ Generated 2026-09-06/07 from `DISCOVER_CROSS_MODEL_V1` on the frozen DISCOVER V1
 | `X7_failure_mode_matrix.png` | 19 failure modes × model × variant |
 | `X8_failure_by_budget_anonymous.png` | failure modes by budget, anonymous task |
 | `X9_wilson_ci_pooled.png` | pooled / ≤300 CU / ≥500 CU outcomes with Wilson 95 % CI, all tiers (statistics page) |
+
+## Negative control N2O figures (`negative_control_n2o/`)
+
+Model N2O-NEGCTRL-0.2 unless suffixed `_V0_1`. F1 atomic-vs-economic rank; F2 rolling Top-K (N2O vs NH3-FINAL-1.1); F3 cost pools at each candidate's own optimum; F4 cost-vs-temperature envelopes; F5 Monte-Carlo rank preservation (1000 draws, ±0.30 eV).
