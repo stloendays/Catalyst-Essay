@@ -1,6 +1,6 @@
 # Manuscript skeleton — current working version
 
-Snapshot date: **2026-09-06**  
+Snapshot date: **2026-09-07**  
 All ammonia headline values below use **NH3-FINAL-1.1**.
 
 ## Working title options
@@ -144,21 +144,33 @@ The manuscript-level conclusion is that atomic-to-economic ranking inversion is 
 
 Primary figure: F9.
 
-### 3.6 Decision-aware computation allocation
+### 3.6 Decision-aware computation allocation is model-capability dependent
 
-The DISCOVER benchmark evaluates whether an AI agent can spend limited scientific compute where it matters to the downstream decision.
+DISCOVER V1 evaluates whether an AI agent can allocate limited scientific compute to the parts of the multiscale chain that matter to the final industrial decision. The protocol was frozen before the cross-model test: the task, prompt, 11-action schema, CU cost model, scorer, stopping rule and A-D baselines were unchanged.
 
-Frozen single-model benchmark facts:
+Cross-model design:
 
-- 11 fine-grained scientific actions
-- 1 CU = 1000 MKM state solves
-- 70 policy-E runs = 5 seeds x 7 budgets x anonymous/named
-- 392 total traces including A-D baselines
-- anonymous complete correct decision: **35/35**
-- exact break-even recovery: **34/35**
-- 0 infrastructure retries and 0 action errors
+- three model tiers: nano, mini and strong;
+- seven budgets: **200, 250, 300, 500, 800, 1200 and 2000 CU**;
+- five independent policy-E runs per budget per variant;
+- anonymous closed-book task used for the primary claim;
+- 140 new weak/medium traces plus the reused frozen strong-tier V1 traces.
 
-The benchmark should not be summarized as “the agent can use tools.” The useful result is that budget allocation can be evaluated against decision completeness, break-even recovery, reachability and wasted computation.
+Anonymous complete-decision recovery was:
+
+- nano: **6/35**
+- mini: **15/35**
+- strong: **35/35**
+
+A complete decision requires the whole chain — economic winner, decision pair, backward target and reachability verdict. The positive result is therefore **workflow-execution capability**: complete decision recovery rises strongly with underlying model capability (pooled tier trend Z = **6.95**), and the strong model executes the full decision-aware chain reliably.
+
+The stronger pre-registered claim did **not** hold. Policy E did not demonstrate robust, cross-tier superiority over the deterministic fixed-VOI policy D. The adaptive narrow-window advantage at **200 CU** was repeatable only in the strong tier and did not reproduce in nano or mini. The pre-registered Agent-specific Go criterion was therefore **not met**.
+
+This negative result is retained rather than tuned away. It rejects the general claim **"adaptive Agent E is universally better than fixed-VOI D"**, but it does not reject the Agent framework. The supported statement is:
+
+> **A strong model can execute and exploit decision-aware allocation, but the advantage of adaptive Agent allocation over a fixed-VOI strategy is model-capability dependent rather than universal.**
+
+Primary evidence: `CROSS_MODEL_DISCOVER_V1.md`, `CROSS_MODEL_STATS_V1.md`, frozen hashes and scored traces.
 
 ## 4. Discussion
 
@@ -180,6 +192,10 @@ Instead of asking whether a catalyst can be made “more active,” the framewor
 
 A new reaction should not inherit the ammonia mechanism by analogy. The relevant question is which catalyst property controls which downstream cost pool in that process architecture.
 
+### 4.5 Agent claims should separate execution capability from policy superiority
+
+The cross-model benchmark shows that the ability to complete a multistep decision chain is itself capability-dependent. At the same time, a capable adaptive agent does not automatically dominate a strong deterministic VOI baseline. These are distinct claims and should be reported separately.
+
 ## 5. Figures
 
 See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values.
@@ -197,7 +213,7 @@ A compact Methods section can be organized as:
 7. Backward-design and scaling reachability
 8. Methanol recycle/separation model
 9. Cross-reaction leverage normalization
-10. Decision-aware AI harness and DISCOVER benchmark
+10. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
 
 ## 7. Supporting Information priorities
 
@@ -212,6 +228,8 @@ Supporting Information should contain the technical evidence needed to trust the
 - complete DISCOVER action schema, scorer and budget curves
 - named vs anonymous benchmark controls
 - zero-tool prior probe
+- cross-model per-trace scores and failure matrix
+- pre-registered E-vs-D Go/No-Go evaluation
 
 ## Version note
 
