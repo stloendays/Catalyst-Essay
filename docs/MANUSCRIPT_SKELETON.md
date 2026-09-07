@@ -13,10 +13,10 @@ All ammonia headline values below use **NH3-FINAL-1.1**.
 
 The abstract should carry the scientific logic rather than a long list of numbers:
 
-1. **Where inversion occurs:** atomic and economic rankings diverge at the decision frontier in ammonia synthesis.
+1. **Where inversion occurs:** atomic and economic rankings diverge at the decision frontier in ammonia synthesis, and Re-normalized catalyst-state rankings are reshaped after explicit recycle/separation economics in CO2-to-methanol.
 2. **Why inversion is conditional rather than inevitable:** a literature-calibrated Au/TiO2 fixed-condition control preserves the upstream ranking exactly when the downstream mapping is monotonic.
 3. **How uncertainty and design targets propagate:** atomistic uncertainty can be amplified or attenuated, and backward design can place an economically required catalyst target outside the reachable scaling manifold.
-4. **How the mechanism transfers:** the dominant downstream economic pathway changes across reactions, exemplified by activity–inventory coupling in NH3 and selectivity–recycle coupling in CO2-to-methanol.
+4. **How the mechanism transfers:** NH3 inversion follows an activity–inventory / reactor-demand pathway, whereas the MeOH inversion follows a selectivity–recycle pathway; the MeOH top-rank reversal also depends on which upstream screening metric is used.
 
 A final sentence can introduce the AI layer without making it the source of the physical result: the frozen DISCOVER benchmark tests whether an agent can allocate finite scientific compute to the parts of this chain that matter to the downstream decision.
 
@@ -120,19 +120,36 @@ The result should be written as an **activity-only infeasibility signal under th
 
 Primary figures: F5, F6.
 
-### 3.4 Methanol economics are controlled by a selectivity–recycle pathway
+### 3.4 Methanol catalyst-state rankings invert through a selectivity–recycle pathway
 
-The explicit CO2-to-methanol loop couples catalyst performance to fresh feed demand, gas accumulation, purge, recycle compression and downstream equipment burden.
+The restored D01 v3 CO2-to-methanol case contains four Re/TiO2 catalyst–temperature states evaluated through the same explicit recycle/separation loop at **2% purge**. Using **STY per g Re** as the upstream intrinsic-productivity metric, the upstream ranking is:
 
-Current local leverages:
+```text
+1 wt% Re, 250 C   #1   65 g MeOH / g Re / h
+1 wt% Re, 200 C   #2   55
+5 wt% Re, 200 C   #3   18
+5 wt% Re, 250 C   #4   16
+```
 
-- STY: **0.00289**
-- single-pass conversion: **0.05883**
-- CH4 suppression: **0.37579**
+After propagation to near-full-plant NPC, the economic ranking becomes:
 
-Methane suppression dominates in the current benchmark because it changes both material loss and recycle architecture.
+```text
+5 wt% Re, 200 C   #1   943 EUR/t
+1 wt% Re, 200 C   #2   967 EUR/t
+1 wt% Re, 250 C   #3   975 EUR/t
+5 wt% Re, 250 C   #4   1258 EUR/t
+```
 
-Primary figures: F7, F8.
+The intrinsic per-Re winner therefore falls from **#1 to #3**, while **5 wt% Re / 200 C** becomes the economic winner. Across the four states, **Spearman rho = 0.20**, **Kendall tau = 0.00**, and **3 of 6 pairwise comparisons invert**.
+
+The inversion is mechanistically consistent with a **selectivity–recycle pathway** rather than a single-variable monotonic penalty. The explicit loop couples CH4 formation to H2 feed loss, gas accumulation, purge, recycle compression and equipment burden. The most CH4-rich state, **5 wt% Re / 250 C** with **S_CH4 = 0.25**, has the highest NPC despite the highest single-pass conversion. Local leverage at that benchmark is **0.00289** for STY, **0.05883** for conversion and **0.37579** for CH4 suppression.
+
+The upstream metric matters. Using single-pass yield or STY per g catalyst gives the same global rank statistics (**rho = 0.20, tau = 0, 3/6 inversions**) but the upstream winner then coincides with the economic winner. The **top-rank inversion is therefore specific to the Re-normalized intrinsic screening metric**, which is itself a manuscript-level result about screening-objective choice.
+
+Boundary: these are **catalyst–temperature states**, not four independently reoptimized catalyst identities. Temperature and pressure are measured literature points, Re purchase price is excluded from the NPC by design, and the MeOH case should not be described as candidate-specific process reoptimization analogous to NH3.
+
+Primary figures: F7, F8.  
+Primary evidence: `MEOH_RANKING_INVERSION.md`, `data/meoh/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx`, provenance JSON and rebuilt ranking figure.
 
 ### 3.5 Cross-reaction comparison reveals pathway-specific economic leverage
 
@@ -143,7 +160,7 @@ This supports a reaction-specific interpretation:
 - NH3: **activity -> inventory / reactor-demand** pathway
 - MeOH: **selectivity -> feed-loss / purge / recycle** pathway
 
-The manuscript-level conclusion is that atomic-to-economic ranking inversion is not governed by one universal catalyst variable. The dominant mechanism depends on how a catalyst property couples into downstream process cost pools.
+The manuscript-level conclusion is that catalyst ranking inversion is not governed by one universal variable or one universal propagation mechanism. In NH3, candidate-specific process/economic reoptimization reshapes the decision frontier. In MeOH, a different ranking reshuffle appears when an intrinsic per-Re productivity objective is propagated through selectivity-sensitive recycle economics. The choice of upstream screening objective can therefore matter alongside the downstream process coupling.
 
 Primary figure: F9A.
 
@@ -163,7 +180,7 @@ with **Spearman rho = 1.000**, **Kendall tau = 1.000**, **0 pairwise inversions*
 
 This control is deliberately **not** a full industrial TEA and should not be given unsupported absolute process economics. Its role is narrower and more important: it shows that the same multiscale implementation preserves an upstream ranking when the downstream mapping remains monotonic and no competing process-severity or topology penalty is introduced.
 
-The combined interpretation of F1–F9 is therefore conditional rather than universal: multiscale propagation can **preserve** a catalyst ranking or **invert** it depending on how catalyst properties couple to downstream process and economic pathways.
+The combined interpretation of F1–F9 is therefore conditional rather than universal: multiscale propagation can **preserve** a catalyst ranking or **invert / reshape** it depending on how catalyst properties and screening objectives couple to downstream process and economic pathways.
 
 Primary figure: F9B.  
 Primary evidence: `RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`, `rank_preservation_control_v1_1.csv`.
@@ -202,7 +219,7 @@ The Discussion should focus on implications rather than restating results.
 
 ### 4.1 Screening objectives should be defined at the level of downstream economic leverage
 
-A catalyst property is valuable only insofar as it changes a process pathway that matters to the industrial objective. High intrinsic sensitivity is therefore not equivalent to high economic leverage.
+A catalyst property is valuable only insofar as it changes a process pathway that matters to the industrial objective. High intrinsic sensitivity is therefore not equivalent to high economic leverage. The MeOH case adds a second point: the apparent decision-frontier inversion can also depend on whether the upstream screen is defined per active metal, per total catalyst mass or by yield.
 
 ### 4.2 The relevant uncertainty is decision sensitivity, not atomistic uncertainty alone
 
@@ -218,9 +235,9 @@ A new reaction should not inherit the ammonia mechanism by analogy. The relevant
 
 ### 4.5 Ranking inversion is conditional, not an intrinsic consequence of adding more model layers
 
-The Au/TiO2 control provides the counterfactual needed to interpret the ammonia result. Under a fixed-condition monotonic mapping, the upstream ordering survives unchanged even after the catalyst-demand layer is propagated. Ranking inversion therefore requires a competing downstream pathway capable of changing relative candidate burden; it is not produced merely by passing through a multiscale workflow.
+The Au/TiO2 control provides the counterfactual needed to interpret the two inversion cases. Under a fixed-condition monotonic mapping, the upstream ordering survives unchanged even after the catalyst-demand layer is propagated. The observed inversions in NH3 and MeOH therefore cannot be attributed merely to passing through more model layers; they emerge when downstream coupling changes relative candidate burden, and in MeOH the top-rank reversal also depends on the upstream normalization used for screening.
 
-This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties and downstream decision variables**.
+This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties, screening objectives and downstream decision variables**.
 
 ### 4.6 Agent claims should separate execution capability from policy superiority
 
@@ -241,10 +258,11 @@ A compact Methods section can be organized as:
 5. Pressure-dependent equipment and catalyst-dependent economics
 6. Uncertainty propagation
 7. Backward-design and scaling reachability
-8. Methanol recycle/separation model
-9. Cross-reaction leverage normalization
-10. Au/TiO2 fixed-condition rank-preservation control and literature calibration
-11. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
+8. Methanol candidate-state definition and explicit recycle/separation model
+9. Methanol upstream-to-economic rank reconstruction and screening-metric definitions
+10. Cross-reaction leverage normalization
+11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
+12. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
 
 ## 7. Supporting Information priorities
 
@@ -256,6 +274,7 @@ Supporting Information should contain the technical evidence needed to trust the
 - detailed operating envelopes
 - cost-pool decomposition
 - scaling-manifold derivation
+- MeOH D01 v3 workbook provenance, four-state rank table, alternative upstream metrics and pairwise inversion accounting
 - Au/TiO2 rank-preservation preregistration, literature anchors, sensitivity envelope and full 10,000-draw preservation test
 - complete DISCOVER action schema, scorer and budget curves
 - named vs anonymous benchmark controls
