@@ -1,6 +1,6 @@
 # Results at a glance
 
-Snapshot: **2026-09-06**
+Snapshot: **2026-09-07**
 
 ## Ammonia ranking inversion
 
@@ -91,6 +91,28 @@ This is the quantitative basis for the current pathway-specific interpretation:
 NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
+
+## Rank-preservation control
+
+The literature-calibrated Au/TiO2 CO-oxidation control uses a fixed process condition and a common catalyst chemistry across a 2–6 nm Au particle-size series.
+
+```text
+Intrinsic activity rank      Downstream catalyst-burden rank
+2 nm   #1                    2 nm   #1
+3 nm   #2                    3 nm   #2
+4 nm   #3         ->         4 nm   #3
+5 nm   #4                    5 nm   #4
+6 nm   #5                    6 nm   #5
+```
+
+- Spearman rho: **1.000**
+- Kendall tau: **1.000**
+- Pairwise inversions: **0**
+- 10,000/10,000 predefined literature-envelope draws preserve the full ranking
+- 6 nm / 2 nm required-mass ratio after literature calibration: **8.064x**
+- relative to V1, that mass-ratio spread decreases by **58.5%** while the order remains unchanged
+
+This control supports the methodological statement that multiscale propagation can preserve an upstream ordering when the downstream mapping remains physically monotonic.
 
 ## Decision-aware AI benchmark
 
