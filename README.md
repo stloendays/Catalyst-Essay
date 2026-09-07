@@ -96,6 +96,16 @@ The literature calibration is intentionally substantial rather than cosmetic: th
 
 Figure: [`figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg). Source data: [`data/rank_preservation_control_v1_1.csv`](data/rank_preservation_control_v1_1.csv).
 
+### Semi-open robustness extension: V1.3
+
+V1.1 remains the **canonical rank-preservation control**, but a semi-open robustness extension now tests whether preservation survives when the operating point is no longer perfectly fixed. In V1.3, each particle-size state independently searches temperature and O2/CO ratio inside a literature-constrained low-temperature envelope, while candidate-specific activity-prefactor and apparent-activation-energy perturbations are allowed. Catalyst chemistry and process topology remain common.
+
+Under the **primary 273.15–293.15 K moderate-stress case**, exact full ordering is preserved in **92.16%** of 10,000 optimization draws, with mean **Spearman rho = 0.99214** and **99.98%** of draws retaining rho >= 0.9. Under the wider **273.15–313.15 K** sensitivity, exact preservation falls to **72.62%**, while mean rho remains **0.96802** and **97.56%** of draws retain rho >= 0.9.
+
+This supporting result changes the interpretation in an important but limited way: **rank preservation does not require a perfectly fixed operating point**. Moderate candidate-specific kinetic and operating freedom can produce occasional local reshuffling while leaving the overall rank structure strongly preserved. V1.3 is not promoted to the canonical control because its process-penalty terms are generic monotone penalties rather than a fully literature-derived industrial TEA.
+
+Full note: [`docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md). Reproducibility: [`data/rank_preservation_semiopen_v1_3.py`](data/rank_preservation_semiopen_v1_3.py) and [`data/rank_preservation_semiopen_v1_3_summary.csv`](data/rank_preservation_semiopen_v1_3_summary.csv).
+
 ### MeOH candidate-state ranking inversion (restored 2026-09-07)
 
 Within the D01 v3 explicit loop the intrinsic-productivity ranking of the four Re/TiO2 states (1 %-250 °C > 1 %-200 °C > 5 %-200 °C > 5 %-250 °C by STY per g Re) does not survive propagation: the economic order is 5 %-200 °C (943 €/t) > 1 %-200 °C (967) > 1 %-250 °C (975) > 5 %-250 °C (1258); Spearman ρ = 0.20, Kendall τ = 0, 3 of 6 pairs inverted, and the upstream winner falls to third. Cost follows CH4 selectivity through H2 feed loss and loop accumulation, not productivity. Data and rebuilt figure: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md), [`figures/meoh/`](figures/meoh/).
@@ -186,7 +196,8 @@ Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md
 │   ├── RANK_PRESERVATION_CONTROL_V1_LITERATURE_VALIDATION.md
 │   ├── RANK_PRESERVATION_CONTROL_V1_PREREGISTRATION.md
 │   ├── RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md
-│   └── RANK_PRESERVATION_CONTROL_V1_1_RESULT.md
+│   ├── RANK_PRESERVATION_CONTROL_V1_1_RESULT.md
+│   └── RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md
 ├── figures/
 │   ├── README.md
 │   ├── discover_cross_model/
@@ -196,6 +207,8 @@ Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md
     ├── canonical_results_2026-09-06.csv
     ├── discover_benchmark_2026-09-06.csv
     ├── rank_preservation_control_v1_1.csv
+    ├── rank_preservation_semiopen_v1_3.py
+    ├── rank_preservation_semiopen_v1_3_summary.csv
     ├── cross_model_scores_2026-09-06.csv
     ├── cross_model_failure_matrix_2026-09-06.csv
     ├── cross_model_stats_2026-09-07.csv
@@ -224,12 +237,12 @@ The project is organized around six linked claims:
 2. **Multiscale uncertainty is not monotonically amplified**; kinetics can amplify energetic uncertainty, while equilibrium, reactor and process bottlenecks can absorb it.
 3. **Backward design distinguishes a useful catalyst target from an unreachable one.**
 4. **Economic leverage is pathway-specific rather than universal across reactions.**
-5. **The same multiscale implementation can preserve an upstream ranking when the downstream mapping is physically monotonic.**
+5. **The same multiscale implementation can preserve an upstream ranking under a monotonic mapping, and that preservation remains robust to moderate semi-open kinetic and operating freedom.**
 6. **Decision-aware workflow execution is model-capability dependent; adaptive policy E does not show universal cross-model superiority over fixed-VOI D.**
 
 ## Status
 
-The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, and the literature-calibrated Au/TiO2 rank-preservation control V1.1 is integrated as the framework counterpoint to the ammonia inversion result.
+The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, the literature-calibrated Au/TiO2 rank-preservation control V1.1 is integrated as the canonical framework counterpoint to the ammonia and methanol inversion cases, and V1.3 is retained as a supporting semi-open robustness extension rather than promoted to a replacement control.
 
 ---
 
