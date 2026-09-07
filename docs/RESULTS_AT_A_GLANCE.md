@@ -1,6 +1,6 @@
 # Results at a glance
 
-Snapshot: **2026-09-06**
+Snapshot: **2026-09-07**
 
 ## Ammonia ranking inversion
 
@@ -92,17 +92,25 @@ NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
 
-## Decision-aware AI benchmark
+## Decision-aware AI benchmark — cross-model result
 
-Formal DISCOVER single-model snapshot:
+DISCOVER V1 is frozen. The cross-model evaluation used the same task, prompt, 11-action schema, cost model, scorer, stopping rule and A-D baselines at all three model tiers. The seven CU budgets were **200, 250, 300, 500, 800, 1200 and 2000**, with **5 independent policy-E runs per budget per variant**. The two weaker tiers contributed 140 new traces; the strong-tier V1 traces were reused and re-scored, not re-run.
 
-- **11** scientific actions
-- **1 CU = 1000 MKM state solves**
-- **70** policy-E runs
-- **392** total scored traces with A-D baselines
-- **35/35** complete correct anonymous decisions
-- **34/35** exact break-even recoveries
-- **0** infrastructure retries
-- **0** action errors
+On the **anonymous closed-book task**, complete decision recovery was:
 
-The benchmark evaluates scientific compute allocation rather than generic tool-use success.
+```text
+nano        6/35
+mini       15/35
+strong     35/35
+```
+
+The complete decision requires the full chain: economic winner -> decision pair -> backward target -> reachability verdict. The strong tier completes this chain reliably; weaker tiers more often fail at pair formation or reachability even when the winner is correct. The pooled tier trend in P(full) is strong (Cochran-Armitage Z = **6.95**).
+
+Two results must be kept separate:
+
+1. **Positive workflow-execution result:** decision-aware workflow completion is strongly model-capability dependent, rising from 6/35 to 15/35 to 35/35 across the three tiers.
+2. **Negative pre-registered superiority result:** the pre-registered Agent-specific Go criterion for **policy E > fixed-VOI policy D** was **not met across model tiers**. The 200-CU adaptive-scope advantage was repeatable only in the strong tier and did not reproduce in nano or mini.
+
+Therefore the supported claim is: **a strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is capability-dependent and is not a universal property of the framework.** The negative result is retained; no frozen V1 protocol component was modified to improve it.
+
+Canonical reports: `docs/CROSS_MODEL_DISCOVER_V1.md` and `docs/CROSS_MODEL_STATS_V1.md`.
