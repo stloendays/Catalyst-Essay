@@ -90,6 +90,29 @@ Key frozen benchmark facts:
 - At 250-500 CU, policy E and the fixed-VOI policy D are not distinguishable in decision quality; policy E used **218-268 CU** versus **247-281 CU** for D.
 - A zero-tool prior probe shows why anonymization matters: winner-only accuracy can be guessed from price priors even when inversion, break-even and reachability are all wrong.
 
+### Cross-model stability (2026-09-06/07)
+
+The same frozen protocol was re-run with policy E on two weaker tiers of the same model family (5 runs x 7 budgets x anonymous/named = 70 runs per model; gpt-5.5 traces reused, not re-run). Frozen hashes were verified before and after; nothing was retried or tuned.
+
+| Anonymous task, pooled over 7 budgets (n = 35 per tier) | gpt-5.4-nano | gpt-5.4-mini | gpt-5.5 |
+|---|---:|---:|---:|
+| P(winner correct) | 29/35 | 31/35 | 35/35 |
+| P(pair decision correct) | 24/35 | 20/35 | 35/35 |
+| P(reachability correct) | 6/35 | 15/35 | 35/35 |
+| **P(full decision correct)** | **6/35** | **15/35** | **35/35** |
+| unnecessary-CU fraction (mean) | 0.46 | 0.30 | 0.19 |
+
+- The tier trend in P(full) is strong (Cochran–Armitage Z = 6.95; nano vs mini Fisher p = 0.036; mini vs gpt-5.5 p = 4e-8).
+- In both weak tiers the failure is **entirely the reachability step**: P(reach) equals P(full) cell by cell, while the winner is recovered at every budget ≥ 500 CU.
+- Winner accuracy does not separate nano from mini (p = 0.73); it is price-prior-recoverable, as the zero-tool probe predicted.
+- The 200-CU adaptive narrow-window shortcut appears only in gpt-5.5 (7/70 runs vs 0/140 in the weak tiers).
+- The pre-registered agent-specific Go (E beats fixed-VOI D in ≥ 4/5 runs at one budget in ≥ 2 tiers) is **not met**; only gpt-5.5 at 200 CU is repeatable, and D's zero regret cannot be beaten. This is recorded as a negative result.
+- With n = 5 per cell, per-budget differences below 5/5 vs ≤ 1/5 are not resolvable; claims rest on the pooled and ≤ 300 / ≥ 500 CU strata.
+
+Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md); statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md); figures: [`figures/discover_cross_model/`](figures/discover_cross_model/).
+
+![Cross-model outcomes with Wilson 95 % CI](figures/discover_cross_model/X9_wilson_ci_pooled.png)
+
 The benchmark is designed to test **decision allocation**, not merely tool use. The relevant question is not “can an LLM call the workflow?” but “given limited computational budget, does it spend calculation where it changes the downstream industrial decision?”
 
 ## Repository map
@@ -104,13 +127,22 @@ The benchmark is designed to test **decision allocation**, not merely tool use. 
 │   ├── FIGURE_MAP.md
 │   ├── MANUSCRIPT_SKELETON.md
 │   ├── RESULTS_AT_A_GLANCE.md
-│   └── REFERENCES_STARTER.md
+│   ├── REFERENCES_STARTER.md
+│   ├── CROSS_MODEL_DISCOVER_V1.md
+│   └── CROSS_MODEL_STATS_V1.md
 ├── figures/
-│   └── README.md
+│   ├── README.md
+│   └── discover_cross_model/        (X1–X9 PNG)
 └── data/
     ├── README.md
     ├── canonical_results_2026-09-06.csv
-    └── discover_benchmark_2026-09-06.csv
+    ├── discover_benchmark_2026-09-06.csv
+    ├── cross_model_scores_2026-09-06.csv
+    ├── cross_model_failure_matrix_2026-09-06.csv
+    ├── cross_model_stats_2026-09-07.csv
+    ├── cross_model_metadata_2026-09-06.json
+    ├── discover_frozen_v1_hashes.json
+    └── cross_model_*.py               (read-only analysis scripts)
 ```
 
 ## Reading guide
@@ -137,7 +169,7 @@ The project is organized around five linked claims:
 
 ## Status
 
-The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-06**. Cross-model stability and a negative-reaction control are the next validation layer recorded in the project plan.
+The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: the single-model DISCOVER V1 study and its cross-model stability check (three tiers, 210 policy-E runs) are complete. The negative-reaction control is the next validation layer recorded in the project plan and has not been started.
 
 ---
 

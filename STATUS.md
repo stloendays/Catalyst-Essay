@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-06**
+Snapshot date: **2026-09-07**
 
 ## Canonical scientific model
 
@@ -73,12 +73,22 @@ Latest recorded formal run:
 - exact break-even recovered 34/35
 - policy E and fixed-VOI D are effectively tied from 250-500 CU
 
+## DISCOVER cross-model stability (completed 2026-09-06, statistics 2026-09-07)
+
+- Tiers: gpt-5.4-nano-2026-03-17 (weak), gpt-5.4-mini-2026-03-17 (medium), gpt-5.5-2026-04-23 (strong; V1 traces reused).
+- 140 new policy-E traces (70 per new model), all present and scored; frozen hashes PASS before and after; 0 retries, 0 driver exceptions.
+- Anonymous pooled P(full decision): **6/35 / 15/35 / 35/35**; tier trend Z = 6.95.
+- Weak-tier failure is the reachability step (P(reach) = P(full)); winner accuracy is not tier-discriminating (nano vs mini p = 0.73).
+- Unnecessary-CU fraction 0.46 / 0.30 / 0.19; tool-interface errors 2.1 / 2.2 / 0 per run.
+- Pre-registered agent-specific Go (E beats D, ≥ 4/5 runs, ≥ 2 tiers): **not met** — recorded as a negative result.
+- Reports: `docs/CROSS_MODEL_DISCOVER_V1.md`, `docs/CROSS_MODEL_STATS_V1.md`; figures `figures/discover_cross_model/`.
+
 ## Next validation layer
 
 The project plan currently points to:
 
-1. cross-model / capability-tier stability of the DISCOVER benchmark;
-2. a negative-reaction control where atomic ranking should largely survive economic propagation;
-3. continued manuscript integration using NH3-FINAL-1.1 only.
+1. a negative-reaction control where atomic ranking should largely survive economic propagation (not started);
+2. continued manuscript integration using NH3-FINAL-1.1 only;
+3. any protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
 
 Historical NH3-FINAL-1.0 values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, and Ru break-even = 2171.56x should not be used as current headline numbers.

@@ -31,3 +31,15 @@ F02_rolling_topk_NH3_FINAL_1_1.svg
 ```
 
 For raster exports, keep the editable vector or source-data version alongside the PNG/TIFF whenever possible.
+
+## DISCOVER cross-model figures (`discover_cross_model/`)
+
+Generated 2026-09-06/07 from `DISCOVER_CROSS_MODEL_V1` on the frozen DISCOVER V1 protocol (NH3-FINAL-1.1 ground truth, scorer unchanged).
+
+| File | Content |
+|---|---|
+| `X_cross_model_curves_{anonymous,named}.png` | six-panel budget curves, three tiers |
+| `X1`–`X6` | single panels: P(full decision), P(reachability), break-even error, CU to stable winner, unnecessary-CU fraction, regret |
+| `X7_failure_mode_matrix.png` | 19 failure modes × model × variant |
+| `X8_failure_by_budget_anonymous.png` | failure modes by budget, anonymous task |
+| `X9_wilson_ci_pooled.png` | pooled / ≤300 CU / ≥500 CU outcomes with Wilson 95 % CI, all tiers (statistics page) |

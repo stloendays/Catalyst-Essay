@@ -116,11 +116,18 @@ A scientifically useful agent result should demonstrate one or more of the follo
 
 This is closer to value-of-information / decision-focused acquisition than to generic workflow automation.
 
+## Cross-model stability record (2026-09-06/07)
+
+Items 1–2 of the earlier plan are done on the frozen V1 protocol (`docs/CROSS_MODEL_DISCOVER_V1.md`, `docs/CROSS_MODEL_STATS_V1.md`):
+
+- the complete correct decision is a property of the strong tier, not of "an LLM agent": anonymous pooled P(full) 6/35 (nano), 15/35 (mini), 35/35 (gpt-5.5);
+- the discriminating components are the pair decision and the reachability verdict; the winner alone is price-prior-recoverable in every tier;
+- the 200-CU adaptive-scope advantage is strong-tier-only (narrow windows 7/70 vs 0/140);
+- under-resolution → over-confirmation reproduces and is amplified in weaker tiers, which show both at once;
+- weak tiers add a tool-interface error class (undeclared arguments, unaffordable requests) that costs turns, not CU;
+- the pre-registered agent-specific Go against fixed-VOI D is not met across tiers (negative result, kept).
+
 ## Current next tests
 
-The next validation layer recorded in the project plan is:
-
-1. repeat the frozen benchmark across model capability tiers;
-2. quantify between-model stability rather than relying on one LLM;
-3. add a negative-reaction case where atomic ranking should largely survive economic propagation;
-4. keep the same frozen scorer and protocol while testing transfer.
+1. add a negative-reaction case where atomic ranking should largely survive economic propagation (not started);
+2. keep the same frozen scorer and protocol while testing transfer; protocol changes go to DISCOVER V2.
