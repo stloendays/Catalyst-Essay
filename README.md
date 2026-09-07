@@ -76,25 +76,25 @@ For the current CO2-to-methanol benchmark, the local economic leverages are:
 
 After aligning the cost denominator, the normalized **MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410**, with a midpoint near **328**. This supports a pathway-specific interpretation: ammonia activity mainly acts through the **activity -> inventory / reactor-demand** pathway, while methanol selectivity acts through **feed loss -> purge / recycle**.
 
-## Negative control: N2O decomposition (rank-preservation test, 2026-09-07)
+## Rank-preservation control: Au/TiO2 CO oxidation
 
-A pre-registered control reaction was built to test whether the ammonia inversion needs recycle / separation / purge restructuring. Direct N2O decomposition in nitric-acid tail gas is once-through, dilute and conversion-fixed, so catalyst activity enters the economics only through inventory and operating temperature. Same 15 metals, same price basis, per-candidate re-optimization of temperature and bed geometry.
+A separate fixed-condition control tests whether the multiscale implementation can preserve an upstream ordering when the downstream mapping is physically monotonic and no competing process-severity or topology penalty is introduced.
 
-| N2O-NEGCTRL-0.2 (feasible-censored) | value | NH3-FINAL-1.1 |
-|---|---:|---:|
-| atomic top-3 | Rh > Ir > Ni | Ru > Os > Fe |
-| economic top-3 | Ni > Cu > Co | Fe > Ru > Os |
-| atomic winner = economic winner | no (Rh -> Ni) | no (Ru -> Fe) |
-| Top-3 Spearman rho | **-0.50** | -0.50 |
-| full-set Spearman rho / Kendall tau | 0.59 / 0.46 | 0.68 / 0.55 |
-| pairwise inversions among feasible pairs | 25 / 55 | 2 / 3 |
-| economic winner in 1000 descriptor draws (+/-0.30 eV) | Ni 73 %, Co 17 %, Cu 11 % | — |
+The V1.1 control uses literature-anchored Au/TiO2 CO-oxidation data at a common process condition. The candidate states differ only in Au particle size across **2, 3, 4, 5 and 6 nm**; active element, support, feed, temperature, pressure and process topology are held fixed.
 
-**The control fails**: the ranking inverts by the same mechanism as in ammonia. Every precious metal is pushed to the 650 °C bound, where its heating pool alone exceeds the total cost of Ni at 445 °C. With all metals priced equally the full-set correlation rises to 0.97. Recycle restructuring is therefore sufficient but not necessary for a frontier inversion; the necessary condition is an operating variable (pressure in NH3, temperature in N2O) through which an expensive active catalyst can buy down its inventory. Absolute USD/t values are reconstruction-level and not citable process economics.
+| Au diameter | Mass activity (umol CO gcat^-1 s^-1) | Required catalyst (mg) | Burden vs best |
+|---:|---:|---:|---:|
+| 2 nm | 9.6548 | 19.505 | **1.000x** |
+| 3 nm | 4.4686 | 42.143 | **2.161x** |
+| 4 nm | 2.5869 | 72.797 | **3.732x** |
+| 5 nm | 1.6930 | 111.235 | **5.703x** |
+| 6 nm | 1.1973 | 157.284 | **8.064x** |
 
-Report and pre-registration: [`docs/NEGATIVE_CONTROL_V0_1_REPORT.md`](docs/NEGATIVE_CONTROL_V0_1_REPORT.md), [`docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md`](docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md), [`docs/NEGATIVE_CONTROL_V0_2_ADDENDUM.md`](docs/NEGATIVE_CONTROL_V0_2_ADDENDUM.md); figures [`figures/negative_control_n2o/`](figures/negative_control_n2o/).
+The activity and downstream burden rankings are both **2 > 3 > 4 > 5 > 6 nm**, with **Spearman rho = 1.000**, **Kendall tau = 1.000**, and **0 pairwise inversions**. Across 10,000 predefined literature/geometry draws, the full ranking is preserved in every draw.
 
-![N2O rank propagation](figures/negative_control_n2o/F1_ranking_propagation_V0_2.png)
+The literature calibration is intentionally substantial rather than cosmetic: the reference particle size changes from 2.00 to 2.10 nm (+5.0%), the nominal TOF size exponent from 1.70 to 0.90 (-47.1%), the effective mass-activity exponent from 2.70 to 1.90 (-29.6%), and the 6 nm / 2 nm required-mass ratio contracts from 19.42x to 8.064x (-58.5%). The ordering remains unchanged.
+
+Figure: [`figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg). Source data: [`data/rank_preservation_control_v1_1.csv`](data/rank_preservation_control_v1_1.csv).
 
 ## Decision-aware DISCOVER benchmark
 
@@ -164,6 +164,10 @@ Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md
 .
 ├── README.md
 ├── STATUS.md
+├── controls/
+│   ├── au_tio2_rank_preservation_v1.py
+│   ├── au_tio2_rank_preservation_v1_1.py
+│   └── au_tio2_rank_preservation_v1_1_config.json
 ├── docs/
 │   ├── RESEARCH_FRAME.md
 │   ├── AGENT_HARNESS.md
@@ -172,20 +176,26 @@ Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md
 │   ├── RESULTS_AT_A_GLANCE.md
 │   ├── REFERENCES_STARTER.md
 │   ├── CROSS_MODEL_DISCOVER_V1.md
-│   └── CROSS_MODEL_STATS_V1.md
+│   ├── CROSS_MODEL_STATS_V1.md
+│   ├── RANK_PRESERVATION_CONTROL_V1_LITERATURE_VALIDATION.md
+│   ├── RANK_PRESERVATION_CONTROL_V1_PREREGISTRATION.md
+│   ├── RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md
+│   └── RANK_PRESERVATION_CONTROL_V1_1_RESULT.md
 ├── figures/
 │   ├── README.md
-│   └── discover_cross_model/        (X1-X9 PNG)
+│   ├── discover_cross_model/
+│   └── rank_preservation_control/
 └── data/
     ├── README.md
     ├── canonical_results_2026-09-06.csv
     ├── discover_benchmark_2026-09-06.csv
+    ├── rank_preservation_control_v1_1.csv
     ├── cross_model_scores_2026-09-06.csv
     ├── cross_model_failure_matrix_2026-09-06.csv
     ├── cross_model_stats_2026-09-07.csv
     ├── cross_model_metadata_2026-09-06.json
     ├── discover_frozen_v1_hashes.json
-    └── cross_model_*.py               (read-only analysis scripts)
+    └── cross_model_*.py
 ```
 
 ## Reading guide
@@ -202,17 +212,18 @@ For citation planning, read [`docs/REFERENCES_STARTER.md`](docs/REFERENCES_START
 
 ## Current manuscript logic
 
-The project is organized around five linked claims:
+The project is organized around six linked claims:
 
 1. **Atomic and economic catalyst rankings can diverge at the decision frontier.**
 2. **Multiscale uncertainty is not monotonically amplified**; kinetics can amplify energetic uncertainty, while equilibrium, reactor and process bottlenecks can absorb it.
 3. **Backward design distinguishes a useful catalyst target from an unreachable one.**
 4. **Economic leverage is pathway-specific rather than universal across reactions.**
-5. **Decision-aware workflow execution is model-capability dependent; adaptive policy E does not show universal cross-model superiority over fixed-VOI D.**
+5. **The same multiscale implementation can preserve an upstream ranking when the downstream mapping is physically monotonic.**
+6. **Decision-aware workflow execution is model-capability dependent; adaptive policy E does not show universal cross-model superiority over fixed-VOI D.**
 
 ## Status
 
-The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, with the pre-registered E-vs-D superiority criterion retained as a negative result. The N2O negative-control V0.1/V0.2 study is also complete and is tracked separately from the frozen DISCOVER V1 evidence.
+The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, and the literature-calibrated Au/TiO2 rank-preservation control V1.1 is integrated as the framework counterpoint to the ammonia inversion result.
 
 ---
 

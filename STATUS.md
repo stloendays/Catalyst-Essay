@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-07 (negative control added)**
+Snapshot date: **2026-09-07**
 
 ## Canonical scientific model
 
@@ -80,23 +80,56 @@ Latest recorded formal run:
 - Anonymous pooled P(full decision): **6/35 / 15/35 / 35/35**; tier trend Z = 6.95.
 - Weak-tier failure is the reachability step (P(reach) = P(full)); winner accuracy is not tier-discriminating (nano vs mini p = 0.73).
 - Unnecessary-CU fraction 0.46 / 0.30 / 0.19; tool-interface errors 2.1 / 2.2 / 0 per run.
-- Pre-registered agent-specific Go (E beats D, ≥ 4/5 runs, ≥ 2 tiers): **not met** — recorded as a negative result.
+- Pre-registered agent-specific Go (E beats D, >= 4/5 runs, >= 2 tiers): **not met** — recorded as a negative result.
 - Reports: `docs/CROSS_MODEL_DISCOVER_V1.md`, `docs/CROSS_MODEL_STATS_V1.md`; figures `figures/discover_cross_model/`.
 
-## Negative control N2O-NEGCTRL-0.1 / 0.2 (completed 2026-09-07)
+## Rank-preservation control V1.1 — Au/TiO2 CO oxidation
 
-- Pre-registered before computing (`docs/NEGATIVE_CONTROL_V0_1_PREREGISTRATION.md`); V0.2 changes only the O–O repulsion (1.0 → 1.5 eV/ML), registered in the addendum after the V0.1 atomic order contradicted the experimental metal order and before any economic output was read.
-- Both versions **FAIL** all six rank-preservation criteria. V0.2: atomic Rh > Ir > Ni > Pd > Cu; economic Ni > Cu > Co > Ag > Fe > Pd > Ru > Rh; Top-3 rho −0.50; 25/55 feasible pairs inverted; economic winner Ni/Co/Cu in 100 % of 1000 descriptor draws.
-- Mechanism: inventory ↔ severity through metal price (PGMs at the 650 °C bound, heating 347 USD/t > Ni total 93 USD/t at 445 °C). Equal-price diagnostic: full-set rho 0.97.
-- Manuscript consequence: recycle restructuring is sufficient but not necessary for inversion; the cross-reaction section is reframed around the severity variable (pressure in NH3, temperature in N2O, selectivity–recycle in MeOH).
-- Absolute USD/t are reconstruction values (descriptor set and BEP parameters not primary-verified); not citable as process economics.
+Purpose: test whether the same multiscale implementation can preserve an upstream catalyst ordering when the downstream mapping is physically monotonic and process severity/topology are externally fixed.
 
-## Next validation layer
+Literature-calibrated fixed-condition anchors:
 
-The project plan currently points to:
+- reference Au diameter: **2.10 nm**
+- Au loading: **4.40 wt%**
+- measured dispersion: **38%**
+- stabilized mass activity: **8.8 umol CO gcat^-1 s^-1**
+- catalyst mass: **21.4 mg**
+- condition: **273.15 K, 1 atm, 1% CO / 21% O2 / 78% Ar**
+- flow: **214.4 Nml min^-1**
+- literature-implied fixed conversion: **11.14%**
 
-1. a genuinely rank-preserving control (candidates within one price class, or a process whose severity variable is externally fixed) if the manuscript still needs one — NEGATIVE CONTROL V0.3, not started;
-2. continued manuscript integration using NH3-FINAL-1.1 only;
-3. any protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
+V1 -> V1.1 calibration magnitude:
+
+- reference diameter: **2.00 -> 2.10 nm (+5.0%)**
+- nominal TOF size exponent: **1.70 -> 0.90 (-47.1%)**
+- effective mass-activity exponent: **2.70 -> 1.90 (-29.6%)**
+- 6 nm / 2 nm required-mass ratio: **19.42x -> 8.064x (-58.5%)**
+- normalized dispersion replaced by measured **38% at 2.10 nm**
+- arbitrary positive economic coefficients removed completely
+
+Frozen V1.1 result:
+
+- activity order: **2 > 3 > 4 > 5 > 6 nm**
+- downstream catalyst-burden order: **2 > 3 > 4 > 5 > 6 nm**
+- Spearman rho: **1.000**
+- Kendall tau: **1.000**
+- pairwise inversions: **0**
+- 10,000/10,000 predefined literature-envelope draws preserve the full ranking
+- all six preregistered criteria: **PASS**
+
+This control is not presented as a full industrial TEA; it supports the methodological statement that multiscale propagation does not intrinsically destroy catalyst rankings when the downstream mapping remains monotonic.
+
+Primary files:
+
+- `docs/RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`
+- `data/rank_preservation_control_v1_1.csv`
+- `figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`
+
+## Next validation / integration layer
+
+1. Integrate the rank-preservation control into the manuscript as the counterpoint to the ammonia decision-frontier inversion.
+2. Keep the control's claim limited to rank preservation under a literature-calibrated fixed-condition monotonic mapping; do not convert the relative burden into unsupported absolute process economics.
+3. Continue manuscript integration using NH3-FINAL-1.1 only.
+4. Any DISCOVER protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
 
 Historical NH3-FINAL-1.0 values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, and Ru break-even = 2171.56x should not be used as current headline numbers.

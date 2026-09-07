@@ -92,6 +92,28 @@ NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
 
+## Rank-preservation control
+
+The literature-calibrated Au/TiO2 CO-oxidation control uses a fixed process condition and a common catalyst chemistry across a 2–6 nm Au particle-size series.
+
+```text
+Intrinsic activity rank      Downstream catalyst-burden rank
+2 nm   #1                    2 nm   #1
+3 nm   #2                    3 nm   #2
+4 nm   #3         ->         4 nm   #3
+5 nm   #4                    5 nm   #4
+6 nm   #5                    6 nm   #5
+```
+
+- Spearman rho: **1.000**
+- Kendall tau: **1.000**
+- Pairwise inversions: **0**
+- 10,000/10,000 predefined literature-envelope draws preserve the full ranking
+- 6 nm / 2 nm required-mass ratio after literature calibration: **8.064x**
+- relative to V1, that mass-ratio spread decreases by **58.5%** while the order remains unchanged
+
+This control supports the methodological statement that multiscale propagation can preserve an upstream ordering when the downstream mapping remains physically monotonic.
+
 ## Decision-aware AI benchmark — cross-model result
 
 DISCOVER V1 is frozen. The cross-model evaluation used the same task, prompt, 11-action schema, cost model, scorer, stopping rule and A-D baselines at all three model tiers. The seven CU budgets were **200, 250, 300, 500, 800, 1200 and 2000**, with **5 independent policy-E runs per budget per variant**. The two weaker tiers contributed 140 new traces; the strong-tier V1 traces were reused and re-scored, not re-run.

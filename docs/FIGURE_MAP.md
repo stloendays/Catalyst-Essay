@@ -1,6 +1,6 @@
 # Figure map — canonical manuscript snapshot
 
-Snapshot date: **2026-09-06**  
+Snapshot date: **2026-09-07**  
 Scientific basis: **NH3-FINAL-1.1** for ammonia headline values.
 
 This page preserves the original nine-figure logic but updates the ammonia values to the current canonical model. The purpose of each figure is a scientific claim, not simply a visualization of available data.
@@ -158,9 +158,36 @@ This page preserves the original nine-figure logic but updates the ammonia value
 
 ---
 
+## Rank-preservation control figure — Au/TiO2 CO oxidation V1.1
+
+**Question:** Does the multiscale implementation preserve an upstream ranking when the downstream mapping is fixed and physically monotonic?
+
+**Content**
+- Mirror rank-flow figure for the 2–6 nm Au/TiO2 particle-size series.
+- Left: literature-calibrated intrinsic mass-activity order.
+- Right: required catalyst / catalyst-burden order at the same fixed reaction condition.
+- Straight rank-flow lines rather than the crossing lines expected for an inversion figure.
+
+**Headline**
+- Activity order: **2 > 3 > 4 > 5 > 6 nm**.
+- Downstream burden order: **2 > 3 > 4 > 5 > 6 nm**.
+- Spearman rho = **1.000**.
+- Kendall tau = **1.000**.
+- Pairwise inversions = **0**.
+- 10,000/10,000 predefined literature-envelope draws preserve the full order.
+- Literature calibration contracts the 6 nm / 2 nm required-mass ratio from **19.42x to 8.064x (-58.5%)** without changing the ranking.
+
+**Claim supported:** the framework does not intrinsically destroy catalyst rankings; a rank can remain intact when the catalyst-to-process mapping is monotonic and does not activate a competing downstream penalty.
+
+Current vector asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).
+
+---
+
 ## Working main-text allocation
 
 A compact main narrative can be built around **F1, F2, F5, F6, F8 and F9**. Figures **F3, F4 and F7** are strong candidates for Extended Data / Supporting Information unless the uncertainty and process-reoptimization story is given more main-text space.
+
+The Au/TiO2 rank-preservation control is currently best treated as a **compact companion to F1 or an Extended Data control**, rather than forcing a tenth full main-text figure.
 
 This allocation is a working editorial recommendation, not a frozen scientific result.
 
