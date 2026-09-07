@@ -1,87 +1,89 @@
 # Rank-Preservation Control V1.1 — result
 
-Status: **GitHub Actions PASS**  
-Workflow run: `34086221856`  
-Frozen version: `RANK-PRESERVATION-CONTROL-V1.1`
+Status: **literature-calibrated physical rank-preservation control**  
+Reaction: **CO oxidation on Au/TiO2**  
+Candidate states: **2, 3, 4, 5 and 6 nm Au particle diameter**
 
-## Result
+## Literature-calibrated basis
 
-V1.1 replaced the arbitrary positive burden coefficients used in V1 with a literature-anchored fixed-condition reactor calculation. The candidate order remained unchanged after this calibration.
+V1.1 replaces the arbitrary positive downstream burden coefficients used in V1 with a fixed-condition reactor calculation anchored to published Au/TiO2 CO-oxidation data.
 
-### Literature-implied operating target
+Absolute-rate anchor:
 
-The physical reference state uses the Au/TiO2 experiment of Janssens et al., *Journal of Catalysis* 240 (2006) 108-113, DOI `10.1016/j.jcat.2006.03.008`:
+- reference Au diameter: **2.10 nm**
+- Au loading: **4.40 wt%**
+- measured dispersion: **38%**
+- stabilized activity: **8.8 umol CO gcat^-1 s^-1**
+- catalyst mass: **21.4 mg**
+- condition: **273.15 K, 1 atm, 1% CO / 21% O2 / 78% Ar**
+- flow: **214.4 Nml min^-1**
+- literature-implied fixed conversion: **11.14%**
 
-- 2.10 nm average Au diameter;
-- 4.40 wt% Au;
-- 38% Au dispersion;
-- stabilized activity 8.8 umol CO gcat^-1 s^-1;
-- 21.4 mg catalyst;
-- 273.15 K and approximately 1 atm;
-- 1% CO / 21% O2 / 78% Ar;
-- 214.4 Nml min^-1 reaction flow.
+The nominal particle-size activity exponent is **0.9**, matched to the closest-loading literature series. Stronger reported exponents are retained as sensitivity bounds rather than fitted to the observed downstream ranking.
 
-Using the pseudo-first-order plug-flow relation reported in the paper gives a reference conversion of **11.14%**. This conversion was derived from the source experiment rather than selected as a free parameter.
-
-## Calibration magnitude relative to V1
+## Adjustment magnitude from V1
 
 | Quantity | V1 | V1.1 | Change |
 |---|---:|---:|---:|
-| reference particle size | 2.00 nm | 2.10 nm | **+5.0%** |
-| nominal TOF size exponent | 1.70 | 0.90 | **-47.1%** |
-| effective mass-activity exponent | 2.70 | 1.90 | **-29.6%** |
-| nominal 6 nm / 2 nm required-mass ratio | 19.42x | 8.064x | **-58.5%** |
+| Reference particle diameter | 2.00 nm | 2.10 nm | **+5.0%** |
+| Nominal TOF size exponent | 1.70 | 0.90 | **-47.1%** |
+| Effective mass-activity exponent | 2.70 | 1.90 | **-29.6%** |
+| 6 nm / 2 nm required-mass ratio | 19.42x | 8.064x | **-58.5%** |
 
-The nominal TOF exponent was changed to **0.9** because Overbury et al., *Journal of Catalysis* 241 (2006) 56-65, DOI `10.1016/j.jcat.2006.04.018`, report `TOF ~ d^(-0.9 +/- 0.2)` for a 4.5 wt% Au/TiO2 series, which is the closest loading match to the 4.40 wt% absolute-rate anchor. The stronger reported size exponents are retained only as sensitivity bounds.
+Additional structural changes:
 
-Additional changes:
+- normalized dispersion is replaced by the measured **38% at 2.10 nm**;
+- arbitrary V1 coefficients `a`, `b`, `gamma` and `common` are removed;
+- absolute catalyst activity, Au loading, catalyst mass, feed, flow, temperature and reactor diameter are literature anchored;
+- no unsupported absolute USD values are introduced.
 
-- normalized dispersion -> measured **38% at 2.10 nm**;
-- relative activity scale -> **8.8 umol CO gcat^-1 s^-1** absolute reference activity;
-- no physical catalyst inventory -> **21.4 mg** reference catalyst mass;
-- unspecified composition -> **4.40 wt% Au**;
-- arbitrary burden coefficients `a`, `b`, `gamma`, `common` -> **removed completely**.
-
-## Physical propagation result
+## Frozen V1.1 result
 
 | Au diameter | Mass activity (umol CO gcat^-1 s^-1) | Required catalyst (mg) | Required Au (mg) | Burden vs best |
 |---:|---:|---:|---:|---:|
-| 2 nm | 9.6548 | 19.505 | 0.858 | 1.000x |
-| 3 nm | 4.4686 | 42.143 | 1.854 | 2.161x |
-| 4 nm | 2.5869 | 72.797 | 3.203 | 3.732x |
-| 5 nm | 1.6930 | 111.235 | 4.894 | 5.703x |
-| 6 nm | 1.1973 | 157.284 | 6.920 | 8.064x |
+| 2 nm | 9.6548 | 19.505 | 0.858 | **1.000x** |
+| 3 nm | 4.4686 | 42.143 | 1.854 | **2.161x** |
+| 4 nm | 2.5869 | 72.797 | 3.203 | **3.732x** |
+| 5 nm | 1.6930 | 111.235 | 4.894 | **5.703x** |
+| 6 nm | 1.1973 | 157.284 | 6.920 | **8.064x** |
 
-Activity ranking:
+Activity order:
 
 `2 nm > 3 nm > 4 nm > 5 nm > 6 nm`
 
-Catalyst-procurement / packing-burden ranking, best to worst:
+Downstream catalyst-burden order:
 
 `2 nm > 3 nm > 4 nm > 5 nm > 6 nm`
 
 Rank statistics:
 
-- Spearman rho = **1.000**;
-- Kendall tau = **1.000**;
-- pairwise inversions = **0**;
-- Top-3 exact preservation = **PASS**.
+- Spearman rho = **1.000**
+- Kendall tau = **1.000**
+- pairwise inversions = **0**
+- Top-3 exact preservation = **PASS**
+- 10,000/10,000 predefined literature-envelope draws preserve the full ranking
+- all six frozen criteria = **PASS**
 
-## Literature-envelope robustness
+## Figure
 
-Across **10,000** draws spanning:
+The mirror rank-flow figure is:
 
-- TOF size exponent `0.7-2.0`;
-- dispersion exponent `0.8-1.2`;
+[`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg)
 
-exact full-rank preservation was **1.0000**, with minimum Spearman rho = **1.000**.
+It is deliberately constructed as the visual counterpart to an inversion plot: all candidate trajectories remain non-crossing after downstream propagation.
 
-All six preregistered criteria passed.
+## Source data
 
-## Scientific interpretation
+Machine-readable V1.1 data:
 
-The calibration changes the magnitude substantially: the predicted 6 nm / 2 nm catalyst-mass penalty contracts by about **58.5%**, from 19.42x to 8.064x. Despite that compression, the ordering is unchanged.
+[`../data/rank_preservation_control_v1_1.csv`](../data/rank_preservation_control_v1_1.csv)
 
-This is the useful control result. Rank preservation is not being obtained from the original arbitrary economic weights; those weights have been removed. Instead, the preserved order follows from an independently supported monotonic Au-size/activity relation propagated through a fixed-condition reactor duty with common Au/TiO2 composition.
+## Interpretation
 
-The result should be described as a **literature-calibrated physical rank-preservation control**, not as a full industrial TEA. Absolute USD values are not reported because the cited sources do not provide a process-scale catalyst replacement interval or a reactor CAPEX basis.
+The literature recalibration materially weakens the predicted particle-size advantage—the 6 nm / 2 nm required-mass spread contracts by **58.5%**—yet the rank order remains exact. The result therefore does not depend on the arbitrary coefficients used in V1.
+
+The valid manuscript claim is limited and specific:
+
+> The multiscale implementation can preserve an upstream catalyst ordering when the catalyst-to-process mapping remains physically monotonic and does not activate a competing process-severity or topology penalty.
+
+This control is not a full industrial TEA and should not be used to claim absolute process economics for Au/TiO2 CO oxidation.
