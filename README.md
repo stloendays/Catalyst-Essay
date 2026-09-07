@@ -2,13 +2,28 @@
 
 **From atomic catalyst ranking to industrial decision-making.**
 
-Catalyst discovery is usually optimized at the atomic scale, while deployment is decided at the system scale. This project asks a different question:
+Catalyst discovery is usually optimized at the atomic scale, while deployment is decided at the system scale. This project asks how much of an upstream catalyst ranking survives propagation through kinetics, catalyst inventory, reactor operation, recycle/separation and economics — and when that ranking reshapes or inverts.
 
-> **How much of an atomic-scale catalyst ranking survives propagation through kinetics, catalyst inventory, reactor operation, recycle/separation and economics — and when does the ranking invert?**
+The framework is also run backward: an industrial target is mapped to the catalyst-property improvement required for parity, and the accessible catalyst-property manifold is used to test whether that target is reachable.
 
-The same framework is then run backward: an industrial cost target is mapped into the catalyst-property improvement required for parity, and the accessible scaling manifold is used to test whether that target is physically reachable.
+## Canonical naming and versions
 
-This repository is a research-facing summary of the current canonical results and the decision-aware AI harness built around them.
+Project version numbers belong to separate families. Do not compare a bare `V1`, `V2` or `v0.5` across families.
+
+| Family | Current label | Role |
+|---|---|---|
+| Ammonia model | **NH3-FINAL-1.1** | frozen canonical scientific model |
+| Methanol case | **MEOH-D01-v3** | canonical explicit-loop reaction case |
+| Rank-preservation control | **Au/TiO2-RP V1.1** | canonical literature-calibrated control |
+| Rank-preservation robustness | **Au/TiO2-RP V1.3** | latest supporting semi-open extension |
+| Agent umbrella | **Decision-aware Agent Harness** | Layer A deterministic harness + Layer B decision layer |
+| Drift diagnosis | **DRIFT v2** | completed supporting benchmark |
+| Reaction transfer | **TRANSFER v1** | completed supporting benchmark |
+| Formal Agent benchmark | **DISCOVER V1** | frozen closed-book, budgeted benchmark; cross-model evaluation complete |
+| Future redesign | **DISCOVER V2** | reserved; not a completed current benchmark |
+
+Human-readable registry: [`docs/VERSION_REGISTRY.md`](docs/VERSION_REGISTRY.md).  
+Machine-readable registry: [`data/version_registry.json`](data/version_registry.json).
 
 ## Scientific frame
 
@@ -16,57 +31,80 @@ This repository is a research-facing summary of the current canonical results an
 Forward propagation
 DFT / descriptor
     -> scaling + BEP
-    -> microkinetics (TOF + coverage)
+    -> microkinetics
     -> catalyst productivity / inventory
     -> reactor + process optimization
+    -> recycle / separation
     -> economics
     -> industrial ranking
 
 Backward design
 industrial target
     -> required catalyst-property change
-    -> scaling-manifold reachability
+    -> scaling / descriptor manifold
+    -> reachable or unreachable
 
-Decision-aware AI layer
-industrial objective + compute budget
-    -> interface-level decisions
-    -> tool execution with shared state / provenance
-    -> forward + backward evaluation
-    -> next-calculation selection
+Decision-aware Agent Harness
+Layer A: deterministic multiscale models
+Layer B: inspect evidence -> choose admissible scientific action
+         -> update ranking / feasibility / reachability
+         -> stop / continue / redirect
 ```
 
-The numerical models remain the source of physical and economic results. The AI layer is used where a numerical optimizer cannot decide which mechanism, representation or uncertainty-reduction calculation is worth pursuing.
+The numerical models remain the source of physical and economic results. The AI layer is used for model-interface and compute-allocation decisions that a fixed optimizer cannot make by itself.
 
-## Current canonical snapshot
-
-**Canonical ammonia model: `NH3-FINAL-1.1`** (promoted 2026-09-05).
+## NH3-FINAL-1.1 — current ammonia result
 
 | Result | Current value |
 |---|---:|
 | Atomic activity top-3 | Ru -> Os -> Fe |
 | Economic top-3 | Fe -> Ru -> Os |
-| Fe reduced catalyst-dependent cost | **15.292 USD/t NH3** |
-| Ru reduced catalyst-dependent cost | **22.031 USD/t NH3** |
-| Os reduced catalyst-dependent cost | **25.832 USD/t NH3** |
+| Fe cost | **15.292 USD/t NH3** |
+| Ru cost | **22.031 USD/t NH3** |
+| Os cost | **25.832 USD/t NH3** |
 | Ru / Fe cost ratio | **1.441** |
 | Top-3 Spearman rho | **-0.50** |
 | Top-3 Kendall tau | **-0.33** |
-| Full 15-metal Spearman rho | **0.929** |
+| Full 15-metal raw Spearman rho | **0.929** |
 | Fe feasibility, 1000-draw MC | **79.9%** |
+| Fe Top-1 survival | **28.2%** |
 | Fe Top-3 actionable probability | **94.0%** |
-| Ru activity-only break-even target | **201.22x** |
-| Scaling-consistent Ru activity headroom, 673 K | **1.090x** |
-| Maximum activity headroom over process-state library | **2.525x** |
+| Ru activity-only break-even | **201.22x** |
+| Scaling-consistent headroom at 673 K | **1.090x** |
+| Maximum headroom over process-state library | **2.525x** |
 
-The central ammonia result is therefore not simply that Fe is cheaper. The **activity ranking reverses at the industrial decision frontier**, while the global 15-metal correlation remains high. The inversion is concentrated among the candidates that actually matter for selection.
+The key ammonia result is a **decision-frontier inversion**, not a global collapse of atomistic screening. The full 15-metal correlation remains high while the leading candidates reorder.
 
-The backward-design result is equally important: the Ru activity increase required to reach Fe cost parity is about **201-fold**, whereas the scaling-consistent activity headroom is at most about **2.53-fold** in the current process-state library. Under the frozen model, an activity-only route to parity is therefore unreachable.
+Representative optimized operating points are approximately **425 C / 180 bar / 30 C separator** for Fe and **450 C / 425 bar / 25 C** for Ru. Os has a broad shallow high-pressure minimum.
 
-## Cross-reaction economic leverage
+Backward design gives a second result: Ru would require about **201-fold** intrinsic-activity enhancement to reach Fe cost parity, whereas the current scaling-consistent design path offers at most about **2.525-fold** activity headroom. The activity-only parity target is therefore outside the current reachable manifold.
 
-The same multiscale logic is being tested across reactions rather than assuming a universal inversion mechanism.
+## MEOH-D01-v3 — catalyst-state ranking reshuffle
 
-For the current CO2-to-methanol benchmark, the local economic leverages are:
+The current CO2-to-methanol case contains four Re/TiO2 catalyst-temperature states evaluated through an explicit recycle/separation loop at **2% purge**.
+
+Using **STY per g Re** as the upstream intrinsic-productivity metric:
+
+```text
+upstream rank
+1 wt% Re / 250 C   #1   65 g MeOH gRe^-1 h^-1
+1 wt% Re / 200 C   #2   55
+5 wt% Re / 200 C   #3   18
+5 wt% Re / 250 C   #4   16
+
+economic rank
+5 wt% Re / 200 C   #1   943 EUR/t
+1 wt% Re / 200 C   #2   967 EUR/t
+1 wt% Re / 250 C   #3   975 EUR/t
+5 wt% Re / 250 C   #4   1258 EUR/t
+```
+
+- Spearman rho = **0.20**
+- Kendall tau = **0**
+- pairwise inversions = **3/6**
+- upstream winner falls from **#1 to #3**
+
+The ranking change is consistent with a **selectivity-recycle pathway** rather than a single monotonic activity penalty. Local leverage at 5 wt% Re / 250 C is:
 
 | Catalyst-controlled variable | Local leverage |
 |---|---:|
@@ -74,176 +112,120 @@ For the current CO2-to-methanol benchmark, the local economic leverages are:
 | Single-pass conversion | 0.05883 |
 | CH4 suppression | **0.37579** |
 
-After aligning the cost denominator, the normalized **MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410**, with a midpoint near **328**. This supports a pathway-specific interpretation: ammonia activity mainly acts through the **activity -> inventory / reactor-demand** pathway, while methanol selectivity acts through **feed loss -> purge / recycle**.
+The top-rank reversal also depends on the upstream screening objective: yield or STY per g catalyst retains the same global rank statistics but changes which state is the upstream winner.
 
-## Rank-preservation control: Au/TiO2 CO oxidation
+Primary note: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md).
 
-A separate fixed-condition control tests whether the multiscale implementation can preserve an upstream ordering when the downstream mapping is physically monotonic and no competing process-severity or topology penalty is introduced.
+## Cross-reaction economic leverage
 
-The V1.1 control uses literature-anchored Au/TiO2 CO-oxidation data at a common process condition. The candidate states differ only in Au particle size across **2, 3, 4, 5 and 6 nm**; active element, support, feed, temperature, pressure and process topology are held fixed.
-
-| Au diameter | Mass activity (umol CO gcat^-1 s^-1) | Required catalyst (mg) | Burden vs best |
-|---:|---:|---:|---:|
-| 2 nm | 9.6548 | 19.505 | **1.000x** |
-| 3 nm | 4.4686 | 42.143 | **2.161x** |
-| 4 nm | 2.5869 | 72.797 | **3.732x** |
-| 5 nm | 1.6930 | 111.235 | **5.703x** |
-| 6 nm | 1.1973 | 157.284 | **8.064x** |
-
-The activity and downstream burden rankings are both **2 > 3 > 4 > 5 > 6 nm**, with **Spearman rho = 1.000**, **Kendall tau = 1.000**, and **0 pairwise inversions**. Across 10,000 predefined literature/geometry draws, the full ranking is preserved in every draw.
-
-The literature calibration is intentionally substantial rather than cosmetic: the reference particle size changes from 2.00 to 2.10 nm (+5.0%), the nominal TOF size exponent from 1.70 to 0.90 (-47.1%), the effective mass-activity exponent from 2.70 to 1.90 (-29.6%), and the 6 nm / 2 nm required-mass ratio contracts from 19.42x to 8.064x (-58.5%). The ordering remains unchanged.
-
-Figure: [`figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg). Source data: [`data/rank_preservation_control_v1_1.csv`](data/rank_preservation_control_v1_1.csv).
-
-### Semi-open robustness extension: V1.3
-
-V1.1 remains the **canonical rank-preservation control**, but a semi-open robustness extension now tests whether preservation survives when the operating point is no longer perfectly fixed. In V1.3, each particle-size state independently searches temperature and O2/CO ratio inside a literature-constrained low-temperature envelope, while candidate-specific activity-prefactor and apparent-activation-energy perturbations are allowed. Catalyst chemistry and process topology remain common.
-
-Under the **primary 273.15–293.15 K moderate-stress case**, exact full ordering is preserved in **92.16%** of 10,000 optimization draws, with mean **Spearman rho = 0.99214** and **99.98%** of draws retaining rho >= 0.9. Under the wider **273.15–313.15 K** sensitivity, exact preservation falls to **72.62%**, while mean rho remains **0.96802** and **97.56%** of draws retain rho >= 0.9.
-
-This supporting result changes the interpretation in an important but limited way: **rank preservation does not require a perfectly fixed operating point**. Moderate candidate-specific kinetic and operating freedom can produce occasional local reshuffling while leaving the overall rank structure strongly preserved. V1.3 is not promoted to the canonical control because its process-penalty terms are generic monotone penalties rather than a fully literature-derived industrial TEA.
-
-Full note: [`docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md). Reproducibility: [`data/rank_preservation_semiopen_v1_3.py`](data/rank_preservation_semiopen_v1_3.py) and [`data/rank_preservation_semiopen_v1_3_summary.csv`](data/rank_preservation_semiopen_v1_3_summary.csv).
-
-### MeOH candidate-state ranking inversion (restored 2026-09-07)
-
-Within the D01 v3 explicit loop the intrinsic-productivity ranking of the four Re/TiO2 states (1 %-250 °C > 1 %-200 °C > 5 %-200 °C > 5 %-250 °C by STY per g Re) does not survive propagation: the economic order is 5 %-200 °C (943 €/t) > 1 %-200 °C (967) > 1 %-250 °C (975) > 5 %-250 °C (1258); Spearman ρ = 0.20, Kendall τ = 0, 3 of 6 pairs inverted, and the upstream winner falls to third. Cost follows CH4 selectivity through H2 feed loss and loop accumulation, not productivity. Data and rebuilt figure: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md), [`figures/meoh/`](figures/meoh/).
-
-![MeOH upstream to economic ranking](figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png)
-
-## Decision-aware DISCOVER benchmark
-
-DISCOVER is a closed-book, budgeted benchmark of scientific decision allocation. The agent receives an anonymous candidate set and can choose among 11 fine-grained scientific actions rather than requesting the entire answer at once.
-
-The V1 protocol was frozen before formal evaluation. The task, prompt, action schema, cost model, scorer, stopping rule and fixed policy-D constants are SHA-pinned; changing any pinned component defines DISCOVER V2. Failures are recorded rather than tuned away.
-
-### Formal strong-tier precursor
-
-The original formal policy-E run used the strong tier and established that the full decision chain was executable under V1:
-
-- `1 CU = 1000` MKM state solves (measured once at about 21.8 ms in the benchmark cost model).
-- 70 policy-E runs = 5 runs x 7 budgets x anonymous/named variants.
-- Anonymous complete decision: **35/35**.
-- Exact break-even recovery: **34/35**.
-- 0 infrastructure retries and 0 action errors.
-
-These single-tier results are provenance for the later cross-model test; they are **not** the final general Agent claim.
-
-### Cross-model stability — current Agent result (2026-09-06/07)
-
-The same frozen protocol was evaluated across three capability tiers. Policy E used five independent runs at each of seven budgets (**200, 250, 300, 500, 800, 1200 and 2000 CU**). The two weaker tiers contributed 140 new anonymous/named traces; the strong-tier V1 traces were reused and re-scored, not re-run. Frozen hashes passed before and after the sweep; there were 0 API retries and 0 driver exceptions.
-
-| Anonymous task, pooled over 7 budgets (n = 35 per tier) | gpt-5.4-nano | gpt-5.4-mini | gpt-5.5 |
-|---|---:|---:|---:|
-| P(winner correct) | 29/35 | 31/35 | 35/35 |
-| P(pair decision correct) | 24/35 | 20/35 | 35/35 |
-| P(reachability correct) | 6/35 | 15/35 | 35/35 |
-| **P(full decision correct)** | **6/35** | **15/35** | **35/35** |
-| unnecessary-CU fraction (mean) | 0.46 | 0.30 | 0.19 |
-
-The complete decision requires the chain:
+After cost-denominator alignment, the normalized **MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410**, midpoint approximately **328**.
 
 ```text
-ranking / economic winner
-    -> decision-pair selection
-    -> backward design
-    -> reachability verdict
+NH3  : activity -> catalyst inventory / reactor demand
+MeOH : selectivity -> feed loss / purge / recycle
 ```
 
-The pooled tier trend in P(full) is strong (**Cochran-Armitage Z = 6.95**). The strong tier executes the complete decision-aware workflow at every tested budget, whereas weaker tiers frequently recover the winner but fail later in pair formation, BACKWARD execution or reachability formulation.
+The dominant catalyst-economic mechanism is therefore reaction- and process-pathway dependent.
 
-This is the **positive workflow-execution result**: complete decision recovery rises from **6/35 -> 15/35 -> 35/35** as underlying model capability increases.
+## Au/TiO2-RP — rank-preservation family
 
-### Pre-registered E versus fixed-VOI D — negative result
+### V1.1 — canonical control
 
-A stronger hypothesis was pre-registered: adaptive policy E should reliably outperform the deterministic fixed-VOI policy D. That hypothesis was **not supported across model tiers**.
+The literature-calibrated fixed-condition control uses 2, 3, 4, 5 and 6 nm Au/TiO2 particle-size states.
 
-- The repeatable adaptive-scope advantage at 200 CU appears only in the strong tier.
-- Nano and mini never reproduce the narrow-window strategy (0/140 weak-tier runs versus 7/70 strong-tier runs, all at 200 CU).
-- The pre-registered Agent-specific Go criterion — E beats D in at least 4/5 runs at a budget and in at least two model tiers — is **not met**.
-- The negative result is retained; no frozen V1 protocol component was changed to make E look better.
+Activity and required-catalyst burden retain the same order:
 
-The supported conclusion is therefore:
+```text
+2 nm > 3 nm > 4 nm > 5 nm > 6 nm
+```
+
+- Spearman rho = **1.000**
+- Kendall tau = **1.000**
+- pairwise inversions = **0**
+- **10,000/10,000** predefined literature-envelope draws preserve the full ranking
+- 6 nm / 2 nm required-catalyst burden ratio = **8.064x**
+
+This is the canonical counterfactual showing that the multiscale implementation does not intrinsically manufacture ranking inversion.
+
+### V1.3 — latest supporting semi-open robustness
+
+V1.3 relaxes the perfectly fixed operating point while retaining common chemistry and process topology.
+
+Moderate stress:
+
+- **273.15-293.15 K**: exact full-order preservation **92.16%**, mean rho **0.99214**, rho >= 0.9 in **99.98%** of draws;
+- **273.15-313.15 K**: exact preservation **72.62%**, mean rho **0.96802**, rho >= 0.9 in **97.56%** of draws.
+
+V1.3 is the most advanced robustness extension, but V1.1 remains the canonical control because V1.3 still uses generic monotone process penalties rather than a fully literature-derived plant TEA.
+
+Canonical control: [`docs/RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`](docs/RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md).  
+Supporting robustness: [`docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md).
+
+## Decision-aware Agent Harness
+
+The Agent program contains three benchmark families with different roles.
+
+### DRIFT v2 — supporting interface diagnosis
+
+Tests model/interface drift diagnosis and the response to provenance/model-version inconsistencies.
+
+### TRANSFER v1 — supporting reaction transfer
+
+Tests transfer classification, minimum-sufficient-model selection, catalyst-lever identification and value-based next-calculation selection across reaction cases.
+
+### DISCOVER V1 — formal frozen benchmark
+
+DISCOVER V1 is the manuscript-level closed-book, budgeted benchmark of scientific decision allocation. It exposes 11 fine-grained actions and uses `1 CU = 1000 MKM state solves` as the scientific-compute budget.
+
+Cross-model anonymous complete-decision recovery:
+
+| Tier | Complete decision |
+|---|---:|
+| nano | **6/35** |
+| mini | **15/35** |
+| strong | **35/35** |
+
+A complete decision requires:
+
+```text
+economic winner
+ -> decision pair
+ -> backward target
+ -> reachability verdict
+```
+
+The positive result is that full decision-chain execution is strongly model-capability dependent.
+
+The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**. The supported statement is:
 
 > **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
 
-The negative result rejects only the general claim that **Agent E universally outperforms D**. It does not reject the decision-aware framework itself.
+DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**. DISCOVER V2 is reserved for future redesign and should not be described as a completed benchmark.
 
-Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md); statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md); Agent rationale: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md); figures: [`figures/discover_cross_model/`](figures/discover_cross_model/).
-
-![Cross-model outcomes with Wilson 95 % CI](figures/discover_cross_model/X9_wilson_ci_pooled.png)
-
-## Repository map
-
-```text
-.
-├── README.md
-├── STATUS.md
-├── controls/
-│   ├── au_tio2_rank_preservation_v1.py
-│   ├── au_tio2_rank_preservation_v1_1.py
-│   └── au_tio2_rank_preservation_v1_1_config.json
-├── docs/
-│   ├── RESEARCH_FRAME.md
-│   ├── AGENT_HARNESS.md
-│   ├── FIGURE_MAP.md
-│   ├── MANUSCRIPT_SKELETON.md
-│   ├── RESULTS_AT_A_GLANCE.md
-│   ├── REFERENCES_STARTER.md
-│   ├── CROSS_MODEL_DISCOVER_V1.md
-│   ├── CROSS_MODEL_STATS_V1.md
-│   ├── RANK_PRESERVATION_CONTROL_V1_LITERATURE_VALIDATION.md
-│   ├── RANK_PRESERVATION_CONTROL_V1_PREREGISTRATION.md
-│   ├── RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md
-│   ├── RANK_PRESERVATION_CONTROL_V1_1_RESULT.md
-│   └── RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md
-├── figures/
-│   ├── README.md
-│   ├── discover_cross_model/
-│   └── rank_preservation_control/
-└── data/
-    ├── README.md
-    ├── canonical_results_2026-09-06.csv
-    ├── discover_benchmark_2026-09-06.csv
-    ├── rank_preservation_control_v1_1.csv
-    ├── rank_preservation_semiopen_v1_3.py
-    ├── rank_preservation_semiopen_v1_3_summary.csv
-    ├── cross_model_scores_2026-09-06.csv
-    ├── cross_model_failure_matrix_2026-09-06.csv
-    ├── cross_model_stats_2026-09-07.csv
-    ├── cross_model_metadata_2026-09-06.json
-    ├── discover_frozen_v1_hashes.json
-    └── cross_model_*.py
-```
-
-## Reading guide
-
-For a fast project overview, read [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md).
-
-For the manuscript storyline, read [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md).
-
-For the nine-figure scientific map and current headline values, read [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md).
-
-For the AI / agent rationale and benchmark design, read [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md).
-
-For citation planning, read [`docs/REFERENCES_STARTER.md`](docs/REFERENCES_STARTER.md).
+Agent architecture: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md).  
+Formal report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md).  
+Statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md).
 
 ## Current manuscript logic
 
-The project is organized around six linked claims:
+1. Atomic and economic catalyst rankings can diverge at the industrial decision frontier.
+2. Multiscale uncertainty can be amplified or attenuated rather than monotonically propagated.
+3. Backward design distinguishes economically required catalyst targets from physically reachable ones.
+4. Ranking changes are pathway- and screening-objective dependent across reactions.
+5. Multiscale propagation can also preserve a ranking; preservation remains robust under moderate semi-open flexibility.
+6. Decision-aware scientific computation is model-capability dependent, and adaptive allocation does not universally beat a fixed-VOI baseline.
 
-1. **Atomic and economic catalyst rankings can diverge at the decision frontier.**
-2. **Multiscale uncertainty is not monotonically amplified**; kinetics can amplify energetic uncertainty, while equilibrium, reactor and process bottlenecks can absorb it.
-3. **Backward design distinguishes a useful catalyst target from an unreachable one.**
-4. **Economic leverage is pathway-specific rather than universal across reactions.**
-5. **The same multiscale implementation can preserve an upstream ranking under a monotonic mapping, and that preservation remains robust to moderate semi-open kinetic and operating freedom.**
-6. **Decision-aware workflow execution is model-capability dependent; adaptive policy E does not show universal cross-model superiority over fixed-VOI D.**
+## Reading guide
 
-## Status
-
-The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, the literature-calibrated Au/TiO2 rank-preservation control V1.1 is integrated as the canonical framework counterpoint to the ammonia and methanol inversion cases, and V1.3 is retained as a supporting semi-open robustness extension rather than promoted to a replacement control.
+- Current project status: [`STATUS.md`](STATUS.md)
+- Canonical naming/version registry: [`docs/VERSION_REGISTRY.md`](docs/VERSION_REGISTRY.md)
+- Scientific frame: [`docs/RESEARCH_FRAME.md`](docs/RESEARCH_FRAME.md)
+- Manuscript skeleton: [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md)
+- Figure map: [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md)
+- Results snapshot: [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md)
+- Agent Harness: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md)
+- Data index: [`data/README.md`](data/README.md)
 
 ---
 
-*Research snapshot; values in this repository track the current canonical project state rather than the archived NH3-FINAL-1.0 numbers.*
+*Current scientific claims use NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER V1 according to the evidence roles defined in the version registry.*
