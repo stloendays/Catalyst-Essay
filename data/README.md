@@ -29,3 +29,17 @@ For manuscript-level Agent claims, use the evidence in this order:
 The current anonymous complete-decision counts are **6/35 (nano), 15/35 (mini), 35/35 (strong)**. The pre-registered claim that adaptive policy E robustly outperforms fixed-VOI D is **not met across tiers** and must remain a negative result.
 
 The repository should use NH3-FINAL-1.1 values for current scientific claims. NH3-FINAL-1.0 is historical only.
+- `NEGATIVE_CONTROL_V0_{1,2}_CANONICAL_RESULTS.csv` — per-metal atomic rank, economic rank, optimum (T, D, bed, metal mass), cost pools, activity elasticity.
+- `NEGATIVE_CONTROL_V0_{1,2}_FROZEN.json` — SHA-256 pins of manifest, pre-registration, price source and the read-only NH3 reference.
+- `n2o_negcontrol_v0_{1,2}.yaml` — frozen manifests (descriptor set, kinetics, plant basis, grids, economics, criteria).
+- `provenance_v0_{1,2}.json` — run provenance (config / frozen / code hashes, platform).
+- `diagnostics_equal_price_v0_2.json` — equal-price diagnostic (not part of the frozen protocol).
+- `n2o_core.py`, `run_negctrl.py`, `make_figures.py`, `diag_equal_price.py` — the chain, runner, figures and diagnostic (run against the harness directory).
+
+### `meoh/` (CO2-to-MeOH D01 v3, restored 2026-09-07)
+
+- `MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx` — frozen explicit-loop workbook (2026-08-22 v2.2 staging copy).
+- `meoh_candidate_ranking_D01v3.csv` — four candidate states: inputs, upstream ranks (STY per g Re / yield / STY per g cat), NPC at 2 % purge, economic rank, loop diagnostics, local leverages.
+- `meoh_candidate_ranking_D01v3_provenance.json` — workbook SHA-256, sheets used, rank metrics.
+- `make_meoh_ranking_figure.py` — regenerates the CSV and `figures/meoh/MeOH_F03_*.png` from the workbook.
+- `meoh_d01_v3.json` — the harness reaction-case record (atomic_rank = STY per g Re order).

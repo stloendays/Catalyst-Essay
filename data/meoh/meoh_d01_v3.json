@@ -1,0 +1,65 @@
+{
+  "case_id": "meoh_d01_v3",
+  "reaction_identity": {
+    "name": "CO2 hydrogenation to methanol (one-step loop)",
+    "stoichiometry": "CO2 + 3 H2 -> CH3OH + H2O ; side: CO2 + 4 H2 -> CH4 + 2 H2O ; CO2 + H2 -> CO + H2O",
+    "phase": "gas_solid",
+    "reference_state_convention": "measured performance at 100 bar, CO2/H2 = 1:4, 200 and 250 C, 500 C prereduction (Gothe et al. ACS Catal. 2025 Table 3); no DFT energetics in this case",
+    "thermodynamics": {"exothermic": true, "equilibrium_limited": true, "single_pass_conversion_range": "0.19-0.40 measured"}
+  },
+  "industrial_objective": {
+    "metric": "net production cost NPC, EUR/t MeOH, full plant boundary (feed H2/CO2 + compression + equipment ACC + direct OPEX residual), source-anchored to Processes 2022, 10, 1535 at 2 % purge",
+    "target_pair": ["5wtRe_250C", "1wtRe_250C"],
+    "decision_question": "which Re/TiO2 catalyst state is Top-1 at fixed 250 C; does higher-conversion 5 wt% Re beat 1 wt% Re once CH4 accumulation in the loop is explicit",
+    "parity_condition": "C_5wtRe_250C <= C_1wtRe_250C"
+  },
+  "candidate_catalysts": [
+    {"id": "1wtRe_200C", "properties": {"STY_gMeOH_gRe_h": {"value": 55, "unit": "g/gRe/h", "source": "Table 3"}, "X_CO2": {"value": 0.19, "unit": "-", "source": "Table 3"}, "S_MeOH": {"value": 0.99, "unit": "-", "source": "Table 3"}, "S_CH4": {"value": 0.0, "sigma": 0.005, "unit": "-", "source": "Table 3 (<1 %, central 0)"}, "S_CO_like": {"value": 0.01, "unit": "-", "source": "carbon closure"}, "NPC_EUR_t": {"value": 967, "unit": "EUR/t", "source": "D01 v3 Explicit_Loop_2pct"}}, "price_USD_kg": null, "site_convention": "supported Re/TiO2, 1 wt%", "atomic_rank": 2},
+    {"id": "5wtRe_200C", "properties": {"STY_gMeOH_gRe_h": {"value": 18, "unit": "g/gRe/h", "source": "Table 3"}, "X_CO2": {"value": 0.33, "unit": "-", "source": "Table 3"}, "S_MeOH": {"value": 0.97, "unit": "-", "source": "Table 3"}, "S_CH4": {"value": 0.03, "unit": "-", "source": "Table 3"}, "S_CO_like": {"value": 0.0, "unit": "-", "source": "carbon closure"}, "NPC_EUR_t": {"value": 943, "unit": "EUR/t", "source": "D01 v3"}}, "price_USD_kg": null, "site_convention": "supported Re/TiO2, 5 wt%", "atomic_rank": 3},
+    {"id": "1wtRe_250C", "properties": {"STY_gMeOH_gRe_h": {"value": 65, "unit": "g/gRe/h", "source": "Table 3"}, "X_CO2": {"value": 0.23, "unit": "-", "source": "Table 3"}, "S_MeOH": {"value": 0.97, "unit": "-", "source": "Table 3"}, "S_CH4": {"value": 0.03, "unit": "-", "source": "Table 3"}, "S_CO_like": {"value": 0.0, "unit": "-", "source": "carbon closure"}, "NPC_EUR_t": {"value": 975, "unit": "EUR/t", "source": "D01 v3"}}, "price_USD_kg": null, "site_convention": "supported Re/TiO2, 1 wt%", "atomic_rank": 1},
+    {"id": "5wtRe_250C", "properties": {"STY_gMeOH_gRe_h": {"value": 16, "unit": "g/gRe/h", "source": "Table 3"}, "X_CO2": {"value": 0.40, "unit": "-", "source": "Table 3"}, "S_MeOH": {"value": 0.74, "unit": "-", "source": "Table 3"}, "S_CH4": {"value": 0.25, "unit": "-", "source": "Table 3"}, "S_CO_like": {"value": 0.01, "unit": "-", "source": "carbon closure"}, "NPC_EUR_t": {"value": 1258, "unit": "EUR/t", "source": "D01 v3"}}, "price_USD_kg": null, "site_convention": "supported Re/TiO2, 5 wt%", "atomic_rank": 4}
+  ],
+  "descriptor_options": [
+    {"name": "STY per g Re (intrinsic productivity proxy)", "controls": ["activity"], "scaling_relation_available": false, "source": "Table 3"},
+    {"name": "S_CH4 (methanation selectivity)", "controls": ["selectivity"], "scaling_relation_available": false, "source": "Table 3"},
+    {"name": "X_CO2 (single-pass conversion)", "controls": ["activity"], "scaling_relation_available": false, "source": "Table 3"}
+  ],
+  "mechanism_options": [
+    {"id": "formate_route_MeOH_plus_methanation_side", "steps": ["CO2* + H* -> HCOO*", "... -> CH3OH", "CO2 + 4 H2 -> CH4 + 2 H2O (side)"], "consistent_with_stoichiometry": true, "source": "literature; not modelled kinetically in this case"}
+  ],
+  "active_site_options": [{"id": "Re_TiO2_dispersed", "description": "Re loading sets dispersion; 1 vs 5 wt% changes STY per Re and selectivity", "source": "Gothe 2025"}],
+  "kinetic_model": {"type": "yield_selectivity_table", "status": "frozen", "outputs": ["conversion", "selectivity", "STY"], "source": "D01 v3 Candidate_Inputs (measured points only; no T/P interpolation claimed)"},
+  "reactor_model": {"type": "reactor modules scaled with catalyst mass^0.60 from plant production / STY / Re wt%", "reoptimised_per_catalyst": false, "inventory_link": "catalyst mass = production / STY / Re wt% ; reactor EC share only ~7-8 M EUR of 85.5 M EUR"},
+  "process_topology": {"recycle": true, "purge": true, "separation": ["high-pressure condensation of MeOH/H2O", "distillation"], "inerts_accumulate": true, "byproducts": ["CH4", "CO-like", "N2 from H2 impurity"], "heat_integration_modelled": false},
+  "recycle": {"purge_fraction_central": 0.02, "recycle_flow_reference_kmol_h": 54290, "flow_correction_calibrated": 1.0989, "note": "CH4, CO-like and N2 accumulate and leave only through purge; recycle compressor scales with recycle flow"},
+  "separation": {"model": "full removal of condensables at separator; distillation sized by crude MeOH+H2O flow; flash/HX sized by reactor-inlet gas flow", "catalyst_dependent_inputs": ["S_CH4 -> loop inert fraction -> circulation", "X_CO2 -> recycle ratio", "S_MeOH -> crude liquid flow"]},
+  "catalyst_lifetime": {"life_y": null, "deactivation_model": "not modelled", "recovery_fraction": null, "replacement_cost_modelled": false},
+  "economic_modules": [
+    {"name": "H2_feed", "depends_on_catalyst": true, "common_mode": true, "share_of_cost": 0.63, "driven_by": ["S_CH4", "S_MeOH", "purge_fraction", "H2_price"]},
+    {"name": "CO2_feed", "depends_on_catalyst": true, "common_mode": true, "share_of_cost": 0.06, "driven_by": ["S_CH4", "purge_fraction", "CO2_price"]},
+    {"name": "compression", "depends_on_catalyst": true, "common_mode": true, "share_of_cost": 0.017, "driven_by": ["X_CO2", "S_CH4", "recycle_flow", "electricity_price"]},
+    {"name": "equipment_ACC", "depends_on_catalyst": true, "common_mode": false, "share_of_cost": 0.05, "driven_by": ["recycle_flow", "purge_flow", "catalyst_mass", "crude_liquid_flow"]},
+    {"name": "direct_OPEX_residual", "depends_on_catalyst": false, "common_mode": true, "share_of_cost": 0.06, "driven_by": []},
+    {"name": "catalyst_purchase", "depends_on_catalyst": true, "common_mode": false, "share_of_cost": null, "driven_by": ["Re_wt", "catalyst_mass"]}
+  ],
+  "operating_bounds": {
+    "T_C": {"min": 200, "max": 250, "unit": "C", "grid_step": null},
+    "P_bar": {"min": 100, "max": 100, "unit": "bar", "grid_step": null},
+    "purge_fraction": {"min": 0.005, "max": 0.25, "unit": "-", "grid_step": 0.001}
+  },
+  "constraints": [
+    {"key": "purge_fraction", "value": 0.02, "direction": "<=", "slack_at_reference": 0.0, "binding_for": ["all candidates (source convention, fixed)"]},
+    {"key": "loop_inert_fraction_reference", "value": 0.0686, "direction": "<=", "slack_at_reference": null, "binding_for": ["5wtRe_250C (0.52 at 2 % purge)", "5wtRe_200C (0.13)", "1wtRe_250C (0.096)"]}
+  ],
+  "uncertainty_model": {
+    "S_CH4": {"distribution": "reported rounding", "sigma": 0.005, "half_width": null, "applies_to": ["1wtRe_200C (<1 % reported as 0)"]}
+  },
+  "cost_boundary": "npc_full_plant",
+  "data_provenance": [
+    {"item": "process TEA anchor", "source": "Processes 2022, 10, 1535 (https://www.mdpi.com/2227-9717/10/8/1535)", "version": "published"},
+    {"item": "catalyst data", "source": "Gothe et al., ACS Catalysis 2025, Table 3 (https://www.osti.gov/pages/servlets/purl/3005244)", "version": "published"},
+    {"item": "explicit loop workbook", "source": "Catalyst_Economic_Leverage_Project_2026-08-22_v2.2_STAGING/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx", "version": "v3.0"}
+  ],
+  "validation_status": {"stage": "frozen", "approved_by": "project (technical closure 2026-08-22, Notion page 08/09)", "approved_utc": "2026-08-22", "note": "dev/anchor case (positive control for transfer); excluded from the closed-book extrapolation score. Re purchase price excluded by design; T/P not optimised (measured points only)."},
+  "pathway_hints": {"activity_inventory": "unlikely", "selectivity_recycle": "dominant", "stability_replacement": "unknown", "activity_energy": "unlikely", "thermodynamic_bottleneck": "likely"}
+}

@@ -96,6 +96,12 @@ The literature calibration is intentionally substantial rather than cosmetic: th
 
 Figure: [`figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg). Source data: [`data/rank_preservation_control_v1_1.csv`](data/rank_preservation_control_v1_1.csv).
 
+### MeOH candidate-state ranking inversion (restored 2026-09-07)
+
+Within the D01 v3 explicit loop the intrinsic-productivity ranking of the four Re/TiO2 states (1 %-250 °C > 1 %-200 °C > 5 %-200 °C > 5 %-250 °C by STY per g Re) does not survive propagation: the economic order is 5 %-200 °C (943 €/t) > 1 %-200 °C (967) > 1 %-250 °C (975) > 5 %-250 °C (1258); Spearman ρ = 0.20, Kendall τ = 0, 3 of 6 pairs inverted, and the upstream winner falls to third. Cost follows CH4 selectivity through H2 feed loss and loop accumulation, not productivity. Data and rebuilt figure: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md), [`figures/meoh/`](figures/meoh/).
+
+![MeOH upstream to economic ranking](figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png)
+
 ## Decision-aware DISCOVER benchmark
 
 DISCOVER is a closed-book, budgeted benchmark of scientific decision allocation. The agent receives an anonymous candidate set and can choose among 11 fine-grained scientific actions rather than requesting the entire answer at once.

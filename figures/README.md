@@ -63,3 +63,11 @@ Generated 2026-09-06/07 from `DISCOVER_CROSS_MODEL_V1` on the frozen DISCOVER V1
 | `X7_failure_mode_matrix.png` | 19 failure modes × model × variant |
 | `X8_failure_by_budget_anonymous.png` | failure modes by budget, anonymous task |
 | `X9_wilson_ci_pooled.png` | pooled / ≤300 CU / ≥500 CU outcomes with Wilson 95 % CI, all tiers (statistics page) |
+
+## Negative control N2O figures (`negative_control_n2o/`)
+
+Model N2O-NEGCTRL-0.2 unless suffixed `_V0_1`. F1 atomic-vs-economic rank; F2 rolling Top-K (N2O vs NH3-FINAL-1.1); F3 cost pools at each candidate's own optimum; F4 cost-vs-temperature envelopes; F5 Monte-Carlo rank preservation (1000 draws, ±0.30 eV).
+
+## MeOH figures (`meoh/`)
+
+`MeOH_F03_UpstreamToEconomicRanking_D01v3.png` — candidate-state upstream (STY per g Re) rank → economic (NPC, 2 % purge) rank, rebuilt 2026-09-07 from the frozen D01 v3 workbook (see `docs/MEOH_RANKING_INVERSION.md`). `MeOH_F01_ExplicitLoopEconomics_v3.0.png` (= manuscript Figure 7 source), `MeOH_F02_Purge_MethaneAccumulation_FINAL_v3.0.png` (Figure 8 source), `MeOH_SF01_ProductResolvedNetwork_v2.0.png` (supporting) are restored from the 2026-08-19 v1.0 archive.
