@@ -1,4 +1,19 @@
-# Decision-aware AI harness
+# Decision-aware Agent Harness
+
+## Canonical naming
+
+The Agent system is referred to as the **Decision-aware Agent Harness**.
+
+Its current benchmark families are separate and must not be merged into one version sequence:
+
+- **DRIFT v2** — completed model/interface drift-diagnosis benchmark;
+- **TRANSFER v1** — completed reaction-transfer benchmark;
+- **DISCOVER V1** — frozen canonical closed-book, budgeted decision-allocation benchmark;
+- **DISCOVER V2** — reserved for a future protocol redesign; not a completed current benchmark.
+
+The older label `Layer B v0.5` refers to an implementation snapshot of the decision layer, not to the version of DISCOVER. The older label `extrapolation benchmark v1` is retained only as a legacy alias for **TRANSFER v1**.
+
+See `VERSION_REGISTRY.md` for the project-wide naming policy.
 
 ## Why the agent exists
 
@@ -6,11 +21,12 @@ The AI component is not intended to be a wrapper around a fixed DFT -> MKM -> re
 
 A fixed workflow already solves the deterministic numerical chain. The agent is useful only at interfaces where a numerical optimizer cannot determine the scientifically appropriate next action, for example:
 
-- which admissible mechanism or active-site representation to use;
+- which admissible model component should be reused, adapted or rebuilt during reaction transfer;
 - whether an apparent difference is a model-version / unit / cost-boundary inconsistency;
 - which uncertainty should be reduced next;
+- which catalyst lever has the highest downstream decision value;
 - whether a backward target is reachable;
-- whether computation should stop because the decision is already resolved.
+- whether computation should stop because the industrial decision is already resolved.
 
 The central AI question is therefore:
 
@@ -19,7 +35,7 @@ The central AI question is therefore:
 ## Layer A and Layer B
 
 ```text
-Layer A — deterministic scientific harness
+Layer A — deterministic multiscale harness
 frozen inputs
  -> scaling / BEP
  -> MKM
@@ -29,18 +45,47 @@ frozen inputs
  -> reproducible outputs
 
 Layer B — decision layer
-inspect state
- -> choose admissible action
- -> gather evidence
- -> update hypothesis
+inspect current evidence
+ -> identify decision-sensitive uncertainty / catalyst lever
+ -> choose admissible scientific action
+ -> execute Layer A tool / calculation
+ -> update ranking / feasibility / reachability evidence
  -> stop / continue / redirect computation
 ```
 
 Layer B does not rewrite canonical scientific state. Canonical promotion remains a separate explicit action.
 
-## DISCOVER environment
+## Supporting Agent benchmarks
 
-The current closed-book DISCOVER benchmark exposes 11 fine-grained actions:
+### DRIFT v2
+
+DRIFT v2 tests whether the decision layer can diagnose model/interface inconsistencies after evidence acquisition and choose the correct response. The current v2 set contains 12 cases and five action classes; the recorded action result is 12/12, with one cause-label ambiguity retained as observed.
+
+DRIFT v2 supports the claim that the Agent Harness can reason over provenance/model-interface inconsistencies. It is not the formal decision-allocation benchmark.
+
+### TRANSFER v1
+
+TRANSFER v1 is the reaction-transfer benchmark built around the EXTRAPOLATE_REACTION prototype. Its decision chain includes:
+
+```text
+INSPECT_REACTION_CASE
+ -> RECORD_TRANSFER_HYPOTHESIS
+ -> BUILD_CAUSAL_GRAPH
+ -> CLASSIFY_TRANSFER
+ -> PROPOSE_MINIMUM_MODEL
+ -> IDENTIFY_CANDIDATE_LEVERS
+ -> TEST_CASE_LEVER_ELIGIBILITY
+ -> SCORE_NEXT_CALCULATIONS
+ -> PROPOSE_NEXT_CALCULATION
+```
+
+The transfer layer distinguishes REUSE / ADAPT / REBUILD / NOT_NEEDED across model components, identifies dominant catalyst-to-process pathways and asks whether more atomistic accuracy is actually useful for the downstream decision.
+
+TRANSFER v1 supports the broader model-interface and reaction-transfer role of the Agent Harness. It is not a replacement for DISCOVER V1.
+
+## DISCOVER V1 environment
+
+DISCOVER V1 is the current formal benchmark for closed-book, budgeted scientific decision allocation. It exposes 11 fine-grained actions:
 
 1. `INSPECT_CANDIDATES`
 2. `COMPUTE_ACTIVITY`
@@ -58,7 +103,7 @@ The agent cannot request a single tool that reveals the full answer. Ground trut
 
 ## Compute units
 
-The frozen benchmark cost model defines:
+The frozen DISCOVER V1 cost model defines:
 
 - **1 CU = 1000 MKM state solves**;
 - measured benchmark reference: about **21.8 ms per CU**;
@@ -68,7 +113,7 @@ The frozen benchmark cost model defines:
 - backward calculation: ~1 CU;
 - reachability test: ~2-4 CU.
 
-CU is deliberately a scientific-compute budget, not an LLM-token budget.
+CU is a scientific-compute budget, not an LLM-token budget.
 
 ## Why anonymization is required
 
@@ -80,6 +125,7 @@ Winner-only accuracy is not sufficient evidence. The scorer also checks whether 
 
 - the ranking inversion;
 - the economic winner;
+- the decision pair;
 - the break-even target;
 - scaling-manifold reachability;
 - decision completeness;
@@ -95,7 +141,7 @@ The 200-CU regime is particularly useful because it exposes incomplete or misall
 
 ## Frozen V1 and cross-model design
 
-DISCOVER V1 was frozen before the cross-model evaluation. Any change to the task, prompt, action schema, cost model, scorer, stopping rule, policy-D constants or other pinned files defines DISCOVER V2 rather than a repair of V1.
+DISCOVER V1 was frozen before cross-model evaluation. Any change to the task, prompt, action schema, cost model, scorer, stopping rule, policy-D constants or other pinned files defines **DISCOVER V2** rather than a repair of V1.
 
 Cross-model evaluation:
 
@@ -127,9 +173,9 @@ economic winner
  -> reachability verdict
 ```
 
-The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier completes the full chain at every budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
+The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier completes the full chain at every tested budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
 
-This is a **positive Agent-framework result**: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability.
+This is the positive formal Agent result: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability.
 
 ## Pre-registered E versus fixed-VOI D: negative result
 
@@ -142,7 +188,7 @@ That claim was **not supported across model tiers**.
 - The pre-registered Agent-specific Go criterion — E beats D in at least 4/5 runs at one budget and in at least two model tiers — was **not met**.
 - D has zero decision regret at every budget where it resolves the decision, so that component can tie but cannot be improved by E.
 
-This negative result is retained exactly as evaluated. It is **not** evidence that the whole Agent framework fails. It rejects only the universal superiority claim:
+This negative result is retained exactly as evaluated. It rejects only the universal-superiority claim:
 
 > **Adaptive Agent E is not generally superior to fixed-VOI D across model capability tiers.**
 
@@ -165,30 +211,32 @@ These are scored as observed. No run was retried or tuned to improve a benchmark
 
 ## What counts as a meaningful AI result
 
-A scientifically useful agent result should demonstrate one or more of the following:
+A scientifically useful Agent result should demonstrate one or more of the following:
 
-- it identifies that an apparently high-uncertainty variable has low downstream decision value and avoids spending budget there;
-- it recognizes that a lower-uncertainty variable controls a rank boundary and prioritizes it;
-- it stops once the industrial decision is resolved;
-- it redirects from an unreachable activity-only target toward another catalyst or process lever;
-- it detects model-interface inconsistencies that would otherwise produce a numerically valid but scientifically wrong run.
+- identify that an apparently high-uncertainty variable has low downstream decision value and avoid spending budget there;
+- recognize that a lower-uncertainty variable controls a rank boundary and prioritize it;
+- stop once the industrial decision is resolved;
+- redirect from an unreachable activity-only target toward another catalyst or process lever;
+- detect model-interface inconsistencies that would otherwise produce a numerically valid but scientifically wrong run;
+- during reaction transfer, identify the minimum sufficient model rather than automatically rebuilding every upstream layer.
 
 This is closer to value-of-information / decision-focused acquisition than to generic workflow automation.
 
 ## Evidence hierarchy
 
-For current Agent claims, use these sources in order:
+For formal manuscript-level Agent claims, use these sources in order:
 
-1. frozen V1 hashes and protocol pins;
+1. frozen DISCOVER V1 hashes and protocol pins;
 2. scored traces / per-trace failure records;
 3. `docs/CROSS_MODEL_STATS_V1.md`;
 4. `docs/CROSS_MODEL_DISCOVER_V1.md`;
 5. manuscript and README summaries.
 
-Do not revert to older drift/extrapolation-only summaries or describe the cross-model benchmark as pending.
+For broader Agent-Harness capability descriptions, DRIFT v2 and TRANSFER v1 may be cited separately as supporting benchmark families.
 
 ## Current next tests
 
 1. preserve DISCOVER V1 unchanged as the frozen benchmark record;
-2. move any scorer weighting, tool-schema hardening or protocol redesign into DISCOVER V2;
-3. continue transfer tests without rewriting the V1 negative result.
+2. keep DRIFT v2 and TRANSFER v1 as separate supporting benchmark families rather than folding their version numbers into DISCOVER;
+3. move any scorer weighting, tool-schema hardening or formal protocol redesign into DISCOVER V2;
+4. continue reaction-transfer tests without rewriting the DISCOVER V1 negative result.
