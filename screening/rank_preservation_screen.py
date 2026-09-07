@@ -232,3 +232,5 @@ for c in CANDIDATES:
 (OUT / "RANK_PRESERVATION_SCREEN_V1.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 print("\n".join(lines))
+
+# This comment intentionally makes a post-workflow commit so the push trigger can be observed in Actions.
