@@ -125,11 +125,21 @@ Primary files:
 - `data/rank_preservation_control_v1_1.csv`
 - `figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`
 
-## Next validation / integration layer
+## Manuscript integration status
 
-1. Integrate the rank-preservation control into the manuscript as the counterpoint to the ammonia decision-frontier inversion.
-2. Keep the control's claim limited to rank preservation under a literature-calibrated fixed-condition monotonic mapping; do not convert the relative burden into unsupported absolute process economics.
-3. Continue manuscript integration using NH3-FINAL-1.1 only.
-4. Any DISCOVER protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
+The rank-preservation control is now integrated into the manuscript story rather than left as a side validation:
+
+1. `docs/MANUSCRIPT_SKELETON.md` contains a dedicated Results section **3.6** explaining the control as the counterfactual to NH3 ranking inversion; the Agent section moves to **3.7**.
+2. `docs/FIGURE_MAP.md` keeps the nine-figure architecture by folding the control into **Figure 9B**, paired with cross-reaction leverage in Figure 9A.
+3. `docs/RESEARCH_FRAME.md`, `docs/RESULTS_AT_A_GLANCE.md` and the repository README now use the conditional interpretation: multiscale propagation can preserve or invert rankings depending on catalyst-to-process coupling topology.
+4. The writing boundary is fixed: Au/TiO2 supports rank preservation under a literature-calibrated fixed-condition monotonic mapping; it is **not** promoted to an unsupported full industrial TEA.
+
+## Next manuscript-closure layer
+
+1. Convert the manuscript skeleton into continuous Introduction / Results / Discussion / Methods prose.
+2. Assemble Supporting Information around the already-frozen audits, uncertainty propagation, backward-design derivation, rank-preservation control and DISCOVER evidence.
+3. Complete the primary-reference map and attach citations to equations, datasets, process assumptions and Agent/VOI framing.
+4. Run a final consistency sweep for archived NH3-FINAL-1.0 numbers and stale benchmark wording.
+5. Any DISCOVER protocol change (scorer weighting of unresolved risk, tool-argument schema hardening) is DISCOVER V2 and must not overwrite V1.
 
 Historical NH3-FINAL-1.0 values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, and Ru break-even = 2171.56x should not be used as current headline numbers.
