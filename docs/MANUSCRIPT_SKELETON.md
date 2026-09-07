@@ -11,13 +11,14 @@ All ammonia headline values below use **NH3-FINAL-1.1**.
 
 ## Abstract logic
 
-The abstract should carry three scientific results rather than a long list of numbers:
+The abstract should carry the scientific logic rather than a long list of numbers:
 
 1. **Where inversion occurs:** atomic and economic rankings diverge at the decision frontier in ammonia synthesis.
-2. **How uncertainty propagates:** atomistic uncertainty can be amplified or attenuated by the multiscale process chain.
-3. **Whether the backward target is reachable:** the activity improvement needed for Ru cost parity lies far outside the current scaling-consistent activity headroom.
+2. **Why inversion is conditional rather than inevitable:** a literature-calibrated Au/TiO2 fixed-condition control preserves the upstream ranking exactly when the downstream mapping is monotonic.
+3. **How uncertainty and design targets propagate:** atomistic uncertainty can be amplified or attenuated, and backward design can place an economically required catalyst target outside the reachable scaling manifold.
+4. **How the mechanism transfers:** the dominant downstream economic pathway changes across reactions, exemplified by activity–inventory coupling in NH3 and selectivity–recycle coupling in CO2-to-methanol.
 
-A fourth sentence can establish transfer across reactions: the dominant economic pathway changes from activity–inventory in NH3 to selectivity–recycle in CO2-to-methanol.
+A final sentence can introduce the AI layer without making it the source of the physical result: the frozen DISCOVER benchmark tests whether an agent can allocate finite scientific compute to the parts of this chain that matter to the downstream decision.
 
 ## 1. Introduction
 
@@ -31,6 +32,8 @@ This work asks:
 - When and why does it invert?
 - Which uncertainty is worth reducing for the final industrial decision?
 - What catalyst-property improvement is required by an economic target, and is that target physically reachable?
+
+A central falsification test is also required: if the downstream mapping is monotonic and process severity/topology are fixed, the same implementation should preserve rather than manufacture a ranking inversion.
 
 ## 2. Framework
 
@@ -142,9 +145,30 @@ This supports a reaction-specific interpretation:
 
 The manuscript-level conclusion is that atomic-to-economic ranking inversion is not governed by one universal catalyst variable. The dominant mechanism depends on how a catalyst property couples into downstream process cost pools.
 
-Primary figure: F9.
+Primary figure: F9A.
 
-### 3.6 Decision-aware computation allocation is model-capability dependent
+### 3.6 A literature-calibrated control shows that multiscale propagation does not intrinsically invert rankings
+
+To test whether ranking inversion is an artefact of the multiscale implementation itself, a separate Au/TiO2 CO-oxidation control was evaluated under a fixed process condition. Candidate states differ only in Au particle size from **2 to 6 nm**, while active element, support, feed composition, temperature, pressure and process topology are held common.
+
+The V1.1 control replaces the original arbitrary downstream coefficients with a literature-anchored physical mapping. The absolute-rate anchor uses a **2.10 nm** Au/TiO2 catalyst with **4.40 wt% Au**, **38% measured dispersion** and a stabilized activity of **8.8 umol CO gcat^-1 s^-1** at **273.15 K and 1 atm**. The nominal particle-size dependence is taken as **TOF ~ d^-0.9**, consistent with the closest-loading literature series.
+
+The resulting activity and downstream catalyst-burden rankings are identical:
+
+```text
+2 nm > 3 nm > 4 nm > 5 nm > 6 nm
+```
+
+with **Spearman rho = 1.000**, **Kendall tau = 1.000**, **0 pairwise inversions**, and **10,000/10,000** predefined literature-envelope draws preserving the complete order. Literature calibration substantially compresses the burden spread: the 6 nm / 2 nm required-catalyst ratio falls from 19.42x in V1 to **8.064x** in V1.1, but the ordering does not change.
+
+This control is deliberately **not** a full industrial TEA and should not be given unsupported absolute process economics. Its role is narrower and more important: it shows that the same multiscale implementation preserves an upstream ranking when the downstream mapping remains monotonic and no competing process-severity or topology penalty is introduced.
+
+The combined interpretation of F1–F9 is therefore conditional rather than universal: multiscale propagation can **preserve** a catalyst ranking or **invert** it depending on how catalyst properties couple to downstream process and economic pathways.
+
+Primary figure: F9B.  
+Primary evidence: `RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`, `rank_preservation_control_v1_1.csv`.
+
+### 3.7 Decision-aware computation allocation is model-capability dependent
 
 DISCOVER V1 evaluates whether an AI agent can allocate limited scientific compute to the parts of the multiscale chain that matter to the final industrial decision. The protocol was frozen before the cross-model test: the task, prompt, 11-action schema, CU cost model, scorer, stopping rule and A-D baselines were unchanged.
 
@@ -192,13 +216,19 @@ Instead of asking whether a catalyst can be made “more active,” the framewor
 
 A new reaction should not inherit the ammonia mechanism by analogy. The relevant question is which catalyst property controls which downstream cost pool in that process architecture.
 
-### 4.5 Agent claims should separate execution capability from policy superiority
+### 4.5 Ranking inversion is conditional, not an intrinsic consequence of adding more model layers
+
+The Au/TiO2 control provides the counterfactual needed to interpret the ammonia result. Under a fixed-condition monotonic mapping, the upstream ordering survives unchanged even after the catalyst-demand layer is propagated. Ranking inversion therefore requires a competing downstream pathway capable of changing relative candidate burden; it is not produced merely by passing through a multiscale workflow.
+
+This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties and downstream decision variables**.
+
+### 4.6 Agent claims should separate execution capability from policy superiority
 
 The cross-model benchmark shows that the ability to complete a multistep decision chain is itself capability-dependent. At the same time, a capable adaptive agent does not automatically dominate a strong deterministic VOI baseline. These are distinct claims and should be reported separately.
 
 ## 5. Figures
 
-See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values.
+See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values. The rank-preservation control is integrated into **Figure 9B** rather than added as a tenth standalone figure.
 
 ## 6. Methods structure
 
@@ -213,7 +243,8 @@ A compact Methods section can be organized as:
 7. Backward-design and scaling reachability
 8. Methanol recycle/separation model
 9. Cross-reaction leverage normalization
-10. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
+10. Au/TiO2 fixed-condition rank-preservation control and literature calibration
+11. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
 
 ## 7. Supporting Information priorities
 
@@ -225,6 +256,7 @@ Supporting Information should contain the technical evidence needed to trust the
 - detailed operating envelopes
 - cost-pool decomposition
 - scaling-manifold derivation
+- Au/TiO2 rank-preservation preregistration, literature anchors, sensitivity envelope and full 10,000-draw preservation test
 - complete DISCOVER action schema, scorer and budget curves
 - named vs anonymous benchmark controls
 - zero-tool prior probe
