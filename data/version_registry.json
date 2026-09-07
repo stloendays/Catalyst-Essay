@@ -1,0 +1,70 @@
+{
+  "snapshot_date": "2026-09-07",
+  "registry_role": "machine-readable source of truth for family-specific project version naming",
+  "families": {
+    "nh3_scientific_model": {
+      "canonical_label": "NH3-FINAL-1.1",
+      "status": "frozen_canonical",
+      "manuscript_eligible": true,
+      "historical": ["NH3-FINAL-1.0"]
+    },
+    "meoh_reaction_case": {
+      "canonical_label": "MEOH-D01-v3",
+      "status": "canonical_case",
+      "manuscript_eligible": true,
+      "source_record": "data/meoh/meoh_d01_v3.json"
+    },
+    "rank_preservation_control": {
+      "canonical_label": "Au/TiO2-RP V1.1",
+      "status": "canonical_control",
+      "manuscript_eligible": true,
+      "primary_doc": "docs/RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md"
+    },
+    "rank_preservation_robustness": {
+      "canonical_label": "Au/TiO2-RP V1.3",
+      "status": "latest_supporting_extension",
+      "manuscript_eligible": "supporting_only",
+      "primary_doc": "docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md",
+      "note": "does not replace V1.1 because process penalties are generic monotone penalties rather than a fully literature-derived plant TEA"
+    },
+    "agent_architecture": {
+      "canonical_label": "Decision-aware Agent Harness",
+      "status": "current_umbrella_name",
+      "components": ["Layer A — deterministic multiscale harness", "Layer B — decision layer"]
+    },
+    "drift_benchmark": {
+      "canonical_label": "DRIFT v2",
+      "legacy_labels": ["drift benchmark v2"],
+      "status": "completed_supporting_benchmark"
+    },
+    "reaction_transfer_benchmark": {
+      "canonical_label": "TRANSFER v1",
+      "legacy_labels": ["extrapolation benchmark v1", "EXTRAPOLATE_REACTION benchmark v1"],
+      "status": "completed_supporting_benchmark"
+    },
+    "formal_agent_benchmark": {
+      "canonical_label": "DISCOVER V1",
+      "status": "frozen_canonical_benchmark",
+      "manuscript_eligible": true,
+      "cross_model_complete": true,
+      "anonymous_full_decision_counts": {
+        "nano": "6/35",
+        "mini": "15/35",
+        "strong": "35/35"
+      },
+      "preregistered_E_vs_D_go": "not_met",
+      "frozen_hashes": "data/discover_frozen_v1_hashes.json"
+    },
+    "future_discover_redesign": {
+      "canonical_label": "DISCOVER V2",
+      "status": "reserved_not_completed",
+      "trigger": "any change to frozen V1 task, prompt, action schema, cost model, scorer, stopping rule, policy-D constants, or other pinned protocol component"
+    }
+  },
+  "naming_rules": [
+    "Never use a bare version number without its family name.",
+    "Frozen filenames and hash-pinned DISCOVER V1 protocol files are not renamed.",
+    "Higher version number does not automatically mean canonical; evidence role determines canonical status.",
+    "Historical aliases are allowed only when explicitly marked legacy or historical."
+  ]
+}
