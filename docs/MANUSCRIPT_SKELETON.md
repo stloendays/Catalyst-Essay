@@ -14,7 +14,7 @@ All ammonia headline values below use **NH3-FINAL-1.1**.
 The abstract should carry the scientific logic rather than a long list of numbers:
 
 1. **Where inversion occurs:** atomic and economic rankings diverge at the decision frontier in ammonia synthesis, and Re-normalized catalyst-state rankings are reshaped after explicit recycle/separation economics in CO2-to-methanol.
-2. **Why inversion is conditional rather than inevitable:** a literature-calibrated Au/TiO2 fixed-condition control preserves the upstream ranking exactly when the downstream mapping is monotonic.
+2. **Why inversion is conditional rather than inevitable:** a literature-calibrated Au/TiO2 fixed-condition control preserves the upstream ranking exactly when the downstream mapping is monotonic, while a semi-open robustness extension shows that moderate candidate-specific kinetic and operating freedom introduces only limited local reshuffling and leaves the overall rank structure strongly preserved.
 3. **How uncertainty and design targets propagate:** atomistic uncertainty can be amplified or attenuated, and backward design can place an economically required catalyst target outside the reachable scaling manifold.
 4. **How the mechanism transfers:** NH3 inversion follows an activity–inventory / reactor-demand pathway, whereas the MeOH inversion follows a selectivity–recycle pathway; the MeOH top-rank reversal also depends on which upstream screening metric is used.
 
@@ -33,7 +33,7 @@ This work asks:
 - Which uncertainty is worth reducing for the final industrial decision?
 - What catalyst-property improvement is required by an economic target, and is that target physically reachable?
 
-A central falsification test is also required: if the downstream mapping is monotonic and process severity/topology are fixed, the same implementation should preserve rather than manufacture a ranking inversion.
+A central falsification test is also required: if the downstream mapping is monotonic, the same implementation should preserve rather than manufacture a ranking inversion. A supporting robustness extension then asks whether preservation survives after relaxing a perfectly fixed operating point.
 
 ## 2. Framework
 
@@ -180,10 +180,15 @@ with **Spearman rho = 1.000**, **Kendall tau = 1.000**, **0 pairwise inversions*
 
 This control is deliberately **not** a full industrial TEA and should not be given unsupported absolute process economics. Its role is narrower and more important: it shows that the same multiscale implementation preserves an upstream ranking when the downstream mapping remains monotonic and no competing process-severity or topology penalty is introduced.
 
-The combined interpretation of F1–F9 is therefore conditional rather than universal: multiscale propagation can **preserve** a catalyst ranking or **invert / reshape** it depending on how catalyst properties and screening objectives couple to downstream process and economic pathways.
+A supporting **V1.3 semi-open robustness extension** relaxes the perfectly fixed operating point while retaining common Au/TiO2 chemistry and process topology. Each particle-size state independently searches temperature and O2/CO ratio inside a literature-constrained low-temperature envelope, with candidate-specific perturbations to activity prefactor and apparent activation energy. Under moderate stress in the primary **273.15–293.15 K** window, exact full ordering is preserved in **92.16%** of 10,000 draws, mean **Spearman rho = 0.99214**, and **99.98%** of draws retain rho >= 0.9. In the wider **273.15–313.15 K** sensitivity, exact preservation is **72.62%**, mean rho is **0.96802**, and **97.56%** of draws retain rho >= 0.9.
+
+V1.3 therefore supports a stronger but still bounded statement: **rank preservation does not require a perfectly fixed operating point; moderate kinetic and operating freedom can introduce occasional local reshuffling while leaving the overall ordering strongly correlated with the upstream ranking.** V1.1 remains the canonical falsification control because the V1.3 process penalties are generic monotone penalties rather than a fully literature-derived plant cost model.
+
+The combined interpretation of F1–F9 is therefore conditional rather than universal: multiscale propagation can **preserve** a catalyst ranking, **weakly reshape** it under moderate downstream flexibility, or **invert / strongly reshape** it when catalyst properties and screening objectives couple strongly enough to downstream process and economic pathways.
 
 Primary figure: F9B.  
-Primary evidence: `RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`, `rank_preservation_control_v1_1.csv`.
+Primary evidence: `RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`, `rank_preservation_control_v1_1.csv`.  
+Supporting robustness evidence: `RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`, `rank_preservation_semiopen_v1_3.py`, `rank_preservation_semiopen_v1_3_summary.csv`.
 
 ### 3.7 Decision-aware computation allocation is model-capability dependent
 
@@ -235,9 +240,9 @@ A new reaction should not inherit the ammonia mechanism by analogy. The relevant
 
 ### 4.5 Ranking inversion is conditional, not an intrinsic consequence of adding more model layers
 
-The Au/TiO2 control provides the counterfactual needed to interpret the two inversion cases. Under a fixed-condition monotonic mapping, the upstream ordering survives unchanged even after the catalyst-demand layer is propagated. The observed inversions in NH3 and MeOH therefore cannot be attributed merely to passing through more model layers; they emerge when downstream coupling changes relative candidate burden, and in MeOH the top-rank reversal also depends on the upstream normalization used for screening.
+The Au/TiO2 control provides the counterfactual needed to interpret the two inversion cases. Under the canonical fixed-condition monotonic mapping, the upstream ordering survives unchanged even after the catalyst-demand layer is propagated. The V1.3 semi-open extension then shows that this preservation is not limited to one perfectly fixed operating point: moderate candidate-specific kinetic and operating freedom produces occasional local reshuffling while retaining mean rho near **0.99** in the primary literature-constrained window. The observed inversions in NH3 and MeOH therefore cannot be attributed merely to passing through more model layers; they emerge when downstream coupling changes relative candidate burden, and in MeOH the top-rank reversal also depends on the upstream normalization used for screening.
 
-This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties, screening objectives and downstream decision variables**.
+This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties, screening objectives and downstream decision variables**. The magnitude of candidate-specific downstream coupling must be large enough to overcome the upstream separation before substantial inversion appears.
 
 ### 4.6 Agent claims should separate execution capability from policy superiority
 
@@ -245,7 +250,7 @@ The cross-model benchmark shows that the ability to complete a multistep decisio
 
 ## 5. Figures
 
-See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values. The rank-preservation control is integrated into **Figure 9B** rather than added as a tenth standalone figure.
+See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values. The rank-preservation control is integrated into **Figure 9B** rather than added as a tenth standalone figure; V1.3 is best used as a small robustness annotation or Supporting Information extension rather than a new main panel.
 
 ## 6. Methods structure
 
@@ -262,7 +267,8 @@ A compact Methods section can be organized as:
 9. Methanol upstream-to-economic rank reconstruction and screening-metric definitions
 10. Cross-reaction leverage normalization
 11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
-12. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
+12. Au/TiO2 semi-open operating-condition robustness extension
+13. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
 
 ## 7. Supporting Information priorities
 
@@ -276,6 +282,7 @@ Supporting Information should contain the technical evidence needed to trust the
 - scaling-manifold derivation
 - MeOH D01 v3 workbook provenance, four-state rank table, alternative upstream metrics and pairwise inversion accounting
 - Au/TiO2 rank-preservation preregistration, literature anchors, sensitivity envelope and full 10,000-draw preservation test
+- Au/TiO2 V1.3 semi-open operating-condition protocol, stress levels, literature window and full summary statistics
 - complete DISCOVER action schema, scorer and budget curves
 - named vs anonymous benchmark controls
 - zero-tool prior probe
