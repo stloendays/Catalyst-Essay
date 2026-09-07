@@ -79,11 +79,11 @@ What the weak-tier failures are (from the traces, `failure_per_trace.csv`):
 
 ## 5. Answers
 **Is the core industrial decision stable across models?** No as a property of "an LLM agent"; yes as a property of the strong tier on this
-protocol. With the same prompt, tools and budgets, complete correct decisions go 35/35 (gpt-5.5) → 15/35 pooled 0.43 (gpt-5.4-mini) → 9/35
-0.26 (gpt-5.4-nano) on the anonymous task. The winner alone is more robust (nano 1.0 at ≥ 500 CU, mini ≥ 0.8 at all budgets) but the V1 prior
+protocol. With the same prompt, tools and budgets, complete correct decisions go 35/35 (gpt-5.5) → 15/35 pooled 0.43 (gpt-5.4-mini) → 6/35
+0.17 (gpt-5.4-nano) on the anonymous task. The winner alone is more robust (nano 1.0 at ≥ 500 CU, mini ≥ 0.8 at all budgets) but the V1 prior
 probe already showed winner accuracy is price-prior-recoverable; the discriminating components — pair decision and reachability — are where
 the weak tiers fail. The claim for the paper is therefore tier-conditional: "a frontier model recovers the mismatch → backward → reachability
-chain closed-book at every budget; smaller models of the same family recover the winner but not the reachability verdict."
+chain closed-book at every budget; smaller models of the same family recover the winner more often than they complete the reachability verdict."
 
 **Does a stronger model improve final correctness or allocation efficiency?** Both, in this order. Correctness first: at ≥ 500 CU, where budget
 is not binding, P(full) still rises 0.30 → 0.55 → 1.00, and the weak-tier failures at high budget are formulation errors (no BACKWARD, wrong
@@ -115,7 +115,20 @@ the reachability step unresolved).
 | allocation path | F6 named prior orders Fe first | reproduces (nano named 0.89 vs anonymous 0.03); anonymous results remain the closed-book evidence |
 | protocol / interface | 0 errors for gpt-5.5 | new class for weak tiers: undeclared tool arguments and unaffordable requests in 69–86 % of runs; scored as-is (cost 0, turns consumed) |
 
+## 7. Positive and negative conclusions
+
+Two claims must be kept separate.
+
+1. **Positive workflow-execution result.** Complete decision recovery rises from **6/35 → 15/35 → 35/35** from nano to mini to the strong tier. A capable model can execute the full decision-aware chain under the frozen scientific-compute budget.
+2. **Negative pre-registered superiority result.** The Agent-specific Go criterion for **adaptive policy E > fixed-VOI policy D** is **not met across tiers**. The repeatable 200-CU adaptive-scope advantage is strong-tier-only and does not reproduce in nano or mini.
+
+Therefore DISCOVER V1 supports the following manuscript statement:
+
+> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
+
+The negative result is retained as part of the frozen V1 evidence. No task, scorer, policy-D constant, action schema, stopping rule or trace was modified to make the result positive.
+
 Caveats: n = 5 per cell (a single run moves P by 0.2; the non-monotonic nano/mini curves are within that noise); three tiers of one vendor
 family; the medium tier is `gpt-5.4-mini`, not the full `gpt-5.4`; no seed control at the API. Nothing was retried or re-run to improve a cell.
-Cross-model V1 is complete; the negative-control reaction is not started; any protocol change (e.g. scorer weighting of unresolved risk, argument
+Cross-model V1 is complete. Subsequent reaction-transfer / negative-control work is tracked separately and does not alter the frozen V1 result; any protocol change (e.g. scorer weighting of unresolved risk, argument
 schema hardening) is DISCOVER V2 and must not overwrite V1.
