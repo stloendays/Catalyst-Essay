@@ -66,9 +66,35 @@ pressure upper cap  not a valid lever after boundary closure
 
 The strongest tested non-activity route is therefore metal recovery, followed by catalyst lifetime.
 
-## Methanol pathway
+## Methanol candidate-state ranking inversion
 
-Current CO2-to-MeOH benchmark local leverage:
+The restored D01 v3 CO2-to-MeOH case contains four Re/TiO2 catalyst–temperature states evaluated through the same explicit recycle/separation loop at **2% purge**.
+
+Using **STY per g Re** as the upstream intrinsic-productivity metric:
+
+```text
+Upstream intrinsic rank                  Economic NPC rank
+1 wt% Re, 250 C   #1   65 g/gRe/h       5 wt% Re, 200 C   #1   943 EUR/t
+1 wt% Re, 200 C   #2   55                1 wt% Re, 200 C   #2   967 EUR/t
+5 wt% Re, 200 C   #3   18        ->      1 wt% Re, 250 C   #3   975 EUR/t
+5 wt% Re, 250 C   #4   16                5 wt% Re, 250 C   #4   1258 EUR/t
+```
+
+Rank statistics:
+
+- Spearman rho: **0.20**
+- Kendall tau: **0.00**
+- Pairwise inversions: **3 of 6**
+- Upstream per-Re winner: **1 wt% Re / 250 C**, falling to economic rank **#3**
+- Economic winner: **5 wt% Re / 200 C**
+
+The top-rank reversal is conditional on the upstream screening metric. If upstream performance is defined by single-pass yield or STY per g catalyst, rho/tau and the 3/6 pairwise inversion count remain the same, but the upstream winner coincides with the economic winner. The decision-frontier inversion is therefore specific to the **Re-normalized intrinsic metric**.
+
+Boundary: these are catalyst–temperature states at measured literature points, not four independently reoptimized catalyst identities. Re purchase price is excluded from the NPC by design.
+
+## Methanol selectivity–recycle mechanism
+
+Local leverage at the 5 wt% Re / 250 C benchmark is:
 
 ```text
 STY                    0.00289
@@ -78,6 +104,8 @@ CH4 suppression        0.37579
 
 CH4 suppression is about **6.39x** more leveraged than single-pass conversion and about **130x** more leveraged than STY in this benchmark.
 
+The explicit loop couples methane formation to H2 feed loss, inert accumulation, purge, recycle compression and equipment burden. The most methane-rich state, **5 wt% Re / 250 C** with **S_CH4 = 0.25**, has the highest NPC (**1258 EUR/t**) despite the highest single-pass conversion.
+
 ## Cross-reaction leverage
 
 After cost-denominator alignment:
@@ -85,12 +113,14 @@ After cost-denominator alignment:
 - MeOH CH4 suppression / NH3 TOF leverage = **273-410**
 - Midpoint = approximately **328**
 
-This is the quantitative basis for the current pathway-specific interpretation:
+This is the quantitative basis for the pathway-specific interpretation:
 
 ```text
 NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
+
+Together with the direct MeOH rank reconstruction, the cross-reaction result shows that ranking changes arise through different catalyst-to-process pathways and can also depend on the upstream screening objective.
 
 ## Rank-preservation control
 
