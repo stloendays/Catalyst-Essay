@@ -3,7 +3,7 @@
 Snapshot date: **2026-09-07**  
 Scientific basis: **NH3-FINAL-1.1** for ammonia headline values.
 
-This page preserves a compact **nine-figure** main-text architecture. The Au/TiO2 rank-preservation control is integrated into **Figure 9B** as the counterpoint to the ammonia inversion rather than added as a tenth standalone figure.
+This page preserves a compact **nine-figure** main-text architecture. The Au/TiO2 rank-preservation control is integrated into **Figure 9B** as the counterpoint to the ammonia and methanol inversion cases rather than added as a tenth standalone figure.
 
 The purpose of each figure is a scientific claim, not simply a visualization of available data.
 
@@ -113,40 +113,59 @@ The purpose of each figure is a scientific claim, not simply a visualization of 
 
 ---
 
-## Figure 7 — CO2-to-MeOH recycle / separation economics
+## Figure 7 — CO2-to-MeOH catalyst-state ranking inversion and recycle economics
 
-**Question:** How do catalyst properties enter the recycle and separation layers rather than only changing intrinsic reaction rate?
+**Question:** Can an intrinsic catalyst-state ranking be reshaped after explicit recycle/separation economics, and where does the reversal occur?
 
 **Content**
-- Fresh H2 / CO2 demand.
-- Recycle flow and purge.
-- Product separation and compression burden.
-- Cost response across catalyst states.
+- Rebuilt upstream-to-economic rank-flow panel from `MeOH_F03_UpstreamToEconomicRanking_D01v3.png`.
+- Four Re/TiO2 catalyst–temperature states at the D01 v3 literature points.
+- Left: upstream **STY per g Re** ranking.
+- Right: **NPC at 2% purge** ranking.
+- Pair with the archived explicit-loop / cost-across-state view if space permits.
 
-**Claim supported:** catalyst changes can alter the process architecture and downstream cost pools.
+**Canonical headline**
+- Upstream per-Re order: **1% Re 250 C > 1% Re 200 C > 5% Re 200 C > 5% Re 250 C**.
+- Economic order: **5% Re 200 C > 1% Re 200 C > 1% Re 250 C > 5% Re 250 C**.
+- NPC: **943 / 967 / 975 / 1258 EUR/t** in economic-rank order.
+- Spearman rho = **0.20**.
+- Kendall tau = **0.00**.
+- Pairwise inversions = **3 of 6**.
+- Upstream per-Re winner **1% Re / 250 C** falls to economic rank **#3**.
+
+**Writing boundary**
+- These are **catalyst–temperature states**, not four independently reoptimized catalyst identities.
+- The top-rank reversal is specific to the **Re-normalized intrinsic metric**. Using yield or STY per g catalyst preserves the same rho/tau and 3/6 pairwise inversion count but the upstream winner then coincides with the economic winner.
+- Re purchase price is excluded from the NPC by design.
+
+**Claim supported:** explicit downstream propagation can reshape a methanol catalyst-state ranking, and the decision-frontier reversal depends jointly on the upstream screening metric and selectivity-sensitive recycle economics.
+
+Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png).
 
 ---
 
 ## Figure 8 — Methane accumulation, purge and economic leverage
 
-**Question:** Which catalyst property controls the economically important pathway in the methanol loop?
+**Question:** Which catalyst property controls the economically important pathway behind the methanol ranking reshuffle?
 
 **Content**
 - CH4 formation / suppression versus accumulation and purge burden.
 - Compare local leverage with STY and single-pass conversion.
+- Use the 5 wt% Re / 250 C state to show that the highest conversion can still coincide with the highest NPC when methane selectivity is poor.
 
 **Canonical benchmark**
 - STY leverage = **0.00289**.
 - Single-pass conversion leverage = **0.05883**.
 - CH4-suppression leverage = **0.37579**.
+- 5 wt% Re / 250 C: **X_CO2 = 0.40**, **S_CH4 = 0.25**, **NPC = 1258 EUR/t**.
 
-**Claim supported:** in the current methanol regime, selectivity-driven methane suppression has much stronger economic leverage than production-rate improvement alone.
+**Claim supported:** in the current methanol regime, selectivity-driven methane suppression has much stronger economic leverage than production-rate improvement alone and provides the mechanistic pathway for the observed rank reshuffling.
 
 ---
 
 ## Figure 9 — When catalyst rankings invert and when they survive
 
-**Question:** Is ranking inversion an inevitable consequence of multiscale propagation, or does it depend on the topology of catalyst-to-process coupling?
+**Question:** Is ranking inversion an inevitable consequence of multiscale propagation, or does it depend on the topology of catalyst-to-process coupling and on the upstream screening objective?
 
 ### Figure 9A — Cross-reaction catalyst-economic leverage
 
@@ -181,7 +200,7 @@ The purpose of each figure is a scientific claim, not simply a visualization of 
 - Do not assign unsupported absolute process economics to the Au/TiO2 system.
 - Its scientific role is to show that the implementation does not manufacture inversion when the downstream mapping is monotonic.
 
-**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. It preserves upstream order under a monotonic fixed-condition mapping, but can reshape or invert the decision frontier when catalyst properties couple differently into inventory, process severity, recycle, separation or other downstream cost pools.
+**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. NH3 shows a decision-frontier inversion after candidate-specific process/economic reoptimization; MeOH shows a catalyst-state ranking reshuffle through a selectivity–recycle pathway whose top-rank reversal depends on Re-normalized intrinsic screening; Au/TiO2 preserves the full ranking under a monotonic fixed-condition mapping.
 
 Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).
 
@@ -189,20 +208,21 @@ Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_pr
 
 ## Working main-text allocation
 
-A compact main narrative can be built around **F1, F2, F5, F6, F8 and F9**. Figures **F3, F4 and F7** remain strong candidates for Extended Data / Supporting Information unless the uncertainty and process-reoptimization story is given more main-text space.
+The restored MeOH before/after ranking evidence makes **F7** a main-text result rather than a supporting-only process figure. A compact main narrative can now be built around **F1, F2, F5, F6, F7, F8 and F9**. Figures **F3 and F4** remain the strongest candidates for Extended Data / Supporting Information if the main-text figure count must be reduced.
 
-Within F9, the preferred main-text structure is:
+Within F9, the preferred structure remains:
 
 ```text
 F9A  pathway-specific economic leverage across NH3 and MeOH
 F9B  Au/TiO2 rank-preservation counterexample
 ```
 
-This closes the manuscript with a falsifiable distinction:
+The manuscript closes with a three-regime distinction:
 
 ```text
-monotonic downstream mapping -> ranking can survive
-competing / reoptimized downstream pathways -> ranking can reshape or invert
+NH3: candidate-specific process/economic coupling -> decision-frontier inversion
+MeOH: intrinsic per-Re ranking + selectivity/recycle coupling -> catalyst-state reshuffle / top-rank inversion
+Au/TiO2: monotonic fixed-condition mapping -> ranking preserved
 ```
 
 This allocation is a working editorial recommendation, not a frozen scientific result.
