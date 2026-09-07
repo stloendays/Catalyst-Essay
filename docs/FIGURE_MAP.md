@@ -185,9 +185,10 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 - Reuse / adapt the existing mirror rank-flow figure `RP1_AuTiO2_rank_preservation_V1_1.svg`.
 - Left: literature-calibrated intrinsic mass-activity ranking across **2, 3, 4, 5 and 6 nm** Au particles.
 - Right: required catalyst-burden ranking at the common fixed process condition.
-- Show the same candidate order on both sides and annotate the fixed-condition / monotonic-mapping nature of the control.
+- Show the same candidate order on both sides and annotate the fixed-condition / monotonic-mapping nature of the canonical V1.1 control.
+- If space permits, add a small robustness annotation rather than a new main panel for V1.3: under semi-open operating conditions, moderate candidate-specific kinetic/operating freedom retains mean rho **0.992** in the primary 273–293 K window and **0.968** in the wider 273–313 K sensitivity window.
 
-**Canonical headline**
+**Canonical headline — V1.1**
 - Activity rank = burden rank = **2 > 3 > 4 > 5 > 6 nm**.
 - Spearman rho = **1.000**.
 - Kendall tau = **1.000**.
@@ -195,14 +196,22 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 - Full ranking preserved in **10,000 / 10,000** predefined literature-envelope draws.
 - Literature-calibrated 6 nm / 2 nm required-catalyst ratio = **8.064x**.
 
+**Supporting robustness — V1.3 semi-open test**
+- Primary 273.15–293.15 K, moderate stress: exact full order preserved **92.16%**, mean rho **0.99214**, rho >= 0.9 in **99.98%** of draws.
+- Wider 273.15–313.15 K sensitivity, moderate stress: exact full order preserved **72.62%**, mean rho **0.96802**, rho >= 0.9 in **97.56%** of draws.
+- The V1.3 result allows occasional local reshuffling; it does not force exact preservation.
+
 **Writing boundary**
-- This is a **rank-preservation control**, not a full industrial TEA.
+- V1.1 remains the **canonical rank-preservation control**.
+- V1.3 is a **supporting robustness extension**, not a replacement control and not a full industrial TEA.
 - Do not assign unsupported absolute process economics to the Au/TiO2 system.
-- Its scientific role is to show that the implementation does not manufacture inversion when the downstream mapping is monotonic.
+- The V1.3 operating penalties are generic monotone penalties rather than a fully literature-derived plant cost model.
+- The scientific role of V1.3 is to show that preservation is not solely an artefact of a perfectly fixed operating point.
 
-**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. NH3 shows a decision-frontier inversion after candidate-specific process/economic reoptimization; MeOH shows a catalyst-state ranking reshuffle through a selectivity–recycle pathway whose top-rank reversal depends on Re-normalized intrinsic screening; Au/TiO2 preserves the full ranking under a monotonic fixed-condition mapping.
+**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. NH3 shows a decision-frontier inversion after candidate-specific process/economic reoptimization; MeOH shows a catalyst-state ranking reshuffle through a selectivity–recycle pathway whose top-rank reversal depends on Re-normalized intrinsic screening; Au/TiO2 preserves the full ranking under the canonical fixed-condition mapping and remains strongly rank-correlated when moderate operating and kinetic freedom is introduced.
 
-Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).
+Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).  
+Supporting V1.3 evidence: [`RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md).
 
 ---
 
@@ -214,7 +223,7 @@ Within F9, the preferred structure remains:
 
 ```text
 F9A  pathway-specific economic leverage across NH3 and MeOH
-F9B  Au/TiO2 rank-preservation counterexample
+F9B  Au/TiO2 canonical rank-preservation control, with V1.3 robustness as a small annotation / supporting result
 ```
 
 The manuscript closes with a three-regime distinction:
@@ -222,7 +231,7 @@ The manuscript closes with a three-regime distinction:
 ```text
 NH3: candidate-specific process/economic coupling -> decision-frontier inversion
 MeOH: intrinsic per-Re ranking + selectivity/recycle coupling -> catalyst-state reshuffle / top-rank inversion
-Au/TiO2: monotonic fixed-condition mapping -> ranking preserved
+Au/TiO2: monotonic mapping -> exact preservation at the canonical point; moderate semi-open freedom -> mostly preserved / weak local reshuffling
 ```
 
 This allocation is a working editorial recommendation, not a frozen scientific result.
