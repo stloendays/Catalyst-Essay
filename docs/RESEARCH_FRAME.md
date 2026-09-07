@@ -10,6 +10,8 @@ The project therefore asks three linked questions:
 2. **When it inverts, which layer creates the inversion?**
 3. **Given an industrial target, what catalyst-property change is required, and is that target reachable on a physically plausible scaling manifold?**
 
+A necessary control question follows from the first two: **does the same multiscale implementation preserve a ranking when the downstream mapping is fixed and monotonic?**
+
 The project is deliberately problem-first. The multiscale workflow is not itself the scientific contribution; the contribution comes from what the connected chain reveals about ranking, uncertainty, economic leverage and reachable catalyst targets.
 
 ## Forward propagation
@@ -120,6 +122,32 @@ This motivates a pathway-specific view:
 
 The broader claim is therefore: **atomic-to-economic ranking inversion is reaction- and process-dependent because different catalyst properties couple into different downstream cost pools.**
 
+## Rank-preservation control
+
+A separate Au/TiO2 CO-oxidation control tests the complementary case: the downstream mapping is held at a common fixed process condition and the candidate states differ only in Au particle size.
+
+The V1.1 mapping is literature calibrated rather than economically fitted. It uses a 2.10 nm, 4.40 wt% Au/TiO2 absolute-rate anchor with 38% measured dispersion and a nominal particle-size relation of **TOF ~ d^-0.9**.
+
+Across 2, 3, 4, 5 and 6 nm Au particles, both intrinsic activity and required catalyst burden follow the same order:
+
+```text
+2 nm > 3 nm > 4 nm > 5 nm > 6 nm
+```
+
+with **Spearman rho = 1.000**, **Kendall tau = 1.000**, **0 pairwise inversions**, and **10,000/10,000** predefined literature-envelope draws preserving the full ranking. The literature calibration substantially narrows the quantitative burden spread — the 6 nm / 2 nm required-catalyst ratio becomes **8.064x** — without changing the ordering.
+
+This control is not a full industrial TEA. Its role is methodological: **the multiscale implementation does not intrinsically manufacture ranking inversions.** When the catalyst-to-downstream mapping is monotonic and does not activate a competing process-severity or topology penalty, the upstream ordering can survive exactly.
+
+This sharpens the central interpretation of the project:
+
+```text
+monotonic downstream coupling
+    -> ranking can be preserved
+
+competing / reoptimized downstream coupling
+    -> ranking can reshape or invert
+```
+
 ## Decision-aware Agent result
 
 The DISCOVER V1 Agent benchmark tests a different question from the physical ranking analysis: given a frozen scientific environment and a finite CU budget, can an AI model execute the complete downstream decision chain and allocate computation adaptively?
@@ -148,4 +176,5 @@ A compact manuscript logic is:
 2. Multiscale uncertainty can be amplified or attenuated depending on the pathway.
 3. Backward design separates reachable catalyst targets from unreachable ones.
 4. Economic leverage is pathway-specific across reactions.
-5. Decision-aware workflow execution improves strongly with model capability, while adaptive policy E does not show universal cross-model superiority over fixed-VOI D.
+5. A literature-calibrated fixed-condition control shows that multiscale propagation can also preserve an upstream ranking; inversion is conditional rather than intrinsic to the workflow.
+6. Decision-aware workflow execution improves strongly with model capability, while adaptive policy E does not show universal cross-model superiority over fixed-VOI D.
