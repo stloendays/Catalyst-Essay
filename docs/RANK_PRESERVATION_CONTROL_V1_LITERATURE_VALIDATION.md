@@ -20,7 +20,7 @@ Relevant facts reported by the paper:
 - At **298 K**, TOF decreased monotonically with increasing particle diameter.
 - Reported scaling was approximately `TOF ~ d^(-1.7 +/- 0.2)` for the 7.2 wt% Au/TiO2 series and `TOF ~ d^(-0.9 +/- 0.2)` for the 4.5 wt% series.
 
-This is the primary anchor for the V1 control because it supplies a powder catalyst, flow-reactor measurement, an explicit common-condition activity relation and a within-series strategy that minimizes preparation confounding.
+The 4.5 wt% series later becomes the nominal V1.1 particle-size anchor because it is the closest loading match to the 4.40 wt% absolute-rate calibration.
 
 ## Independent anchor B — model planar Au/TiO2 library
 
@@ -41,40 +41,38 @@ Other Au/TiO2 preparations do not always produce the same simple size trend. For
 
 That observation is not treated as a contradiction to the control. It demonstrates that support state, preparation route, Au loading, interface structure and other variables can change the observed size–activity relationship. Therefore:
 
-> **V1 is a controlled-series rank-preservation test, not a universal statement about Au/TiO2 chemistry.**
+> **V1/V1.1 is a controlled-series rank-preservation test, not a universal statement about Au/TiO2 chemistry.**
 
 ## Frozen candidate interval
 
-To remain inside the overlap of the two monotonic literature anchors, V1 uses the following representative catalyst states:
+To remain inside the overlap of the two monotonic literature anchors, the control uses:
 
 `d = 2, 3, 4, 5, 6 nm`
 
-These are benchmark states sampled from the experimentally supported overlap interval. They are not claimed to reproduce the exact specimen list of either source paper.
+These are representative benchmark states sampled from the experimentally supported overlap interval. They are not claimed to reproduce the exact specimen list of either source paper.
 
-## Upstream activity model to freeze
+## V1 relative upstream model
 
-Nominal intrinsic activity is represented only as a **relative** literature-anchored proxy:
+The original V1 nominal relation was:
 
-`TOF_rel(d) = (d / 2 nm)^(-n)`
+`TOF_rel(d) = (d / 2 nm)^(-1.7)`
 
-with:
+with literature sensitivity checks at the weaker 4.5 wt% slope and the independent planar-model slope.
 
-- nominal `n = 1.7`;
-- common-series uncertainty `n = 1.7 +/- 0.2` for the primary anchor;
-- secondary sensitivity checks at `n = 0.9 +/- 0.2` and `n = 1.8`.
+## V1.1 calibration decision
 
-No absolute TOF, absolute conversion, reactor productivity or USD value will be invented from the power law.
+V1.1 preserves the candidate set and control logic but replaces the nominal `1.7` slope with **0.9**, matching the closest-loading powder series to the **4.40 wt%** absolute-rate anchor used in the physical mapping. The stronger literature exponents remain sensitivity bounds.
+
+The full calibration and its adjustment magnitude are documented in [`RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`](RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md).
 
 ## Decision
 
-**PASS for a methodological rank-preservation control.**
+**PASS for a controlled rank-preservation test.**
 
-The literature supports a preregistered fixed-condition test in which:
+The literature supports a fixed-condition test in which:
 
 1. the active element and support remain unchanged across candidate states;
-2. the upstream activity direction is independently constrained before economics are evaluated;
+2. the upstream activity direction is independently constrained before downstream propagation;
 3. temperature, pressure, feed composition and process topology are held externally fixed;
-4. catalyst inventory and reactor burden are allowed to respond monotonically to productivity;
-5. the output is a **relative economic ranking / cost index**, not an industrial absolute TEA.
-
-This control can test whether the multiscale framework preserves ranking when the downstream mapping is intentionally free of competing process-severity, recycle or separation penalties.
+4. catalyst inventory and reactor burden respond to productivity;
+5. the current claim is rank preservation under this controlled mapping, not a universal industrial-economic law.
