@@ -1,0 +1,37 @@
+name: Au-TiO2 rank-preservation control V1
+
+on:
+  push:
+    branches:
+      - rank-preservation-au-tio2-v1
+    paths:
+      - 'controls/au_tio2_rank_preservation_v1.py'
+      - 'docs/RANK_PRESERVATION_CONTROL_V1_*'
+      - '.github/workflows/au-tio2-rank-preservation-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run frozen rank-preservation control
+        run: python controls/au_tio2_rank_preservation_v1.py
+
+      - name: Upload control outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: au-tio2-rank-preservation-v1
+          path: artifacts/au_tio2_rank_preservation_v1/
+
+# Trigger commit after workflow registration.

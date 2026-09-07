@@ -1,0 +1,64 @@
+{
+  "version": "RANK-PRESERVATION-CONTROL-V1.1",
+  "candidate_diameters_nm": [2.0, 3.0, 4.0, 5.0, 6.0],
+  "literature_reference": {
+    "citation": "T. V. W. Janssens et al., Journal of Catalysis 240 (2006) 108-113",
+    "doi": "10.1016/j.jcat.2006.03.008",
+    "average_diameter_nm": 2.10,
+    "au_loading_mass_fraction": 0.0440,
+    "dispersion_fraction": 0.38,
+    "stabilized_activity_umol_CO_gcat_s": 8.8,
+    "catalyst_mass_mg": 21.4,
+    "reactor_inner_diameter_mm": 2.0,
+    "powder_size_um_min": 125,
+    "powder_size_um_max": 300,
+    "reaction_temperature_K": 273.15,
+    "reaction_pressure_atm": 1.0,
+    "reaction_flow_Nml_min": 214.4,
+    "activation_flow_Nml_min": 42.0,
+    "feed_CO_mole_fraction": 0.01,
+    "feed_O2_mole_fraction": 0.21,
+    "feed_Ar_mole_fraction": 0.78,
+    "stabilization_time_h_min": 10.0,
+    "stabilization_time_h_max": 15.0
+  },
+  "size_activity_relation": {
+    "primary_citation": "S. H. Overbury et al., Journal of Catalysis 241 (2006) 56-65",
+    "primary_doi": "10.1016/j.jcat.2006.04.018",
+    "nominal_tof_exponent": 0.9,
+    "tof_exponent_sigma": 0.2,
+    "reason_for_nominal": "Use the 4.5 wt% Au/TiO2 series because it most closely matches the 4.40 wt% absolute-rate anchor.",
+    "secondary_tof_exponents": [1.7, 1.8]
+  },
+  "geometry": {
+    "dispersion_exponent_nominal": 1.0,
+    "dispersion_exponent_sensitivity_min": 0.8,
+    "dispersion_exponent_sensitivity_max": 1.2,
+    "description": "First-order geometric scaling of exposed Au fraction with inverse particle diameter, anchored to the measured 38% dispersion at 2.10 nm."
+  },
+  "reactor_model": {
+    "model": "pseudo-first-order plug flow",
+    "normal_molar_volume_L_mol": 22.414,
+    "target_definition": "Use the conversion implied by the reported stabilized reference activity, catalyst mass and 214.4 Nml/min reaction flow; do not tune conversion manually."
+  },
+  "economic_mapping": {
+    "definition": "Relative catalyst procurement burden at fixed catalyst composition and common unit prices; cost ratio equals required catalyst-mass ratio. Reactor packing burden is reported separately and is also proportional to required catalyst mass under fixed powder and tube geometry.",
+    "absolute_USD": false
+  },
+  "uncertainty": {
+    "seed": 20260907,
+    "draws": 10000,
+    "tof_exponent_min": 0.7,
+    "tof_exponent_max": 2.0,
+    "dispersion_exponent_min": 0.8,
+    "dispersion_exponent_max": 1.2
+  },
+  "pass_criteria": {
+    "winner_preserved": true,
+    "full_spearman_min": 0.95,
+    "kendall_min": 0.90,
+    "pairwise_inversions_max": 0,
+    "top3_exact": true,
+    "mc_full_preservation_min": 0.95
+  }
+}
