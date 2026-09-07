@@ -1,129 +1,61 @@
-# Rank-Preservation Control V1 — Preregistration
+# Rank-Preservation Control V1 — preregistration
 
-Status: **frozen design before downstream ranking calculation**  
-Reaction: `CO + 1/2 O2 -> CO2`  
-Catalyst family: **Au/TiO2 particle-size states**
+Reaction: **CO oxidation on Au/TiO2**  
+Control purpose: test whether the multiscale implementation preserves an upstream catalyst ordering when the downstream mapping is intentionally fixed and monotonic.
 
-## Scientific question
+## Candidate set
 
-When the catalyst-controlled variable maps approximately monotonically into required catalyst inventory and reactor burden, does the multiscale framework preserve the upstream catalytic ranking rather than create an artificial inversion?
+Representative Au/TiO2 particle-size states within the common monotonic interval supported by the literature validation:
 
-## Hypothesis
+`2, 3, 4, 5, 6 nm`
 
-For a fixed-condition Au/TiO2 CO-oxidation benchmark, smaller Au particles in the frozen 2–6 nm interval have higher literature-anchored intrinsic activity. Because all candidates share the same active element, support, pricing basis, feed condition and process topology, higher productivity should require less catalyst inventory and lower catalyst-dependent economic burden.
+The candidates share the same active element and support. Particle size is the controlled catalyst-state variable.
 
-The preregistered expectation is therefore **rank preservation**.
+## Frozen upstream activity relation
 
-## Candidate states
+Nominal relative intrinsic activity:
 
-The candidate set is frozen as:
+`TOF_rel(d) = (d / 2 nm)^(-n)`
 
-- `AuTiO2_d2` — 2 nm
-- `AuTiO2_d3` — 3 nm
-- `AuTiO2_d4` — 4 nm
-- `AuTiO2_d5` — 5 nm
-- `AuTiO2_d6` — 6 nm
+V1 nominal `n = 1.7`, with literature sensitivity bounds described in the validation document.
 
-No candidate may be removed or added after downstream results are generated.
+V1.1 is a registered literature-calibration layer that replaces the V1 nominal slope with the closest-loading literature slope and introduces absolute experimental anchors. It does not change the candidate set, fixed-condition control logic, or rank-preservation criteria.
 
-## Upstream metric
+## Fixed downstream mapping
 
-Nominal intrinsic activity proxy:
+The control deliberately holds process severity and topology fixed across candidate states:
 
-`TOF_rel(d) = (d / 2)^(-1.7)`
+- same reaction;
+- same active element and support;
+- same Au price basis;
+- same feed composition;
+- same temperature and pressure;
+- same conversion duty;
+- no candidate-specific severity optimization;
+- no recycle or separation topology change.
 
-The value is dimensionless and normalized to the 2 nm state. It is derived from the primary literature trend and is not an invented absolute TOF.
+Catalyst-dependent downstream burden may change only through the catalyst amount / Au inventory required to satisfy the same reaction duty.
 
-For catalyst-mass demand, a spherical-particle dispersion factor is used:
+## Predefined rank-preservation criteria
 
-`dispersion_rel(d) = (d / 2)^(-1)`
+The control passes only if all six conditions are met:
 
-so that relative mass-specific productivity is:
+1. **C1 — winner preserved:** the highest-activity candidate is also the lowest-burden candidate.
+2. **C2 — full Spearman rho >= 0.95.**
+3. **C3 — Kendall tau >= 0.90.**
+4. **C4 — zero pairwise inversions.**
+5. **C5 — exact Top-3 ordering preserved.**
+6. **C6 — at least 95% full-rank preservation under the predefined common-series uncertainty envelope.**
 
-`q_mass_rel(d) = TOF_rel(d) * dispersion_rel(d)`
+## Interpretation rule
 
-The exact dispersion prefactor cancels because only relative inventory and ranking are evaluated.
+A PASS supports only the methodological statement that the multiscale implementation does not intrinsically force a ranking inversion when no competing downstream penalty is present.
 
-## Fixed process boundary
+A PASS does **not** establish a universal size–activity law for Au/TiO2, does not imply that every CO-oxidation process preserves this order, and does not justify unsupported absolute industrial economics.
 
-The control is intentionally a fixed-condition benchmark rather than a candidate-specific process optimization.
+## Versioning
 
-Frozen assumptions:
+- V1: relative methodological control.
+- V1.1: literature-calibrated physical mapping using published absolute activity / reactor-condition anchors and the closest-loading particle-size relation.
 
-- temperature: externally fixed at the common literature anchor condition;
-- pressure: externally fixed and identical for all candidates;
-- feed composition: identical for all candidates;
-- treatment duty / conversion target: identical for all candidates;
-- no recycle-loop redesign;
-- no candidate-dependent separation topology;
-- no candidate-dependent heating or compression severity;
-- same Au unit-price basis for every candidate;
-- same TiO2 support-price basis for every candidate;
-- same catalyst lifetime and recovery assumptions for every candidate.
-
-This fixed boundary is part of the control definition. It must not be relaxed after results are observed.
-
-## Downstream mapping
-
-Required relative catalyst inventory:
-
-`M_rel = 1 / q_mass_rel`
-
-The catalyst-dependent economic index is:
-
-`C_rel = C_common + a*M_rel + b*M_rel^gamma`
-
-with:
-
-- `a > 0` representing catalyst/support inventory and replacement burden;
-- `b > 0` representing reactor/washcoat/volume burden;
-- `0 < gamma <= 1` allowing sublinear equipment scaling;
-- `C_common >= 0` representing common process cost that does not affect ranking.
-
-No negative coefficient or candidate-specific price multiplier is allowed.
-
-## Uncertainty propagation
-
-Primary uncertainty is the common-series activity exponent:
-
-`n ~ Normal(1.7, 0.2)` truncated to `n > 0`.
-
-Additional structural uncertainty in the dispersion exponent is allowed as:
-
-`m ~ Uniform(0.8, 1.2)`
-
-with `dispersion_rel ~ d^(-m)`.
-
-Economic coefficients are sampled only from positive ranges. These uncertainties test robustness without introducing a new competing pathway that is absent from the control hypothesis.
-
-Secondary diagnostics may evaluate the independently reported alternative slopes near `0.9 +/- 0.2` and `1.8`, but they must not alter the nominal preregistered result.
-
-## Preregistered criteria
-
-The control is considered rank-preserving only if all of the following hold under the nominal model:
-
-- **C1 — Winner preservation:** highest intrinsic-activity state is also the lowest catalyst-dependent economic-burden state.
-- **C2 — Full-set Spearman:** `rho >= 0.95` between activity rank and inverse economic-burden rank.
-- **C3 — Kendall:** `tau >= 0.90`.
-- **C4 — Pairwise inversions:** zero pairwise inversions across the five candidates.
-- **C5 — Top-3 preservation:** exact Top-3 membership and order are preserved.
-- **C6 — Uncertainty robustness:** at least 95% of preregistered Monte Carlo draws preserve the complete rank.
-
-## Failure rule
-
-If any criterion fails, the result is reported as a failed rank-preservation control. The catalyst set, activity relation, process boundary, cost equation or thresholds must not be modified to recover the expected result.
-
-## Outputs
-
-The frozen runner must produce:
-
-- upstream relative activity and mass-specific productivity table;
-- downstream relative inventory and economic-burden table;
-- Spearman rho and Kendall tau;
-- pairwise inversion count;
-- Top-3 preservation result;
-- Monte Carlo full-rank preservation probability;
-- sensitivity result for the two independent literature slope regimes;
-- a compact machine-readable CSV and Markdown report.
-
-No absolute USD/t result will be reported from this control unless a separately validated application-scale process model is added in a future version.
+The V1.1 calibration magnitude must be reported explicitly rather than silently replacing V1 parameters.
