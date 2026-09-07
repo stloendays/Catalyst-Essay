@@ -1,0 +1,36 @@
+name: Au-TiO2 rank-preservation control V1.1
+
+on:
+  push:
+    branches:
+      - rank-preservation-au-tio2-v1
+    paths:
+      - 'controls/au_tio2_rank_preservation_v1_1.py'
+      - 'controls/au_tio2_rank_preservation_v1_1_config.json'
+      - 'docs/RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md'
+      - '.github/workflows/au-tio2-rank-preservation-v1-1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  control-v1-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run frozen literature-calibrated control V1.1
+        run: python controls/au_tio2_rank_preservation_v1_1.py
+
+      - name: Upload V1.1 outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: au-tio2-rank-preservation-v1-1
+          path: artifacts/au_tio2_rank_preservation_v1_1/
