@@ -1,0 +1,34 @@
+name: Rank-preservation control screen
+
+on:
+  push:
+    branches:
+      - rank-preservation-screen-v1
+    paths:
+      - 'screening/**'
+      - '.github/workflows/rank-preservation-screen.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run candidate screen
+        run: python screening/rank_preservation_screen.py
+
+      - name: Upload screening outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rank-preservation-screen-v1
+          path: artifacts/
