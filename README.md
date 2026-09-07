@@ -194,7 +194,7 @@ economic winner
  -> reachability verdict
 ```
 
-The positive result is that full decision-chain execution is strongly model-capability dependent.
+The positive result is that full decision-chain execution is strongly model-capability dependent (tier trend Z = 6.95). The strong tier completes the decision **35/35 at every budget including 200 CU** with the exact break-even in 34/35 and zero interface errors, and policy E is the **only** policy that completes the decision at 200 CU (narrow-window allocation, repeatable 5/5 in the strong tier, absent in 0/140 weak-tier runs).
 
 The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**. The supported statement is:
 

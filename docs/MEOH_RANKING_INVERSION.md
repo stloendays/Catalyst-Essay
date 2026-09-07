@@ -25,3 +25,26 @@ process anchor Processes 2022, 10, 1535 (explicit loop, NPC at 2 % purge, calibr
   and H2 feed cost to 886 €/t. Local leverage at 5 wt% Re / 250 °C: STY 0.00289, conversion 0.0588, CH4 suppression 0.376.
 - Boundary: NPC is a near-full-plant cost (H2/CO2 feed + compression + equipment ACC + direct OPEX residual); Re purchase price is
   excluded by design; T and P are measured points, not re-optimized. This is the selectivity–recycle pathway case of the paper.
+
+## Purge invariance and per-candidate purge reoptimization (added 2026-09-07)
+
+The source loop exposes one process variable, the purge fraction; the D01 v3 workbook sweeps it from 0.5 % to 40 % for every state
+(396 levels, `data/meoh/meoh_purge_robustness_D01v3.csv`, summary JSON alongside, script `meoh_purge_robustness.py`).
+
+| purge range | economic order | rho | inversions |
+|---|---|---:|---:|
+| 0.5–0.9 % | 1%-200 > 5%-200 > 1%-250 > 5%-250 | 0.40 | 2/6 |
+| 1.0–2.8 % (incl. canonical 2 %) | 5%-200 > 1%-200 > 1%-250 > 5%-250 | 0.20 | 3/6 |
+| 2.9–14.3 % | 5%-200 > 1%-250 > 1%-200 > 5%-250 | 0.40 | 2/6 |
+| 14.4–21.3 % | 5%-200 > 1%-250 > 5%-250 > 1%-200 | 0.00 | 3/6 |
+| 21.4–40 % | 5%-200 > 5%-250 > 1%-250 > 1%-200 | −0.60 | 4/6 |
+
+- The intrinsic per-Re winner (1 wt% Re / 250 °C) is never the economic winner at any purge level; the highest-conversion state
+  (5 wt% Re / 250 °C) is never the economic winner; rho ≤ 0.40 and ≥ 2/6 pairs inverted everywhere.
+- Per-candidate purge reoptimization (the MeOH analogue of NH3 candidate-specific reoptimization): every state's NPC minimum lies at
+  the 0.5 % lower bound (895 / 907 / 918 / 1233 €/t for 1%-200 / 5%-200 / 1%-250 / 5%-250), a boundary optimum, so the 2 %
+  source-anchored comparison remains canonical and the sweep is reported as robustness.
+- Design logic of the NH3/MeOH pair: NH3 reoptimizes T / P / T_sep per catalyst identity (activity → inventory → severity channel);
+  MeOH holds T / P at the four measured points (no T/P kinetic model exists) and reoptimizes the loop variable per state
+  (selectivity → feed loss / accumulation / purge / recycle channel). The two cases are complementary tests of two channels, not
+  the same protocol at two fidelities.

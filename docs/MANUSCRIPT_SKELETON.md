@@ -144,9 +144,11 @@ The intrinsic per-Re winner therefore falls from **#1 to #3**, while **5 wt% Re 
 
 The inversion is mechanistically consistent with a **selectivity–recycle pathway** rather than a single-variable monotonic penalty. The explicit loop couples CH4 formation to H2 feed loss, gas accumulation, purge, recycle compression and equipment burden. The most CH4-rich state, **5 wt% Re / 250 C** with **S_CH4 = 0.25**, has the highest NPC despite the highest single-pass conversion. Local leverage at that benchmark is **0.00289** for STY, **0.05883** for conversion and **0.37579** for CH4 suppression.
 
-The upstream metric matters. Using single-pass yield or STY per g catalyst gives the same global rank statistics (**rho = 0.20, tau = 0, 3/6 inversions**) but the upstream winner then coincides with the economic winner. The **top-rank inversion is therefore specific to the Re-normalized intrinsic screening metric**, which is itself a manuscript-level result about screening-objective choice.
+**The rank reshuffle is independent of the upstream screening metric; only the identity of the upstream winner depends on it.** Under all three admissible upstream metrics — STY per g Re, single-pass MeOH yield X·S, and STY per g catalyst — the global statistics are identical (**rho = 0.20, tau = 0.00, 3 of 6 pairs inverted**). What changes is the top rank: the Re-normalized intrinsic metric places 1 wt% Re / 250 C first, and that state falls to economic #3; the yield and per-catalyst metrics place 5 wt% Re / 200 C first, where it coincides with the economic winner. The screening objective therefore decides *which* candidate is mis-ranked at the frontier, not *whether* the frontier is reshuffled.
 
-Boundary: these are **catalyst–temperature states**, not four independently reoptimized catalyst identities. Temperature and pressure are measured literature points, Re purchase price is excluded from the NPC by design, and the MeOH case should not be described as candidate-specific process reoptimization analogous to NH3.
+**The result is invariant to the loop degree of freedom.** The source loop exposes one process variable, the purge fraction, which the D01 v3 workbook sweeps from 0.5 % to 40 % for every state (396 levels). Across the entire sweep the intrinsic per-Re winner (1 wt% Re / 250 C) is **never** the economic winner, the highest-conversion state (5 wt% Re / 250 C) is **never** the economic winner, Spearman rho never exceeds **0.40**, and at least **2 of 6** pairs invert at every purge level. Re-optimizing purge separately for each candidate — the MeOH analogue of the candidate-specific reoptimization used for NH3 — gives 1 wt% Re / 200 C > 5 wt% Re / 200 C > 1 wt% Re / 250 C > 5 wt% Re / 250 C (**rho = 0.40, tau = 0.33, 2/6 inversions**); every per-candidate optimum sits at the 0.5 % lower bound of the sweep, so the 2 % source-anchored point remains the canonical comparison and the sweep is reported as robustness (`data/meoh/meoh_purge_robustness_D01v3.csv`).
+
+Boundary and design logic: the two inversion cases deliberately isolate two channels. In NH3 the candidates are catalyst identities and temperature, pressure and separator temperature are reoptimized per candidate, so the channel tested is activity → inventory → process severity. In MeOH the candidates are **catalyst–temperature states** at measured literature points (four points from one controlled study; no T/P kinetic model exists to reoptimize), and the loop variable is reoptimized per candidate, so the channel tested is selectivity → feed loss / accumulation / purge / recycle. Re purchase price is excluded from the NPC by design. The MeOH case is therefore not a weaker copy of the NH3 protocol but the complementary test of the second pathway, with its single process degree of freedom fully swept.
 
 Primary figures: F7, F8.  
 Primary evidence: `MEOH_RANKING_INVERSION.md`, `data/meoh/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx`, provenance JSON and rebuilt ranking figure.
@@ -208,7 +210,14 @@ Anonymous complete-decision recovery was:
 - mini: **15/35**
 - strong: **35/35**
 
-A complete decision requires the whole chain — economic winner, decision pair, backward target and reachability verdict. The positive result is therefore **workflow-execution capability**: complete decision recovery rises strongly with underlying model capability (pooled tier trend Z = **6.95**), and the strong model executes the full decision-aware chain reliably.
+A complete decision requires the whole chain — economic winner, decision pair, backward target and reachability verdict. The positive result is therefore **workflow-execution capability**: complete decision recovery rises strongly with underlying model capability (pooled tier trend Z = **6.95**; nano vs mini Fisher p = 0.036; mini vs strong p = 4 × 10⁻⁸; logistic odds ratio 4.7 per tier step and 2.3 per budget doubling in the nano/mini pair), and the strong model executes the full decision-aware chain reliably.
+
+The strong-tier result stands on its own and should be stated in full:
+
+- **35/35 complete correct decisions at every budget, including 200 CU**, with the exact 201.22× break-even recovered in 34/35 runs, reachability classified correctly 35/35, zero decision regret and **zero action or interface errors** in 70 runs.
+- **Policy E is the only policy that completes the decision at 200 CU.** Fixed-VOI D, activity-first B, uncertainty-first C and random all fail there; E succeeds by building a narrow process window (29–52 CU to a stable winner instead of the 111-CU full window), a behaviour observed in 7/70 strong-tier runs and in **0/140** weak-tier runs. This 200-CU advantage over D is repeatable **5/5** in the strong tier.
+- At 250–500 CU the strong tier matches D in decision quality while spending 218–268 CU against D's 247–281 CU and keeping the unnecessary-CU fraction at 0.02–0.13, against 0.18–0.55 for the weak tiers.
+- The cross-tier failure structure is itself a result: in both weak tiers **P(reachability correct) equals P(full decision)** cell by cell, so the binding step of the chain is the backward → reachability formulation, not the winner (nano recovers the winner 20/20 at ≥ 500 CU). Weak tiers add a tool-interface error class (undeclared arguments, unaffordable requests) in 69–86 % of runs; the strong tier shows none.
 
 The stronger pre-registered claim did **not** hold. Policy E did not demonstrate robust, cross-tier superiority over the deterministic fixed-VOI policy D. The adaptive narrow-window advantage at **200 CU** was repeatable only in the strong tier and did not reproduce in nano or mini. The pre-registered Agent-specific Go criterion was therefore **not met**.
 
@@ -264,7 +273,7 @@ A compact Methods section can be organized as:
 6. Uncertainty propagation
 7. Backward-design and scaling reachability
 8. Methanol candidate-state definition and explicit recycle/separation model
-9. Methanol upstream-to-economic rank reconstruction and screening-metric definitions
+9. Methanol upstream-to-economic rank reconstruction, screening-metric definitions, and per-candidate purge reoptimization / 0.5–40 % purge robustness sweep (the MeOH analogue of NH3 candidate-specific reoptimization; T/P held at measured points)
 10. Cross-reaction leverage normalization
 11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
 12. Au/TiO2 semi-open operating-condition robustness extension

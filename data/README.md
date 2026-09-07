@@ -55,3 +55,4 @@ For manuscript-level Agent claims, use the evidence in this order:
 The current anonymous complete-decision counts are **6/35 (nano), 15/35 (mini), 35/35 (strong)**. The pre-registered claim that adaptive policy E robustly outperforms fixed-VOI D is **not met across tiers** and remains a negative result.
 
 The repository should use **NH3-FINAL-1.1** values for current scientific claims. NH3-FINAL-1.0 is historical only.
+- `meoh/meoh_purge_robustness_D01v3.csv`, `meoh/meoh_purge_robustness_D01v3_summary.json`, `meoh/meoh_purge_robustness.py` — economic order, rho, tau and pairwise inversions at each of the 396 purge levels (0.5–40 %) plus per-candidate purge optima (added 2026-09-07).

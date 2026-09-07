@@ -88,9 +88,11 @@ Rank statistics:
 - Upstream per-Re winner: **1 wt% Re / 250 C**, falling to economic rank **#3**
 - Economic winner: **5 wt% Re / 200 C**
 
-The top-rank reversal is conditional on the upstream screening metric. If upstream performance is defined by single-pass yield or STY per g catalyst, rho/tau and the 3/6 pairwise inversion count remain the same, but the upstream winner coincides with the economic winner. The decision-frontier inversion is therefore specific to the **Re-normalized intrinsic metric**.
+The reshuffle is metric-independent: STY per g Re, single-pass yield and STY per g catalyst all give rho = 0.20, tau = 0.00 and 3/6 inversions. Only the identity of the upstream winner depends on the metric (per-Re → 1 wt% Re / 250 C, falls to #3; yield or per-catalyst → 5 wt% Re / 200 C, coincides with the economic winner).
 
-Boundary: these are catalyst–temperature states at measured literature points, not four independently reoptimized catalyst identities. Re purchase price is excluded from the NPC by design.
+Purge invariance (396 levels, 0.5–40 %): the per-Re winner is **never** the economic winner, the highest-conversion state is **never** the economic winner, rho ≤ **0.40** and ≥ **2/6** pairs inverted at every purge level. Per-candidate purge reoptimization gives 1 wt% Re / 200 C > 5 wt% Re / 200 C > 1 wt% Re / 250 C > 5 wt% Re / 250 C (rho 0.40, tau 0.33, 2/6), all optima at the 0.5 % bound; 2 % stays canonical.
+
+Boundary: the candidates are catalyst–temperature states at measured literature points; the loop variable (purge) is reoptimized per candidate, T/P are not (no T/P kinetic model exists for the four points). This isolates the selectivity–recycle channel, complementary to the NH3 activity–inventory–severity channel. Re purchase price is excluded from the NPC by design.
 
 ## Methanol selectivity–recycle mechanism
 

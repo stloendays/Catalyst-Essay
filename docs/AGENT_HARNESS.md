@@ -175,7 +175,15 @@ economic winner
 
 The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier completes the full chain at every tested budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
 
-This is the positive formal Agent result: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability.
+This is the positive formal Agent result: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability. Tier separation is statistically clear: nano vs mini Fisher p = 0.036, mini vs strong p = 4 × 10⁻⁸; in the nano/mini logistic model the odds of a complete decision rise 4.7× per tier step and 2.3× per budget doubling.
+
+## Strong-tier result, stated in full
+
+- **35/35** complete correct decisions on the anonymous task at every budget including 200 CU; exact break-even (201.22×) in **34/35**; reachability **35/35**; regret **0**; **0** action or interface errors in 70 runs.
+- **Only policy E completes the decision at 200 CU.** D, B, C and random all fail at 200 CU. E does it by building a narrow process window (29–52 CU to a stable winner instead of the 111-CU full window) — seen in 7/70 strong-tier runs, 0/140 weak-tier runs — and this advantage over D is repeatable **5/5** in the strong tier.
+- At 250–500 CU, E matches D's decision quality with 218–268 CU against D's 247–281 CU; unnecessary-CU fraction 0.02–0.13 (weak tiers 0.18–0.55).
+- In 35/35 anonymous strong-tier runs the same path emerged unprompted: activity screen → optimize → mismatch → BACKWARD → TEST_REACHABILITY → STOP; the model's stated winner matched the environment winner 70/70.
+- Failure structure across tiers: in both weak tiers P(reachability correct) = P(full decision) cell by cell, so the binding step is the backward → reachability formulation, not winner identification (nano winner 20/20 at ≥ 500 CU). Weak tiers add a tool-interface error class in 69–86 % of runs; the strong tier has none.
 
 ## Pre-registered E versus fixed-VOI D: negative result
 
