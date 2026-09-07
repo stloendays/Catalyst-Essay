@@ -84,11 +84,11 @@ A pre-registered control reaction was built to test whether the ammonia inversio
 |---|---:|---:|
 | atomic top-3 | Rh > Ir > Ni | Ru > Os > Fe |
 | economic top-3 | Ni > Cu > Co | Fe > Ru > Os |
-| atomic winner = economic winner | no (Rh → Ni) | no (Ru → Fe) |
-| Top-3 Spearman rho | **−0.50** | −0.50 |
+| atomic winner = economic winner | no (Rh -> Ni) | no (Ru -> Fe) |
+| Top-3 Spearman rho | **-0.50** | -0.50 |
 | full-set Spearman rho / Kendall tau | 0.59 / 0.46 | 0.68 / 0.55 |
 | pairwise inversions among feasible pairs | 25 / 55 | 2 / 3 |
-| economic winner in 1000 descriptor draws (±0.30 eV) | Ni 73 %, Co 17 %, Cu 11 % | — |
+| economic winner in 1000 descriptor draws (+/-0.30 eV) | Ni 73 %, Co 17 %, Cu 11 % | — |
 
 **The control fails**: the ranking inverts by the same mechanism as in ammonia. Every precious metal is pushed to the 650 °C bound, where its heating pool alone exceeds the total cost of Ni at 445 °C. With all metals priced equally the full-set correlation rises to 0.97. Recycle restructuring is therefore sufficient but not necessary for a frontier inversion; the necessary condition is an operating variable (pressure in NH3, temperature in N2O) through which an expensive active catalyst can buy down its inventory. Absolute USD/t values are reconstruction-level and not citable process economics.
 
@@ -98,21 +98,25 @@ Report and pre-registration: [`docs/NEGATIVE_CONTROL_V0_1_REPORT.md`](docs/NEGAT
 
 ## Decision-aware DISCOVER benchmark
 
-The current AI benchmark is deliberately closed-book and budgeted. The agent receives an anonymous candidate set and can choose among 11 fine-grained scientific actions rather than requesting the entire answer at once.
+DISCOVER is a closed-book, budgeted benchmark of scientific decision allocation. The agent receives an anonymous candidate set and can choose among 11 fine-grained scientific actions rather than requesting the entire answer at once.
 
-Key frozen benchmark facts:
+The V1 protocol was frozen before formal evaluation. The task, prompt, action schema, cost model, scorer, stopping rule and fixed policy-D constants are SHA-pinned; changing any pinned component defines DISCOVER V2. Failures are recorded rather than tuned away.
+
+### Formal strong-tier precursor
+
+The original formal policy-E run used the strong tier and established that the full decision chain was executable under V1:
 
 - `1 CU = 1000` MKM state solves (measured once at about 21.8 ms in the benchmark cost model).
-- The formal policy-E study contains **70 runs**: 5 seeds x 7 budgets x anonymous/named variants.
-- Together with frozen A-D baselines, the scorer evaluates **392 traces**.
-- **0 infrastructure retries** and **0 action errors** were recorded.
-- On the anonymous task, policy E produced a **complete correct decision in 35/35 runs**, including the 200-CU budget; the exact break-even target was recovered in **34/35**.
-- At 250-500 CU, policy E and the fixed-VOI policy D are not distinguishable in decision quality; policy E used **218-268 CU** versus **247-281 CU** for D.
-- A zero-tool prior probe shows why anonymization matters: winner-only accuracy can be guessed from price priors even when inversion, break-even and reachability are all wrong.
+- 70 policy-E runs = 5 runs x 7 budgets x anonymous/named variants.
+- Anonymous complete decision: **35/35**.
+- Exact break-even recovery: **34/35**.
+- 0 infrastructure retries and 0 action errors.
 
-### Cross-model stability (2026-09-06/07)
+These single-tier results are provenance for the later cross-model test; they are **not** the final general Agent claim.
 
-The same frozen protocol was re-run with policy E on two weaker tiers of the same model family (5 runs x 7 budgets x anonymous/named = 70 runs per model; gpt-5.5 traces reused, not re-run). Frozen hashes were verified before and after; nothing was retried or tuned.
+### Cross-model stability — current Agent result (2026-09-06/07)
+
+The same frozen protocol was evaluated across three capability tiers. Policy E used five independent runs at each of seven budgets (**200, 250, 300, 500, 800, 1200 and 2000 CU**). The two weaker tiers contributed 140 new anonymous/named traces; the strong-tier V1 traces were reused and re-scored, not re-run. Frozen hashes passed before and after the sweep; there were 0 API retries and 0 driver exceptions.
 
 | Anonymous task, pooled over 7 budgets (n = 35 per tier) | gpt-5.4-nano | gpt-5.4-mini | gpt-5.5 |
 |---|---:|---:|---:|
@@ -122,18 +126,37 @@ The same frozen protocol was re-run with policy E on two weaker tiers of the sam
 | **P(full decision correct)** | **6/35** | **15/35** | **35/35** |
 | unnecessary-CU fraction (mean) | 0.46 | 0.30 | 0.19 |
 
-- The tier trend in P(full) is strong (Cochran–Armitage Z = 6.95; nano vs mini Fisher p = 0.036; mini vs gpt-5.5 p = 4e-8).
-- In both weak tiers the failure is **entirely the reachability step**: P(reach) equals P(full) cell by cell, while the winner is recovered at every budget ≥ 500 CU.
-- Winner accuracy does not separate nano from mini (p = 0.73); it is price-prior-recoverable, as the zero-tool probe predicted.
-- The 200-CU adaptive narrow-window shortcut appears only in gpt-5.5 (7/70 runs vs 0/140 in the weak tiers).
-- The pre-registered agent-specific Go (E beats fixed-VOI D in ≥ 4/5 runs at one budget in ≥ 2 tiers) is **not met**; only gpt-5.5 at 200 CU is repeatable, and D's zero regret cannot be beaten. This is recorded as a negative result.
-- With n = 5 per cell, per-budget differences below 5/5 vs ≤ 1/5 are not resolvable; claims rest on the pooled and ≤ 300 / ≥ 500 CU strata.
+The complete decision requires the chain:
 
-Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md); statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md); figures: [`figures/discover_cross_model/`](figures/discover_cross_model/).
+```text
+ranking / economic winner
+    -> decision-pair selection
+    -> backward design
+    -> reachability verdict
+```
+
+The pooled tier trend in P(full) is strong (**Cochran-Armitage Z = 6.95**). The strong tier executes the complete decision-aware workflow at every tested budget, whereas weaker tiers frequently recover the winner but fail later in pair formation, BACKWARD execution or reachability formulation.
+
+This is the **positive workflow-execution result**: complete decision recovery rises from **6/35 -> 15/35 -> 35/35** as underlying model capability increases.
+
+### Pre-registered E versus fixed-VOI D — negative result
+
+A stronger hypothesis was pre-registered: adaptive policy E should reliably outperform the deterministic fixed-VOI policy D. That hypothesis was **not supported across model tiers**.
+
+- The repeatable adaptive-scope advantage at 200 CU appears only in the strong tier.
+- Nano and mini never reproduce the narrow-window strategy (0/140 weak-tier runs versus 7/70 strong-tier runs, all at 200 CU).
+- The pre-registered Agent-specific Go criterion — E beats D in at least 4/5 runs at a budget and in at least two model tiers — is **not met**.
+- The negative result is retained; no frozen V1 protocol component was changed to make E look better.
+
+The supported conclusion is therefore:
+
+> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
+
+The negative result rejects only the general claim that **Agent E universally outperforms D**. It does not reject the decision-aware framework itself.
+
+Full report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md); statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md); Agent rationale: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md); figures: [`figures/discover_cross_model/`](figures/discover_cross_model/).
 
 ![Cross-model outcomes with Wilson 95 % CI](figures/discover_cross_model/X9_wilson_ci_pooled.png)
-
-The benchmark is designed to test **decision allocation**, not merely tool use. The relevant question is not “can an LLM call the workflow?” but “given limited computational budget, does it spend calculation where it changes the downstream industrial decision?”
 
 ## Repository map
 
@@ -152,7 +175,7 @@ The benchmark is designed to test **decision allocation**, not merely tool use. 
 │   └── CROSS_MODEL_STATS_V1.md
 ├── figures/
 │   ├── README.md
-│   └── discover_cross_model/        (X1–X9 PNG)
+│   └── discover_cross_model/        (X1-X9 PNG)
 └── data/
     ├── README.md
     ├── canonical_results_2026-09-06.csv
@@ -185,11 +208,11 @@ The project is organized around five linked claims:
 2. **Multiscale uncertainty is not monotonically amplified**; kinetics can amplify energetic uncertainty, while equilibrium, reactor and process bottlenecks can absorb it.
 3. **Backward design distinguishes a useful catalyst target from an unreachable one.**
 4. **Economic leverage is pathway-specific rather than universal across reactions.**
-5. **A decision-aware AI harness can allocate limited computation according to downstream decision value.**
+5. **Decision-aware workflow execution is model-capability dependent; adaptive policy E does not show universal cross-model superiority over fixed-VOI D.**
 
 ## Status
 
-The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: the single-model DISCOVER V1 study and its cross-model stability check (three tiers, 210 policy-E runs) are complete. The negative-reaction control is the next validation layer recorded in the project plan and has not been started.
+The latest frozen scientific model is **NH3-FINAL-1.1**. The current benchmark snapshot is dated **2026-09-07**: DISCOVER V1 formal and cross-model evaluations are complete, with the pre-registered E-vs-D superiority criterion retained as a negative result. The N2O negative-control V0.1/V0.2 study is also complete and is tracked separately from the frozen DISCOVER V1 evidence.
 
 ---
 
