@@ -1,0 +1,24 @@
+{
+ "family": "DISCOVER-BOUNDARY-C1",
+ "status": "BLOCKED before Phase 4 smoke",
+ "blocker": "OpenAI API returned insufficient_quota / credit_balance_exhausted on the first smoke call (2026-09-08T10:24Z); 0 tokens consumed; no confirmatory run started",
+ "kept_on_disk": "DISCOVER_BOUNDARY_C1/smoke/gpt-5.5-2026-04-23/traces/anonymous/E_llm_agent_anonymous_B150_r99_smoke_20260908T102443Z (infrastructure_failure, 0 steps)",
+ "completed": [
+  "preregistration frozen (commit 05544fe)",
+  "CU_to_full validation gate PASS on 224 frozen traces",
+  "D_fixed_voi reference at 150/175/225 CU (frozen policy, deterministic)",
+  "frozen hash check before runs: PASS 15/15"
+ ],
+ "D_reference_full_decision": {
+  "150": 0,
+  "175": 0,
+  "200": 0,
+  "225": 1,
+  "250": 1
+ },
+ "D_CU_to_full": {
+  "225": 206,
+  "250": 206
+ },
+ "resume": "add credits, then: python discover/boundary_c1_runner.py smoke ...; then e --runs 20; then hashcheck --label after; then boundary_c1_analysis.py --repo"
+}
