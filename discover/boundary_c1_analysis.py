@@ -176,7 +176,9 @@ def main(repo: Path | None):
             nll = lambda b: float(np.sum(np.logaddexp(0, x @ b) - y * (x @ b))); res = minimize(nll, np.zeros(2)); sec.setdefault(m, {})["logit_slope_per_25CU"] = float(res.x[1])
         else: sec.setdefault(m, {})["logit_slope_per_25CU"] = "separation (all equal)"
     figures(rows, summary, dref)
+    interrupted = [str(Path(d).relative_to(ROOT)) for d in glob.glob(str(OUT / "runs" / "*" / "traces" / "anonymous" / "*")) if not (Path(d) / "trace.json").exists()]
     meta = {"family": "DISCOVER-BOUNDARY-C1", "generated_utc": datetime.now(timezone.utc).isoformat(), "validation_gate": gate, "classification": cls, "secondary_stats": sec,
+            "interrupted_run_dirs_excluded": interrupted, "design_addendum": "A1 (2026-09-09): 150/200/250 stopped early by user for cost; 175/225 to 20; see docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A1.md",
             "n_rows": {fam: sum(1 for r in rows if r["family"] == fam) for fam in {r["family"] for r in rows}}, "python": sys.version, "platform": platform.platform(),
             "packages": {p: __import__(p).__version__ for p in ("numpy", "scipy", "matplotlib", "openai")},
             "hashchecks": [json.loads(Path(p).read_text(encoding="utf-8")) for p in sorted(glob.glob(str(OUT / "metadata" / "hashcheck_*.json")))],
