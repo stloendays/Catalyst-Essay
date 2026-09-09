@@ -86,14 +86,16 @@ def classify(summary, model="gpt-5.5-2026-04-23"):
     s = {r["budget_CU"]: r for r in summary if r["model"] == model and r["family"] == "C1"}
     if 200 not in s: return {"class": "NOT RUN"}
     k200 = s[200]["k_full"]; lo200 = s[200]["CI_lo"]
-    replicated = k200 >= 14
+    # pre-registered substantive threshold: k >= 14/20, stated in the preregistration as equivalent to a Wilson lower bound >= 0.48;
+    # after addendum A1 the 200-CU cell has n < 20, so the lower-bound form is the only evaluable form (reported as reduced-n)
+    replicated = lo200 >= 0.48
     pos = [b for b in BUDGETS if b in s and s[b]["delta_P_full"] > 0]
     adjacent = any(BUDGETS[i] in pos and BUDGETS[i + 1] in pos for i in range(len(BUDGETS) - 1))
     if not replicated: cls = "NO ADAPTIVE REGION"
     elif adjacent and pos != [200]: cls = "COHERENT LOCAL REGION"
     elif pos == [200] or (len(pos) == 1): cls = "ISOLATED SPIKE"
     else: cls = "REPLICATED-200 (non-adjacent positives)"
-    return {"class": cls, "k200": k200, "wilson_lo_200": lo200, "positive_budgets": pos, "adjacent_positive": adjacent, "delta": {b: s[b]["delta_P_full"] for b in BUDGETS if b in s}}
+    return {"class": cls, "k200": k200, "n200": s[200]["n"], "wilson_lo_200": lo200, "threshold_form": "Wilson lower bound >= 0.48 (pre-registered equivalent of 14/20)", "positive_budgets": pos, "adjacent_positive": adjacent, "delta": {b: s[b]["delta_P_full"] for b in BUDGETS if b in s}}
 
 
 def figures(rows, summary, dref):
@@ -104,34 +106,37 @@ def figures(rows, summary, dref):
     fig, ax = plt.subplots(figsize=(10, 6))
     for m in models:
         s = [r for r in summary if r["model"] == m and r["family"] == "C1"]; x = [r["budget_CU"] for r in s]; y = [r["delta_P_full"] for r in s]
-        ax.errorbar(x, y, yerr=[[r["delta_P_full"] - r["delta_CI_lo"] for r in s], [r["delta_CI_hi"] - r["delta_P_full"] for r in s]], marker="o", ms=9, lw=2.2, capsize=5, color=col[m], mec="black", label=f"{TIER[m]} — C1 confirmatory (n = 20 per budget)")
+        ax.errorbar(x, y, yerr=[[max(0.0, r["delta_P_full"] - r["delta_CI_lo"]) for r in s], [max(0.0, r["delta_CI_hi"] - r["delta_P_full"]) for r in s]], marker="o", ms=9, lw=2.2, capsize=5, color=col[m], mec="black", label=f"{TIER[m]} — C1 confirmatory (n = " + "/".join(str(r["n"]) for r in s) + " at " + "/".join(str(r["budget_CU"]) for r in s) + " CU)")
         hist = [r for r in summary if r["model"] == m and r["family"] == "V1_historical"]
         if hist: ax.plot([r["budget_CU"] for r in hist], [r["delta_P_full"] for r in hist], "s", ms=9, color=col[m], alpha=0.35, mec="black", label=f"{TIER[m]} — frozen V1 historical (n = 5), not pooled")
     ax.axhline(0, color="black", lw=1); ax.set_xticks(BUDGETS); ax.set_xlabel("scientific-compute budget (CU)"); ax.set_ylabel("ΔP_full = P_full(E) − P_full(D)"); ax.set_ylim(-1.05, 1.15)
     for b in BUDGETS:
         d = dref.get(b); ax.text(b, -1.0, f"D: {'full' if d and d['full_decision_correct'] else 'incomplete'}", ha="center", fontsize=10)
-    ax.set_title("A  Where adaptive allocation changes the downstream decision: ΔP_full vs budget (D deterministic; CI = Wilson shifted by P_full(D))", fontsize=12)
+    ax.set_title("A  ΔP_full = P_full(E) − P_full(D) vs budget (D deterministic; CI = Wilson interval of E shifted by P_full(D))", fontsize=12)
     ax.grid(color="#dddddd"); ax.legend(loc="upper right"); fig.tight_layout(); fig.savefig(FIG / "figA_delta_pfull_vs_CU.png", dpi=170); plt.close(fig)
     # Figure B: strong efficiency
     s = [r for r in summary if r["model"] == "gpt-5.5-2026-04-23" and r["family"] == "C1"]
     fig, ax = plt.subplots(figsize=(10, 6))
+    vals = [100 * r["relative_CU_full_saving"] for r in s if r["both_full_correct_regime"] and r["relative_CU_full_saving"] is not None]
+    lims = [100 * r["delta_CU_full_boot_lo"] / r["D_CU_to_full"] for r in s if r.get("delta_CU_full_boot_lo") is not None] + [100 * r["delta_CU_full_boot_hi"] / r["D_CU_to_full"] for r in s if r.get("delta_CU_full_boot_hi") is not None]
+    ymin = min([0.0] + vals + lims) - 6; ymax = max([0.0] + vals + lims) + 12; ax.set_ylim(ymin, ymax)
     for r in s:
         if r["both_full_correct_regime"] and r["relative_CU_full_saving"] is not None:
             lo, hi = r.get("delta_CU_full_boot_lo"), r.get("delta_CU_full_boot_hi"); yv = 100 * r["relative_CU_full_saving"]
-            err = [[yv - 100 * lo / r["D_CU_to_full"]], [100 * hi / r["D_CU_to_full"] - yv]] if lo is not None else None
+            err = [[max(0.0, yv - 100 * lo / r["D_CU_to_full"])], [max(0.0, 100 * hi / r["D_CU_to_full"] - yv)]] if lo is not None else None
             ax.errorbar([r["budget_CU"]], [yv], yerr=err, marker="o", ms=11, color="#1f77b4", mec="black", capsize=5, lw=2)
-            ax.text(r["budget_CU"], yv + 3, f"D {r['D_CU_to_full']:.0f} → E {r['mean_CU_to_full']:.0f} CU", ha="center", fontsize=10)
+            ax.text(r["budget_CU"], (hi * 100 / r["D_CU_to_full"] if hi is not None else yv) + 1.5 + (2.5 if r["budget_CU"] == 250 else 0), f"D {r['D_CU_to_full']:.0f} → E {r['mean_CU_to_full']:.0f} CU (n = {r['n_CU_to_full']})", ha="center", fontsize=10)
         else:
             ax.plot([r["budget_CU"]], [0], marker="x", ms=12, color="#888888", mew=2)
-            ax.text(r["budget_CU"], 6, "D incomplete:\ndecision-completion\nadvantage, not efficiency", ha="center", fontsize=9, color="#555555")
+            ax.text(r["budget_CU"], ymax - 1, "D incomplete:\ndecision-completion\nadvantage, not efficiency", ha="center", va="top", fontsize=9, color="#555555")
     ax.axhline(0, color="black", lw=1); ax.set_xticks(BUDGETS); ax.set_xlabel("scientific-compute budget (CU)"); ax.set_ylabel("relative CU_to_full saving of E vs D (%)")
-    ax.set_title("B  Strong model, same-quality regime only: how much earlier E reaches the complete decision (bootstrap 95 % CI)", fontsize=12); ax.grid(color="#dddddd")
+    ax.set_title("B  Strong model, same-quality regime only: relative CU_to_full saving of E vs D (positive = E earlier; bootstrap 95 % CI)", fontsize=11); ax.grid(color="#dddddd")
     fig.tight_layout(); fig.savefig(FIG / "figB_strong_efficiency.png", dpi=170); plt.close(fig)
     # Figure C: P_full vs CU with Wilson
     fig, ax = plt.subplots(figsize=(10, 6))
     for m in models:
         s = [r for r in summary if r["model"] == m and r["family"] == "C1"]
-        ax.errorbar([r["budget_CU"] for r in s], [r["P_full_E"] for r in s], yerr=[[r["P_full_E"] - r["CI_lo"] for r in s], [r["CI_hi"] - r["P_full_E"] for r in s]], marker="o", ms=9, lw=2, capsize=5, color=col[m], mec="black", label=f"E, {TIER[m]} (C1, n = 20)")
+        ax.errorbar([r["budget_CU"] for r in s], [r["P_full_E"] for r in s], yerr=[[max(0.0, r["P_full_E"] - r["CI_lo"]) for r in s], [max(0.0, r["CI_hi"] - r["P_full_E"]) for r in s]], marker="o", ms=9, lw=2, capsize=5, color=col[m], mec="black", label=f"E, {TIER[m]} (C1, n = 20)")
     ax.step([b for b in BUDGETS if b in dref], [dref[b]["full_decision_correct"] for b in BUDGETS if b in dref], where="mid", color="black", lw=2, ls="--", label="D fixed-VOI (deterministic)")
     ax.set_xticks(BUDGETS); ax.set_ylim(-0.05, 1.08); ax.set_xlabel("scientific-compute budget (CU)"); ax.set_ylabel("P(full decision correct)"); ax.set_title("C  supporting: P_full vs budget (Wilson 95 % CI)"); ax.grid(color="#dddddd"); ax.legend(loc="lower right")
     fig.tight_layout(); fig.savefig(FIG / "figC_pfull_vs_CU.png", dpi=170); plt.close(fig)
@@ -143,9 +148,9 @@ def figures(rows, summary, dref):
             xs = b + RNG.uniform(-6, 6, len(v)); ax.plot(xs, v, "o", ms=7, color="#1f77b4", mec="black", alpha=0.8)
             ax.plot([b - 9, b + 9], [np.median(v), np.median(v)], color="black", lw=2)
         d = dref.get(b)
-        if d and d["CU_to_full_decision"] is not None: ax.plot(b, d["CU_to_full_decision"], "D", ms=11, color="#d62728", mec="black", label="D CU_to_full" if i == 0 else None)
+        if d and d["CU_to_full_decision"] is not None: ax.plot(b, d["CU_to_full_decision"], "D", ms=11, color="#d62728", mec="black", label="D fixed-VOI CU_to_full" if not ax.get_legend_handles_labels()[1] else None)
         ax.plot([b - 10, b + 10], [b, b], ":", color="gray", lw=1)
-    ax.set_xticks(BUDGETS); ax.set_xlabel("scientific-compute budget (CU)"); ax.set_ylabel("CU_to_full_decision (E runs; bar = median)"); ax.set_title("D  strong model: CU at which the complete decision is first reached and kept (dotted = budget line)"); ax.grid(color="#dddddd"); ax.legend(loc="upper left")
+    ax.set_xticks(BUDGETS); ax.set_xlabel("scientific-compute budget (CU)"); ax.set_ylabel("CU_to_full_decision (E runs; bar = median)"); ax.set_title("D  strong model: CU_to_full_decision per run (bar = median; dotted = budget; red = D)", fontsize=13); ax.grid(color="#dddddd"); ax.legend(loc="upper left")
     fig.tight_layout(); fig.savefig(FIG / "figD_cu_to_full_distribution.png", dpi=170); plt.close(fig)
 
 
