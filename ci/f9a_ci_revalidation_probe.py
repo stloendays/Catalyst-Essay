@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
-import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,6 +33,22 @@ HISTORICAL_NEEDLES = [
 ]
 CODE_EXTS = {".py", ".r", ".R", ".jl", ".m", ".sh", ".ipynb"}
 TEXT_EXTS = CODE_EXTS | {".md", ".txt", ".csv", ".json", ".yaml", ".yml"}
+
+# Files created for this 2026-09-10 audit must never be allowed to prove the
+# existence of a pre-existing historical implementation. This prevents the
+# recovery probe from identifying itself or its generated artifacts as provenance.
+AUDIT_EXCLUDE_PREFIXES = (
+    "ci/f9a_ci_revalidation_probe.py",
+    "artifacts/f9a_ci/",
+    "docs/F9A_FINAL_1_1_REVALIDATION_TASK.md",
+    "docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md",
+    "docs/CLAIM_EVIDENCE_AUDIT",
+    "docs/LOCAL_CLOSURE_HANDOFF_2026-09-10.md",
+)
+
+
+def excluded_from_historical_proof(path: str) -> bool:
+    return any(path == p or path.startswith(p) for p in AUDIT_EXCLUDE_PREFIXES)
 
 
 def sh(*args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
@@ -126,17 +140,24 @@ for needle in HISTORICAL_NEEDLES:
             rec = {"commit": commit, "path": path, "score": score}
             hits.append(rec)
             key = (commit, path)
-            if ext in CODE_EXTS and score >= 4 and key not in seen:
+            if (
+                ext in CODE_EXTS
+                and score >= 4
+                and key not in seen
+                and not excluded_from_historical_proof(path)
+            ):
                 seen.add(key)
                 implementation_candidates.append(rec)
     needle_hits[needle] = hits
 
-# Also inspect current text files named like leverage/cross-reaction even when the exact
-# rounded headline values are not embedded in the implementation.
+# Inspect current implementation-like files named for leverage/cross-reaction as a
+# secondary recovery route, while excluding this audit's own files.
 for path in sorted(ROOT.rglob("*")):
     if not path.is_file() or path.suffix not in TEXT_EXTS:
         continue
     rel = path.relative_to(ROOT).as_posix()
+    if excluded_from_historical_proof(rel):
+        continue
     lowname = rel.lower()
     if not any(k in lowname for k in ("leverage", "cross_reaction", "cross-reaction")):
         continue
@@ -153,21 +174,20 @@ for path in sorted(ROOT.rglob("*")):
 
 metric_equivalence_established = False
 metric_reason = (
-    "No code-level historical source was recovered that simultaneously establishes "
+    "No pre-audit code-level historical source was recovered that simultaneously establishes "
     "the TOF/activity perturbation, finite-difference definition, economic reoptimization "
     "and raw reduced-cost leverage required by the frozen task."
 )
 
-# Conservative rule: rounded values in prose/snapshots are not enough. A candidate code
-# file must be found; even then CI only marks equivalence if the file visibly contains
-# both a TOF/activity term and an optimization/reoptimization term and a logarithmic
-# elasticity construction.
 verified_candidates: list[dict[str, object]] = []
 for rec in implementation_candidates:
-    text = show_text(str(rec["commit"]), str(rec["path"]))
+    path = str(rec["path"])
+    if excluded_from_historical_proof(path):
+        continue
+    text = show_text(str(rec["commit"]), path)
     if text is None and str(rec["commit"]) == head:
         try:
-            text = (ROOT / str(rec["path"])).read_text(encoding="utf-8")
+            text = (ROOT / path).read_text(encoding="utf-8")
         except Exception:
             text = None
     if not text:
@@ -181,9 +201,9 @@ for rec in implementation_candidates:
 
 if len(verified_candidates) == 1:
     metric_equivalence_established = True
-    metric_reason = "Exactly one code-level historical implementation candidate satisfies the conservative structural checks."
+    metric_reason = "Exactly one pre-audit code-level historical implementation candidate satisfies the conservative structural checks."
 elif len(verified_candidates) > 1:
-    metric_reason = "Multiple code-level candidates satisfy structural checks; CI cannot prove which one generated the historical metric without an immutable source pointer."
+    metric_reason = "Multiple pre-audit code-level candidates satisfy structural checks; CI cannot prove which one generated the historical metric without an immutable source pointer."
 
 harness_available = all(current_presence.values())
 if not metric_equivalence_established:
@@ -191,8 +211,6 @@ if not metric_equivalence_established:
 elif not harness_available:
     classification = "FINAL1_1_CALCULATION_FAILED"
 else:
-    # The frozen task requires executing the exact recovered implementation, not a newly
-    # reconstructed proxy. This probe intentionally refuses to guess the driver call.
     classification = "FINAL1_1_CALCULATION_FAILED"
     metric_reason += " The required exact driver invocation is not encoded in the repository; no substitute calculation was run."
 
@@ -240,9 +258,9 @@ lines += [
     "",
     metric_reason,
     "",
-    f"Code-level implementation candidates: **{len(implementation_candidates)}**; conservatively verified candidates: **{len(verified_candidates)}**.",
+    f"Pre-audit code-level implementation candidates: **{len(implementation_candidates)}**; conservatively verified candidates: **{len(verified_candidates)}**.",
     "",
-    "Rounded manuscript values or prose summaries do not establish metric equivalence by themselves.",
+    "Rounded manuscript values, audit scripts and prose summaries do not establish metric equivalence by themselves.",
     "",
     "## Scientific decision",
     "",
@@ -250,7 +268,7 @@ lines += [
 if classification == "METRIC_EQUIVALENCE_NOT_ESTABLISHED":
     lines.append("F9A remains qualitative/HOLD. No FINAL-1.1 quantitative ratio was generated.")
 elif classification == "FINAL1_1_CALCULATION_FAILED":
-    lines.append("The exact metric may be partly recoverable, but the frozen FINAL-1.1 calculation could not be executed safely in this CI checkout. F9A remains HOLD.")
+    lines.append("The exact metric is recoverable, but the frozen FINAL-1.1 calculation could not be executed safely in this CI checkout. F9A remains HOLD.")
 else:
     lines.append("PASS_REVALIDATED")
 lines += [
