@@ -1,0 +1,58 @@
+name: Render Figure 8 MeOH
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'figures/meoh/render_F08_selectivity_recycle.R'
+      - 'data/meoh/meoh_candidate_ranking_D01v3.csv'
+      - 'data/meoh/meoh_purge_robustness_D01v3.csv'
+      - '.github/workflows/render-figure8-meoh.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Render frozen Figure 8
+        run: Rscript figures/meoh/render_F08_selectivity_recycle.R .
+
+      - name: Verify outputs
+        run: |
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png
+          sha256sum \
+            data/meoh/meoh_candidate_ranking_D01v3.csv \
+            data/meoh/meoh_purge_robustness_D01v3.csv \
+            figures/meoh/render_F08_selectivity_recycle.R \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png \
+            > figures/meoh/F08_RENDER_SHA256.txt
+
+      - name: Commit deterministic render
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg \
+                  figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf \
+                  figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png \
+                  figures/meoh/F08_RENDER_SHA256.txt
+          if git diff --cached --quiet; then
+            echo "No render changes to commit"
+          else
+            git commit -m "Render frozen Figure 8 assets"
+            git push
+          fi
