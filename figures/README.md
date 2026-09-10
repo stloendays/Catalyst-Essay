@@ -2,7 +2,7 @@
 
 This directory contains manuscript and supporting figures generated from the frozen project evidence.
 
-Audit status: **2026-09-10 claim-to-evidence pass**. A figure is marked `LOCKABLE` only when the current canonical numerical evidence and a concrete figure asset are both present. `HOLD` means the scientific claim may be internally consistent but the direct source/provenance chain or final asset is not yet closed.
+Audit status: **2026-09-10 claim-to-evidence pass**. A figure is marked `LOCKED` only when the current canonical numerical evidence and a concrete figure asset are both present and the scientific role/caption boundary is fixed. `HOLD` means the scientific claim may be internally consistent but the direct source/provenance chain or final asset is not yet closed.
 
 ## Main manuscript figure set
 
@@ -14,12 +14,12 @@ Audit status: **2026-09-10 claim-to-evidence pass**. A figure is marked `LOCKABL
 | F4 | Fe / Ru / Os operating envelopes | **HOLD** — current operating-point claims are frozen; pressure-envelope source data and final asset still need to be linked/imported |
 | F5 | Ru backward-design activity sweep | **HOLD** — 201.22x is current; activity-sweep source and final asset still need to be linked/imported |
 | F6 | Scaling-manifold reachability | **HOLD** — 1.090x / 2.525x / 21.398 USD/t are current; direct scaling output and final asset still need to be linked/imported |
-| F7 | CO2-to-MeOH catalyst-state ranking reshuffle | **LOCKABLE** — direct D01 v3 workbook/CSV/script provenance and `MeOH_F03_UpstreamToEconomicRanking_D01v3.png` are present |
-| F8 | Methane accumulation / purge / selectivity leverage | **LOCKABLE WITH ASSET QC** — direct candidate/purge data and MeOH F01/F02 source PNGs are present; final manuscript panel composition and vector/editable source should be fixed |
+| F7 | CO2-to-MeOH catalyst-state ranking reshuffle | **LOCKED CURRENT ASSET** — direct D01 v3 workbook/CSV/script provenance and `MeOH_F03_UpstreamToEconomicRanking_D01v3.png` are present; a publication vector export may be added without changing the scientific lock |
+| F8 | Methane accumulation / purge / selectivity leverage | **DESIGN FROZEN; RENDER PENDING** — the final Panel A+B scientific specification is frozen in `docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`; final editable/vector plus raster rendering remains |
 | F9A | Cross-reaction catalyst-economic leverage | **HOLD** — 273–410 (midpoint ~328) is in the compact canonical snapshot, but the dedicated derivation/source-data bundle and final panel are not present |
-| F9B | Au/TiO2 rank-preservation control | **LOCKABLE** — direct CSV, generator and canonical SVG are present; V1.3 remains a supporting annotation/SI result |
+| F9B | Au/TiO2 rank-preservation control | **LOCKED** — direct CSV, generator and canonical SVG are present; V1.3 remains a supporting annotation/SI result |
 
-The current scientific role and canonical values are defined in [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md). The detailed provenance audit is [`../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md`](../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md).
+The current scientific role and canonical values are defined in [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md). The detailed provenance audit is [`../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md`](../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md). The machine-readable state is [`../data/figure_lock_registry_2026-09-10.csv`](../data/figure_lock_registry_2026-09-10.csv).
 
 ## NH3 provenance requirement
 
@@ -41,12 +41,21 @@ For raster exports, keep the editable vector and source-data/generator alongside
 
 Current assets:
 
-- `MeOH_F03_UpstreamToEconomicRanking_D01v3.png` — direct upstream STY-per-g-Re rank -> NPC-at-2%-purge rank reconstruction; current F7 source.
+- `MeOH_F03_UpstreamToEconomicRanking_D01v3.png` — direct upstream STY-per-g-Re rank -> NPC-at-2%-purge rank reconstruction; locked F7 source.
 - `MeOH_F01_ExplicitLoopEconomics_v3.0.png` — restored explicit-loop economics source.
-- `MeOH_F02_Purge_MethaneAccumulation_FINAL_v3.0.png` — restored purge/methane-accumulation source; current F8 source.
+- `MeOH_F02_Purge_MethaneAccumulation_FINAL_v3.0.png` — restored purge/methane-accumulation reference source for F8.
 - `MeOH_SF01_ProductResolvedNetwork_v2.0.png` — supporting network figure.
 
 Direct source data and provenance are in `../data/meoh/`, including the frozen D01 v3 workbook, extracted candidate-ranking CSV, provenance JSON, purge robustness outputs and analysis scripts.
+
+### Figure 8 frozen design
+
+The final Figure 8 scientific composition is frozen in [`../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`](../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md):
+
+- **Panel A:** NPC versus purge across the four literature catalyst–temperature states, with 2% marked as the canonical source point;
+- **Panel B:** dot/lollipop comparison of local economic leverage for STY, single-pass conversion and CH4 suppression at 5 wt% Re / 250 C.
+
+The remaining task is rendering/export only; no new scientific calculation or metric selection is permitted during render.
 
 ## Rank-preservation control (`rank_preservation_control/`)
 
@@ -71,7 +80,7 @@ V1.3 is a supporting semi-open robustness extension. It may appear as a compact 
 
 ### `discover_cross_model/`
 
-These figures report the frozen DISCOVER V1 cross-model benchmark and remain valid historical/canonical V1 evidence. The manuscript interpretation must now also include the completed DISCOVER-BOUNDARY-C1 extension rather than ending with the original seven-budget V1 result.
+These figures report the frozen DISCOVER V1 cross-model benchmark and remain valid historical/canonical V1 evidence. The manuscript interpretation now also includes the completed DISCOVER-BOUNDARY-C1 extension.
 
 ### `discover_boundary_c1/`
 
