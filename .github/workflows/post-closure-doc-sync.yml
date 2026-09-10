@@ -1,0 +1,38 @@
+name: Post-closure documentation sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ci/post_closure_doc_sync.py'
+      - '.github/workflows/post-closure-doc-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply strict documentation sync
+        run: python3 ci/post_closure_doc_sync.py
+
+      - name: Show diff
+        run: git diff --check && git diff -- README.md STATUS.md docs/RESULTS_AT_A_GLANCE.md docs/MANUSCRIPT_SKELETON.md docs/FIGURE_MAP.md figures/README.md docs/RESEARCH_FREEZE_2026-09-10.md
+
+      - name: Commit synced documentation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md STATUS.md docs/RESULTS_AT_A_GLANCE.md docs/MANUSCRIPT_SKELETON.md docs/FIGURE_MAP.md figures/README.md docs/RESEARCH_FREEZE_2026-09-10.md
+          if git diff --cached --quiet; then
+            echo 'No documentation changes to commit.'
+          else
+            git commit -m 'Synchronize manuscript after F8 lock and F9A provenance closure'
+            git push origin HEAD:main
+          fi
