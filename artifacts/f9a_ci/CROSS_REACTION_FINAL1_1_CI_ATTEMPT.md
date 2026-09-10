@@ -1,8 +1,8 @@
 # F9A FINAL-1.1 GitHub Actions revalidation attempt
 
-Classification: **FINAL1_1_CALCULATION_FAILED**
+Classification: **METRIC_EQUIVALENCE_NOT_ESTABLISHED**
 
-Git HEAD: `cfc4a4a93328c743e7a07bcc918fcbbb742b9dbf`
+Git HEAD: `4d488d4655bef6478a59723277275d0a30732eab`
 
 ## CI availability
 
@@ -11,14 +11,14 @@ Git HEAD: `cfc4a4a93328c743e7a07bcc918fcbbb742b9dbf`
 
 ## Metric-equivalence audit
 
-Exactly one code-level historical implementation candidate satisfies the conservative structural checks.
+No pre-audit code-level historical source was recovered that simultaneously establishes the TOF/activity perturbation, finite-difference definition, economic reoptimization and raw reduced-cost leverage required by the frozen task.
 
-Code-level implementation candidates: **1**; conservatively verified candidates: **1**.
+Pre-audit code-level implementation candidates: **0**; conservatively verified candidates: **0**.
 
-Rounded manuscript values or prose summaries do not establish metric equivalence by themselves.
+Rounded manuscript values, audit scripts and prose summaries do not establish metric equivalence by themselves.
 
 ## Scientific decision
 
-The exact metric may be partly recoverable, but the frozen FINAL-1.1 calculation could not be executed safely in this CI checkout. F9A remains HOLD.
+F9A remains qualitative/HOLD. No FINAL-1.1 quantitative ratio was generated.
 
 This CI probe intentionally does not rescale the old 273–410 range by the change in Fe cost.
