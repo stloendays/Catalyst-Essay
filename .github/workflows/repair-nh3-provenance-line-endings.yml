@@ -1,0 +1,47 @@
+name: Repair NH3 provenance line endings
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.gitattributes'
+      - 'ci/repair_nh3_provenance_line_endings.py'
+      - '.github/workflows/repair-nh3-provenance-line-endings.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-validate:
+    runs-on: ubuntu-slim
+    timeout-minutes: 20
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Repair only manifest-proven line-ending transforms
+        run: |
+          python3 ci/repair_nh3_provenance_line_endings.py
+          cat artifacts/nh3_final_1_1_provenance/LINE_ENDING_REPAIR.json
+
+      - name: Revalidate NH3-FINAL-1.1 provenance
+        run: |
+          python3 ci/validate_nh3_final_1_1_provenance.py
+          cat artifacts/nh3_final_1_1_provenance/status.txt
+          cat artifacts/nh3_final_1_1_provenance/VALIDATION_REPORT.md
+          test "$(cat artifacts/nh3_final_1_1_provenance/status.txt)" = 'PROVENANCE_VALIDATED_READY_FOR_LOCK'
+
+      - name: Commit byte-preserving repair and validation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add provenance/nh3_final_1_1/source_harness artifacts/nh3_final_1_1_provenance
+          if git diff --cached --quiet; then
+            echo 'No byte-level repair was required.'
+          else
+            git commit -m 'Preserve NH3-FINAL-1.1 provenance source bytes'
+            git push origin HEAD:main
+          fi
