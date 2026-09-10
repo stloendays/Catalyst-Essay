@@ -1,7 +1,7 @@
 # Manuscript skeleton — current working version
 
 Snapshot date: **2026-09-10**  
-All ammonia headline values below use **NH3-FINAL-1.1**.
+All ammonia headline values below use **NH3-FINAL-1.1** unless explicitly labeled historical.
 
 ## Working title options
 
@@ -155,16 +155,17 @@ Primary evidence: `MEOH_RANKING_INVERSION.md`, `data/meoh/MeOH_D01_ExplicitRecyc
 
 ### 3.5 Cross-reaction comparison reveals pathway-specific economic leverage
 
-After aligning the cost denominator, the normalized MeOH CH4-suppression / NH3 TOF leverage ratio is **273–410**, midpoint approximately **328**.
+A previous denominator-aligned comparison produced a MeOH CH4-suppression / NH3 TOF leverage ratio of **273–410** (midpoint ~**328**) under the archived NH3-FINAL-1.0 reduced-cost baseline. A second-pass lineage audit found that this numerical ratio predates promotion of NH3-FINAL-1.1. Because FINAL-1.1 changed the NH3 pressure-CAPEX/economic closure and explicitly recomputed its NH3 ground-truth and lever quantities, the numerical cross-reaction ratio is **held out of the current manuscript pending targeted FINAL-1.1 revalidation**.
 
-This supports a reaction-specific interpretation:
+The mechanism-level comparison remains supported:
 
 - NH3: **activity -> inventory / reactor-demand** pathway
 - MeOH: **selectivity -> feed-loss / purge / recycle** pathway
 
-The manuscript-level conclusion is that catalyst ranking inversion is not governed by one universal variable or one universal propagation mechanism. In NH3, candidate-specific process/economic reoptimization reshapes the decision frontier. In MeOH, a different ranking reshuffle appears when an intrinsic per-Re productivity objective is propagated through selectivity-sensitive recycle economics. The choice of upstream screening objective can therefore matter alongside the downstream process coupling.
+The current manuscript-level conclusion is therefore qualitative at this stage: catalyst ranking inversion is not governed by one universal variable or one universal propagation mechanism. In NH3, candidate-specific process/economic reoptimization reshapes the decision frontier. In MeOH, a different ranking reshuffle appears when an intrinsic per-Re productivity objective is propagated through selectivity-sensitive recycle economics. The choice of upstream screening objective can therefore matter alongside the downstream process coupling.
 
-Primary figure: F9A.
+Primary figure: **F9A — quantitative panel on HOLD pending FINAL-1.1 revalidation**.  
+Revalidation task: `F9A_FINAL_1_1_REVALIDATION_TASK.md`.
 
 ### 3.6 A literature-calibrated control shows that multiscale propagation does not intrinsically invert rankings
 
@@ -238,7 +239,7 @@ The cross-model benchmark separates three questions that are easy to conflate. F
 
 ## 5. Figures
 
-See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values. The rank-preservation control is integrated into **Figure 9B** rather than added as a tenth standalone figure; V1.3 is best used as a small robustness annotation or Supporting Information extension rather than a new main panel.
+See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current nine-figure map and canonical headline values. The rank-preservation control is integrated into **Figure 9B** rather than added as a tenth standalone figure; V1.3 is best used as a small robustness annotation or Supporting Information extension rather than a new main panel. **Figure 9A remains quantitatively on HOLD pending the targeted NH3-FINAL-1.1 cross-reaction leverage revalidation.**
 
 ## 6. Methods structure
 
@@ -253,7 +254,7 @@ A compact Methods section can be organized as:
 7. Backward-design and scaling reachability
 8. Methanol candidate-state definition and explicit recycle/separation model
 9. Methanol upstream-to-economic rank reconstruction, screening-metric definitions, and per-candidate purge reoptimization / 0.5–40 % purge robustness sweep (the MeOH analogue of NH3 candidate-specific reoptimization; T/P held at measured points)
-10. Cross-reaction leverage normalization
+10. Cross-reaction leverage normalization and FINAL-1.1 revalidation of the historical TOF-leverage calculation; the historical 2–3% denominator-alignment convention is retained unchanged during revalidation.
 11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
 12. Au/TiO2 semi-open operating-condition robustness extension
 13. Decision-aware AI harness, frozen DISCOVER V1 cross-model benchmark, and DISCOVER-BOUNDARY-C1 confirmatory boundary extension. Report the unchanged 11-action scientific interface, CU accounting, anonymous task, fixed scorer/stopping rule, deterministic D reference, per-tier repeated sampling, step-level `CU_to_full_decision` reconstruction, narrow-window behavior, before/after frozen-hash checks, and the Phase-B design reduction recorded in addendum A2.
@@ -269,6 +270,7 @@ Supporting Information should contain the technical evidence needed to trust the
 - cost-pool decomposition
 - scaling-manifold derivation
 - MeOH D01 v3 workbook provenance, four-state rank table, alternative upstream metrics and pairwise inversion accounting
+- F9A cross-reaction leverage lineage audit and FINAL-1.1 revalidation bundle
 - Au/TiO2 rank-preservation preregistration, literature anchors, sensitivity envelope and full 10,000-draw preservation test
 - Au/TiO2 V1.3 semi-open operating-condition protocol, stress levels, literature window and full summary statistics
 - complete DISCOVER action schema, scorer and budget curves
@@ -280,4 +282,4 @@ Supporting Information should contain the technical evidence needed to trust the
 
 ## Version note
 
-Archived NH3-FINAL-1.0 numbers such as 10.199 / 17.592 / 21.321 USD/t, 73.6% feasibility and 2171.56x break-even should remain historical only and should not appear as current manuscript headline values.
+Archived NH3-FINAL-1.0 numbers such as 10.199 / 17.592 / 21.321 USD/t, 73.6% feasibility and 2171.56x break-even should remain historical only and should not appear as current manuscript headline values. The historical cross-reaction ratio **273–410 (~328 midpoint)** is likewise a pre-FINAL-1.1 result and is on HOLD until explicitly revalidated against NH3-FINAL-1.1.
