@@ -2,9 +2,22 @@
 
 ## Status
 
-The current manuscript evidence package is considered **research-complete for drafting**, subject to final numerical/claim audit. No additional large API batch, budget sweep, model tier, reaction case or agent-policy variant is required for the present manuscript unless the audit identifies a reproducibility or correctness defect.
+The current manuscript evidence package is considered **research-complete for drafting**, with one narrowly defined data-lineage exception identified by the second-pass audit. No additional large API batch, budget sweep, model tier, reaction case or agent-policy variant is required for the present manuscript.
 
 This freeze does not alter any previously frozen protocol or scientific model. It records the transition from experiment generation to manuscript integration.
+
+### Targeted exception opened by the final audit
+
+The historical cross-reaction MeOH-CH4 / NH3-TOF normalized-leverage ratio **273–410 (midpoint ~328)** is no longer treated as a current NH3-FINAL-1.1 manuscript result. Its source normalization predates FINAL-1.1 and explicitly uses the archived ~10.2 USD/t NH3 reduced-cost regime. Because FINAL-1.1 changed the NH3 pressure-CAPEX/economic closure, the audit requires one deterministic revalidation with the already frozen FINAL-1.1 harness and the exact historical TOF-leverage definition.
+
+This is the **only scientific calculation reopened** under the freeze. It is specified in `F9A_FINAL_1_1_REVALIDATION_TASK.md`. If exact historical metric equivalence cannot be established, the correct outcome is to keep Figure 9A qualitative rather than invent a replacement metric or rescale the old ratio.
+
+The qualitative cross-reaction pathway comparison remains valid:
+
+- NH3: activity -> catalyst inventory / reactor demand;
+- MeOH: selectivity -> feed loss / purge / recycle.
+
+Audit addendum: `CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`.
 
 ## Scientific evidence frozen for the manuscript
 
@@ -61,9 +74,20 @@ Policy advantage, model capability and raw compute efficiency must remain separa
 - Phase A reduction of the 150 / 200 / 250 CU strong cells is documented prospectively in `DISCOVER_BOUNDARY_C1_ADDENDUM_A1.md` relative to result inspection.
 - The original C1 preregistration specified a broader Phase B and smoke runs. The executed Phase B was reduced before its first API call to 175 / 225 CU and no smoke. This deviation is transparently recorded post-run in `DISCOVER_BOUNDARY_C1_ADDENDUM_A2.md`; it must not be described as the original preregistered design.
 - The 200-CU C1 strong estimate remains **8/8** new runs and is not pooled with the separate historical DISCOVER V1 5/5 sample for the confirmatory estimate.
+- The first-pass claim audit found no contradiction among the promoted headline values; the second-pass temporal/lineage check identified the F9A cross-reaction ratio as the one genuine revalidation exception. See `CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`.
+
+## Figure-lock state at freeze
+
+- **F7:** locked current MeOH ranking asset.
+- **F8:** scientific design frozen; R renderer committed; vector/raster render pending.
+- **F9B:** locked canonical Au/TiO2 V1.1 SVG.
+- **F1–F6:** numerical results frozen, but direct FINAL-1.1 raw provenance/assets still require repository closure before final figure lock.
+- **F9A:** `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`.
 
 ## Freeze rule
 
 From this point, do not add new experimental cells solely to improve the narrative. New computation is justified only if the final audit reveals one of the following: a scorer/driver defect, a frozen-state mismatch, an unreproducible canonical number, an incorrect data lineage, or a manuscript claim not supported by the retained evidence.
 
-The next work package is manuscript integration: claim-to-evidence audit, figure locking, Methods/SI completion, and final reproducibility documentation.
+The current F9A exception satisfies the incorrect-data-lineage criterion but is restricted to **repeating the exact historical leverage calculation under the already frozen NH3-FINAL-1.1 model**. It does not authorize model redesign or exploratory parameter changes.
+
+The next work package is manuscript integration: targeted F9A closure, NH3 provenance import/content-addressing, figure locking, Methods/SI completion, and final reproducibility documentation.
