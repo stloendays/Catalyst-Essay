@@ -1,46 +1,67 @@
-# Cross-reaction leverage normalization — provenance pointer
+# Cross-reaction leverage normalization — provenance and revalidation status
 
-Recorded: **2026-09-10** during the claim-to-evidence audit.
+Recorded: **2026-09-10** during the claim-to-evidence audit.  
+Second-pass status: **REVALIDATION REQUIRED AFTER NH3-FINAL-1.1**.
 
-## Frozen manuscript result
+## Current manuscript status
 
-After harmonizing the cost-denominator interpretation, the current manuscript uses:
+The numerical cross-reaction ratio previously reported as:
 
 - NH3 TOF normalized leverage: approximately **0.000916–0.001374**;
 - MeOH CH4-suppression leverage: **0.37579**;
 - MeOH CH4-suppression / NH3 TOF normalized-leverage ratio: **273–410**;
-- midpoint at the 2.5% denominator assumption: approximately **328**.
+- 2.5% midpoint: approximately **328**;
 
-These values are mirrored in `data/canonical_results_2026-09-06.csv` and the current manuscript summaries.
+is **held out of the current manuscript until NH3-FINAL-1.1 revalidation is complete**.
 
-## Origin of the normalization
+The MeOH numerator remains current and directly traceable. The uncertainty is specifically the NH3 denominator-side lineage.
 
-The project normalization closure records that the earlier direct cross-reaction comparison was invalid because the two reactions used different cost boundaries:
+## Why the second-pass audit changed the status
 
-- NH3 used a reduced catalyst/process-dependent cost;
-- MeOH used a near-full-cost NPC.
+The denominator-normalization record in Notion page `09｜Cross-Reaction Catalyst-Economic Leverage：统一成本分母后的比较` predates promotion of NH3-FINAL-1.1. Its own text identifies the NH3 reduced-cost baseline as approximately **10.2 USD/t**, which corresponds to the archived NH3-FINAL-1.0 regime rather than the current FINAL-1.1 Fe cost of **15.292 USD/t**.
 
-The closure therefore maps the NH3 reduced-cost leverage to a common full-cost interpretation using an estimated reduced-cost/full-cost fraction of **2–3%**. Under this boundary, the NH3 TOF leverage becomes approximately **0.000916–0.001374**; with the MeOH CH4-suppression leverage of **0.37579**, the frozen headline ratio is **273–410**, with a 2.5% midpoint of approximately **328**.
+The same 273–410 / ~328 ratio is also preserved in older project/GIST records alongside superseded NH3-FINAL-1.0 values such as Fe/Ru/Os = **10.199 / 17.592 / 21.321 USD/t**, Fe feasibility = **73.6%**, and Ru activity parity = **2171.56x**. This is strong evidence that the cross-reaction numerical normalization originated before FINAL-1.1.
 
-The underlying project record is the Notion page `09｜Cross-Reaction Catalyst-Economic Leverage：统一成本分母后的比较`, with the corresponding technical-closure rationale recorded in `11｜2026-08-22 老师会议反馈与三项 Technical Closure`.
+By contrast, the NH3-FINAL-1.1 promotion record explicitly states that all NH3 ground-truth quantities were reclosed from canonical run `outputs/nh3_final_20260905T134204Z` and that Layer-B lever/reach quantities were recomputed rather than inherited. The promotion record does not document a recomputation of the cross-reaction TOF-normalized leverage ratio.
 
-## Evidence status
+Therefore the compact snapshot entry in `data/canonical_results_2026-09-06.csv` is not sufficient evidence that 273–410 was recalculated under FINAL-1.1.
 
-The MeOH numerator is directly traceable in this repository to:
+## What remains valid
+
+The qualitative mechanistic comparison remains supported and can stay in the manuscript:
+
+- NH3 activity primarily propagates through **catalyst inventory / reactor-demand / process-severity** pathways;
+- MeOH selectivity, particularly methane suppression, propagates through **feed loss / gas accumulation / purge / recycle / compression** pathways.
+
+The MeOH CH4-suppression leverage is directly traceable in this repository to:
 
 - `data/meoh/meoh_candidate_ranking_D01v3.csv`;
-- the frozen D01 v3 workbook;
-- the MeOH extraction/figure scripts.
+- `data/meoh/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx`;
+- the frozen MeOH extraction and robustness scripts.
 
-The denominator-harmonization result is currently preserved as a frozen project-level normalization record and compact canonical snapshot. The original dedicated arithmetic/source-data file that generated the 2–3% full-cost boundary is not present in `Catalyst-Essay`.
+## Required targeted revalidation
 
-Therefore F9A remains **HOLD** for final figure locking until one of the following is supplied:
+This is a narrow research-freeze exception, not a reopening of the scientific model.
 
-1. the original normalization worksheet/script and its cost-boundary source; or
-2. a content-addressed export of the exact inputs and calculation from the source archive.
+Using the frozen NH3-FINAL-1.1 source harness only:
 
-A new scientific simulation is not required to close this item. The task is to recover and freeze the existing denominator-normalization provenance. If the recovered inputs reproduce the current bounds, the 273–410 result remains unchanged.
+1. locate canonical run `outputs/nh3_final_20260905T134204Z` and the exact TOF/economic-leverage definition used for the earlier cross-reaction comparison;
+2. if possible, reproduce the archived FINAL-1.0 normalized result as a regression check using the original definition;
+3. compute the same NH3 TOF economic leverage under `configs/nh3_final.yaml` = NH3-FINAL-1.1 without changing the metric, perturbation definition, process model or optimization rules;
+4. apply the same reduced/full-cost fraction band **2%, 2.5%, 3%**;
+5. keep the MeOH numerator fixed at **0.3757939247335326**;
+6. report the resulting ratio at each denominator fraction with exact source/config/code hashes.
 
-## Writing boundary
+If the frozen FINAL-1.1 harness does not expose an equivalent TOF-perturbation pathway, stop and report that limitation. Do not invent a replacement metric.
 
-Every manuscript use of **273–410** or **~328** must state that the comparison is made **after cost-denominator alignment** and must not imply that the ratio is a universal reaction constant. It is a pathway-level comparison under the stated denominator harmonization.
+## Figure and writing boundary
+
+**F9A status = REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1_1.**
+
+Until the targeted calculation is closed:
+
+- do not present **273–410** or **~328** as a current FINAL-1.1 result;
+- historical documents may retain those numbers only when clearly labeled as pre-FINAL-1.1 / archived normalization;
+- current manuscript text may retain the qualitative pathway contrast without the numerical ratio.
+
+When revalidation is complete, add a dedicated machine-readable source bundle and regenerate F9A from that bundle.
