@@ -1,0 +1,101 @@
+name: F9A revalidation and Figure 8 closure
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/closure-f9a-f8.yml'
+      - 'ci/f9a_ci_revalidation_probe.py'
+
+permissions:
+  contents: write
+
+jobs:
+  closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout full repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run deterministic F9A provenance and metric-equivalence probe
+        run: |
+          python3 ci/f9a_ci_revalidation_probe.py
+          cat artifacts/f9a_ci/classification.txt
+          cat artifacts/f9a_ci/CROSS_REACTION_FINAL1_1_CI_ATTEMPT.md
+
+      - name: Install base R
+        id: install_r
+        continue-on-error: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends r-base-core
+          Rscript --version
+
+      - name: Render frozen Figure 8 and verify
+        id: render_f8
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts
+          if ! command -v Rscript >/dev/null 2>&1; then
+            echo 'F8_RENDER_FAILED_R_NOT_AVAILABLE' | tee artifacts/f8_ci_status.txt
+            exit 1
+          fi
+          Rscript figures/meoh/render_F08_selectivity_recycle.R .
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf
+          test -s figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png
+          sha256sum \
+            data/meoh/meoh_candidate_ranking_D01v3.csv \
+            data/meoh/meoh_purge_robustness_D01v3.csv \
+            figures/meoh/render_F08_selectivity_recycle.R \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf \
+            figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png \
+            > figures/meoh/F08_RENDER_SHA256.txt
+          echo 'F8_RENDER_PASS' | tee artifacts/f8_ci_status.txt
+          cat figures/meoh/F08_RENDER_SHA256.txt
+
+      - name: Ensure F8 status exists
+        if: always()
+        run: |
+          if [ ! -f artifacts/f8_ci_status.txt ]; then
+            echo 'F8_RENDER_FAILED_BEFORE_STATUS' > artifacts/f8_ci_status.txt
+          fi
+
+      - name: Commit deterministic closure outputs
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add artifacts/f9a_ci artifacts/f8_ci_status.txt
+          if [ -f figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg ]; then
+            git add figures/meoh/F08_MeOH_selectivity_recycle_D01v3.svg
+          fi
+          if [ -f figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf ]; then
+            git add figures/meoh/F08_MeOH_selectivity_recycle_D01v3.pdf
+          fi
+          if [ -f figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png ]; then
+            git add figures/meoh/F08_MeOH_selectivity_recycle_D01v3.png
+          fi
+          if [ -f figures/meoh/F08_RENDER_SHA256.txt ]; then
+            git add figures/meoh/F08_RENDER_SHA256.txt
+          fi
+          if git diff --cached --quiet; then
+            echo 'No closure outputs changed.'
+          else
+            git commit -m 'Record F9A CI revalidation attempt and Figure 8 render'
+            git push origin HEAD:main
+          fi
+
+      - name: Final infrastructure status
+        if: always()
+        run: |
+          echo 'F9A classification:'
+          cat artifacts/f9a_ci/classification.txt || true
+          echo 'F8 status:'
+          cat artifacts/f8_ci_status.txt || true
+          test "$(cat artifacts/f8_ci_status.txt)" = 'F8_RENDER_PASS'
