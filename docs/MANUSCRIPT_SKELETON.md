@@ -1,6 +1,6 @@
 # Manuscript skeleton — current working version
 
-Snapshot date: **2026-09-07**  
+Snapshot date: **2026-09-10**  
 All ammonia headline values below use **NH3-FINAL-1.1**.
 
 ## Working title options
@@ -18,7 +18,7 @@ The abstract should carry the scientific logic rather than a long list of number
 3. **How uncertainty and design targets propagate:** atomistic uncertainty can be amplified or attenuated, and backward design can place an economically required catalyst target outside the reachable scaling manifold.
 4. **How the mechanism transfers:** NH3 inversion follows an activity–inventory / reactor-demand pathway, whereas the MeOH inversion follows a selectivity–recycle pathway; the MeOH top-rank reversal also depends on which upstream screening metric is used.
 
-A final sentence can introduce the AI layer without making it the source of the physical result: the frozen DISCOVER benchmark tests whether an agent can allocate finite scientific compute to the parts of this chain that matter to the downstream decision.
+A final sentence can introduce the AI layer without making it the source of the physical result: the frozen DISCOVER benchmark tests whether an agent can allocate finite scientific compute to the parts of this chain that matter to the downstream decision, while the C1 boundary extension shows that this decision-recovery advantage is conditioned by model capability and budget.
 
 ## 1. Introduction
 
@@ -192,40 +192,19 @@ Primary figure: F9B.
 Primary evidence: `RANK_PRESERVATION_CONTROL_V1_1_LITERATURE_CALIBRATION.md`, `rank_preservation_control_v1_1.csv`.  
 Supporting robustness evidence: `RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`, `rank_preservation_semiopen_v1_3.py`, `rank_preservation_semiopen_v1_3_summary.csv`.
 
-### 3.7 Decision-aware computation allocation is model-capability dependent
+### 3.7 Decision-aware computation allocation is bounded by model capability and the fixed-policy completion threshold
 
-DISCOVER V1 evaluates whether an AI agent can allocate limited scientific compute to the parts of the multiscale chain that matter to the final industrial decision. The protocol was frozen before the cross-model test: the task, prompt, 11-action schema, CU cost model, scorer, stopping rule and A-D baselines were unchanged.
+DISCOVER V1 evaluates whether an AI agent can allocate limited scientific compute to the parts of the multiscale chain that determine the final industrial decision. The protocol was frozen before the cross-model evaluation: the task, prompt, 11-action schema, CU cost model, scorer, stopping rule and A–D baselines were unchanged across model tiers. On the anonymous closed-book task, complete-decision recovery was **6/35** for nano, **15/35** for mini and **35/35** for the strong model, with a pooled tier trend of **Z = 6.95**. A complete decision requires recovery of the economic winner, decision pair, backward target and reachability verdict. The original pre-registered hypothesis that adaptive policy E would robustly outperform fixed-VOI policy D across tiers was not supported.
 
-Cross-model design:
+The subsequent **DISCOVER-BOUNDARY-C1** extension keeps the same frozen DISCOVER V1 scientific environment and resolves the local budget boundary rather than redesigning the protocol. Deterministic fixed-VOI policy D reaches the complete decision at **206 CU**. Below that threshold, at **175 CU**, policy E completes the decision in **19/20** strong-model runs but **0/20** mini and **0/20** nano runs. At **225 CU**, where D can already complete, E succeeds in **20/20** strong, **6/20** mini and **0/20** nano runs.
 
-- three model tiers: nano, mini and strong;
-- seven budgets: **200, 250, 300, 500, 800, 1200 and 2000 CU**;
-- five independent policy-E runs per budget per variant;
-- anonymous closed-book task used for the primary claim;
-- 140 new weak/medium traces plus the reused frozen strong-tier V1 traces.
+The step-level traces identify a behavioral distinction at the below-threshold cell. At 175 CU, a narrow process-window construction is used in **20/20** strong-model runs, compared with **4/20** mini and **0/20** nano runs. The strong model can therefore redirect enough of the finite scientific-compute budget from broad process enumeration toward the backward-design and reachability chain; the two tested weaker tiers do not reliably recover the same allocation behavior.
 
-Anonymous complete-decision recovery was:
+This does not imply a universal compute-efficiency advantage. At 225 CU, where policy D itself reaches the full decision at 206 CU, the strong adaptive policy reaches the full decision at a median of approximately **218 CU**. C1 therefore supports a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed policy's completion threshold**, not universal adaptive superiority or universal raw-compute saving.
 
-- nano: **6/35**
-- mini: **15/35**
-- strong: **35/35**
+Phase B was executed as a cost-motivated reduced extension at the two discriminative cells, 175 and 225 CU, with **80/80 formal runs**, **0 smoke runs**, **0 infrastructure retries**, **0 driver exceptions**, and frozen hashes **15/15 PASS** before and after. The reduction from the originally registered five-budget Phase B and the no-smoke decision were made before the first Phase B API call and are recorded transparently in `DISCOVER_BOUNDARY_C1_ADDENDUM_A2.md`; they must not be described as the original preregistered design.
 
-A complete decision requires the whole chain — economic winner, decision pair, backward target and reachability verdict. The positive result is therefore **workflow-execution capability**: complete decision recovery rises strongly with underlying model capability (pooled tier trend Z = **6.95**; nano vs mini Fisher p = 0.036; mini vs strong p = 4 × 10⁻⁸; logistic odds ratio 4.7 per tier step and 2.3 per budget doubling in the nano/mini pair), and the strong model executes the full decision-aware chain reliably.
-
-The strong-tier result stands on its own and should be stated in full:
-
-- **35/35 complete correct decisions at every budget, including 200 CU**, with the exact 201.22× break-even recovered in 34/35 runs, reachability classified correctly 35/35, zero decision regret and **zero action or interface errors** in 70 runs.
-- **Policy E is the only policy that completes the decision at 200 CU.** Fixed-VOI D, activity-first B, uncertainty-first C and random all fail there; E succeeds by building a narrow process window (29–52 CU to a stable winner instead of the 111-CU full window), a behaviour observed in 7/70 strong-tier runs and in **0/140** weak-tier runs. This 200-CU advantage over D is repeatable **5/5** in the strong tier.
-- At 250–500 CU the strong tier matches D in decision quality while spending 218–268 CU against D's 247–281 CU and keeping the unnecessary-CU fraction at 0.02–0.13, against 0.18–0.55 for the weak tiers.
-- The cross-tier failure structure is itself a result: in both weak tiers **P(reachability correct) equals P(full decision)** cell by cell, so the binding step of the chain is the backward → reachability formulation, not the winner (nano recovers the winner 20/20 at ≥ 500 CU). Weak tiers add a tool-interface error class (undeclared arguments, unaffordable requests) in 69–86 % of runs; the strong tier shows none.
-
-The stronger pre-registered claim did **not** hold. Policy E did not demonstrate robust, cross-tier superiority over the deterministic fixed-VOI policy D. The adaptive narrow-window advantage at **200 CU** was repeatable only in the strong tier and did not reproduce in nano or mini. The pre-registered Agent-specific Go criterion was therefore **not met**.
-
-This negative result is retained rather than tuned away. It rejects the general claim **"adaptive Agent E is universally better than fixed-VOI D"**, but it does not reject the Agent framework. The supported statement is:
-
-> **A strong model can execute and exploit decision-aware allocation, but the advantage of adaptive Agent allocation over a fixed-VOI strategy is model-capability dependent rather than universal.**
-
-Primary evidence: `CROSS_MODEL_DISCOVER_V1.md`, `CROSS_MODEL_STATS_V1.md`, frozen hashes and scored traces.
+Primary evidence: `CROSS_MODEL_DISCOVER_V1.md`, `CROSS_MODEL_STATS_V1.md`, `DISCOVER_BOUNDARY_C1_RESULTS.md`, `DISCOVER_BOUNDARY_C1_PHASE_B_RESULTS.md`, C1 summary tables, frozen hashes and scored traces.
 
 ## 4. Discussion
 
@@ -253,9 +232,9 @@ The Au/TiO2 control provides the counterfactual needed to interpret the two inve
 
 This distinction sharpens the central claim of the paper: the relevant object is not "multiscale complexity" in the abstract, but the **coupling topology between catalyst properties, screening objectives and downstream decision variables**. The magnitude of candidate-specific downstream coupling must be large enough to overcome the upstream separation before substantial inversion appears.
 
-### 4.6 Agent claims should separate execution capability from policy superiority
+### 4.6 Agent claims should separate execution capability, boundary recovery and compute efficiency
 
-The cross-model benchmark shows that the ability to complete a multistep decision chain is itself capability-dependent. At the same time, a capable adaptive agent does not automatically dominate a strong deterministic VOI baseline. These are distinct claims and should be reported separately.
+The cross-model benchmark separates three questions that are easy to conflate. First, complete execution of the multistep scientific decision chain is strongly model-capability dependent. Second, the C1 boundary extension shows that a strong model can recover the full decision below the deterministic fixed-VOI completion threshold by narrowing the process search and reallocating compute toward the unresolved backward/reachability steps. Third, once the deterministic policy has enough budget to complete the same decision, the adaptive policy does not provide a universal raw-compute saving. Agent performance should therefore be reported as a decision-recovery boundary conditioned on model capability and budget, rather than as a general claim that adaptive LLM allocation is always more efficient than a deterministic VOI policy.
 
 ## 5. Figures
 
@@ -277,7 +256,7 @@ A compact Methods section can be organized as:
 10. Cross-reaction leverage normalization
 11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
 12. Au/TiO2 semi-open operating-condition robustness extension
-13. Decision-aware AI harness and frozen DISCOVER V1 cross-model benchmark
+13. Decision-aware AI harness, frozen DISCOVER V1 cross-model benchmark, and DISCOVER-BOUNDARY-C1 confirmatory boundary extension. Report the unchanged 11-action scientific interface, CU accounting, anonymous task, fixed scorer/stopping rule, deterministic D reference, per-tier repeated sampling, step-level `CU_to_full_decision` reconstruction, narrow-window behavior, before/after frozen-hash checks, and the Phase-B design reduction recorded in addendum A2.
 
 ## 7. Supporting Information priorities
 
@@ -297,6 +276,7 @@ Supporting Information should contain the technical evidence needed to trust the
 - zero-tool prior probe
 - cross-model per-trace scores and failure matrix
 - pre-registered E-vs-D Go/No-Go evaluation
+- DISCOVER-BOUNDARY-C1 175/225-CU boundary tables, Wilson intervals, narrow-window usage, failure taxonomy and Phase-B addendum A2
 
 ## Version note
 
