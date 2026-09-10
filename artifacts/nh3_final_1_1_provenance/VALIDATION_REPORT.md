@@ -1,8 +1,8 @@
 # NH3-FINAL-1.1 provenance closure validation
 
-Status: **PROVENANCE_VALIDATED_READY_FOR_LOCK**
+Status: **HASH_MISMATCH**
 
-Checked at: `2026-09-10T08:04:44.649329+00:00`
+Checked at: `2026-09-10T08:06:25.654083+00:00`
 
 This validation is provenance-only; no scientific model was executed.
 
@@ -21,7 +21,7 @@ This validation is provenance-only; no scientific model was executed.
 - manifest present: True
 - listed files: 28
 - missing listed files: 0
-- hash mismatches: 0
+- hash mismatches: 18
 
 ## Canonical anchor check
 
