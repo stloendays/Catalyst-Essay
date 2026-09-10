@@ -20,6 +20,7 @@ Project version numbers belong to separate families. Do not compare a bare `V1`,
 | Drift diagnosis | **DRIFT v2** | completed supporting benchmark |
 | Reaction transfer | **TRANSFER v1** | completed supporting benchmark |
 | Formal Agent benchmark | **DISCOVER V1** | frozen closed-book, budgeted benchmark; cross-model evaluation complete |
+| Agent boundary extension | **DISCOVER-BOUNDARY-C1** | completed confirmatory extension on unchanged DISCOVER V1 protocol |
 | Future redesign | **DISCOVER V2** | reserved; not a completed current benchmark |
 
 Human-readable registry: [`docs/VERSION_REGISTRY.md`](docs/VERSION_REGISTRY.md).  
@@ -116,16 +117,20 @@ The top-rank reversal also depends on the upstream screening objective: yield or
 
 Primary note: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md).
 
-## Cross-reaction economic leverage
+## Cross-reaction economic leverage — quantitative ratio on hold
 
-After cost-denominator alignment, the normalized **MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410**, midpoint approximately **328**.
+The qualitative mechanism comparison remains part of the current paper:
 
 ```text
 NH3  : activity -> catalyst inventory / reactor demand
 MeOH : selectivity -> feed loss / purge / recycle
 ```
 
-The dominant catalyst-economic mechanism is therefore reaction- and process-pathway dependent.
+A second-pass data-lineage audit found that the previously quoted normalized ratio **273-410** (midpoint approximately **328**) originated under the archived pre-NH3-FINAL-1.1 denominator normalization and has not been shown to have been recomputed after the FINAL-1.1 pressure-CAPEX/economic closure.
+
+Therefore **273-410 / ~328 is historical, not a current FINAL-1.1 headline value**. Figure 9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`. The only authorized targeted recomputation is to apply the exact historical TOF-leverage definition to the frozen FINAL-1.1 harness and the unchanged 2%, 2.5%, 3% denominator-alignment assumptions.
+
+See [`docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`](docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md), [`docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`](docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md), and [`docs/F9A_FINAL_1_1_REVALIDATION_TASK.md`](docs/F9A_FINAL_1_1_REVALIDATION_TASK.md).
 
 ## Au/TiO2-RP — rank-preservation family
 
@@ -185,26 +190,32 @@ Cross-model anonymous complete-decision recovery:
 | mini | **15/35** |
 | strong | **35/35** |
 
-A complete decision requires:
+The positive result is that full decision-chain execution is strongly model-capability dependent. The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**.
 
-```text
-economic winner
- -> decision pair
- -> backward target
- -> reachability verdict
-```
+### DISCOVER-BOUNDARY-C1 — confirmatory boundary extension
 
-The positive result is that full decision-chain execution is strongly model-capability dependent (tier trend Z = 6.95). The strong tier completes the decision **35/35 at every budget including 200 CU** with the exact break-even in 34/35 and zero interface errors, and policy E is the **only** policy that completes the decision at 200 CU (narrow-window allocation, repeatable 5/5 in the strong tier, absent in 0/140 weak-tier runs).
+C1 retains the frozen DISCOVER V1 task, prompt, 11-action schema, CU accounting, scorer and stopping rule. Deterministic fixed-VOI policy D reaches the full scientific decision at **206 CU**.
 
-The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**. The supported statement is:
+| Tier / policy | 175 CU | 225 CU |
+|---|---:|---:|
+| strong E | **19/20** | **20/20** |
+| mini E | **0/20** | **6/20** |
+| nano E | **0/20** | **0/20** |
+| D fixed-VOI | incomplete | complete |
 
-> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
+At 175 CU, narrow-window construction occurs in **20/20 strong**, **4/20 mini** and **0/20 nano** runs. At 225 CU the strong policy reaches full decision at a median of approximately **218 CU**, later than D at **206 CU**.
 
-DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**. DISCOVER V2 is reserved for future redesign and should not be described as a completed benchmark.
+Phase B completed **80/80 formal runs**, with **0 smoke**, **0 infrastructure retry**, **0 driver exception**, and frozen hashes **15/15 PASS** before and after. The executed two-budget/no-smoke design was a cost-motivated reduction made before the first Phase B API call and is recorded transparently in addendum A2.
+
+The supported post-C1 statement is:
+
+> **Under the frozen benchmark protocol, the adaptive decision-recovery advantage below the fixed policy's completion threshold is model-tier dependent. This extends decision completion under constrained compute for the strong tier, but does not constitute a universal raw-compute saving.**
+
+DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**.
 
 Agent architecture: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md).  
-Formal report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md).  
-Statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md).
+Original formal report: [`docs/CROSS_MODEL_DISCOVER_V1.md`](docs/CROSS_MODEL_DISCOVER_V1.md).  
+Boundary result: [`docs/DISCOVER_BOUNDARY_C1_PHASE_B_RESULTS.md`](docs/DISCOVER_BOUNDARY_C1_PHASE_B_RESULTS.md).
 
 ## Current manuscript logic
 
@@ -213,7 +224,15 @@ Statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md).
 3. Backward design distinguishes economically required catalyst targets from physically reachable ones.
 4. Ranking changes are pathway- and screening-objective dependent across reactions.
 5. Multiscale propagation can also preserve a ranking; preservation remains robust under moderate semi-open flexibility.
-6. Decision-aware scientific computation is model-capability dependent, and adaptive allocation does not universally beat a fixed-VOI baseline.
+6. Decision-aware scientific computation is model-capability dependent; C1 localizes the strong-tier adaptive advantage below a deterministic completion threshold rather than showing universal compute saving.
+
+## Current audit / figure state
+
+- **F7:** locked current MeOH ranking asset.
+- **F8:** scientific design frozen; R renderer committed; final SVG/PDF/PNG render pending because current GitHub-hosted workflow attempts fail before any job step is assigned/executed.
+- **F9B:** locked Au/TiO2 V1.1 SVG.
+- **F1-F6:** current FINAL-1.1 numerical claims are frozen but direct raw provenance/assets still need repository closure.
+- **F9A:** targeted FINAL-1.1 numerical revalidation required; historical 273-410 ratio is on HOLD.
 
 ## Reading guide
 
@@ -223,9 +242,11 @@ Statistics: [`docs/CROSS_MODEL_STATS_V1.md`](docs/CROSS_MODEL_STATS_V1.md).
 - Manuscript skeleton: [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md)
 - Figure map: [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md)
 - Results snapshot: [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md)
+- Claim audit: [`docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md`](docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md)
+- Second-pass audit exception: [`docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`](docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md)
 - Agent Harness: [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md)
 - Data index: [`data/README.md`](data/README.md)
 
 ---
 
-*Current scientific claims use NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER V1 according to the evidence roles defined in the version registry.*
+*Current promoted scientific claims use NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3, DISCOVER V1 and DISCOVER-BOUNDARY-C1 according to the evidence roles defined in the version registry. The historical 273-410 cross-reaction ratio is excluded from current FINAL-1.1 claims until targeted revalidation closes.*
