@@ -67,3 +67,17 @@ To convert this pointer into repository-complete provenance, import or content-a
 5. the relevant closure metadata for MC, backward sweep and scaling reachability.
 
 No new scientific calculation is required if these recovered files match the canonical values above. A rerun is warranted only if the recovered source disagrees with the frozen canonical snapshot or fails integrity checks.
+
+## Automated repository closure installed 2026-09-10
+
+The repository now contains a deterministic import/validation path:
+
+- landing zone and contract: `provenance/nh3_final_1_1/README.md`;
+- source-machine importer: `tools/prepare_nh3_final_1_1_bundle.py`;
+- CI validator: `ci/validate_nh3_final_1_1_provenance.py`;
+- workflow: `.github/workflows/nh3-final-1-1-provenance-closure.yml`;
+- local handoff: `docs/NH3_FINAL_1_1_IMPORT_HANDOFF.md`.
+
+The first GitHub Actions validation, run **34451643681**, completed successfully as infrastructure and returned **`PENDING_SOURCE_IMPORT`**. This is the expected state because the original FINAL-1.1 config, canonical closure directory, audit files and F1-F6 source assets are not yet present in this repository. The workflow performed no scientific calculation.
+
+Once the original source harness is copied into the landing zone, the same workflow verifies SHA-256 integrity, canonical FINAL-1.1 anchors, F1-F6 source-data families and explicit F1-F6 asset mapping. Only `PROVENANCE_VALIDATED_READY_FOR_LOCK` permits the figure registry to advance from HOLD.
