@@ -1,0 +1,57 @@
+name: NH3 FINAL-1.1 provenance closure
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'provenance/nh3_final_1_1/**'
+      - 'tools/prepare_nh3_final_1_1_bundle.py'
+      - 'ci/validate_nh3_final_1_1_provenance.py'
+      - '.github/workflows/nh3-final-1-1-provenance-closure.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-provenance:
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate imported FINAL-1.1 provenance
+        run: |
+          python3 ci/validate_nh3_final_1_1_provenance.py
+          echo '--- status ---'
+          cat artifacts/nh3_final_1_1_provenance/status.txt
+          echo '--- report ---'
+          cat artifacts/nh3_final_1_1_provenance/VALIDATION_REPORT.md
+
+      - name: Commit provenance validation report
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add artifacts/nh3_final_1_1_provenance
+          if git diff --cached --quiet; then
+            echo 'No validation artifact changed.'
+          else
+            git commit -m 'Record NH3-FINAL-1.1 provenance closure status'
+            git push origin HEAD:main
+          fi
+
+      - name: Enforce integrity failures only
+        run: |
+          status="$(cat artifacts/nh3_final_1_1_provenance/status.txt)"
+          case "$status" in
+            HASH_MISMATCH|CANONICAL_CONFLICT)
+              echo "Integrity failure: $status"
+              exit 1
+              ;;
+            *)
+              echo "Scientific provenance state: $status"
+              ;;
+          esac
