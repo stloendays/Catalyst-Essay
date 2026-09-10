@@ -4,9 +4,12 @@ Snapshot date: **2026-09-10**
 
 ## Research state
 
-**RESEARCH FROZEN FOR DRAFTING.** The current scientific and Agent evidence package is considered complete for manuscript integration, subject to a final numerical / claim-to-evidence audit. Do not add new large API batches, budget points, model tiers, reaction cases or agent-policy variants solely to improve the story. Reopen computation only if the audit identifies a genuine scorer/driver defect, frozen-state mismatch, data-lineage error or reproducibility problem.
+**RESEARCH FROZEN FOR DRAFTING, WITH ONE TARGETED DATA-LINEAGE EXCEPTION.** The current scientific and Agent evidence package is considered complete for manuscript integration. Do not add new large API batches, budget points, model tiers, reaction cases or agent-policy variants solely to improve the story.
 
-Primary freeze record: `docs/RESEARCH_FREEZE_2026-09-10.md`.
+The second-pass claim-to-evidence audit identified one genuine lineage issue: the previously reported cross-reaction MeOH-CH4 / NH3-TOF normalized-leverage ratio **273–410 (midpoint ~328)** originated under the archived pre-NH3-FINAL-1.1 normalization and has not been demonstrated to have been recomputed after the FINAL-1.1 pressure-CAPEX/economic closure. That ratio is therefore **on HOLD**. The only reopened computation is the deterministic FINAL-1.1 revalidation defined in `docs/F9A_FINAL_1_1_REVALIDATION_TASK.md`. This exception does not reopen the NH3 model, MeOH model, rank-preservation control or Agent benchmark.
+
+Primary freeze record: `docs/RESEARCH_FREEZE_2026-09-10.md`.  
+Second-pass audit exception: `docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`.
 
 ## Canonical naming
 
@@ -80,6 +83,15 @@ Using STY per g Re as the upstream intrinsic-productivity metric:
 - upstream winner falls from **#1 to #3**.
 
 The mechanistic interpretation is a **selectivity-recycle pathway**: methane suppression is the strongest tested local economic lever, with STY / conversion / CH4-suppression leverage = **0.00289 / 0.05883 / 0.37579**.
+
+## Cross-reaction leverage status
+
+The qualitative comparison remains valid:
+
+- NH3: **activity -> inventory / reactor-demand**;
+- MeOH: **selectivity -> feed-loss / purge / recycle**.
+
+The historical quantitative ratio **273–410 (~328 midpoint)** is now labeled `LEGACY_PRE_FINAL_1.1_NORMALIZATION — HOLD`. Figure 9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1` until the exact historical TOF-leverage definition is applied to the frozen FINAL-1.1 harness. Do not infer an updated ratio by rescaling the old value or by substituting a new metric.
 
 ## Rank-preservation family — Au/TiO2-RP
 
@@ -170,18 +182,29 @@ Integrity note: the original C1 preregistration specified a broader five-budget 
 
 DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**. C1 is confirmatory sampling on V1, not V2.
 
-## Manuscript integration status
+## Figure / manuscript integration status
 
-Current story:
+Current main-text evidence state:
 
-1. NH3 shows a decision-frontier ranking inversion after candidate-specific process/economic reoptimization.
-2. MeOH shows a catalyst-state reshuffle through a selectivity-recycle pathway, with top-rank inversion dependent on the upstream screening objective.
-3. Au/TiO2-RP V1.1 shows exact rank preservation under a monotonic mapping.
-4. Au/TiO2-RP V1.3 shows that strong rank preservation survives moderate semi-open operating/kinetic freedom.
-5. Backward design distinguishes economically required catalyst targets from scaling-consistent reachable targets.
-6. The Decision-aware Agent Harness adds model-interface and compute-allocation decisions; DISCOVER V1 provides the original formal benchmark and DISCOVER-BOUNDARY-C1 localizes the adaptive advantage to a capability-dependent boundary regime.
+- **F7** — locked current MeOH upstream-to-economic ranking asset.
+- **F8** — scientific Panel A+B design frozen; deterministic R renderer committed; final SVG/PDF/PNG render pending. Current GitHub-hosted workflow attempts failed before a job step was assigned, so this is a render/infrastructure blocker rather than a scientific-data failure.
+- **F9B** — locked canonical Au/TiO2 V1.1 SVG.
+- **F1–F6** — promoted FINAL-1.1 numerical claims remain frozen, but direct raw provenance and final assets must still be content-addressed/imported before figure lock.
+- **F9A** — quantitative ratio on hold pending the one targeted FINAL-1.1 revalidation.
 
-Next work is **manuscript production rather than new experiment generation**: claim-to-evidence audit, figure locking, manuscript integration, Methods / SI completion and reproducibility documentation.
+`docs/MANUSCRIPT_SKELETON.md` now contains the C1 boundary result directly in Results §3.7, Discussion §4.6 and Methods item 13. The numerical F9A ratio has been removed as a current FINAL-1.1 claim pending revalidation.
+
+## Next work package
+
+The remaining work is narrowly bounded:
+
+1. run the deterministic F9A FINAL-1.1 revalidation in the local NH3 source harness and import the provenance bundle;
+2. render F8 locally from the committed frozen R script if the hosted runner remains unavailable;
+3. content-address/import NH3-FINAL-1.1 raw provenance and current F1–F6 assets;
+4. finish figure locks, Methods/SI and reproducibility documentation;
+5. produce the formal manuscript draft.
+
+No new Agent/API experiment is required.
 
 ## Version policy
 
