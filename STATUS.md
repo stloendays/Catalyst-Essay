@@ -6,13 +6,13 @@ Snapshot date: **2026-09-10**
 
 **RESEARCH FROZEN FOR DRAFTING.** The current scientific and Agent evidence package is complete for manuscript integration. Do not add new large API batches, budget points, model tiers, reaction cases or agent-policy variants solely to improve the story.
 
-The only data-lineage exception opened by the second-pass audit has now been closed at repository level. GitHub Actions run **34449914480** classified the historical cross-reaction MeOH-CH4 / NH3-TOF normalized-leverage ratio **273–410 (midpoint ~328)** as **`METRIC_EQUIVALENCE_NOT_ESTABLISHED`** for the current repository: no pre-audit implementation of the historical NH3 TOF economic-leverage metric was recovered, and the exact frozen FINAL-1.1 source harness needed to repeat that metric was not present. The current manuscript therefore keeps only the qualitative cross-reaction pathway comparison and does not report a replacement numerical ratio.
+The cross-reaction numerical exception opened by the second-pass audit is closed as **qualitative-only**: the historical MeOH-CH4 / NH3-TOF normalized-leverage ratio **273–410 (midpoint ~328)** remains excluded because the original pre-audit NH3 TOF economic-leverage implementation has not been established. The pathway-level comparison remains valid; no replacement ratio is introduced.
 
-No scientific computation is presently reopened. The remaining NH3 task is **provenance transfer**, not model rerun: content-address the already-completed NH3-FINAL-1.1 source closure and F1-F6 assets into this repository.
+The NH3-FINAL-1.1 provenance transfer is now complete. The original source-harness closure and F1-F6 assets are vendored under `provenance/nh3_final_1_1/source_harness/`. Cross-platform CI reports **`PROVENANCE_VALIDATED_READY_FOR_LOCK`** with **13/13 canonical anchors**, **6/6 evidence classes**, **6/6 figure mappings**, **28/28 manifest files present**, and **0 hash mismatches**. F1-F6 are therefore **LOCKED** to the canonical FINAL-1.1 SVG assets. No scientific model was rerun during this closure.
 
 Primary freeze record: `docs/RESEARCH_FREEZE_2026-09-10.md`.  
 NH3 provenance pointer: `docs/NH3_FINAL_1_1_PROVENANCE_POINTER.md`.  
-NH3 import handoff: `docs/NH3_FINAL_1_1_IMPORT_HANDOFF.md`.
+NH3 figure-lock record: `docs/NH3_FINAL_1_1_FIGURE_LOCK_2026-09-10.md`.
 
 ## Canonical naming
 
@@ -59,26 +59,23 @@ Version numbers are family-specific. A higher number in one family does not supe
 
 NH3-FINAL-1.1 removes the earlier pressure-grid boundary artefact by extending the pressure grid to 10-1000 bar and adding pressure-dependent equipment CAPEX. Representative optima are approximately **425 C / 180 bar / 30 C separator** for Fe and **450 C / 425 bar / 25 C** for Ru; Os has a broad shallow high-pressure minimum.
 
-### NH3 provenance transfer state
+### NH3 provenance closure
 
-The original FINAL-1.1 source record identifies:
+The original FINAL-1.1 source record is now vendored and content-addressed. The imported bundle includes:
 
-- `configs/nh3_final.yaml`;
+- `configs/nh3_final.yaml` and the archived comparison config;
 - `outputs/nh3_final_20260905T134204Z/closure/`;
 - `PRESSURE_CAPEX_INDEPENDENT_AUDIT_2026-09-05.md`;
+- `NH3_FINAL_1_1_PRESSURE_CAPEX_REPORT_2026-09-05.md`;
 - `audits/audit_pressure_capex_handcalc_2026-09-05.py`;
 - `PROMOTE_NH3_FINAL_1_1_CHECKLIST.md`;
 - `NH3_FINAL_1_1_CONSISTENCY_CLOSURE.md`;
-- the FINAL-1.1 F1-F6 assets in the source-harness `figures/` directory.
+- paired SVG + PNG assets for F1-F6 from the canonical run;
+- `SOURCE_MANIFEST.json` with source SHA-256 values and explicit `FIGURE_ASSET_MAP.json`.
 
-GitHub-side closure infrastructure is now installed:
+A first Linux checkout revealed that Git line-ending normalization had changed 18 text-like files. The repository now pins `provenance/nh3_final_1_1/source_harness/** -text` in `.gitattributes`. A deterministic CI repair rewrote a file only when a pure LF-to-CRLF or CRLF-to-LF transform reproduced the original source-manifest SHA-256 exactly. The final Linux validation reports **0 hash mismatches**. This was a byte-transport correction only; all canonical scientific anchors were unchanged and no scientific calculation was executed.
 
-- `provenance/nh3_final_1_1/README.md`;
-- `tools/prepare_nh3_final_1_1_bundle.py`;
-- `ci/validate_nh3_final_1_1_provenance.py`;
-- `.github/workflows/nh3-final-1-1-provenance-closure.yml`.
-
-The first provenance CI run, **34451643681**, completed successfully as infrastructure and returned **`PENDING_SOURCE_IMPORT`**. That status is expected until the original source-harness files are copied into the repository; no scientific model was executed. Once imported, CI verifies SHA-256 integrity, canonical anchors, F1-F6 data classes and explicit figure mapping. Only `PROVENANCE_VALIDATED_READY_FOR_LOCK` permits F1-F6 to move from HOLD to LOCKED.
+F1-F6 are locked in `docs/NH3_FINAL_1_1_FIGURE_LOCK_2026-09-10.md` and `data/figure_lock_registry_2026-09-10.csv`.
 
 ## Current NH3 lever ordering
 
@@ -115,7 +112,7 @@ The pathway-level comparison remains valid:
 - NH3: **activity -> inventory / reactor-demand**;
 - MeOH: **selectivity -> feed-loss / purge / recycle**.
 
-The historical **273–410 (~328 midpoint)** ratio is not a current FINAL-1.1 claim. GitHub Actions run **34449914480** closed the repository-level revalidation attempt as **METRIC_EQUIVALENCE_NOT_ESTABLISHED**: no pre-audit implementation of the historical NH3 TOF economic-leverage metric could be recovered from this repository, and the frozen FINAL-1.1 config/output tree required to rerun that exact metric is not present here.
+The historical **273–410 (~328 midpoint)** ratio is not a current FINAL-1.1 claim. GitHub Actions run **34449914480** closed the repository-level revalidation attempt as **METRIC_EQUIVALENCE_NOT_ESTABLISHED** because the original pre-audit implementation of the historical NH3 TOF economic-leverage metric could not be established. The FINAL-1.1 source-harness provenance is now present, but that does not retroactively establish the missing historical metric definition.
 
 Figure 9A is therefore **qualitative-only** in the current manuscript. Do not rescale the old ratio or substitute a newly defined cross-reaction metric merely to restore a number.
 
@@ -212,23 +209,22 @@ DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema
 
 Current main-text evidence state:
 
+- **F1-F6** — LOCKED to the canonical NH3-FINAL-1.1 SVG assets after full provenance validation.
 - **F7** — LOCKED current MeOH upstream-to-economic ranking asset.
 - **F8** — LOCKED; GitHub Actions run 34449914480 rendered and verified the frozen R source to SVG/PDF/PNG, with SHA-256 manifest stored in `figures/meoh/F08_RENDER_SHA256.txt`.
 - **F9B** — LOCKED canonical Au/TiO2 V1.1 SVG.
 - **F9A** — qualitative-only after `METRIC_EQUIVALENCE_NOT_ESTABLISHED`; the historical 273–410 ratio remains archived and is excluded from the current manuscript.
-- **F1–F6** — FINAL-1.1 numerical claims remain frozen; direct source-harness data and current assets are the only remaining figure-lock dependency. Repository CI currently reports `PENDING_SOURCE_IMPORT`.
 
 `docs/MANUSCRIPT_SKELETON.md` contains the C1 boundary result directly in Results §3.7, Discussion §4.6 and Methods item 13. The current F9A text is qualitative at pathway level.
 
 ## Next work package
 
-The remaining work is narrowly bounded:
+The scientific evidence and main figure sources are now frozen. Remaining work is manuscript production:
 
-1. copy/content-address the existing NH3-FINAL-1.1 source-harness closure and F1-F6 assets using `docs/NH3_FINAL_1_1_IMPORT_HANDOFF.md`;
-2. let GitHub Actions validate the imported bundle and lock F1-F6 only after `PROVENANCE_VALIDATED_READY_FOR_LOCK`;
-3. assemble final figure captions and main/Extended Data allocation;
-4. finish Methods, Supporting Information and reproducibility documentation;
-5. produce the formal manuscript draft and submission package.
+1. assemble final figure captions and main/Extended Data allocation;
+2. finish Methods and Supporting Information around the locked evidence;
+3. complete reproducibility/readme packaging and the final claim-to-figure audit;
+4. produce the formal manuscript draft and submission package.
 
 No new scientific or Agent/API experiment is required.
 
