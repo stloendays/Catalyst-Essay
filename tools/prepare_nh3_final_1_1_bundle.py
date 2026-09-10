@@ -26,6 +26,7 @@ CORE_FILES = [
     "audits/audit_pressure_capex_handcalc_2026-09-05.py",
     "PROMOTE_NH3_FINAL_1_1_CHECKLIST.md",
     "NH3_FINAL_1_1_CONSISTENCY_CLOSURE.md",
+    "NH3_FINAL_1_1_PRESSURE_CAPEX_REPORT_2026-09-05.md",
 ]
 
 TEXT_SUFFIXES = {".md", ".txt", ".csv", ".json", ".yaml", ".yml", ".py", ".r", ".R"}
@@ -85,7 +86,9 @@ def collect_canonical_root_metadata(source_root: Path, copied: list[dict], skipp
 
 
 def figure_candidates(source_root: Path) -> dict[str, list[str]]:
-    figroot = source_root / "figures"
+    # F1-F6 must come from the frozen FINAL-1.1 canonical run only. A repository-level
+    # figures/ directory may hold FINAL-1.0 or earlier-scenario assets, so it is not searched.
+    figroot = source_root / CANONICAL_RUN / "figures"
     out = {f"F{i}": [] for i in range(1, 7)}
     if not figroot.is_dir():
         return out

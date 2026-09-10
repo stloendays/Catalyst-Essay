@@ -1,0 +1,105 @@
+project:
+  name: Catalyst Economic Leverage
+  reaction: NH3
+  harness_version: "0.1.0"
+  model_version: NH3-FINAL-1.0
+  run_label: nh3_final
+  scientific_scope: >-
+    Frozen NH3 multiscale chain: S1-derived descriptor/scaling model -> MKM ->
+    self-consistent reactor/recycle/separation state library -> reduced catalyst-dependent
+    economics -> ranking/uncertainty/backward design.
+
+inputs:
+  activity_workbook: inputs/ammonia_activity_volcano_s1_v1.xlsx
+  source_sheet: S1_All_444
+  activity_sheet: MKM_15
+  direct_dft_sheet: Direct_DFT_Check
+
+atomic_reference:
+  temperature_K: 673.0
+  pN2_bar: 24.5
+  pH2_bar: 74.25
+  pNH3_bar: 1.0
+  activity_order_expected: [Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au]
+
+process:
+  temperature_C: [350, 375, 400, 425, 450]
+  pressure_bar:
+    start: 10
+    stop: 300
+    step: 5
+  separator_temperature_C:
+    start: -40
+    stop: 30
+    step: 5
+  approach_to_equilibrium: 0.8
+  recycle_pressure_rise_bar: 3.0
+  max_separator_vapor_nh3_fraction: 0.35
+  refrigeration_efficiency_fraction_carnot: 0.50
+  refrigeration_sink_C: 30.0
+  ammonia_heat_of_vaporization_kJ_mol: 23.0
+
+engineering:
+  max_catalyst_bed_m3: 90.0
+  bed_density_kg_m3: 2500.0
+  active_fraction: 0.7151
+
+plant:
+  production_tpd: 1000.0
+  capacity_factor: 0.95
+  fresh_feed_pressure_bar: 30.0
+
+economics_note: "Reduced catalyst-dependent NH3 cost; high-pressure loop CAPEX is not explicitly modeled."
+
+economics:
+  discount_rate: 0.12
+  plant_life_y: 25
+  electricity_USD_MWh: 50.0
+  compressor_efficiency: 0.75
+  catalyst_life_y: 10.0
+  metal_recovery_fraction: 0.0
+  reactor_fixed_USD: 66800.0
+  reactor_variable_USD: 268000.0
+  reactor_reference_m3: 20.0
+  reactor_exponent: 0.52
+  calibration_factor: 89806.49638662045
+
+uncertainty:
+  draws: 1000
+  seed: 20260816
+  Fe_sigma_eV: 0.2271258177356984
+  other_uniform_half_width_eV: 0.15
+
+numerics:
+  descriptor_grid_eV:
+    start: -2.6
+    stop: 3.4
+    step: 0.005
+  response_workers: 5
+  cache_response_matrix: true
+
+frozen_regression:
+  process_state_count: 3636
+  raw_global_spearman: 0.9107142857142855
+  censored_global_spearman: 0.684172319121686
+  top3_spearman: -0.5
+  feasible_metals: [Fe, Ru, Os]
+  Fe_cost_USD_t: 10.19865904708462
+  Ru_cost_USD_t: 17.59239838038635
+  Os_cost_USD_t: 21.32057789728162
+  Fe_optimum: {T_C: 400.0, P_bar: 150.0, Tsep_C: 30.0}
+  Ru_optimum: {T_C: 450.0, P_bar: 300.0, Tsep_C: 10.0}
+  Os_optimum: {T_C: 450.0, P_bar: 300.0, Tsep_C: -15.0}
+  Fe_feasibility_probability: 0.736
+  Ru_activity_break_even_multiplier: 2171.559771717808
+  Ru_scaling_max_gain_673K: 1.089901226752712
+  Ru_scaling_max_gain_all_states: 2.432864708218596
+  Ru_best_scaling_cost_USD_t: 17.1940362123231
+
+gates:
+  headline_abs_tolerance: 1.0e-8
+  spearman_abs_tolerance: 1.0e-12
+  feasibility_abs_tolerance: 1.0e-12
+  activity_rank_must_match: true
+  model_version_must_match: true
+  fail_on_regression: true

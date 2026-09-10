@@ -20,12 +20,19 @@ OUT.mkdir(parents=True, exist_ok=True)
 MANIFEST = BUNDLE / "SOURCE_MANIFEST.json"
 FIGMAP = BUNDLE / "FIGURE_ASSET_MAP.json"
 CANONICAL_DOC = BUNDLE / "NH3_FINAL_1_1_CONSISTENCY_CLOSURE.md"
+PRESSURE_CAPEX_REPORT = BUNDLE / "NH3_FINAL_1_1_PRESSURE_CAPEX_REPORT_2026-09-05.md"
+PRESSURE_CAPEX_AUDIT = BUNDLE / "PRESSURE_CAPEX_INDEPENDENT_AUDIT_2026-09-05.md"
+# The frozen manuscript anchors are distributed across the FINAL-1.1 record set: the
+# consistency closure, the FINAL-1.1 pressure/CAPEX run report and its independent audit.
+# Only FINAL-1.1 documents belong here; archived FINAL-1.0 records are never read.
+CANONICAL_DOCS = [CANONICAL_DOC, PRESSURE_CAPEX_REPORT, PRESSURE_CAPEX_AUDIT]
 CANONICAL_RUN = BUNDLE / "outputs" / "nh3_final_20260905T134204Z"
 CLOSURE = CANONICAL_RUN / "closure"
 
 CORE_PATHS = [
     BUNDLE / "configs" / "nh3_final.yaml",
-    BUNDLE / "PRESSURE_CAPEX_INDEPENDENT_AUDIT_2026-09-05.md",
+    PRESSURE_CAPEX_AUDIT,
+    PRESSURE_CAPEX_REPORT,
     BUNDLE / "audits" / "audit_pressure_capex_handcalc_2026-09-05.py",
     BUNDLE / "PROMOTE_NH3_FINAL_1_1_CHECKLIST.md",
     CANONICAL_DOC,
@@ -168,7 +175,7 @@ def main() -> int:
         except Exception as exc:
             manifest_error = f"Could not parse SOURCE_MANIFEST.json: {exc}"
 
-    canonical_text = safe_text(CANONICAL_DOC)
+    canonical_text = "\n".join(safe_text(doc) for doc in CANONICAL_DOCS)
     anchor_matches: dict[str, bool] = {}
     for key, patterns in ANCHORS.items():
         anchor_matches[key] = any(re.search(pat, canonical_text, flags=re.IGNORECASE) for pat in patterns)

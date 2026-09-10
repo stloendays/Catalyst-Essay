@@ -1,61 +1,58 @@
 # NH3-FINAL-1.1 provenance closure validation
 
-Status: **PENDING_SOURCE_IMPORT**
+Status: **PROVENANCE_VALIDATED_READY_FOR_LOCK**
 
-Checked at: `2026-09-10T07:46:39.702944+00:00`
+Checked at: `2026-09-10T08:04:44.649329+00:00`
 
 This validation is provenance-only; no scientific model was executed.
 
 ## Core source paths
 
-- `provenance/nh3_final_1_1/source_harness/configs/nh3_final.yaml`: missing
-- `provenance/nh3_final_1_1/source_harness/PRESSURE_CAPEX_INDEPENDENT_AUDIT_2026-09-05.md`: missing
-- `provenance/nh3_final_1_1/source_harness/audits/audit_pressure_capex_handcalc_2026-09-05.py`: missing
-- `provenance/nh3_final_1_1/source_harness/PROMOTE_NH3_FINAL_1_1_CHECKLIST.md`: missing
-- `provenance/nh3_final_1_1/source_harness/NH3_FINAL_1_1_CONSISTENCY_CLOSURE.md`: missing
-- `provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/closure`: missing
+- `provenance/nh3_final_1_1/source_harness/configs/nh3_final.yaml`: present
+- `provenance/nh3_final_1_1/source_harness/PRESSURE_CAPEX_INDEPENDENT_AUDIT_2026-09-05.md`: present
+- `provenance/nh3_final_1_1/source_harness/NH3_FINAL_1_1_PRESSURE_CAPEX_REPORT_2026-09-05.md`: present
+- `provenance/nh3_final_1_1/source_harness/audits/audit_pressure_capex_handcalc_2026-09-05.py`: present
+- `provenance/nh3_final_1_1/source_harness/PROMOTE_NH3_FINAL_1_1_CHECKLIST.md`: present
+- `provenance/nh3_final_1_1/source_harness/NH3_FINAL_1_1_CONSISTENCY_CLOSURE.md`: present
+- `provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/closure`: present
 
 ## Manifest integrity
 
-- manifest present: False
-- listed files: 0
+- manifest present: True
+- listed files: 28
 - missing listed files: 0
 - hash mismatches: 0
 
 ## Canonical anchor check
 
-- Fe_cost: not established from imported consistency record
-- Ru_cost: not established from imported consistency record
-- Os_cost: not established from imported consistency record
-- top3_spearman: not established from imported consistency record
-- full15_raw_spearman: not established from imported consistency record
-- Fe_feasibility: not established from imported consistency record
-- Fe_top1_survival: not established from imported consistency record
-- Fe_top3_actionable: not established from imported consistency record
-- Ru_break_even: not established from imported consistency record
-- headroom_673K: not established from imported consistency record
-- headroom_process_max: not established from imported consistency record
-- strict_scaling_Ru_min_cost: not established from imported consistency record
-- strict_scaling_E_N: not established from imported consistency record
+- Fe_cost: PASS
+- Ru_cost: PASS
+- Os_cost: PASS
+- top3_spearman: PASS
+- full15_raw_spearman: PASS
+- Fe_feasibility: PASS
+- Fe_top1_survival: PASS
+- Fe_top3_actionable: PASS
+- Ru_break_even: PASS
+- headroom_673K: PASS
+- headroom_process_max: PASS
+- strict_scaling_Ru_min_cost: PASS
+- strict_scaling_E_N: PASS
 
 ## F1-F6 source-data classes
 
-- F1_ranking_cost: 0 candidate data file(s)
-- F2_rolling_rank: 0 candidate data file(s)
-- F3_uncertainty_MC: 0 candidate data file(s)
-- F4_operating_envelope: 0 candidate data file(s)
-- F5_backward_break_even: 0 candidate data file(s)
-- F6_scaling_reachability: 0 candidate data file(s)
+- F1_ranking_cost: 8 candidate data file(s)
+- F2_rolling_rank: 5 candidate data file(s)
+- F3_uncertainty_MC: 9 candidate data file(s)
+- F4_operating_envelope: 5 candidate data file(s)
+- F5_backward_break_even: 5 candidate data file(s)
+- F6_scaling_reachability: 5 candidate data file(s)
 
 ## F1-F6 figure map
 
-- F1: unresolved
-- F2: unresolved
-- F3: unresolved
-- F4: unresolved
-- F5: unresolved
-- F6: unresolved
-
-## Notes
-
-- Copy the original FINAL-1.1 source-harness evidence with tools/prepare_nh3_final_1_1_bundle.py; do not substitute archived FINAL-1.0 files.
+- F1: outputs/nh3_final_20260905T134204Z/figures/F1_ranking_propagation_1_1.svg
+- F2: outputs/nh3_final_20260905T134204Z/figures/F2_rolling_topk_1_1.svg
+- F3: outputs/nh3_final_20260905T134204Z/figures/F3_mc_feasibility_1_1.svg
+- F4: outputs/nh3_final_20260905T134204Z/figures/F4_pressure_envelopes_1_1.svg
+- F5: outputs/nh3_final_20260905T134204Z/figures/F5_ru_breakeven_1_1.svg
+- F6: outputs/nh3_final_20260905T134204Z/figures/F6_scaling_reachability_1_1.svg

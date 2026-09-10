@@ -1,0 +1,170 @@
+project:
+  name: Catalyst Economic Leverage
+  reaction: NH3
+  harness_version: 0.2.0
+  model_version: NH3-FINAL-1.1
+  run_label: nh3_final
+  scientific_scope: NH3-FINAL-1.0 chain plus handbook pressure-dependent CAPEX (Turton
+    vertical-vessel pressure factor on the converter shell; Turton centrifugal-compressor
+    bare-module cost for fresh and recycle compression); pressure grid widened to
+    10-1000 bar so that no metal optimum sits on the grid edge.
+inputs:
+  activity_workbook: inputs/ammonia_activity_volcano_s1_v1.xlsx
+  source_sheet: S1_All_444
+  activity_sheet: MKM_15
+  direct_dft_sheet: Direct_DFT_Check
+atomic_reference:
+  temperature_K: 673.0
+  pN2_bar: 24.5
+  pH2_bar: 74.25
+  pNH3_bar: 1.0
+  activity_order_expected:
+  - Ru
+  - Os
+  - Fe
+  - Rh
+  - Ir
+  - Co
+  - Re
+  - Mo
+  - Ni
+  - W
+  - Pd
+  - Pt
+  - Cu
+  - Ag
+  - Au
+process:
+  temperature_C:
+  - 350
+  - 375
+  - 400
+  - 425
+  - 450
+  pressure_bar:
+    start: 10
+    stop: 1000
+    step: 5
+  separator_temperature_C:
+    start: -40
+    stop: 30
+    step: 5
+  approach_to_equilibrium: 0.8
+  recycle_pressure_rise_bar: 3.0
+  max_separator_vapor_nh3_fraction: 0.35
+  refrigeration_efficiency_fraction_carnot: 0.5
+  refrigeration_sink_C: 30.0
+  ammonia_heat_of_vaporization_kJ_mol: 23.0
+engineering:
+  max_catalyst_bed_m3: 90.0
+  bed_density_kg_m3: 2500.0
+  active_fraction: 0.7151
+plant:
+  production_tpd: 1000.0
+  capacity_factor: 0.95
+  fresh_feed_pressure_bar: 30.0
+economics_note: 'Reduced catalyst-dependent NH3 cost. NH3-FINAL-1.1 adds the pressure-attributable
+  converter-shell cost and the compressor bare-module CAPEX; loop heat exchangers,
+  separator vessel and piping remain outside the boundary (declared omission; direction:
+  further penalizes high pressure).'
+economics:
+  discount_rate: 0.12
+  plant_life_y: 25
+  electricity_USD_MWh: 50.0
+  compressor_efficiency: 0.75
+  catalyst_life_y: 10.0
+  metal_recovery_fraction: 0.0
+  reactor_fixed_USD: 66800.0
+  reactor_variable_USD: 268000.0
+  reactor_reference_m3: 20.0
+  reactor_exponent: 0.52
+  calibration_factor: 89806.49638662045
+  pressure_capex:
+    enabled: true
+    basis: Turton, Bailie, Whiting, Shaeiwitz, Bhattacharyya, Analysis, Synthesis
+      and Design of Chemical Processes, 5th ed., Appendix A (purchased-cost correlations
+      indexed to CEPCI 397, 2001)
+    cost_index_base: 397.0
+    cost_index_current: 797.9
+    cost_index_note: CEPCI 2023 annual average 797.9 (last published annual value;
+      2024 monthly values 795-801)
+    vessel:
+      K:
+      - 3.4974
+      - 0.4485
+      - 0.1074
+      A_min_m3: 0.3
+      A_max_m3: 520.0
+      extrapolation_exponent: 0.6
+      B2: 1.82
+      Fm: 1.0
+      L_over_D: 3.0
+      allowable_stress_x_weld_eff_bar: 850.0
+      corrosion_allowance_m: 0.00315
+      min_thickness_m: 0.0063
+      note: premium = Cp0(V)*B2*Fm*(Fp-1); Fp=max(t/t_min,1); t=P*D/(2(SE-0.6P))+CA;
+        D=(4V/(pi L/D))^(1/3); absolute P in bar used for (P_g+1); only the pressure-attributable
+        increment is added on top of the 1.0 volume proxy
+    compressor:
+      K:
+      - 2.2897
+      - 1.3604
+      - -0.1027
+      A_min_kW: 450.0
+      A_max_kW: 3000.0
+      extrapolation_exponent: 0.67
+      F_BM: 2.8
+      note: one service each for fresh-feed and recycle compression; shaft power from
+        the state's electricity cost at design capacity; services above A_max split
+        into equal units
+uncertainty:
+  draws: 1000
+  seed: 20260816
+  Fe_sigma_eV: 0.2271258177356984
+  other_uniform_half_width_eV: 0.15
+numerics:
+  descriptor_grid_eV:
+    start: -2.6
+    stop: 3.4
+    step: 0.005
+  response_workers: 24
+  cache_response_matrix: true
+frozen_regression:
+  process_state_count: 14136
+  raw_global_spearman: 0.9285714285714284
+  censored_global_spearman: 0.684172319121686
+  top3_spearman: -0.5
+  feasible_metals:
+  - Fe
+  - Ru
+  - Os
+  Fe_cost_USD_t: 15.291704676621144
+  Fe_optimum:
+    T_C: 425.0
+    P_bar: 180.0
+    Tsep_C: 30.0
+  Ru_cost_USD_t: 22.03059478781101
+  Ru_optimum:
+    T_C: 450.0
+    P_bar: 425.0
+    Tsep_C: 25.0
+  Os_cost_USD_t: 25.83179725613286
+  Os_optimum:
+    T_C: 450.0
+    P_bar: 425.0
+    Tsep_C: 0.0
+  Fe_feasibility_probability: 0.799
+  Ru_activity_break_even_multiplier: 201.2234429878984
+  Ru_scaling_max_gain_673K: 1.0899012267527077
+  Ru_scaling_max_gain_all_states: 2.5245651130943445
+  Ru_best_scaling_cost_USD_t: 21.397872966049547
+  _status: canonical NH3-FINAL-1.1 promoted 2026-09-05 from nh3_final_1.1_candidate
+    (first full run outputs/nh3_final_1_1_20260905T113727Z; PHASE A audit PASS); NH3-FINAL-1.0
+    archived as configs/nh3_final_1.0_archived.yaml
+gates:
+  headline_abs_tolerance: 1.0e-08
+  spearman_abs_tolerance: 1.0e-12
+  feasibility_abs_tolerance: 1.0e-12
+  activity_rank_must_match: true
+  model_version_must_match: true
+  fail_on_regression: true
