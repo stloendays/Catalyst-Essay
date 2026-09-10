@@ -2,7 +2,7 @@
 
 This directory contains compact, human-readable snapshots of the current project state.
 
-These files are **not** replacements for the frozen computational harness, raw model outputs, or full benchmark traces. They exist so that manuscript headline results can be inspected in machine-readable form. The 2026-09-10 claim-to-evidence audit additionally distinguishes compact snapshots from direct reproducibility evidence.
+These files are **not** replacements for the frozen computational harness, raw model outputs, or full benchmark traces. They exist so that manuscript headline results can be inspected in machine-readable form. The 2026-09-10 claim-to-evidence audit distinguishes compact snapshots from direct reproducibility evidence.
 
 ## Canonical version registry
 
@@ -23,8 +23,9 @@ Current labels:
 ## Files
 
 - `version_registry.json` — machine-readable canonical naming/version registry.
-- `canonical_results_2026-09-06.csv` — current NH3-FINAL-1.1 scientific headline snapshot and cross-reaction leverage values. **Audit note:** this file is numerically canonical for manuscript-facing values but is not the direct raw provenance for NH3-FINAL-1.1 or the 273–410 cross-reaction derivation.
+- `canonical_results_2026-09-06.csv` — current NH3-FINAL-1.1 scientific headline snapshot. **Important:** the three cross-reaction 273/328/410 rows are retained only as explicitly labeled legacy pre-FINAL-1.1 values on HOLD; they are not current manuscript evidence.
 - `claim_evidence_registry_2026-09-10.csv` — machine-readable manuscript claim -> source -> provenance-status -> figure-lock registry.
+- `figure_lock_registry_2026-09-10.csv` — current figure-by-figure evidence/render status; F9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`.
 - `discover_benchmark_2026-09-06.csv` — strong-tier formal DISCOVER V1 precursor snapshot. It records the original 70 policy-E runs and A-D comparison; it is not the final cross-model or C1 Agent claim.
 - `rank_preservation_control_v1_1.csv` — literature-calibrated Au/TiO2 CO-oxidation rank-preservation control: particle size, mass activity, required catalyst mass, required Au mass, and burden relative to the best state.
 - `rank_preservation_partial_relaxation.csv`, `rank_preservation_partial_relaxation.py` — intermediate V1.2 partial-relaxation stress test; historical/supporting only.
@@ -52,11 +53,15 @@ Current labels:
 
 ### Scientific NH3 claims
 
-Use **NH3-FINAL-1.1** only. `canonical_results_2026-09-06.csv` is the current compact numerical source, but final F1–F6 locking requires an immutable pointer to the underlying canonical run `outputs/nh3_final_20260905T134204Z`, its raw result files and generating code/hashes. Historical NH3-FINAL-1.0 workbooks are not valid substitutes for this provenance.
+Use **NH3-FINAL-1.1** only. `canonical_results_2026-09-06.csv` is the current compact numerical source for promoted NH3 quantities, but final F1–F6 locking requires an immutable pointer to the underlying canonical run `outputs/nh3_final_20260905T134204Z`, its raw result files and generating code/hashes. Historical NH3-FINAL-1.0 workbooks are not valid substitutes for this provenance.
 
 ### MeOH claims
 
 Use the frozen D01 v3 workbook together with the extracted CSV/provenance JSON and analysis scripts in `meoh/`. This chain is directly traceable in the repository.
+
+### Cross-reaction leverage
+
+The older normalized ratio **273–410** (midpoint ~328) is retained only as historical provenance. A second-pass lineage audit tied it to the archived pre-FINAL-1.1 normalization. Current quantitative use requires the targeted task `../docs/F9A_FINAL_1_1_REVALIDATION_TASK.md` against the frozen FINAL-1.1 harness. Until that closes, only the qualitative NH3-vs-MeOH pathway comparison is manuscript-ready.
 
 ### Au/TiO2 control claims
 
@@ -77,4 +82,6 @@ The frozen DISCOVER V1 anonymous complete-decision counts remain **6/35 (nano), 
 
 ## Audit note — 2026-09-10
 
-See `../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md` for the current claim-to-evidence and figure-lock audit. The first pass found no contradiction in the canonical headline numbers. The main unresolved provenance items are the direct NH3-FINAL-1.1 raw/generator chain and a dedicated source bundle for the cross-reaction **273–410 (midpoint ~328)** normalized-leverage result.
+See `../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md` for the first pass and `../docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md` for the second-pass F9A exception.
+
+The first pass found no contradiction in the promoted NH3-FINAL-1.1, MeOH, Au/TiO2 or Agent headline results. The second pass found one real lineage issue: the cross-reaction **273–410 (~328)** ratio originated before FINAL-1.1 and therefore requires targeted deterministic revalidation before it can return to the current manuscript. This does not reopen the other frozen scientific results.
