@@ -1,6 +1,12 @@
 # Current project status
 
-Snapshot date: **2026-09-07**
+Snapshot date: **2026-09-10**
+
+## Research state
+
+**RESEARCH FROZEN FOR DRAFTING.** The current scientific and Agent evidence package is considered complete for manuscript integration, subject to a final numerical / claim-to-evidence audit. Do not add new large API batches, budget points, model tiers, reaction cases or agent-policy variants solely to improve the story. Reopen computation only if the audit identifies a genuine scorer/driver defect, frozen-state mismatch, data-lineage error or reproducibility problem.
+
+Primary freeze record: `docs/RESEARCH_FREEZE_2026-09-10.md`.
 
 ## Canonical naming
 
@@ -15,6 +21,7 @@ Current labels:
 - Agent umbrella: **Decision-aware Agent Harness**;
 - supporting Agent benchmarks: **DRIFT v2** and **TRANSFER v1**;
 - formal frozen Agent benchmark: **DISCOVER V1**;
+- completed confirmatory boundary extension: **DISCOVER-BOUNDARY-C1**;
 - **DISCOVER V2** is reserved for a future protocol redesign and is not a completed current benchmark.
 
 Version numbers are family-specific. A higher number in one family does not supersede another family, and a supporting extension does not automatically replace the canonical evidence source.
@@ -121,9 +128,9 @@ These support the broader Agent-Harness description but are not the formal quant
 
 ### DISCOVER V1 — frozen canonical Agent benchmark
 
-DISCOVER V1 is the formal closed-book, budgeted decision-allocation benchmark. It exposes 11 fine-grained actions and uses `1 CU = 1000 MKM state solves` as the scientific-compute budget.
+DISCOVER V1 remains the formal closed-book, budgeted decision-allocation benchmark. It exposes 11 fine-grained actions and uses `1 CU = 1000 MKM state solves` as the scientific-compute budget.
 
-Cross-model evaluation:
+Original cross-model evaluation:
 
 - weak: `gpt-5.4-nano-2026-03-17`
 - medium: `gpt-5.4-mini-2026-03-17`
@@ -133,11 +140,35 @@ Cross-model evaluation:
 - tier trend: **Z = 6.95**
 - pre-registered E-vs-D Go criterion: **not met**
 
-Supported conclusion:
+The original supported conclusion is retained: a strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over fixed-VOI D is capability-dependent rather than universal.
 
-> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is capability-dependent rather than universal.**
+### DISCOVER-BOUNDARY-C1 — completed confirmatory extension
 
-DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**. DISCOVER V2 is therefore a reserved future family, not a completed benchmark.
+C1 uses the **unchanged frozen DISCOVER V1 protocol** and sharpens the location and interpretation of the strong-tier adaptive effect.
+
+Deterministic fixed-VOI policy D reaches the complete decision at **206 CU**.
+
+| tier / policy | 175 CU | 225 CU |
+|---|---:|---:|
+| strong E | **19/20** | **20/20** |
+| mini E | **0/20** | **6/20** |
+| nano E | **0/20** | **0/20** |
+| fixed-VOI D | incomplete | complete |
+
+Mechanistic evidence:
+
+- strong narrow-window construction at 175 CU: **20/20**;
+- mini at 175 CU: **4/20**;
+- nano at 175 CU: **0/20**;
+- above the D threshold, strong E reaches the complete decision at about **218-221 CU** versus D at **206 CU**.
+
+Therefore the manuscript-level C1 claim is a **budget-localized, model-tier-dependent decision-completion advantage**, not a universal raw-compute saving. Policy advantage, model capability and compute efficiency must be reported separately.
+
+Phase B completed **80/80 formal runs** (mini 175/225 CU x20 each; nano 175/225 CU x20 each), with **0 smoke runs, 0 infrastructure retries and 0 driver exceptions**. Frozen hashes were **15/15 PASS before and after**.
+
+Integrity note: the original C1 preregistration specified a broader five-budget Phase B and smoke runs. The executed two-budget/no-smoke Phase B was selected for cost control **before the first Phase B API call** but is nonetheless a design deviation from the original preregistration. It is recorded transparently as a post-run audit in `docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A2.md` and must not be presented as the original preregistered design.
+
+DISCOVER V1 remains frozen. Any change to its pinned task, prompt, action schema, cost model, scorer, stopping rule or policy-D constants defines **DISCOVER V2**. C1 is confirmatory sampling on V1, not V2.
 
 ## Manuscript integration status
 
@@ -148,14 +179,16 @@ Current story:
 3. Au/TiO2-RP V1.1 shows exact rank preservation under a monotonic mapping.
 4. Au/TiO2-RP V1.3 shows that strong rank preservation survives moderate semi-open operating/kinetic freedom.
 5. Backward design distinguishes economically required catalyst targets from scaling-consistent reachable targets.
-6. The Decision-aware Agent Harness adds model-interface and compute-allocation decisions; DISCOVER V1 provides the formal benchmark evidence.
+6. The Decision-aware Agent Harness adds model-interface and compute-allocation decisions; DISCOVER V1 provides the original formal benchmark and DISCOVER-BOUNDARY-C1 localizes the adaptive advantage to a capability-dependent boundary regime.
+
+Next work is **manuscript production rather than new experiment generation**: claim-to-evidence audit, figure locking, manuscript integration, Methods / SI completion and reproducibility documentation.
 
 ## Version policy
 
 - Use **NH3-FINAL-1.1** for all current NH3 manuscript numbers.
 - Use **MEOH-D01-v3** for the current MeOH case.
 - Use **Au/TiO2-RP V1.1** as canonical rank-preservation evidence and **V1.3** only as supporting robustness.
-- Use **DISCOVER V1** for formal Agent benchmark claims.
+- Use **DISCOVER V1** as the frozen formal Agent benchmark and **DISCOVER-BOUNDARY-C1** as its completed confirmatory boundary extension.
 - Use **DRIFT v2** and **TRANSFER v1** only with their family names.
 - Do not describe **DISCOVER V2** as completed unless a new protocol is explicitly frozen and evaluated.
 - Frozen filenames and hash-pinned protocol files are not renamed.

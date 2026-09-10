@@ -1,6 +1,6 @@
 # Results at a glance
 
-Snapshot: **2026-09-07**
+Snapshot: **2026-09-10**
 
 ## Ammonia ranking inversion
 
@@ -88,9 +88,9 @@ Rank statistics:
 - Upstream per-Re winner: **1 wt% Re / 250 C**, falling to economic rank **#3**
 - Economic winner: **5 wt% Re / 200 C**
 
-The reshuffle is metric-independent: STY per g Re, single-pass yield and STY per g catalyst all give rho = 0.20, tau = 0.00 and 3/6 inversions. Only the identity of the upstream winner depends on the metric (per-Re → 1 wt% Re / 250 C, falls to #3; yield or per-catalyst → 5 wt% Re / 200 C, coincides with the economic winner).
+The reshuffle is metric-independent: STY per g Re, single-pass yield and STY per g catalyst all give rho = 0.20, tau = 0.00 and 3/6 inversions. Only the identity of the upstream winner depends on the metric (per-Re -> 1 wt% Re / 250 C, falls to #3; yield or per-catalyst -> 5 wt% Re / 200 C, coincides with the economic winner).
 
-Purge invariance (396 levels, 0.5–40 %): the per-Re winner is **never** the economic winner, the highest-conversion state is **never** the economic winner, rho ≤ **0.40** and ≥ **2/6** pairs inverted at every purge level. Per-candidate purge reoptimization gives 1 wt% Re / 200 C > 5 wt% Re / 200 C > 1 wt% Re / 250 C > 5 wt% Re / 250 C (rho 0.40, tau 0.33, 2/6), all optima at the 0.5 % bound; 2 % stays canonical.
+Purge invariance (396 levels, 0.5–40 %): the per-Re winner is **never** the economic winner, the highest-conversion state is **never** the economic winner, rho <= **0.40** and >= **2/6** pairs inverted at every purge level. Per-candidate purge reoptimization gives 1 wt% Re / 200 C > 5 wt% Re / 200 C > 1 wt% Re / 250 C > 5 wt% Re / 250 C (rho 0.40, tau 0.33, 2/6), all optima at the 0.5 % bound; 2 % stays canonical.
 
 Boundary: the candidates are catalyst–temperature states at measured literature points; the loop variable (purge) is reoptimized per candidate, T/P are not (no T/P kinetic model exists for the four points). This isolates the selectivity–recycle channel, complementary to the NH3 activity–inventory–severity channel. Re purchase price is excluded from the NPC by design.
 
@@ -112,8 +112,10 @@ The explicit loop couples methane formation to H2 feed loss, inert accumulation,
 
 After cost-denominator alignment:
 
-- MeOH CH4 suppression / NH3 TOF leverage = **273-410**
-- Midpoint = approximately **328**
+- NH3 TOF normalized leverage = approximately **0.000916–0.001374** for the 2–3% reduced-cost/full-cost boundary used in the normalization closure;
+- MeOH CH4 suppression leverage = **0.37579**;
+- MeOH CH4 suppression / NH3 TOF leverage = **273–410**;
+- midpoint at the 2.5% boundary = approximately **328**.
 
 This is the quantitative basis for the pathway-specific interpretation:
 
@@ -122,7 +124,7 @@ NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
 
-Together with the direct MeOH rank reconstruction, the cross-reaction result shows that ranking changes arise through different catalyst-to-process pathways and can also depend on the upstream screening objective.
+The ratio must always be reported with its cost-denominator scope; the earlier unaligned cross-reaction comparison is historical only.
 
 ## Rank-preservation control
 
@@ -168,7 +170,7 @@ The interpretation is deliberately narrower than a full TEA: **rank preservation
 
 Primary evidence: `docs/RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`, `data/rank_preservation_semiopen_v1_3.py`, and `data/rank_preservation_semiopen_v1_3_summary.csv`.
 
-## Decision-aware AI benchmark — cross-model result
+## Decision-aware AI benchmark — DISCOVER V1
 
 DISCOVER V1 is frozen. The cross-model evaluation used the same task, prompt, 11-action schema, cost model, scorer, stopping rule and A-D baselines at all three model tiers. The seven CU budgets were **200, 250, 300, 500, 800, 1200 and 2000**, with **5 independent policy-E runs per budget per variant**. The two weaker tiers contributed 140 new traces; the strong-tier V1 traces were reused and re-scored, not re-run.
 
@@ -180,13 +182,40 @@ mini       15/35
 strong     35/35
 ```
 
-The complete decision requires the full chain: economic winner -> decision pair -> backward target -> reachability verdict. The strong tier completes this chain reliably; weaker tiers more often fail at pair formation or reachability even when the winner is correct. The pooled tier trend in P(full) is strong (Cochran-Armitage Z = **6.95**).
+The complete decision requires the full chain: economic winner -> decision pair -> backward target -> reachability verdict. The pooled tier trend in P(full) is strong (Cochran-Armitage Z = **6.95**).
 
-Two results must be kept separate:
+The original pre-registered Agent-specific Go criterion for **policy E > fixed-VOI policy D** was **not met across model tiers**. The apparent 200-CU adaptive advantage in V1 therefore required a boundary-focused confirmatory extension rather than a stronger universal-superiority claim.
 
-1. **Positive workflow-execution result:** decision-aware workflow completion is strongly model-capability dependent, rising from 6/35 to 15/35 to 35/35 across the three tiers.
-2. **Negative pre-registered superiority result:** the pre-registered Agent-specific Go criterion for **policy E > fixed-VOI policy D** was **not met across model tiers**. The 200-CU adaptive-scope advantage was repeatable only in the strong tier and did not reproduce in nano or mini.
+Canonical V1 reports: `docs/CROSS_MODEL_DISCOVER_V1.md` and `docs/CROSS_MODEL_STATS_V1.md`.
 
-Therefore the supported claim is: **a strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is capability-dependent and is not a universal property of the framework.** The negative result is retained; no frozen V1 protocol component was modified to improve it.
+## DISCOVER-BOUNDARY-C1 — confirmatory boundary result
 
-Canonical reports: `docs/CROSS_MODEL_DISCOVER_V1.md` and `docs/CROSS_MODEL_STATS_V1.md`.
+C1 retains the frozen DISCOVER V1 task, prompt, 11-tool interface, CU model, scorer and stopping rule. It resolves where the adaptive policy can extend **decision completion**, and whether that behavior transfers across model tiers.
+
+The deterministic fixed-VOI policy D reaches the complete scientific decision at **206 CU**. The confirmatory cells are:
+
+```text
+                     175 CU          225 CU
+strong E              19/20           20/20
+mini E                  0/20            6/20
+nano E                  0/20            0/20
+D fixed-VOI          incomplete       complete
+```
+
+At 175 CU, narrow-window construction is used in **20/20 strong**, **4/20 mini**, and **0/20 nano** runs. This identifies a model-tier-dependent behavioral mechanism for the below-threshold recovery: the strong tier can construct a sufficiently narrow process window to redirect the remaining budget into the backward-design/reachability chain, while the two tested weaker tiers do not reliably do so.
+
+The efficiency claim is bounded. At 225 CU, where D itself can complete, strong E reaches full decision at a median of approximately **218 CU** versus **206 CU** for D. C1 therefore supports an **extension of decision completion below the fixed policy's threshold**, not a universal raw-compute saving.
+
+Phase B was a cost-motivated reduced extension at 175 and 225 CU: **80/80 formal runs**, **0 smoke runs**, **0 infrastructure retries**, **0 driver exceptions**, and frozen hashes **15/15 PASS** before and after. The reduction from the originally registered five-budget Phase B and the no-smoke choice are explicitly recorded in `docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A2.md` and must not be described as the original preregistered design.
+
+The post-C1 manuscript claim is therefore:
+
+> **Under the frozen benchmark protocol, the adaptive decision-recovery advantage below the fixed policy's completion threshold is model-tier dependent: the strong model exploits a narrow-window allocation strategy that does not transfer to the two tested weaker tiers. This extends decision completion under constrained compute, but does not constitute a universal raw-compute saving.**
+
+Canonical C1 evidence: `docs/DISCOVER_BOUNDARY_C1_RESULTS.md`, `docs/DISCOVER_BOUNDARY_C1_PHASE_B_RESULTS.md`, `data/discover_boundary_c1_summary.csv`, `data/discover_boundary_c1_phase_b_summary.csv`, raw C1 traces and frozen-hash records.
+
+## Audit state
+
+The 2026-09-10 claim-to-evidence audit found **no contradiction among the current canonical headline numbers**. Direct in-repository provenance is strongest for MeOH, Au/TiO2 and DISCOVER. NH3-FINAL-1.1 and the cross-reaction 273–410 normalization remain numerically consistent but require source/provenance transfer before F1–F6 and F9A are marked final.
+
+Audit records: `docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md` and `data/claim_evidence_registry_2026-09-10.csv`.
