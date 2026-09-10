@@ -1,6 +1,6 @@
 # Figure map — canonical manuscript snapshot
 
-Snapshot date: **2026-09-07**  
+Snapshot date: **2026-09-10**  
 Scientific basis: **NH3-FINAL-1.1** for ammonia headline values.
 
 This page preserves a compact **nine-figure** main-text architecture. The Au/TiO2 rank-preservation control is integrated into **Figure 9B** as the counterpoint to the ammonia and methanol inversion cases rather than added as a tenth standalone figure.
@@ -148,18 +148,20 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 
 **Question:** Which catalyst property controls the economically important pathway behind the methanol ranking reshuffle?
 
-**Content**
-- CH4 formation / suppression versus accumulation and purge burden.
-- Compare local leverage with STY and single-pass conversion.
-- Use the 5 wt% Re / 250 C state to show that the highest conversion can still coincide with the highest NPC when methane selectivity is poor.
+**Frozen panel design**
+- **Panel A:** NPC versus purge fraction for all four D01 v3 catalyst–temperature states across the complete **0.5–40%** / **396-level** robustness sweep; mark **2%** as the source-anchored canonical comparison.
+- **Panel B:** log-scale dot/lollipop comparison of local leverage for STY, single-pass conversion and CH4 suppression at **5 wt% Re / 250 C**.
 
 **Canonical benchmark**
 - STY leverage = **0.00289**.
 - Single-pass conversion leverage = **0.05883**.
 - CH4-suppression leverage = **0.37579**.
 - 5 wt% Re / 250 C: **X_CO2 = 0.40**, **S_CH4 = 0.25**, **NPC = 1258 EUR/t**.
+- Across the purge sweep, the per-Re winner is never the economic winner, rho never exceeds **0.40**, and at least **2/6** pairs remain inverted.
 
 **Claim supported:** in the current methanol regime, selectivity-driven methane suppression has much stronger economic leverage than production-rate improvement alone and provides the mechanistic pathway for the observed rank reshuffling.
+
+**Status:** scientific design frozen; vector/raster render pending. Rendering must not change the metric or canonical 2% comparison.
 
 ---
 
@@ -169,15 +171,20 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 
 ### Figure 9A — Cross-reaction catalyst-economic leverage
 
-**Content**
-- Put NH3 TOF and MeOH STY / conversion / CH4 suppression on a common cost-denominator basis.
-- Compare normalized leverage magnitudes and the downstream pathways they activate.
+**Current status: REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1.**
 
-**Canonical headline**
-- MeOH CH4-suppression / NH3 TOF normalized leverage ratio = **273–410**.
-- Midpoint = approximately **328**.
+A previous denominator-aligned comparison reported a MeOH CH4-suppression / NH3 TOF normalized-leverage ratio of **273–410** with a midpoint of approximately **328**. The second-pass lineage audit shows that this numerical result was generated under the archived NH3-FINAL-1.0 reduced-cost baseline and was not demonstrably recomputed after promotion of NH3-FINAL-1.1.
 
-**Claim supported:** economic leverage is **reaction- and process-pathway dependent**.
+**Therefore 273–410 / ~328 is historical and must not be used as a current FINAL-1.1 figure headline.**
+
+The qualitative pathway comparison remains supported:
+
+- NH3: **activity -> catalyst inventory / reactor demand**;
+- MeOH: **selectivity -> feed loss / purge / recycle**.
+
+A targeted deterministic revalidation must use the unchanged historical leverage definition, the frozen NH3-FINAL-1.1 harness and the same 2%, 2.5%, 3% denominator-alignment assumptions. See `F9A_FINAL_1_1_REVALIDATION_TASK.md`.
+
+**Claim currently supported:** economic leverage is **reaction- and process-pathway dependent**. A new quantitative cross-reaction ratio will be promoted only after FINAL-1.1 revalidation.
 
 ### Figure 9B — Au/TiO2 rank-preservation control
 
@@ -222,7 +229,7 @@ The restored MeOH before/after ranking evidence makes **F7** a main-text result 
 Within F9, the preferred structure remains:
 
 ```text
-F9A  pathway-specific economic leverage across NH3 and MeOH
+F9A  pathway-specific economic leverage across NH3 and MeOH — quantitative ratio pending FINAL-1.1 revalidation
 F9B  Au/TiO2 canonical rank-preservation control, with V1.3 robustness as a small annotation / supporting result
 ```
 
@@ -238,4 +245,4 @@ This allocation is a working editorial recommendation, not a frozen scientific r
 
 ## Version note
 
-Older values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, full-15 rho = 0.911 and Ru break-even = 2171.56x belong to **NH3-FINAL-1.0** and should not be used as current headline values.
+Older values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, full-15 rho = 0.911 and Ru break-even = 2171.56x belong to **NH3-FINAL-1.0** and should not be used as current headline values. The historical cross-reaction **273–410 (~328)** ratio is also treated as pre-FINAL-1.1 until explicitly revalidated.
