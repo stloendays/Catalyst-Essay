@@ -153,19 +153,15 @@ Boundary and design logic: the two inversion cases deliberately isolate two chan
 Primary figures: F7, F8.  
 Primary evidence: `MEOH_RANKING_INVERSION.md`, `data/meoh/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx`, provenance JSON and rebuilt ranking figure.
 
-### 3.5 Cross-reaction comparison reveals pathway-specific economic leverage
+### 3.5 Cross-reaction comparison reveals pathway-specific propagation mechanisms
 
-A previous denominator-aligned comparison produced a MeOH CH4-suppression / NH3 TOF leverage ratio of **273–410** (midpoint ~**328**) under the archived NH3-FINAL-1.0 reduced-cost baseline. A second-pass lineage audit found that this numerical ratio predates promotion of NH3-FINAL-1.1. Because FINAL-1.1 changed the NH3 pressure-CAPEX/economic closure and explicitly recomputed its NH3 ground-truth and lever quantities, the numerical cross-reaction ratio is **held out of the current manuscript pending targeted FINAL-1.1 revalidation**.
+The two reaction cases resolve different catalyst-to-process pathways. In NH3, activity changes propagate primarily through catalyst inventory, reactor demand and process severity. In CO2-to-methanol, selectivity—particularly methane formation—changes feed loss, gas accumulation, purge, recycle and compression burden.
 
-The mechanism-level comparison remains supported:
+A previously reported denominator-aligned MeOH CH4-suppression / NH3 TOF leverage ratio of **273–410** (midpoint ~**328**) is not used as a current result. The repository-level provenance audit and GitHub Actions revalidation attempt could not establish the exact historical NH3 TOF-economic-leverage metric from pre-audit code, and the frozen FINAL-1.1 source harness required to rerun that exact definition is not retained in this repository. The result is therefore classified **METRIC_EQUIVALENCE_NOT_ESTABLISHED** rather than replaced by a newly constructed ratio.
 
-- NH3: **activity -> inventory / reactor-demand** pathway
-- MeOH: **selectivity -> feed-loss / purge / recycle** pathway
+The manuscript-level conclusion is consequently bounded to the directly supported mechanism: catalyst ranking changes are reaction- and process-pathway dependent. NH3 demonstrates an activity–inventory / reactor-demand route; MeOH demonstrates a selectivity–recycle route. The choice of upstream screening objective can further change which candidate is mis-ranked at the decision frontier.
 
-The current manuscript-level conclusion is therefore qualitative at this stage: catalyst ranking inversion is not governed by one universal variable or one universal propagation mechanism. In NH3, candidate-specific process/economic reoptimization reshapes the decision frontier. In MeOH, a different ranking reshuffle appears when an intrinsic per-Re productivity objective is propagated through selectivity-sensitive recycle economics. The choice of upstream screening objective can therefore matter alongside the downstream process coupling.
-
-Primary figure: **F9A — quantitative panel on HOLD pending FINAL-1.1 revalidation**.  
-Revalidation task: `F9A_FINAL_1_1_REVALIDATION_TASK.md`.
+Primary figure: F9A as a **qualitative pathway panel only**; no current cross-reaction numerical ratio.
 
 ### 3.6 A literature-calibrated control shows that multiscale propagation does not intrinsically invert rankings
 

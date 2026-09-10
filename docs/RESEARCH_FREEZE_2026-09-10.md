@@ -76,18 +76,18 @@ Policy advantage, model capability and raw compute efficiency must remain separa
 - The 200-CU C1 strong estimate remains **8/8** new runs and is not pooled with the separate historical DISCOVER V1 5/5 sample for the confirmatory estimate.
 - The first-pass claim audit found no contradiction among the promoted headline values; the second-pass temporal/lineage check identified the F9A cross-reaction ratio as the one genuine revalidation exception. See `CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`.
 
-## Figure-lock state at freeze
+## Figure-lock state after deterministic closure
 
 - **F7:** locked current MeOH ranking asset.
-- **F8:** scientific design frozen; R renderer committed; vector/raster render pending.
+- **F8:** **LOCKED**; GitHub Actions run **34449914480** generated and verified SVG/PDF/PNG plus SHA-256 manifest from the frozen R renderer and D01 v3 data.
 - **F9B:** locked canonical Au/TiO2 V1.1 SVG.
 - **F1–F6:** numerical results frozen, but direct FINAL-1.1 raw provenance/assets still require repository closure before final figure lock.
-- **F9A:** `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`.
+- **F9A:** **QUALITATIVE-ONLY / METRIC_EQUIVALENCE_NOT_ESTABLISHED**. The historical 273–410 (~328) ratio is excluded from current manuscript claims because the retained repository does not establish the exact historical NH3 TOF leverage metric or contain the frozen FINAL-1.1 source harness required for an exact rerun.
 
 ## Freeze rule
 
 From this point, do not add new experimental cells solely to improve the narrative. New computation is justified only if the final audit reveals one of the following: a scorer/driver defect, a frozen-state mismatch, an unreproducible canonical number, an incorrect data lineage, or a manuscript claim not supported by the retained evidence.
 
-The current F9A exception satisfies the incorrect-data-lineage criterion but is restricted to **repeating the exact historical leverage calculation under the already frozen NH3-FINAL-1.1 model**. It does not authorize model redesign or exploratory parameter changes.
+The repository-level F9A exception is now closed as **METRIC_EQUIVALENCE_NOT_ESTABLISHED**. A quantitative F9A may be reopened only if the original historical metric implementation and the frozen NH3-FINAL-1.1 source harness are recovered with provenance; it does not authorize model redesign, cost rescaling or exploratory parameter changes.
 
-The next work package is manuscript integration: targeted F9A closure, NH3 provenance import/content-addressing, figure locking, Methods/SI completion, and final reproducibility documentation.
+The remaining work package is manuscript production: NH3 provenance import/content-addressing for F1–F6, final figure/caption assembly, Methods/SI completion, and reproducibility documentation.

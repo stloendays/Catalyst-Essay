@@ -86,12 +86,14 @@ The mechanistic interpretation is a **selectivity-recycle pathway**: methane sup
 
 ## Cross-reaction leverage status
 
-The qualitative comparison remains valid:
+The pathway-level comparison remains valid:
 
 - NH3: **activity -> inventory / reactor-demand**;
 - MeOH: **selectivity -> feed-loss / purge / recycle**.
 
-The historical quantitative ratio **273–410 (~328 midpoint)** is now labeled `LEGACY_PRE_FINAL_1.1_NORMALIZATION — HOLD`. Figure 9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1` until the exact historical TOF-leverage definition is applied to the frozen FINAL-1.1 harness. Do not infer an updated ratio by rescaling the old value or by substituting a new metric.
+The historical **273–410 (~328 midpoint)** ratio is not a current FINAL-1.1 claim. GitHub Actions run **34449914480** closed the repository-level revalidation attempt as **METRIC_EQUIVALENCE_NOT_ESTABLISHED**: no pre-audit implementation of the historical NH3 TOF economic-leverage metric could be recovered from this repository, and the frozen FINAL-1.1 config/output tree required to rerun that exact metric is not present here.
+
+Figure 9A is therefore **qualitative-only** in the current manuscript. Do not rescale the old ratio or substitute a newly defined cross-reaction metric merely to restore a number.
 
 ## Rank-preservation family — Au/TiO2-RP
 

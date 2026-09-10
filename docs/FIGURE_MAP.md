@@ -161,7 +161,7 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 
 **Claim supported:** in the current methanol regime, selectivity-driven methane suppression has much stronger economic leverage than production-rate improvement alone and provides the mechanistic pathway for the observed rank reshuffling.
 
-**Status:** scientific design frozen; vector/raster render pending. Rendering must not change the metric or canonical 2% comparison.
+**Status:** **LOCKED.** The frozen R renderer was executed by GitHub Actions and verified SVG/PDF/PNG outputs plus a SHA-256 manifest. Rendering did not change the metric or canonical 2% comparison.
 
 ---
 
@@ -169,22 +169,18 @@ Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](
 
 **Question:** Is ranking inversion an inevitable consequence of multiscale propagation, or does it depend on the topology of catalyst-to-process coupling and on the upstream screening objective?
 
-### Figure 9A — Cross-reaction catalyst-economic leverage
+### Figure 9A — Cross-reaction catalyst-to-process pathways
 
-**Current status: REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1.**
+**Current status: QUALITATIVE-ONLY / METRIC_EQUIVALENCE_NOT_ESTABLISHED.**
 
-A previous denominator-aligned comparison reported a MeOH CH4-suppression / NH3 TOF normalized-leverage ratio of **273–410** with a midpoint of approximately **328**. The second-pass lineage audit shows that this numerical result was generated under the archived NH3-FINAL-1.0 reduced-cost baseline and was not demonstrably recomputed after promotion of NH3-FINAL-1.1.
+The previous denominator-aligned MeOH CH4-suppression / NH3 TOF normalized-leverage ratio of **273–410** (midpoint ~**328**) belongs to the archived pre-NH3-FINAL-1.1 normalization and is not a current figure headline. GitHub Actions run **34449914480** did not recover a pre-audit code-level implementation sufficient to prove the exact historical NH3 TOF economic-leverage definition, and the frozen FINAL-1.1 source harness needed for an exact rerun is not present in this repository.
 
-**Therefore 273–410 / ~328 is historical and must not be used as a current FINAL-1.1 figure headline.**
+**Content**
+- NH3: activity -> catalyst inventory / reactor demand / process severity.
+- MeOH: selectivity -> feed loss / gas accumulation / purge / recycle / compression.
+- No cross-reaction numerical ratio is plotted unless the original metric implementation and frozen FINAL-1.1 harness are later recovered.
 
-The qualitative pathway comparison remains supported:
-
-- NH3: **activity -> catalyst inventory / reactor demand**;
-- MeOH: **selectivity -> feed loss / purge / recycle**.
-
-A targeted deterministic revalidation must use the unchanged historical leverage definition, the frozen NH3-FINAL-1.1 harness and the same 2%, 2.5%, 3% denominator-alignment assumptions. See `F9A_FINAL_1_1_REVALIDATION_TASK.md`.
-
-**Claim currently supported:** economic leverage is **reaction- and process-pathway dependent**. A new quantitative cross-reaction ratio will be promoted only after FINAL-1.1 revalidation.
+**Claim supported:** the dominant catalyst-to-economic propagation mechanism is **reaction- and process-pathway dependent**. Figure 9A is a mechanism/topology comparison, not a quantitative leverage-ratio panel.
 
 ### Figure 9B — Au/TiO2 rank-preservation control
 
@@ -229,7 +225,7 @@ The restored MeOH before/after ranking evidence makes **F7** a main-text result 
 Within F9, the preferred structure remains:
 
 ```text
-F9A  pathway-specific economic leverage across NH3 and MeOH — quantitative ratio pending FINAL-1.1 revalidation
+F9A  qualitative catalyst-to-process pathway comparison across NH3 and MeOH; no current cross-reaction leverage ratio
 F9B  Au/TiO2 canonical rank-preservation control, with V1.3 robustness as a small annotation / supporting result
 ```
 
@@ -245,4 +241,4 @@ This allocation is a working editorial recommendation, not a frozen scientific r
 
 ## Version note
 
-Older values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, full-15 rho = 0.911 and Ru break-even = 2171.56x belong to **NH3-FINAL-1.0** and should not be used as current headline values. The historical cross-reaction **273–410 (~328)** ratio is also treated as pre-FINAL-1.1 until explicitly revalidated.
+Older values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, full-15 rho = 0.911 and Ru break-even = 2171.56x belong to **NH3-FINAL-1.0** and should not be used as current headline values. The historical cross-reaction **273–410 (~328)** ratio remains archived pre-FINAL-1.1 evidence and is excluded from the current manuscript because metric equivalence could not be established from the retained source history.

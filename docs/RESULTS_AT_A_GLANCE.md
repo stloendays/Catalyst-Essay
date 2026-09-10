@@ -108,20 +108,18 @@ CH4 suppression is about **6.39x** more leveraged than single-pass conversion an
 
 The explicit loop couples methane formation to H2 feed loss, inert accumulation, purge, recycle compression and equipment burden. The most methane-rich state, **5 wt% Re / 250 C** with **S_CH4 = 0.25**, has the highest NPC (**1258 EUR/t**) despite the highest single-pass conversion.
 
-## Cross-reaction leverage — quantitative value on hold
+## Cross-reaction pathway comparison — qualitative-only
 
-The pathway-level interpretation remains current:
+The current supported cross-reaction statement is mechanistic:
 
 ```text
 NH3   : activity -> catalyst inventory / reactor demand
 MeOH  : selectivity -> feed loss / purge / recycle
 ```
 
-A second-pass data-lineage audit found that the previously reported denominator-aligned ratio **273–410** (midpoint ~**328**) originated under the archived pre-NH3-FINAL-1.1 normalization. It is therefore **not a current FINAL-1.1 result** and is held out of the manuscript pending targeted deterministic revalidation with the frozen FINAL-1.1 harness.
+The MeOH CH4-suppression leverage **0.3757939** remains directly traceable. The historical denominator-aligned MeOH/NH3 ratio **273–410** (midpoint ~**328**) is retained only as an archived pre-FINAL-1.1 result. GitHub Actions run **34449914480** returned **METRIC_EQUIVALENCE_NOT_ESTABLISHED** because the exact historical NH3 TOF economic-leverage implementation and the frozen FINAL-1.1 source harness are not retained in this repository.
 
-The MeOH CH4-suppression leverage **0.3757939** remains directly traceable. The unresolved item is the NH3 TOF economic-leverage denominator under FINAL-1.1.
-
-See `docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`, `docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`, and `docs/F9A_FINAL_1_1_REVALIDATION_TASK.md`.
+Accordingly, no current quantitative cross-reaction ratio is reported. The paper retains the reaction-specific pathway contrast and does not manufacture a replacement metric.
 
 ## Rank-preservation control
 

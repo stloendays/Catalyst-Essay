@@ -117,7 +117,7 @@ The top-rank reversal also depends on the upstream screening objective: yield or
 
 Primary note: [`docs/MEOH_RANKING_INVERSION.md`](docs/MEOH_RANKING_INVERSION.md).
 
-## Cross-reaction economic leverage — quantitative ratio on hold
+## Cross-reaction pathway comparison — qualitative-only after provenance audit
 
 The qualitative mechanism comparison remains part of the current paper:
 
@@ -126,11 +126,11 @@ NH3  : activity -> catalyst inventory / reactor demand
 MeOH : selectivity -> feed loss / purge / recycle
 ```
 
-A second-pass data-lineage audit found that the previously quoted normalized ratio **273-410** (midpoint approximately **328**) originated under the archived pre-NH3-FINAL-1.1 denominator normalization and has not been shown to have been recomputed after the FINAL-1.1 pressure-CAPEX/economic closure.
+The previously quoted normalized ratio **273–410** (midpoint approximately **328**) is an archived pre-NH3-FINAL-1.1 result and is **not a current manuscript value**. GitHub Actions run **34449914480** searched the full repository history with audit-generated files excluded from provenance proof and found **no pre-audit code-level implementation** that establishes the original NH3 TOF/activity perturbation, finite-difference definition, economic reoptimization and raw reduced-cost leverage. The current repository also does not contain `configs/nh3_final.yaml` or `outputs/nh3_final_20260905T134204Z`.
 
-Therefore **273-410 / ~328 is historical, not a current FINAL-1.1 headline value**. Figure 9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`. The only authorized targeted recomputation is to apply the exact historical TOF-leverage definition to the frozen FINAL-1.1 harness and the unchanged 2%, 2.5%, 3% denominator-alignment assumptions.
+F9A is therefore classified **METRIC_EQUIVALENCE_NOT_ESTABLISHED / QUALITATIVE-ONLY**. No replacement ratio is inferred by cost rescaling or by defining a new proxy metric. A quantitative F9A may be reopened only if the original metric implementation and frozen FINAL-1.1 source harness are later imported with provenance.
 
-See [`docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`](docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md), [`docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md`](docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md), and [`docs/F9A_FINAL_1_1_REVALIDATION_TASK.md`](docs/F9A_FINAL_1_1_REVALIDATION_TASK.md).
+See [`docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`](docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md) and [`artifacts/f9a_ci/CROSS_REACTION_FINAL1_1_CI_ATTEMPT.md`](artifacts/f9a_ci/CROSS_REACTION_FINAL1_1_CI_ATTEMPT.md).
 
 ## Au/TiO2-RP — rank-preservation family
 

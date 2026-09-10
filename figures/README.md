@@ -2,7 +2,7 @@
 
 This directory contains manuscript and supporting figures generated from the frozen project evidence.
 
-Audit status: **2026-09-10 second-pass claim-to-evidence audit**. A figure is marked `LOCKED` only when the current canonical numerical evidence and a concrete figure asset are both present and the scientific role/caption boundary is fixed. `HOLD` means the scientific claim may be internally consistent but the direct source/provenance chain or final asset is not yet closed. `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1` means the prior numerical result is traceable to the archived NH3-FINAL-1.0 regime and must not be used as a current FINAL-1.1 manuscript value until the same calculation is repeated under the frozen 1.1 harness.
+Audit status: **2026-09-10 second-pass claim-to-evidence audit**. A figure is marked `LOCKED` only when the current canonical numerical evidence and a concrete figure asset are both present and the scientific role/caption boundary is fixed. `HOLD` means the scientific claim may be internally consistent but the direct source/provenance chain or final asset is not yet closed. `METRIC_EQUIVALENCE_NOT_ESTABLISHED` means the archived numerical result cannot be promoted because the exact historical metric implementation is not recoverable from the retained repository evidence; the current manuscript must remain qualitative for that comparison.
 
 ## Main manuscript figure set
 
@@ -15,8 +15,8 @@ Audit status: **2026-09-10 second-pass claim-to-evidence audit**. A figure is ma
 | F5 | Ru backward-design activity sweep | **HOLD** — 201.22x is current; activity-sweep source and final asset still need to be linked/imported |
 | F6 | Scaling-manifold reachability | **HOLD** — 1.090x / 2.525x / 21.398 USD/t are current; direct scaling output and final asset still need to be linked/imported |
 | F7 | CO2-to-MeOH catalyst-state ranking reshuffle | **LOCKED CURRENT ASSET** — direct D01 v3 workbook/CSV/script provenance and `MeOH_F03_UpstreamToEconomicRanking_D01v3.png` are present; a publication vector export may be added without changing the scientific lock |
-| F8 | Methane accumulation / purge / selectivity leverage | **DESIGN FROZEN; RENDER PENDING** — the final Panel A+B scientific specification is frozen in `docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`; final editable/vector plus raster rendering remains. Current GitHub-hosted workflow attempts failed before any job step was assigned/executed, so this is an infrastructure/render blocker rather than a scientific-data failure. |
-| F9A | Cross-reaction catalyst-economic leverage | **REVALIDATION REQUIRED AFTER NH3-FINAL-1.1** — legacy 273–410 (~328 midpoint) lineage predates FINAL-1.1 and is held out of the current manuscript until the frozen 1.1 TOF economic leverage is recalculated with the same definition |
+| F8 | Methane accumulation / purge / selectivity leverage | **LOCKED** — GitHub Actions run 34449914480 rendered and verified `F08_MeOH_selectivity_recycle_D01v3.svg/.pdf/.png`; SHA-256 manifest is `F08_RENDER_SHA256.txt` and the canonical SVG blob is pinned in the figure registry. |
+| F9A | Cross-reaction catalyst-to-process pathways | **QUALITATIVE-ONLY / METRIC_EQUIVALENCE_NOT_ESTABLISHED** — legacy 273–410 (~328 midpoint) is archived pre-FINAL-1.1 evidence and is excluded from the current manuscript; no substitute ratio is introduced |
 | F9B | Au/TiO2 rank-preservation control | **LOCKED** — direct CSV, generator and canonical SVG are present; V1.3 remains a supporting annotation/SI result |
 
 The current scientific role and canonical values are defined in [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md). The detailed provenance audit is [`../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md`](../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md), with the second-pass exception recorded separately. The machine-readable state is [`../data/figure_lock_registry_2026-09-10.csv`](../data/figure_lock_registry_2026-09-10.csv).
@@ -51,20 +51,29 @@ Current assets:
 
 Direct source data and provenance are in `../data/meoh/`, including the frozen D01 v3 workbook, extracted candidate-ranking CSV, provenance JSON, purge robustness outputs and analysis scripts.
 
-### Figure 8 frozen design
+### Figure 8 locked render
 
-The final Figure 8 scientific composition is frozen in [`../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`](../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md):
+The Figure 8 scientific composition remains the frozen specification in [`../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`](../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md):
 
 - **Panel A:** NPC versus purge across the four literature catalyst–temperature states, with 2% marked as the canonical source point;
 - **Panel B:** dot/lollipop comparison of local economic leverage for STY, single-pass conversion and CH4 suppression at 5 wt% Re / 250 C.
 
-The remaining task is rendering/export only; no new scientific calculation or metric selection is permitted during render.
+GitHub Actions run **34449914480** rendered and verified:
+
+- `F08_MeOH_selectivity_recycle_D01v3.svg`
+- `F08_MeOH_selectivity_recycle_D01v3.pdf`
+- `F08_MeOH_selectivity_recycle_D01v3.png`
+- `F08_RENDER_SHA256.txt`
+
+The render passed the frozen 396-level purge-envelope and leverage-value checks. No scientific calculation or metric selection was changed during rendering.
 
 ## Cross-reaction Figure 9A
 
-The earlier 273–410 ratio is **not currently lockable**. The second-pass audit found that its source normalization page predates NH3-FINAL-1.1 and explicitly references the archived ~10.2 USD/t NH3 reduced-cost baseline. FINAL-1.1 changed the NH3 economic model and reclosed its ground-truth/lever calculations. Therefore F9A now requires a targeted deterministic revalidation with the frozen FINAL-1.1 harness. The qualitative pathway comparison remains valid while the numerical ratio is held.
+The archived **273–410** ratio is not lockable as a current FINAL-1.1 result. GitHub Actions run **34449914480** searched full repository history under a conservative provenance rule and classified the result **METRIC_EQUIVALENCE_NOT_ESTABLISHED**: no pre-audit implementation of the historical NH3 TOF economic-leverage metric was recovered, while the frozen FINAL-1.1 config/output tree is not present in this repository.
 
-See [`../docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`](../docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md) and [`../docs/F9A_FINAL_1_1_REVALIDATION_TASK.md`](../docs/F9A_FINAL_1_1_REVALIDATION_TASK.md).
+F9A is therefore a **qualitative catalyst-to-process pathway panel** in the current manuscript. It may contrast NH3 activity–inventory/reactor-demand coupling with MeOH selectivity–feed-loss/purge/recycle coupling, but it must not plot 273–410 as current or substitute a newly defined cross-reaction ratio.
+
+See [`../docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md`](../docs/CROSS_REACTION_LEVERAGE_PROVENANCE_POINTER.md) and [`../artifacts/f9a_ci/CROSS_REACTION_FINAL1_1_CI_ATTEMPT.md`](../artifacts/f9a_ci/CROSS_REACTION_FINAL1_1_CI_ATTEMPT.md).
 
 ## Rank-preservation control (`rank_preservation_control/`)
 
