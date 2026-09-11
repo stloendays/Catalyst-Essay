@@ -106,6 +106,7 @@ def analyse_run(path: Path) -> dict:
         detail["no_tool_call"] += malformed
     row = {
         "run_dir": path.parent.name,
+        "arm": "E2" if t["policy"].startswith("E2_") else "E",
         "model": model,
         "tier": TIER.get(model, model),
         "budget_CU": int(float(t["budget_CU"])),
@@ -127,22 +128,24 @@ def analyse_run(path: Path) -> dict:
 
 
 def main() -> int:
-    paths = sorted(Path(p) for p in glob.glob(str(OUT / "runs" / "*" / "traces" / "anonymous" / "*" / "trace.json")))
+    paths = sorted(Path(p) for p in
+                   glob.glob(str(OUT / "runs" / "*" / "traces" / "anonymous" / "*" / "trace.json"))
+                   + glob.glob(str(OUT / "e2" / "traces" / "anonymous" / "*" / "trace.json")))
     if not paths:
         raise SystemExit("no C1 traces found")
     rows = [analyse_run(p) for p in paths]
 
     by_cell: dict[tuple, list[dict]] = defaultdict(list)
     for r in rows:
-        by_cell[(r["tier"], r["budget_CU"])].append(r)
+        by_cell[(r["tier"], r["arm"], r["budget_CU"])].append(r)
 
     summary = []
-    for (tier, b), rs in sorted(by_cell.items(), key=lambda kv: ({"strong": 0, "mini": 1, "nano": 2}[kv[0][0]], kv[0][1])):
+    for (tier, arm, b), rs in sorted(by_cell.items(), key=lambda kv: ({"strong": 0, "mini": 1, "nano": 2}[kv[0][0]], kv[0][1], kv[0][2])):
         det = Counter()
         for r in rs:
             det.update(json.loads(r["detail"]))
         summary.append({
-            "tier": tier, "budget_CU": b, "n": len(rs),
+            "tier": tier, "arm": arm, "budget_CU": b, "n": len(rs),
             "action_errors": sum(r["action_errors"] for r in rs),
             "interface": sum(r["err_interface"] for r in rs),
             "no_tool_call_turns": sum(r["malformed_turns"] for r in rs),
@@ -188,12 +191,12 @@ def main() -> int:
     }
     (DATA / "discover_boundary_c1_error_taxonomy_metadata.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    print(f"{'tier':7s} {'B':>4s} {'n':>3s} {'act_err':>7s} {'iface':>6s} {'noTool':>6s} {'budg':>5s} {'seq':>4s} {'preBW':>6s} {'preOPT':>7s} {'nw_can':>7s} {'nw_legacy':>10s}")
+    print(f"{'tier':7s} {'arm':>3s} {'B':>4s} {'n':>3s} {'act_err':>7s} {'iface':>6s} {'noTool':>6s} {'budg':>5s} {'seq':>4s} {'preBW':>6s} {'preOPT':>7s} {'nw_can':>7s} {'nw_legacy':>10s}")
     for r in summary:
-        print(f"{r['tier']:7s} {r['budget_CU']:4d} {r['n']:3d} {r['action_errors']:7d} {r['interface']:6d} {r['no_tool_call_turns']:6d} {r['budget']:5d} {r['sequencing']:4d} {r['premature_BACKWARD']:6d} {r['premature_OPTIMIZE']:7d} {r['narrow_window_canonical']:7d} {r['narrow_window_legacy_bounds_flag']:10d}")
+        print(f"{r['tier']:7s} {r['arm']:>3s} {r['budget_CU']:4d} {r['n']:3d} {r['action_errors']:7d} {r['interface']:6d} {r['no_tool_call_turns']:6d} {r['budget']:5d} {r['sequencing']:4d} {r['premature_BACKWARD']:6d} {r['premature_OPTIMIZE']:7d} {r['narrow_window_canonical']:7d} {r['narrow_window_legacy_bounds_flag']:10d}")
     tot = Counter()
     for r in summary:
-        tot[r["tier"]] += r["action_errors"]
+        tot[f"{r['tier']}/{r['arm']}"] += r["action_errors"]
     print("\ntier totals:", dict(tot), "| all tiers:", sum(tot.values()))
     print("wrote", run_csv.name, sum_csv.name)
     return 0

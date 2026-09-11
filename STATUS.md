@@ -245,11 +245,20 @@ frozen traces with no new compute, and are recorded in `docs/DISCOVER_BOUNDARY_C
 Results §3.7 of `docs/MANUSCRIPT_SKELETON.md` now states the claim as **complete decision recovery below the
 fixed-policy compute threshold**. A universal compute saving is not claimed anywhere.
 
-Four items need new API runs and are **not yet executed**: strong 125/150 CU at n = 20 (150 CU has n = 7 so far),
-uncapped strong runs for the natural stopping point, the mini E2 interface arm at 175 CU, and the mini 300/400 CU
-saturation sweep, plus one open-source strong-tier control whose provider is not yet chosen. The E2 interface arm is
-implemented and unit-checked in `tools/discover/formal_e2.py` and `tools/discover/llm_policy_v2.py`; it writes traces
-under policy `E2_llm_agent_budget_aware` and modifies no frozen file (`DISCOVER_FROZEN_V1.json` 15/15 PASS).
+Two further items were then executed as 53 formal runs (0 infrastructure retries, 0 driver exceptions, frozen hashes
+15/15 PASS before the batch) and are recorded in `docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A4_2026-09-11.md`:
+
+- **strong 125 and 150 CU at n = 20 each: 20/20 complete decisions at both budgets.** The completion floor is therefore
+  below the tested range and is not yet located; at 125 CU the median run completes after 80 CU, 39% of D's 206 CU. The
+  canonical break-even target has a separate, higher floor: 20/20 at 225 CU, 15/20 at 175 CU, 11/20 at 150 and 125 CU;
+- **the E2 interface arm is a negative result.** Typed tool parameters plus an explicit remaining-budget block removed
+  the mini interface failure mode entirely (undeclared-argument errors 18 → 0, no-tool-call turns 16 → 4) and raised
+  correct winner identification from 14/20 to 19/20, but complete decisions stayed 0/20. mini ran `BACKWARD` in 0/20
+  runs under both interfaces, so the barrier is chain ordering under a binding budget, not interface expressiveness.
+
+Still pending: the strong completion floor at 75/100 CU, uncapped strong runs for the natural stopping point, the mini
+300/400 CU saturation sweep on the frozen E interface, and the open-source strong-tier control (deferred to the
+reproducibility-package stage).
 
 ## Version policy
 
