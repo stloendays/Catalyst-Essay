@@ -18,6 +18,7 @@ One non-formal verification run of the never-before-executed E2 driver was made 
 
 | budget | n | complete decision | CU to full decision (median) | mean spent | canonical break-even 201.223443 | narrow-window (canonical) | action errors |
 |---|---|---|---|---|---|---|---|
+| **100 CU** | 20 | **19/20** (P = 0.95, CI 0.76–0.99) | **71 CU** | 81.8 | 9/20 | 20/20 | 4 |
 | **125 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | **80 CU** | 104.7 | 11/20 | 20/20 | 2 |
 | **150 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | 106 CU | 117.5 | 11/20 | 20/20 | 4 |
 | 175 CU | 20 | 19/20 (P = 0.95) | 140 CU | 150.6 | 15/20 | 20/20 | 10 |
@@ -28,27 +29,59 @@ One non-formal verification run of the never-before-executed E2 driver was made 
 
 **The answer depends on what "completion" means, and both versions must be reported.**
 
-- If completion is the scored full decision (winner + decision pair + reachability verdict), the strong tier is at
-  **20/20 down to 125 CU**, the lowest budget tested — **60.7%** of the fixed policy's 206 CU threshold. At 125 CU the
-  median run reaches the complete decision after only **80 CU**, i.e. **39%** of D's threshold. **The lower failure edge
-  has not been located.** 125 CU is not a measured floor; it is the bottom of the tested range.
+- If completion is the scored full decision (winner + decision pair + reachability verdict), the strong tier holds at
+  **20/20 at 125 and 150 CU** and **19/20 at 100 CU** — **48.5%** of the fixed policy's 206 CU threshold. At 100 CU the
+  median run reaches the complete decision after only **71 CU**, i.e. **34%** of D's threshold. **The lower failure edge
+  has not been located.** 100 CU is not a measured floor; it is the bottom of the tested range.
 - If completion additionally requires the canonical Ru→Fe break-even multiplier, the lowest stable budget is **225 CU**,
-  above D's threshold. Break-even exactness degrades monotonically as budget falls: 20/20 at 225 CU, 15/20 at 175 CU,
-  11/20 at 150 CU, 11/20 at 125 CU.
+  above D's threshold. Scored break-even exactness degrades monotonically as budget falls: 20/20 at 225 CU, 15/20 at
+  175 CU, 11/20 at 150 and 125 CU, 9/20 at 100 CU.
 
-At 125 and 150 CU the non-canonical break-even values are no longer confined to the two discrete window-scope artefacts
-seen at 175 CU. The 150 CU cell contains values spanning 2.67 to 2205.42. These come from windows so narrow that the
-parity state is far outside them, so the scalar is no longer conservative — it is simply not the canonical target. The
-scored decision is still correct because the reachability verdict (`unreachable`) does not depend on the exact
-multiplier, only on its being far above the 2.5246 headroom.
+**The break-even degradation is mostly a scoring-convention effect, not an inability to compute the target.** The frozen
+`final_answer()` reports the **first** `BACKWARD` record matching the decision pair (`next(...)`, not the last), and the
+same for the first classified `TEST_REACHABILITY`. At low budgets the agent's first `BACKWARD` is often taken in a
+preliminary window that does not yet contain the parity state, and the later, correct value never reaches the scored
+answer. Measured across every strong cell, the scored break-even is identical to the first `BACKWARD` in 100% of runs,
+while the canonical value is computed *at some point in the run* far more often:
+
+| budget | n | first BACKWARD = canonical | scored break-even = canonical | **any** BACKWARD = canonical |
+|---|---|---|---|---|
+| 100 CU | 20 | 9 | 9 | **16** |
+| 125 CU | 20 | 11 | 11 | **17** |
+| 150 CU | 20 | 11 | 11 | **17** |
+| 175 CU | 20 | 15 | 15 | **19** |
+| 225 CU | 20 | 20 | 20 | 20 |
+
+So the agent's *capability* to reach 201.223443 degrades only from 20/20 to 16/20 between 225 and 100 CU, while the
+*scored* value degrades from 20/20 to 9/20. The frozen first-record convention was pre-registered and the scores stand
+as reported, but the degradation must not be described as the agent failing to find the break-even at low budget.
+
+Where the first record is wrong it is wrong in one of two ways: a preliminary window that excludes T_sep = 30 °C, giving
+157.289910, or a very small local window, giving values from 1.54 to 2205.42. The scored *decision* survives this in
+almost every run because the reachability verdict depends only on the multiplier being far above the 2.5246 headroom,
+not on its exact value.
 
 **Read-out.** Complete decision *recovery* extends much further below the fixed-policy threshold than C1 previously
 established — to at least 125 CU, and in the median to 80 CU of actually-spent compute. The quantitative break-even
 *target* does not: it needs 225 CU to be stable. The paper claim must separate these two.
 
-Narrow-window allocation is now 20/20 at all three below-threshold budgets (125, 150, 175 CU), 1/8 at 200 CU and 0/20
-and 0/9 at 225 and 250 CU. The median smallest window shrinks as the budget shrinks — 1,950 states at 125 CU, 1,262 at
-150 CU, 1,122 at 175 CU, out of 14,136 — which is the allocation mechanism made quantitative.
+Narrow-window allocation is 20/20 at every below-threshold budget tested (100, 125, 150, 175 CU), 1/8 at 200 CU and
+0/20 and 0/9 at 225 and 250 CU. The median smallest window shrinks as the budget shrinks — 1,950 states at 125 CU,
+1,262 at 150 CU, 1,122 at 175 CU, out of 14,136 — which is the allocation mechanism made quantitative.
+
+### 1.1 The single 100 CU failure is a premature first BACKWARD
+
+Run `E_llm_agent_anonymous_B100_r18_c1low` is the 1/20 non-complete run at 100 CU, and it fails differently from the
+single 175 CU failure. It **did** reach the correct verdict: at step 18 `BACKWARD` returned 185.30 in a 675-state window
+and at step 22 `TEST_REACHABILITY` classified Ru as `unreachable`, with 31 CU still unspent. But at step 8 it had
+already run a premature `BACKWARD` in a not-yet-optimised window, returning 1.5424, and at step 13 classified Ru as
+`reachable` on that basis. Under the first-record convention those two early records are the scored answer, so the run
+scores `reachability_correct` = false despite containing the correct result. The 175 CU failure (`r16`) is the opposite
+case: it never obtained a classification at all, because it probed reachability before `BACKWARD` produced the required
+multiplier and then ran out of budget for the 2-CU re-call.
+
+Both failures are therefore ordering failures around `BACKWARD`, in opposite directions: probing too early and never
+correcting (100 CU), and probing too early and having no budget left to correct (175 CU).
 
 ## 2. The E2 interface intervention does not move mini across the boundary (item 3)
 
@@ -105,11 +138,24 @@ capability property, not an artefact of a weak tool interface that better scaffo
 - generators: `tools/discover/formal_e2.py`, `tools/discover/llm_policy_v2.py`, `tools/discover/c1_error_taxonomy.py`;
 - data: `data/discover_boundary_c1_error_taxonomy_runs.csv`, `data/discover_boundary_c1_error_taxonomy_summary.csv`.
 
+### 3.1 Aborted 75 CU batch (infrastructure, not science)
+
+A first 75 CU batch was launched on 2026-09-11 and aborted mid-batch when the API account exhausted its credits
+(HTTP 429, "You have no credits remaining"). Of 20 requested runs, 3 completed, 1 was truncated at step 11, and 16
+produced zero-step traces. **No 75 CU result was derived from that batch**; n = 3 is not a cell.
+
+Nothing was deleted. The 17 infrastructure-failed traces were moved verbatim to
+`DISCOVER_BOUNDARY_C1/quarantine_infra_failed_2026-09-11/` with a `QUARANTINE_MANIFEST.json`, out of the scored glob
+path so that no analysis can pool zero-step traces into a 75 CU cell and report 3/20. The 3 valid runs were separately
+moved to `DISCOVER_BOUNDARY_C1/superseded_partial_B75_2026-09-11/` with a `SUPERSEDED_MANIFEST.json`, so that the
+re-run 75 CU cell comes from one complete batch rather than mixing two. Frozen hashes were 15/15 PASS before and after
+the aborted batch.
+
 ## 4. Remaining items
 
 | item | status |
 |---|---|
-| 1 | strong 125/150 CU done at n = 20; **the completion floor is still below the tested range** and needs 75/100 CU to locate |
+| 1 | strong 100/125/150 CU done at n = 20; **the completion floor is still below the tested range**; the 75 CU cell was aborted by API credit exhaustion and is being re-run |
 | 2 | 175-vs-225 consistency closed in Addendum A3; **uncapped strong runs still pending** |
 | 3 | closed, negative: the E2 interface does not move mini across the 175 CU boundary |
 | 4 | mini 300/400 CU saturation sweep pending; to be run on the **frozen E interface** for comparability with the existing mini 175/225 cells |
