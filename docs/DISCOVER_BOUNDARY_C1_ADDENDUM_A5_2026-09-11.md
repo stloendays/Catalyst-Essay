@@ -2,7 +2,7 @@
 
 New formal runs on the frozen DISCOVER V1 environment, all through the frozen `discover/formal_e.run_one` driver with only
 budget, run index, tag and output directory set. Frozen hashes **15/15 PASS** before and after every batch, with
-`discover/formal_e.py` SHA-256 unchanged. **98 formal runs, 0 infrastructure retries, 0 driver exceptions.** No NH3,
+`discover/formal_e.py` SHA-256 unchanged. **118 formal runs, 0 infrastructure retries, 0 driver exceptions.** No NH3,
 MeOH, Au/TiO2 or figure result was recomputed.
 
 | cell | model | policy | budget | runs | tag |
@@ -11,11 +11,13 @@ MeOH, Au/TiO2 or figure result was recomputed.
 | uncapped | gpt-5.5-2026-04-23 | E (frozen) | 5000 CU | 20 | `c1uncapped` |
 | mini saturation | gpt-5.4-mini-2026-03-17 | E (frozen) | 300 CU | 20 | `c1mini300` |
 | mini saturation | gpt-5.4-mini-2026-03-17 | E (frozen) | 400 CU | 20 | `c1mini400` |
+| floor bracket | gpt-5.5-2026-04-23 | E (frozen) | 50 CU | 20 | `c1low` |
 
-## 1. The strong-tier completion floor is still below the tested range (item 1)
+## 1. The strong-tier completion floor is located at 50 CU (item 1)
 
 | budget | n | complete decision | decision-stable CU (median) | mean spent | scored break-even canonical | narrow window |
 |---|---|---|---|---|---|---|
+| **50 CU** | 20 | **13/20** (P = 0.65, CI 0.43–0.82) | 47 CU | 48.2 | 2/20 | 20/20 |
 | **75 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | **52 CU** | 64.3 | 9/20 | 20/20 |
 | 100 CU | 20 | 19/20 (P = 0.95) | 71 CU | 81.8 | 9/20 | 20/20 |
 | 125 CU | 20 | 20/20 | 80 CU | 104.7 | 11/20 | 20/20 |
@@ -29,15 +31,33 @@ with the median run closing it after **52 CU** of actual spend, **25%** of D's t
 32 CU. Across the whole 75–250 CU range complete-decision recovery stays at 19–20/20 with no downward trend; the 19/20
 cells at 100 and 175 CU are single ordering failures, not a decline (all confidence intervals overlap).
 
-**The lower failure edge has still not been located.** 75 CU is the bottom of the tested range, not a measured floor.
-The observed minimum decision-stable spend of 32 CU, together with the fixed action costs (`COMPUTE_ACTIVITY` over 15
-candidates = 15 CU, `BACKWARD` = 1 CU, `TEST_REACHABILITY` = 2–4 CU, plus a small window and three optimisations),
-places a hard arithmetic floor somewhere near **35–40 CU**. Bracketing it requires a 50 CU cell, which has not been run.
+**At 50 CU the floor binds: completion drops to 13/20 (P = 0.65, CI 0.43–0.82)**, the first cell that breaks the
+19–20/20 plateau and the first whose interval excludes 0.9. **The lowest stable completion threshold is therefore
+75 CU**, 36.4% of the fixed policy's 206 CU.
+
+The failure at 50 CU is an affordability floor on the last link of the chain, not a reasoning failure. All 20 runs
+stopped on their own rule, and all 7 failures have the identical signature: **winner correct 20/20 and decision pair
+correct 20/20 even at 50 CU**, with reachability the only failing component. Six of the seven executed `BACKWARD`
+successfully and then could not afford the 2–4 CU `TEST_REACHABILITY` classification — several stop messages state the
+remaining budget explicitly, e.g. *"Remaining budget is 1 CU. TEST_REACHABILITY costs…"*. The seventh never reached
+`BACKWARD`. Only 3 action errors occur in the whole cell, and just 1 is a budget error, so the agent is not thrashing:
+it correctly recognises that the closing step is unaffordable and stops.
+
+This matches the arithmetic prediction. The mandatory spine costs `COMPUTE_ACTIVITY` over 15 candidates = 15 CU, a
+small window, three optimisations, `BACKWARD` = 1 CU and `TEST_REACHABILITY` = 2–4 CU; the observed minimum
+decision-stable spend across all cells is 32 CU. At 50 CU the median run already spends 48.2 of its 50 CU, leaving
+nothing for the final classification in a third of runs. The hard floor is therefore between roughly **35 CU and
+50 CU**, and 75 CU is the lowest budget at which the complete chain fits reliably.
+
+The scored break-even collapses in the same cell — only **2/20** canonical, and just 3/20 runs compute it at any point,
+against 17/20 at 75 CU. Below the completion floor the quantitative target degrades genuinely, not merely as a
+first-record artefact.
 
 The capability-versus-scoring split reported in Addendum A4 holds at 75 CU:
 
 | budget | n | first BACKWARD = canonical | scored break-even = canonical | **any** BACKWARD = canonical |
 |---|---|---|---|---|
+| 50 CU | 20 | 2 | 2 | 3 |
 | **75 CU** | 20 | 9 | 9 | **17** |
 | 100 CU | 20 | 9 | 9 | 16 |
 | 125 CU | 20 | 11 | 11 | 17 |
@@ -70,6 +90,7 @@ Placed against the constrained cells, the pattern is unambiguous:
 
 | budget | decision-stable CU | final-used CU | overrun | overrun % | stop mode |
 |---|---|---|---|---|---|
+| 50 CU | 47 | 49 | 1 | 5.8% | 20/20 self-stop |
 | 75 CU | 52 | 70 | 4 | 12.9% | 20/20 self-stop |
 | 100 CU | 71 | 82 | 13 | 17.6% | 20/20 self-stop |
 | 125 CU | 80 | 111 | 12 | 16.2% | 20/20 self-stop |
@@ -147,7 +168,7 @@ those never depended on `action_cost`.
 ## 5. Integrity record
 
 - frozen hashes 15/15 PASS before and after each batch; `discover/formal_e.py` SHA-256 `d4451c42…` unchanged throughout;
-- 98/98 formal runs completed; 0 infrastructure retries; 0 driver exceptions; no run discarded;
+- 118/118 formal runs completed; 0 infrastructure retries; 0 driver exceptions; no run discarded;
 - every new cell is independently tagged (`c1low`, `c1uncapped`, `c1mini300`, `c1mini400`) and keyed separately in the
   analysis, so no new cell is pooled with an existing E or E2 cell;
 - generators: `tools/discover/c1_overrun_analysis.py`, `tools/discover/c1_error_taxonomy.py`;
@@ -158,7 +179,7 @@ those never depended on `action_cost`.
 
 | item | status |
 |---|---|
-| 1 | 75/100/125/150 CU done at n = 20; floor still below range; a **50 CU** cell would bracket the arithmetic floor near 35–40 CU |
+| 1 | **closed**: 50/75/100/125/150 CU done at n = 20. The floor binds at 50 CU (13/20); the lowest stable completion threshold is **75 CU** |
 | 2 | closed: 175-vs-225 consistency in A3; uncapped condition quantified here |
 | 3 | closed, negative: the E2 interface does not move mini across the 175 CU boundary |
 | 4 | closed, negative: mini plateaus at 5–7/20 with `BACKWARD` pinned at 7/20 across 225/300/400 CU |
