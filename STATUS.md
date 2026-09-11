@@ -219,14 +219,37 @@ Current main-text evidence state:
 
 ## Next work package
 
-The scientific evidence and main figure sources are now frozen. Remaining work is manuscript production:
+All non-Agent scientific evidence and main figure sources remain frozen. Remaining work is manuscript production:
 
 1. assemble final figure captions and main/Extended Data allocation;
 2. finish Methods and Supporting Information around the locked evidence;
 3. complete reproducibility/readme packaging and the final claim-to-figure audit;
 4. produce the formal manuscript draft and submission package.
 
-No new scientific or Agent/API experiment is required.
+## 2026-09-11 Agent-line directed extension (supervisor request)
+
+The research freeze now carries a **narrow, directed exception for the Agent line only**. Every NH3, MeOH, Au/TiO2 and
+figure result stays frozen; no scientific model is rerun. Seven items were requested. Three are closed from the existing
+frozen traces with no new compute, and are recorded in `docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A3_2026-09-11.md`:
+
+- the **canonical narrow-window rule** is fixed (window strictly smaller than the 14,136-state domain *and* used by a
+  later scoped action). This corrects mini at 175 CU from 4/20 to **0/20** and strong at 225 CU from 3/20 to **0/20**,
+  and shows narrow-window allocation is used only below the fixed-policy threshold and only by the strong tier;
+- **175 vs 225 CU consistency**: the reachability verdict and both scaling-headroom values are identical at the two
+  budgets (Ru `unreachable` 20/20; 1.0899 / 2.5246), while the canonical break-even 201.223443 is recovered 15/20 at
+  175 CU against 20/20 at 225 CU, with all five deviations traced to discrete window-scope artefacts;
+- the **error taxonomy** splits every 0-CU action error into interface / budget / sequencing. The 133 errors are the
+  mini tier total; nano is budget-blind (81% unaffordable requests), mini is interface- and ordering-limited, and the
+  single strong 175 CU failure is a probe-before-target ordering failure.
+
+Results §3.7 of `docs/MANUSCRIPT_SKELETON.md` now states the claim as **complete decision recovery below the
+fixed-policy compute threshold**. A universal compute saving is not claimed anywhere.
+
+Four items need new API runs and are **not yet executed**: strong 125/150 CU at n = 20 (150 CU has n = 7 so far),
+uncapped strong runs for the natural stopping point, the mini E2 interface arm at 175 CU, and the mini 300/400 CU
+saturation sweep, plus one open-source strong-tier control whose provider is not yet chosen. The E2 interface arm is
+implemented and unit-checked in `tools/discover/formal_e2.py` and `tools/discover/llm_policy_v2.py`; it writes traces
+under policy `E2_llm_agent_budget_aware` and modifies no frozen file (`DISCOVER_FROZEN_V1.json` 15/15 PASS).
 
 ## Version policy
 
