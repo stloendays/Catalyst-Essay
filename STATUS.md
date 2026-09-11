@@ -256,9 +256,30 @@ Two further items were then executed as 53 formal runs (0 infrastructure retries
   correct winner identification from 14/20 to 19/20, but complete decisions stayed 0/20. mini ran `BACKWARD` in 0/20
   runs under both interfaces, so the barrier is chain ordering under a binding budget, not interface expressiveness.
 
-Still pending: the strong completion floor at 75/100 CU, uncapped strong runs for the natural stopping point, the mini
-300/400 CU saturation sweep on the frozen E interface, and the open-source strong-tier control (deferred to the
-reproducibility-package stage).
+A further 98 formal runs then closed three more items (frozen hashes 15/15 PASS before and after every batch, 0
+infrastructure retries, 0 driver exceptions), recorded in `docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A5_2026-09-11.md`:
+
+- **strong 75 CU: 20/20 complete decisions**, median 52 CU to the complete decision — 25% of D's 206 CU threshold.
+  Across 75–250 CU completion never drops below 19/20, so the failure edge remains below the tested range; the fixed
+  action costs put an arithmetic floor near 35–40 CU, which a 50 CU cell would bracket;
+- **uncapped condition (20 runs at a 5000 CU allowance that never binds): the agent is efficient only because the
+  budget binds.** All 20 complete the decision and all 20 stop on their own rule, but median spend is 714 CU — 3.5× D's
+  threshold, worst run 3021 CU — and the decision-stable point moves from 218 CU to 566 CU, with a median 148 CU (33%
+  of spend) consumed after the decision is already complete. This directly contradicts any universal compute saving;
+- **mini saturation sweep: a plateau, not a trend.** Completion is 0/20, 6/20, 4/20, 7/20 at 175, 225, 300, 400 CU with
+  overlapping intervals, and the number of runs that execute `BACKWARD` at all is pinned at exactly 7/20 at 225, 300
+  and 400 CU. The compute at which mini would match strong-175 does not exist in the tested range. With the negative
+  E2 interface result, two independent interventions — more compute and a better interface — both fail to move mini.
+
+**Metric correction.** The trace's per-step `action_cost` is the pre-execution `env.quote()` and overstates the real
+charge for `OPTIMIZE_PROCESS`, so the frozen `cu_to_full` metric that sums it is inflated in 31 of 297 runs (per-cell
+median inflation 0 CU, single-run maximum 58 CU). Two published medians change: strong 175 CU from 140 to **124 CU**
+and strong 150 CU from 106 to **102 CU**. No completion rate, break-even value, reachability verdict, narrow-window
+count or error count is affected. `discover/boundary_c1_metrics.py` was not modified; the ledger-true value is computed
+in `tools/discover/c1_overrun_analysis.py`, which reports the quoted value and the inflation alongside it.
+
+Still pending: a 50 CU strong cell to bracket the arithmetic floor, and the open-source strong-tier control (deferred
+to the reproducibility-package stage).
 
 ## Version policy
 

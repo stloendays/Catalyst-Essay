@@ -1,5 +1,10 @@
 # DISCOVER-BOUNDARY-C1 Addendum A4 — low-budget strong cells and the E2 interface intervention (2026-09-11)
 
+> **Superseded in part by Addendum A5 (2026-09-11).** The decision-stable CU figures in this addendum were
+> computed from the trace's per-step `action_cost`, which is the pre-execution quote and overstates the real charge
+> for `OPTIMIZE_PROCESS`. The ledger-true values are 124 CU at 175 CU and 102 CU at 150 CU (corrected in the table
+> below); every other figure is unaffected. See A5 §4.
+
 New formal runs executed on 2026-09-11 under the frozen DISCOVER V1 scientific environment. Frozen hashes **15/15 PASS**
 before the batch. **53 formal runs, 0 infrastructure retries, 0 driver exceptions.** No NH3, MeOH, Au/TiO2 or figure
 result was recomputed; `configs/nh3_final.yaml`, the cost model, the prompt, the task, the action schema, the
@@ -20,8 +25,8 @@ One non-formal verification run of the never-before-executed E2 driver was made 
 |---|---|---|---|---|---|---|---|
 | **100 CU** | 20 | **19/20** (P = 0.95, CI 0.76–0.99) | **71 CU** | 81.8 | 9/20 | 20/20 | 4 |
 | **125 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | **80 CU** | 104.7 | 11/20 | 20/20 | 2 |
-| **150 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | 106 CU | 117.5 | 11/20 | 20/20 | 4 |
-| 175 CU | 20 | 19/20 (P = 0.95) | 140 CU | 150.6 | 15/20 | 20/20 | 10 |
+| **150 CU** | 20 | **20/20** (P = 1.00, CI 0.84–1.00) | 102 CU | 117.5 | 11/20 | 20/20 | 4 |
+| 175 CU | 20 | 19/20 (P = 0.95) | 124 CU | 150.6 | 15/20 | 20/20 | 10 |
 | 200 CU | 8 | 8/8 | 189 CU | 182.8 | 7/8 | 1/8 | 1 |
 | 225 CU | 20 | 20/20 | 218 CU | 217.8 | **20/20** | 0/20 | 0 |
 | 250 CU | 9 | 9/9 | 218 CU | 224.7 | 9/9 | 0/9 | 0 |
