@@ -89,3 +89,48 @@ Both contributions are therefore conditional-envelope characterizations rather t
 ## One remaining audit before hardening the Results text
 
 Extract the canonical break-even/parity multiplier from every uncapped raw trace and compare it with the frozen reference decision, alongside reachability. A small dedicated artifact such as `data/discover_boundary_c1_uncapped_decision_invariance.csv` should record, per run, the canonical break-even value, reachability result, first-stable step, and final spend. Once exact parity invariance is confirmed, the Result can be strengthened from “extra compute did not change the complete decision” to “extra compute did not change the decision boundary or reachability result.”
+
+---
+
+## Audit resolution — 2026-09-12 (appended; nothing above is modified)
+
+The "one remaining audit before hardening the Results text" is **done and passed**. Record:
+`DISCOVER_BOUNDARY_C1_ADDENDUM_A6_UNCAPPED_BREAKEVEN_AUDIT_2026-09-12.md`; generator
+`tools/discover/c1_uncapped_breakeven_audit.py`; per-run artefact
+`data/discover_boundary_c1_uncapped_breakeven_audit.csv` (this is the file proposed above as
+`discover_boundary_c1_uncapped_decision_invariance.csv`, under a different name; it carries the specified columns —
+canonical break-even value, reachability result, first-stable CU and final spend, per run).
+
+All 20 non-binding-allowance runs were audited against the frozen reference in `DISCOVER_SCORER_V1.GT`:
+
+| check | result |
+|---|---|
+| scored winner == frozen `Fe` | 20/20 |
+| scored reachability == frozen `unreachable` | 20/20 |
+| scored break-even == canonical **201.2234429878984** | **20/20** |
+| max relative error vs the frozen value | **9.89 × 10⁻¹⁶** (float round-trip, i.e. bit-exact) |
+| headroom returned == frozen 2.5246 | 20/20 |
+| fields not establishable from the raw traces | **0** |
+
+**Two gates in the list above are therefore discharged.** The Results text may now state that additional compute left
+the **decision boundary** unchanged, not merely the winner, decision-pair ordering and reachability: the exact parity
+multiplier is bit-exact canonical in every run. The wording "the exact break-even point was unchanged" is now
+supported. The other avoid-items stand unchanged.
+
+Two findings the audit added beyond pass/fail:
+
+- **the premature-first-record pathology is budget-induced.** Every run in this cell executed exactly one decision-pair
+  `BACKWARD`, in the full 14,136-state window. At constrained budgets the scored break-even falls to 9–11/20 because the
+  agent's *first* decision-pair `BACKWARD` is often taken in a preliminary window lacking the parity state; with a
+  non-binding allowance it affords the full window immediately and there is no premature record to discard;
+- **the excess compute buys nothing measurable.** Accuracy is already complete at 218 CU of decision-stable spend, so
+  the additional median 148 CU — and the 2455 CU of the most extreme run — improves no scored component.
+
+One limitation is recorded rather than worked around: the **reference-condition headroom 1.0899** does not appear in this
+cell, because every classified `TEST_REACHABILITY` here used `scope: "window"` and returned
+`max_gain_across_process_states` (2.5246). `GT["headroom"]` likewise holds only the across-states value, so the 1.0899
+anchor cannot be verified against `GT` from these traces; it is evidenced in the 175 CU cell and the frozen
+NH3-FINAL-1.1 record.
+
+The Results and Discussion rewrite built on this framing is `MANUSCRIPT_SKELETON_v2_2026-09-12.md` (§3.7 at 6 paragraphs
+/ 706 words, §4.6 retitled to this document's proposed title). `MANUSCRIPT_SKELETON.md` is left unchanged as v1.
