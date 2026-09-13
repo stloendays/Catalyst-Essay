@@ -134,3 +134,17 @@ NH3-FINAL-1.1 record.
 
 The Results and Discussion rewrite built on this framing is `MANUSCRIPT_SKELETON_v2_2026-09-12.md` (§3.7 at 6 paragraphs
 / 706 words, §4.6 retitled to this document's proposed title). `MANUSCRIPT_SKELETON.md` is left unchanged as v1.
+
+---
+
+## Label correction pointer — 2026-09-13 (appended; nothing above is modified)
+
+Metric **labels** in this document are superseded where they disagree with
+`AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`, which is authoritative for every Agent number. The run data,
+traces and scored values here are unchanged and remain valid.
+
+Specific items corrected there:
+- Audit-resolution appendix: **"(float round-trip, i.e. bit-exact)"** is **withdrawn** for the same reason as above —
+  0/20 bitwise identical, exactly 7.00 ULP apart. Use *numerically identical within floating-point round-off*.
+  The gate discharge itself stands: the canonical parity multiplier is recovered in 20/20 runs well within the
+  1e-6 relative tolerance.

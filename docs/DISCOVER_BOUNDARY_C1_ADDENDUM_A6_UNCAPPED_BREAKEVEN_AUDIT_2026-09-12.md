@@ -94,3 +94,19 @@ this cell, because every classified `TEST_REACHABILITY` here used `scope: "windo
 `max_gain_across_process_states` (2.5246). The 1.0899 value is the `scope: "reference"` quantity and is evidenced in
 the 175 CU cell and in the frozen NH3-FINAL-1.1 record, not here. `DISCOVER_SCORER_V1.GT["headroom"]` likewise holds
 only the across-states value, so the 1.0899 anchor cannot be verified against `GT` from this cell's traces.
+
+---
+
+## Label correction pointer — 2026-09-13 (appended; nothing above is modified)
+
+Metric **labels** in this document are superseded where they disagree with
+`AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`, which is authoritative for every Agent number. The run data,
+traces and scored values here are unchanged and remain valid.
+
+Specific items corrected there:
+- §2: the phrase **"bit-exact agreement, not an approximation"** is **withdrawn**. A binary comparison shows the
+  trace value (`201.2234429878986`, bits `4069272671e8b171`) and the frozen reference (`201.2234429878984`, bits
+  `4069272671e8b16a`) are bitwise identical in **0/20** runs and differ by exactly **7.00 ULP**. The correct wording
+  is *numerically identical within floating-point round-off (relative difference 9.89e-16, 7 ULP)*. Every scored
+  conclusion is unaffected: the agreement is far tighter than the 1e-6 relative tolerance of the canonical test.
+- §5: the limitation on headroom **1.0899** stands and is restated authoritatively in the source-of-truth file §3.3.

@@ -184,3 +184,17 @@ those never depended on `action_cost`.
 | 3 | closed, negative: the E2 interface does not move mini across the 175 CU boundary |
 | 4 | closed, negative: mini plateaus at 5–7/20 with `BACKWARD` pinned at 7/20 across 225/300/400 CU |
 | 7 | open-source strong-tier control still deferred to the reproducibility-package stage |
+
+---
+
+## Label correction pointer — 2026-09-13 (appended; nothing above is modified)
+
+Metric **labels** in this document are superseded where they disagree with
+`AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`, which is authoritative for every Agent number. The run data,
+traces and scored values here are unchanged and remain valid.
+
+Specific items corrected there:
+- §2: the **33.3%** overrun share appears in a column headed "median". It is the **mean of per-run ratios**
+  (33.29%). The median of per-run ratios is 30.58%, and median(overrun)/median(final) = 148/714 = 20.73%.
+- §2: **218 CU** is the median of the *225 CU cell*; in the uncapped cell 218 CU is the *minimum* first-stable value
+  (6 of 20 runs). The two are different statistics of different cells.
