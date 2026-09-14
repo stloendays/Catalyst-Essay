@@ -55,8 +55,10 @@ budget tested.*
 - x: budget (CU), same scale and reference lines as panel a.
 - y (left): fraction of runs using canonical narrow-window allocation, 0 → 1, strong tier — 20/20 at 50–175 CU, 1/8 at
   200 CU, 0/20 at 225 CU, 0/9 at 250 CU, 0/20 at the non-binding allowance.
-- y (right): median smallest window built, in states, out of 14,136 — 1,950 at 125 CU, 1,262 at 150 CU, 1,122 at 175 CU.
-  Plot only the budgets for which this is recorded; do not interpolate.
+- y (right): median smallest window built, in states, out of 14,136 - 633 at 50 CU, 757 at 75, 1,269 at 100,
+  **1,950 at 125**, 1,261.5 at 150, 1,122 at 175, and 14,136 at 200 CU and above. **This series is non-monotone
+  with a maximum at 125 CU; do not draw or imply a monotone trend, and do not interpolate.** The defensible
+  statement is the range (4.5-14% of the domain below 200 CU) against no narrowing from 200 CU upward.
 - overlay: mini and nano at 0/20, to make the tier specificity visible in the same panel.
 - The canonical rule must appear in the caption in one clause: *window strictly smaller than the full 14,136-state
   domain **and** used by a later successful scoped action*.

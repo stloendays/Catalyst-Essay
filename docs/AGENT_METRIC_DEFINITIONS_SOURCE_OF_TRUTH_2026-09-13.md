@@ -115,6 +115,32 @@ traces either.
 1.0899 is the `scope: "reference"` quantity (673 K reference condition). Its evidence is the 175 CU cell and the frozen
 NH3-FINAL-1.1 consistency record. Any manuscript sentence citing 1.0899 must point there, not at the uncapped control.
 
+### 3.4 `min_window_states_median` was an upper median, and the window-size trend is non-monotone
+
+Two defects, both found while assembling the F10 panel data from the frozen CSVs.
+
+**The generator computed an upper median, not a median.** `discover/c1_error_taxonomy.py` produced
+`min_window_states_median` as `sorted(values)[n // 2]`, which for even *n* is the upper of the two central values rather
+than their mean. It disagreed with a true median in 5 of the 10 strong cells (e.g. 125 CU: 2,100 against 1,950; 150 CU:
+1,291 against 1,261.5). **Fixed at the root**: the generator now uses `statistics.median`, and the CSVs are regenerated.
+The prose in A5 and in the F10 spec had quoted true medians, so those values were right and the column was wrong; they
+now agree.
+
+**The median smallest window is not monotone in budget.** Correct values, strong tier:
+
+| budget | 50 | 75 | 100 | 125 | 150 | 175 | 200 | 225 | 250 | non-binding |
+|---|---|---|---|---|---|---|---|---|---|---|
+| median smallest window (of 14,136) | 633 | 757 | 1,269 | **1,950** | 1,261.5 | 1,122 | 14,136 | 14,136 | 14,136 | 14,136 |
+
+The maximum is at 125 CU. Between 175 and 125 CU the window *grows* as the budget falls (1,122 → 1,950); between 125 and
+50 CU it shrinks (1,950 → 633). **Any sentence of the form "the window tightens as the budget falls" is false**, and the
+version in `MANUSCRIPT_SKELETON_v3_2026-09-13.md` §3.7 also had the direction reversed relative to its own two cited
+budgets. Corrected in `MANUSCRIPT_SKELETON_v4_2026-09-14.md`, which states the range (633–1,950 states, 4.5–14% of the
+domain) and the clean contrast against no narrowing from 200 CU upward, with no trend direction claimed.
+
+The narrow-window *usage* counts are unaffected: 20/20 at 50–175 CU, 1/8 at 200 CU, 0/20 at 225 CU, 0/9 at 250 CU,
+0/20 at the non-binding allowance.
+
 ## 4. Frozen values for the uncapped cell, with per-run derivation
 
 Cell: strong `gpt-5.5-2026-04-23`, frozen policy E, **non-binding 5000-CU allowance**, tag `c1uncapped`, n = 20.
@@ -200,7 +226,7 @@ median inflation 0 CU in every cell; single-run maximum 58 CU. Only two cell med
 
 With §3.1–§3.3 applied, the Agent numbers are mutually consistent and each has a single named definition and a single
 named aggregation. **§3.7 and §4.6 are frozen as of this file** in
-`MANUSCRIPT_SKELETON_v3_2026-09-13.md`, which carries the corrected wording. No further Agent experiment is authorised;
+`MANUSCRIPT_SKELETON_v4_2026-09-14.md`, which carries the corrected wording (v3 superseded by §3.4). No further Agent experiment is authorised;
 the remaining Agent work is figure and Extended Data / SI assembly.
 
 Superseded label usages, retained as history with pointers to this file: Addendum A5 §2 (33.3% column header),

@@ -16,7 +16,7 @@ Usage (from harness root):
   python discover/c1_error_taxonomy.py
 """
 from __future__ import annotations
-import csv, glob, json, sys
+import csv, glob, json, statistics, sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -156,7 +156,7 @@ def main() -> int:
             "runs_with_errors": sum(1 for r in rs if r["action_errors"]),
             "narrow_window_canonical": sum(r["narrow_window_canonical"] for r in rs),
             "narrow_window_legacy_bounds_flag": sum(r["narrow_window_bounds_flag_legacy"] for r in rs),
-            "min_window_states_median": sorted(x["min_window_states"] for x in rs if x["min_window_states"] is not None)[len([x for x in rs if x["min_window_states"] is not None]) // 2] if any(x["min_window_states"] is not None for x in rs) else None,
+            "min_window_states_median": (statistics.median([x["min_window_states"] for x in rs if x["min_window_states"] is not None]) if any(x["min_window_states"] is not None for x in rs) else None),
             "detail": json.dumps(dict(det.most_common())),
         })
 
