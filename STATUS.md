@@ -292,3 +292,7 @@ reproducibility-package stage.
 - Use **DRIFT v2** and **TRANSFER v1** only with their family names.
 - Do not describe **DISCOVER V2** as completed unless a new protocol is explicitly frozen and evaluated.
 - Frozen filenames and hash-pinned protocol files are not renamed.
+
+## Current manuscript text for the Agent sections (2026-09-16)
+
+Results 3.7 and Discussion 4.6 are **frozen** and live in `docs/MANUSCRIPT_SKELETON_v4_2026-09-14.md`. `docs/MANUSCRIPT_SKELETON.md` (v1), `..._v2_2026-09-12.md` and `..._v3_2026-09-13.md` are retained unchanged as prior versions; every other section is carried over from v1 byte-identically. Every Agent number is governed by `docs/AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`, which is authoritative where any addendum disagrees. The main-text Agent figure is F10 (draft, not locked).

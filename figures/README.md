@@ -18,8 +18,13 @@ Audit status: **2026-09-10 final claim-to-evidence closure**. A figure is marked
 | F8 | Methane accumulation / purge / selectivity leverage | **LOCKED** — GitHub Actions run 34449914480 rendered and verified `F08_MeOH_selectivity_recycle_D01v3.svg/.pdf/.png`; SHA-256 manifest is `F08_RENDER_SHA256.txt` and the canonical SVG blob is pinned in the figure registry |
 | F9A | Cross-reaction catalyst-to-process pathways | **QUALITATIVE-ONLY / METRIC_EQUIVALENCE_NOT_ESTABLISHED** — legacy 273–410 (~328 midpoint) is archived pre-FINAL-1.1 evidence and is excluded from the current manuscript; no substitute ratio is introduced |
 | F9B | Au/TiO2 rank-preservation control | **LOCKED** — direct CSV, generator and canonical SVG are present; V1.3 remains a supporting annotation/SI result |
+| F10 | Agent capability-bounded operating envelope | **DRAFT — NOT LOCKED** — three panels rendered from `data/agent_figure_panel_data_2026-09-13.csv`; SVG/PDF/PNG and `figures/agent/F10_RENDER_SHA256.txt` present; caption still to be fixed |
 
 The current scientific role and canonical values are defined in [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md). The detailed provenance audit is [`../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md`](../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md). The machine-readable state is [`../data/figure_lock_registry_2026-09-10.csv`](../data/figure_lock_registry_2026-09-10.csv).
+
+### F10 supersedes the 2026-09-10 "no tenth main figure" decision
+
+The 2026-09-10 research-freeze record kept the DISCOVER-BOUNDARY-C1 panels as supporting / Extended Data evidence and created no tenth main figure. That decision is superseded: after the 2026-09-11/12 extension the Agent line carries a three-part result (envelope interior, upper cost boundary, capability boundary) that the main text states in full, so it takes a main-text figure. The earlier C1 panels (`figA`-`figD`, `figP1`-`figP4`) move to Extended Data / SI under the allocation table in `../docs/F10_AGENT_FIGURE_SPEC_AND_ED_SI_PLAN_2026-09-13.md`.
 
 ## NH3 provenance closure and F1-F6 lock
 

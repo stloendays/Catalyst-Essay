@@ -218,6 +218,27 @@ Supporting V1.3 evidence: [`RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](RANK_PR
 
 ---
 
+## Figure 10 — Agent capability-bounded operating envelope
+
+**Status: DRAFT, NOT LOCKED.** Spec `F10_AGENT_FIGURE_SPEC_AND_ED_SI_PLAN_2026-09-13.md`; metric definitions
+`AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`; text `MANUSCRIPT_SKELETON_v4_2026-09-14.md` sections 3.7 / 4.6.
+
+Panel a - complete decision recovery versus compute budget for all three model tiers, Wilson 95% intervals, with the
+policy-D completion threshold at 206 CU and the lowest stable strong budget at 75 CU marked, and the 50 CU affordability
+floor annotated (13/20 complete; winner and decision pair still 20/20).
+
+Panel b - the allocation mechanism: fraction of runs using canonical narrow-window allocation (window strictly smaller
+than the full 14,136-state domain **and** used by a later successful scoped action), with the median smallest window on a
+second axis. That series is non-monotone with a maximum at 125 CU and is drawn as unconnected points; no trend direction
+is claimed.
+
+Panel c - the upper cost boundary: median decision-stable CU against median final-used CU per budget, with the 206 CU
+line, and the non-binding 5000-CU allowance cell drawn on its own axis so it is never read as a point on the budget
+continuum. Median final spend there is 714 CU, 3.5x D; the 3,021 CU extremum is marked as a single run.
+
+Canonical values: `data/agent_figure_panel_data_2026-09-13.csv`. Renderer: `figures/agent/render_F10_agent_envelope.py`.
+Wording constraints for the caption are fixed in the spec, section 4.
+
 ## Working main-text allocation
 
 The restored MeOH before/after ranking evidence makes **F7** a main-text result rather than a supporting-only process figure. A compact main narrative can now be built around **F1, F2, F5, F6, F7, F8 and F9**. Figures **F3 and F4** remain the strongest candidates for Extended Data / Supporting Information if the main-text figure count must be reduced.
