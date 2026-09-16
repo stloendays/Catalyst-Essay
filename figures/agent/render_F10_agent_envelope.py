@@ -127,7 +127,7 @@ def main() -> int:
     floor = next(r for r in cells("strong") if int(r["budget_CU"]) == 50)
     ax.annotate("affordability floor at 50 CU\n13/20 complete; winner and\ndecision pair still 20/20",
                 xy=(50, float(floor["p_complete_decision"])), xycoords="data",
-                xytext=(0.36, 0.20), textcoords="axes fraction",
+                xytext=(0.40, 0.235), textcoords="axes fraction",
                 fontsize=6.8, color=INK, ha="left", va="bottom",
                 arrowprops=dict(arrowstyle="-", lw=0.6, color=GREY,
                                 connectionstyle="angle,angleA=0,angleB=90,rad=3"))
