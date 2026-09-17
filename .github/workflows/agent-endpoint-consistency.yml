@@ -1,0 +1,69 @@
+name: Agent endpoint consistency
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/MANUSCRIPT_SKELETON.md'
+      - 'docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'
+      - 'docs/AGENT_HARNESS.md'
+      - 'docs/RESULTS_AT_A_GLANCE.md'
+      - 'README.md'
+      - '.github/workflows/agent-endpoint-consistency.yml'
+  pull_request:
+    paths:
+      - 'docs/MANUSCRIPT_SKELETON.md'
+      - 'docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'
+      - 'docs/AGENT_HARNESS.md'
+      - 'docs/RESULTS_AT_A_GLANCE.md'
+      - 'README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check endpoint definitions
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          files = {
+              'manuscript': Path('docs/MANUSCRIPT_SKELETON.md'),
+              'v6': Path('docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'),
+              'harness': Path('docs/AGENT_HARNESS.md'),
+              'results': Path('docs/RESULTS_AT_A_GLANCE.md'),
+              'readme': Path('README.md'),
+          }
+          text = {k: p.read_text(encoding='utf-8') for k, p in files.items()}
+
+          forbidden = [
+              'A complete decision requires the economic winner, the decision pair, the backward target and the reachability verdict',
+              'The complete decision requires the full chain: economic winner -> decision pair -> backward target -> reachability verdict',
+              'A complete decision requires the full chain:',
+          ]
+          for name, body in text.items():
+              for phrase in forbidden:
+                  if phrase in body:
+                      raise SystemExit(f'{name}: stale four-component primary-endpoint wording: {phrase}')
+
+          formula = 'full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct'
+          for name in ('manuscript', 'v6', 'harness', 'results'):
+              if formula not in text[name]:
+                  raise SystemExit(f'{name}: frozen primary-endpoint formula missing')
+
+          for name in files:
+              if '75 CU' not in text[name] or '225 CU' not in text[name]:
+                  raise SystemExit(f'{name}: 75/225-CU threshold separation missing')
+
+          if '**4/20 mini**' in text['readme'] or '**4/20 mini**' in text['results']:
+              raise SystemExit('legacy bounds-only mini narrow-window count reintroduced')
+          if '**0/20 mini**' not in text['readme'] or '**0/20 mini**' not in text['results']:
+              raise SystemExit('canonical mini narrow-window count missing')
+
+          print('PASS: Agent endpoint definition, dual thresholds and narrow-window counts are consistent.')
+          PY
