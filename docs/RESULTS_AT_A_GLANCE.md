@@ -1,6 +1,6 @@
 # Results at a glance
 
-Snapshot: **2026-09-10**
+Snapshot: **2026-09-17**
 
 ## Ammonia ranking inversion
 
@@ -15,9 +15,13 @@ Fe   #3               Os   #3   25.832 USD/t NH3
 
 - Top-3 Spearman rho: **-0.50**
 - Top-3 Kendall tau: **-0.33**
+- Pairwise inversions: **2 of 3** (**Ru vs Fe**, **Os vs Fe**)
+- Preferred-candidate identity: **Ru -> Fe**
 - Full 15-metal raw Spearman rho: **0.929**
 
-Interpretation: global rank agreement can remain high while the ordering among the most competitive candidates reverses.
+Because the frontier contains only three candidates, rho and tau are treated as **descriptive rank-rearrangement summaries**, not as population-level significance tests. Exact enumeration of all `3! = 6` possible rank permutations is reported in `docs/si/SI_8_rank_frontier_exact_enumeration.md`; the exact two-sided Spearman probability for `|rho| >= 0.50` is 1.000. The primary decision-level evidence is the **2/3 pairwise inversion structure and the change in Top-1 identity**.
+
+Interpretation: global rank agreement can remain high while the ordering among the most competitive candidates reverses. In this case, **global correlation does not imply decision-frontier consistency**.
 
 ## Uncertainty and actionability
 
@@ -87,6 +91,8 @@ Rank statistics:
 - Pairwise inversions: **3 of 6**
 - Upstream per-Re winner: **1 wt% Re / 250 C**, falling to economic rank **#3**
 - Economic winner: **5 wt% Re / 200 C**
+
+Because this frontier contains only four states, rho and tau are again treated descriptively. Exact enumeration of all `4! = 24` possible rank permutations gives a two-sided Spearman permutation probability of **22/24 = 0.9167** for `|rho| >= 0.20`; no population-level significance claim is made from this coefficient. The direct evidence is the observed **3/6 pairwise inversions and the change in the preferred state under the economic objective**.
 
 The reshuffle is metric-independent at the global-statistics level: STY per g Re, single-pass yield and STY per g catalyst all give rho = 0.20, tau = 0.00 and 3/6 inversions. Only the identity of the upstream winner depends on the metric.
 
@@ -191,7 +197,7 @@ D fixed-VOI          incomplete       complete
 
 At 175 CU, narrow-window construction is used in **20/20 strong**, **4/20 mini**, and **0/20 nano** runs. At 225 CU, strong E reaches full decision at a median of approximately **218 CU** versus **206 CU** for D.
 
-Phase B was a cost-motivated reduced extension at 175 and 225 CU: **80/80 formal runs**, **0 smoke runs**, **0 infrastructure retries**, **0 driver exceptions**, and frozen hashes **15/15 PASS** before and after.
+The weak-tier transfer arm was evaluated at the two discriminative cells, **175 and 225 CU**, which straddle the fixed-policy threshold: **80/80 formal runs**, **0 smoke runs**, **0 infrastructure retries**, **0 driver exceptions**, and frozen hashes **15/15 PASS** before and after. No weak-tier response is inferred at unmeasured budgets.
 
 The post-C1 manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed policy threshold**, not universal adaptive superiority or universal raw-compute saving.
 
