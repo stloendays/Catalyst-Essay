@@ -1,265 +1,218 @@
-# Figure map — canonical manuscript snapshot
+# Figure map — current manuscript architecture
 
-Snapshot date: **2026-09-10**  
-Scientific basis: **NH3-FINAL-1.1** for ammonia headline values.
+Snapshot: **2026-09-17**  
+Primary ammonia basis: **NH3-FINAL-1.1**
 
-This page preserves a compact **nine-figure** main-text architecture. The Au/TiO2 rank-preservation control is integrated into **Figure 9B** as the counterpoint to the ammonia and methanol inversion cases rather than added as a tenth standalone figure.
+The current main figure architecture is **F1-F10**. Each figure is assigned a scientific role; the map below is intended to keep the visual presentation, captions and manuscript claims aligned with the frozen evidence.
 
-The purpose of each figure is a scientific claim, not simply a visualization of available data.
+## F1 — NH3 atomic-to-economic ranking propagation
 
-## Figure 1 — NH3 atomic vs economic ranking
-
-**Question:** Does an atomic activity ranking survive industrial economic propagation?
+**Question:** Does the atomic activity ranking survive industrial economic propagation?
 
 **Content**
+
 - 15-metal intrinsic activity ranking versus optimized catalyst-dependent economic ranking.
-- Highlight Ru, Os and Fe.
+- Highlight the decision-frontier metals Ru, Os and Fe.
 
-**Canonical headline**
-- Atomic top-3: **Ru > Os > Fe**.
-- Economic top-3: **Fe > Ru > Os**.
-- Fe / Ru / Os reduced catalyst-dependent costs: **15.292 / 22.031 / 25.832 USD/t NH3**.
+**Headline values**
 
-**Claim supported:** the candidate ordering can invert after multiscale propagation even when the full candidate set remains globally correlated.
+- atomic top three: **Ru > Os > Fe**;
+- economic top three: **Fe > Ru > Os**;
+- Fe / Ru / Os cost: **15.292 / 22.031 / 25.832 USD/t NH3**.
 
----
-
-## Figure 2 — Rolling Top-K rank correlation
-
-**Question:** Why can a globally high rank correlation still produce the wrong decision among the candidates that matter?
-
-**Content**
-- Spearman rho as a function of the number K of highest-activity candidates retained.
-- Optionally pair with Kendall tau at the decision frontier.
-
-**Canonical headline**
-- Top-3 Spearman rho = **-0.50**.
-- Top-3 Kendall tau = **-0.33**.
-- Full 15-metal raw Spearman rho = **0.929**.
-
-**Claim supported:** the inversion is concentrated at the **decision frontier**, not distributed uniformly across the full screen.
+**Role:** establish the principal decision-frontier inversion.
 
 ---
 
-## Figure 3 — NH3 uncertainty and decision stability
+## F2 — Rolling Top-K rank correlation
 
-**Question:** How does descriptor uncertainty propagate into engineering feasibility and ranking stability?
+**Question:** Why can a globally correlated screen still give a different decision among the leading candidates?
 
-**Content**
-- 1,000-draw Monte Carlo propagation.
-- Fe feasibility under the 90 m3 bed-volume criterion.
-- Top-1 survival and Top-3 actionable probability.
+**Headline values**
 
-**Canonical headline**
-- Fe feasibility = **79.9%**.
-- Fe Top-1 survival = **28.2%**.
-- Fe Top-3 actionable = **94.0%**.
+- Top-3 Spearman rho: **-0.50**;
+- Top-3 Kendall tau: **-0.33**;
+- full 15-metal raw Spearman rho: **0.929**.
 
-**Interpretation:** the uncertainty is dominated by the strong-binding tail of the descriptor distribution; it should not be read as a probability that Fe is intrinsically “industrially unusable.”
+**Role:** localize the ranking conflict to the decision frontier rather than the full candidate set.
 
 ---
 
-## Figure 4 — Fe / Ru / Os operating envelopes
+## F3 — NH3 uncertainty and decision stability
 
-**Question:** After pressure-dependent equipment CAPEX is included, where do the catalysts actually prefer to operate?
+**Question:** How does descriptor uncertainty propagate into engineering feasibility and candidate actionability?
 
-**Content**
-- Pressure-dependent cost envelope.
-- Re-optimize reactor temperature and separator temperature at each pressure.
-- Show the broadness of the optimum rather than only the argmin.
+**Headline values**
 
-**Canonical headline**
-- Fe optimum: approximately **425 C / 180 bar / 30 C**.
-- Ru optimum: approximately **450 C / 425 bar / 25 C** and is now an interior point.
-- Os: **broad shallow high-pressure minimum**; do not over-interpret a single point value.
+- Fe feasibility: **79.9%**;
+- Fe Top-1 survival: **28.2%**;
+- Fe Top-3 actionable probability: **94.0%**.
 
-**Claim supported:** process reoptimization and pressure CAPEX change the preferred operating regime without removing the ranking inversion.
+**Role:** distinguish numerical uncertainty from decision-changing uncertainty.
 
 ---
 
-## Figure 5 — Ru backward-design activity sweep
+## F4 — Fe / Ru / Os operating envelopes
 
-**Question:** How much activity improvement would Ru need to reach Fe cost parity after full process reoptimization?
+**Question:** Where do the leading catalysts prefer to operate once pressure-dependent process economics are included?
 
-**Content**
-- Ru activity multiplier on the x-axis.
-- Reoptimized Ru cost on the y-axis.
-- Fe parity line and the crossing point.
+**Representative optima**
 
-**Canonical headline**
-- Activity-only break-even target = **201.22x** (write approximately **201-fold** in prose).
-- Break-even operating point: approximately **425 C / 190 bar / 30 C**.
+- Fe: approximately **425 C / 180 bar / 30 C separator**;
+- Ru: approximately **450 C / 425 bar / 25 C separator**;
+- Os: broad shallow high-pressure minimum.
 
-**Claim supported:** economic parity can be translated into a quantitative catalyst-property target.
+**Role:** show that catalyst identity changes the economically preferred operating regime and that the ranking result survives process reoptimization.
 
 ---
 
-## Figure 6 — Scaling-manifold reachability
+## F5 — Ru backward-design activity sweep
 
-**Question:** Is the 201-fold Ru activity target physically reachable along the current scaling-consistent design path?
+**Question:** How much intrinsic-activity improvement would Ru need to reach Fe cost parity after full process reoptimization?
 
-**Content**
-- Descriptor/scaling manifold mapped to achievable activity.
-- Compare reachable activity headroom with the backward-design target.
-- Show the strict-scaling Ru minimum cost relative to Fe.
+**Headline value**
 
-**Canonical headline**
-- Activity headroom at 673 K: **1.090x**.
-- Maximum headroom over the process-state library: **2.525x**.
-- Strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**.
-- Activity-only route: **unreachable** under the frozen model.
+- Ru activity-only break-even: **201.22x**.
 
-**Claim supported:** backward design distinguishes an economically useful target from a target that the current catalyst-property manifold cannot supply.
+**Role:** translate an industrial economic target into a catalyst-property target.
 
 ---
 
-## Figure 7 — CO2-to-MeOH catalyst-state ranking inversion and recycle economics
+## F6 — Scaling-manifold reachability
 
-**Question:** Can an intrinsic catalyst-state ranking be reshaped after explicit recycle/separation economics, and where does the reversal occur?
+**Question:** Is the backward-design target reachable on the frozen scaling-consistent catalyst-property path?
 
-**Content**
-- Rebuilt upstream-to-economic rank-flow panel from `MeOH_F03_UpstreamToEconomicRanking_D01v3.png`.
-- Four Re/TiO2 catalyst–temperature states at the D01 v3 literature points.
-- Left: upstream **STY per g Re** ranking.
-- Right: **NPC at 2% purge** ranking.
-- Pair with the archived explicit-loop / cost-across-state view if space permits.
+**Headline values**
 
-**Canonical headline**
-- Upstream per-Re order: **1% Re 250 C > 1% Re 200 C > 5% Re 200 C > 5% Re 250 C**.
-- Economic order: **5% Re 200 C > 1% Re 200 C > 1% Re 250 C > 5% Re 250 C**.
-- NPC: **943 / 967 / 975 / 1258 EUR/t** in economic-rank order.
-- Spearman rho = **0.20**.
-- Kendall tau = **0.00**.
-- Pairwise inversions = **3 of 6**.
-- Upstream per-Re winner **1% Re / 250 C** falls to economic rank **#3**.
+- activity headroom at 673 K: **1.090x**;
+- maximum headroom over the frozen process-state library: **2.525x**;
+- strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**.
 
-**Writing boundary**
-- These are **catalyst–temperature states**, not four independently reoptimized catalyst identities.
-- The top-rank reversal is specific to the **Re-normalized intrinsic metric**. Using yield or STY per g catalyst preserves the same rho/tau and 3/6 pairwise inversion count but the upstream winner then coincides with the economic winner.
-- Re purchase price is excluded from the NPC by design.
-
-**Claim supported:** explicit downstream propagation can reshape a methanol catalyst-state ranking, and the decision-frontier reversal depends jointly on the upstream screening metric and selectivity-sensitive recycle economics.
-
-Current asset: [`../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png`](../figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png).
+**Role:** separate the catalyst improvement required by economics from the improvement accessible on the current property manifold.
 
 ---
 
-## Figure 8 — Methane accumulation, purge and economic leverage
+## F7 — CO2-to-MeOH upstream-to-economic ranking reshuffle
 
-**Question:** Which catalyst property controls the economically important pathway behind the methanol ranking reshuffle?
+**Question:** Does the ranking change when measured catalyst-state performance is propagated through an explicit recycle/separation loop?
 
-**Frozen panel design**
-- **Panel A:** NPC versus purge fraction for all four D01 v3 catalyst–temperature states across the complete **0.5–40%** / **396-level** robustness sweep; mark **2%** as the source-anchored canonical comparison.
-- **Panel B:** log-scale dot/lollipop comparison of local leverage for STY, single-pass conversion and CH4 suppression at **5 wt% Re / 250 C**.
+**Canonical comparison**
 
-**Canonical benchmark**
-- STY leverage = **0.00289**.
-- Single-pass conversion leverage = **0.05883**.
-- CH4-suppression leverage = **0.37579**.
-- 5 wt% Re / 250 C: **X_CO2 = 0.40**, **S_CH4 = 0.25**, **NPC = 1258 EUR/t**.
-- Across the purge sweep, the per-Re winner is never the economic winner, rho never exceeds **0.40**, and at least **2/6** pairs remain inverted.
-
-**Claim supported:** in the current methanol regime, selectivity-driven methane suppression has much stronger economic leverage than production-rate improvement alone and provides the mechanistic pathway for the observed rank reshuffling.
-
-**Status:** **LOCKED.** The frozen R renderer was executed by GitHub Actions and verified SVG/PDF/PNG outputs plus a SHA-256 manifest. Rendering did not change the metric or canonical 2% comparison.
-
----
-
-## Figure 9 — When catalyst rankings invert and when they survive
-
-**Question:** Is ranking inversion an inevitable consequence of multiscale propagation, or does it depend on the topology of catalyst-to-process coupling and on the upstream screening objective?
-
-### Figure 9A — Cross-reaction catalyst-to-process pathways
-
-**Current status: QUALITATIVE-ONLY / METRIC_EQUIVALENCE_NOT_ESTABLISHED.**
-
-The previous denominator-aligned MeOH CH4-suppression / NH3 TOF normalized-leverage ratio of **273–410** (midpoint ~**328**) belongs to the archived pre-NH3-FINAL-1.1 normalization and is not a current figure headline. GitHub Actions run **34449914480** did not recover a pre-audit code-level implementation sufficient to prove the exact historical NH3 TOF economic-leverage definition, and the frozen FINAL-1.1 source harness needed for an exact rerun is not present in this repository.
-
-**Content**
-- NH3: activity -> catalyst inventory / reactor demand / process severity.
-- MeOH: selectivity -> feed loss / gas accumulation / purge / recycle / compression.
-- No cross-reaction numerical ratio is plotted unless the original metric implementation and frozen FINAL-1.1 harness are later recovered.
-
-**Claim supported:** the dominant catalyst-to-economic propagation mechanism is **reaction- and process-pathway dependent**. Figure 9A is a mechanism/topology comparison, not a quantitative leverage-ratio panel.
-
-### Figure 9B — Au/TiO2 rank-preservation control
-
-**Content**
-- Reuse / adapt the existing mirror rank-flow figure `RP1_AuTiO2_rank_preservation_V1_1.svg`.
-- Left: literature-calibrated intrinsic mass-activity ranking across **2, 3, 4, 5 and 6 nm** Au particles.
-- Right: required catalyst-burden ranking at the common fixed process condition.
-- Show the same candidate order on both sides and annotate the fixed-condition / monotonic-mapping nature of the canonical V1.1 control.
-- If space permits, add a small robustness annotation rather than a new main panel for V1.3: under semi-open operating conditions, moderate candidate-specific kinetic/operating freedom retains mean rho **0.992** in the primary 273–293 K window and **0.968** in the wider 273–313 K sensitivity window.
-
-**Canonical headline — V1.1**
-- Activity rank = burden rank = **2 > 3 > 4 > 5 > 6 nm**.
-- Spearman rho = **1.000**.
-- Kendall tau = **1.000**.
-- Pairwise inversions = **0**.
-- Full ranking preserved in **10,000 / 10,000** predefined literature-envelope draws.
-- Literature-calibrated 6 nm / 2 nm required-catalyst ratio = **8.064x**.
-
-**Supporting robustness — V1.3 semi-open test**
-- Primary 273.15–293.15 K, moderate stress: exact full order preserved **92.16%**, mean rho **0.99214**, rho >= 0.9 in **99.98%** of draws.
-- Wider 273.15–313.15 K sensitivity, moderate stress: exact full order preserved **72.62%**, mean rho **0.96802**, rho >= 0.9 in **97.56%** of draws.
-- The V1.3 result allows occasional local reshuffling; it does not force exact preservation.
-
-**Writing boundary**
-- V1.1 remains the **canonical rank-preservation control**.
-- V1.3 is a **supporting robustness extension**, not a replacement control and not a full industrial TEA.
-- Do not assign unsupported absolute process economics to the Au/TiO2 system.
-- The V1.3 operating penalties are generic monotone penalties rather than a fully literature-derived plant cost model.
-- The scientific role of V1.3 is to show that preservation is not solely an artefact of a perfectly fixed operating point.
-
-**Combined Figure 9 claim:** multiscale propagation does not have one universal effect on catalyst rankings. NH3 shows a decision-frontier inversion after candidate-specific process/economic reoptimization; MeOH shows a catalyst-state ranking reshuffle through a selectivity–recycle pathway whose top-rank reversal depends on Re-normalized intrinsic screening; Au/TiO2 preserves the full ranking under the canonical fixed-condition mapping and remains strongly rank-correlated when moderate operating and kinetic freedom is introduced.
-
-Current control asset: [`../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg`](../figures/rank_preservation_control/RP1_AuTiO2_rank_preservation_V1_1.svg).  
-Supporting V1.3 evidence: [`RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md`](RANK_PRESERVATION_CONTROL_V1_3_SEMIOPEN.md).
-
----
-
-## Figure 10 — Agent capability-bounded operating envelope
-
-**Status: DRAFT, NOT LOCKED.** Spec `F10_AGENT_FIGURE_SPEC_AND_ED_SI_PLAN_2026-09-13.md`; metric definitions
-`AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`; text `MANUSCRIPT_SKELETON_v4_2026-09-14.md` sections 3.7 / 4.6.
-
-Panel a - complete decision recovery versus compute budget for all three model tiers, Wilson 95% intervals, with the
-policy-D completion threshold at 206 CU and the lowest stable strong budget at 75 CU marked, and the 50 CU affordability
-floor annotated (13/20 complete; winner and decision pair still 20/20).
-
-Panel b - the allocation mechanism: fraction of runs using canonical narrow-window allocation (window strictly smaller
-than the full 14,136-state domain **and** used by a later successful scoped action), with the median smallest window on a
-second axis. That series is non-monotone with a maximum at 125 CU and is drawn as unconnected points; no trend direction
-is claimed.
-
-Panel c - the upper cost boundary: median decision-stable CU against median final-used CU per budget, with the 206 CU
-line, and the non-binding 5000-CU allowance cell drawn on its own axis so it is never read as a point on the budget
-continuum. Median final spend there is 714 CU, 3.5x D; the 3,021 CU extremum is marked as a single run.
-
-Canonical values: `data/agent_figure_panel_data_2026-09-13.csv`. Renderer: `figures/agent/render_F10_agent_envelope.py`.
-Wording constraints for the caption are fixed in the spec, section 4.
-
-## Working main-text allocation
-
-The restored MeOH before/after ranking evidence makes **F7** a main-text result rather than a supporting-only process figure. A compact main narrative can now be built around **F1, F2, F5, F6, F7, F8 and F9**. Figures **F3 and F4** remain the strongest candidates for Extended Data / Supporting Information if the main-text figure count must be reduced.
-
-Within F9, the preferred structure remains:
+Using STY per g Re as the upstream intrinsic metric:
 
 ```text
-F9A  qualitative catalyst-to-process pathway comparison across NH3 and MeOH; no current cross-reaction leverage ratio
-F9B  Au/TiO2 canonical rank-preservation control, with V1.3 robustness as a small annotation / supporting result
+upstream rank                       economic NPC rank
+1 wt% Re / 250 C   #1              5 wt% Re / 200 C   #1
+1 wt% Re / 200 C   #2      ->      1 wt% Re / 200 C   #2
+5 wt% Re / 200 C   #3              1 wt% Re / 250 C   #3
+5 wt% Re / 250 C   #4              5 wt% Re / 250 C   #4
 ```
 
-The manuscript closes with a three-regime distinction:
+- Spearman rho: **0.20**;
+- Kendall tau: **0.00**;
+- pairwise inversions: **3/6**.
+
+**Role:** demonstrate transfer of the ranking-propagation question to a catalyst-state problem with a different process pathway.
+
+**Interpretation boundary:** the four candidates are catalyst-temperature states at literature points. Purge is reoptimized in the robustness analysis; T/P are not independently optimized per candidate in this case.
+
+---
+
+## F8 — Methane accumulation, purge and selectivity leverage
+
+**Question:** Which catalyst-controlled variable drives the economically important pathway behind the MeOH ranking reshuffle?
+
+**Panel A**
+
+NPC versus purge across the four D01 v3 states over the complete **0.5-40% / 396-level** sweep, with **2% purge** marked as the canonical comparison.
+
+**Panel B**
+
+Local leverage at 5 wt% Re / 250 C:
+
+- STY: **0.00289**;
+- single-pass conversion: **0.05883**;
+- CH4 suppression: **0.37579**.
+
+**Role:** identify selectivity/methane suppression as the dominant tested local economic pathway in the current MeOH regime.
+
+**Status:** locked; canonical R-rendered SVG/PDF/PNG assets and hash manifest are present.
+
+---
+
+## F9 — When rankings invert and when they survive
+
+### F9A — Cross-reaction catalyst-to-process pathways
+
+**Current evidence level:** qualitative mechanism comparison.
 
 ```text
-NH3: candidate-specific process/economic coupling -> decision-frontier inversion
-MeOH: intrinsic per-Re ranking + selectivity/recycle coupling -> catalyst-state reshuffle / top-rank inversion
-Au/TiO2: monotonic mapping -> exact preservation at the canonical point; moderate semi-open freedom -> mostly preserved / weak local reshuffling
+NH3  : activity -> catalyst inventory / reactor demand
+MeOH : selectivity -> feed loss / purge / recycle
 ```
 
-This allocation is a working editorial recommendation, not a frozen scientific result.
+The historical normalized leverage ratio **273-410** is not plotted as a current result because its original NH3 metric implementation could not be established sufficiently under the current evidence package.
 
-## Version note
+**Role:** show that the dominant propagation pathway is reaction- and process-dependent.
 
-Older values such as Fe/Ru/Os = 10.199/17.592/21.321 USD/t, Fe feasibility = 73.6%, full-15 rho = 0.911 and Ru break-even = 2171.56x belong to **NH3-FINAL-1.0** and should not be used as current headline values. The historical cross-reaction **273–410 (~328)** ratio remains archived pre-FINAL-1.1 evidence and is excluded from the current manuscript because metric equivalence could not be established from the retained source history.
+### F9B — Au/TiO2 rank-preservation control
+
+**Canonical V1.1 values**
+
+- activity rank = burden rank = **2 > 3 > 4 > 5 > 6 nm**;
+- Spearman rho: **1.000**;
+- Kendall tau: **1.000**;
+- pairwise inversions: **0**;
+- full order preserved in **10,000/10,000** predefined literature-envelope draws;
+- 6 nm / 2 nm required-catalyst ratio: **8.064x**.
+
+**Role:** demonstrate that multiscale propagation can preserve a ranking when the downstream mapping remains monotonic.
+
+V1.3 remains a supporting semi-open robustness annotation rather than a replacement for the canonical V1.1 control.
+
+---
+
+## F10 — Agent capability-bounded operating envelope
+
+**Question:** Under a fixed scientific-compute interface, where does adaptive decision recovery emerge and where does it disappear across model capability and budget?
+
+**Current panel structure**
+
+- **Panel A:** complete-decision recovery versus CU budget across model tiers, with the deterministic fixed-VOI completion threshold at **206 CU**.
+- **Panel B:** canonical narrow-window allocation and window size; the series is non-monotone and should not be drawn as a smooth trend.
+- **Panel C:** decision-stable CU versus final used CU, separating decision completion from total spend.
+
+**Boundary values**
+
+```text
+                     175 CU          225 CU
+strong adaptive       19/20           20/20
+mini adaptive           0/20            6/20
+nano adaptive           0/20            0/20
+fixed-VOI             incomplete       complete
+```
+
+**Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
+
+**Status:** panel data and renderer are present; final caption/manuscript lock remains in progress.
+
+---
+
+## Suggested main-text emphasis
+
+The current story can be read as four linked blocks:
+
+```text
+F1-F4   forward propagation and decision-frontier inversion
+F5-F6   backward design and reachability
+F7-F9   transfer across process pathways and rank-preservation control
+F10     decision-aware compute allocation
+```
+
+If the journal requires fewer main figures, **F3 and F4** remain natural candidates for Extended Data / Supporting Information because the core narrative is carried most directly by **F1, F2, F5, F6, F7, F8, F9 and F10**.
+
+## Figure-production rule
+
+Publication-layout redraws may change typography, annotation placement, panel spacing, line weights and export format. They must preserve the frozen scientific values, data identity and figure geometry implied by the canonical source.
+
+The figure asset/provenance index is [`../figures/README.md`](../figures/README.md). Current numerical summaries are in [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md) and [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv).
