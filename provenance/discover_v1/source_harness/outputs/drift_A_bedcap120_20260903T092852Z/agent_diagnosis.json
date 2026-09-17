@@ -1,0 +1,87 @@
+{
+  "primary_cause": "engineering_threshold_change",
+  "secondary_causes": [
+    "no_drift"
+  ],
+  "evidence": [
+    "Manifest diff: engineering.max_catalyst_bed_m3: canonical=90.0 run=120.0",
+    "Manifest diff: project.run_label: canonical='nh3_final' run='drift_A_bedcap120'",
+    "Failing regression check 'Fe_feasibility_probability': actual=0.758 expected=0.736 tolerance=1e-12 (fail)",
+    "Frozen principle violated: required 90 m3 bed cap but run used 120 m3 (engineering.max_catalyst_bed_m3 != 90.0)",
+    "Model version unchanged: model_version='NH3-FINAL-1.0' — no model_version drift detected",
+    "Run label ('drift_A_bedcap120') indicates the bed-cap change was intentionally named in this run"
+  ],
+  "affected_headlines": [
+    "Fe_feasibility_probability",
+    "Fe_feasibility"
+  ],
+  "is_numerical_chain_still_consistent": true,
+  "frozen_principle_violated": "engineering.max_catalyst_bed_m3 != canonical (90.0). The run used 120.0 m3, violating the fixed 90 m3 bed-cap frozen principle.",
+  "recommended_action": "register_as_new_manifest_version",
+  "rationale": "The single failing regression (Fe_feasibility_probability: 0.758 vs expected 0.736) is causally explained by the manifest change engineering.max_catalyst_bed_m3 from 90.0 to 120.0. Increasing the maximum bed volume expands the feasible design space (more catalyst loading / process combinations pass constraints), which increases Fe feasibility probability. No other manifest keys or model_version changed, and there is no sign of descriptor/scaling convention, candidate-set, seed, or process-grid drift. Because the run violates a documented frozen principle (90 m3 bed cap), this is a manifest-driven, not a physics-driven, drift. If the bed-cap change was intentional, register this manifest as a new canonical version and update regression expectations. If unintentional, revert engineering.max_catalyst_bed_m3 to 90.0 and rerun to restore canonical regression checks.",
+  "_usage": {
+    "prompt_tokens": 838,
+    "completion_tokens": 2047,
+    "model": "gpt-5-mini-2025-08-07"
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092852Z",
+      "mode": "full",
+      "status": "FAIL",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.198659047084616,
+        "Ru": 17.59239838038635,
+        "Os": 21.32057789728162
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": 0.758,
+      "Ru_break_even": 2171.559771717808
+    },
+    "diff": [
+      {
+        "key": "engineering.max_catalyst_bed_m3",
+        "canonical": 90.0,
+        "run": 120.0
+      },
+      {
+        "key": "project.run_label",
+        "canonical": "nh3_final",
+        "run": "drift_A_bedcap120"
+      }
+    ],
+    "failing": [
+      {
+        "name": "Fe_feasibility_probability",
+        "actual": 0.758,
+        "expected": 0.736,
+        "tolerance": 1e-12,
+        "pass": false
+      }
+    ]
+  }
+}

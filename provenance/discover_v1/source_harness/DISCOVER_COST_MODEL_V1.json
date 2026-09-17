@@ -1,0 +1,156 @@
+{
+  "version": "DISCOVER_COST_MODEL_V1",
+  "frozen_utc": "2026-09-05T16:40:33.228523+00:00",
+  "unit_definition": "1 CU = wall time of 1,000 MKM state evaluations on the measurement machine (21.8 ms); evaluation-based actions charged by evaluation count, vectorized actions by measured wall time; all costs rounded up to integers",
+  "measurement": {
+    "INSPECT_CANDIDATES": {
+      "evals": 0,
+      "wall_s": 1.9400002202019095e-05,
+      "size": null
+    },
+    "COMPUTE_ACTIVITY(15)": {
+      "evals": 15,
+      "wall_s": 0.0003063000040128827,
+      "size": 15
+    },
+    "READ_PROPERTY_UNCERTAINTY": {
+      "evals": 0,
+      "wall_s": 8.000002708286047e-06,
+      "size": null
+    },
+    "HARNESS_INIT(full library)": {
+      "evals": 0,
+      "wall_s": 2.412468299997272,
+      "size": 14136
+    },
+    "BUILD_PROCESS_WINDOW(full)": {
+      "evals": 0,
+      "wall_s": 0.0010713999799918383,
+      "size": 14136
+    },
+    "OPTIMIZE_PROCESS(1 metal, full)": {
+      "evals": 28272,
+      "wall_s": 0.5431281999917701,
+      "size": 14136
+    },
+    "OPTIMIZE_PROCESS(Ru)": {
+      "evals": 28272,
+      "wall_s": 0.4712117000017315,
+      "size": 14136
+    },
+    "READ_COST_BREAKDOWN": {
+      "evals": 0,
+      "wall_s": 0.0009543999913148582,
+      "size": null
+    },
+    "RUN_MC(2 metals x 100)": {
+      "evals": 0,
+      "wall_s": 0.7140800999768544,
+      "size": 200
+    },
+    "TEST_LEVER(2 metals)": {
+      "evals": 0,
+      "wall_s": 0.002267300005769357,
+      "size": 2
+    },
+    "BACKWARD(pair)": {
+      "evals": 0,
+      "wall_s": 0.015153999993344769,
+      "size": null
+    },
+    "TEST_REACHABILITY(reference)": {
+      "evals": 1202,
+      "wall_s": 0.021982600010233,
+      "size": null
+    },
+    "TEST_REACHABILITY(window)": {
+      "evals": 1202,
+      "wall_s": 0.027271600003587082,
+      "size": null
+    },
+    "CHECK_MODEL_VALIDITY(edges)": {
+      "evals": 0,
+      "wall_s": 1.580000389367342e-05,
+      "size": null
+    },
+    "CHECK_MODEL_VALIDITY(dominance, new metal)": {
+      "evals": 28272,
+      "wall_s": 0.43188270000973716,
+      "size": null
+    },
+    "ms_per_1000_evals": 21.82014999561943,
+    "process_library_init_s": 2.412468299997272,
+    "n_states_full": 14136
+  },
+  "actions": {
+    "INSPECT_CANDIDATES": {
+      "base_CU": 0,
+      "per_unit_CU": {},
+      "basis": "bookkeeping"
+    },
+    "COMPUTE_ACTIVITY": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "metals": 1
+      },
+      "basis": "1 MKM evaluation per metal at the reference condition; charged 1 CU per metal (minimum billable unit)"
+    },
+    "READ_PROPERTY_UNCERTAINTY": {
+      "base_CU": 0,
+      "per_unit_CU": {},
+      "basis": "bookkeeping"
+    },
+    "BUILD_PROCESS_WINDOW": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "states": 0.00782
+      },
+      "basis": "self-consistent recycle fixed point per state: 0.171 ms/state measured over the full library"
+    },
+    "OPTIMIZE_PROCESS": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "states": 0.002
+      },
+      "basis": "2 MKM evaluations per not-yet-evaluated state (descriptor bracketing as in the frozen closure) -> states*2/1000 CU"
+    },
+    "READ_COST_BREAKDOWN": {
+      "base_CU": 0,
+      "per_unit_CU": {},
+      "basis": "bookkeeping on an already optimized state"
+    },
+    "RUN_MC": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "draws_x_metals": 0.16363
+      },
+      "basis": "per (draw x metal): interpolation on the response-surface asset + full-window cost minimization; wall time measured; the response-surface asset (14136 x 1201 evaluations) is a shared precomputed Layer-A asset, not charged"
+    },
+    "TEST_LEVER": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "metals": 1
+      },
+      "basis": "re-optimization of an already evaluated metal under a perturbed economic/engineering parameter; wall time measured"
+    },
+    "BACKWARD": {
+      "base_CU": 1,
+      "per_unit_CU": {},
+      "basis": "root search over the activity multiplier, each iteration a full-window re-optimization; wall time measured"
+    },
+    "TEST_REACHABILITY": {
+      "base_CU": 2,
+      "per_unit_CU": {
+        "window": 2
+      },
+      "basis": "reference scope: 1201 MKM evaluations along the descriptor grid; window scope adds the state-wise maximum on the response-surface asset"
+    },
+    "CHECK_MODEL_VALIDITY": {
+      "base_CU": 0,
+      "per_unit_CU": {
+        "evals": 28
+      },
+      "basis": "bookkeeping, except the exact dominance check on a not-yet-evaluated metal, which costs its state evaluation (2 per state)"
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "version": "DISCOVER_TASK_V1",
+  "frozen_utc": "2026-09-05T17:16:41.124839+00:00",
+  "industrial_objective": {
+    "product": "NH3",
+    "capacity_t_per_day": 1000,
+    "objective": "minimize the canonical catalyst/process-dependent cost (USD per tonne NH3) under the admissible process domain and engineering constraints",
+    "cost_boundary": "reduced catalyst/process-dependent NH3 cost, USD per tonne: active-metal replacement, converter (volume proxy + pressure-dependent shell), compression and refrigeration electricity, compressor capital; plant 1000 t/d"
+  },
+  "candidate_set": [
+    {
+      "id": "Ag",
+      "descriptor_E_N_eV": 2.911,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 1823.590345370992
+    },
+    {
+      "id": "Au",
+      "descriptor_E_N_eV": 3.0029,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 128732.2322756058
+    },
+    {
+      "id": "Co",
+      "descriptor_E_N_eV": -0.2701,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 56.28401553583051
+    },
+    {
+      "id": "Cu",
+      "descriptor_E_N_eV": 1.2491,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 13.889122517655
+    },
+    {
+      "id": "Fe",
+      "descriptor_E_N_eV": -1.392120623747696,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 8.0
+    },
+    {
+      "id": "Ir",
+      "descriptor_E_N_eV": -0.4407,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 252383.36056351
+    },
+    {
+      "id": "Mo",
+      "descriptor_E_N_eV": -1.8417,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 91.22728409215301
+    },
+    {
+      "id": "Ni",
+      "descriptor_E_N_eV": -0.0928,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 16.9094555095895
+    },
+    {
+      "id": "Os",
+      "descriptor_E_N_eV": -1.1095,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 142650.0
+    },
+    {
+      "id": "Pd",
+      "descriptor_E_N_eV": 0.5637,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 40670.694409279
+    },
+    {
+      "id": "Pt",
+      "descriptor_E_N_eV": 0.5895,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 51508.71107755406
+    },
+    {
+      "id": "Re",
+      "descriptor_E_N_eV": -1.8252,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 5757.64
+    },
+    {
+      "id": "Rh",
+      "descriptor_E_N_eV": -0.458,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 265243.65919095
+    },
+    {
+      "id": "Ru",
+      "descriptor_E_N_eV": -1.1333,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 53852.5
+    },
+    {
+      "id": "W",
+      "descriptor_E_N_eV": -2.161,
+      "descriptor_source": "frozen S1-derived single-descriptor table",
+      "price_USD_kg": 149.97
+    }
+  ],
+  "engineering_constraints": {
+    "T_C": [
+      350.0,
+      375.0,
+      400.0,
+      425.0,
+      450.0
+    ],
+    "P_bar": {
+      "min": 10.0,
+      "max": 1000.0,
+      "step": 5.0
+    },
+    "Tsep_C": {
+      "min": -40.0,
+      "max": 30.0,
+      "step": 5.0
+    },
+    "max_catalyst_bed_m3": 90.0
+  },
+  "allowed_actions": [
+    "INSPECT_CANDIDATES",
+    "COMPUTE_ACTIVITY",
+    "READ_PROPERTY_UNCERTAINTY",
+    "BUILD_PROCESS_WINDOW",
+    "OPTIMIZE_PROCESS",
+    "READ_COST_BREAKDOWN",
+    "RUN_MC",
+    "TEST_LEVER",
+    "BACKWARD",
+    "TEST_REACHABILITY",
+    "CHECK_MODEL_VALIDITY"
+  ],
+  "action_schema": "DISCOVER_ACTION_SCHEMA_V1.json",
+  "cost_model": "DISCOVER_COST_MODEL_V1.json",
+  "compute_budget_CU": null,
+  "requirement": [
+    "return the best industrial candidate (lowest canonical cost, feasible) with the evidence that supports it",
+    "if the candidate with the highest atomic activity differs from the industrial choice, assess whether that candidate could reach cost parity through intrinsic-activity improvement alone, and classify the requirement as reachable, marginal or unreachable on the frozen descriptor scaling manifold",
+    "spend compute on the calculations whose outcome could change the industrial decision; stop when the decision is stable under the stopping rule",
+    "report for every step: state before, candidate actions, chosen action, reason, expected decision value, cost, evidence returned, updated belief, remaining budget; report why you stopped, remaining budget and unresolved decision risk"
+  ],
+  "stopping_rule": {
+    "S1": "a feasible optimized candidate exists (current lowest-cost candidate identified)",
+    "S2": "no unresolved candidate: every candidate is optimized, or is screened as dominated by the current lowest-cost candidate (declared screening rule: lower reference activity AND higher metal price; exact state-level check available via CHECK_MODEL_VALIDITY dominance)",
+    "S3": "if the highest-activity candidate differs from the lowest-cost candidate, BACKWARD(pair) and TEST_REACHABILITY(required multiplier) have been executed and a classification exists",
+    "S4": "the best remaining expected decision value is below the policy's declared threshold, or the remaining budget cannot pay for any admissible action",
+    "may_stop": "(S1 and S2 and S3) or budget exhausted; every stop records why_stop, remaining_budget and unresolved_decision_risk"
+  },
+  "not_provided": "no candidate ranking, no cost, no feasibility, no parity multiplier and no reachability result is given in advance; all must be computed through the allowed actions",
+  "task_variant": "named"
+}

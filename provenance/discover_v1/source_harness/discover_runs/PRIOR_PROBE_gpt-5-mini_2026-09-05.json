@@ -1,0 +1,476 @@
+{
+  "probe": "DISCOVER_PRIOR_PROBE_V1",
+  "model": "gpt-5-mini",
+  "n": 5,
+  "utc": "2026-09-05T17:16:52.329496+00:00",
+  "variants": {
+    "anonymous": {
+      "raw": [
+        {
+          "industrial_winner": "candidate_13",
+          "top3_lowest_cost": [
+            "candidate_13",
+            "candidate_03",
+            "candidate_12"
+          ],
+          "highest_activity_candidate": "candidate_13",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.7,
+          "reasoning": "Rationale (zero-compute heuristic using only the provided descriptors and metal prices):\n- Candidate_13 combines the lowest listed metal price (USD 8/kg) with a descriptor E_N = -1.3921 eV, which lies near the typical expected optimal N-binding region for ammonia synthesis (i.e., near the volcano peak). That makes it the plausible best tradeoff of intrinsic activity and material cost, so I nominate it as the industrial winner.\n- The three lowest apparent-cost candidates by raw material price are candidate_13 (8.0), candidate_03 (13.8891), and candidate_12 (16.9095). Without running the process-cost model, I rank them as the top-three lowest-cost candidates (acknowledging activity could reorder them; candidate_03 has a very weak-binding descriptor 1.2491 eV and thus likely much lower intrinsic activity).\n- The highest-activity candidate is also candidate_13 under the usual assumption that the volcano optimum is near E_N ≈ -1.3 to -1.5 eV; no candidate is clearly closer.\n- Because highest-activity equals the chosen industrial winner, the intrinsic-activity multiplier required for parity is 1.0 (no improvement needed) and (on the single-descriptor scaling manifold) this is trivially \"reachable.\" \nUncertainty note: this is an informed but unverified judgement (no computations allowed in this probe). Activity–cost tradeoffs (reactor volume, pressure, compression power, converter shell sizing) could change the ranking if the true volcano location or the cost sensitivities differ; I assign moderate confidence (0.70).",
+          "_usage": {
+            "prompt_tokens": 2308,
+            "completion_tokens": 1379,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 0
+        },
+        {
+          "industrial_winner": "candidate_13",
+          "top3_lowest_cost": [
+            "candidate_13",
+            "candidate_03",
+            "candidate_12"
+          ],
+          "highest_activity_candidate": "candidate_13",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.8,
+          "reasoning": "With no compute budget or cost model runs, I use the provided descriptor and metal-price heuristics. Candidate_13 has the lowest metal price (USD 8/kg) and an N-binding descriptor E_N = -1.3921 eV, which lies near typical NH3-synthesis Sabatier/volcano optima (~ -1.2 to -1.5 eV in many single-descriptor datasets). That combination (low material cost + near-optimal intrinsic activity) makes it the most plausible lowest canonical-cost, feasible industrial choice. The three lowest metal-price candidates are 13, 03, 12 (USD 8.0, 13.89, 16.91/kg). Because the highest-activity candidate is the same as the chosen industrial winner, the intrinsic-activity multiplier required for parity is 1.0 and is trivially reachable on the single-descriptor scaling manifold. Major uncertainties remain because the true canonical cost depends on process optimization (pressure, temperature, bed volume), converter/compression capital and electricity, and model specifics not provided; that residual decision risk reduces confidence below certainty.",
+          "_usage": {
+            "prompt_tokens": 2308,
+            "completion_tokens": 1548,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 1
+        },
+        {
+          "industrial_winner": "candidate_13",
+          "top3_lowest_cost": [
+            "candidate_13",
+            "candidate_03",
+            "candidate_12"
+          ],
+          "highest_activity_candidate": "candidate_13",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.6,
+          "reasoning": "With zero compute budget, the simplest heuristic is that catalyst metal price (USD/kg) strongly drives the active-metal replacement term of the canonical cost and that a reasonably good descriptor value is needed for activity. candidate_13 has by far the lowest price (8.0 USD/kg) and a descriptor_E_N of -1.3921 eV, which lies plausibly near the ammonia-synthesis volcano peak (moderately strong N binding but not extreme). The three lowest-cost candidates by metal price are candidate_13 (8.0), candidate_03 (13.889), and candidate_12 (16.909). Given its combination of very low price and a descriptor consistent with high intrinsic activity, candidate_13 is the best industrial guess. Therefore no intrinsic-activity multiplier is required for parity (guess = 1.0) and any parity question is moot — parity is reachable trivially. Confidence is moderate (0.6) because the true industrial cost also depends on process-dependent factors (converter volume, operating pressure, bed volume limits, and detailed activity-to-conversion mapping) that are not computed here.",
+          "_usage": {
+            "prompt_tokens": 2308,
+            "completion_tokens": 1518,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 2
+        },
+        {
+          "industrial_winner": "candidate_13",
+          "top3_lowest_cost": [
+            "candidate_13",
+            "candidate_03",
+            "candidate_12"
+          ],
+          "highest_activity_candidate": "candidate_13",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.85,
+          "reasoning": "With zero compute allowed, I use the provided descriptor (E_N) as the single-descriptor activity proxy and the provided price_USD_kg as the economic proxy. Candidate_13 has E_N = -1.3921 eV, which lies very near the expected ammonia-synthesis volcano peak (typical single-descriptor optima ~ -1.3 to -1.5 eV), so it is the highest-activity candidate by that proxy. It also has the lowest listed metal price (USD 8.0/kg), so it plausibly yields the lowest catalyst-dependent cost per tonne. The next-lowest prices are candidate_03 (USD 13.89/kg) and candidate_12 (USD 16.91/kg), giving the top-3 lowest-cost ordering. Because the highest-activity candidate is the same as the industrial winner in this prior estimate, no intrinsic-activity improvement is required (multiplier = 1.0) and parity is trivially reachable on the single-descriptor scaling manifold. Confidence is high (0.85) but not certain because full process-level cost, catalyst inventory, and process optimization were not computed and could alter rankings.",
+          "_usage": {
+            "prompt_tokens": 2308,
+            "completion_tokens": 1020,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 3
+        },
+        {
+          "industrial_winner": "candidate_13",
+          "top3_lowest_cost": [
+            "candidate_13",
+            "candidate_03",
+            "candidate_12"
+          ],
+          "highest_activity_candidate": "candidate_13",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.6,
+          "reasoning": "Basis: with zero compute budget and no cost model available, selection is dominated by the advertised material price and the single-descriptor E_N. Candidate_13 has by far the lowest metal cost (USD 8/kg) and a descriptor E_N = -1.3921 eV, which lies plausibly near typical reported N* binding energies associated with high ammonia-synthesis activity (i.e., near the Sabatier/volcano optimum). The three lowest-price candidates by listed price are 13 (8 USD/kg), 03 (~13.9 USD/kg) and 12 (~16.9 USD/kg). Candidate_13 is therefore chosen as the industrial winner in this zero-tool probe. Because the highest-activity candidate (by the same rough descriptor judgment) is candidate_13 itself, no intrinsic-activity improvement is needed (multiplier ~1.0) and this is trivially reachable. Confidence is moderate (0.6) because the true canonical cost depends on the full cost model (reactor size, pressure, activity→converter size and power, achievable conversion, bed volume limits, and other process-dependent factors) which are not evaluated here.",
+          "_usage": {
+            "prompt_tokens": 2308,
+            "completion_tokens": 1336,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 4
+        }
+      ],
+      "score": {
+        "n": 5,
+        "P_winner_correct": 1.0,
+        "P_atomic_best_correct": 0.0,
+        "P_top3_exact": 0.0,
+        "P_reachability_correct": 0.0,
+        "mean_parity_log10_error": 2.3036785756244287,
+        "rows": [
+          {
+            "sample": 0,
+            "winner_public": "candidate_13",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.7,
+            "usage": {
+              "prompt_tokens": 2308,
+              "completion_tokens": 1379,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "Rationale (zero-compute heuristic using only the provided descriptors and metal prices):\n- Candidate_13 combines the lowest listed metal price (USD 8/kg) with a descriptor E_N = -1.3921 eV, which lies near the typical expected optimal N-binding region for ammonia synthesis (i.e., near the volcano peak). That makes it the plausible best tradeoff of intrinsic activity and material cost, so I nominat"
+          },
+          {
+            "sample": 1,
+            "winner_public": "candidate_13",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.8,
+            "usage": {
+              "prompt_tokens": 2308,
+              "completion_tokens": 1548,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "With no compute budget or cost model runs, I use the provided descriptor and metal-price heuristics. Candidate_13 has the lowest metal price (USD 8/kg) and an N-binding descriptor E_N = -1.3921 eV, which lies near typical NH3-synthesis Sabatier/volcano optima (~ -1.2 to -1.5 eV in many single-descriptor datasets). That combination (low material cost + near-optimal intrinsic activity) makes it the "
+          },
+          {
+            "sample": 2,
+            "winner_public": "candidate_13",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.6,
+            "usage": {
+              "prompt_tokens": 2308,
+              "completion_tokens": 1518,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "With zero compute budget, the simplest heuristic is that catalyst metal price (USD/kg) strongly drives the active-metal replacement term of the canonical cost and that a reasonably good descriptor value is needed for activity. candidate_13 has by far the lowest price (8.0 USD/kg) and a descriptor_E_N of -1.3921 eV, which lies plausibly near the ammonia-synthesis volcano peak (moderately strong N b"
+          },
+          {
+            "sample": 3,
+            "winner_public": "candidate_13",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.85,
+            "usage": {
+              "prompt_tokens": 2308,
+              "completion_tokens": 1020,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "With zero compute allowed, I use the provided descriptor (E_N) as the single-descriptor activity proxy and the provided price_USD_kg as the economic proxy. Candidate_13 has E_N = -1.3921 eV, which lies very near the expected ammonia-synthesis volcano peak (typical single-descriptor optima ~ -1.3 to -1.5 eV), so it is the highest-activity candidate by that proxy. It also has the lowest listed metal"
+          },
+          {
+            "sample": 4,
+            "winner_public": "candidate_13",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.6,
+            "usage": {
+              "prompt_tokens": 2308,
+              "completion_tokens": 1336,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "Basis: with zero compute budget and no cost model available, selection is dominated by the advertised material price and the single-descriptor E_N. Candidate_13 has by far the lowest metal cost (USD 8/kg) and a descriptor E_N = -1.3921 eV, which lies plausibly near typical reported N* binding energies associated with high ammonia-synthesis activity (i.e., near the Sabatier/volcano optimum). The th"
+          }
+        ]
+      }
+    },
+    "named": {
+      "raw": [
+        {
+          "industrial_winner": "Fe",
+          "top3_lowest_cost": [
+            "Fe",
+            "Cu",
+            "Ni"
+          ],
+          "highest_activity_candidate": "Ru",
+          "parity_multiplier_guess": 6731.5625,
+          "reachability_guess": "unreachable",
+          "confidence_winner": 0.75,
+          "reasoning": "With zero compute budget and only the provided descriptors and metal prices, the economically dominant factor for canonical catalyst/process-dependent cost is the active-metal price (all other process degrees of freedom unavailable to compute). Fe is by far the cheapest metal (USD 8/kg) so, absent a demonstrated enormous intrinsic-activity advantage for any pricier metal, Fe is the prudent industrial choice. The three cheapest metals by price are Fe (8.0), Cu (13.889...), and Ni (16.909...), so they are the top-3 lowest-cost candidates. From the N-binding descriptors, Ru (E_N = -1.1333 eV) sits near typical reported optima for N adsorption in ammonia synthesis and is known in literature to be intrinsically highly active (supported Ru catalysts outperform Fe on activity), so I nominate Ru as the highest-activity candidate. A naive parity estimate based purely on metal price ratio gives Ru/Fe = 53852.5 / 8 = 6731.56, so Ru would need an intrinsic-activity improvement of order 6.7e3× (order-of-magnitude thousands) to offset its much higher metal cost if catalyst metal mass scales inversely with activity. That scale of improvement is unlikely to be achievable by tuning a single adsorption-energy descriptor along frozen scaling relations (alloying/support effects typically give at best small shifts and rarely multi-thousand-fold intrinsic activity changes), so I judge reachability on a single-descriptor scaling manifold as 'unreachable'. Given reliance on price and historical use of Fe, my confidence in Fe as the industrial winner is about 0.75 under these constraints and without further process/cost calculations.",
+          "_usage": {
+            "prompt_tokens": 2270,
+            "completion_tokens": 1584,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 0
+        },
+        {
+          "industrial_winner": "Fe",
+          "top3_lowest_cost": [
+            "Fe",
+            "Cu",
+            "Ni"
+          ],
+          "highest_activity_candidate": "Ru",
+          "parity_multiplier_guess": 1000,
+          "reachability_guess": "unreachable",
+          "confidence_winner": 0.7,
+          "reasoning": "Reasoning from the frozen candidate data only (no computations allowed): Fe is the cheapest metal listed (USD 8/kg) and has a strongly negative N-binding descriptor (E_N = -1.392 eV) consistent with historically high intrinsic activity for Haber–Bosch catalysts, so it is the most plausible industrial (lowest canonical cost) choice. The next-cheapest metals by raw price are Cu (13.9 USD/kg) and Ni (16.9 USD/kg), so they are my guessed second and third lowest-cost candidates absent process-cost recalculation. Ru (E_N = -1.1333 eV) is likely the highest atomic-activity candidate (Ru is well known to be highly active for NH3 synthesis) but is very expensive (USD ~53,852/kg). To overcome Ru’s large material cost purely by intrinsic-activity improvement would require a very large per-site activity multiplier; I guess on the order of 1e3 (1000×) as a rough magnitude. Because Ru’s descriptor is already near the plausible activity optimum (single-descriptor manifold) and large intrinsic improvements are unlikely on that frozen scaling relation, I classify parity-by-intrinsic-improvement as unreachable. Confidence in Fe as the industrial winner is moderate (0.7) given the strong influence of raw metal cost and Fe’s established industrial performance, but without running the model calculations this is an informed guess rather than a validated decision.",
+          "_usage": {
+            "prompt_tokens": 2270,
+            "completion_tokens": 1830,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 1
+        },
+        {
+          "industrial_winner": "Fe",
+          "top3_lowest_cost": [
+            "Fe",
+            "Cu",
+            "Ni"
+          ],
+          "highest_activity_candidate": "Ru",
+          "parity_multiplier_guess": 6731.5625,
+          "reachability_guess": "unreachable",
+          "confidence_winner": 0.65,
+          "reasoning": "With zero compute budget I rely on the provided descriptors and metal prices. Fe has the cheapest metal price (8 USD/kg) and a reasonably negative N-binding descriptor (−1.392 eV) consistent with known industrial Haber–Bosch Fe catalysts; cheap metal price strongly favors Fe for minimizing catalyst-dependent cost. Ru is known to be intrinsically highly active for NH3 synthesis and has a descriptor close to Fe (−1.133 eV) so I identify Ru as the highest-activity candidate, but its listed price (53,852.5 USD/kg) is ~6.7×10^3 times higher than Fe. Parity by intrinsic-activity improvement alone therefore requires roughly the metal-price ratio ≈ 53852.5/8 ≈ 6731× higher per-atom activity (I report 6731.5625). Such a huge multiplier is not plausibly achieved on a single-descriptor scaling manifold (would require orders-of-magnitude break of scaling relations), so I classify reachability as unreachable. Confidence on Fe as industrial winner is moderate (0.65) given strong price signal but lack of full process-cost calculation and other engineering factors (converter volume, pressure, bed-size limits, and potential screening of low-activity but very cheap metals).",
+          "_usage": {
+            "prompt_tokens": 2270,
+            "completion_tokens": 1447,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 2
+        },
+        {
+          "industrial_winner": "Fe",
+          "top3_lowest_cost": [
+            "Fe",
+            "Cu",
+            "Ni"
+          ],
+          "highest_activity_candidate": "Fe",
+          "parity_multiplier_guess": 1.0,
+          "reachability_guess": "reachable",
+          "confidence_winner": 0.6,
+          "reasoning": "Fe is the cheapest metal here (USD 8/kg) and has a descriptor (E_N = -1.392 eV) that lies near typical reported optima for N-binding in ammonia synthesis catalysts, so it plausibly gives the best tradeoff of intrinsic activity and metal cost. Ru/Os/Re/Mo/W bind N more strongly (some likely to be on the too-strong side of a volcano) and many (Ru, Os, Re, Rh, Ir, Pd, Pt) have prohibitively high metal prices, making them unlikely to beat Fe on canonical cost despite higher intrinsic activity. Cu, Ni and Co are inexpensive but their descriptors are far from the likely optimum (Cu, Au too weak), so they will need much larger converter volume/energy; among low-price metals Cu (13.9 USD/kg) and Ni (16.9 USD/kg) are the next cheapest so I list them 2–3. Parity multiplier: if Fe is already the highest-activity atom in this set, no intrinsic-activity improvement is needed (multiplier ~1), hence 'reachable'. Confidence is moderate (0.6) because the exact mapping from descriptor to reactor sizing, pressure/temperature choices and full cost model are not available without running the allowed calculations; with zero compute budget this is an informed prior rather than a verified optimized decision.",
+          "_usage": {
+            "prompt_tokens": 2270,
+            "completion_tokens": 1394,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 3
+        },
+        {
+          "industrial_winner": "Fe",
+          "top3_lowest_cost": [
+            "Fe",
+            "Cu",
+            "Ni"
+          ],
+          "highest_activity_candidate": "Ru",
+          "parity_multiplier_guess": 6730.0,
+          "reachability_guess": "unreachable",
+          "confidence_winner": 0.8,
+          "reasoning": "Fe is both extremely cheap (USD 8/kg) and has a strongly binding N descriptor (E_N = -1.392 eV) consistent with high activity for Haber–Bosch; together these make it the plausible lowest canonical-cost choice given no further computation. The three cheapest metals by price are Fe, Cu and Ni. Ru (E_N = -1.1333 eV) is likely the intrinsically most active atomic catalyst (Ru is known to give very high turnover for NH3 synthesis) but its metal cost (≈USD 53,852/kg) is ~6.7×10^3 higher than Fe; parity by intrinsic-activity alone would therefore require roughly a several-thousand-fold intrinsic-activity increase (estimate ≈6730×) to offset metal-cost-driven capital/catalyst replacement contributions. Such a large multiplier is not plausible on the frozen single-descriptor scaling manifold (Ru is already near the volcano peak), so I classify reachability as 'unreachable'. Confidence that Fe is the industrial winner (without running any model computations): 0.8.",
+          "_usage": {
+            "prompt_tokens": 2270,
+            "completion_tokens": 1123,
+            "model": "gpt-5-mini-2025-08-07"
+          },
+          "sample": 4
+        }
+      ],
+      "score": {
+        "n": 5,
+        "P_winner_correct": 1.0,
+        "P_atomic_best_correct": 0.8,
+        "P_top3_exact": 0.0,
+        "P_reachability_correct": 0.8,
+        "mean_parity_log10_error": 1.5146422204326453,
+        "rows": [
+          {
+            "sample": 0,
+            "winner_public": "Fe",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Ru",
+            "atomic_best_correct": true,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "unreachable",
+            "reachability_correct": true,
+            "parity_guess": 6731.5625,
+            "parity_log10_error": 1.5244373067818389,
+            "confidence_winner": 0.75,
+            "usage": {
+              "prompt_tokens": 2270,
+              "completion_tokens": 1584,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "With zero compute budget and only the provided descriptors and metal prices, the economically dominant factor for canonical catalyst/process-dependent cost is the active-metal price (all other process degrees of freedom unavailable to compute). Fe is by far the cheapest metal (USD 8/kg) so, absent a demonstrated enormous intrinsic-activity advantage for any pricier metal, Fe is the prudent industr"
+          },
+          {
+            "sample": 1,
+            "winner_public": "Fe",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Ru",
+            "atomic_best_correct": true,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "unreachable",
+            "reachability_correct": true,
+            "parity_guess": 1000,
+            "parity_log10_error": 0.6963214243755713,
+            "confidence_winner": 0.7,
+            "usage": {
+              "prompt_tokens": 2270,
+              "completion_tokens": 1830,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "Reasoning from the frozen candidate data only (no computations allowed): Fe is the cheapest metal listed (USD 8/kg) and has a strongly negative N-binding descriptor (E_N = -1.392 eV) consistent with historically high intrinsic activity for Haber–Bosch catalysts, so it is the most plausible industrial (lowest canonical cost) choice. The next-cheapest metals by raw price are Cu (13.9 USD/kg) and Ni "
+          },
+          {
+            "sample": 2,
+            "winner_public": "Fe",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Ru",
+            "atomic_best_correct": true,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "unreachable",
+            "reachability_correct": true,
+            "parity_guess": 6731.5625,
+            "parity_log10_error": 1.5244373067818389,
+            "confidence_winner": 0.65,
+            "usage": {
+              "prompt_tokens": 2270,
+              "completion_tokens": 1447,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "With zero compute budget I rely on the provided descriptors and metal prices. Fe has the cheapest metal price (8 USD/kg) and a reasonably negative N-binding descriptor (−1.392 eV) consistent with known industrial Haber–Bosch Fe catalysts; cheap metal price strongly favors Fe for minimizing catalyst-dependent cost. Ru is known to be intrinsically highly active for NH3 synthesis and has a descriptor"
+          },
+          {
+            "sample": 3,
+            "winner_public": "Fe",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Fe",
+            "atomic_best_correct": false,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "reachable",
+            "reachability_correct": false,
+            "parity_guess": 1.0,
+            "parity_log10_error": 2.3036785756244287,
+            "confidence_winner": 0.6,
+            "usage": {
+              "prompt_tokens": 2270,
+              "completion_tokens": 1394,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "Fe is the cheapest metal here (USD 8/kg) and has a descriptor (E_N = -1.392 eV) that lies near typical reported optima for N-binding in ammonia synthesis catalysts, so it plausibly gives the best tradeoff of intrinsic activity and metal cost. Ru/Os/Re/Mo/W bind N more strongly (some likely to be on the too-strong side of a volcano) and many (Ru, Os, Re, Rh, Ir, Pd, Pt) have prohibitively high meta"
+          },
+          {
+            "sample": 4,
+            "winner_public": "Fe",
+            "winner_real": "Fe",
+            "winner_correct": true,
+            "atomic_best_real": "Ru",
+            "atomic_best_correct": true,
+            "top3_real": [
+              "Fe",
+              "Cu",
+              "Ni"
+            ],
+            "top3_match": false,
+            "reachability_guess": "unreachable",
+            "reachability_correct": true,
+            "parity_guess": 6730.0,
+            "parity_log10_error": 1.5243364885995483,
+            "confidence_winner": 0.8,
+            "usage": {
+              "prompt_tokens": 2270,
+              "completion_tokens": 1123,
+              "model": "gpt-5-mini-2025-08-07"
+            },
+            "reasoning": "Fe is both extremely cheap (USD 8/kg) and has a strongly binding N descriptor (E_N = -1.392 eV) consistent with high activity for Haber–Bosch; together these make it the plausible lowest canonical-cost choice given no further computation. The three cheapest metals by price are Fe, Cu and Ni. Ru (E_N = -1.1333 eV) is likely the intrinsically most active atomic catalyst (Ru is known to give very hig"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "continue_activity_only_path": false,
+  "reachability_verdict": "unreachable_within_manifold",
+  "gap_summary": "Additive gap: Ru best-on-manifold reduced cost = 17.1940 USD/t vs Fe = 10.1987 USD/t → shortfall = 6.9954 USD/t. Multiplicative gap indicated by the required activity multiplier (2171.56×) is many orders of magnitude larger than the maximum scaling headroom (max gain across S1 manifold = 2.4329×; at 673 K = 1.0899×). Even the direct-DFT diagnostic gain (1.8423×) is far smaller than the required improvement. Conclusion: within the S1 one-descriptor (E_N) scaling manifold there is no reachable change that will make Ru's reduced catalyst-dependent NH3 cost ≤ Fe's cost.",
+  "recommended_levers": [
+    {
+      "lever": "stop_design_path",
+      "why": "S1-derived one-descriptor scaling manifold cannot close the industrial cost gap (best achievable cost along manifold = 17.194 USD/t > Fe = 10.199 USD/t). Continuing to push on the same descriptor is unlikely to change the industrial decision.",
+      "what_to_compute_next": "Reallocate remaining DFT budget: stop broad searches constrained to the S1 manifold. Instead fund targeted computations and techno-economic analyses for alternative levers listed below.",
+      "expected_decision_impact": "high"
+    },
+    {
+      "lever": "active_site_architecture",
+      "why": "Breaking or escaping the S1 one-descriptor scaling relation (multi-site sites, promoters, alloys, dual-site motifs) is the only catalytic design route likely to produce descriptor shifts far beyond the 2.43× manifold headroom. This lever can change fundamental scaling and so has high upside.",
+      "what_to_compute_next": "With a tight DFT budget, run a small, focused set of high-value calculations (e.g., 5–10 models): compute adsorption energies for N2 and key NHx intermediates on a few candidate off-manifold architectures (promoted Ru, Ru alloys, dual-site ensembles). Quantify: (a) E_N and key NHx energies, (b) deviation from the S1 scaling line (i.e., scaling slope/intercept differences), and (c) whether any candidate moves E_N beyond the previously explored best (reference Ru_best_scaling_EN_eV = -1.2 eV) and produces >2.5× effective activity gain relative to the manifold. Prioritize models known to break linear scaling (hetero-sites, strong promoters).",
+      "expected_decision_impact": "high"
+    },
+    {
+      "lever": "catalyst_lifetime",
+      "why": "Catalyst lifetime directly reduces the annualized catalyst cost term; improving lifetime or regenerability can substantially lower reduced cost without changing intrinsic activity. Lifetime change is orthogonal to scaling-limited activity headroom.",
+      "what_to_compute_next": "Use minimal DFT to estimate thermodynamic drivers of deactivation for a few promising catalysts: compute metal segregation energies, adsorption energies of likely poisons, and stability (e.g., vacancy/formation energies) for 3 candidate formulations to rank relative lifetime risk. Combine these with an economic sensitivity sweep (years-on-stream vs cost) to determine what lifetime improvement is required to close the cost gap.",
+      "expected_decision_impact": "high"
+    },
+    {
+      "lever": "metal_price_or_recovery",
+      "why": "Ru metal cost and recoverability have large leverage on catalyst cost per tonne of NH3. Engineering/operational levers (lower loading, higher recovery/recycle) can reduce Ru-specific cost independently of catalytic activity.",
+      "what_to_compute_next": "Prioritize techno-economic runs (no or minimal DFT) to map catalyst reduced cost as a function of Ru loading and recovery fraction. Complement with a few DFT checks to confirm stability of highly dispersed/low-loading configurations (adsorption energies and atom-surface binding for single-atom or small-cluster Ru).",
+      "expected_decision_impact": "high"
+    },
+    {
+      "lever": "process_configuration",
+      "why": "Changing operating window or process configuration (e.g., pressure/temperature, reactor concept, recycle, CAPEX-OP tradeoffs) may reduce reduced catalyst-dependent cost or change which catalyst metrics matter most. The provided 673 K manifold gain is small (1.0899×), so alternative process changes could be more effective than small activity gains.",
+      "what_to_compute_next": "Run integrated microkinetic + process sensitivity cases (T, P, conversion, recycle) to see if a different operating point changes the cost ranking. If DFT is needed, calculate coverage-dependent energetics for 1–2 promising catalyst candidates to parameterize the microkinetic model at the alternative conditions.",
+      "expected_decision_impact": "medium"
+    },
+    {
+      "lever": "reduce_descriptor_uncertainty",
+      "why": "Reducing DFT epistemic uncertainty (sigma) can refine confidence in whether a candidate truly beats Fe, but the current industrial gap is large (≈6.995 USD/t) and the direct-DFT diagnostic gain (1.8423×) is far below the required 2171.56× multiplier — so tighter DFT alone is unlikely to change the industrial decision.",
+      "what_to_compute_next": "If any candidate from off-manifold architectures appears close to parity, spend small targeted budget on higher-fidelity DFT/benchmarking for that candidate only (e.g., denser k-points, larger cells, higher-level functional). Do not spend budget on blanket uncertainty reduction across the manifold.",
+      "expected_decision_impact": "low"
+    },
+    {
+      "lever": "intrinsic_activity",
+      "why": "Intrinsic-activity improvements constrained to the S1 manifold have already been quantified and are insufficient (max on-manifold gain 2.4329×; required 2171.56×). Continuing to search only within that descriptor has very low probability of success.",
+      "what_to_compute_next": "If pursued despite low chances, limit to a very small, hypothesis-driven set of calculations targeting mechanisms not captured by current microkinetic assumptions (e.g., alternative reaction pathways) — otherwise deprioritize.",
+      "expected_decision_impact": "low"
+    }
+  ],
+  "paper_safe_statement": "Within the S1 one-descriptor (E_N) scaling manifold, Ru cannot be cost-reduced to the level of Fe: the best-on-manifold reduced cost for Ru is ~17.19 USD/t versus Fe at ~10.20 USD/t. The required activity multiplier (≈2172×) far exceeds manifold headroom (≤2.43×) and the diagnostic DFT search gain (~1.84×); therefore redirect effort to off-manifold active-site architectures, catalyst lifetime and metal-cost/recovery strategies, and process configuration analyses.",
+  "overclaims_to_avoid": [
+    "Do not claim that further routine DFT refinement within the S1 one-descriptor manifold will make Ru cheaper than Fe.",
+    "Do not claim that the direct-DFT diagnostic gain (≈1.84×) is sufficient to close the industrial gap.",
+    "Do not claim that small temperature-induced gains (e.g., 673 K gain ≈1.09×) meaningfully change the industrial decision.",
+    "Do not overstate the certainty of alternative-lever success — breaking scaling or large lifetime/recovery gains are plausible routes but require explicit validation."
+  ],
+  "_usage": {
+    "prompt_tokens": 621,
+    "completion_tokens": 3593,
+    "model": "gpt-5-mini-2025-08-07"
+  },
+  "_context": {
+    "target": "C_Ru <= C_Fe (reduced catalyst-dependent NH3 cost, USD/t)",
+    "Fe_cost": 10.198659047084616,
+    "Ru_cost_baseline": 17.59239838038635,
+    "backward_reachability": {
+      "Ru_activity_break_even_multiplier": 2171.559771717808,
+      "Ru_scaling_max_gain_673K": 1.0899012267527055,
+      "Ru_scaling_max_gain_all_states": 2.432864708218472,
+      "Ru_best_scaling_cost_USD_t": 17.194036212323034,
+      "Ru_best_scaling_EN_eV": -1.2,
+      "direct_DFT_diagnostic_gain": 1.8423343437364275
+    },
+    "Fe_feasibility_1000_draws": 0.736,
+    "sigma_Fe_eV": 0.2271258177356984,
+    "scope_note": "Reduced cost only; HP-loop CAPEX not modelled. Scaling manifold = S1-derived one-descriptor (E_N)."
+  }
+}

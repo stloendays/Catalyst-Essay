@@ -1,0 +1,119 @@
+{
+  "_dry_run": true,
+  "request": {
+    "model": "gpt-5-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are the backward-design strategy layer of a multiscale catalyst-economics harness\n(NH3 synthesis, model NH3-FINAL-1.0). Backward design asks what catalyst-property change is needed for an\nindustrial target (here: Ru reduced cost <= Fe reduced cost) and whether that change is reachable on the\nS1-derived one-descriptor scaling manifold. Your job: decide whether to keep pushing the same variable or\nredirect the search to levers with more economic leverage, and say what should be computed next given a\nlimited DFT budget. Value of information = reduction of uncertainty in the INDUSTRIAL decision, not surrogate\nerror. Do not invent numbers; use only the ones provided. Distinguish epistemic DFT uncertainty (sigma) from\ndesign headroom along a physically consistent scaling relation."
+      },
+      {
+        "role": "user",
+        "content": "## Backward-design context\n{\n \"target\": \"C_Ru <= C_Fe (reduced catalyst-dependent NH3 cost, USD/t)\",\n \"Fe_cost\": 10.198659047084616,\n \"Ru_cost_baseline\": 17.59239838038635,\n \"backward_reachability\": {\n  \"Ru_activity_break_even_multiplier\": 2171.559771717808,\n  \"Ru_scaling_max_gain_673K\": 1.0899012267527055,\n  \"Ru_scaling_max_gain_all_states\": 2.432864708218472,\n  \"Ru_best_scaling_cost_USD_t\": 17.194036212323034,\n  \"Ru_best_scaling_EN_eV\": -1.2,\n  \"direct_DFT_diagnostic_gain\": 1.8423343437364275\n },\n \"Fe_feasibility_1000_draws\": 0.736,\n \"sigma_Fe_eV\": 0.2271258177356984,\n \"scope_note\": \"Reduced cost only; HP-loop CAPEX not modelled. Scaling manifold = S1-derived one-descriptor (E_N).\"\n}\n\nDecide the strategy and return the structured answer."
+      }
+    ],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "backward_design_strategy",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "continue_activity_only_path": {
+              "type": "boolean"
+            },
+            "reachability_verdict": {
+              "type": "string",
+              "enum": [
+                "reachable",
+                "marginal",
+                "unreachable_within_manifold"
+              ]
+            },
+            "gap_summary": {
+              "type": "string"
+            },
+            "recommended_levers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "lever": {
+                    "type": "string",
+                    "enum": [
+                      "intrinsic_activity",
+                      "selectivity",
+                      "catalyst_lifetime",
+                      "metal_price_or_recovery",
+                      "operating_window",
+                      "process_configuration",
+                      "active_site_architecture",
+                      "reduce_descriptor_uncertainty",
+                      "stop_design_path"
+                    ]
+                  },
+                  "why": {
+                    "type": "string"
+                  },
+                  "what_to_compute_next": {
+                    "type": "string"
+                  },
+                  "expected_decision_impact": {
+                    "type": "string",
+                    "enum": [
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  }
+                },
+                "required": [
+                  "lever",
+                  "why",
+                  "what_to_compute_next",
+                  "expected_decision_impact"
+                ]
+              }
+            },
+            "paper_safe_statement": {
+              "type": "string"
+            },
+            "overclaims_to_avoid": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "continue_activity_only_path",
+            "reachability_verdict",
+            "gap_summary",
+            "recommended_levers",
+            "paper_safe_statement",
+            "overclaims_to_avoid"
+          ]
+        }
+      }
+    }
+  },
+  "_context": {
+    "target": "C_Ru <= C_Fe (reduced catalyst-dependent NH3 cost, USD/t)",
+    "Fe_cost": 10.198659047084616,
+    "Ru_cost_baseline": 17.59239838038635,
+    "backward_reachability": {
+      "Ru_activity_break_even_multiplier": 2171.559771717808,
+      "Ru_scaling_max_gain_673K": 1.0899012267527055,
+      "Ru_scaling_max_gain_all_states": 2.432864708218472,
+      "Ru_best_scaling_cost_USD_t": 17.194036212323034,
+      "Ru_best_scaling_EN_eV": -1.2,
+      "direct_DFT_diagnostic_gain": 1.8423343437364275
+    },
+    "Fe_feasibility_1000_draws": 0.736,
+    "sigma_Fe_eV": 0.2271258177356984,
+    "scope_note": "Reduced cost only; HP-loop CAPEX not modelled. Scaling manifold = S1-derived one-descriptor (E_N)."
+  }
+}

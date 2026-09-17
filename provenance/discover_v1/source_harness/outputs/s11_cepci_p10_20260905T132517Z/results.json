@@ -1,0 +1,958 @@
+{
+  "project": {
+    "name": "Catalyst Economic Leverage",
+    "reaction": "NH3",
+    "harness_version": "0.2.0",
+    "model_version": "NH3-FINAL-1.1",
+    "run_label": "s11_cepci_p10",
+    "scientific_scope": "NH3-FINAL-1.0 chain plus handbook pressure-dependent CAPEX (Turton vertical-vessel pressure factor on the converter shell; Turton centrifugal-compressor bare-module cost for fresh and recycle compression); pressure grid widened to 10-1000 bar so that no metal optimum sits on the grid edge."
+  },
+  "run_id": "20260905T132517Z",
+  "mode": "full",
+  "status": "FAIL",
+  "is_scenario": true,
+  "manifest_drift_from_canonical": [
+    {
+      "key": "economics.pressure_capex.basis",
+      "canonical": null,
+      "run": "Turton, Bailie, Whiting, Shaeiwitz, Bhattacharyya, Analysis, Synthesis and Design of Chemical Processes, 5th ed., Appendix A (purchased-cost correlations indexed to CEPCI 397, 2001)"
+    },
+    {
+      "key": "economics.pressure_capex.compressor.A_max_kW",
+      "canonical": null,
+      "run": 3000.0
+    },
+    {
+      "key": "economics.pressure_capex.compressor.A_min_kW",
+      "canonical": null,
+      "run": 450.0
+    },
+    {
+      "key": "economics.pressure_capex.compressor.F_BM",
+      "canonical": null,
+      "run": 2.8
+    },
+    {
+      "key": "economics.pressure_capex.compressor.K",
+      "canonical": null,
+      "run": [
+        2.2897,
+        1.3604,
+        -0.1027
+      ]
+    },
+    {
+      "key": "economics.pressure_capex.compressor.extrapolation_exponent",
+      "canonical": null,
+      "run": 0.67
+    },
+    {
+      "key": "economics.pressure_capex.compressor.note",
+      "canonical": null,
+      "run": "one service each for fresh-feed and recycle compression; shaft power from the state's electricity cost at design capacity; services above A_max split into equal units"
+    },
+    {
+      "key": "economics.pressure_capex.cost_index_base",
+      "canonical": null,
+      "run": 397.0
+    },
+    {
+      "key": "economics.pressure_capex.cost_index_current",
+      "canonical": null,
+      "run": 877.69
+    },
+    {
+      "key": "economics.pressure_capex.cost_index_note",
+      "canonical": null,
+      "run": "CEPCI 2023 annual average 797.9 (last published annual value; 2024 monthly values 795-801)"
+    },
+    {
+      "key": "economics.pressure_capex.enabled",
+      "canonical": null,
+      "run": true
+    },
+    {
+      "key": "economics.pressure_capex.vessel.A_max_m3",
+      "canonical": null,
+      "run": 520.0
+    },
+    {
+      "key": "economics.pressure_capex.vessel.A_min_m3",
+      "canonical": null,
+      "run": 0.3
+    },
+    {
+      "key": "economics.pressure_capex.vessel.B2",
+      "canonical": null,
+      "run": 1.82
+    },
+    {
+      "key": "economics.pressure_capex.vessel.Fm",
+      "canonical": null,
+      "run": 1.0
+    },
+    {
+      "key": "economics.pressure_capex.vessel.K",
+      "canonical": null,
+      "run": [
+        3.4974,
+        0.4485,
+        0.1074
+      ]
+    },
+    {
+      "key": "economics.pressure_capex.vessel.L_over_D",
+      "canonical": null,
+      "run": 3.0
+    },
+    {
+      "key": "economics.pressure_capex.vessel.allowable_stress_x_weld_eff_bar",
+      "canonical": null,
+      "run": 850.0
+    },
+    {
+      "key": "economics.pressure_capex.vessel.corrosion_allowance_m",
+      "canonical": null,
+      "run": 0.00315
+    },
+    {
+      "key": "economics.pressure_capex.vessel.extrapolation_exponent",
+      "canonical": null,
+      "run": 0.6
+    },
+    {
+      "key": "economics.pressure_capex.vessel.min_thickness_m",
+      "canonical": null,
+      "run": 0.0063
+    },
+    {
+      "key": "economics.pressure_capex.vessel.note",
+      "canonical": null,
+      "run": "premium = Cp0(V)*B2*Fm*(Fp-1); Fp=max(t/t_min,1); t=P*D/(2(SE-0.6P))+CA; D=(4V/(pi L/D))^(1/3); absolute P in bar used for (P_g+1); only the pressure-attributable increment is added on top of the 1.0 volume proxy"
+    },
+    {
+      "key": "economics_note",
+      "canonical": "Reduced catalyst-dependent NH3 cost; high-pressure loop CAPEX is not explicitly modeled.",
+      "run": "Reduced catalyst-dependent NH3 cost. NH3-FINAL-1.1 adds the pressure-attributable converter-shell cost and the compressor bare-module CAPEX; loop heat exchangers, separator vessel and piping remain outside the boundary (declared omission; direction: further penalizes high pressure)."
+    },
+    {
+      "key": "frozen_regression.Fe_cost_USD_t",
+      "canonical": 10.19865904708462,
+      "run": 15.291704676621144
+    },
+    {
+      "key": "frozen_regression.Fe_feasibility_probability",
+      "canonical": 0.736,
+      "run": 0.799
+    },
+    {
+      "key": "frozen_regression.Fe_optimum.P_bar",
+      "canonical": 150.0,
+      "run": 180.0
+    },
+    {
+      "key": "frozen_regression.Fe_optimum.T_C",
+      "canonical": 400.0,
+      "run": 425.0
+    },
+    {
+      "key": "frozen_regression.Os_cost_USD_t",
+      "canonical": 21.32057789728162,
+      "run": 25.83179725613286
+    },
+    {
+      "key": "frozen_regression.Os_optimum.P_bar",
+      "canonical": 300.0,
+      "run": 425.0
+    },
+    {
+      "key": "frozen_regression.Os_optimum.Tsep_C",
+      "canonical": -15.0,
+      "run": 0.0
+    },
+    {
+      "key": "frozen_regression.Ru_activity_break_even_multiplier",
+      "canonical": 2171.559771717808,
+      "run": 201.2234429878984
+    },
+    {
+      "key": "frozen_regression.Ru_best_scaling_cost_USD_t",
+      "canonical": 17.1940362123231,
+      "run": 21.397872966049547
+    },
+    {
+      "key": "frozen_regression.Ru_cost_USD_t",
+      "canonical": 17.59239838038635,
+      "run": 22.03059478781101
+    },
+    {
+      "key": "frozen_regression.Ru_optimum.P_bar",
+      "canonical": 300.0,
+      "run": 425.0
+    },
+    {
+      "key": "frozen_regression.Ru_optimum.Tsep_C",
+      "canonical": 10.0,
+      "run": 25.0
+    },
+    {
+      "key": "frozen_regression.Ru_scaling_max_gain_673K",
+      "canonical": 1.089901226752712,
+      "run": 1.0899012267527077
+    },
+    {
+      "key": "frozen_regression.Ru_scaling_max_gain_all_states",
+      "canonical": 2.432864708218596,
+      "run": 2.5245651130943445
+    },
+    {
+      "key": "frozen_regression._status",
+      "canonical": null,
+      "run": "sensitivity scenario derived from nh3_final_1.1_candidate; overrides {'economics.pressure_capex.cost_index_current': 877.69}"
+    },
+    {
+      "key": "frozen_regression.process_state_count",
+      "canonical": 3636,
+      "run": 14136
+    },
+    {
+      "key": "frozen_regression.raw_global_spearman",
+      "canonical": 0.9107142857142855,
+      "run": 0.9285714285714284
+    },
+    {
+      "key": "process.pressure_bar.stop",
+      "canonical": 300,
+      "run": 1000
+    },
+    {
+      "key": "project.harness_version",
+      "canonical": "0.1.0",
+      "run": "0.2.0"
+    },
+    {
+      "key": "project.model_version",
+      "canonical": "NH3-FINAL-1.0",
+      "run": "NH3-FINAL-1.1"
+    }
+  ],
+  "deterministic": {
+    "activity_order": [
+      "Ru",
+      "Os",
+      "Fe",
+      "Rh",
+      "Ir",
+      "Co",
+      "Re",
+      "Mo",
+      "Ni",
+      "W",
+      "Pd",
+      "Pt",
+      "Cu",
+      "Ag",
+      "Au"
+    ],
+    "raw_economic_order": [
+      "Fe",
+      "Ru",
+      "Os",
+      "Co",
+      "Mo",
+      "Rh",
+      "Ni",
+      "Ir",
+      "Re",
+      "W",
+      "Pd",
+      "Pt",
+      "Cu",
+      "Ag",
+      "Au"
+    ],
+    "feasible_economic_order": [
+      "Fe",
+      "Ru",
+      "Os"
+    ],
+    "raw_global_spearman": 0.9285714285714284,
+    "censored_global_spearman": 0.684172319121686,
+    "rolling": [
+      {
+        "K": 3,
+        "rho_raw": -0.5,
+        "rho_censored": -0.5,
+        "n_feasible": 3
+      },
+      {
+        "K": 4,
+        "rho_raw": 0.39999999999999997,
+        "rho_censored": 0.39999999999999997,
+        "n_feasible": 3
+      },
+      {
+        "K": 5,
+        "rho_raw": 0.7,
+        "rho_censored": 0.6668859288553501,
+        "n_feasible": 3
+      },
+      {
+        "K": 6,
+        "rho_raw": 0.6571428571428573,
+        "rho_censored": 0.7589709258986453,
+        "n_feasible": 3
+      },
+      {
+        "K": 7,
+        "rho_raw": 0.7857142857142859,
+        "rho_censored": 0.7881104062391007,
+        "n_feasible": 3
+      },
+      {
+        "K": 8,
+        "rho_raw": 0.6666666666666669,
+        "rho_censored": 0.7910398521054723,
+        "n_feasible": 3
+      },
+      {
+        "K": 9,
+        "rho_raw": 0.6666666666666667,
+        "rho_censored": 0.7822165589515727,
+        "n_feasible": 3
+      },
+      {
+        "K": 10,
+        "rho_raw": 0.7575757575757575,
+        "rho_censored": 0.7680367542868648,
+        "n_feasible": 3
+      },
+      {
+        "K": 11,
+        "rho_raw": 0.8181818181818182,
+        "rho_censored": 0.7515580963521804,
+        "n_feasible": 3
+      },
+      {
+        "K": 12,
+        "rho_raw": 0.8601398601398602,
+        "rho_censored": 0.7343158832057565,
+        "n_feasible": 3
+      },
+      {
+        "K": 13,
+        "rho_raw": 0.8901098901098902,
+        "rho_censored": 0.7171005886087412,
+        "n_feasible": 3
+      },
+      {
+        "K": 14,
+        "rho_raw": 0.9120879120879121,
+        "rho_censored": 0.70031890928483,
+        "n_feasible": 3
+      },
+      {
+        "K": 15,
+        "rho_raw": 0.9285714285714284,
+        "rho_censored": 0.684172319121686,
+        "n_feasible": 3
+      }
+    ],
+    "metals": {
+      "Ru": {
+        "activity_logTOF": -3.4511885358841505,
+        "min_bed_m3": 0.00033021861385932016,
+        "unconstrained": {
+          "total_cost": 22.54292324001588,
+          "V_m3": 0.06874921814198087,
+          "T_C": 450.0,
+          "P_bar": 420.0,
+          "Tsep_C": 25.0,
+          "breakdown": {
+            "metal_cost": 1.9088154864964542,
+            "reactor_base": 0.029720248638772293,
+            "vessel_pressure_premium": 0.07986725774960991,
+            "fresh_comp": 14.227419946666725,
+            "recycle_comp": 0.12070155597401246,
+            "refrigeration": 0.6291187330945023,
+            "compressor_capex": 5.547280011395806
+          }
+        },
+        "feasible": {
+          "total_cost": 22.54292324001588,
+          "V_m3": 0.06874921814198087,
+          "logTOF": -2.2060016892453116,
+          "T_C": 450.0,
+          "P_bar": 420.0,
+          "Tsep_C": 25.0,
+          "state_index": 12394,
+          "breakdown": {
+            "metal_cost": 1.9088154864964542,
+            "reactor_base": 0.029720248638772293,
+            "vessel_pressure_premium": 0.07986725774960991,
+            "fresh_comp": 14.227419946666725,
+            "recycle_comp": 0.12070155597401246,
+            "refrigeration": 0.6291187330945023,
+            "compressor_capex": 5.547280011395806
+          }
+        }
+      },
+      "Os": {
+        "activity_logTOF": -3.495320399313441,
+        "min_bed_m3": 0.000797136175761881,
+        "unconstrained": {
+          "total_cost": 26.3442027387162,
+          "V_m3": 0.02935276844177327,
+          "T_C": 450.0,
+          "P_bar": 425.0,
+          "Tsep_C": 0.0,
+          "breakdown": {
+            "metal_cost": 2.1587937968769833,
+            "reactor_base": 0.027875731963130562,
+            "vessel_pressure_premium": 0.08125020260221337,
+            "fresh_comp": 14.291220682215544,
+            "recycle_comp": 0.10966001117955529,
+            "refrigeration": 4.120192208064269,
+            "compressor_capex": 5.555210105814504
+          }
+        },
+        "feasible": {
+          "total_cost": 26.3442027387162,
+          "V_m3": 0.02935276844177327,
+          "logTOF": -1.561726252094173,
+          "T_C": 450.0,
+          "P_bar": 425.0,
+          "Tsep_C": 0.0,
+          "state_index": 12404,
+          "breakdown": {
+            "metal_cost": 2.1587937968769833,
+            "reactor_base": 0.027875731963130562,
+            "vessel_pressure_premium": 0.08125020260221337,
+            "fresh_comp": 14.291220682215544,
+            "recycle_comp": 0.10966001117955529,
+            "refrigeration": 4.120192208064269,
+            "compressor_capex": 5.555210105814504
+          }
+        }
+      },
+      "Fe": {
+        "activity_logTOF": -5.3099700922126845,
+        "min_bed_m3": 0.1664704834404206,
+        "unconstrained": {
+          "total_cost": 15.759880945589726,
+          "V_m3": 17.059161423818093,
+          "T_C": 425.0,
+          "P_bar": 180.0,
+          "Tsep_C": 30.0,
+          "breakdown": {
+            "metal_cost": 0.07036196876234935,
+            "reactor_base": 0.11528397998054762,
+            "vessel_pressure_premium": 0.8876922662352984,
+            "fresh_comp": 9.659553101046367,
+            "recycle_comp": 0.7647429371460784,
+            "refrigeration": 0.0,
+            "compressor_capex": 4.262246692419086
+          }
+        },
+        "feasible": {
+          "total_cost": 15.759880945589726,
+          "V_m3": 17.059161423818093,
+          "logTOF": -4.858329574971462,
+          "T_C": 425.0,
+          "P_bar": 180.0,
+          "Tsep_C": 30.0,
+          "state_index": 8900,
+          "breakdown": {
+            "metal_cost": 0.07036196876234935,
+            "reactor_base": 0.11528397998054762,
+            "vessel_pressure_premium": 0.8876922662352984,
+            "fresh_comp": 9.659553101046367,
+            "recycle_comp": 0.7647429371460784,
+            "refrigeration": 0.0,
+            "compressor_capex": 4.262246692419086
+          }
+        }
+      },
+      "Rh": {
+        "activity_logTOF": -8.043486483307811,
+        "min_bed_m3": 559.9740836746681,
+        "unconstrained": {
+          "total_cost": 76950.00629967562,
+          "V_m3": 560.0529468569484,
+          "T_C": 450.0,
+          "P_bar": 630.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 76588.64997785135,
+            "reactor_base": 0.5819687367984253,
+            "vessel_pressure_premium": 326.5399631015764,
+            "fresh_comp": 16.41332258017128,
+            "recycle_comp": 0.05297011325389051,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 6.504942654633069
+          }
+        },
+        "feasible": null
+      },
+      "Ir": {
+        "activity_logTOF": -8.20256659221374,
+        "min_bed_m3": 1551.9043803530785,
+        "unconstrained": {
+          "total_cost": 202826.99366362055,
+          "V_m3": 1552.066866219032,
+          "T_C": 450.0,
+          "P_bar": 625.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 201958.18703592688,
+            "reactor_base": 0.9715977975641389,
+            "vessel_pressure_premium": 833.6532359619249,
+            "fresh_comp": 16.37036538688376,
+            "recycle_comp": 0.0536960515775444,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 6.494577857868669
+          }
+        },
+        "feasible": null
+      },
+      "Co": {
+        "activity_logTOF": -9.827339304138908,
+        "min_bed_m3": 24021.47168224049,
+        "unconstrained": {
+          "total_cost": 2723.9757400152753,
+          "V_m3": 39430.6660573451,
+          "T_C": 450.0,
+          "P_bar": 95.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 1144.219920409749,
+            "reactor_base": 5.117009705839746,
+            "vessel_pressure_premium": 1551.8752077182864,
+            "fresh_comp": 6.214209622419333,
+            "recycle_comp": 1.9125767890892438,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 3.373661132062786
+          }
+        },
+        "feasible": null
+      },
+      "Re": {
+        "activity_logTOF": -10.563178970710178,
+        "min_bed_m3": 96107.33555883048,
+        "unconstrained": {
+          "total_cost": 404459.5290942137,
+          "V_m3": 97043.69778907236,
+          "T_C": 450.0,
+          "P_bar": 990.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 288072.7380724442,
+            "reactor_base": 8.158780660128976,
+            "vessel_pressure_premium": 116340.9505303016,
+            "fresh_comp": 18.85001923430425,
+            "recycle_comp": 0.024899734402738335,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 7.543637201194112
+          }
+        },
+        "feasible": null
+      },
+      "Mo": {
+        "activity_logTOF": -10.758861007859798,
+        "min_bed_m3": 75021.32358330421,
+        "unconstrained": {
+          "total_cost": 43593.699816929104,
+          "V_m3": 237534.02287365336,
+          "T_C": 450.0,
+          "P_bar": 310.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 11172.256211640266,
+            "reactor_base": 12.980541405483274,
+            "vessel_pressure_premium": 32379.25092989407,
+            "fresh_comp": 12.590237918432951,
+            "recycle_comp": 0.18553492896024817,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 5.173206504061985
+          }
+        },
+        "feasible": null
+      },
+      "Ni": {
+        "activity_logTOF": -11.6277967143094,
+        "min_bed_m3": 1503825.6720748649,
+        "unconstrained": {
+          "total_cost": 88281.04993808318,
+          "V_m3": 2930195.6892172517,
+          "T_C": 450.0,
+          "P_bar": 70.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 25545.62693210476,
+            "reactor_base": 47.87424409921701,
+            "vessel_pressure_premium": 62663.99809353325,
+            "fresh_comp": 4.56786684562036,
+            "recycle_comp": 3.8956255177944445,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 3.8240213447094833
+          }
+        },
+        "feasible": null
+      },
+      "W": {
+        "activity_logTOF": -14.552220335590981,
+        "min_bed_m3": 471372034.7184679,
+        "unconstrained": {
+          "total_cost": 216462221.15141764,
+          "V_m3": 1002868659.8841512,
+          "T_C": 450.0,
+          "P_bar": 470.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 77542315.97773105,
+            "reactor_base": 994.8335939974099,
+            "vessel_pressure_premium": 138918878.03594488,
+            "fresh_comp": 14.833799916896112,
+            "recycle_comp": 0.08798975684100158,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 6.119203401330186
+          }
+        },
+        "feasible": null
+      },
+      "Pd": {
+        "activity_logTOF": -19.33848820076085,
+        "min_bed_m3": 29898332633808.273,
+        "unconstrained": {
+          "total_cost": 637003360818700.4,
+          "V_m3": 29898332633808.273,
+          "T_C": 450.0,
+          "P_bar": 1000.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 626929742444882.1,
+            "reactor_base": 211071.34766069276,
+            "vessel_pressure_premium": 10073618162709.115,
+            "fresh_comp": 18.904201592219778,
+            "recycle_comp": 0.02449463028698095,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 7.557345370602269
+          }
+        },
+        "feasible": null
+      },
+      "Pt": {
+        "activity_logTOF": -19.672211894241162,
+        "min_bed_m3": 108493182687384.03,
+        "unconstrained": {
+          "total_cost": 2914744987664366.0,
+          "V_m3": 108493182687384.03,
+          "T_C": 450.0,
+          "P_bar": 1000.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 2881200284833562.5,
+            "reactor_base": 412574.2397859496,
+            "vessel_pressure_premium": 33544702418191.684,
+            "fresh_comp": 18.904201592219778,
+            "recycle_comp": 0.02449463028698095,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 7.557345370602269
+          }
+        },
+        "feasible": null
+      },
+      "Cu": {
+        "activity_logTOF": -28.596518023328855,
+        "min_bed_m3": 4.204123126359703e+21,
+        "unconstrained": {
+          "total_cost": 2.1743959281941948e+20,
+          "V_m3": 1.0336779777927551e+22,
+          "T_C": 450.0,
+          "P_bar": 380.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 7.402022309534265e+19,
+            "reactor_base": 5815313679.870238,
+            "vessel_pressure_premium": 1.4341936971826151e+20,
+            "fresh_comp": 13.687860089961152,
+            "recycle_comp": 0.12831707485135244,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 5.4181600793214315
+          }
+        },
+        "feasible": null
+      },
+      "Ag": {
+        "activity_logTOF": -51.76451479225579,
+        "min_bed_m3": 2.339226387243287e+43,
+        "unconstrained": {
+          "total_cost": 2.2073387872447984e+43,
+          "V_m3": 2.339226387243287e+43,
+          "T_C": 450.0,
+          "P_bar": 1000.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 2.1993272513961762e+43,
+            "reactor_base": 7.39622953649403e+20,
+            "vessel_pressure_premium": 8.011535848622195e+40,
+            "fresh_comp": 18.904201592219778,
+            "recycle_comp": 0.02449463028698095,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 7.557345370602269
+          }
+        },
+        "feasible": null
+      },
+      "Au": {
+        "activity_logTOF": -53.047576696367514,
+        "min_bed_m3": 6.677420718972683e+44,
+        "unconstrained": {
+          "total_cost": 4.4320462144444e+46,
+          "V_m3": 6.677420718972683e+44,
+          "T_C": 450.0,
+          "P_bar": 1000.0,
+          "Tsep_C": -40.0,
+          "breakdown": {
+            "metal_cost": 4.431863313267228e+46,
+            "reactor_base": 4.2256094339197546e+21,
+            "vessel_pressure_premium": 1.8290117717197657e+42,
+            "fresh_comp": 18.904201592219778,
+            "recycle_comp": 0.02449463028698095,
+            "refrigeration": 11.263154637828702,
+            "compressor_capex": 7.557345370602269
+          }
+        },
+        "feasible": null
+      }
+    },
+    "process_state_count": 14136
+  },
+  "monte_carlo": {
+    "raw_rho_mean": 0.9415142857142855,
+    "censored_rho_mean": 0.6938953765979099,
+    "top1_survival": 0.283,
+    "top3_actionable": 0.9399999999999998,
+    "top3_conditional": 0.9846666666666666,
+    "mean_feasible_count": 3.12,
+    "Fe_feasibility_probability": 0.799
+  },
+  "backward_reachability": {
+    "Ru_activity_break_even_multiplier": 182.82203531985016,
+    "Ru_scaling_max_gain_673K": 1.0899012267527077,
+    "Ru_scaling_max_gain_all_states": 2.5245651130943445,
+    "Ru_best_scaling_cost_USD_t": 21.912332778251567,
+    "Ru_best_scaling_EN_eV": -1.215,
+    "direct_DFT_diagnostic_gain": 1.8423343437364275
+  },
+  "regression_checks": [
+    {
+      "name": "process_state_count",
+      "actual": 14136,
+      "expected": 14136,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "raw_global_spearman",
+      "actual": 0.9285714285714284,
+      "expected": 0.9285714285714284,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "censored_global_spearman",
+      "actual": 0.684172319121686,
+      "expected": 0.684172319121686,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "top3_spearman",
+      "actual": -0.5,
+      "expected": -0.5,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Fe_cost_USD_t",
+      "actual": 15.759880945589726,
+      "expected": 15.291704676621144,
+      "tolerance": 1e-08,
+      "pass": false
+    },
+    {
+      "name": "Fe_optimum_T_C",
+      "actual": 425.0,
+      "expected": 425.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Fe_optimum_P_bar",
+      "actual": 180.0,
+      "expected": 180.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Fe_optimum_Tsep_C",
+      "actual": 30.0,
+      "expected": 30.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Ru_cost_USD_t",
+      "actual": 22.54292324001588,
+      "expected": 22.03059478781101,
+      "tolerance": 1e-08,
+      "pass": false
+    },
+    {
+      "name": "Ru_optimum_T_C",
+      "actual": 450.0,
+      "expected": 450.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Ru_optimum_P_bar",
+      "actual": 420.0,
+      "expected": 425.0,
+      "tolerance": 1e-12,
+      "pass": false
+    },
+    {
+      "name": "Ru_optimum_Tsep_C",
+      "actual": 25.0,
+      "expected": 25.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Os_cost_USD_t",
+      "actual": 26.3442027387162,
+      "expected": 25.83179725613286,
+      "tolerance": 1e-08,
+      "pass": false
+    },
+    {
+      "name": "Os_optimum_T_C",
+      "actual": 450.0,
+      "expected": 450.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Os_optimum_P_bar",
+      "actual": 425.0,
+      "expected": 425.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Os_optimum_Tsep_C",
+      "actual": 0.0,
+      "expected": 0.0,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "activity_order",
+      "actual": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "expected": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "pass": true
+    },
+    {
+      "name": "feasible_metals",
+      "actual": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "expected": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "pass": true
+    },
+    {
+      "name": "Fe_feasibility_probability",
+      "actual": 0.799,
+      "expected": 0.799,
+      "tolerance": 1e-12,
+      "pass": true
+    },
+    {
+      "name": "Ru_activity_break_even_multiplier",
+      "actual": 182.82203531985016,
+      "expected": 201.2234429878984,
+      "tolerance": 1e-06,
+      "pass": false
+    },
+    {
+      "name": "Ru_scaling_max_gain_673K",
+      "actual": 1.0899012267527077,
+      "expected": 1.0899012267527077,
+      "tolerance": 1e-08,
+      "pass": true
+    },
+    {
+      "name": "Ru_scaling_max_gain_all_states",
+      "actual": 2.5245651130943445,
+      "expected": 2.5245651130943445,
+      "tolerance": 1e-07,
+      "pass": true
+    },
+    {
+      "name": "Ru_best_scaling_cost_USD_t",
+      "actual": 21.912332778251567,
+      "expected": 21.397872966049547,
+      "tolerance": 1e-07,
+      "pass": false
+    }
+  ],
+  "response_cache": {
+    "path": "cache\\response_fc259c5311744ccc_-2.6_3.4_0.005_14136.npz",
+    "sha256": "5c551c84f8668850ba4c9082644d64542a5f38888c4ede5c1f454eb0fc4a904a",
+    "reused": true,
+    "shape": [
+      14136,
+      1201
+    ]
+  }
+}

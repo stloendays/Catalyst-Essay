@@ -1,0 +1,75 @@
+{
+  "primary_cause": "no_drift",
+  "secondary_causes": [
+    "no_drift"
+  ],
+  "evidence": [
+    "manifest diff vs canonical: [] (empty) — no manifest keys changed vs canonical manifest",
+    "failing regression checks: [] (0 of 23) — no regression tests failed",
+    "model_version: NH3-FINAL-1.0 matches frozen principle (model_version must not change silently)",
+    "run status: PASS — pipeline completed without internal errors",
+    "frozen principles list present and adhered to: model version, candidate set, process grids, 90 m3 bed cap, cost boundary, 1000-draw seed 20260816, descriptor/scaling convention — no deviations recorded in manifest diff",
+    "headline outputs present and consistent: activity_order, feasible_economic_order, costs_USD_t, top3_spearman, Fe_feasibility, Ru_break_even, process_state_count"
+  ],
+  "affected_headlines": [
+    "activity_order",
+    "feasible_economic_order",
+    "costs_USD_t",
+    "top3_spearman",
+    "Fe_feasibility",
+    "Ru_break_even",
+    "process_state_count",
+    "model_version",
+    "run_id"
+  ],
+  "is_numerical_chain_still_consistent": true,
+  "frozen_principle_violated": "none",
+  "recommended_action": "accept_no_action",
+  "rationale": "I inspected the canonical-diff and regression outputs. The manifest diff is empty, indicating the run used the canonical manifest (so descriptor/scaling conventions, candidate set, process grids, seed and other manifest-controlled flags were not changed). No regression checks failed (0/23). The reported model_version equals the frozen NH3-FINAL-1.0. The run completed with status PASS and produced headline outputs (activity order, feasible economic order, costs, Spearman, feasibility and break-even metrics) with no evidence of silent engineering, unit, or seed changes. Therefore there is no detected drift from the frozen regression and no further action is required. If you want absolute proof of the seed and other manifest fields, provide the canonical manifest snapshot or the run artifact bundle for byte-level verification, but given the empty manifest diff we treat the canonical manifest as preserved.",
+  "_usage": {
+    "prompt_tokens": 720,
+    "completion_tokens": 1273,
+    "model": "gpt-5-mini-2025-08-07"
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092000Z",
+      "mode": "full",
+      "status": "PASS",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.198659047084616,
+        "Ru": 17.59239838038635,
+        "Os": 21.32057789728162
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": 0.736,
+      "Ru_break_even": 2171.559771717808
+    },
+    "diff": [],
+    "failing": []
+  }
+}

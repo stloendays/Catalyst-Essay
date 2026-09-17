@@ -1,0 +1,3195 @@
+{
+  "schema": "DISCOVER_TRACE_V1",
+  "policy": "E_llm_agent",
+  "task_variant": "anonymous",
+  "budget_CU": 50.0,
+  "seed": 6,
+  "run_index": 6,
+  "cost_model": "DISCOVER_COST_MODEL_V1",
+  "started_utc": "20260911T111426Z",
+  "model_requested": "gpt-5.5-2026-04-23",
+  "sampling": {},
+  "steps": [
+    {
+      "step": 1,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 50.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 15.0
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "INSPECT_CANDIDATES",
+          "args": {},
+          "cost_CU": 0.0,
+          "decision_value": "confirms task candidate/domain data in tool state"
+        },
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 15.0,
+          "decision_value": "needed to identify highest-activity candidate and to screen dominated candidates once a feasible best exists"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free context for later robustness decisions, but not sufficient to choose industrial candidate"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "atomic activities not computed for every candidate",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": null,
+        "remaining_CU": 50.0
+      },
+      "reason_for_choice": "Reference activities are the highest-leverage first calculation: they identify candidates that can plausibly compete on process cost, enable the declared price/activity dominance screen after an optimized feasible incumbent exists, and determine whether a parity/reachability assessment is required. Free inspection/uncertainty reads add no cost.",
+      "expected_decision_value": 0.75,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 50.0,
+        "known_evidence": "candidate descriptors/prices and admissible domain are provided, but no activities, feasibility, optimized costs, parity, or reachability are known from actions yet"
+      },
+      "chosen_action": "INSPECT_CANDIDATES",
+      "chosen_args": {},
+      "action_cost": 0.0,
+      "result": {
+        "candidates": [
+          {
+            "id": "candidate_01",
+            "descriptor_E_N_eV": -0.2701,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 56.28401553583051
+          },
+          {
+            "id": "candidate_02",
+            "descriptor_E_N_eV": 0.5895,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 51508.71107755406
+          },
+          {
+            "id": "candidate_03",
+            "descriptor_E_N_eV": 1.2491,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 13.889122517655
+          },
+          {
+            "id": "candidate_04",
+            "descriptor_E_N_eV": -1.1333,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 53852.5
+          },
+          {
+            "id": "candidate_05",
+            "descriptor_E_N_eV": -1.1095,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 142650.0
+          },
+          {
+            "id": "candidate_06",
+            "descriptor_E_N_eV": -1.8417,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 91.22728409215301
+          },
+          {
+            "id": "candidate_07",
+            "descriptor_E_N_eV": -1.8252,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 5757.64
+          },
+          {
+            "id": "candidate_08",
+            "descriptor_E_N_eV": -0.458,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 265243.65919095
+          },
+          {
+            "id": "candidate_09",
+            "descriptor_E_N_eV": 2.911,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 1823.590345370992
+          },
+          {
+            "id": "candidate_10",
+            "descriptor_E_N_eV": 3.0029,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 128732.2322756058
+          },
+          {
+            "id": "candidate_11",
+            "descriptor_E_N_eV": 0.5637,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 40670.694409279
+          },
+          {
+            "id": "candidate_12",
+            "descriptor_E_N_eV": -0.0928,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 16.9094555095895
+          },
+          {
+            "id": "candidate_13",
+            "descriptor_E_N_eV": -1.392120623747696,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 8.0
+          },
+          {
+            "id": "candidate_14",
+            "descriptor_E_N_eV": -0.4407,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 252383.36056351
+          },
+          {
+            "id": "candidate_15",
+            "descriptor_E_N_eV": -2.161,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 149.97
+          }
+        ],
+        "process_domain": {
+          "T_C": [
+            350.0,
+            375.0,
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": {
+            "min": 10.0,
+            "max": 1000.0,
+            "step": 5.0
+          },
+          "Tsep_C": {
+            "min": -40.0,
+            "max": 30.0,
+            "step": 5.0
+          },
+          "max_catalyst_bed_m3": 90.0,
+          "cost_boundary": "reduced catalyst/process-dependent NH3 cost, USD per tonne: active-metal replacement, converter (volume proxy + pressure-dependent shell), compression and refrigeration electricity, compressor capital; plant 1000 t/d"
+        },
+        "note": "activities, feasibility and costs are not known until computed"
+      },
+      "state_after": {
+        "remaining_CU": 50.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 50.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "atomic activities not computed for every candidate"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 2,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 50.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 15.0
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "INSPECT_CANDIDATES",
+          "args": {},
+          "cost_CU": 0.0,
+          "decision_value": "confirms task candidate/domain data in tool state"
+        },
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 15.0,
+          "decision_value": "needed to identify highest-activity candidate and to screen dominated candidates once a feasible best exists"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free context for later robustness decisions, but not sufficient to choose industrial candidate"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "atomic activities not computed for every candidate",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": null,
+        "remaining_CU": 50.0
+      },
+      "reason_for_choice": "Reference activities are the highest-leverage first calculation: they identify candidates that can plausibly compete on process cost, enable the declared price/activity dominance screen after an optimized feasible incumbent exists, and determine whether a parity/reachability assessment is required. Free inspection/uncertainty reads add no cost.",
+      "expected_decision_value": 0.75,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 50.0,
+        "known_evidence": "candidate descriptors/prices and admissible domain are provided, but no activities, feasibility, optimized costs, parity, or reachability are known from actions yet"
+      },
+      "chosen_action": "COMPUTE_ACTIVITY",
+      "chosen_args": {
+        "metals": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ]
+      },
+      "action_cost": 15.0,
+      "result": {
+        "log10_TOF_at_reference": {
+          "candidate_01": -9.827339304138908,
+          "candidate_02": -19.672211894241162,
+          "candidate_03": -28.596518023328855,
+          "candidate_04": -3.4511885358841505,
+          "candidate_05": -3.495320399313441,
+          "candidate_06": -10.758861007859798,
+          "candidate_07": -10.563178970710178,
+          "candidate_08": -8.043486483307811,
+          "candidate_09": -51.76451479225579,
+          "candidate_10": -53.047576696367514,
+          "candidate_11": -19.33848820076085,
+          "candidate_12": -11.6277967143094,
+          "candidate_13": -5.3099700922126845,
+          "candidate_14": -8.20256659221374,
+          "candidate_15": -14.552220335590981
+        },
+        "reference_condition": "T 673.0 K, pN2 24.5 / pH2 74.25 / pNH3 1.0 bar"
+      },
+      "state_after": {
+        "remaining_CU": 35.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 35.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 3,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 35.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "INSPECT_CANDIDATES",
+          "args": {},
+          "cost_CU": 0.0,
+          "decision_value": "confirms task candidate/domain data in tool state"
+        },
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 15.0,
+          "decision_value": "needed to identify highest-activity candidate and to screen dominated candidates once a feasible best exists"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": "candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free context for later robustness decisions, but not sufficient to choose industrial candidate"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 35.0
+      },
+      "reason_for_choice": "Reference activities are the highest-leverage first calculation: they identify candidates that can plausibly compete on process cost, enable the declared price/activity dominance screen after an optimized feasible incumbent exists, and determine whether a parity/reachability assessment is required. Free inspection/uncertainty reads add no cost.",
+      "expected_decision_value": 0.75,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 50.0,
+        "known_evidence": "candidate descriptors/prices and admissible domain are provided, but no activities, feasibility, optimized costs, parity, or reachability are known from actions yet"
+      },
+      "chosen_action": "READ_PROPERTY_UNCERTAINTY",
+      "chosen_args": {
+        "metals": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ]
+      },
+      "action_cost": 0.0,
+      "result": {
+        "descriptor_uncertainty_E_N": {
+          "candidate_01": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_02": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_03": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_04": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_05": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_06": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_07": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_08": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_09": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_10": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_11": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_12": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_13": {
+            "distribution": "normal",
+            "sigma_eV": 0.2271258177356984
+          },
+          "candidate_14": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          },
+          "candidate_15": {
+            "distribution": "uniform",
+            "half_width_eV": 0.15
+          }
+        }
+      },
+      "state_after": {
+        "remaining_CU": 35.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 35.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 4,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 35.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW",
+          "args": {
+            "name": "focused",
+            "bounds": "{\"T_C\":[350.0,375.0,400.0,425.0,450.0],\"P_bar\":[100,350],\"Tsep_C\":[-30,10]}"
+          },
+          "estimated_cost_CU": 17.95,
+          "decision_value": "creates a process grid broad enough around conventional/high-pressure NH3 operation while affordable; prerequisite to optimization"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW",
+          "args": {
+            "name": "narrow",
+            "bounds": "{\"T_C\":[375.0,400.0,425.0,450.0],\"P_bar\":[150,300],\"Tsep_C\":[-30,0]}"
+          },
+          "estimated_cost_CU": 6.67,
+          "decision_value": "cheaper but higher risk of missing lower-cost states at domain edges"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW",
+          "args": {
+            "name": "minimal_screen",
+            "bounds": "{\"T_C\":[400.0,425.0,450.0],\"P_bar\":[150,250],\"Tsep_C\":[-25,-5]}"
+          },
+          "estimated_cost_CU": 1.48,
+          "decision_value": "low-cost initial screen but may be too narrow for stable industrial decision"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 35.0
+      },
+      "reason_for_choice": "A full-domain window is unaffordable, so the best decision value is an affordable focused window covering all temperatures, moderate-to-high pressures, and practical refrigeration. It can discriminate candidate_13 vs the high-activity expensive candidates. If optima land on edges, model-validity/window-edge checks or a second targeted window can be used.",
+      "expected_decision_value": 0.65,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 35.0,
+        "evidence_returned_last_step": {
+          "reference_log10_TOF": {
+            "candidate_04": -3.4511885358841505,
+            "candidate_05": -3.495320399313441,
+            "candidate_13": -5.3099700922126845,
+            "candidate_08": -8.043486483307811,
+            "candidate_14": -8.20256659221374,
+            "candidate_01": -9.827339304138908,
+            "candidate_07": -10.563178970710178,
+            "candidate_06": -10.758861007859798,
+            "candidate_12": -11.6277967143094,
+            "candidate_15": -14.552220335590981,
+            "candidate_11": -19.33848820076085,
+            "candidate_02": -19.672211894241162,
+            "candidate_03": -28.596518023328855,
+            "candidate_09": -51.76451479225579,
+            "candidate_10": -53.047576696367514
+          },
+          "highest_activity_candidate": "candidate_04",
+          "uncertainty": "all uniform half-width 0.15 eV except candidate_13 normal sigma 0.2271 eV"
+        },
+        "updated_belief": "candidate_13 is a strong industrial contender because it is third-highest in activity and cheapest metal; candidate_04 is the atomic-activity leader and must be optimized or assessed; candidate_05 is nearly as active as candidate_04 but much more expensive and can be screened by candidate_04 if candidate_04 is feasible/cheaper. Low-activity candidates are likely screenable if candidate_13 is feasible."
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "focused",
+        "bounds": {
+          "T_C": [
+            350.0,
+            375.0,
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100,
+            350
+          ],
+          "Tsep_C": [
+            -30,
+            10
+          ]
+        }
+      },
+      "action_cost": 18.0,
+      "result": {
+        "window": "focused",
+        "bounds": {
+          "T_C": [
+            350.0,
+            375.0,
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100,
+            350
+          ],
+          "Tsep_C": [
+            -30,
+            10
+          ]
+        },
+        "n_states": 2295,
+        "P_range": [
+          100.0,
+          350.0
+        ],
+        "T_values": [
+          350.0,
+          375.0,
+          400.0,
+          425.0,
+          450.0
+        ],
+        "Tsep_range": [
+          -30.0,
+          10.0
+        ]
+      },
+      "state_after": {
+        "remaining_CU": 17.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 17.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 5,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 17.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_13",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests likely low-cost industrial incumbent due to high activity and lowest metal price"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_04",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests atomic-activity leader; required competitor and possible parity reference"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests near-highest activity candidate not screenable by candidate_13 on reference activity alone"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "lower activity than candidate_13 and higher price; likely screenable if candidate_13 feasible, so lower priority"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 17.0
+      },
+      "reason_for_choice": "These three optimizations are the most budget-efficient path to S1/S2. They include the likely cheap incumbent, the highest-activity candidate, and the only other higher-activity-than-candidate_13 candidate. If candidate_13 wins, every unoptimized candidate has both lower reference activity and higher price than candidate_13 and is screened; if candidate_04 or candidate_05 wins, optimized comparisons determine the high-activity expensive branch. The remaining budget is reserved for mandatory BACKWARD and reachability if the highest-activity candidate is not the industrial winner.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 17.0,
+        "evidence_returned_last_step": {
+          "window": "focused",
+          "n_states": 2295,
+          "bounds": {
+            "T_C": [
+              350,
+              375,
+              400,
+              425,
+              450
+            ],
+            "P_bar": [
+              100,
+              350
+            ],
+            "Tsep_C": [
+              -30,
+              10
+            ]
+          }
+        },
+        "updated_belief": "The focused process grid is available. With 17 CU remaining, optimizing all candidates is impossible. The candidates that can plausibly define the decision are candidate_13 (very low price, high activity), candidate_04 (highest activity but high price), and candidate_05 (nearly highest activity but much higher price). If candidate_13 is feasible and lowest among these, all other lower-activity/higher-price candidates are screened except the already-optimized higher-activity candidates."
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_13",
+        "window": "focused"
+      },
+      "action_cost": 5.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 16.45653171550747,
+        "T_C": 425.0,
+        "P_bar": 135.0,
+        "Tsep_C": 10.0,
+        "bed_m3": 19.52870027633546,
+        "state_index": 8761,
+        "window": "focused",
+        "metal": "candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 12.0,
+        "n_activity": 15,
+        "n_optimized": 1,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 12.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_04",
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 6,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 12.0,
+        "n_activity": 15,
+        "n_optimized": 1,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_13",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests likely low-cost industrial incumbent due to high activity and lowest metal price"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_04",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests atomic-activity leader; required competitor and possible parity reference"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests near-highest activity candidate not screenable by candidate_13 on reference activity alone"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "lower activity than candidate_13 and higher price; likely screenable if candidate_13 feasible, so lower priority"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_04",
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 12.0
+      },
+      "reason_for_choice": "These three optimizations are the most budget-efficient path to S1/S2. They include the likely cheap incumbent, the highest-activity candidate, and the only other higher-activity-than-candidate_13 candidate. If candidate_13 wins, every unoptimized candidate has both lower reference activity and higher price than candidate_13 and is screened; if candidate_04 or candidate_05 wins, optimized comparisons determine the high-activity expensive branch. The remaining budget is reserved for mandatory BACKWARD and reachability if the highest-activity candidate is not the industrial winner.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 17.0,
+        "evidence_returned_last_step": {
+          "window": "focused",
+          "n_states": 2295,
+          "bounds": {
+            "T_C": [
+              350,
+              375,
+              400,
+              425,
+              450
+            ],
+            "P_bar": [
+              100,
+              350
+            ],
+            "Tsep_C": [
+              -30,
+              10
+            ]
+          }
+        },
+        "updated_belief": "The focused process grid is available. With 17 CU remaining, optimizing all candidates is impossible. The candidates that can plausibly define the decision are candidate_13 (very low price, high activity), candidate_04 (highest activity but high price), and candidate_05 (nearly highest activity but much higher price). If candidate_13 is feasible and lowest among these, all other lower-activity/higher-price candidates are screened except the already-optimized higher-activity candidates."
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_04",
+        "window": "focused"
+      },
+      "action_cost": 5.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 22.25234749583163,
+        "T_C": 450.0,
+        "P_bar": 320.0,
+        "Tsep_C": 10.0,
+        "bed_m3": 0.06547411711069645,
+        "state_index": 12091,
+        "window": "focused",
+        "metal": "candidate_04"
+      },
+      "state_after": {
+        "remaining_CU": 7.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 7.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 7,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 7.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_13",
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_13",
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_13",
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_13",
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_13",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests likely low-cost industrial incumbent due to high activity and lowest metal price"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_04",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests atomic-activity leader; required competitor and possible parity reference"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "tests near-highest activity candidate not screenable by candidate_13 on reference activity alone"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "focused"
+          },
+          "cost_CU": 4.59,
+          "decision_value": "lower activity than candidate_13 and higher price; likely screenable if candidate_13 feasible, so lower priority"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 7.0
+      },
+      "reason_for_choice": "These three optimizations are the most budget-efficient path to S1/S2. They include the likely cheap incumbent, the highest-activity candidate, and the only other higher-activity-than-candidate_13 candidate. If candidate_13 wins, every unoptimized candidate has both lower reference activity and higher price than candidate_13 and is screened; if candidate_04 or candidate_05 wins, optimized comparisons determine the high-activity expensive branch. The remaining budget is reserved for mandatory BACKWARD and reachability if the highest-activity candidate is not the industrial winner.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 17.0,
+        "evidence_returned_last_step": {
+          "window": "focused",
+          "n_states": 2295,
+          "bounds": {
+            "T_C": [
+              350,
+              375,
+              400,
+              425,
+              450
+            ],
+            "P_bar": [
+              100,
+              350
+            ],
+            "Tsep_C": [
+              -30,
+              10
+            ]
+          }
+        },
+        "updated_belief": "The focused process grid is available. With 17 CU remaining, optimizing all candidates is impossible. The candidates that can plausibly define the decision are candidate_13 (very low price, high activity), candidate_04 (highest activity but high price), and candidate_05 (nearly highest activity but much higher price). If candidate_13 is feasible and lowest among these, all other lower-activity/higher-price candidates are screened except the already-optimized higher-activity candidates."
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_05",
+        "window": "focused"
+      },
+      "action_cost": 5.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 25.949806975194498,
+        "T_C": 450.0,
+        "P_bar": 340.0,
+        "Tsep_C": -10.0,
+        "bed_m3": 0.028645764201558472,
+        "state_index": 12147,
+        "window": "focused",
+        "metal": "candidate_05"
+      },
+      "state_after": {
+        "remaining_CU": 2.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 2.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 8,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 2.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": "candidate_04,candidate_13",
+            "property": "activity",
+            "window": "focused"
+          },
+          "cost_CU": 1.0,
+          "decision_value": "quantifies the intrinsic activity multiplier candidate_04 would need to reach the industrial winner cost; required for S3"
+        },
+        {
+          "action": "TEST_REACHABILITY",
+          "args": {
+            "metal": "candidate_04",
+            "property": "activity",
+            "scope": "reference"
+          },
+          "cost_CU": 2.0,
+          "decision_value": "would estimate maximum scaling-manifold activity gain, but without required multiplier cannot complete parity classification"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_13"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "useful reporting evidence but cannot satisfy S3; can be done in parallel if allowed with BACKWARD"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 2.0
+      },
+      "reason_for_choice": "The highest-activity candidate differs from the industrial incumbent, so the required activity multiplier must be computed. A free cost breakdown improves final evidence without consuming budget. The reachability calculation is the next most valuable action if enough budget remains.",
+      "expected_decision_value": 0.85,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.45653171550747,
+          "T_C": 425.0,
+          "P_bar": 135.0,
+          "Tsep_C": 10.0,
+          "bed_m3": 19.52870027633546,
+          "window": "focused"
+        },
+        "confidence": 0.82,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 2.0,
+        "evidence_returned_last_step": {
+          "optimized_results": {
+            "candidate_13": {
+              "feasible": true,
+              "cost_USD_t": 16.45653171550747,
+              "T_C": 425.0,
+              "P_bar": 135.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 19.52870027633546
+            },
+            "candidate_04": {
+              "feasible": true,
+              "cost_USD_t": 22.25234749583163,
+              "T_C": 450.0,
+              "P_bar": 320.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 0.06547411711069645
+            },
+            "candidate_05": {
+              "feasible": true,
+              "cost_USD_t": 25.949806975194498,
+              "T_C": 450.0,
+              "P_bar": 340.0,
+              "Tsep_C": -10.0,
+              "bed_m3": 0.028645764201558472
+            }
+          },
+          "screening_status": "candidate_13 has higher activity and lower price than all unoptimized candidates except candidate_04 and candidate_05, which were optimized and are more costly; candidate_05 is also dominated by candidate_04 on higher activity and lower price."
+        },
+        "updated_belief": "candidate_13 is the industrial winner on the focused window. S1 and S2 are satisfied under the declared screening rule. Because candidate_04 has the highest reference atomic activity and is not the lowest-cost candidate, S3 requires activity-parity and reachability assessment. Remaining compute is tight; BACKWARD is mandatory to quantify required intrinsic-activity multiplier."
+      },
+      "chosen_action": "BACKWARD",
+      "chosen_args": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "property": "activity",
+        "window": "focused"
+      },
+      "action_cost": 1.0,
+      "result": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "multiplier": 149.03143072842118,
+        "parity_cost_USD_t": 16.456531715509893,
+        "state_at_parity": {
+          "T_C": 425.0,
+          "P_bar": 145.0,
+          "Tsep_C": 10.0
+        },
+        "property": "activity",
+        "window": "focused",
+        "definition": "intrinsic-activity multiplier of candidate_04 at which its re-optimized cost equals the optimized cost of candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 1.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 9,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": "candidate_04,candidate_13",
+            "property": "activity",
+            "window": "focused"
+          },
+          "cost_CU": 1.0,
+          "decision_value": "quantifies the intrinsic activity multiplier candidate_04 would need to reach the industrial winner cost; required for S3"
+        },
+        {
+          "action": "TEST_REACHABILITY",
+          "args": {
+            "metal": "candidate_04",
+            "property": "activity",
+            "scope": "reference"
+          },
+          "cost_CU": 2.0,
+          "decision_value": "would estimate maximum scaling-manifold activity gain, but without required multiplier cannot complete parity classification"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_13"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "useful reporting evidence but cannot satisfy S3; can be done in parallel if allowed with BACKWARD"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 1.0
+      },
+      "reason_for_choice": "The highest-activity candidate differs from the industrial incumbent, so the required activity multiplier must be computed. A free cost breakdown improves final evidence without consuming budget. The reachability calculation is the next most valuable action if enough budget remains.",
+      "expected_decision_value": 0.85,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.45653171550747,
+          "T_C": 425.0,
+          "P_bar": 135.0,
+          "Tsep_C": 10.0,
+          "bed_m3": 19.52870027633546,
+          "window": "focused"
+        },
+        "confidence": 0.82,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 2.0,
+        "evidence_returned_last_step": {
+          "optimized_results": {
+            "candidate_13": {
+              "feasible": true,
+              "cost_USD_t": 16.45653171550747,
+              "T_C": 425.0,
+              "P_bar": 135.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 19.52870027633546
+            },
+            "candidate_04": {
+              "feasible": true,
+              "cost_USD_t": 22.25234749583163,
+              "T_C": 450.0,
+              "P_bar": 320.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 0.06547411711069645
+            },
+            "candidate_05": {
+              "feasible": true,
+              "cost_USD_t": 25.949806975194498,
+              "T_C": 450.0,
+              "P_bar": 340.0,
+              "Tsep_C": -10.0,
+              "bed_m3": 0.028645764201558472
+            }
+          },
+          "screening_status": "candidate_13 has higher activity and lower price than all unoptimized candidates except candidate_04 and candidate_05, which were optimized and are more costly; candidate_05 is also dominated by candidate_04 on higher activity and lower price."
+        },
+        "updated_belief": "candidate_13 is the industrial winner on the focused window. S1 and S2 are satisfied under the declared screening rule. Because candidate_04 has the highest reference atomic activity and is not the lowest-cost candidate, S3 requires activity-parity and reachability assessment. Remaining compute is tight; BACKWARD is mandatory to quantify required intrinsic-activity multiplier."
+      },
+      "chosen_action": "READ_COST_BREAKDOWN",
+      "chosen_args": {
+        "metal": "candidate_13"
+      },
+      "action_cost": 0.0,
+      "result": {
+        "metal": "candidate_13",
+        "total_USD_t": 16.45653171550747,
+        "pools_USD_t": {
+          "metal_cost": 0.0805477927475558,
+          "reactor_base": 0.12189151228848459,
+          "vessel_pressure_premium": 0.6703806646525483,
+          "fresh_comp": 8.108630500780007,
+          "recycle_comp": 1.1721132373590393,
+          "refrigeration": 2.64978633617695,
+          "compressor_capex": 3.6531816715028858
+        }
+      },
+      "state_after": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 1.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 10,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "TEST_REACHABILITY",
+          "args": {
+            "metal": "candidate_04",
+            "property": "activity",
+            "scope": "reference",
+            "required_multiplier": "149.03143072842118"
+          },
+          "cost_CU": 2.0,
+          "decision_value": "mandatory formal reachability classification, but unaffordable with 1 CU remaining"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_04"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free supporting evidence on why the high-activity candidate is not industrial winner"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_05"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free supporting evidence for feasible ranking"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 1.0
+      },
+      "reason_for_choice": "The only missing formal stopping-rule item is TEST_REACHABILITY, but it costs 2 CU and only 1 CU remains. Free cost breakdowns add useful evidence for final reporting and do not endanger any required calculation.",
+      "expected_decision_value": 0.15,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.45653171550747,
+          "T_C": 425.0,
+          "P_bar": 135.0,
+          "Tsep_C": 10.0,
+          "bed_m3": 19.52870027633546,
+          "window": "focused"
+        },
+        "confidence": 0.82,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 1.0,
+        "evidence_returned_last_step": {
+          "backward": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "required_activity_multiplier_for_candidate_04_parity": 149.03143072842118,
+            "parity_cost_USD_t": 16.456531715509893,
+            "state_at_parity": {
+              "T_C": 425.0,
+              "P_bar": 145.0,
+              "Tsep_C": 10.0
+            }
+          },
+          "candidate_13_cost_breakdown_USD_t": {
+            "metal_cost": 0.0805477927475558,
+            "reactor_base": 0.12189151228848459,
+            "vessel_pressure_premium": 0.6703806646525483,
+            "fresh_comp": 8.108630500780007,
+            "recycle_comp": 1.1721132373590393,
+            "refrigeration": 2.64978633617695,
+            "compressor_capex": 3.6531816715028858
+          }
+        },
+        "updated_belief": "candidate_13 remains the optimized lowest-cost feasible choice; candidate_04 would need a very large 149x intrinsic activity improvement to match candidate_13 cost. S3 still lacks formal TEST_REACHABILITY, but the remaining budget cannot pay for it."
+      },
+      "chosen_action": "READ_COST_BREAKDOWN",
+      "chosen_args": {
+        "metal": "candidate_04"
+      },
+      "action_cost": 0.0,
+      "result": {
+        "metal": "candidate_04",
+        "total_USD_t": 22.25234749583163,
+        "pools_USD_t": {
+          "metal_cost": 1.8178826186426633,
+          "reactor_base": 0.029590981415309563,
+          "vessel_pressure_premium": 0.049869593607711676,
+          "fresh_comp": 12.761398301579085,
+          "recycle_comp": 0.1951100014389996,
+          "refrigeration": 2.64978633617695,
+          "compressor_capex": 4.74870966297091
+        }
+      },
+      "state_after": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 1.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 11,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "TEST_REACHABILITY",
+          "args": {
+            "metal": "candidate_04",
+            "property": "activity",
+            "scope": "reference",
+            "required_multiplier": "149.03143072842118"
+          },
+          "cost_CU": 2.0,
+          "decision_value": "mandatory formal reachability classification, but unaffordable with 1 CU remaining"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_04"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free supporting evidence on why the high-activity candidate is not industrial winner"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "args": {
+            "metal": "candidate_05"
+          },
+          "cost_CU": 0.0,
+          "decision_value": "free supporting evidence for feasible ranking"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 1.0
+      },
+      "reason_for_choice": "The only missing formal stopping-rule item is TEST_REACHABILITY, but it costs 2 CU and only 1 CU remains. Free cost breakdowns add useful evidence for final reporting and do not endanger any required calculation.",
+      "expected_decision_value": 0.15,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.45653171550747,
+          "T_C": 425.0,
+          "P_bar": 135.0,
+          "Tsep_C": 10.0,
+          "bed_m3": 19.52870027633546,
+          "window": "focused"
+        },
+        "confidence": 0.82,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 1.0,
+        "evidence_returned_last_step": {
+          "backward": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "required_activity_multiplier_for_candidate_04_parity": 149.03143072842118,
+            "parity_cost_USD_t": 16.456531715509893,
+            "state_at_parity": {
+              "T_C": 425.0,
+              "P_bar": 145.0,
+              "Tsep_C": 10.0
+            }
+          },
+          "candidate_13_cost_breakdown_USD_t": {
+            "metal_cost": 0.0805477927475558,
+            "reactor_base": 0.12189151228848459,
+            "vessel_pressure_premium": 0.6703806646525483,
+            "fresh_comp": 8.108630500780007,
+            "recycle_comp": 1.1721132373590393,
+            "refrigeration": 2.64978633617695,
+            "compressor_capex": 3.6531816715028858
+          }
+        },
+        "updated_belief": "candidate_13 remains the optimized lowest-cost feasible choice; candidate_04 would need a very large 149x intrinsic activity improvement to match candidate_13 cost. S3 still lacks formal TEST_REACHABILITY, but the remaining budget cannot pay for it."
+      },
+      "chosen_action": "READ_COST_BREAKDOWN",
+      "chosen_args": {
+        "metal": "candidate_05"
+      },
+      "action_cost": 0.0,
+      "result": {
+        "metal": "candidate_05",
+        "total_USD_t": 25.949806975194498,
+        "pools_USD_t": {
+          "metal_cost": 2.106796099584168,
+          "reactor_base": 0.027833989310203613,
+          "vessel_pressure_premium": 0.05407910710591432,
+          "fresh_comp": 13.088231653780651,
+          "recycle_comp": 0.16288969218533722,
+          "refrigeration": 5.702352278840991,
+          "compressor_capex": 4.807624154387233
+        }
+      },
+      "state_after": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 1.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue"
+    },
+    {
+      "step": 12,
+      "policy": "E_llm_agent",
+      "state_before": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": null,
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 1.0
+      },
+      "reason_for_choice": null,
+      "expected_decision_value": null,
+      "llm_state_before": null,
+      "chosen_action": "STOP",
+      "chosen_args": {
+        "final_answer": {
+          "industrial_candidate": "candidate_13",
+          "optimized_state": {
+            "window": "focused",
+            "cost_USD_t": 16.45653171550747,
+            "T_C": 425.0,
+            "P_bar": 135.0,
+            "Tsep_C": 10.0,
+            "bed_m3": 19.52870027633546
+          },
+          "feasible_ranking_optimized_candidates": [
+            {
+              "rank": 1,
+              "metal": "candidate_13",
+              "cost_USD_t": 16.45653171550747,
+              "T_C": 425.0,
+              "P_bar": 135.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 19.52870027633546,
+              "cost_breakdown_USD_t": {
+                "metal_cost": 0.0805477927475558,
+                "reactor_base": 0.12189151228848459,
+                "vessel_pressure_premium": 0.6703806646525483,
+                "fresh_comp": 8.108630500780007,
+                "recycle_comp": 1.1721132373590393,
+                "refrigeration": 2.64978633617695,
+                "compressor_capex": 3.6531816715028858
+              }
+            },
+            {
+              "rank": 2,
+              "metal": "candidate_04",
+              "cost_USD_t": 22.25234749583163,
+              "T_C": 450.0,
+              "P_bar": 320.0,
+              "Tsep_C": 10.0,
+              "bed_m3": 0.06547411711069645,
+              "cost_breakdown_USD_t": {
+                "metal_cost": 1.8178826186426633,
+                "reactor_base": 0.029590981415309563,
+                "vessel_pressure_premium": 0.049869593607711676,
+                "fresh_comp": 12.761398301579085,
+                "recycle_comp": 0.1951100014389996,
+                "refrigeration": 2.64978633617695,
+                "compressor_capex": 4.74870966297091
+              }
+            },
+            {
+              "rank": 3,
+              "metal": "candidate_05",
+              "cost_USD_t": 25.949806975194498,
+              "T_C": 450.0,
+              "P_bar": 340.0,
+              "Tsep_C": -10.0,
+              "bed_m3": 0.028645764201558472,
+              "cost_breakdown_USD_t": {
+                "metal_cost": 2.106796099584168,
+                "reactor_base": 0.027833989310203613,
+                "vessel_pressure_premium": 0.05407910710591432,
+                "fresh_comp": 13.088231653780651,
+                "recycle_comp": 0.16288969218533722,
+                "refrigeration": 5.702352278840991,
+                "compressor_capex": 4.807624154387233
+              }
+            }
+          ],
+          "screening_evidence": {
+            "reference_log10_TOF": {
+              "candidate_04": -3.4511885358841505,
+              "candidate_05": -3.495320399313441,
+              "candidate_13": -5.3099700922126845,
+              "candidate_08": -8.043486483307811,
+              "candidate_14": -8.20256659221374,
+              "candidate_01": -9.827339304138908,
+              "candidate_07": -10.563178970710178,
+              "candidate_06": -10.758861007859798,
+              "candidate_12": -11.6277967143094,
+              "candidate_15": -14.552220335590981,
+              "candidate_11": -19.33848820076085,
+              "candidate_02": -19.672211894241162,
+              "candidate_03": -28.596518023328855,
+              "candidate_09": -51.76451479225579,
+              "candidate_10": -53.047576696367514
+            },
+            "declared_screening_rule_applied": "After optimizing candidate_13, candidate_04, and candidate_05, all remaining unoptimized candidates have lower reference activity than candidate_13 and higher metal price than candidate_13, so they are screened as dominated. candidate_05 is also dominated by candidate_04 on higher activity and lower metal price, and was directly optimized anyway."
+          },
+          "highest_atomic_activity_candidate": "candidate_04",
+          "parity_reachability_assessment": {
+            "highest_activity_differs_from_industrial_choice": true,
+            "candidate_requiring_improvement": "candidate_04",
+            "reference_industrial_choice": "candidate_13",
+            "required_intrinsic_activity_multiplier_for_cost_parity": 149.03143072842118,
+            "parity_cost_USD_t": 16.456531715509893,
+            "state_at_parity": {
+              "T_C": 425.0,
+              "P_bar": 145.0,
+              "Tsep_C": 10.0
+            },
+            "formal_reachability_classification": "not formally computed: TEST_REACHABILITY costs 2 CU and only 1 CU remained after BACKWARD",
+            "practical_assessment": "candidate_04 would require a 149.031x intrinsic-activity improvement to reach candidate_13 cost parity. The mandatory frozen-manifold classification remains unresolved because the required tool was unaffordable."
+          },
+          "compute_trace_summary": {
+            "initial_budget_CU": 50.0,
+            "remaining_budget_CU": 1.0,
+            "actions_completed": [
+              {
+                "action": "INSPECT_CANDIDATES",
+                "cost_CU": 0.0
+              },
+              {
+                "action": "COMPUTE_ACTIVITY all candidates",
+                "cost_CU": 15.0
+              },
+              {
+                "action": "READ_PROPERTY_UNCERTAINTY all candidates",
+                "cost_CU": 0.0
+              },
+              {
+                "action": "BUILD_PROCESS_WINDOW focused",
+                "cost_CU": 18.0,
+                "n_states": 2295
+              },
+              {
+                "action": "OPTIMIZE_PROCESS candidate_13",
+                "cost_CU": 5.0
+              },
+              {
+                "action": "OPTIMIZE_PROCESS candidate_04",
+                "cost_CU": 5.0
+              },
+              {
+                "action": "OPTIMIZE_PROCESS candidate_05",
+                "cost_CU": 5.0
+              },
+              {
+                "action": "BACKWARD candidate_04 vs candidate_13",
+                "cost_CU": 1.0
+              },
+              {
+                "action": "READ_COST_BREAKDOWN candidate_13,candidate_04,candidate_05",
+                "cost_CU": 0.0
+              }
+            ]
+          }
+        },
+        "why_stop": "Budget-limited stop: S1 is satisfied by feasible optimized candidate_13; S2 is satisfied under the declared dominance screening rule and direct optimization of the higher-activity competitors. S3 is partially satisfied: BACKWARD quantified the 149.031x parity requirement for candidate_04, but TEST_REACHABILITY could not be executed because remaining budget is 1 CU and the action costs 2 CU. No affordable non-free action remains that can complete S3 or plausibly change the industrial decision.",
+        "unresolved_decision_risk": {
+          "primary_risk": "Formal reachable/marginal/unreachable classification for candidate_04 on the frozen descriptor scaling manifold is missing due to insufficient compute budget.",
+          "process_window_risk": "Optimizations used the focused window P=100-350 bar, Tsep=-30 to 10 C, all allowed T values. candidate_13 and candidate_04 optima sit at focused-window Tsep=10 C edge, and candidate_04 also at T=450 C edge; model-validity/window-edge checks were unaffordable after parity work.",
+          "ranking_risk": "Within the computed focused window, candidate_13 is lower than candidate_04 by 5.80 USD/t and lower than candidate_05 by 9.49 USD/t. Screened candidates are lower activity and higher price than candidate_13.",
+          "robustness_risk": "Descriptor-uncertainty Monte Carlo was not run; probabilistic confidence in the ranking is not quantified."
+        }
+      },
+      "action_cost": 0,
+      "result": null,
+      "state_after": {
+        "remaining_CU": 1.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_13": 16.45653171550747,
+          "candidate_04": 22.25234749583163,
+          "candidate_05": 25.949806975194498
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 1.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "stop"
+    }
+  ],
+  "llm_meta": {
+    "response_models": [
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23"
+    ],
+    "infra_retries": 0,
+    "malformed_turns": 1,
+    "tokens": {
+      "prompt": 56713,
+      "completion": 9552
+    },
+    "sdk": "3.7.0"
+  },
+  "final": {
+    "why_stop": "agent STOP: Budget-limited stop: S1 is satisfied by feasible optimized candidate_13; S2 is satisfied under the declared dominance screening rule and direct optimization of the higher-activity competitors. S3 is partially satisfied: BACKWARD quantified the 149.031x parity requirement for candidate_04, but TEST_R",
+    "remaining_budget": 1.0,
+    "spent_CU": 49.0,
+    "stopping_status": {
+      "S1_winner_identified": true,
+      "S2_no_unresolved_candidate": true,
+      "unresolved_candidates": [],
+      "S3_reachability_classified_if_needed": false,
+      "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+      "S4_edv_below_threshold_or_budget_exhausted": false,
+      "may_stop": false,
+      "current_winner": "candidate_13",
+      "atomic_best": "candidate_04",
+      "remaining_CU": 1.0
+    },
+    "unresolved_decision_risk": {
+      "unresolved_candidates": [],
+      "S3": "backward done, reachability missing for candidate_04 vs candidate_13",
+      "S1": true,
+      "S2": true,
+      "S3_ok": false
+    },
+    "answer": {
+      "industrial_winner": "candidate_13",
+      "feasible_ranking_of_optimized_candidates": [
+        "candidate_13",
+        "candidate_04",
+        "candidate_05"
+      ],
+      "optimized_costs_USD_t": {
+        "candidate_13": 16.45653171550747,
+        "candidate_04": 22.25234749583163,
+        "candidate_05": 25.949806975194498
+      },
+      "infeasible_candidates": [],
+      "atomic_best": "candidate_04",
+      "atomic_best_differs_from_winner": true,
+      "parity_multiplier_atomic_best_vs_winner": 149.03143072842118,
+      "reachability_classification": null,
+      "max_scaling_gain_used": null
+    },
+    "llm_final_answer": {
+      "final_answer": {
+        "industrial_candidate": "candidate_13",
+        "optimized_state": {
+          "window": "focused",
+          "cost_USD_t": 16.45653171550747,
+          "T_C": 425.0,
+          "P_bar": 135.0,
+          "Tsep_C": 10.0,
+          "bed_m3": 19.52870027633546
+        },
+        "feasible_ranking_optimized_candidates": [
+          {
+            "rank": 1,
+            "metal": "candidate_13",
+            "cost_USD_t": 16.45653171550747,
+            "T_C": 425.0,
+            "P_bar": 135.0,
+            "Tsep_C": 10.0,
+            "bed_m3": 19.52870027633546,
+            "cost_breakdown_USD_t": {
+              "metal_cost": 0.0805477927475558,
+              "reactor_base": 0.12189151228848459,
+              "vessel_pressure_premium": 0.6703806646525483,
+              "fresh_comp": 8.108630500780007,
+              "recycle_comp": 1.1721132373590393,
+              "refrigeration": 2.64978633617695,
+              "compressor_capex": 3.6531816715028858
+            }
+          },
+          {
+            "rank": 2,
+            "metal": "candidate_04",
+            "cost_USD_t": 22.25234749583163,
+            "T_C": 450.0,
+            "P_bar": 320.0,
+            "Tsep_C": 10.0,
+            "bed_m3": 0.06547411711069645,
+            "cost_breakdown_USD_t": {
+              "metal_cost": 1.8178826186426633,
+              "reactor_base": 0.029590981415309563,
+              "vessel_pressure_premium": 0.049869593607711676,
+              "fresh_comp": 12.761398301579085,
+              "recycle_comp": 0.1951100014389996,
+              "refrigeration": 2.64978633617695,
+              "compressor_capex": 4.74870966297091
+            }
+          },
+          {
+            "rank": 3,
+            "metal": "candidate_05",
+            "cost_USD_t": 25.949806975194498,
+            "T_C": 450.0,
+            "P_bar": 340.0,
+            "Tsep_C": -10.0,
+            "bed_m3": 0.028645764201558472,
+            "cost_breakdown_USD_t": {
+              "metal_cost": 2.106796099584168,
+              "reactor_base": 0.027833989310203613,
+              "vessel_pressure_premium": 0.05407910710591432,
+              "fresh_comp": 13.088231653780651,
+              "recycle_comp": 0.16288969218533722,
+              "refrigeration": 5.702352278840991,
+              "compressor_capex": 4.807624154387233
+            }
+          }
+        ],
+        "screening_evidence": {
+          "reference_log10_TOF": {
+            "candidate_04": -3.4511885358841505,
+            "candidate_05": -3.495320399313441,
+            "candidate_13": -5.3099700922126845,
+            "candidate_08": -8.043486483307811,
+            "candidate_14": -8.20256659221374,
+            "candidate_01": -9.827339304138908,
+            "candidate_07": -10.563178970710178,
+            "candidate_06": -10.758861007859798,
+            "candidate_12": -11.6277967143094,
+            "candidate_15": -14.552220335590981,
+            "candidate_11": -19.33848820076085,
+            "candidate_02": -19.672211894241162,
+            "candidate_03": -28.596518023328855,
+            "candidate_09": -51.76451479225579,
+            "candidate_10": -53.047576696367514
+          },
+          "declared_screening_rule_applied": "After optimizing candidate_13, candidate_04, and candidate_05, all remaining unoptimized candidates have lower reference activity than candidate_13 and higher metal price than candidate_13, so they are screened as dominated. candidate_05 is also dominated by candidate_04 on higher activity and lower metal price, and was directly optimized anyway."
+        },
+        "highest_atomic_activity_candidate": "candidate_04",
+        "parity_reachability_assessment": {
+          "highest_activity_differs_from_industrial_choice": true,
+          "candidate_requiring_improvement": "candidate_04",
+          "reference_industrial_choice": "candidate_13",
+          "required_intrinsic_activity_multiplier_for_cost_parity": 149.03143072842118,
+          "parity_cost_USD_t": 16.456531715509893,
+          "state_at_parity": {
+            "T_C": 425.0,
+            "P_bar": 145.0,
+            "Tsep_C": 10.0
+          },
+          "formal_reachability_classification": "not formally computed: TEST_REACHABILITY costs 2 CU and only 1 CU remained after BACKWARD",
+          "practical_assessment": "candidate_04 would require a 149.031x intrinsic-activity improvement to reach candidate_13 cost parity. The mandatory frozen-manifold classification remains unresolved because the required tool was unaffordable."
+        },
+        "compute_trace_summary": {
+          "initial_budget_CU": 50.0,
+          "remaining_budget_CU": 1.0,
+          "actions_completed": [
+            {
+              "action": "INSPECT_CANDIDATES",
+              "cost_CU": 0.0
+            },
+            {
+              "action": "COMPUTE_ACTIVITY all candidates",
+              "cost_CU": 15.0
+            },
+            {
+              "action": "READ_PROPERTY_UNCERTAINTY all candidates",
+              "cost_CU": 0.0
+            },
+            {
+              "action": "BUILD_PROCESS_WINDOW focused",
+              "cost_CU": 18.0,
+              "n_states": 2295
+            },
+            {
+              "action": "OPTIMIZE_PROCESS candidate_13",
+              "cost_CU": 5.0
+            },
+            {
+              "action": "OPTIMIZE_PROCESS candidate_04",
+              "cost_CU": 5.0
+            },
+            {
+              "action": "OPTIMIZE_PROCESS candidate_05",
+              "cost_CU": 5.0
+            },
+            {
+              "action": "BACKWARD candidate_04 vs candidate_13",
+              "cost_CU": 1.0
+            },
+            {
+              "action": "READ_COST_BREAKDOWN candidate_13,candidate_04,candidate_05",
+              "cost_CU": 0.0
+            }
+          ]
+        }
+      },
+      "why_stop": "Budget-limited stop: S1 is satisfied by feasible optimized candidate_13; S2 is satisfied under the declared dominance screening rule and direct optimization of the higher-activity competitors. S3 is partially satisfied: BACKWARD quantified the 149.031x parity requirement for candidate_04, but TEST_REACHABILITY could not be executed because remaining budget is 1 CU and the action costs 2 CU. No affordable non-free action remains that can complete S3 or plausibly change the industrial decision.",
+      "unresolved_decision_risk": {
+        "primary_risk": "Formal reachable/marginal/unreachable classification for candidate_04 on the frozen descriptor scaling manifold is missing due to insufficient compute budget.",
+        "process_window_risk": "Optimizations used the focused window P=100-350 bar, Tsep=-30 to 10 C, all allowed T values. candidate_13 and candidate_04 optima sit at focused-window Tsep=10 C edge, and candidate_04 also at T=450 C edge; model-validity/window-edge checks were unaffordable after parity work.",
+        "ranking_risk": "Within the computed focused window, candidate_13 is lower than candidate_04 by 5.80 USD/t and lower than candidate_05 by 9.49 USD/t. Screened candidates are lower activity and higher price than candidate_13.",
+        "robustness_risk": "Descriptor-uncertainty Monte Carlo was not run; probabilistic confidence in the ranking is not quantified."
+      }
+    },
+    "ledger": [
+      {
+        "step": 1,
+        "action": "INSPECT_CANDIDATES",
+        "args": {},
+        "cost_CU": 0.0,
+        "wall_s": 0.0,
+        "layerA_state_evals": null,
+        "remaining_CU": 50.0
+      },
+      {
+        "step": 2,
+        "action": "COMPUTE_ACTIVITY",
+        "args": {
+          "metals": [
+            "candidate_01",
+            "candidate_02",
+            "candidate_03",
+            "candidate_04",
+            "candidate_05",
+            "candidate_06",
+            "candidate_07",
+            "candidate_08",
+            "candidate_09",
+            "candidate_10",
+            "candidate_11",
+            "candidate_12",
+            "candidate_13",
+            "candidate_14",
+            "candidate_15"
+          ]
+        },
+        "cost_CU": 15.0,
+        "wall_s": 0.0007,
+        "layerA_state_evals": null,
+        "remaining_CU": 35.0
+      },
+      {
+        "step": 3,
+        "action": "READ_PROPERTY_UNCERTAINTY",
+        "args": {
+          "metals": [
+            "candidate_01",
+            "candidate_02",
+            "candidate_03",
+            "candidate_04",
+            "candidate_05",
+            "candidate_06",
+            "candidate_07",
+            "candidate_08",
+            "candidate_09",
+            "candidate_10",
+            "candidate_11",
+            "candidate_12",
+            "candidate_13",
+            "candidate_14",
+            "candidate_15"
+          ]
+        },
+        "cost_CU": 0.0,
+        "wall_s": 0.0,
+        "layerA_state_evals": null,
+        "remaining_CU": 35.0
+      },
+      {
+        "step": 4,
+        "action": "BUILD_PROCESS_WINDOW",
+        "args": {
+          "bounds": {
+            "T_C": [
+              350.0,
+              375.0,
+              400.0,
+              425.0,
+              450.0
+            ],
+            "P_bar": [
+              100,
+              350
+            ],
+            "Tsep_C": [
+              -30,
+              10
+            ]
+          },
+          "name": "focused"
+        },
+        "cost_CU": 18.0,
+        "wall_s": 0.0008,
+        "layerA_state_evals": null,
+        "remaining_CU": 17.0
+      },
+      {
+        "step": 5,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_13",
+          "window": "focused"
+        },
+        "cost_CU": 5.0,
+        "wall_s": 0.2664,
+        "layerA_state_evals": null,
+        "remaining_CU": 12.0
+      },
+      {
+        "step": 6,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_04",
+          "window": "focused"
+        },
+        "cost_CU": 5.0,
+        "wall_s": 0.2313,
+        "layerA_state_evals": null,
+        "remaining_CU": 7.0
+      },
+      {
+        "step": 7,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_05",
+          "window": "focused"
+        },
+        "cost_CU": 5.0,
+        "wall_s": 0.2207,
+        "layerA_state_evals": null,
+        "remaining_CU": 2.0
+      },
+      {
+        "step": 8,
+        "action": "BACKWARD",
+        "args": {
+          "pair": [
+            "candidate_04",
+            "candidate_13"
+          ],
+          "property": "activity",
+          "window": "focused"
+        },
+        "cost_CU": 1.0,
+        "wall_s": 0.0611,
+        "layerA_state_evals": null,
+        "remaining_CU": 1.0
+      },
+      {
+        "step": 9,
+        "action": "READ_COST_BREAKDOWN",
+        "args": {
+          "metal": "candidate_13"
+        },
+        "cost_CU": 0.0,
+        "wall_s": 0.0037,
+        "layerA_state_evals": null,
+        "remaining_CU": 1.0
+      },
+      {
+        "step": 10,
+        "action": "READ_COST_BREAKDOWN",
+        "args": {
+          "metal": "candidate_04"
+        },
+        "cost_CU": 0.0,
+        "wall_s": 0.0039,
+        "layerA_state_evals": null,
+        "remaining_CU": 1.0
+      },
+      {
+        "step": 11,
+        "action": "READ_COST_BREAKDOWN",
+        "args": {
+          "metal": "candidate_05"
+        },
+        "cost_CU": 0.0,
+        "wall_s": 0.0039,
+        "layerA_state_evals": null,
+        "remaining_CU": 1.0
+      }
+    ]
+  },
+  "metadata": {
+    "model_requested": "gpt-5.5-2026-04-23",
+    "response_model": "gpt-5.5-2026-04-23",
+    "sampling": {},
+    "reasoning": "API default (not set)",
+    "temperature": "API default (not set)",
+    "tool_choice": "auto",
+    "tools": [
+      "INSPECT_CANDIDATES",
+      "COMPUTE_ACTIVITY",
+      "READ_PROPERTY_UNCERTAINTY",
+      "BUILD_PROCESS_WINDOW",
+      "OPTIMIZE_PROCESS",
+      "READ_COST_BREAKDOWN",
+      "RUN_MC",
+      "TEST_LEVER",
+      "BACKWARD",
+      "TEST_REACHABILITY",
+      "CHECK_MODEL_VALIDITY",
+      "STOP"
+    ],
+    "prompt_sha256": "5a0b1e297fb9ee84e6f1917d8c68bcfbbfb6670ea8dd5b0129cdc89beb6580ed",
+    "task_file": "DISCOVER_TASK_V1_ANON.json",
+    "frozen_sha256": "be2ab4f1f7e1d324a0ab35bd4a70817ae924a5ca8944781880e55d3a3f98a235",
+    "driver_sha256": "d4451c424dbfac5f7a6176038864f35cc6326ac04ae5efcb91f14574f8aeee93",
+    "git": "harness root is not a git repository; provenance = DISCOVER_FROZEN_V1.json hashes",
+    "finished_utc": "2026-09-11T11:16:09.468491+00:00"
+  }
+}

@@ -1,0 +1,1139 @@
+{
+  "canonical_run": "outputs/nh3_final_20260905T134204Z",
+  "eligibility": {
+    "run_dir": "outputs\\nh3_final_20260905T134204Z",
+    "results": [
+      {
+        "key": "economics.metal_recovery_fraction",
+        "direction": "increase",
+        "current_value": 0.0,
+        "lever_family": "catalyst_lifecycle_economics",
+        "lever_class": "catalyst_specific",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "eligible",
+        "reason": "enters metal_cost with catalyst-dependent weight (metal_cost ∝ price·(1-recovery)/life)"
+      },
+      {
+        "key": "economics.catalyst_life_y",
+        "direction": "increase",
+        "current_value": 10.0,
+        "lever_family": "catalyst_lifecycle_economics",
+        "lever_class": "catalyst_specific",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "eligible",
+        "reason": "enters metal_cost with catalyst-dependent weight (metal_cost ∝ price·(1-recovery)/life)"
+      },
+      {
+        "key": "economics.electricity_USD_MWh",
+        "direction": "decrease",
+        "current_value": 50.0,
+        "lever_family": "external_prices",
+        "lever_class": "common_mode_external",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "common_mode_external",
+        "reason": "scales fresh_comp, recycle_comp, refrigeration for every candidate; absolute leverage may be computed, not a catalyst-discriminatory target",
+        "allowed": [
+          "absolute_leverage"
+        ]
+      },
+      {
+        "key": "engineering.max_catalyst_bed_m3",
+        "direction": "increase",
+        "current_value": 90.0,
+        "lever_family": "engineering_constraints",
+        "lever_class": "constraint",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "inactive_constraint",
+        "reason": "cap not binding for ['Ru', 'Fe'] (slack Ru 89.93 m3, Fe 72.94 m3); relaxing it cannot change costs",
+        "slack": {
+          "Ru": {
+            "V_m3": 0.0660321094260842,
+            "slack_m3": 89.93396789057391,
+            "cap_active": false
+          },
+          "Fe": {
+            "V_m3": 17.059161423818093,
+            "slack_m3": 72.9408385761819,
+            "cap_active": false
+          }
+        }
+      },
+      {
+        "key": "engineering.max_catalyst_bed_m3",
+        "direction": "decrease",
+        "current_value": 90.0,
+        "lever_family": "engineering_constraints",
+        "lever_class": "constraint",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "eligible",
+        "reason": "tightening becomes active once cap < 17.06 m3 (Fe bed); slack 72.94 m3",
+        "slack": {
+          "Ru": {
+            "V_m3": 0.0660321094260842,
+            "slack_m3": 89.93396789057391,
+            "cap_active": false
+          },
+          "Fe": {
+            "V_m3": 17.059161423818093,
+            "slack_m3": 72.9408385761819,
+            "cap_active": false
+          }
+        },
+        "activation_threshold_m3": 17.059161423818093
+      },
+      {
+        "key": "process.pressure_bar.stop",
+        "direction": "increase",
+        "current_value": 1000,
+        "lever_family": "process",
+        "lever_class": "operating_window",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "inactive_constraint",
+        "reason": "no pair metal on the upper pressure_bar bound",
+        "on_edge": {
+          "Ru": null,
+          "Fe": null
+        }
+      },
+      {
+        "key": "process.pressure_bar.stop",
+        "direction": "decrease",
+        "current_value": 1000,
+        "lever_family": "process",
+        "lever_class": "operating_window",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "eligible",
+        "reason": "lowering the upper bound cuts into the window; active once below the pair optimum",
+        "on_edge": {
+          "Ru": null,
+          "Fe": null
+        }
+      },
+      {
+        "key": "process.pressure_bar.start",
+        "direction": "decrease",
+        "current_value": 10,
+        "lever_family": "process",
+        "lever_class": "operating_window",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "inactive_constraint",
+        "reason": "no pair metal on the lower pressure_bar bound",
+        "on_edge": {
+          "Ru": null,
+          "Fe": null
+        }
+      },
+      {
+        "key": "economics.discount_rate",
+        "direction": "decrease",
+        "current_value": 0.12,
+        "lever_family": "external_prices",
+        "lever_class": "common_mode_external",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "common_mode_external",
+        "reason": "scales reactor for every candidate; absolute leverage may be computed, not a catalyst-discriminatory target",
+        "allowed": [
+          "absolute_leverage"
+        ]
+      },
+      {
+        "key": "economics.calibration_factor",
+        "direction": "increase",
+        "current_value": 89806.49638662045,
+        "lever_family": "model_calibration",
+        "lever_class": "model_calibration",
+        "pair": [
+          "Ru",
+          "Fe"
+        ],
+        "status": "out_of_scope",
+        "reason": "frozen model calibration, not a design lever"
+      }
+    ],
+    "eligible_keys": [
+      "economics.metal_recovery_fraction",
+      "economics.catalyst_life_y",
+      "engineering.max_catalyst_bed_m3",
+      "process.pressure_bar.stop"
+    ],
+    "skipped": {
+      "economics.electricity_USD_MWh": "common_mode_external",
+      "engineering.max_catalyst_bed_m3": "inactive_constraint",
+      "process.pressure_bar.stop": "inactive_constraint",
+      "process.pressure_bar.start": "inactive_constraint",
+      "economics.discount_rate": "common_mode_external",
+      "economics.calibration_factor": "out_of_scope"
+    }
+  },
+  "sweeps": {
+    "economics.metal_recovery_fraction": {
+      "key": "economics.metal_recovery_fraction",
+      "pair": [
+        "Ru",
+        "Fe"
+      ],
+      "lever_family": "catalyst_lifecycle_economics",
+      "lever_class": "catalyst_specific",
+      "x_tilde_name": "metal_loss_fraction",
+      "x_tilde_monotone_with_manifest": false,
+      "baseline": {
+        "value": 0.0,
+        "x_tilde": 1.0,
+        "costs_USD_t": {
+          "Ru": 22.03059478781101,
+          "Fe": 15.291704676621144
+        },
+        "ratio_A_over_B": 1.4406892660889978
+      },
+      "rows": [
+        {
+          "value": 0.5,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.253352254528576,
+            "Ru": 20.721057174232083,
+            "Os": 24.299343953345463
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 385.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.12720181518134738
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 430.0,
+              "Tsep_C": 10.0,
+              "V_m3": 0.05484747585811769
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_rec_metal_recovery_fraction_0_20260905T135030Z",
+          "x_tilde": 0.5,
+          "L_abs": {
+            "Fe": 0.0036229022824078843,
+            "Ru": 0.08841083560486716,
+            "Os": 0.08823065924273862
+          },
+          "L_rel": 0.08478793332245928,
+          "ratio_A_over_B": 1.3584592310244588,
+          "ratio_closure": 0.160961465720308,
+          "abs_gap_closure": 0.18863420689640986
+        },
+        {
+          "value": 0.9,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.222255219805499,
+            "Ru": 18.084242224110113,
+            "Os": 21.018881974388137
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": 20.0,
+              "V_m3": 0.5319674845939377
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 400.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.24778466697819349
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_rec_metal_recovery_fraction_1_20260905T135052Z",
+          "x_tilde": 0.09999999999999998,
+          "L_abs": {
+            "Fe": 0.001976902902732498,
+            "Ru": 0.08572590707402855,
+            "Os": 0.08954501187490814
+          },
+          "L_rel": 0.08374900417129605,
+          "ratio_A_over_B": 1.1880133372472246,
+          "ratio_closure": 0.5281505639276827,
+          "abs_gap_closure": 0.575302912336809
+        },
+        {
+          "value": 0.95,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.218368090465114,
+            "Ru": 17.07152381679898,
+            "Os": 19.819790328445055
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": 30.0,
+              "V_m3": 1.1265162524136052
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 340.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.43676654932929787
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_rec_metal_recovery_fraction_2_20260905T135118Z",
+          "x_tilde": 0.050000000000000044,
+          "L_abs": {
+            "Fe": 0.0016047422242242593,
+            "Ru": 0.08512788681634034,
+            "Os": 0.08843421595116033
+          },
+          "L_rel": 0.08352314459211609,
+          "ratio_A_over_B": 1.1217709885394964,
+          "ratio_closure": 0.685286604288158,
+          "abs_gap_closure": 0.7250057953524548
+        },
+        {
+          "value": 0.99,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.215258386992806,
+            "Ru": 15.715194594294106,
+            "Os": 17.283022528576367
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 200.0,
+              "Tsep_C": 30.0,
+              "V_m3": 1.7566870075484826
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": 25.0,
+              "V_m3": 1.6219909517981084
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_rec_metal_recovery_fraction_3_20260905T135141Z",
+          "x_tilde": 0.010000000000000009,
+          "L_abs": {
+            "Fe": 0.0010882850308803697,
+            "Ru": 0.07335322972147928,
+            "Os": 0.08726746367917407
+          },
+          "L_rel": 0.07226494469059891,
+          "ratio_A_over_B": 1.032857556183777,
+          "ratio_closure": 0.91145612221199,
+          "abs_gap_closure": 0.9258132720592728
+        }
+      ],
+      "summary": {
+        "L_rel_mean": 0.08108125669411759,
+        "L_rel_max_abs": 0.08478793332245928,
+        "L_abs_A_mean": 0.08315446480417883,
+        "best_ratio_closure": 0.91145612221199,
+        "discriminatory": true,
+        "closing_direction": "increase economics.metal_recovery_fraction",
+        "reach_bound": 0.95,
+        "reach_from_sweep": 0.685286604288158,
+        "reach_estimate": 0.6652515221101138,
+        "reach": 0.685286604288158,
+        "reach_status": "ok",
+        "range_note": "PROVISIONAL (Claude 2026-09-04): precious-metal recovery 0.90-0.98 industrial; 0.99 optimistic bound"
+      },
+      "sign_convention": "L_rel = d ln(C_Ru/C_Fe)/d ln x~ ; >0 Ru disadvantage widens as x~ increases, <0 closes, 0 common-mode. x~ = metal_loss_fraction which DEcreases when economics.metal_recovery_fraction increases. Decision impact = reach (closure at plausible bound), not |L_rel|.",
+      "baseline_run_dir": "outputs\\nh3_final_20260905T134204Z"
+    },
+    "economics.catalyst_life_y": {
+      "key": "economics.catalyst_life_y",
+      "pair": [
+        "Ru",
+        "Fe"
+      ],
+      "lever_family": "catalyst_lifecycle_economics",
+      "lever_class": "catalyst_specific",
+      "x_tilde_name": "catalyst_life_y",
+      "x_tilde_monotone_with_manifest": true,
+      "baseline": {
+        "value": 10.0,
+        "x_tilde": 10.0,
+        "costs_USD_t": {
+          "Ru": 22.03059478781101,
+          "Fe": 15.291704676621144
+        },
+        "ratio_A_over_B": 1.4406892660889978
+      },
+      "rows": [
+        {
+          "value": 5.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.362066645383493,
+            "Ru": 23.45977809400296,
+            "Os": 27.448768857712597
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "V_m3": 17.059161423818093
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 15.0,
+              "V_m3": 0.035061797343470605
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 420.0,
+              "Tsep_C": -10.0,
+              "V_m3": 0.015452849176876816
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_life_catalyst_life_y_0_20260905T135204Z",
+          "x_tilde": 5.0,
+          "L_abs": {
+            "Fe": -0.006623070330468296,
+            "Ru": -0.09068092115529343,
+            "Os": -0.0875934194433848
+          },
+          "L_rel": -0.08405785082482513,
+          "ratio_A_over_B": 1.5271238327203156,
+          "ratio_closure": -0.15957547664956317,
+          "abs_gap_closure": -0.2016387439191638
+        },
+        {
+          "value": 15.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.26630935232986,
+            "Ru": 21.23230336730415,
+            "Os": 24.93369668214902
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 415.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.09771817867407928
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 420.0,
+              "Tsep_C": 5.0,
+              "V_m3": 0.04245815825501713
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_life_catalyst_life_y_1_20260905T135226Z",
+          "x_tilde": 15.0,
+          "L_abs": {
+            "Fe": -0.004099257928703977,
+            "Ru": -0.09102729928011549,
+            "Os": -0.08727265341250756
+          },
+          "L_rel": -0.08692804135141152,
+          "ratio_A_over_B": 1.3907947806693564,
+          "ratio_closure": 0.09653299687322747,
+          "abs_gap_closure": 0.11469189784415512
+        },
+        {
+          "value": 20.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.253352254528576,
+            "Ru": 20.721057174232083,
+            "Os": 24.299343953345463
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 385.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.12720181518134738
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 430.0,
+              "Tsep_C": 10.0,
+              "V_m3": 0.05484747585811769
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_life_catalyst_life_y_2_20260905T135250Z",
+          "x_tilde": 20.0,
+          "L_abs": {
+            "Fe": -0.0036229022824078843,
+            "Ru": -0.08841083560486716,
+            "Os": -0.08823065924273862
+          },
+          "L_rel": -0.08478793332245928,
+          "ratio_A_over_B": 1.3584592310244588,
+          "ratio_closure": 0.160961465720308,
+          "abs_gap_closure": 0.18863420689640986
+        }
+      ],
+      "summary": {
+        "L_rel_mean": -0.08525794183289864,
+        "L_rel_max_abs": 0.08692804135141152,
+        "L_abs_A_mean": -0.0900396853467587,
+        "best_ratio_closure": 0.160961465720308,
+        "discriminatory": true,
+        "closing_direction": "increase economics.catalyst_life_y",
+        "reach_bound": 20.0,
+        "reach_from_sweep": 0.160961465720308,
+        "reach_estimate": 0.16185373017088278,
+        "reach": 0.160961465720308,
+        "reach_status": "ok",
+        "range_note": "PROVISIONAL: NH3 synthesis catalyst life 5-20 y"
+      },
+      "sign_convention": "L_rel = d ln(C_Ru/C_Fe)/d ln x~ ; >0 Ru disadvantage widens as x~ increases, <0 closes, 0 common-mode. x~ = catalyst_life_y. Decision impact = reach (closure at plausible bound), not |L_rel|.",
+      "baseline_run_dir": "outputs\\nh3_final_20260905T134204Z"
+    },
+    "economics.electricity_USD_MWh": {
+      "key": "economics.electricity_USD_MWh",
+      "pair": [
+        "Ru",
+        "Fe"
+      ],
+      "lever_family": "external_prices",
+      "lever_class": "common_mode_external",
+      "x_tilde_name": "electricity_USD_MWh",
+      "x_tilde_monotone_with_manifest": true,
+      "baseline": {
+        "value": 50.0,
+        "x_tilde": 50.0,
+        "costs_USD_t": {
+          "Ru": 22.03059478781101,
+          "Fe": 15.291704676621144
+        },
+        "ratio_A_over_B": 1.4406892660889978
+      },
+      "rows": [
+        {
+          "value": 20.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 8.790935231669593,
+            "Ru": 12.101611799685639,
+            "Os": 13.614527259624031
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 450.0,
+              "P_bar": 195.0,
+              "Tsep_C": 30.0,
+              "V_m3": 5.2314320340620695
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 210.0,
+              "Tsep_C": -20.0,
+              "V_m3": 0.02923345124266325
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": -35.0,
+              "V_m3": 0.014633750676258142
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_elec_electricity_USD_MWh_0_20260905T135314Z",
+          "x_tilde": 20.0,
+          "L_abs": {
+            "Fe": 0.6041634830972263,
+            "Ru": 0.653824695902057,
+            "Os": 0.698979875156989
+          },
+          "L_rel": 0.04966121280483071,
+          "ratio_A_over_B": 1.376601178460426,
+          "ratio_closure": 0.12462725305293798,
+          "abs_gap_closure": 0.5087207962452606
+        },
+        {
+          "value": 40.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 13.177780829472752,
+            "Ru": 19.013352899434107,
+            "Os": 21.986275100479162
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 450.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0,
+              "V_m3": 5.772049741402709
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 430.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.06345967224919306
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": -30.0,
+              "V_m3": 0.02303986504190122
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_elec_electricity_USD_MWh_1_20260905T135337Z",
+          "x_tilde": 40.0,
+          "L_abs": {
+            "Fe": 0.6667383470669164,
+            "Ru": 0.6600712503904951,
+            "Os": 0.7223501836056986
+          },
+          "L_rel": -0.006667096676421291,
+          "ratio_A_over_B": 1.4428342029266272,
+          "ratio_closure": -0.004074586112823075,
+          "abs_gap_closure": 0.13404552178830764
+        },
+        {
+          "value": 60.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 17.36301460040157,
+            "Ru": 24.94035248770466,
+            "Os": 29.474515891891535
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 175.0,
+              "Tsep_C": 30.0,
+              "V_m3": 18.848581999418005
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 430.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.08640450097378513
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 430.0,
+              "Tsep_C": 5.0,
+              "V_m3": 0.039513690792214236
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_elec_electricity_USD_MWh_2_20260905T135400Z",
+          "x_tilde": 60.0,
+          "L_abs": {
+            "Fe": 0.6967461506963581,
+            "Ru": 0.6804182474048172,
+            "Os": 0.7235558941828278
+          },
+          "L_rel": -0.01632790329154099,
+          "ratio_A_over_B": 1.4364068142365003,
+          "ratio_closure": 0.008153251656724314,
+          "abs_gap_closure": -0.12441926819981663
+        },
+        {
+          "value": 100.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 25.621057218787755,
+            "Ru": 36.37677261071816,
+            "Os": 43.244293018273765
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 170.0,
+              "Tsep_C": 30.0,
+              "V_m3": 21.004391394609563
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 395.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.11617494851235372
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 640.0,
+              "Tsep_C": 30.0,
+              "V_m3": 0.05479437841145984
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_elec_electricity_USD_MWh_3_20260905T135422Z",
+          "x_tilde": 100.0,
+          "L_abs": {
+            "Fe": 0.7445807645101643,
+            "Ru": 0.7235091052707641,
+            "Os": 0.7433617288177341
+          },
+          "L_rel": -0.021071659239400242,
+          "ratio_A_over_B": 1.4197998271532415,
+          "ratio_closure": 0.040002451096826985,
+          "abs_gap_closure": -0.5960662979309661
+        }
+      ],
+      "summary": {
+        "L_rel_mean": 0.001398638399367047,
+        "L_rel_max_abs": 0.04966121280483071,
+        "L_abs_A_mean": 0.6794558247420334,
+        "best_ratio_closure": 0.12462725305293798,
+        "discriminatory": false,
+        "closing_direction": "decrease economics.electricity_USD_MWh",
+        "reach_bound": 20.0,
+        "reach_from_sweep": 0.12462725305293798,
+        "reach_estimate": 0.0035099517688484193,
+        "reach": 0.12462725305293798,
+        "reach_status": "ok",
+        "range_note": "PROVISIONAL: industrial power price band"
+      },
+      "sign_convention": "L_rel = d ln(C_Ru/C_Fe)/d ln x~ ; >0 Ru disadvantage widens as x~ increases, <0 closes, 0 common-mode. x~ = electricity_USD_MWh. Decision impact = reach (closure at plausible bound), not |L_rel|.",
+      "baseline_run_dir": "outputs\\nh3_final_20260905T134204Z"
+    },
+    "process.pressure_bar.stop": {
+      "key": "process.pressure_bar.stop",
+      "pair": [
+        "Ru",
+        "Fe"
+      ],
+      "lever_family": "process",
+      "lever_class": "operating_window",
+      "x_tilde_name": "stop",
+      "x_tilde_monotone_with_manifest": true,
+      "baseline": {
+        "value": 1000,
+        "x_tilde": 1000.0,
+        "costs_USD_t": {
+          "Ru": 22.03059478781101,
+          "Fe": 15.291704676621144
+        },
+        "ratio_A_over_B": 1.4406892660889978
+      },
+      "rows": [
+        {
+          "value": 500,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.291704676621144,
+            "Ru": 22.03059478781101,
+            "Os": 25.83179725613286
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "V_m3": 17.059161423818093
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.0660321094260842
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 0.0,
+              "V_m3": 0.02935276844177327
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_pstop_stop_0_20260905T135444Z",
+          "x_tilde": 500.0,
+          "L_abs": {
+            "Fe": -0.0,
+            "Ru": -0.0,
+            "Os": -0.0
+          },
+          "L_rel": 0.0,
+          "ratio_A_over_B": 1.4406892660889978,
+          "ratio_closure": 0.0,
+          "abs_gap_closure": 0.0
+        },
+        {
+          "value": 800,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.291704676621144,
+            "Ru": 22.03059478781101,
+            "Os": 25.83179725613286
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "V_m3": 17.059161423818093
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.0660321094260842
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 0.0,
+              "V_m3": 0.02935276844177327
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_pstop_stop_1_20260905T135455Z",
+          "x_tilde": 800.0,
+          "L_abs": {
+            "Fe": -0.0,
+            "Ru": -0.0,
+            "Os": -0.0
+          },
+          "L_rel": 0.0,
+          "ratio_A_over_B": 1.4406892660889978,
+          "ratio_closure": 0.0,
+          "abs_gap_closure": 0.0
+        }
+      ],
+      "summary": {
+        "L_rel_mean": 0.0,
+        "L_rel_max_abs": 0.0,
+        "L_abs_A_mean": 0.0,
+        "best_ratio_closure": 0.0,
+        "discriminatory": false,
+        "closing_direction": null,
+        "reach_bound": null,
+        "reach_from_sweep": null,
+        "reach_estimate": null,
+        "reach": null,
+        "reach_status": "ok",
+        "range_note": "PROVISIONAL: modern HP loops 150-350 bar; historic >350 bar not considered plausible"
+      },
+      "sign_convention": "L_rel = d ln(C_Ru/C_Fe)/d ln x~ ; >0 Ru disadvantage widens as x~ increases, <0 closes, 0 common-mode. x~ = stop. Decision impact = reach (closure at plausible bound), not |L_rel|.",
+      "baseline_run_dir": "outputs\\nh3_final_20260905T134204Z"
+    },
+    "engineering.max_catalyst_bed_m3": {
+      "key": "engineering.max_catalyst_bed_m3",
+      "pair": [
+        "Ru",
+        "Fe"
+      ],
+      "lever_family": "engineering_constraints",
+      "lever_class": "constraint",
+      "x_tilde_name": "max_catalyst_bed_m3",
+      "x_tilde_monotone_with_manifest": true,
+      "baseline": {
+        "value": 90.0,
+        "x_tilde": 90.0,
+        "costs_USD_t": {
+          "Ru": 22.03059478781101,
+          "Fe": 15.291704676621144
+        },
+        "ratio_A_over_B": 1.4406892660889978
+      },
+      "rows": [
+        {
+          "value": 60.0,
+          "gate": "PASS",
+          "costs_USD_t": {
+            "Fe": 15.291704676621144,
+            "Ru": 22.03059478781101,
+            "Os": 25.83179725613286
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "V_m3": 17.059161423818093
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.0660321094260842
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 0.0,
+              "V_m3": 0.02935276844177327
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_bed_max_catalyst_bed_m3_0_20260905T135513Z",
+          "x_tilde": 60.0,
+          "L_abs": {
+            "Fe": -0.0,
+            "Ru": -0.0,
+            "Os": -0.0
+          },
+          "L_rel": 0.0,
+          "ratio_A_over_B": 1.4406892660889978,
+          "ratio_closure": 0.0,
+          "abs_gap_closure": 0.0
+        },
+        {
+          "value": 30.0,
+          "gate": "PASS",
+          "costs_USD_t": {
+            "Fe": 15.291704676621144,
+            "Ru": 22.03059478781101,
+            "Os": 25.83179725613286
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "V_m3": 17.059161423818093
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.0660321094260842
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 0.0,
+              "V_m3": 0.02935276844177327
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_bed_max_catalyst_bed_m3_1_20260905T135535Z",
+          "x_tilde": 30.0,
+          "L_abs": {
+            "Fe": -0.0,
+            "Ru": -0.0,
+            "Os": -0.0
+          },
+          "L_rel": 0.0,
+          "ratio_A_over_B": 1.4406892660889978,
+          "ratio_closure": 0.0,
+          "abs_gap_closure": 0.0
+        },
+        {
+          "value": 15.0,
+          "gate": "FAIL",
+          "costs_USD_t": {
+            "Fe": 15.355938012893223,
+            "Ru": 22.03059478781101,
+            "Os": 25.83179725613286
+          },
+          "feasible_economic_order": [
+            "Fe",
+            "Ru",
+            "Os"
+          ],
+          "optima": {
+            "Fe": {
+              "T_C": 425.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0,
+              "V_m3": 14.263718103876622
+            },
+            "Ru": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "V_m3": 0.0660321094260842
+            },
+            "Os": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 0.0,
+              "V_m3": 0.02935276844177327
+            }
+          },
+          "Fe_feasibility": null,
+          "Ru_break_even": null,
+          "run_dir": "outputs\\l11_bed_max_catalyst_bed_m3_2_20260905T135558Z",
+          "x_tilde": 15.0,
+          "L_abs": {
+            "Fe": -0.002339453014823194,
+            "Ru": -0.0,
+            "Os": -0.0
+          },
+          "L_rel": 0.002339453014823194,
+          "ratio_A_over_B": 1.4346629147183052,
+          "ratio_closure": 0.011480384749539718,
+          "abs_gap_closure": 0.009531738196089545
+        }
+      ],
+      "summary": {
+        "L_rel_mean": 0.0007798176716077313,
+        "L_rel_max_abs": 0.002339453014823194,
+        "L_abs_A_mean": 0.0,
+        "best_ratio_closure": 0.011480384749539718,
+        "discriminatory": false,
+        "closing_direction": "decrease engineering.max_catalyst_bed_m3",
+        "reach_bound": null,
+        "reach_from_sweep": null,
+        "reach_estimate": null,
+        "reach": null,
+        "reach_status": "no_plausible_range",
+        "range_note": "no range declared"
+      },
+      "sign_convention": "L_rel = d ln(C_Ru/C_Fe)/d ln x~ ; >0 Ru disadvantage widens as x~ increases, <0 closes, 0 common-mode. x~ = max_catalyst_bed_m3. Decision impact = reach (closure at plausible bound), not |L_rel|.",
+      "baseline_run_dir": "outputs\\nh3_final_20260905T134204Z"
+    }
+  }
+}

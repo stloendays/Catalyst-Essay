@@ -1,0 +1,176 @@
+{
+  "_dry_run": true,
+  "request": {
+    "model": "gpt-5-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are the consistency-diagnosis layer of a deterministic multiscale catalysis harness\n(Catalyst Economic Leverage project, model NH3-FINAL-1.0). The harness propagates DFT descriptors ->\nscaling/BEP -> microkinetics -> catalyst inventory -> reactor/process optimisation -> reduced\ncatalyst-dependent economics -> ranking -> uncertainty -> backward design. Frozen headline results are\nregression-gated. Your job is NOT to tune parameters. Diagnose WHY a run drifted from the frozen\nregression: distinguish manifest/version/convention changes from genuine physical-result changes.\nBe concrete and cite the exact manifest keys and failing checks. If nothing drifted, say so."
+      },
+      {
+        "role": "user",
+        "content": "## Run summary\n{\n \"run_id\": \"20260903T092840Z\",\n \"mode\": \"smoke\",\n \"status\": \"FAIL\",\n \"model_version\": \"NH3-FINAL-1.0\",\n \"process_state_count\": 3636,\n \"activity_order\": [\n  \"Ru\",\n  \"Os\",\n  \"Fe\",\n  \"Rh\",\n  \"Ir\",\n  \"Co\",\n  \"Re\",\n  \"Mo\",\n  \"Ni\",\n  \"W\",\n  \"Pd\",\n  \"Pt\",\n  \"Cu\",\n  \"Ag\",\n  \"Au\"\n ],\n \"feasible_economic_order\": [\n  \"Fe\",\n  \"Ru\",\n  \"Os\"\n ],\n \"costs_USD_t\": {\n  \"Fe\": 10.176351004361088,\n  \"Ru\": 17.48385995749885,\n  \"Os\": 21.218795148077596\n },\n \"top3_spearman\": -0.5,\n \"Fe_feasibility\": null,\n \"Ru_break_even\": null\n}\n\n## Manifest diff vs canonical (empty = identical)\n[\n {\n  \"key\": \"economics.calibration_factor\",\n  \"canonical\": 89806.49638662045,\n  \"run\": 94296.82120595148\n },\n {\n  \"key\": \"project.run_label\",\n  \"canonical\": \"nh3_final\",\n  \"run\": \"drift_C_calib\"\n }\n]\n\n## Failing regression checks (3 of 18)\n[\n {\n  \"name\": \"Fe_cost_USD_t\",\n  \"actual\": 10.176351004361088,\n  \"expected\": 10.19865904708462,\n  \"tolerance\": 1e-08,\n  \"pass\": false\n },\n {\n  \"name\": \"Ru_cost_USD_t\",\n  \"actual\": 17.48385995749885,\n  \"expected\": 17.59239838038635,\n  \"tolerance\": 1e-08,\n  \"pass\": false\n },\n {\n  \"name\": \"Os_cost_USD_t\",\n  \"actual\": 21.218795148077596,\n  \"expected\": 21.32057789728162,\n  \"tolerance\": 1e-08,\n  \"pass\": false\n }\n]\n\nFrozen principles: model version, candidate set, process grids, 90 m3 bed cap, cost boundary (reduced catalyst-dependent NH3 cost, no HP-loop CAPEX), 1000-draw seed 20260816, descriptor/scaling convention must never change silently; any change requires a new manifest version.\nReturn the structured diagnosis."
+      }
+    ],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "consistency_diagnosis",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary_cause": {
+              "type": "string",
+              "enum": [
+                "no_drift",
+                "model_version_drift",
+                "engineering_threshold_change",
+                "cost_denominator_or_economics_change",
+                "uncertainty_seed_or_distribution_change",
+                "candidate_set_mismatch",
+                "unit_or_reference_convention_mismatch",
+                "process_grid_change",
+                "physical_result_change",
+                "unknown"
+              ]
+            },
+            "secondary_causes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no_drift",
+                  "model_version_drift",
+                  "engineering_threshold_change",
+                  "cost_denominator_or_economics_change",
+                  "uncertainty_seed_or_distribution_change",
+                  "candidate_set_mismatch",
+                  "unit_or_reference_convention_mismatch",
+                  "process_grid_change",
+                  "physical_result_change",
+                  "unknown"
+                ]
+              }
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "affected_headlines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "is_numerical_chain_still_consistent": {
+              "type": "boolean"
+            },
+            "frozen_principle_violated": {
+              "type": "string"
+            },
+            "recommended_action": {
+              "type": "string",
+              "enum": [
+                "revert_to_canonical_manifest",
+                "register_as_new_manifest_version",
+                "investigate_code_or_environment",
+                "accept_no_action"
+              ]
+            },
+            "rationale": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "primary_cause",
+            "secondary_causes",
+            "evidence",
+            "affected_headlines",
+            "is_numerical_chain_still_consistent",
+            "frozen_principle_violated",
+            "recommended_action",
+            "rationale"
+          ]
+        }
+      }
+    }
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092840Z",
+      "mode": "smoke",
+      "status": "FAIL",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.176351004361088,
+        "Ru": 17.48385995749885,
+        "Os": 21.218795148077596
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": null,
+      "Ru_break_even": null
+    },
+    "diff": [
+      {
+        "key": "economics.calibration_factor",
+        "canonical": 89806.49638662045,
+        "run": 94296.82120595148
+      },
+      {
+        "key": "project.run_label",
+        "canonical": "nh3_final",
+        "run": "drift_C_calib"
+      }
+    ],
+    "failing": [
+      {
+        "name": "Fe_cost_USD_t",
+        "actual": 10.176351004361088,
+        "expected": 10.19865904708462,
+        "tolerance": 1e-08,
+        "pass": false
+      },
+      {
+        "name": "Ru_cost_USD_t",
+        "actual": 17.48385995749885,
+        "expected": 17.59239838038635,
+        "tolerance": 1e-08,
+        "pass": false
+      },
+      {
+        "name": "Os_cost_USD_t",
+        "actual": 21.218795148077596,
+        "expected": 21.32057789728162,
+        "tolerance": 1e-08,
+        "pass": false
+      }
+    ]
+  }
+}

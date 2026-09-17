@@ -1,0 +1,105 @@
+{
+  "primary_cause": "cost_denominator_or_economics_change",
+  "secondary_causes": [
+    "no_drift"
+  ],
+  "evidence": [
+    "Manifest diff: economics.calibration_factor changed from canonical=89806.49638662045 to run=94296.82120595148 (+5.0%).",
+    "Manifest diff: project.run_label changed from canonical='nh3_final' to run='drift_C_calib' (label only).",
+    "Model version unchanged: canonical/run = 'NH3-FINAL-1.0' (no model code version drift).",
+    "Failing regression: Fe_cost_USD_t actual=10.176351004361088 expected=10.19865904708462 Δ=-0.022308042723532 (-0.22%).",
+    "Failing regression: Ru_cost_USD_t actual=17.48385995749885 expected=17.59239838038635 Δ=-0.1085384228875 (-0.62%).",
+    "Failing regression: Os_cost_USD_t actual=21.218795148077596 expected=21.32057789728162 Δ=-0.101782749204024 (-0.48%).",
+    "Calibration change is exactly +5.0% (94296.82120595148 / 89806.49638662045 = 1.05). Direction of cost changes (small decreases) is consistent with an increase in an economics calibration denominator or scaling factor used to convert model output to USD/t.",
+    "No manifest keys affecting physics, descriptors, scaling/BEP, candidate set, or process grids were changed (per provided manifest diff). Process-state count present (3636) and model_version matches frozen principle."
+  ],
+  "affected_headlines": [
+    "Fe_cost_USD_t",
+    "Ru_cost_USD_t",
+    "Os_cost_USD_t",
+    "costs_USD_t (per-metal headline values)"
+  ],
+  "is_numerical_chain_still_consistent": true,
+  "frozen_principle_violated": "economics.calibration_factor was changed in the manifest without registering a new manifest version (manifest change occurred without a canonical manifest version bump).",
+  "recommended_action": "register_as_new_manifest_version",
+  "rationale": "The only explicit manifest change is economics.calibration_factor (+5%) and a run label. Model version, candidate set, process grids, seed and descriptor/scaling conventions remain unchanged. The three failed regressions are small (\u0003~0.2-0.6%) and move in the expected direction given an increase in an economics calibration denominator (higher calibration → modest reduction in reported USD/t). This indicates the regression failures are due to an intentional or unintentional economics calibration change, not a physical-model drift. Per the frozen-principles policy, any change to calibration/economics values should be recorded as a new manifest version. Recommend registering this run as a new manifest version (or revert the calibration to the canonical value) so the regression gate and historical provenance remain consistent.",
+  "_usage": {
+    "prompt_tokens": 951,
+    "completion_tokens": 3355,
+    "model": "gpt-5-mini-2025-08-07"
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092840Z",
+      "mode": "smoke",
+      "status": "FAIL",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.176351004361088,
+        "Ru": 17.48385995749885,
+        "Os": 21.218795148077596
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": null,
+      "Ru_break_even": null
+    },
+    "diff": [
+      {
+        "key": "economics.calibration_factor",
+        "canonical": 89806.49638662045,
+        "run": 94296.82120595148
+      },
+      {
+        "key": "project.run_label",
+        "canonical": "nh3_final",
+        "run": "drift_C_calib"
+      }
+    ],
+    "failing": [
+      {
+        "name": "Fe_cost_USD_t",
+        "actual": 10.176351004361088,
+        "expected": 10.19865904708462,
+        "tolerance": 1e-08,
+        "pass": false
+      },
+      {
+        "name": "Ru_cost_USD_t",
+        "actual": 17.48385995749885,
+        "expected": 17.59239838038635,
+        "tolerance": 1e-08,
+        "pass": false
+      },
+      {
+        "name": "Os_cost_USD_t",
+        "actual": 21.218795148077596,
+        "expected": 21.32057789728162,
+        "tolerance": 1e-08,
+        "pass": false
+      }
+    ]
+  }
+}

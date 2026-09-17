@@ -1,0 +1,39 @@
+# Run 20260905T113727Z
+- Status: **FAIL** (SCENARIO — not canonical)
+- Mode: `full`
+- Model: `NH3-FINAL-1.1`
+- Process states: 14136
+- Activity ranking: Ru > Os > Fe > Rh > Ir > Co > Re > Mo > Ni > W > Pd > Pt > Cu > Ag > Au
+- Feasible economic ranking: Fe > Ru > Os
+- Fe / Ru / Os costs: 15.291704676621 / 22.030594787811 / 25.831797256133 USD/t
+- Top-3 Spearman: -0.5
+- Fe feasibility (1000 draws): 0.799000
+- Ru activity break-even: 201.223443x
+- Scaling headroom @673K: 1.089901227x
+- Max scaling headroom across process states: 2.524565113x
+- Best strict-scaling Ru cost: 21.397872966050 USD/t
+
+## Regression checks
+- FAIL — process_state_count: actual=14136 expected=3636
+- FAIL — raw_global_spearman: actual=0.9285714285714284 expected=0.9107142857142855
+- PASS — censored_global_spearman: actual=0.684172319121686 expected=0.684172319121686
+- PASS — top3_spearman: actual=-0.5 expected=-0.5
+- FAIL — Fe_cost_USD_t: actual=15.291704676621144 expected=10.19865904708462
+- FAIL — Fe_optimum_T_C: actual=425.0 expected=400.0
+- FAIL — Fe_optimum_P_bar: actual=180.0 expected=150.0
+- PASS — Fe_optimum_Tsep_C: actual=30.0 expected=30.0
+- FAIL — Ru_cost_USD_t: actual=22.03059478781101 expected=17.59239838038635
+- PASS — Ru_optimum_T_C: actual=450.0 expected=450.0
+- FAIL — Ru_optimum_P_bar: actual=425.0 expected=300.0
+- FAIL — Ru_optimum_Tsep_C: actual=25.0 expected=10.0
+- FAIL — Os_cost_USD_t: actual=25.83179725613286 expected=21.32057789728162
+- PASS — Os_optimum_T_C: actual=450.0 expected=450.0
+- FAIL — Os_optimum_P_bar: actual=425.0 expected=300.0
+- FAIL — Os_optimum_Tsep_C: actual=0.0 expected=-15.0
+- PASS — activity_order: actual=['Ru', 'Os', 'Fe', 'Rh', 'Ir', 'Co', 'Re', 'Mo', 'Ni', 'W', 'Pd', 'Pt', 'Cu', 'Ag', 'Au'] expected=['Ru', 'Os', 'Fe', 'Rh', 'Ir', 'Co', 'Re', 'Mo', 'Ni', 'W', 'Pd', 'Pt', 'Cu', 'Ag', 'Au']
+- PASS — feasible_metals: actual=['Fe', 'Ru', 'Os'] expected=['Fe', 'Ru', 'Os']
+- FAIL — Fe_feasibility_probability: actual=0.799 expected=0.736
+- FAIL — Ru_activity_break_even_multiplier: actual=201.2234429878984 expected=2171.559771717808
+- PASS — Ru_scaling_max_gain_673K: actual=1.0899012267527077 expected=1.089901226752712
+- FAIL — Ru_scaling_max_gain_all_states: actual=2.5245651130943445 expected=2.432864708218596
+- FAIL — Ru_best_scaling_cost_USD_t: actual=21.397872966049547 expected=17.1940362123231

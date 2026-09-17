@@ -1,0 +1,87 @@
+{
+  "primary_cause": "uncertainty_seed_or_distribution_change",
+  "secondary_causes": [
+    "no_drift"
+  ],
+  "evidence": [
+    "Manifest diff: 'uncertainty.seed' canonical=20260816 run=1 (exact change of the random-draw seed).",
+    "Manifest diff: 'project.run_label' canonical='nh3_final' run='drift_B_seed1' (non-frozen label change).",
+    "Failing regression check: Fe_feasibility_probability actual=0.758 expected=0.736 tolerance=1e-12 -> mismatch.",
+    "Frozen principle: required 1000-draw seed 20260816 was listed in frozen principles and has been changed in this run.",
+    "Run summary values (Fe_feasibility=0.758, feasible_economic_order and costs_USD_t) are consistent with a different stochastic draw set rather than systematic model/configuration change."
+  ],
+  "affected_headlines": [
+    "Fe_feasibility_probability",
+    "Fe_feasibility",
+    "feasible_economic_order"
+  ],
+  "is_numerical_chain_still_consistent": true,
+  "frozen_principle_violated": "Random-draw seed changed: required 1000-draw seed 20260816 -> run used uncertainty.seed=1",
+  "recommended_action": "register_as_new_manifest_version",
+  "rationale": "The only manifest keys that differ from canonical are project.run_label and uncertainty.seed. The canonical frozen principle requires using the 1000-draw seed 20260816; the run used seed=1. Changing the seed alters Monte Carlo/random-draw outcomes and will change uncertainty-derived metrics (here Fe_feasibility_probability increased from the expected 0.736 to 0.758). This is a manifest-level, reproducibility/seed change — not evidence of a changed physical model or descriptor convention. Because the frozen-principle seed was intentionally changed in the run (run_label indicates an experimental drift), the correct procedural response is to register this as a new manifest/version so results are tracked and audited as a deliberate alternative draw set. If the seed change was unintentional, revert_to_canonical_manifest instead; otherwise register_as_new_manifest_version so the seed change is explicit in provenance.",
+  "_usage": {
+    "prompt_tokens": 829,
+    "completion_tokens": 1587,
+    "model": "gpt-5-mini-2025-08-07"
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092857Z",
+      "mode": "full",
+      "status": "FAIL",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.198659047084616,
+        "Ru": 17.59239838038635,
+        "Os": 21.32057789728162
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": 0.758,
+      "Ru_break_even": 2171.559771717808
+    },
+    "diff": [
+      {
+        "key": "project.run_label",
+        "canonical": "nh3_final",
+        "run": "drift_B_seed1"
+      },
+      {
+        "key": "uncertainty.seed",
+        "canonical": 20260816,
+        "run": 1
+      }
+    ],
+    "failing": [
+      {
+        "name": "Fe_feasibility_probability",
+        "actual": 0.758,
+        "expected": 0.736,
+        "tolerance": 1e-12,
+        "pass": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+quantity_id,name,source,definition,n,median_CU,min_CU,max_CU
+1,CU_to_first_correct_winner,frozen DISCOVER_SCORER_V1,first step where current_winner equals ground truth; winner only; no stability requirement,20,503.0,155.0,503.0
+2,CU_to_stable_correct_winner,frozen DISCOVER_SCORER_V1,cumulative CU from which the winner stays correct to the end; winner only,20,503.0,155.0,503.0
+3,CU_to_full_decision,discover/boundary_c1_metrics.cu_to_full,full decision stability; sums the quote-based per-step action_cost field,20,566.0,218.0,714.0
+4,decision_stable_CU,tools/discover/c1_overrun_analysis.py,"full decision stability; ledger-true, from budget_CU minus remaining_budget",20,566.0,218.0,714.0
+5,CU_after_stable_winner,frozen DISCOVER_SCORER_V1,"spent_CU minus quantity 2; spend after the WINNER stabilised, not after the full decision",20,211.0,63.0,2518.0

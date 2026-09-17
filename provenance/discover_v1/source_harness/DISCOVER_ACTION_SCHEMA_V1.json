@@ -1,0 +1,220 @@
+{
+  "version": "DISCOVER_ACTION_SCHEMA_V1",
+  "frozen_utc": "2026-09-05T17:16:41.123979+00:00",
+  "actions": {
+    "INSPECT_CANDIDATES": {
+      "args": {},
+      "returns": "candidate ids (alphabetical), descriptor value and source, metal price, admissible process domain",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {},
+        "basis": "bookkeeping"
+      }
+    },
+    "COMPUTE_ACTIVITY": {
+      "args": {
+        "metals": "list of candidate ids"
+      },
+      "returns": "log10 turnover frequency of each requested candidate at the fixed atomic reference condition",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "metals": 1
+        },
+        "basis": "1 MKM evaluation per metal at the reference condition; charged 1 CU per metal (minimum billable unit)"
+      }
+    },
+    "READ_PROPERTY_UNCERTAINTY": {
+      "args": {
+        "metals": "list of candidate ids"
+      },
+      "returns": "declared descriptor uncertainty distribution per requested candidate",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {},
+        "basis": "bookkeeping"
+      }
+    },
+    "BUILD_PROCESS_WINDOW": {
+      "args": {
+        "bounds": "optional {T_C: [values], P_bar: [min, max], Tsep_C: [min, max]} inside the admissible domain; empty = whole domain",
+        "name": "optional window id (use 'full' for the whole domain)"
+      },
+      "returns": "window id, number of self-consistent reactor/recycle/separation states, ranges",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "states": 0.00782
+        },
+        "basis": "self-consistent recycle fixed point per state: 0.171 ms/state measured over the full library"
+      }
+    },
+    "OPTIMIZE_PROCESS": {
+      "args": {
+        "metal": "candidate id",
+        "window": "window id"
+      },
+      "returns": "lowest-cost feasible state of that candidate in the window (cost, T, P, Tsep, bed volume) or infeasibility with the minimum bed volume",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "states": 0.002
+        },
+        "basis": "2 MKM evaluations per not-yet-evaluated state (descriptor bracketing as in the frozen closure) -> states*2/1000 CU"
+      }
+    },
+    "READ_COST_BREAKDOWN": {
+      "args": {
+        "metal": "optimized candidate id"
+      },
+      "returns": "cost pools at that candidate's optimized state",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {},
+        "basis": "bookkeeping on an already optimized state"
+      }
+    },
+    "RUN_MC": {
+      "args": {
+        "metals": "list of optimized candidate ids",
+        "draws": "100 | 300 | 1000",
+        "window": "window id"
+      },
+      "returns": "per-candidate feasibility probability and cost quantiles under descriptor uncertainty; among the requested set, P(lowest cost) and pairwise P(lower cost)",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "draws_x_metals": 0.16363
+        },
+        "basis": "per (draw x metal): interpolation on the response-surface asset + full-window cost minimization; wall time measured; the response-surface asset (14136 x 1201 evaluations) is a shared precomputed Layer-A asset, not charged"
+      }
+    },
+    "TEST_LEVER": {
+      "args": {
+        "lever": "one of ['metal_recovery_fraction', 'catalyst_life_y', 'electricity_USD_MWh', 'max_catalyst_bed_m3']",
+        "value": "perturbed value inside the plausible range",
+        "metals": "optimized candidate ids",
+        "window": "window id"
+      },
+      "returns": "re-optimized cost of each requested candidate under the perturbed parameter",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "metals": 1
+        },
+        "basis": "re-optimization of an already evaluated metal under a perturbed economic/engineering parameter; wall time measured"
+      },
+      "levers": {
+        "metal_recovery_fraction": {
+          "description": "fraction of spent active metal recovered at replacement (0 = none)",
+          "plausible_range": [
+            0.0,
+            0.95
+          ]
+        },
+        "catalyst_life_y": {
+          "description": "catalyst service life before replacement, years",
+          "plausible_range": [
+            5.0,
+            20.0
+          ]
+        },
+        "electricity_USD_MWh": {
+          "description": "electricity price, USD/MWh (compression and refrigeration OPEX)",
+          "plausible_range": [
+            20.0,
+            100.0
+          ]
+        },
+        "max_catalyst_bed_m3": {
+          "description": "maximum admissible catalyst bed volume, m3 (feasibility gate)",
+          "plausible_range": [
+            15.0,
+            500.0
+          ]
+        }
+      }
+    },
+    "BACKWARD": {
+      "args": {
+        "pair": "[candidate A, candidate B] (both optimized, B feasible)",
+        "property": "'activity'",
+        "window": "window id"
+      },
+      "returns": "intrinsic-activity multiplier of A at which its re-optimized cost equals B's optimized cost, and the state at parity",
+      "cost": {
+        "base_CU": 1,
+        "per_unit_CU": {},
+        "basis": "root search over the activity multiplier, each iteration a full-window re-optimization; wall time measured"
+      }
+    },
+    "TEST_REACHABILITY": {
+      "args": {
+        "metal": "candidate id",
+        "property": "'activity'",
+        "scope": "'reference' | 'window'",
+        "required_multiplier": "optional multiplier to classify"
+      },
+      "returns": "largest activity gain obtainable along the frozen descriptor scaling manifold (reference condition; optionally across the window's process states); if a required multiplier is given, classification reachable / marginal / unreachable",
+      "cost": {
+        "base_CU": 2,
+        "per_unit_CU": {
+          "window": 2
+        },
+        "basis": "reference scope: 1201 MKM evaluations along the descriptor grid; window scope adds the state-wise maximum on the response-surface asset"
+      }
+    },
+    "CHECK_MODEL_VALIDITY": {
+      "args": {
+        "scope": "one of ['window_edges', 'bed_cap', 'vessel_floor', 'dominance']",
+        "candidate": "for dominance",
+        "reference": "for dominance",
+        "window": "window id"
+      },
+      "returns": "validity flags: optimum on a window edge; bed-cap slack / infeasibility; bed volumes below the vessel-correlation floor; exact state-level dominance of a candidate by a reference",
+      "cost": {
+        "base_CU": 0,
+        "per_unit_CU": {
+          "evals": 28
+        },
+        "basis": "bookkeeping, except the exact dominance check on a not-yet-evaluated metal, which costs its state evaluation (2 per state)"
+      }
+    }
+  },
+  "trace_step_schema": {
+    "required": [
+      "step",
+      "policy",
+      "state_before",
+      "known_evidence",
+      "candidate_actions",
+      "chosen_action",
+      "action_cost",
+      "reason_for_choice",
+      "expected_decision_value",
+      "result",
+      "state_after",
+      "remaining_budget",
+      "current_winner",
+      "current_confidence",
+      "unresolved_questions",
+      "stop_or_continue"
+    ],
+    "final": [
+      "why_stop",
+      "remaining_budget",
+      "unresolved_decision_risk",
+      "answer",
+      "ledger"
+    ]
+  },
+  "stopping_rule": {
+    "S1": "a feasible optimized candidate exists (current lowest-cost candidate identified)",
+    "S2": "no unresolved candidate: every candidate is optimized, or is screened as dominated by the current lowest-cost candidate (declared screening rule: lower reference activity AND higher metal price; exact state-level check available via CHECK_MODEL_VALIDITY dominance)",
+    "S3": "if the highest-activity candidate differs from the lowest-cost candidate, BACKWARD(pair) and TEST_REACHABILITY(required multiplier) have been executed and a classification exists",
+    "S4": "the best remaining expected decision value is below the policy's declared threshold, or the remaining budget cannot pay for any admissible action",
+    "may_stop": "(S1 and S2 and S3) or budget exhausted; every stop records why_stop, remaining_budget and unresolved_decision_risk"
+  },
+  "cost_model": "DISCOVER_COST_MODEL_V1",
+  "note": "action outputs contain only what that computation yields; no action returns another candidate's result or any precomputed answer"
+}

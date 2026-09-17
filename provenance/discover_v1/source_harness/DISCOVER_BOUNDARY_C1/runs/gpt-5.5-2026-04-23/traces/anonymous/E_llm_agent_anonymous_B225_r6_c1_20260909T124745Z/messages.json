@@ -1,0 +1,210 @@
+[
+ {
+  "role": "system",
+  "content": "# DISCOVER_PROMPT_V1 (policy E system prompt; frozen at first formal run \u2014 NOT yet run)\n\nYou are the decision layer of a multiscale catalyst-to-cost model for ammonia synthesis. You cannot run code; you act only through the allowed actions listed in the task, each of which costs compute units from a fixed budget. Every action returns only what that computation yields.\n\nYour job is to allocate the compute budget to the calculations whose outcome could change the industrial decision, and to stop when the decision is stable under the stopping rule.\n\nRules\n1. Start from the task's candidate set, engineering constraints and cost model. Nothing about ranking, cost, feasibility, parity or reachability is known in advance.\n2. Before each action, state: the current lowest-cost candidate (if any) and your confidence in it, the unresolved candidates, the candidate actions you considered with their costs, the action you choose, why, and the decision value you expect from it (a number between 0 and 1: probability-weighted chance that the result changes or confirms the industrial decision, per compute unit is fine).\n3. Prefer calculations that discriminate between candidates that could plausibly be the industrial choice over calculations that only refine a candidate that cannot change the decision. Large uncertainty on a property is not by itself a reason to compute; ask what the result would change.\n4. If the candidate with the highest atomic activity is not the lowest-cost candidate, quantify what intrinsic-activity improvement it would need for cost parity and whether that improvement is available on the frozen descriptor scaling manifold, then classify it (reachable / marginal / unreachable).\n5. Use the model-validity checks when an optimum sits on a window edge, a bed volume is near the limit, or you want an exact dominance check instead of the screening rule.\n6. Stop only when the stopping rule allows it, or when no affordable action has meaningful expected decision value. When you stop, report: the industrial candidate and its optimized state, the feasible ranking of the candidates you optimized, the parity/reachability assessment, why you stopped, the remaining budget, and the unresolved decision risk.\n\nOutput format for each turn: a JSON object {\"state_before\", \"candidate_actions\", \"chosen_action\", \"args\", \"reason\", \"expected_decision_value\"} followed by nothing else; after the final action, a JSON object {\"final_answer\": {...}, \"why_stop\", \"remaining_budget\", \"unresolved_decision_risk\"}.\n"
+ },
+ {
+  "role": "user",
+  "content": "TASK:\n{\n \"version\": \"DISCOVER_TASK_V1_ANON\",\n \"frozen_utc\": \"2026-09-05T17:16:41.124839+00:00\",\n \"industrial_objective\": {\n  \"product\": \"NH3\",\n  \"capacity_t_per_day\": 1000,\n  \"objective\": \"minimize the canonical catalyst/process-dependent cost (USD per tonne NH3) under the admissible process domain and engineering constraints\",\n  \"cost_boundary\": \"reduced catalyst/process-dependent NH3 cost, USD per tonne: active-metal replacement, converter (volume proxy + pressure-dependent shell), compression and refrigeration electricity, compressor capital; plant 1000 t/d\"\n },\n \"candidate_set\": [\n  {\n   \"id\": \"candidate_01\",\n   \"descriptor_E_N_eV\": -0.2701,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 56.28401553583051\n  },\n  {\n   \"id\": \"candidate_02\",\n   \"descriptor_E_N_eV\": 0.5895,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 51508.71107755406\n  },\n  {\n   \"id\": \"candidate_03\",\n   \"descriptor_E_N_eV\": 1.2491,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 13.889122517655\n  },\n  {\n   \"id\": \"candidate_04\",\n   \"descriptor_E_N_eV\": -1.1333,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 53852.5\n  },\n  {\n   \"id\": \"candidate_05\",\n   \"descriptor_E_N_eV\": -1.1095,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 142650.0\n  },\n  {\n   \"id\": \"candidate_06\",\n   \"descriptor_E_N_eV\": -1.8417,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 91.22728409215301\n  },\n  {\n   \"id\": \"candidate_07\",\n   \"descriptor_E_N_eV\": -1.8252,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 5757.64\n  },\n  {\n   \"id\": \"candidate_08\",\n   \"descriptor_E_N_eV\": -0.458,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 265243.65919095\n  },\n  {\n   \"id\": \"candidate_09\",\n   \"descriptor_E_N_eV\": 2.911,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 1823.590345370992\n  },\n  {\n   \"id\": \"candidate_10\",\n   \"descriptor_E_N_eV\": 3.0029,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 128732.2322756058\n  },\n  {\n   \"id\": \"candidate_11\",\n   \"descriptor_E_N_eV\": 0.5637,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 40670.694409279\n  },\n  {\n   \"id\": \"candidate_12\",\n   \"descriptor_E_N_eV\": -0.0928,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 16.9094555095895\n  },\n  {\n   \"id\": \"candidate_13\",\n   \"descriptor_E_N_eV\": -1.392120623747696,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 8.0\n  },\n  {\n   \"id\": \"candidate_14\",\n   \"descriptor_E_N_eV\": -0.4407,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 252383.36056351\n  },\n  {\n   \"id\": \"candidate_15\",\n   \"descriptor_E_N_eV\": -2.161,\n   \"descriptor_source\": \"frozen S1-derived single-descriptor table\",\n   \"price_USD_kg\": 149.97\n  }\n ],\n \"engineering_constraints\": {\n  \"T_C\": [\n   350.0,\n   375.0,\n   400.0,\n   425.0,\n   450.0\n  ],\n  \"P_bar\": {\n   \"min\": 10.0,\n   \"max\": 1000.0,\n   \"step\": 5.0\n  },\n  \"Tsep_C\": {\n   \"min\": -40.0,\n   \"max\": 30.0,\n   \"step\": 5.0\n  },\n  \"max_catalyst_bed_m3\": 90.0\n },\n \"allowed_actions\": [\n  \"INSPECT_CANDIDATES\",\n  \"COMPUTE_ACTIVITY\",\n  \"READ_PROPERTY_UNCERTAINTY\",\n  \"BUILD_PROCESS_WINDOW\",\n  \"OPTIMIZE_PROCESS\",\n  \"READ_COST_BREAKDOWN\",\n  \"RUN_MC\",\n  \"TEST_LEVER\",\n  \"BACKWARD\",\n  \"TEST_REACHABILITY\",\n  \"CHECK_MODEL_VALIDITY\"\n ],\n \"action_schema\": \"DISCOVER_ACTION_SCHEMA_V1.json\",\n \"cost_model\": \"DISCOVER_COST_MODEL_V1.json\",\n \"compute_budget_CU\": 225.0,\n \"requirement\": [\n  \"return the best industrial candidate (lowest canonical cost, feasible) with the evidence that supports it\",\n  \"if the candidate with the highest atomic activity differs from the industrial choice, assess whether that candidate could reach cost parity through intrinsic-activity improvement alone, and classify the requirement as reachable, marginal or unreachable on the frozen descriptor scaling manifold\",\n  \"spend compute on the calculations whose outcome could change the industrial decision; stop when the decision is stable under the stopping rule\",\n  \"report for every step: state before, candidate actions, chosen action, reason, expected decision value, cost, evidence returned, updated belief, remaining budget; report why you stopped, remaining budget and unresolved decision risk\"\n ],\n \"stopping_rule\": {\n  \"S1\": \"a feasible optimized candidate exists (current lowest-cost candidate identified)\",\n  \"S2\": \"no unresolved candidate: every candidate is optimized, or is screened as dominated by the current lowest-cost candidate (declared screening rule: lower reference activity AND higher metal price; exact state-level check available via CHECK_MODEL_VALIDITY dominance)\",\n  \"S3\": \"if the highest-activity candidate differs from the lowest-cost candidate, BACKWARD(pair) and TEST_REACHABILITY(required multiplier) have been executed and a classification exists\",\n  \"S4\": \"the best remaining expected decision value is below the policy's declared threshold, or the remaining budget cannot pay for any admissible action\",\n  \"may_stop\": \"(S1 and S2 and S3) or budget exhausted; every stop records why_stop, remaining_budget and unresolved_decision_risk\"\n },\n \"not_provided\": \"no candidate ranking, no cost, no feasibility, no parity multiplier and no reachability result is given in advance; all must be computed through the allowed actions; candidate identities are anonymous labels\",\n \"task_variant\": \"anonymous\"\n}\n\nYour compute budget is 225 CU. Begin."
+ },
+ {
+  "role": "assistant",
+  "content": "{\"state_before\":{\"current_lowest_cost_candidate\":null,\"confidence\":0.0,\"unresolved_candidates\":[\"candidate_01\",\"candidate_02\",\"candidate_03\",\"candidate_04\",\"candidate_05\",\"candidate_06\",\"candidate_07\",\"candidate_08\",\"candidate_09\",\"candidate_10\",\"candidate_11\",\"candidate_12\",\"candidate_13\",\"candidate_14\",\"candidate_15\"],\"known_evidence\":\"Only task-provided descriptors/prices/domain; no computed activity, feasibility, cost, parity, or reachability.\",\"remaining_budget_CU\":225.0},\"candidate_actions\":[{\"action\":\"INSPECT_CANDIDATES\",\"args\":{},\"cost_CU\":0.0,\"decision_value\":0.35},{\"action\":\"COMPUTE_ACTIVITY\",\"args\":{\"metals\":\"all candidates\"},\"cost_CU\":15.0,\"decision_value\":0.9},{\"action\":\"READ_PROPERTY_UNCERTAINTY\",\"args\":{\"metals\":\"all candidates\"},\"cost_CU\":0.0,\"decision_value\":0.15},{\"action\":\"BUILD_PROCESS_WINDOW\",\"args\":{\"name\":\"full\",\"bounds\":\"whole admissible domain\"},\"estimated_cost_CU\":116.7,\"decision_value\":0.5}],\"chosen_action\":\"parallel: INSPECT_CANDIDATES + COMPUTE_ACTIVITY + READ_PROPERTY_UNCERTAINTY\",\"args\":{\"metals\":\"candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15\"},\"reason\":\"Free inspection/uncertainty and all-candidate reference activities are the cheapest way to identify the high-activity candidate, apply the declared dominance screen once a feasible incumbent is found, and prioritize which candidates merit expensive process optimization. Building the full process window before activity screening could consume about half the budget without narrowing the candidate set.\",\"expected_decision_value\":0.06} \n",
+  "tool_calls": [
+   {
+    "id": "call_ggmq5z9LflhDqeWjiQAPtUO3",
+    "type": "function",
+    "function": {
+     "name": "INSPECT_CANDIDATES",
+     "arguments": "{}"
+    }
+   },
+   {
+    "id": "call_8XtKFkPnMixF1ybIOEczBeNu",
+    "type": "function",
+    "function": {
+     "name": "COMPUTE_ACTIVITY",
+     "arguments": "{\"metals\": \"candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15\"}"
+    }
+   },
+   {
+    "id": "call_CmwDjoBEYqKgPPboBvUQuWfX",
+    "type": "function",
+    "function": {
+     "name": "READ_PROPERTY_UNCERTAINTY",
+     "arguments": "{\"metals\": \"candidate_01,candidate_02,candidate_03,candidate_04,candidate_05,candidate_06,candidate_07,candidate_08,candidate_09,candidate_10,candidate_11,candidate_12,candidate_13,candidate_14,candidate_15\"}"
+    }
+   }
+  ]
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_ggmq5z9LflhDqeWjiQAPtUO3",
+  "content": "{\"candidates\": [{\"id\": \"candidate_01\", \"descriptor_E_N_eV\": -0.2701, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 56.28401553583051}, {\"id\": \"candidate_02\", \"descriptor_E_N_eV\": 0.5895, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 51508.71107755406}, {\"id\": \"candidate_03\", \"descriptor_E_N_eV\": 1.2491, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 13.889122517655}, {\"id\": \"candidate_04\", \"descriptor_E_N_eV\": -1.1333, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 53852.5}, {\"id\": \"candidate_05\", \"descriptor_E_N_eV\": -1.1095, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 142650.0}, {\"id\": \"candidate_06\", \"descriptor_E_N_eV\": -1.8417, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 91.22728409215301}, {\"id\": \"candidate_07\", \"descriptor_E_N_eV\": -1.8252, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 5757.64}, {\"id\": \"candidate_08\", \"descriptor_E_N_eV\": -0.458, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 265243.65919095}, {\"id\": \"candidate_09\", \"descriptor_E_N_eV\": 2.911, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 1823.590345370992}, {\"id\": \"candidate_10\", \"descriptor_E_N_eV\": 3.0029, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 128732.2322756058}, {\"id\": \"candidate_11\", \"descriptor_E_N_eV\": 0.5637, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 40670.694409279}, {\"id\": \"candidate_12\", \"descriptor_E_N_eV\": -0.0928, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 16.9094555095895}, {\"id\": \"candidate_13\", \"descriptor_E_N_eV\": -1.392120623747696, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 8.0}, {\"id\": \"candidate_14\", \"descriptor_E_N_eV\": -0.4407, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 252383.36056351}, {\"id\": \"candidate_15\", \"descriptor_E_N_eV\": -2.161, \"descriptor_source\": \"frozen S1-derived single-descriptor table\", \"price_USD_kg\": 149.97}], \"process_domain\": {\"T_C\": [350.0, 375.0, 400.0, 425.0, 450.0], \"P_bar\": {\"min\": 10.0, \"max\": 1000.0, \"step\": 5.0}, \"Tsep_C\": {\"min\": -40.0, \"max\": 30.0, \"step\": 5.0}, \"max_catalyst_bed_m3\": 90.0, \"cost_boundary\": \"reduced catalyst/process-dependent NH3 cost, USD per tonne: active-metal replacement, converter (volume proxy + pressure-dependent shell), compression and refrigeration electricity, compressor capital; plant 1000 t/d\"}, \"note\": \"activities, feasibility and costs are not known until computed\", \"_remaining_CU\": 225.0, \"_stopping_status\": {\"S1_winner_identified\": false, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_01\", \"candidate_02\", \"candidate_03\", \"candidate_04\", \"candidate_05\", \"candidate_06\", \"candidate_07\", \"candidate_08\", \"candidate_09\", \"candidate_10\", \"candidate_11\", \"candidate_12\", \"candidate_13\", \"candidate_14\", \"candidate_15\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"atomic activities not computed for every candidate\", \"may_stop\": false}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_8XtKFkPnMixF1ybIOEczBeNu",
+  "content": "{\"log10_TOF_at_reference\": {\"candidate_01\": -9.827339304138908, \"candidate_02\": -19.672211894241162, \"candidate_03\": -28.596518023328855, \"candidate_04\": -3.4511885358841505, \"candidate_05\": -3.495320399313441, \"candidate_06\": -10.758861007859798, \"candidate_07\": -10.563178970710178, \"candidate_08\": -8.043486483307811, \"candidate_09\": -51.76451479225579, \"candidate_10\": -53.047576696367514, \"candidate_11\": -19.33848820076085, \"candidate_12\": -11.6277967143094, \"candidate_13\": -5.3099700922126845, \"candidate_14\": -8.20256659221374, \"candidate_15\": -14.552220335590981}, \"reference_condition\": \"T 673.0 K, pN2 24.5 / pH2 74.25 / pNH3 1.0 bar\", \"_remaining_CU\": 210.0, \"_stopping_status\": {\"S1_winner_identified\": false, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_01\", \"candidate_02\", \"candidate_03\", \"candidate_04\", \"candidate_05\", \"candidate_06\", \"candidate_07\", \"candidate_08\", \"candidate_09\", \"candidate_10\", \"candidate_11\", \"candidate_12\", \"candidate_13\", \"candidate_14\", \"candidate_15\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"no winner\", \"may_stop\": false}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_CmwDjoBEYqKgPPboBvUQuWfX",
+  "content": "{\"descriptor_uncertainty_E_N\": {\"candidate_01\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_02\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_03\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_04\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_05\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_06\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_07\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_08\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_09\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_10\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_11\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_12\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_13\": {\"distribution\": \"normal\", \"sigma_eV\": 0.2271258177356984}, \"candidate_14\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}, \"candidate_15\": {\"distribution\": \"uniform\", \"half_width_eV\": 0.15}}, \"_remaining_CU\": 210.0, \"_stopping_status\": {\"S1_winner_identified\": false, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_01\", \"candidate_02\", \"candidate_03\", \"candidate_04\", \"candidate_05\", \"candidate_06\", \"candidate_07\", \"candidate_08\", \"candidate_09\", \"candidate_10\", \"candidate_11\", \"candidate_12\", \"candidate_13\", \"candidate_14\", \"candidate_15\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"no winner\", \"may_stop\": false}}"
+ },
+ {
+  "role": "assistant",
+  "content": "{\"state_before\":{\"current_lowest_cost_candidate\":null,\"confidence\":0.0,\"unresolved_candidates\":[\"candidate_01\",\"candidate_02\",\"candidate_03\",\"candidate_04\",\"candidate_05\",\"candidate_06\",\"candidate_07\",\"candidate_08\",\"candidate_09\",\"candidate_10\",\"candidate_11\",\"candidate_12\",\"candidate_13\",\"candidate_14\",\"candidate_15\"],\"known_evidence\":{\"highest_reference_activity\":\"candidate_04 (log10_TOF=-3.4512)\",\"near_high_activity\":\"candidate_05 (log10_TOF=-3.4953), candidate_13 (log10_TOF=-5.3100)\",\"lowest_metal_price\":\"candidate_13 ($8/kg), then candidate_03 ($13.89/kg), candidate_12 ($16.91/kg)\",\"descriptor_uncertainty\":\"mostly uniform half-width 0.15 eV; candidate_13 normal sigma 0.227 eV\"},\"remaining_budget_CU\":210.0},\"candidate_actions\":[{\"action\":\"BUILD_PROCESS_WINDOW\",\"args\":{\"name\":\"full\",\"bounds\":\"whole admissible domain\"},\"estimated_cost_CU\":116.7,\"decision_value\":0.95},{\"action\":\"BUILD_PROCESS_WINDOW\",\"args\":{\"name\":\"reduced_highP\",\"bounds\":\"restricted near plausible high-conversion/high-activity region\"},\"estimated_cost_CU\":\"unknown until built; likely lower\",\"decision_value\":0.55},{\"action\":\"OPTIMIZE_PROCESS without window\",\"args\":{\"metal\":\"candidate_13\",\"window\":\"full\"},\"cost_CU\":\"not admissible until window exists\",\"decision_value\":0.0}],\"chosen_action\":\"BUILD_PROCESS_WINDOW\",\"args\":{\"name\":\"full\",\"bounds\":\"whole admissible domain\"},\"reason\":\"The industrial objective is defined over the whole admissible process domain. Activities show that most candidates can later be screened once a cheap feasible incumbent is optimized, but process feasibility/cost requires a self-consistent process window. Building the full window preserves global optimality and leaves just enough budget to optimize the cheap likely winner and the high-activity challengers and then run required parity/reachability if needed.\",\"expected_decision_value\":0.008} \n",
+  "tool_calls": [
+   {
+    "id": "call_lxIuNxlwLBLPJCEagQG4Baul",
+    "type": "function",
+    "function": {
+     "name": "BUILD_PROCESS_WINDOW",
+     "arguments": "{\"name\":\"full\",\"bounds\":\"whole admissible domain\"}"
+    }
+   }
+  ]
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_lxIuNxlwLBLPJCEagQG4Baul",
+  "content": "{\"window\": \"full\", \"bounds\": \"whole admissible domain\", \"n_states\": 14136, \"P_range\": [20.0, 1000.0], \"T_values\": [350.0, 375.0, 400.0, 425.0, 450.0], \"Tsep_range\": [-40.0, 30.0], \"_remaining_CU\": 99.0, \"_stopping_status\": {\"S1_winner_identified\": false, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_01\", \"candidate_02\", \"candidate_03\", \"candidate_04\", \"candidate_05\", \"candidate_06\", \"candidate_07\", \"candidate_08\", \"candidate_09\", \"candidate_10\", \"candidate_11\", \"candidate_12\", \"candidate_13\", \"candidate_14\", \"candidate_15\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"no winner\", \"may_stop\": false}}"
+ },
+ {
+  "role": "assistant",
+  "content": "{\"state_before\":{\"current_lowest_cost_candidate\":null,\"confidence\":0.0,\"unresolved_candidates\":[\"candidate_01\",\"candidate_02\",\"candidate_03\",\"candidate_04\",\"candidate_05\",\"candidate_06\",\"candidate_07\",\"candidate_08\",\"candidate_09\",\"candidate_10\",\"candidate_11\",\"candidate_12\",\"candidate_13\",\"candidate_14\",\"candidate_15\"],\"known_evidence\":{\"window\":\"full, 14136 states over whole admissible domain\",\"activity_order_top3\":[\"candidate_04 log10_TOF -3.4512, price $53852.5/kg\",\"candidate_05 log10_TOF -3.4953, price $142650/kg\",\"candidate_13 log10_TOF -5.3100, price $8/kg\"],\"screening_implication_if_candidate_13_is_incumbent\":\"All candidates below candidate_13 in reference activity also have higher metal price than candidate_13 and could be screened by declared rule; only candidate_04 and candidate_05 would remain unresolved.\"},\"remaining_budget_CU\":99.0},\"candidate_actions\":[{\"action\":\"OPTIMIZE_PROCESS\",\"args\":{\"metal\":\"candidate_13\",\"window\":\"full\"},\"estimated_cost_CU\":28.272,\"decision_value\":0.9},{\"action\":\"OPTIMIZE_PROCESS\",\"args\":{\"metal\":\"candidate_04\",\"window\":\"full\"},\"estimated_cost_CU\":28.272,\"decision_value\":0.75},{\"action\":\"OPTIMIZE_PROCESS\",\"args\":{\"metal\":\"candidate_05\",\"window\":\"full\"},\"estimated_cost_CU\":28.272,\"decision_value\":0.65},{\"action\":\"OPTIMIZE_PROCESS for all 15\",\"args\":{\"window\":\"full\"},\"estimated_cost_CU\":424.08,\"decision_value\":0.0},{\"action\":\"CHECK_MODEL_VALIDITY dominance for candidate_04/05 vs candidate_13\",\"args\":{\"scope\":\"dominance\",\"reference\":\"candidate_13\",\"window\":\"full\"},\"estimated_cost_CU\":56.0,\"decision_value\":0.45}],\"chosen_action\":\"parallel: OPTIMIZE_PROCESS candidate_13, candidate_04, candidate_05\",\"args\":{\"window\":\"full\",\"metals\":[\"candidate_13\",\"candidate_04\",\"candidate_05\"]},\"reason\":\"These are the only candidates that can plausibly determine the industrial choice before an incumbent exists: candidate_13 combines much lower metal price with third-highest activity, while candidate_04/05 are the only higher-activity candidates and therefore cannot be screened by candidate_13. Optimizing these three should satisfy S1 and enable S2 screening for all remaining lower-activity, higher-price candidates if candidate_13 wins; it also preserves budget for parity/reachability required by S3.\",\"expected_decision_value\":0.03} \n",
+  "tool_calls": [
+   {
+    "id": "call_jZjoA4TjzhUjdt75ZhFPB2OJ",
+    "type": "function",
+    "function": {
+     "name": "OPTIMIZE_PROCESS",
+     "arguments": "{\"metal\": \"candidate_13\", \"window\": \"full\"}"
+    }
+   },
+   {
+    "id": "call_IU0zXyLuIu3VSV5EN0do8Svb",
+    "type": "function",
+    "function": {
+     "name": "OPTIMIZE_PROCESS",
+     "arguments": "{\"metal\": \"candidate_04\", \"window\": \"full\"}"
+    }
+   },
+   {
+    "id": "call_crvWbOd2UlKVYU4wm4UgUswX",
+    "type": "function",
+    "function": {
+     "name": "OPTIMIZE_PROCESS",
+     "arguments": "{\"metal\": \"candidate_05\", \"window\": \"full\"}"
+    }
+   }
+  ]
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_jZjoA4TjzhUjdt75ZhFPB2OJ",
+  "content": "{\"feasible\": true, \"cost_USD_t\": 15.291704676621144, \"T_C\": 425.0, \"P_bar\": 180.0, \"Tsep_C\": 30.0, \"bed_m3\": 17.059161423818093, \"state_index\": 8900, \"window\": \"full\", \"metal\": \"candidate_13\", \"_remaining_CU\": 70.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_04\", \"candidate_05\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"backward missing, reachability missing for candidate_04 vs candidate_13\", \"may_stop\": false}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_IU0zXyLuIu3VSV5EN0do8Svb",
+  "content": "{\"feasible\": true, \"cost_USD_t\": 22.03059478781101, \"T_C\": 450.0, \"P_bar\": 425.0, \"Tsep_C\": 25.0, \"bed_m3\": 0.0660321094260842, \"state_index\": 12409, \"window\": \"full\", \"metal\": \"candidate_04\", \"_remaining_CU\": 41.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": false, \"unresolved_candidates\": [\"candidate_05\"], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"backward missing, reachability missing for candidate_04 vs candidate_13\", \"may_stop\": false}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_crvWbOd2UlKVYU4wm4UgUswX",
+  "content": "{\"feasible\": true, \"cost_USD_t\": 25.83179725613286, \"T_C\": 450.0, \"P_bar\": 425.0, \"Tsep_C\": 0.0, \"bed_m3\": 0.02935276844177327, \"state_index\": 12404, \"window\": \"full\", \"metal\": \"candidate_05\", \"_remaining_CU\": 12.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"backward missing, reachability missing for candidate_04 vs candidate_13\", \"may_stop\": false}}"
+ },
+ {
+  "role": "assistant",
+  "content": "{\"state_before\":{\"current_lowest_cost_candidate\":{\"metal\":\"candidate_13\",\"cost_USD_t\":15.291704676621144,\"state\":{\"T_C\":425.0,\"P_bar\":180.0,\"Tsep_C\":30.0,\"bed_m3\":17.059161423818093}},\"confidence\":0.9,\"unresolved_candidates\":[],\"known_evidence\":{\"optimized_feasible_ranking_so_far\":[{\"metal\":\"candidate_13\",\"cost_USD_t\":15.291704676621144},{\"metal\":\"candidate_04\",\"cost_USD_t\":22.03059478781101},{\"metal\":\"candidate_05\",\"cost_USD_t\":25.83179725613286}],\"screened_by_declared_rule\":[\"candidate_01\",\"candidate_02\",\"candidate_03\",\"candidate_06\",\"candidate_07\",\"candidate_08\",\"candidate_09\",\"candidate_10\",\"candidate_11\",\"candidate_12\",\"candidate_14\",\"candidate_15\"],\"screening_basis\":\"Each screened candidate has lower reference activity than candidate_13 and higher metal price than candidate_13; candidate_04 and candidate_05 were optimized because they have higher activity.\",\"highest_atomic_activity\":\"candidate_04, not current lowest-cost candidate_13\",\"remaining_required_for_stop\":\"S3 parity/reachability for candidate_04 vs candidate_13\"},\"remaining_budget_CU\":12.0},\"candidate_actions\":[{\"action\":\"BACKWARD\",\"args\":{\"pair\":\"candidate_04,candidate_13\",\"property\":\"activity\",\"window\":\"full\"},\"cost_CU\":1.0,\"decision_value\":0.85},{\"action\":\"TEST_REACHABILITY\",\"args\":{\"metal\":\"candidate_04\",\"property\":\"activity\",\"scope\":\"reference\"},\"cost_CU\":2.0,\"decision_value\":0.3},{\"action\":\"CHECK_MODEL_VALIDITY\",\"args\":{\"scope\":\"window_edges\",\"window\":\"full\"},\"cost_CU\":28.0,\"decision_value\":0.4},{\"action\":\"CHECK_MODEL_VALIDITY\",\"args\":{\"scope\":\"vessel_floor\",\"window\":\"full\"},\"cost_CU\":28.0,\"decision_value\":0.35},{\"action\":\"RUN_MC\",\"args\":{\"metals\":\"candidate_13,candidate_04,candidate_05\",\"draws\":\"100\",\"window\":\"full\"},\"cost_CU\":49.089,\"decision_value\":0.2}],\"chosen_action\":\"BACKWARD\",\"args\":{\"pair\":\"candidate_04,candidate_13\",\"property\":\"activity\",\"window\":\"full\"},\"reason\":\"S3 requires quantifying the activity multiplier that the highest-activity candidate would need for parity with the industrial incumbent. This is cheap and directly determines the required input for reachability classification. Validity checks and MC would be informative but are currently unaffordable or less directly required.\",\"expected_decision_value\":0.85} \n",
+  "tool_calls": [
+   {
+    "id": "call_aSj2FKhbNNZcaXA8Y983nwCo",
+    "type": "function",
+    "function": {
+     "name": "BACKWARD",
+     "arguments": "{\"pair\":\"candidate_04,candidate_13\",\"property\":\"activity\",\"window\":\"full\"}"
+    }
+   }
+  ]
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_aSj2FKhbNNZcaXA8Y983nwCo",
+  "content": "{\"pair\": [\"candidate_04\", \"candidate_13\"], \"multiplier\": 201.2234429878986, \"parity_cost_USD_t\": 15.291704676620821, \"state_at_parity\": {\"T_C\": 425.0, \"P_bar\": 190.0, \"Tsep_C\": 30.0}, \"property\": \"activity\", \"window\": \"full\", \"definition\": \"intrinsic-activity multiplier of candidate_04 at which its re-optimized cost equals the optimized cost of candidate_13\", \"_remaining_CU\": 11.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": false, \"S3_note\": \"backward done, reachability missing for candidate_04 vs candidate_13\", \"may_stop\": false}}"
+ },
+ {
+  "role": "assistant",
+  "content": "{\"state_before\":{\"current_lowest_cost_candidate\":{\"metal\":\"candidate_13\",\"cost_USD_t\":15.291704676621144,\"state\":{\"T_C\":425.0,\"P_bar\":180.0,\"Tsep_C\":30.0,\"bed_m3\":17.059161423818093}},\"confidence\":0.92,\"unresolved_candidates\":[],\"known_evidence\":{\"parity_requirement\":\"candidate_04 needs 201.2234429878986x intrinsic activity to match candidate_13 cost\",\"state_at_parity\":{\"T_C\":425.0,\"P_bar\":190.0,\"Tsep_C\":30.0},\"S1\":true,\"S2\":true,\"S3\":\"reachability missing\"},\"remaining_budget_CU\":11.0},\"candidate_actions\":[{\"action\":\"TEST_REACHABILITY\",\"args\":{\"metal\":\"candidate_04\",\"property\":\"activity\",\"scope\":\"reference\",\"required_multiplier\":\"201.2234429878986\"},\"cost_CU\":2.0,\"decision_value\":0.9},{\"action\":\"TEST_REACHABILITY\",\"args\":{\"metal\":\"candidate_04\",\"property\":\"activity\",\"scope\":\"window\",\"required_multiplier\":\"201.2234429878986\"},\"cost_CU\":4.0,\"decision_value\":0.95},{\"action\":\"READ_COST_BREAKDOWN\",\"args\":{\"metal\":\"candidate_13\"},\"cost_CU\":0.0,\"decision_value\":0.25},{\"action\":\"READ_COST_BREAKDOWN\",\"args\":{\"metal\":\"candidate_04\"},\"cost_CU\":0.0,\"decision_value\":0.2},{\"action\":\"TEST_LEVER\",\"args\":{\"lever\":\"max_catalyst_bed_m3\",\"value\":\"90\",\"metals\":\"candidate_13,candidate_04,candidate_05\",\"window\":\"full\"},\"cost_CU\":3.0,\"decision_value\":0.1}],\"chosen_action\":\"parallel: TEST_REACHABILITY(window) + READ_COST_BREAKDOWN candidate_13,candidate_04,candidate_05\",\"args\":{\"reachability\":{\"metal\":\"candidate_04\",\"property\":\"activity\",\"scope\":\"window\",\"required_multiplier\":\"201.2234429878986\"},\"breakdowns\":[\"candidate_13\",\"candidate_04\",\"candidate_05\"]},\"reason\":\"Window-scope reachability most directly satisfies S3 because it assesses the largest scaling-manifold activity gain across process states and classifies the required 201x multiplier. Cost breakdowns are free and improve the evidence report without consuming decision budget.\",\"expected_decision_value\":0.2375} \n",
+  "tool_calls": [
+   {
+    "id": "call_JEkBt6Qpqat7maDjFOYySW3n",
+    "type": "function",
+    "function": {
+     "name": "TEST_REACHABILITY",
+     "arguments": "{\"metal\": \"candidate_04\", \"property\": \"activity\", \"scope\": \"window\", \"required_multiplier\": \"201.2234429878986\"}"
+    }
+   },
+   {
+    "id": "call_OjNAYJ3KtAxfCzeJblVWgux9",
+    "type": "function",
+    "function": {
+     "name": "READ_COST_BREAKDOWN",
+     "arguments": "{\"metal\": \"candidate_13\"}"
+    }
+   },
+   {
+    "id": "call_7G4dg2N6Ki2MiOsvF9HoyKn5",
+    "type": "function",
+    "function": {
+     "name": "READ_COST_BREAKDOWN",
+     "arguments": "{\"metal\": \"candidate_04\"}"
+    }
+   },
+   {
+    "id": "call_7a1JUK85hSvzFpdIZGfUuTRb",
+    "type": "function",
+    "function": {
+     "name": "READ_COST_BREAKDOWN",
+     "arguments": "{\"metal\": \"candidate_05\"}"
+    }
+   }
+  ]
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_JEkBt6Qpqat7maDjFOYySW3n",
+  "content": "{\"metal\": \"candidate_04\", \"property\": \"activity\", \"scope\": \"window\", \"max_gain_on_descriptor_manifold_at_reference\": 1.0899012267527077, \"descriptor_at_max_eV\": -1.18, \"definition\": \"largest intrinsic-activity multiplier obtainable by moving the single descriptor along the frozen scaling manifold\", \"max_gain_across_process_states\": 2.5245651130943445, \"required_multiplier\": 201.2234429878986, \"classification\": \"unreachable\", \"_remaining_CU\": 7.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": true, \"S3_note\": \"backward done, reachability classified for candidate_04 vs candidate_13\", \"may_stop\": true}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_OjNAYJ3KtAxfCzeJblVWgux9",
+  "content": "{\"metal\": \"candidate_13\", \"total_USD_t\": 15.291704676621144, \"pools_USD_t\": {\"metal_cost\": 0.07036196876234935, \"reactor_base\": 0.11528397998054762, \"vessel_pressure_premium\": 0.8069929693048167, \"fresh_comp\": 9.659553101046367, \"recycle_comp\": 0.7647429371460784, \"refrigeration\": 0.0, \"compressor_capex\": 3.874769720380986}, \"_remaining_CU\": 7.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": true, \"S3_note\": \"backward done, reachability classified for candidate_04 vs candidate_13\", \"may_stop\": true}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_7G4dg2N6Ki2MiOsvF9HoyKn5",
+  "content": "{\"metal\": \"candidate_04\", \"total_USD_t\": 22.03059478781101, \"pools_USD_t\": {\"metal_cost\": 1.833375222075018, \"reactor_base\": 0.029613220937991975, \"vessel_pressure_premium\": 0.0738638205474667, \"fresh_comp\": 14.291220682215544, \"recycle_comp\": 0.11790335831897406, \"refrigeration\": 0.6291187330945023, \"compressor_capex\": 5.055499750621518}, \"_remaining_CU\": 7.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": true, \"S3_note\": \"backward done, reachability classified for candidate_04 vs candidate_13\", \"may_stop\": true}}"
+ },
+ {
+  "role": "tool",
+  "tool_call_id": "call_7a1JUK85hSvzFpdIZGfUuTRb",
+  "content": "{\"metal\": \"candidate_05\", \"total_USD_t\": 25.83179725613286, \"pools_USD_t\": {\"metal_cost\": 2.1587937968769833, \"reactor_base\": 0.027875731963130562, \"vessel_pressure_premium\": 0.0738638205474667, \"fresh_comp\": 14.291220682215544, \"recycle_comp\": 0.10966001117955529, \"refrigeration\": 4.120192208064269, \"compressor_capex\": 5.050191005285912}, \"_remaining_CU\": 7.0, \"_stopping_status\": {\"S1_winner_identified\": true, \"S2_no_unresolved_candidate\": true, \"unresolved_candidates\": [], \"S3_reachability_classified_if_needed\": true, \"S3_note\": \"backward done, reachability classified for candidate_04 vs candidate_13\", \"may_stop\": true}}"
+ },
+ {
+  "role": "assistant",
+  "content": null,
+  "tool_calls": [
+   {
+    "id": "call_JGllfjZ0GRjaDkmfNmSlXJXB",
+    "type": "function",
+    "function": {
+     "name": "STOP",
+     "arguments": "{\"final_answer\":{\"industrial_candidate\":{\"metal\":\"candidate_13\",\"optimized_cost_USD_per_t_NH3\":15.291704676621144,\"optimized_state\":{\"T_C\":425.0,\"P_bar\":180.0,\"Tsep_C\":30.0,\"bed_m3\":17.059161423818093},\"cost_breakdown_USD_per_t\":{\"metal_cost\":0.07036196876234935,\"reactor_base\":0.11528397998054762,\"vessel_pressure_premium\":0.8069929693048167,\"fresh_comp\":9.659553101046367,\"recycle_comp\":0.7647429371460784,\"refrigeration\":0.0,\"compressor_capex\":3.874769720380986}},\"optimized_feasible_ranking\":[{\"rank\":1,\"metal\":\"candidate_13\",\"cost_USD_per_t_NH3\":15.291704676621144,\"state\":{\"T_C\":425.0,\"P_bar\":180.0,\"Tsep_C\":30.0,\"bed_m3\":17.059161423818093}},{\"rank\":2,\"metal\":\"candidate_04\",\"cost_USD_per_t_NH3\":22.03059478781101,\"state\":{\"T_C\":450.0,\"P_bar\":425.0,\"Tsep_C\":25.0,\"bed_m3\":0.0660321094260842},\"cost_breakdown_USD_per_t\":{\"metal_cost\":1.833375222075018,\"reactor_base\":0.029613220937991975,\"vessel_pressure_premium\":0.0738638205474667,\"fresh_comp\":14.291220682215544,\"recycle_comp\":0.11790335831897406,\"refrigeration\":0.6291187330945023,\"compressor_capex\":5.055499750621518}},{\"rank\":3,\"metal\":\"candidate_05\",\"cost_USD_per_t_NH3\":25.83179725613286,\"state\":{\"T_C\":450.0,\"P_bar\":425.0,\"Tsep_C\":0.0,\"bed_m3\":0.02935276844177327},\"cost_breakdown_USD_per_t\":{\"metal_cost\":2.1587937968769833,\"reactor_base\":0.027875731963130562,\"vessel_pressure_premium\":0.0738638205474667,\"fresh_comp\":14.291220682215544,\"recycle_comp\":0.10966001117955529,\"refrigeration\":4.120192208064269,\"compressor_capex\":5.050191005285912}}],\"screened_candidates\":{\"screened_by_declared_rule\":[\"candidate_01\",\"candidate_02\",\"candidate_03\",\"candidate_06\",\"candidate_07\",\"candidate_08\",\"candidate_09\",\"candidate_10\",\"candidate_11\",\"candidate_12\",\"candidate_14\",\"candidate_15\"],\"basis\":\"After candidate_13 was optimized as feasible incumbent, each screened candidate has lower reference log10_TOF than candidate_13 (-5.3099700922126845) and higher metal price than candidate_13 ($8/kg), satisfying the declared dominated screen. Candidate_04 and candidate_05 were not screened because they have higher reference activity and were explicitly optimized.\"},\"activity_evidence\":{\"highest_atomic_activity_candidate\":\"candidate_04\",\"highest_activity_log10_TOF_reference\":-3.4511885358841505,\"industrial_choice_log10_TOF_reference\":-5.3099700922126845,\"reference_condition\":\"T 673.0 K, pN2 24.5 / pH2 74.25 / pNH3 1.0 bar\"},\"parity_reachability_assessment\":{\"highest_activity_candidate\":\"candidate_04\",\"industrial_candidate\":\"candidate_13\",\"candidate_04_current_optimized_cost_USD_per_t\":22.03059478781101,\"candidate_13_optimized_cost_USD_per_t\":15.291704676621144,\"required_intrinsic_activity_multiplier_for_candidate_04_cost_parity\":201.2234429878986,\"parity_state\":{\"T_C\":425.0,\"P_bar\":190.0,\"Tsep_C\":30.0},\"max_gain_on_frozen_descriptor_scaling_manifold_at_reference\":1.0899012267527077,\"descriptor_at_max_eV\":-1.18,\"max_gain_across_process_states\":2.5245651130943445,\"classification\":\"unreachable\"},\"stopping_rule_status\":{\"S1_feasible_optimized_incumbent_exists\":true,\"S2_no_unresolved_candidate\":true,\"S3_parity_and_reachability_done\":true,\"S4_best_remaining_expected_decision_value_below_threshold_or_not_worth_budget\":true},\"remaining_budget_CU\":7.0},\"why_stop\":\"Stopping rule satisfied: candidate_13 is a feasible optimized lowest-cost incumbent; all other candidates are either optimized challengers (candidate_04, candidate_05) or screened as dominated by the declared lower-activity-and-higher-price rule; the highest-activity candidate candidate_04 differs from candidate_13, and BACKWARD plus TEST_REACHABILITY have quantified and classified the activity-improvement requirement as unreachable. Remaining affordable actions (free reporting already used; lever tests or reference-only reachability) would not plausibly change the industrial choice, while MC/model-validity checks are either unaffordable or not required by the stopping rule.\",\"unresolved_decision_risk\":{\"primary_risk\":\"Descriptor uncertainty and exact state-level dominance/edge validity were not further quantified because the budget remaining is 7 CU, below the cost of MC or CHECK_MODEL_VALIDITY; the decision relies on the declared screening rule for the 12 non-optimized candidates.\",\"edge_risk\":\"candidate_13 optimum has Tsep_C=30 C, a window edge, but CHECK_MODEL_VALIDITY(window_edges) costs 28 CU and is unaffordable after required parity/reachability. Its bed volume 17.06 m3 is well below the 90 m3 cap, so bed-cap risk is low qualitatively.\",\"decision_margin\":\"candidate_13 is 6.739 USD/t lower than optimized candidate_04 and 10.540 USD/t lower than optimized candidate_05; candidate_04 would require a 201.2x intrinsic activity improvement for parity, far above the 2.52x maximum found across process states on the frozen descriptor manifold.\"}}"
+    }
+   }
+  ]
+ }
+]

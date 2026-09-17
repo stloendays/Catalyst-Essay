@@ -1,0 +1,162 @@
+{
+  "_dry_run": true,
+  "request": {
+    "model": "gpt-5-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are the consistency-diagnosis layer of a deterministic multiscale catalysis harness\n(Catalyst Economic Leverage project, model NH3-FINAL-1.0). The harness propagates DFT descriptors ->\nscaling/BEP -> microkinetics -> catalyst inventory -> reactor/process optimisation -> reduced\ncatalyst-dependent economics -> ranking -> uncertainty -> backward design. Frozen headline results are\nregression-gated. Your job is NOT to tune parameters. Diagnose WHY a run drifted from the frozen\nregression: distinguish manifest/version/convention changes from genuine physical-result changes.\nBe concrete and cite the exact manifest keys and failing checks. If nothing drifted, say so."
+      },
+      {
+        "role": "user",
+        "content": "## Run summary\n{\n \"run_id\": \"20260903T092852Z\",\n \"mode\": \"full\",\n \"status\": \"FAIL\",\n \"model_version\": \"NH3-FINAL-1.0\",\n \"process_state_count\": 3636,\n \"activity_order\": [\n  \"Ru\",\n  \"Os\",\n  \"Fe\",\n  \"Rh\",\n  \"Ir\",\n  \"Co\",\n  \"Re\",\n  \"Mo\",\n  \"Ni\",\n  \"W\",\n  \"Pd\",\n  \"Pt\",\n  \"Cu\",\n  \"Ag\",\n  \"Au\"\n ],\n \"feasible_economic_order\": [\n  \"Fe\",\n  \"Ru\",\n  \"Os\"\n ],\n \"costs_USD_t\": {\n  \"Fe\": 10.198659047084616,\n  \"Ru\": 17.59239838038635,\n  \"Os\": 21.32057789728162\n },\n \"top3_spearman\": -0.5,\n \"Fe_feasibility\": 0.758,\n \"Ru_break_even\": 2171.559771717808\n}\n\n## Manifest diff vs canonical (empty = identical)\n[\n {\n  \"key\": \"engineering.max_catalyst_bed_m3\",\n  \"canonical\": 90.0,\n  \"run\": 120.0\n },\n {\n  \"key\": \"project.run_label\",\n  \"canonical\": \"nh3_final\",\n  \"run\": \"drift_A_bedcap120\"\n }\n]\n\n## Failing regression checks (1 of 23)\n[\n {\n  \"name\": \"Fe_feasibility_probability\",\n  \"actual\": 0.758,\n  \"expected\": 0.736,\n  \"tolerance\": 1e-12,\n  \"pass\": false\n }\n]\n\nFrozen principles: model version, candidate set, process grids, 90 m3 bed cap, cost boundary (reduced catalyst-dependent NH3 cost, no HP-loop CAPEX), 1000-draw seed 20260816, descriptor/scaling convention must never change silently; any change requires a new manifest version.\nReturn the structured diagnosis."
+      }
+    ],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "consistency_diagnosis",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary_cause": {
+              "type": "string",
+              "enum": [
+                "no_drift",
+                "model_version_drift",
+                "engineering_threshold_change",
+                "cost_denominator_or_economics_change",
+                "uncertainty_seed_or_distribution_change",
+                "candidate_set_mismatch",
+                "unit_or_reference_convention_mismatch",
+                "process_grid_change",
+                "physical_result_change",
+                "unknown"
+              ]
+            },
+            "secondary_causes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no_drift",
+                  "model_version_drift",
+                  "engineering_threshold_change",
+                  "cost_denominator_or_economics_change",
+                  "uncertainty_seed_or_distribution_change",
+                  "candidate_set_mismatch",
+                  "unit_or_reference_convention_mismatch",
+                  "process_grid_change",
+                  "physical_result_change",
+                  "unknown"
+                ]
+              }
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "affected_headlines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "is_numerical_chain_still_consistent": {
+              "type": "boolean"
+            },
+            "frozen_principle_violated": {
+              "type": "string"
+            },
+            "recommended_action": {
+              "type": "string",
+              "enum": [
+                "revert_to_canonical_manifest",
+                "register_as_new_manifest_version",
+                "investigate_code_or_environment",
+                "accept_no_action"
+              ]
+            },
+            "rationale": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "primary_cause",
+            "secondary_causes",
+            "evidence",
+            "affected_headlines",
+            "is_numerical_chain_still_consistent",
+            "frozen_principle_violated",
+            "recommended_action",
+            "rationale"
+          ]
+        }
+      }
+    }
+  },
+  "_context": {
+    "summary": {
+      "run_id": "20260903T092852Z",
+      "mode": "full",
+      "status": "FAIL",
+      "model_version": "NH3-FINAL-1.0",
+      "process_state_count": 3636,
+      "activity_order": [
+        "Ru",
+        "Os",
+        "Fe",
+        "Rh",
+        "Ir",
+        "Co",
+        "Re",
+        "Mo",
+        "Ni",
+        "W",
+        "Pd",
+        "Pt",
+        "Cu",
+        "Ag",
+        "Au"
+      ],
+      "feasible_economic_order": [
+        "Fe",
+        "Ru",
+        "Os"
+      ],
+      "costs_USD_t": {
+        "Fe": 10.198659047084616,
+        "Ru": 17.59239838038635,
+        "Os": 21.32057789728162
+      },
+      "top3_spearman": -0.5,
+      "Fe_feasibility": 0.758,
+      "Ru_break_even": 2171.559771717808
+    },
+    "diff": [
+      {
+        "key": "engineering.max_catalyst_bed_m3",
+        "canonical": 90.0,
+        "run": 120.0
+      },
+      {
+        "key": "project.run_label",
+        "canonical": "nh3_final",
+        "run": "drift_A_bedcap120"
+      }
+    ],
+    "failing": [
+      {
+        "name": "Fe_feasibility_probability",
+        "actual": 0.758,
+        "expected": 0.736,
+        "tolerance": 1e-12,
+        "pass": false
+      }
+    ]
+  }
+}

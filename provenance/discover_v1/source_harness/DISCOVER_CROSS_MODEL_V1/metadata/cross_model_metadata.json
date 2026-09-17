@@ -1,0 +1,30 @@
+{
+  "evaluation": "DISCOVER PHASE E-2 cross-model stability (V1 frozen protocol, policy E only)",
+  "started_utc": "20260906T020414Z",
+  "last_run_started_utc": "20260906T022211Z",
+  "frozen_hash_check_before_runs": "PASS",
+  "frozen_hash_check_after_runs": "PASS",
+  "models": {
+    "weak": "gpt-5.4-nano-2026-03-17",
+    "medium": "gpt-5.4-mini-2026-03-17",
+    "strong (V1 formal, reused, not re-run)": "gpt-5.5-2026-04-23"
+  },
+  "runs_per_model": "5 independent runs x 7 budgets {200,250,300,500,800,1200,2000} CU x {anonymous, named} = 70; 140 new traces",
+  "baselines": "A-D reused from DISCOVER_FORMAL_RUNS_V1 (frozen, not re-run)",
+  "driver": "discover/formal_e.py (byte-identical to V1 formal run)",
+  "driver_sha256": "d4451c424dbfac5f7a6176038864f35cc6326ac04ae5efcb91f14574f8aeee93",
+  "analysis": "discover/cross_model_analysis.py",
+  "analysis_sha256": "4c7e7223cd950aa310fbe231780c13e66293091d471b19b80034221d55355f9c",
+  "api": "OpenAI chat.completions, function tools, tool_choice auto, temperature/reasoning API defaults",
+  "sdk": "3.7.0",
+  "tokens_new_models": {
+    "prompt": 8126311,
+    "completion": 308723
+  },
+  "infra_retries": 0,
+  "driver_exceptions": 0,
+  "smoke_runs": "one 200-CU anonymous run per new model (run index 99) executed before the sweep and deleted; not scored",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "finished_utc": "2026-09-06T02:24:36.845401+00:00"
+}
