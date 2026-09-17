@@ -1,0 +1,34 @@
+name: DISCOVER V1 provenance
+
+# Re-verifies the vendored frozen protocol and evidence bundle on a clean checkout.
+# This is the check that matters most on CI rather than locally: it proves the bytes a
+# referee would clone still reproduce the pinned SHA-256 values, so line-ending handling,
+# filters or an accidental edit cannot silently change the protocol the paper reports.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'provenance/discover_v1/**'
+      - 'ci/validate_discover_v1_provenance.py'
+      - 'tools/prepare_discover_v1_bundle.py'
+      - '.gitattributes'
+      - '.github/workflows/discover-v1-provenance.yml'
+  pull_request:
+    paths:
+      - 'provenance/discover_v1/**'
+      - 'ci/validate_discover_v1_provenance.py'
+      - 'tools/prepare_discover_v1_bundle.py'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the vendored DISCOVER V1 bundle
+        shell: bash
+        run: python ci/validate_discover_v1_provenance.py
