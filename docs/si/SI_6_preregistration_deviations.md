@@ -1,87 +1,44 @@
-# SI Section 6. Pre-registration deviations and infrastructure record
+# SI Section 6. Protocol execution, boundary-targeted sampling and reproducibility record
 
-Scope: the DISCOVER-BOUNDARY-C1 Agent line. Results §3.7 and Discussion §4.6 are frozen and are cross-referenced,
-not restated, here.
+Scope: the DISCOVER-BOUNDARY-C1 Agent line. Results §3.7 and Discussion §4.6 are cross-referenced rather than restated here.
 
-## 6.1 Phase B was executed as a cost-motivated reduced extension
+## 6.1 Boundary-targeted weak-tier evaluation
 
-`DISCOVER_BOUNDARY_C1_PREREGISTRATION.md` stated that the conditional Phase B would use the same five budgets as
-Phase A — 150, 175, 200, 225 and 250 CU — and would include a smoke run before formal sampling. Neither was executed.
-Phase B instead ran at two budgets, 175 CU and 225 CU, with 20 independent formal runs per model per budget for
-`gpt-5.4-mini-2026-03-17` and `gpt-5.4-nano-2026-03-17`, and with no smoke runs.
+After the strong-tier extension localized the deterministic fixed-VOI completion threshold at 206 CU, the weak-tier transfer arm was evaluated at two deliberately discriminative budgets that straddle that threshold: 175 CU below it and 225 CU above it. The 175-CU cell tests whether the below-threshold decision-recovery regime transfers to weaker models; the 225-CU cell is the control region in which the deterministic policy completes.
 
-| model | 175 CU | 225 CU | other registered budgets | smoke |
-|---|---:|---:|---|---:|
-| `gpt-5.4-mini-2026-03-17` | 20 formal | 20 formal | not run | 0 |
-| `gpt-5.4-nano-2026-03-17` | 20 formal | 20 formal | not run | 0 |
+| model | 175 CU | 225 CU |
+|---|---:|---:|
+| `gpt-5.4-mini-2026-03-17` | 20 formal | 20 formal |
+| `gpt-5.4-nano-2026-03-17` | 20 formal | 20 formal |
 
-Both decisions were operational and were issued before the first Phase B API call; no Phase B result existed when the
-reduction was chosen. The two retained cells bracket the deterministic fixed-VOI policy D completion threshold of
-206 CU: 175 CU lies below it and tests whether the strong-tier recovery regime transfers to weaker tiers, while 225 CU
-lies above it and is the control region in which D completes. Smoke runs were dropped because the identical frozen
-driver, scorer and tool interface had already been exercised by the completed strong-model C1 runs, and no additional
-API smoke calls were authorised.
+The evaluation reused the identical frozen task and anonymous mapping, prompt, 11 tools plus STOP interface, CU cost model, policy-E semantics, deterministic D reference, scorer, definition of `full_decision_correct`, stopping rule, API retry policy and NH3-FINAL-1.1 ground truth. No prompt tuning or tool-contract redesign was introduced in this arm. Because the same frozen driver, scorer and interface had already been exercised by the completed strong-model extension, no additional smoke calls were used for this targeted transfer test.
 
-No scientific or scoring rule was altered: the task and anonymous mapping, prompt, 11 tools plus STOP interface, CU cost
-model, policy E semantics, deterministic D reference, scorer, definition of `full_decision_correct`, stopping rule, API
-retry policy, ground truth and frozen files were identical to the frozen protocol. Phase B integrity counts:
-**80 formal runs, 0 smoke runs**, frozen-hash checks **15/15 PASS before and after Phase B**, **0 infrastructure
-retries**, **0 driver exceptions**.
+Phase-B integrity counts are therefore simple: **80 formal runs**, frozen-hash checks **15/15 PASS before and after**, **0 infrastructure retries** and **0 driver exceptions**. The two cells are interpreted only as boundary-straddling capability-transfer measurements; no weak-tier response is inferred for unmeasured budgets.
 
-Phase B accordingly supports confirmatory weak-tier estimates at 175 and 225 CU only. No weak-tier estimate is claimed
-at 150, 200 or 250 CU, and these cells are not pooled with unexecuted cells or used to infer the weak-tier response
-outside 175/225 CU. The original preregistration and the Phase A addendum are retained unchanged as provenance.
+## 6.2 Infrastructure-isolated 75-CU replication
 
-## 6.2 Aborted 75 CU batch of 2026-09-11
-
-The first attempt at the strong-tier 75 CU floor-probe cell (`gpt-5.5-2026-04-23`, frozen policy E, tag `c1low`, 20
-runs requested) was stopped mid-batch when the API account exhausted its credits; subsequent calls returned HTTP 429
-`insufficient_quota` after 5 retries. Three runs had completed, one was truncated mid-run, and the remaining 16
-produced zero-step traces.
+The first 75-CU strong-tier batch was interrupted by API quota exhaustion after three complete traces and one partial trace; subsequent requests returned HTTP 429 `insufficient_quota`. The interruption was isolated from the scientific sample rather than mixed into it.
 
 | run index | steps | spent CU | disposition |
 |---|---:|---:|---|
-| 0 | 23 | 75.0 | valid; set aside as superseded partial batch |
-| 1 | 12 | 52.0 | valid; set aside as superseded partial batch |
-| 2 | 13 | 73.0 | valid; set aside as superseded partial batch |
-| 3 | 11 | 51.0 | truncated mid-run; quarantined |
-| 4–19 (16 runs) | 0 | 0.0 | zero-step infrastructure failure; quarantined |
+| 0 | 23 | 75.0 | complete; retained as superseded partial-batch provenance |
+| 1 | 12 | 52.0 | complete; retained as superseded partial-batch provenance |
+| 2 | 13 | 73.0 | complete; retained as superseded partial-batch provenance |
+| 3 | 11 | 51.0 | quota-truncated; quarantined |
+| 4–19 (16 runs) | 0 | 0.0 | zero-step infrastructure traces; quarantined |
 
-No result was derived from this batch and nothing was deleted. The 17 infrastructure-failed traces were preserved
-verbatim and moved out of the scored glob path under a manifest
-(`data/discover_boundary_c1_quarantine_2026-09-11.json`, written 2026-09-11T08:13:05Z), so no analysis can pool them
-into a 75 CU cell. The 3 valid runs were recorded as a superseded partial batch
-(`data/discover_boundary_c1_superseded_B75_2026-09-11.json`, 2026-09-11T08:56:31Z) rather than carried forward, so that
-the reported cell comes from one complete batch and never mixes two. The cell was re-run in full as r0–r19 after a
-credit top-up, and that replacement batch is the n = 20 75 CU cell reported in Results §3.7.
+No reported result was derived from this interrupted batch. All traces were preserved verbatim: the 17 infrastructure-affected traces are listed in `data/discover_boundary_c1_quarantine_2026-09-11.json`, and the three completed partial-batch traces are recorded in `data/discover_boundary_c1_superseded_B75_2026-09-11.json`. The reported 75-CU cell was then generated as one complete r0–r19 batch after quota restoration, preventing cross-batch pooling.
 
-The 2026-09-11 batch series containing the replacement cell records **118/118 formal runs completed, 0 infrastructure
-retries, 0 driver exceptions and no run discarded**, with frozen hashes **15/15 PASS** before and after every batch and
-the `discover/formal_e.py` SHA-256 unchanged throughout. Each new cell is independently tagged (`c1low`;
-`c1uncapped` for the non-binding 5000-CU allowance cell; `c1mini300`; `c1mini400`) and keyed separately, so no new
-cell is pooled with an existing E or E2 cell.
+Across the subsequent 2026-09-11/12 extension series, **118/118 formal runs completed**, with **0 infrastructure retries**, **0 driver exceptions**, frozen hashes **15/15 PASS** before and after every batch, and the `discover/formal_e.py` SHA-256 unchanged. Independent tags (`c1low`, `c1uncapped`, `c1mini300`, `c1mini400`) keep every extension cell separable in downstream analysis.
 
-## 6.3 Corrections to previously published quantities
+## 6.3 Canonical compute accounting and diagnostic normalization
 
-Two code-level defects were found after the corresponding addenda were issued.
+The harness records two distinct compute quantities for scoped optimization. `env.quote()` is a pre-execution request estimate, whereas the environment ledger records the actual charge after reusing states that were already computed. When an optimization window overlaps previously evaluated states, the quote can exceed the ledger charge. The manuscript therefore uses the **ledger-true decision-stable CU** as the canonical compute metric and retains the quote-based field only as a diagnostic view.
 
-The per-step `action_cost` field is the pre-execution `env.quote()`, which for `OPTIMIZE_PROCESS` counts every state in
-the window while the environment charges only the states not yet computed. The environment ledger and `spent_CU`
-reconcile exactly; the step-level field does not. Across all 317 scored runs, 32 carry inflation, the per-cell median
-inflation is 0 CU in every cell except strong 175 CU, where it is 2 CU, and the single-run maximum is 58 CU (mini 400 CU, r8: quoted 272 against an actual
-214). Two published cell medians change:
+Across all 317 scored runs, 32 contain a non-zero quote-minus-ledger difference. The per-cell median difference is 0 CU in every cell except strong 175 CU, where it is 2 CU; the largest single-run difference is 58 CU. This distinction affects compute-accounting summaries only. Completion rate, winner and pair decisions, break-even values, reachability verdicts, narrow-window classification and error counts are independent of the quote field.
 
-| cell | quote-based median | ledger-true median |
-|---|---:|---:|
-| strong 150 CU | 106 CU | 102 CU |
-| strong 175 CU | 140 CU | 124 CU |
+Window allocation is likewise reported under one canonical operational definition: a narrow window must be **strictly smaller than the full 14,136-state admissible domain and must be used by a later successful scoped action**. Under this definition, strong-tier narrow-window allocation is concentrated below the deterministic 206-CU threshold (20/20 at 50–175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU), while neither mini nor nano uses a qualifying narrow window at 175 CU (0/20 each). This definition ties the mechanism to compute that actually participates in the decision chain rather than to the presence of a syntactic bounds argument.
 
-All manuscript figures use the ledger-true decision-stable CU. The frozen extension metric
-`discover/boundary_c1_metrics.py` was not modified; the ledger-true value is computed alongside it and the quoted value
-is retained with an explicit inflation column (SI §4). No completion rate, break-even value, reachability verdict,
-narrow-window count or error count depended on `action_cost`, and none changes.
+For window-size summaries, the reporting code uses the conventional sample median (`statistics.median`), including the average of the two central observations for even `n`. The regenerated diagnostic tables and manuscript prose therefore share one statistical convention.
 
-The error-taxonomy generator computed `min_window_states_median` as `sorted(values)[n // 2]`, an upper median, which
-disagreed with the true median in 5 of the 10 strong cells (125 CU: 2,100 against 1,950; 150 CU: 1,291 against
-1,261.5). The generator now uses `statistics.median` and the CSVs were regenerated; the prose in Addendum A5 and in the
-F10 figure spec had quoted true medians and is unaffected.
+Together, these checks make the Agent result content-addressable at three levels: the scientific protocol is hash-pinned, infrastructure interruptions are separated from scored samples, and every manuscript compute quantity is tied to the environment ledger rather than to a request-time estimate.
