@@ -90,11 +90,11 @@ does not necessarily reopen the question.
 What backward design licenses is correspondingly narrow. The result is an activity-only infeasibility signal under the
 current process model, its operating constraints and the scaling-consistent design path, not an experimental prediction
 that no ammonia catalyst can reach Fe parity. Read that way, it redirects rather than closes the search. Among the levers
-tested on the canonical run, metal recovery reaches **0.685** of the cost-ratio gap at its **0.95** bound and **0.911**
+tested on the canonical run, metal recovery reaches **0.685** of the cost-ratio gap at its **0.95** bound and a cost-ratio closure of **0.911**
 at **0.99**; catalyst lifetime reaches **0.161** at **20 y**; bed-cap relaxation is inactive, since the Fe bed leaves
 **72.94 m3** of slack against the **90 m3** cap and the constraint only becomes active once the cap falls below
-**17.06 m3**; and the upper pressure bound has ceased to be a lever at all, because the 1.0 sensitivity to it measured
-a grid truncation rather than a design freedom. A backward-design target is therefore best read as a statement about
+**17.06 m3**; and the upper pressure bound has ceased to be a lever at all, because the 1.0 sensitivity to it
+recorded in the archived FINAL-1.0 model measured a grid truncation rather than a design freedom. A backward-design target is therefore best read as a statement about
 which channel is closed, evaluated on the same cost metric that closed it.
 
 ### 4.4 Reaction transfer requires pathway transfer, not only model transfer

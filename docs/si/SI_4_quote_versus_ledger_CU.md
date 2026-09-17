@@ -40,6 +40,9 @@ depended on `action_cost`.
 
 ## The five CU-to-X quantities
 
+The five quantities and their values on the non-binding-allowance cell are tabulated canonically in **Extended Data
+Table 1**; this section states only what the distinction means for the compute accounting and does not repeat the table.
+
 Five distinct quantities in the frozen scorer and extension metrics could each loosely be called "the CU at which the
 agent reached the answer", and they take different values on the same runs. Every published number must name which one
 it is.

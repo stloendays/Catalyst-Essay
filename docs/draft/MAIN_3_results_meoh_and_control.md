@@ -65,7 +65,7 @@ Fe and 1.833 USD/t for Ru, but the candidates separate far more strongly through
 drive the process to: Fe optimizes at approximately 425 °C and 180 bar with fresh-compression electricity of
 9.660 USD/t, Ru at approximately 450 °C and 425 bar with 14.291 USD/t, and Os additionally carries 4.120 USD/t of
 refrigeration against 0.000 for Fe. The catalyst-specific design levers act on the inventory pool rather than on that
-operating point: on the canonical NH3-FINAL-1.1 run, metal recovery closes 0.685 of the Fe-Ru cost ratio and catalyst
+operating point: on the canonical NH3-FINAL-1.1 run, metal recovery closes 0.685 of the Fe-Ru cost-ratio gap and catalyst
 lifetime 0.161, whereas the pressure-window and bed-volume constraints are inactive at the optima. Activity in ammonia is
 therefore expressed economically as how much catalyst is needed and how severe a process is required to use it.
 
