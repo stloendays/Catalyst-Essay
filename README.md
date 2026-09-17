@@ -4,8 +4,6 @@
 
 Catalyst discovery is usually optimized with atomic-scale or intrinsic-performance proxies, while deployment is decided by reactor, process and economic constraints. This project studies how catalyst rankings propagate across those scales, where the ranking changes, and how an industrial target can be mapped backward into a required catalyst-property region.
 
-The project is organized around three scientific operations:
-
 ```text
 Forward propagation
 atomic descriptor / activity
@@ -29,21 +27,14 @@ current evidence
 
 ## Main results
 
-### 1. Ammonia: decision-frontier ranking inversion
+### NH3: decision-frontier ranking inversion
 
-Under the frozen **NH3-FINAL-1.1** model, the intrinsic activity top three are:
-
-```text
-Ru > Os > Fe
-```
-
-After catalyst-dependent reactor/process optimization and economic propagation, the order becomes:
+Under the frozen **NH3-FINAL-1.1** model:
 
 ```text
-Fe > Ru > Os
+intrinsic activity:  Ru > Os > Fe
+economic ranking:    Fe > Ru > Os
 ```
-
-with catalyst-dependent costs:
 
 | Catalyst | Cost (USD/t NH3) |
 |---|---:|
@@ -51,64 +42,32 @@ with catalyst-dependent costs:
 | Ru | **22.031** |
 | Os | **25.832** |
 
-The important feature is that the inversion is concentrated at the decision frontier. The Top-3 Spearman correlation is **-0.50**, whereas the raw full-15-metal Spearman correlation is **0.929**.
+The Top-3 Spearman correlation is **-0.50**, while the raw full-15-metal correlation is **0.929**. The ranking conflict is concentrated at the decision frontier rather than across the complete screen.
 
-### 2. Uncertainty changes actionability more than the global ranking
+For Fe under the frozen 1,000-draw uncertainty propagation, feasibility is **79.9%**, Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**.
 
-For Fe under the frozen 1,000-draw uncertainty propagation:
+Full process reoptimization gives an activity-only Ru-to-Fe parity requirement of approximately **201-fold**. Scaling-consistent activity headroom is **1.090x at 673 K** and at most **2.525x** over the frozen process-state library, placing the parity target outside the current reachable activity manifold.
 
-- feasibility: **79.9%**;
-- Top-1 survival: **28.2%**;
-- Top-3 actionable probability: **94.0%**.
+### MeOH: a selectivity-recycle pathway
 
-The analysis therefore tracks whether uncertainty changes feasibility or candidate selection, rather than treating uncertainty magnitude alone as the endpoint.
+The **MEOH-D01-v3** case evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3.
 
-### 3. Backward design separates a useful target from a reachable target
+At the 5 wt% Re / 250 C benchmark, local leverage is **0.00289** for STY, **0.05883** for single-pass conversion, and **0.37579** for CH4 suppression. The dominant tested pathway therefore runs through selectivity, feed loss, purge and recycle.
 
-Full process reoptimization gives an activity-only Ru-to-Fe parity requirement of approximately **201-fold**. The scaling-consistent activity headroom is only **1.090x at 673 K** and at most **2.525x** over the frozen process-state library.
+### Rank preservation is also possible
 
-The required target is therefore outside the current reachable activity manifold under the frozen model.
+The literature-calibrated **Au/TiO2-RP V1.1** control preserves the complete 2-6 nm activity ranking after downstream propagation:
 
-### 4. Methanol: a different catalyst-to-process pathway
+- Spearman rho = **1.000**
+- Kendall tau = **1.000**
+- pairwise inversions = **0**
+- 10,000/10,000 predefined literature-envelope draws preserve the full order
 
-The **MEOH-D01-v3** case evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop at 2% purge.
+This control shows that multiscale propagation does not intrinsically force ranking inversion.
 
-Using STY per g Re as the upstream screening metric:
+### Decision-aware Agent benchmark
 
-```text
-upstream ranking                     economic ranking
-1 wt% Re / 250 C   #1               5 wt% Re / 200 C   #1
-1 wt% Re / 200 C   #2      ->       1 wt% Re / 200 C   #2
-5 wt% Re / 200 C   #3               1 wt% Re / 250 C   #3
-5 wt% Re / 250 C   #4               5 wt% Re / 250 C   #4
-```
-
-The four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**. The mechanistic pathway differs from ammonia: methane formation and selectivity couple to feed loss, purge and recycle.
-
-At the 5 wt% Re / 250 C benchmark, local leverage is:
-
-| Catalyst-controlled variable | Local leverage |
-|---|---:|
-| STY | 0.00289 |
-| Single-pass conversion | 0.05883 |
-| CH4 suppression | **0.37579** |
-
-### 5. Rank preservation is also possible
-
-The literature-calibrated **Au/TiO2-RP V1.1** control preserves the complete 2-6 nm activity ranking after the downstream monotonic mapping:
-
-- Spearman rho = **1.000**;
-- Kendall tau = **1.000**;
-- pairwise inversions = **0**;
-- 10,000/10,000 predefined literature-envelope draws preserve the full order.
-
-This control establishes that multiscale propagation does not intrinsically force a ranking inversion.
-
-### 6. Decision-aware Agent benchmark
-
-**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test whether an AI decision layer can allocate a limited scientific-compute budget through the frozen multiscale harness.
-
-The deterministic fixed-VOI policy reaches the complete decision at **206 CU**. At the two boundary cells used for the weak-tier transfer test:
+**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test decision allocation under a frozen scientific-compute interface. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -117,11 +76,9 @@ The deterministic fixed-VOI policy reaches the complete decision at **206 CU**. 
 | nano adaptive | **0/20** | **0/20** |
 | fixed-VOI | incomplete | complete |
 
-The supported interpretation is a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**. It is not a universal raw-compute saving claim.
+For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median final spend rises to **714 CU**. The supported claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**, not a universal raw-compute saving.
 
 ## Scientific interpretation
-
-Across the current cases, the same multiscale framework produces three distinct outcomes:
 
 ```text
 NH3
@@ -134,41 +91,36 @@ Au/TiO2
 monotonic downstream mapping -> rank preservation
 ```
 
-The central question is therefore not whether multiscale propagation always destroys atomic rankings, but **which catalyst-to-process coupling determines whether an upstream ranking survives, reshapes or inverts**.
+The central question is **which catalyst-to-process coupling determines whether an upstream ranking survives, reshapes or inverts**.
 
 ## Repository map
 
 ```text
 README.md                project overview and main results
-STATUS.md                current production/freeze state
+STATUS.md                current production state
 
 docs/                    scientific frame, manuscript map, methods and audit records
   README.md              recommended reading order
-  RESEARCH_FRAME.md
-  RESULTS_AT_A_GLANCE.md
-  FIGURE_MAP.md
-  MANUSCRIPT_SKELETON.md
-  AGENT_HARNESS.md
+  RESULTS_AT_A_GLANCE.md current numerical summary
+  FIGURE_MAP.md          F1-F10 scientific roles
+  RETIRED_RESULTS.md     single note for superseded results
 
-data/                    compact machine-readable manuscript-facing datasets
-figures/                 canonical and manuscript figure assets / renderers
+data/                    current machine-readable manuscript-facing datasets
+figures/                 canonical/manuscript figure assets and renderers
 provenance/              frozen source-harness provenance bundles
-controls/                rank-preservation and control calculations
+controls/                rank-preservation/control calculations
 discover/                Agent benchmark harness and protocol material
-ci/                      deterministic validation / replay scripts
+ci/                      deterministic validation/replay scripts
 artifacts/               validation outputs and reproducibility records
-.github/workflows/        CI and figure-render workflows
 ```
 
-For a first review, the shortest reading path is:
+For a first review:
 
 1. [`docs/RESEARCH_FRAME.md`](docs/RESEARCH_FRAME.md)
 2. [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md)
 3. [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md)
 4. [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md)
 5. [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md)
-
-The detailed documentation index is [`docs/README.md`](docs/README.md).
 
 ## Current version families
 
@@ -181,16 +133,10 @@ The detailed documentation index is [`docs/README.md`](docs/README.md).
 | Agent benchmark | **DISCOVER V1** | frozen formal benchmark |
 | Agent boundary extension | **DISCOVER-BOUNDARY-C1** | confirmatory extension on unchanged V1 protocol |
 
-Version labels are family-specific. See [`docs/VERSION_REGISTRY.md`](docs/VERSION_REGISTRY.md) for the full registry.
+The principal frozen source bundles are under [`provenance/`](provenance/). Current manuscript-facing values are under [`data/`](data/), and figure assets/renderers are under [`figures/`](figures/).
 
-## Reproducibility
-
-The principal frozen source bundles are under [`provenance/`](provenance/). Compact manuscript-facing values are under [`data/`](data/), and figure assets/renderers are under [`figures/`](figures/).
-
-For NH3-FINAL-1.1, the imported source-harness provenance has passed repository validation with **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files present and 0 source-manifest hash mismatches**. The validation and figure-lock records are retained under `docs/` and `artifacts/`.
-
-The historical cross-reaction leverage ratio 273-410 is not used as a current quantitative manuscript result because its original metric implementation could not be established. The current cross-reaction comparison is therefore mechanistic/qualitative at the pathway level.
+Superseded conclusions and intermediate values are kept out of the active result tables; the retirement record is [`docs/RETIRED_RESULTS.md`](docs/RETIRED_RESULTS.md), while frozen provenance, audit files and Git history remain available for traceability.
 
 ## Current production state
 
-The core NH3, methanol and rank-preservation scientific results are frozen for manuscript production. Current work is focused on manuscript integration, publication-quality figure rendering, caption consistency, reproducibility packaging and finalizing the Agent figure/caption boundary.
+The scientific evidence and F1-F10 figure/caption set are locked except for publication-layout redraws. Current work is manuscript integration, R-based visual harmonization, Supporting Information organization and final submission packaging.
