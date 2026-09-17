@@ -1,0 +1,37 @@
+name: Rank frontier exact enumeration
+
+on:
+  push:
+    paths:
+      - 'tools/rank_frontier_exact.py'
+      - 'docs/si/SI_8_rank_frontier_exact_enumeration.md'
+      - 'docs/RESULTS_AT_A_GLANCE.md'
+      - '.github/workflows/rank-frontier-exact.yml'
+  pull_request:
+    paths:
+      - 'tools/rank_frontier_exact.py'
+      - 'docs/si/SI_8_rank_frontier_exact_enumeration.md'
+      - 'docs/RESULTS_AT_A_GLANCE.md'
+      - '.github/workflows/rank-frontier-exact.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-rank-enumeration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify frozen decision-frontier rank statistics
+        run: python tools/rank_frontier_exact.py --check
+
+      - name: Print exact enumeration report
+        run: python tools/rank_frontier_exact.py
