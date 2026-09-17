@@ -1,38 +1,8 @@
 # Decision-aware Agent Harness
 
-## Canonical naming
+## Role in the project
 
-The Agent system is referred to as the **Decision-aware Agent Harness**.
-
-Its current benchmark families are separate and must not be merged into one version sequence:
-
-- **DRIFT v2** — completed model/interface drift-diagnosis benchmark;
-- **TRANSFER v1** — completed reaction-transfer benchmark;
-- **DISCOVER V1** — frozen canonical closed-book, budgeted decision-allocation benchmark;
-- **DISCOVER V2** — reserved for a future protocol redesign; not a completed current benchmark.
-
-The older label `Layer B v0.5` refers to an implementation snapshot of the decision layer, not to the version of DISCOVER. The older label `extrapolation benchmark v1` is retained only as a legacy alias for **TRANSFER v1**.
-
-See `VERSION_REGISTRY.md` for the project-wide naming policy.
-
-## Why the agent exists
-
-The AI component is not intended to be a wrapper around a fixed DFT -> MKM -> reactor -> TEA script.
-
-A fixed workflow already solves the deterministic numerical chain. The agent is useful only at interfaces where a numerical optimizer cannot determine the scientifically appropriate next action, for example:
-
-- which admissible model component should be reused, adapted or rebuilt during reaction transfer;
-- whether an apparent difference is a model-version / unit / cost-boundary inconsistency;
-- which uncertainty should be reduced next;
-- which catalyst lever has the highest downstream decision value;
-- whether a backward target is reachable;
-- whether computation should stop because the industrial decision is already resolved.
-
-The central AI question is therefore:
-
-> Given a limited compute budget, can the agent allocate calculations according to their value to the downstream industrial decision?
-
-## Layer A and Layer B
+The **Decision-aware Agent Harness** is the AI layer used to allocate scientific computation through the deterministic multiscale environment. It does not replace the physics, process model or economics.
 
 ```text
 Layer A — deterministic multiscale harness
@@ -46,46 +16,53 @@ frozen inputs
 
 Layer B — decision layer
 inspect current evidence
- -> identify decision-sensitive uncertainty / catalyst lever
- -> choose admissible scientific action
- -> execute Layer A tool / calculation
- -> update ranking / feasibility / reachability evidence
- -> stop / continue / redirect computation
+ -> identify the unresolved decision component
+ -> choose an admissible scientific action
+ -> execute Layer A calculation
+ -> update ranking / feasibility / reachability
+ -> stop / continue / redirect
 ```
 
-Layer B does not rewrite canonical scientific state. Canonical promotion remains a separate explicit action.
+The central AI question is:
 
-## Supporting Agent benchmarks
+> Given a finite scientific-compute budget, can an agent allocate calculations according to their value to the downstream industrial decision?
 
-### DRIFT v2
+## Benchmark families
 
-DRIFT v2 tests whether the decision layer can diagnose model/interface inconsistencies after evidence acquisition and choose the correct response. The current v2 set contains 12 cases and five action classes; the recorded action result is 12/12, with one cause-label ambiguity retained as observed.
+The Agent benchmark families have distinct roles:
 
-DRIFT v2 supports the claim that the Agent Harness can reason over provenance/model-interface inconsistencies. It is not the formal decision-allocation benchmark.
+- **DRIFT v2** — supporting model/interface drift diagnosis
+- **TRANSFER v1** — supporting reaction-transfer and minimum-sufficient-model selection
+- **DISCOVER V1** — frozen formal closed-book decision-allocation benchmark
+- **DISCOVER-BOUNDARY-C1** — confirmatory boundary extension on the unchanged DISCOVER V1 protocol
+- **DISCOVER V2** — reserved for a future protocol redesign; not a current result
 
-### TRANSFER v1
+Version labels are family-specific. See [`VERSION_REGISTRY.md`](VERSION_REGISTRY.md).
 
-TRANSFER v1 is the reaction-transfer benchmark built around the EXTRAPOLATE_REACTION prototype. Its decision chain includes:
+## DRIFT v2
+
+DRIFT v2 tests whether the decision layer can diagnose model/interface inconsistencies and choose the appropriate response after inspecting evidence. It supports the broader provenance/interface role of the Agent Harness but is not the manuscript's formal decision-allocation benchmark.
+
+## TRANSFER v1
+
+TRANSFER v1 tests reaction transfer through a structured decision chain:
 
 ```text
-INSPECT_REACTION_CASE
- -> RECORD_TRANSFER_HYPOTHESIS
- -> BUILD_CAUSAL_GRAPH
- -> CLASSIFY_TRANSFER
- -> PROPOSE_MINIMUM_MODEL
- -> IDENTIFY_CANDIDATE_LEVERS
- -> TEST_CASE_LEVER_ELIGIBILITY
- -> SCORE_NEXT_CALCULATIONS
- -> PROPOSE_NEXT_CALCULATION
+inspect reaction case
+ -> record transfer hypothesis
+ -> build causal graph
+ -> classify REUSE / ADAPT / REBUILD / NOT_NEEDED
+ -> propose minimum sufficient model
+ -> identify catalyst levers
+ -> score next calculations
+ -> propose next calculation
 ```
 
-The transfer layer distinguishes REUSE / ADAPT / REBUILD / NOT_NEEDED across model components, identifies dominant catalyst-to-process pathways and asks whether more atomistic accuracy is actually useful for the downstream decision.
-
-TRANSFER v1 supports the broader model-interface and reaction-transfer role of the Agent Harness. It is not a replacement for DISCOVER V1.
+Its purpose is to avoid automatically rebuilding every upstream layer when the downstream decision requires only a subset of the model.
 
 ## DISCOVER V1 environment
 
-DISCOVER V1 is the current formal benchmark for closed-book, budgeted scientific decision allocation. It exposes 11 fine-grained actions:
+DISCOVER V1 exposes 11 fine-grained actions:
 
 1. `INSPECT_CANDIDATES`
 2. `COMPUTE_ACTIVITY`
@@ -99,60 +76,27 @@ DISCOVER V1 is the current formal benchmark for closed-book, budgeted scientific
 10. `TEST_REACHABILITY`
 11. `CHECK_MODEL_VALIDITY`
 
-The agent cannot request a single tool that reveals the full answer. Ground truth is isolated from the agent and read only by the scorer.
+Ground truth is hidden from the agent and read only by the scorer. The agent cannot call a single tool that reveals the complete answer.
 
-## Compute units
+### Compute units
 
-The frozen DISCOVER V1 cost model defines:
+The frozen cost model defines **1 CU = 1000 MKM state solves**. CU is a scientific-compute budget, not an LLM-token budget.
 
-- **1 CU = 1000 MKM state solves**;
-- measured benchmark reference: about **21.8 ms per CU**;
-- full-domain process window: ~111 CU;
-- single-candidate optimization: ~29 CU;
-- 100-draw MC: ~17 CU;
-- backward calculation: ~1 CU;
-- reachability test: ~2-4 CU.
+Representative frozen costs include a full-domain process window of about 111 CU, single-candidate optimization of about 29 CU, a 100-draw MC action of about 17 CU, and low-cost backward/reachability actions that close the decision once the candidate pair is known.
 
-CU is a scientific-compute budget, not an LLM-token budget.
+### Primary endpoint
 
-## Why anonymization is required
+Named catalysts leak domain priors, so the principal closed-book result uses an anonymous candidate permutation.
 
-Named catalysts leak strong domain priors. A zero-tool probe showed that a language model could often guess that Ru is highly active or that Fe is economically plausible without doing the required multiscale work.
-
-For that reason, the main closed-book claim is evaluated on a seeded anonymous permutation (`candidate_01`, ...), with the mapping visible only to the scorer.
-
-Winner-only accuracy is not sufficient evidence. The frozen primary endpoint is explicitly decision-level:
+The frozen primary endpoint is:
 
 `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`
 
-These three scored components are the economic winner, the decision pair and the reachability verdict. The workflow normally reaches the verdict through `BACKWARD` followed by `TEST_REACHABILITY`, but exact numerical recovery of the backward parity multiplier is not a conjunct in `full_decision_correct`. Break-even/parity accuracy is retained as a separate quantitative secondary endpoint (`break_even_estimate`, `break_even_rel_error`). The scorer additionally records ranking inversion, decision regret and budget-efficiency diagnostics.
+The economic winner, decision pair and reachability verdict must all be correct. Numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint.
 
-## Frozen policy baselines
+## DISCOVER V1 cross-model result
 
-The benchmark contains frozen non-LLM baselines A-D plus a decision-aware policy E.
-
-Policy D is the fixed-VOI comparator. Its constants were frozen before the formal Agent evaluation. The purpose of the benchmark is not to assume E is better, but to test whether adaptive decision allocation improves decision quality or compute efficiency under fixed scientific-compute budgets.
-
-The 200-CU regime is particularly useful because it exposes incomplete or misallocated search rather than allowing every strategy to brute-force the full chain.
-
-## Frozen V1 and cross-model design
-
-DISCOVER V1 was frozen before cross-model evaluation. Any change to the task, prompt, action schema, cost model, scorer, stopping rule, policy-D constants or other pinned files defines **DISCOVER V2** rather than a repair of V1.
-
-Cross-model evaluation:
-
-- weak: `gpt-5.4-nano-2026-03-17`;
-- medium: `gpt-5.4-mini-2026-03-17`;
-- strong: `gpt-5.5-2026-04-23`;
-- budgets: **200, 250, 300, 500, 800, 1200, 2000 CU**;
-- policy E: **5 independent runs per budget per anonymous/named variant**;
-- 140 new traces for nano/mini; strong-tier V1 traces reused and re-scored;
-- frozen hashes PASS before and after;
-- 0 API retries and 0 driver exceptions.
-
-## Cross-model result: workflow execution capability
-
-On the anonymous closed-book task, complete decision recovery was:
+Anonymous complete-decision recovery is:
 
 ```text
 nano        6/35
@@ -160,94 +104,113 @@ mini       15/35
 strong     35/35
 ```
 
-The frozen primary complete-decision endpoint has three scored components:
+This establishes a clear model-capability dependence in executing the full decision chain. The original stronger hypothesis that adaptive policy E would outperform fixed-VOI policy D across model tiers was **not supported** and remains a negative result of the frozen V1 benchmark.
 
-```text
-economic winner
- -> decision pair
- -> reachability verdict
-```
+## DISCOVER-BOUNDARY-C1
 
-The executed scientific workflow can still contain the four-stage path `winner -> pair -> BACKWARD target -> reachability`, because `BACKWARD` supplies evidence for the final classification. Numerical accuracy of that target is reported separately and does not change `full_decision_correct`.
+C1 keeps the DISCOVER V1 task, prompt, 11-action schema, CU accounting, scorer and stopping rule unchanged. It resolves where adaptive decision recovery appears relative to deterministic fixed-VOI policy D.
 
-The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier satisfies the primary complete-decision endpoint at every tested budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
+Policy D reaches the complete decision at **206 CU**.
 
-This is the positive formal Agent result: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability. Tier separation is statistically clear: nano vs mini Fisher p = 0.036, mini vs strong p = 4 × 10⁻⁸; in the nano/mini logistic model the odds of a complete decision rise 4.7× per tier step and 2.3× per budget doubling.
+Boundary cells:
 
-## Strong-tier result, stated in full
+| Tier / policy | 175 CU | 225 CU |
+|---|---:|---:|
+| strong adaptive | **19/20** | **20/20** |
+| mini adaptive | **0/20** | **6/20** |
+| nano adaptive | **0/20** | **0/20** |
+| fixed-VOI | incomplete | complete |
 
-- **35/35** complete correct decisions on the anonymous task at every budget including 200 CU; exact break-even (201.22×) in **34/35**; reachability **35/35**; regret **0**; **0** action or interface errors in 70 runs.
-- **Only policy E completes the decision at 200 CU.** D, B, C and random all fail at 200 CU. E does it by building a narrow process window (29–52 CU to a stable winner instead of the 111-CU full window) — seen in 7/70 strong-tier runs, 0/140 weak-tier runs — and this advantage over D is repeatable **5/5** in the strong tier.
-- At 250–500 CU, E matches D's decision quality with 218–268 CU against D's 247–281 CU; unnecessary-CU fraction 0.02–0.13 (weak tiers 0.18–0.55).
-- In 35/35 anonymous strong-tier runs the same path emerged unprompted: activity screen → optimize → mismatch → BACKWARD → TEST_REACHABILITY → STOP; the model's stated winner matched the environment winner 70/70.
-- Failure structure across tiers: in both weak tiers P(reachability correct) = P(full decision) cell by cell, so the binding step is the backward → reachability formulation, not winner identification (nano winner 20/20 at ≥ 500 CU). Weak tiers add a tool-interface error class in 69–86 % of runs; the strong tier has none.
+### Decision recovery and quantitative-target recovery separate
 
-## C1 separates decision recovery from quantitative-target recovery
+For the strong tier:
 
-DISCOVER-BOUNDARY-C1 resolves two different compute thresholds in the strong tier. The primary complete-decision endpoint is **20/20 at 75 CU** (median ledger-true decision-stable spend **52 CU**) and falls to **13/20 at 50 CU**, making 75 CU the lowest tested stable complete-decision budget. The canonical Ru→Fe backward parity multiplier, **201.223443×**, is a stricter quantitative endpoint: under the frozen first-record convention it is recovered in **9/20** runs at 75 CU, **9/20** at 100 CU, **11/20** at 125 CU, **11/20** at 150 CU, **15/20** at 175 CU and **20/20** at 225 CU. Thus **225 CU is the lowest tested budget with 20/20 canonical-target recovery**.
+- **75 CU** is the lowest tested stable complete-decision budget
+- at **50 CU**, complete decisions fall to **13/20**, while winner and decision pair remain correct in 20/20 runs
+- **225 CU** is the lowest tested budget with 20/20 recovery of the canonical Ru→Fe backward parity multiplier
 
-This separation is intentional rather than contradictory. A run can reach the correct winner, pair and reachability classification before its numerical parity multiplier converges to the canonical value. The V1 result already shows the same distinction: the strong tier has **35/35** complete decisions but **34/35** exact break-even recovery.
+The downstream industrial decision can therefore converge before the numerical design target is fully recovered.
 
-## Pre-registered E versus fixed-VOI D: negative result
+### Canonical narrow-window mechanism
 
-The stronger pre-registered claim was that adaptive policy E would reliably outperform fixed-VOI policy D.
+A run counts as using narrow-window allocation only when it:
 
-That claim was **not supported across model tiers**.
+1. builds a process window strictly smaller than the full **14,136-state** domain; and
+2. successfully uses that window in a later scoped action.
 
-- The repeatable 200-CU adaptive-scope advantage appeared only in the strong tier.
-- Nano and mini did not reproduce the narrow-window strategy.
-- The pre-registered Agent-specific Go criterion — E beats D in at least 4/5 runs at one budget and in at least two model tiers — was **not met**.
-- D has zero decision regret at every budget where it resolves the decision, so that component can tie but cannot be improved by E.
+Under this definition, the strong tier uses narrow-window allocation in:
 
-This negative result is retained exactly as evaluated. It rejects only the universal-superiority claim:
+- **20/20** runs at 50, 75, 100, 125, 150 and 175 CU
+- **1/8** at 200 CU
+- **0/20** at 225 CU
+- **0/9** at 250 CU
+- **0/20** under the non-binding 5000-CU allowance
 
-> **Adaptive Agent E is not generally superior to fixed-VOI D across model capability tiers.**
+The weaker tiers have no canonical narrow-window use in their measured C1 cells.
 
-The supported combined statement is:
+This localizes the adaptive mechanism to the below-threshold strong-tier regime.
 
-> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is capability-dependent rather than universal.**
+### Upper cost boundary
 
-## Failure structure in weaker tiers
+The adaptive result is not a universal raw-compute saving. Under the **non-binding 5000-CU allowance**:
 
-The weak-tier failures are informative rather than being removed as implementation noise:
+- strong completes **20/20** runs
+- median decision-stable spend is **566 CU**
+- median final spend is **714 CU**
+- the median post-stability overrun is **148 CU**
+- the most extreme single run spends **3,021 CU**
 
-- wrong or unformed decision pair;
-- BACKWARD omitted or executed on the wrong pair;
-- reachability tested with an invalid/self-referential multiplier;
-- undeclared tool arguments or unaffordable action requests;
-- stopping with unresolved candidates;
-- spending additional CU after the winner is already stable.
+The scientific decision remains the same. Releasing the budget constraint increases compute consumption, showing that the advantage below 206 CU is decision completion under a binding constraint rather than intrinsic efficiency.
 
-These are scored as observed. No run was retried or tuned to improve a benchmark cell.
+### Model-capability boundary
 
-## What counts as a meaningful AI result
+The weaker tiers do not reproduce the strong-tier regime. At 175 CU, mini and nano are both **0/20**. At 225 CU, mini reaches **6/20** and nano remains **0/20**.
 
-A scientifically useful Agent result should demonstrate one or more of the following:
+A separate interface intervention improved mini-tier tool validity and winner recovery without moving complete-decision recovery above 0/20 at 175 CU. Additional compute also failed to reproduce the strong-tier below-threshold regime. These results separate model capability from simple interface or budget effects.
 
-- identify that an apparently high-uncertainty variable has low downstream decision value and avoid spending budget there;
-- recognize that a lower-uncertainty variable controls a rank boundary and prioritize it;
-- stop once the industrial decision is resolved;
-- redirect from an unreachable activity-only target toward another catalyst or process lever;
-- detect model-interface inconsistencies that would otherwise produce a numerically valid but scientifically wrong run;
-- during reaction transfer, identify the minimum sufficient model rather than automatically rebuilding every upstream layer.
+## Manuscript claim
 
-This is closer to value-of-information / decision-focused acquisition than to generic workflow automation.
+The supported Agent statement is:
+
+> **Under the frozen benchmark, adaptive complete-decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized. It does not constitute a universal raw-compute saving.**
+
+This wording separates three quantities that should not be conflated:
+
+- **decision completion** — whether the correct winner, pair and reachability verdict are recovered
+- **quantitative-target recovery** — whether the canonical backward parity multiplier is numerically recovered
+- **compute consumption** — decision-stable and final CU spend
+
+## Figure and Extended Data mapping
+
+**F10 — Agent capability-bounded operating envelope**
+
+- Panel A: complete-decision recovery versus CU budget
+- Panel B: canonical narrow-window allocation
+- Panel C: decision-stable versus final spend and the non-binding allowance control
+
+Canonical panel data: `../data/agent_figure_panel_data_2026-09-13.csv`  
+Final caption: `../figures/agent/F10_CAPTION.md`
+
+Extended Data:
+
+- **ED1** — mini interface intervention
+- **ED2** — failure mechanism by tier and budget
+- **ED3** — per-run non-binding-allowance spread
 
 ## Evidence hierarchy
 
-For formal manuscript-level Agent claims, use these sources in order:
+For manuscript-level Agent claims, use evidence in this order:
 
-1. frozen DISCOVER V1 hashes and protocol pins;
-2. scored traces / per-trace failure records;
-3. `docs/CROSS_MODEL_STATS_V1.md`;
-4. `docs/CROSS_MODEL_DISCOVER_V1.md`;
-5. manuscript and README summaries.
+1. frozen DISCOVER V1 protocol hashes and source harness
+2. raw/scored traces and C1 ledger records
+3. current machine-readable summary tables, especially `../data/agent_figure_panel_data_2026-09-13.csv`
+4. F10 / Extended Data renderers and captions
+5. manuscript-facing summaries
 
-For broader Agent-Harness capability descriptions, DRIFT v2 and TRANSFER v1 may be cited separately as supporting benchmark families.
+The full frozen evidence bundle is under `../provenance/discover_v1/`.
 
-## Current next tests
+## Production state
 
-1. preserve DISCOVER V1 unchanged as the frozen benchmark record;
-2. keep DRIFT v2 and TRANSFER v1 as separate supporting benchmark families rather than folding their version numbers into DISCOVER;
-3. move any scorer weighting, tool-schema hardening or formal protocol redesign into DISCOVER V2;
-4. continue reaction-transfer tests without rewriting the DISCOVER V1 negative result.
+DISCOVER V1 remains frozen. DISCOVER-BOUNDARY-C1 is complete and the Agent figure/caption set is locked. Current work is manuscript integration and Supporting Information packaging rather than additional benchmark tuning.
+
+Superseded intermediate claims and corrected definitions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
