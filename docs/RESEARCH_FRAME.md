@@ -4,15 +4,14 @@
 
 Catalyst screening is usually performed using atomic-scale proxies such as adsorption energies, descriptors and intrinsic activity. Industrial deployment is governed by a different objective: product cost under coupled kinetic, catalyst-inventory, reactor, recycle, separation and replacement constraints.
 
-The project therefore asks three linked questions:
+The project therefore asks four linked questions:
 
 1. **When does an atomic catalyst ranking survive multiscale propagation to an industrial decision?**
-2. **When it inverts, which layer creates the inversion?**
+2. **When it reshapes or inverts, which catalyst-to-process pathway creates the change?**
 3. **Given an industrial target, what catalyst-property change is required, and is that target reachable on a physically plausible scaling manifold?**
+4. **Can finite scientific compute be allocated adaptively to recover the downstream decision under a constrained budget?**
 
-A necessary control question follows from the first two: **does the same multiscale implementation preserve a ranking when the downstream mapping is fixed and monotonic?**
-
-The project is deliberately problem-first. The multiscale workflow is not itself the scientific contribution; the contribution comes from what the connected chain reveals about ranking, uncertainty, economic leverage and reachable catalyst targets.
+A necessary control follows from the first two: **does the same multiscale implementation preserve a ranking when the downstream mapping is monotonic?**
 
 ## Forward propagation
 
@@ -42,11 +41,7 @@ equipment + catalyst-dependent economics
 industrial ranking
 ```
 
-Every candidate is evaluated under the same model family and engineering constraints, but process conditions are reoptimized candidate by candidate. This avoids comparing catalysts at an arbitrary common operating point.
-
 ## Backward design
-
-The same chain is inverted conceptually:
 
 ```text
 industrial economic target
@@ -56,89 +51,84 @@ industrial economic target
         -> reachable or unreachable?
 ```
 
-The useful output of backward design is not necessarily a single material. It can be a feasible region of catalyst properties, coupled to a process design.
+The useful output of backward design can be a feasible catalyst-property region coupled to a process design rather than a single material.
 
-## Why ammonia is a useful primary case
+## Ammonia as the primary case
 
-Ammonia synthesis provides a clean test because the atomic activity ordering and the industrially preferred catalyst need not coincide.
+Under the canonical **NH3-FINAL-1.1** model:
 
-Under the current canonical NH3-FINAL-1.1 model:
+- atomic activity top three: **Ru > Os > Fe**
+- economic top three: **Fe > Ru > Os**
+- Top-3 Spearman rho: **-0.50**
+- full 15-metal raw Spearman rho: **0.929**
 
-- atomic activity top-3: **Ru > Os > Fe**;
-- economic top-3: **Fe > Ru > Os**;
-- Top-3 Spearman rho: **-0.50**;
-- full 15-metal raw Spearman rho: **0.929**.
+The result is concentrated at the **decision frontier** rather than representing a global collapse of the atomistic ranking.
 
-This combination is important. It means the system does not show a global collapse of atomic screening. Instead, the inversion is concentrated near the **decision frontier**, where candidate selection actually occurs.
-
-## Why the inversion is not just metal price
-
-The economic ranking is generated after propagation through multiple catalyst-controlled pathways:
-
-- activity changes required catalyst inventory;
-- surface coverage changes effective productivity;
-- inventory affects bed volume and reactor sizing;
-- operating severity affects compression and equipment cost;
-- catalyst purchase price, lifetime and recovery affect replacement cost;
-- pressure and temperature influence conversion and downstream burden.
-
-The dominant pathway can therefore change from one reaction to another.
+The economic ordering is generated after propagation through catalyst-controlled pathways involving productivity, inventory, reactor sizing, operating severity, catalyst replacement and process equipment. The relevant mechanism is therefore not metal price alone.
 
 ## Uncertainty propagation
 
-A small energetic error can be strongly amplified at the kinetic level because rates depend exponentially on activation free energies. But the amplification need not continue monotonically downstream.
+A small energetic error can be amplified at the kinetic level because rates depend strongly on activation free energies. Downstream propagation need not remain monotonic: equilibrium, reactor constraints, recycle, mass/energy bottlenecks and process optimization can attenuate an atomistic uncertainty before it changes the final decision.
 
-Thermodynamic equilibrium, reactor constraints, recycle, mass/energy bottlenecks and process optimization can attenuate an atomistic uncertainty before it reaches the final cost decision.
+The useful quantity is the **decision sensitivity of the industrial objective to the uncertainty**.
 
-The useful scientific quantity is therefore not atomistic uncertainty alone, but the **decision sensitivity of the downstream industrial objective to that uncertainty**.
+For Fe under the frozen 1,000-draw analysis:
+
+- feasibility: **79.9%**
+- Top-1 survival: **28.2%**
+- Top-3 actionable probability: **94.0%**
 
 ## Backward-design result for Ru
 
-In NH3-FINAL-1.1, Ru requires about **201.22x** intrinsic-activity enhancement to reach Fe cost parity when the process is reoptimized.
+Ru requires approximately **201.22x** intrinsic-activity enhancement to reach Fe cost parity after process reoptimization.
 
-By contrast, the currently available scaling-consistent activity headroom is:
+The scaling-consistent activity headroom is only:
 
-- **1.090x at 673 K**;
-- **2.525x maximum** over the frozen process-state library.
+- **1.090x at 673 K**
+- **2.525x maximum** over the frozen process-state library
 
-The gap between 201.22x required and <=2.525x reachable is the relevant result. It is an **activity-only infeasibility signal** under the current process model, operating constraints and scaling-consistent design path.
+The activity-only parity target is therefore outside the current reachable scaling-consistent design space.
 
 ## Cross-reaction interpretation
 
-The framework is not intended to claim one universal inversion mechanism.
+The framework does not assume one universal inversion mechanism.
 
-For the current CO2-to-methanol benchmark:
+For the canonical CO2-to-methanol case, local leverage at 5 wt% Re / 250 C is:
 
-- STY leverage = 0.00289;
-- single-pass-conversion leverage = 0.05883;
-- CH4-suppression leverage = 0.37579.
+- STY: **0.00289**
+- single-pass conversion: **0.05883**
+- CH4 suppression: **0.37579**
 
-After denominator alignment, the MeOH CH4-suppression / NH3 TOF leverage ratio is 273-410, midpoint ~328.
+The directly supported pathway comparison is:
 
-This motivates a pathway-specific view:
+```text
+NH3  : activity -> catalyst inventory / reactor demand
+MeOH : selectivity -> feed loss / purge / recycle
+```
 
-- **NH3:** activity -> inventory / reactor-demand pathway;
-- **MeOH:** selectivity -> feed-loss / purge / recycle pathway.
-
-The broader claim is therefore: **atomic-to-economic ranking inversion is reaction- and process-dependent because different catalyst properties couple into different downstream cost pools.**
+The manuscript-level claim is therefore that **ranking propagation is reaction- and process-pathway dependent because different catalyst properties couple into different downstream cost pools**. No current quantitative cross-reaction leverage ratio is promoted.
 
 ## Rank-preservation control
 
-A separate Au/TiO2 CO-oxidation control tests the complementary case: the downstream mapping is held at a common fixed process condition and the candidate states differ only in Au particle size.
+A separate Au/TiO2 CO-oxidation control tests the complementary case. Candidate states differ in Au particle size while the catalyst family and downstream mapping remain common.
 
-The V1.1 mapping is literature calibrated rather than economically fitted. It uses a 2.10 nm, 4.40 wt% Au/TiO2 absolute-rate anchor with 38% measured dispersion and a nominal particle-size relation of **TOF ~ d^-0.9**.
-
-Across 2, 3, 4, 5 and 6 nm Au particles, both intrinsic activity and required catalyst burden follow the same order:
+Across 2, 3, 4, 5 and 6 nm particles, intrinsic activity and required catalyst burden retain the same order:
 
 ```text
 2 nm > 3 nm > 4 nm > 5 nm > 6 nm
 ```
 
-with **Spearman rho = 1.000**, **Kendall tau = 1.000**, **0 pairwise inversions**, and **10,000/10,000** predefined literature-envelope draws preserving the full ranking. The literature calibration substantially narrows the quantitative burden spread — the 6 nm / 2 nm required-catalyst ratio becomes **8.064x** — without changing the ordering.
+with:
 
-This control is not a full industrial TEA. Its role is methodological: **the multiscale implementation does not intrinsically manufacture ranking inversions.** When the catalyst-to-downstream mapping is monotonic and does not activate a competing process-severity or topology penalty, the upstream ordering can survive exactly.
+- Spearman rho = **1.000**
+- Kendall tau = **1.000**
+- pairwise inversions = **0**
+- 10,000/10,000 predefined literature-envelope draws preserving the full ranking
+- 6 nm / 2 nm required-catalyst ratio = **8.064x**
 
-This sharpens the central interpretation of the project:
+A supporting V1.3 semi-open extension allows moderate candidate-specific kinetic and operating freedom while retaining strong rank preservation. V1.1 remains the canonical control.
+
+This establishes the counterfactual:
 
 ```text
 monotonic downstream coupling
@@ -150,31 +140,29 @@ competing / reoptimized downstream coupling
 
 ## Decision-aware Agent result
 
-The DISCOVER V1 Agent benchmark tests a different question from the physical ranking analysis: given a frozen scientific environment and a finite CU budget, can an AI model execute the complete downstream decision chain and allocate computation adaptively?
+The Agent benchmark asks whether an AI model can allocate finite scientific compute through a frozen scientific environment while recovering the complete downstream decision.
 
-Under the frozen three-tier cross-model evaluation, anonymous complete-decision recovery is:
+DISCOVER V1 anonymous complete-decision recovery is:
 
-- nano: **6/35**;
-- mini: **15/35**;
-- strong: **35/35**.
+- nano: **6/35**
+- mini: **15/35**
+- strong: **35/35**
 
-This is the positive result: **workflow-execution capability is strongly model-capability dependent**, and the strong tier reliably completes winner selection, decision-pair formation, backward design and reachability evaluation.
+The original across-tier hypothesis that adaptive policy E would outperform fixed-VOI policy D was not supported.
 
-A separate pre-registered claim is negative. Adaptive policy E did **not** establish cross-tier superiority over fixed-VOI policy D. The repeatable 200-CU adaptive-scope advantage occurs only in the strong tier. Therefore the framework should not be described as showing that "Agent E generally beats fixed VOI."
+DISCOVER-BOUNDARY-C1 resolves the operating envelope. Deterministic policy D reaches the complete decision at **206 CU**. The strong tier reaches a lowest tested stable complete-decision budget of **75 CU**; at 175 CU it completes **19/20** runs while D remains incomplete. The same below-threshold regime does not transfer to the weaker tiers. Under the non-binding 5000-CU allowance, median final adaptive spend rises to **714 CU**.
 
 The supported combined statement is:
 
-> **A strong model can execute and exploit decision-aware allocation, but adaptive Agent superiority over a fixed-VOI strategy is model-capability dependent rather than universal.**
-
-DISCOVER V1 remains frozen; this negative result is part of the evidence rather than a reason to modify the protocol post hoc.
+> **Adaptive decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized; it is not a universal raw-compute saving.**
 
 ## Manuscript-level claim structure
 
-A compact manuscript logic is:
+1. Atomic and economic rankings can diverge at the industrial decision frontier.
+2. Multiscale uncertainty can be amplified or attenuated according to the pathway and decision boundary.
+3. Backward design separates economically required catalyst targets from physically reachable ones.
+4. Catalyst-to-economic propagation is reaction- and process-pathway dependent.
+5. A literature-calibrated control shows that multiscale propagation can also preserve an upstream ranking; inversion is conditional rather than intrinsic to the workflow.
+6. Decision-aware compute allocation has a capability-bounded operating envelope rather than a universal efficiency advantage.
 
-1. Atomic and economic rankings diverge at the industrial decision frontier.
-2. Multiscale uncertainty can be amplified or attenuated depending on the pathway.
-3. Backward design separates reachable catalyst targets from unreachable ones.
-4. Economic leverage is pathway-specific across reactions.
-5. A literature-calibrated fixed-condition control shows that multiscale propagation can also preserve an upstream ranking; inversion is conditional rather than intrinsic to the workflow.
-6. Decision-aware workflow execution improves strongly with model capability, while adaptive policy E does not show universal cross-model superiority over fixed-VOI D.
+Superseded values and intermediate conclusions are documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md) and provenance/audit records.
