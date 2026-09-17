@@ -1,0 +1,49 @@
+name: DISCOVER V1 scorer replay
+
+# Replays the original frozen scorer against the original committed traces on a clean
+# checkout.  This complements the byte-level provenance workflow: provenance establishes
+# identity; this workflow establishes that the frozen scorer reproduces the manuscript-level
+# decision endpoints from those frozen traces.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'provenance/discover_v1/**'
+      - 'ci/validate_discover_v1_provenance.py'
+      - 'ci/replay_discover_v1_headlines.py'
+      - '.gitattributes'
+      - '.github/workflows/discover-v1-scorer-replay.yml'
+  pull_request:
+    paths:
+      - 'provenance/discover_v1/**'
+      - 'ci/validate_discover_v1_provenance.py'
+      - 'ci/replay_discover_v1_headlines.py'
+      - '.gitattributes'
+      - '.github/workflows/discover-v1-scorer-replay.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify frozen provenance first
+        shell: bash
+        run: python ci/validate_discover_v1_provenance.py
+
+      - name: Replay original scorer against original traces
+        shell: bash
+        run: python ci/replay_discover_v1_headlines.py
+
+      - name: Preserve replay report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: discover-v1-scorer-replay
+          path: artifacts/discover_v1_scorer_replay/
+          if-no-files-found: error
