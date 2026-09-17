@@ -2,6 +2,8 @@
 
 This directory contains compact, machine-readable datasets used for manuscript-facing analysis, figure generation and benchmark summaries.
 
+For a one-file overview of the current manuscript numbers, start with [`manuscript_headline_results_2026-09-17.csv`](manuscript_headline_results_2026-09-17.csv). It consolidates the promoted NH3, MeOH, Au/TiO2 and Agent headline values and explicitly marks the historical 273-410 cross-reaction ratio as archived rather than current evidence.
+
 These files are intentionally smaller than the full reproducibility bundles. The frozen source-harness provenance is stored under [`../provenance/`](../provenance/); validation outputs are under [`../artifacts/`](../artifacts/); figure assets and renderers are under [`../figures/`](../figures/).
 
 ## Evidence hierarchy
@@ -129,6 +131,7 @@ The historical normalized ratio **273-410** is retained only as archived pre-FIN
 
 ## Where to look next
 
+- Consolidated headline table: [`manuscript_headline_results_2026-09-17.csv`](manuscript_headline_results_2026-09-17.csv)
 - Project-level overview: [`../README.md`](../README.md)
 - Numerical summary: [`../docs/RESULTS_AT_A_GLANCE.md`](../docs/RESULTS_AT_A_GLANCE.md)
 - Figure map: [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md)
