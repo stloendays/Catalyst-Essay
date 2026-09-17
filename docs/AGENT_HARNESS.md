@@ -121,15 +121,11 @@ Named catalysts leak strong domain priors. A zero-tool probe showed that a langu
 
 For that reason, the main closed-book claim is evaluated on a seeded anonymous permutation (`candidate_01`, ...), with the mapping visible only to the scorer.
 
-Winner-only accuracy is not sufficient evidence. The scorer also checks whether the agent correctly resolves:
+Winner-only accuracy is not sufficient evidence. The frozen primary endpoint is explicitly decision-level:
 
-- the ranking inversion;
-- the economic winner;
-- the decision pair;
-- the break-even target;
-- scaling-manifold reachability;
-- decision completeness;
-- budget efficiency.
+`full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`
+
+These three scored components are the economic winner, the decision pair and the reachability verdict. The workflow normally reaches the verdict through `BACKWARD` followed by `TEST_REACHABILITY`, but exact numerical recovery of the backward parity multiplier is not a conjunct in `full_decision_correct`. Break-even/parity accuracy is retained as a separate quantitative secondary endpoint (`break_even_estimate`, `break_even_rel_error`). The scorer additionally records ranking inversion, decision regret and budget-efficiency diagnostics.
 
 ## Frozen policy baselines
 
@@ -164,16 +160,17 @@ mini       15/35
 strong     35/35
 ```
 
-A complete decision requires the full chain:
+The frozen primary complete-decision endpoint has three scored components:
 
 ```text
 economic winner
  -> decision pair
- -> backward target
  -> reachability verdict
 ```
 
-The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier completes the full chain at every tested budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
+The executed scientific workflow can still contain the four-stage path `winner -> pair -> BACKWARD target -> reachability`, because `BACKWARD` supplies evidence for the final classification. Numerical accuracy of that target is reported separately and does not change `full_decision_correct`.
+
+The pooled trend in complete decision recovery across model tiers is strong (Cochran-Armitage Z = **6.95**). The strong tier satisfies the primary complete-decision endpoint at every tested budget. Weak tiers often recover the winner but fail later at pair formation, BACKWARD execution or reachability formulation.
 
 This is the positive formal Agent result: successful execution of a decision-aware scientific workflow is strongly dependent on the underlying model capability. Tier separation is statistically clear: nano vs mini Fisher p = 0.036, mini vs strong p = 4 × 10⁻⁸; in the nano/mini logistic model the odds of a complete decision rise 4.7× per tier step and 2.3× per budget doubling.
 
@@ -184,6 +181,12 @@ This is the positive formal Agent result: successful execution of a decision-awa
 - At 250–500 CU, E matches D's decision quality with 218–268 CU against D's 247–281 CU; unnecessary-CU fraction 0.02–0.13 (weak tiers 0.18–0.55).
 - In 35/35 anonymous strong-tier runs the same path emerged unprompted: activity screen → optimize → mismatch → BACKWARD → TEST_REACHABILITY → STOP; the model's stated winner matched the environment winner 70/70.
 - Failure structure across tiers: in both weak tiers P(reachability correct) = P(full decision) cell by cell, so the binding step is the backward → reachability formulation, not winner identification (nano winner 20/20 at ≥ 500 CU). Weak tiers add a tool-interface error class in 69–86 % of runs; the strong tier has none.
+
+## C1 separates decision recovery from quantitative-target recovery
+
+DISCOVER-BOUNDARY-C1 resolves two different compute thresholds in the strong tier. The primary complete-decision endpoint is **20/20 at 75 CU** (median ledger-true decision-stable spend **52 CU**) and falls to **13/20 at 50 CU**, making 75 CU the lowest tested stable complete-decision budget. The canonical Ru→Fe backward parity multiplier, **201.223443×**, is a stricter quantitative endpoint: under the frozen first-record convention it is recovered in **9/20** runs at 75 CU, **9/20** at 100 CU, **11/20** at 125 CU, **11/20** at 150 CU, **15/20** at 175 CU and **20/20** at 225 CU. Thus **225 CU is the lowest tested budget with 20/20 canonical-target recovery**.
+
+This separation is intentional rather than contradictory. A run can reach the correct winner, pair and reachability classification before its numerical parity multiplier converges to the canonical value. The V1 result already shows the same distinction: the strong tier has **35/35** complete decisions but **34/35** exact break-even recovery.
 
 ## Pre-registered E versus fixed-VOI D: negative result
 

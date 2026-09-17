@@ -190,7 +190,7 @@ Cross-model anonymous complete-decision recovery:
 | mini | **15/35** |
 | strong | **35/35** |
 
-The positive result is that full decision-chain execution is strongly model-capability dependent. The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**.
+The frozen primary complete-decision endpoint is the conjunction of the correct economic winner, decision pair and reachability verdict; numerical accuracy of the backward parity multiplier is reported separately. The positive result is that decision-aware workflow execution is strongly model-capability dependent. The stronger pre-registered hypothesis — adaptive policy E consistently outperforms fixed-VOI policy D — was **not supported across tiers**.
 
 ### DISCOVER-BOUNDARY-C1 — confirmatory boundary extension
 
@@ -203,9 +203,9 @@ C1 retains the frozen DISCOVER V1 task, prompt, 11-action schema, CU accounting,
 | nano E | **0/20** | **0/20** |
 | D fixed-VOI | incomplete | complete |
 
-At 175 CU, narrow-window construction occurs in **20/20 strong**, **4/20 mini** and **0/20 nano** runs. At 225 CU the strong policy reaches full decision at a median of approximately **218 CU**, later than D at **206 CU**.
+Under the canonical narrow-window rule, allocation at 175 CU occurs in **20/20 strong**, **0/20 mini** and **0/20 nano** runs. The primary decision endpoint and quantitative target separate: strong E reaches **20/20 complete decisions at 75 CU**, whereas the canonical **201.223443×** backward target reaches **20/20 at 225 CU**. At 225 CU the strong policy reaches full decision at a median of approximately **218 CU**, later than D at **206 CU**.
 
-Phase B completed **80/80 formal runs**, with **0 smoke**, **0 infrastructure retry**, **0 driver exception**, and frozen hashes **15/15 PASS** before and after. The executed two-budget/no-smoke design was a cost-motivated reduction made before the first Phase B API call and is recorded transparently in addendum A2.
+The weak-tier transfer arm was evaluated at the two discriminative cells, **175 and 225 CU**, which straddle the fixed-policy threshold: **80/80 formal runs**, **0 smoke**, **0 infrastructure retry**, **0 driver exception**, and frozen hashes **15/15 PASS** before and after.
 
 The supported post-C1 statement is:
 

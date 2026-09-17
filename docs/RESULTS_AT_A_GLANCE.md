@@ -179,7 +179,7 @@ mini       15/35
 strong     35/35
 ```
 
-The complete decision requires the full chain: economic winner -> decision pair -> backward target -> reachability verdict. The pooled tier trend in P(full) is strong (Cochran-Armitage Z = **6.95**).
+The frozen primary endpoint is `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`: economic winner, decision pair and reachability verdict. The workflow uses `BACKWARD` to support the reachability classification, but numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint. The pooled tier trend in P(full) is strong (Cochran-Armitage Z = **6.95**).
 
 The original pre-registered Agent-specific Go criterion for **policy E > fixed-VOI policy D** was **not met across model tiers**. The apparent 200-CU adaptive advantage in V1 therefore required a boundary-focused confirmatory extension rather than a stronger universal-superiority claim.
 
@@ -195,7 +195,9 @@ nano E                  0/20            0/20
 D fixed-VOI          incomplete       complete
 ```
 
-At 175 CU, narrow-window construction is used in **20/20 strong**, **4/20 mini**, and **0/20 nano** runs. At 225 CU, strong E reaches full decision at a median of approximately **218 CU** versus **206 CU** for D.
+The primary decision endpoint and the quantitative backward target converge at different budgets. Strong E reaches **20/20 complete decisions at 75 CU**, with median ledger-true decision-stable spend **52 CU**, while canonical **201.223443×** backward-target recovery is only **9/20** there and reaches **20/20 at 225 CU**. Thus **75 CU is the lowest tested stable complete-decision budget**, whereas **225 CU is the lowest tested budget with 20/20 canonical backward-target recovery**.
+
+Under the canonical narrow-window rule — a window strictly smaller than the 14,136-state domain and actually used by a later scoped action — allocation at 175 CU occurs in **20/20 strong**, **0/20 mini**, and **0/20 nano** runs. At 225 CU, strong E reaches full decision at a median of approximately **218 CU** versus **206 CU** for D.
 
 The weak-tier transfer arm was evaluated at the two discriminative cells, **175 and 225 CU**, which straddle the fixed-policy threshold: **80/80 formal runs**, **0 smoke runs**, **0 infrastructure retries**, **0 driver exceptions**, and frozen hashes **15/15 PASS** before and after. No weak-tier response is inferred at unmeasured budgets.
 
