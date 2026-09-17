@@ -198,3 +198,9 @@ Specific items corrected there:
   (33.29%). The median of per-run ratios is 30.58%, and median(overrun)/median(final) = 148/714 = 20.73%.
 - §2: **218 CU** is the median of the *225 CU cell*; in the uncapped cell 218 CU is the *minimum* first-stable value
   (6 of 20 runs). The two are different statistics of different cells.
+
+> **2026-09-17 count correction (appended).** The line above reads "31/297 runs carry any inflation; the per-cell median
+> inflation is 0 CU in every cell". Both parts are superseded: recomputed on the committed
+> `data/discover_boundary_c1_overrun_runs.csv`, which now includes the 50 and 75 CU cells that did not exist when this
+> addendum was written, the totals are **32 of 317** scored runs, and the per-cell median is 0 CU in every cell **except
+> strong 175 CU, where it is 2 CU**. The two corrected cell medians (175 CU 140 to 124; 150 CU 106 to 102) are unchanged.

@@ -67,8 +67,8 @@ Two code-level defects were found after the corresponding addenda were issued.
 
 The per-step `action_cost` field is the pre-execution `env.quote()`, which for `OPTIMIZE_PROCESS` counts every state in
 the window while the environment charges only the states not yet computed. The environment ledger and `spent_CU`
-reconcile exactly; the step-level field does not. Across all 297 scored runs, 31 carry inflation, the per-cell median
-inflation is 0 CU in every cell, and the single-run maximum is 58 CU (mini 400 CU, r8: quoted 272 against an actual
+reconcile exactly; the step-level field does not. Across all 317 scored runs, 32 carry inflation, the per-cell median
+inflation is 0 CU in every cell except strong 175 CU, where it is 2 CU, and the single-run maximum is 58 CU (mini 400 CU, r8: quoted 272 against an actual
 214). Two published cell medians change:
 
 | cell | quote-based median | ledger-true median |

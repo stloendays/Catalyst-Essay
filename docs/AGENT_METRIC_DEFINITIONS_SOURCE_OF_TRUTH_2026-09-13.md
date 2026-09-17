@@ -204,8 +204,8 @@ reads as the uncapped minimum.
 ### 4.2 Quote-based versus ledger-true, per cell
 
 The step-level `action_cost` field is the pre-execution `env.quote()` and overstates the real charge for
-`OPTIMIZE_PROCESS`. Quantities #3 and #4 therefore diverge in some cells. Affected: 31 of 297 scored runs; per-cell
-median inflation 0 CU in every cell; single-run maximum 58 CU. Only two cell medians differ: strong 175 CU (quote 140,
+`OPTIMIZE_PROCESS`. Quantities #3 and #4 therefore diverge in some cells. Affected: 32 of 317 scored runs; the per-cell
+median inflation is 0 CU in every cell except strong 175 CU, where it is 2 CU; single-run maximum 58 CU. Only two cell medians differ: strong 175 CU (quote 140,
 **ledger 124**) and strong 150 CU (quote 106, **ledger 102**). **All manuscript figures use the ledger-true quantity #4.**
 
 ## 5. Self-consistency checks performed
@@ -213,7 +213,7 @@ median inflation 0 CU in every cell; single-run maximum 58 CU. Only two cell med
 | check | result |
 |---|---|
 | `Σ ledger cost_CU` == `spent_CU` per run | holds in all scored runs |
-| `Σ` step `action_cost` == `spent_CU` | fails in 31/297 runs (quote inflation) — reason #4 is used |
+| `Σ` step `action_cost` == `spent_CU` | fails in 32/317 runs (quote inflation) — reason #4 is used |
 | first-score-complete == first-stable, uncapped cell | 20/20 identical; zero flicker |
 | quantity #3 == quantity #4, uncapped cell | identical (0 CU inflation in this cell) |
 | median 148 / median 714 | 20.73%, ≠ the 33.29% mean-of-ratios — labels separated in §3.1 |

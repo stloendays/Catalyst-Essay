@@ -9,7 +9,7 @@ exactly; the step-level `action_cost` field does not.
 | reconciliation check | result |
 |---|---|
 | `Σ` ledger `cost_CU` == `spent_CU`, per run | holds in all scored runs |
-| `Σ` step `action_cost` == `spent_CU`, per run | fails in 31 of 297 scored runs |
+| `Σ` step `action_cost` == `spent_CU`, per run | fails in 32 of 317 scored runs |
 
 Two decision-stable quantities inherit this split. The frozen extension metric
 `discover/boundary_c1_metrics.cu_to_full` sums `action_cost` and is therefore quote-based (quantity #3 below).
@@ -17,7 +17,7 @@ Two decision-stable quantities inherit this split. The frozen extension metric
 step *j* as `budget_CU − step["remaining_budget"]`, which reconciles with the environment ledger and with `spent_CU`
 (quantity #4).
 
-Measured over the 297 scored runs: 31 runs carry any inflation; the per-cell median inflation is **0 CU in every
+Measured over the 317 scored runs: 32 runs carry any inflation; the per-cell median inflation is **0 CU in every
 cell**; the largest single-run inflation is **58 CU** (mini 400 CU cell, run 8, quoted 272 CU against an actual
 214 CU). Only two cell medians change.
 
