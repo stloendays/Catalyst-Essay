@@ -1,87 +1,136 @@
-# Data snapshot
+# Data directory
 
-This directory contains compact, human-readable snapshots of the current project state.
+This directory contains compact, machine-readable datasets used for manuscript-facing analysis, figure generation and benchmark summaries.
 
-These files are **not** replacements for the frozen computational harness, raw model outputs, or full benchmark traces. They exist so that manuscript headline results can be inspected in machine-readable form. The 2026-09-10 claim-to-evidence audit distinguishes compact snapshots from direct reproducibility evidence.
+These files are intentionally smaller than the full reproducibility bundles. The frozen source-harness provenance is stored under [`../provenance/`](../provenance/); validation outputs are under [`../artifacts/`](../artifacts/); figure assets and renderers are under [`../figures/`](../figures/).
 
-## Canonical version registry
+## Evidence hierarchy
 
-Use `version_registry.json` as the machine-readable naming source of truth. Version numbers are family-specific and must not be compared across families.
+For a scientific quantity, use sources in this order:
 
-Current labels:
+1. frozen source/provenance bundle;
+2. machine-readable result file or raw benchmark trace;
+3. figure-generation script and canonical figure asset;
+4. manuscript-facing summary tables;
+5. README prose.
 
-- scientific model: **NH3-FINAL-1.1**;
-- methanol case: **MEOH-D01-v3**;
-- canonical rank-preservation control: **Au/TiO2-RP V1.1**;
-- supporting rank-preservation robustness: **Au/TiO2-RP V1.3**;
-- Agent umbrella: **Decision-aware Agent Harness**;
-- supporting Agent benchmarks: **DRIFT v2** and **TRANSFER v1**;
-- formal frozen Agent benchmark: **DISCOVER V1**;
-- confirmatory boundary extension on the unchanged V1 protocol: **DISCOVER-BOUNDARY-C1**;
-- **DISCOVER V2** is reserved for a future protocol redesign and is not a completed current benchmark.
+The compact CSV/JSON files here are designed for inspection and plotting. They do not replace the underlying frozen scientific model or benchmark protocol.
 
-## Files
+## Canonical version families
 
-- `version_registry.json` — machine-readable canonical naming/version registry.
-- `canonical_results_2026-09-06.csv` — current NH3-FINAL-1.1 scientific headline snapshot. **Important:** the three cross-reaction 273/328/410 rows are retained only as explicitly labeled legacy pre-FINAL-1.1 values on HOLD; they are not current manuscript evidence.
-- `claim_evidence_registry_2026-09-10.csv` — machine-readable manuscript claim -> source -> provenance-status -> figure-lock registry.
-- `figure_lock_registry_2026-09-10.csv` — current figure-by-figure evidence/render status; F9A is `REVALIDATION_REQUIRED_AFTER_NH3_FINAL_1.1`.
-- `discover_benchmark_2026-09-06.csv` — strong-tier formal DISCOVER V1 precursor snapshot. It records the original 70 policy-E runs and A-D comparison; it is not the final cross-model or C1 Agent claim.
-- `rank_preservation_control_v1_1.csv` — literature-calibrated Au/TiO2 CO-oxidation rank-preservation control: particle size, mass activity, required catalyst mass, required Au mass, and burden relative to the best state.
-- `rank_preservation_partial_relaxation.csv`, `rank_preservation_partial_relaxation.py` — intermediate V1.2 partial-relaxation stress test; historical/supporting only.
-- `rank_preservation_semiopen_v1_3.py`, `rank_preservation_semiopen_v1_3_summary.csv` — current Au/TiO2-RP V1.3 semi-open robustness extension.
-- `cross_model_scores_2026-09-06.csv` — DISCOVER V1 cross-model scores per model x variant x budget.
-- `cross_model_failure_matrix_2026-09-06.csv` — DISCOVER V1 failure modes x model x variant x budget.
-- `cross_model_stats_2026-09-07.csv` — DISCOVER V1 Wilson intervals, exact tests, tier trend, logistic analyses and pre-registered E-vs-D Go check.
-- `cross_model_metadata_2026-09-06.json` — exact DISCOVER V1 model IDs, token totals, retry/exception status and frozen-hash checks.
-- `discover_frozen_v1_hashes.json` — SHA-256 pins defining DISCOVER V1. Any modification to a pinned protocol component defines DISCOVER V2.
-- `discover_boundary_c1_runs.csv`, `discover_boundary_c1_summary.csv`, `discover_boundary_c1_D_reference.csv`, `discover_boundary_c1_metadata.json` — C1 Phase A strong-tier boundary evidence and deterministic D reference.
-- `discover_boundary_c1_phase_b_runs.csv`, `discover_boundary_c1_phase_b_summary.csv`, `discover_boundary_c1_phase_b_tokens.csv`, `discover_boundary_c1_phase_b_metadata.json` — C1 Phase B 175/225-CU mini/nano extension plus the strong comparison cells.
-- `discover_boundary_c1/` — C1 raw traces, logs and before/after frozen-hash records.
-- `cross_model_analysis.py`, `cross_model_stats.py`, `cross_model_stats_figure.py` — DISCOVER V1 analysis scripts.
+- **NH3-FINAL-1.1** — canonical ammonia model;
+- **MEOH-D01-v3** — canonical methanol explicit-loop case;
+- **Au/TiO2-RP V1.1** — canonical rank-preservation control;
+- **Au/TiO2-RP V1.3** — supporting semi-open robustness extension;
+- **DISCOVER V1** — frozen formal Agent benchmark;
+- **DISCOVER-BOUNDARY-C1** — confirmatory boundary extension on the unchanged DISCOVER V1 protocol.
 
-### `meoh/` — MEOH-D01-v3
+Machine-readable naming source: [`version_registry.json`](version_registry.json). Human-readable registry: [`../docs/VERSION_REGISTRY.md`](../docs/VERSION_REGISTRY.md).
 
-- `MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx` — frozen explicit-loop workbook.
-- `meoh_candidate_ranking_D01v3.csv` — four catalyst-temperature states: upstream ranks, NPC at 2% purge, economic rank, loop diagnostics and local leverages.
-- `meoh_candidate_ranking_D01v3_provenance.json` — workbook SHA-256, sheets used and rank metrics.
-- `make_meoh_ranking_figure.py` — regenerates the candidate ranking CSV/figure from the workbook.
-- `meoh_d01_v3.json` — canonical reaction-case record used by the transfer harness.
-- `meoh_purge_robustness_D01v3.csv`, `meoh_purge_robustness_D01v3_summary.json`, `meoh_purge_robustness.py` — economic order, rho, tau and pairwise inversions across 396 purge levels (0.5–40%) and the per-candidate purge optima.
+## Ammonia data
 
-## Manuscript evidence hierarchy
+### `canonical_results_2026-09-06.csv`
 
-### Scientific NH3 claims
+Compact manuscript-facing snapshot of the promoted **NH3-FINAL-1.1** quantities. Principal current values include:
 
-Use **NH3-FINAL-1.1** only. `canonical_results_2026-09-06.csv` is the current compact numerical source for promoted NH3 quantities, but final F1–F6 locking requires an immutable pointer to the underlying canonical run `outputs/nh3_final_20260905T134204Z`, its raw result files and generating code/hashes. Historical NH3-FINAL-1.0 workbooks are not valid substitutes for this provenance.
+- atomic top three: **Ru > Os > Fe**;
+- economic top three: **Fe > Ru > Os**;
+- Fe / Ru / Os costs: **15.292 / 22.031 / 25.832 USD/t NH3**;
+- Top-3 Spearman rho: **-0.50**;
+- full 15-metal raw Spearman rho: **0.929**;
+- Fe feasibility: **79.9%**;
+- Ru activity-only break-even: **201.22x**;
+- scaling-consistent activity headroom: **1.090x at 673 K**, **2.525x maximum** over the frozen process-state library.
 
-### MeOH claims
+The full NH3 source-harness provenance is now present under [`../provenance/nh3_final_1_1/`](../provenance/nh3_final_1_1/). Repository validation closed with 13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files present and 0 source-manifest hash mismatches.
 
-Use the frozen D01 v3 workbook together with the extracted CSV/provenance JSON and analysis scripts in `meoh/`. This chain is directly traceable in the repository.
+### Claim and figure registries
 
-### Cross-reaction leverage
+- `claim_evidence_registry_2026-09-10.csv` — manuscript claim -> evidence -> provenance status.
+- `figure_lock_registry_2026-09-10.csv` — figure-by-figure scientific/render state.
 
-The older normalized ratio **273–410** (midpoint ~328) is retained only as historical provenance. A second-pass lineage audit tied it to the archived pre-FINAL-1.1 normalization. Current quantitative use requires the targeted task `../docs/F9A_FINAL_1_1_REVALIDATION_TASK.md` against the frozen FINAL-1.1 harness. Until that closes, only the qualitative NH3-vs-MeOH pathway comparison is manuscript-ready.
+Use the frozen NH3 provenance bundle, not archived NH3-FINAL-1.0 files, when tracing current manuscript claims.
 
-### Au/TiO2 control claims
+## Methanol data — `meoh/`
 
-Use `rank_preservation_control_v1_1.csv` plus `../controls/au_tio2_rank_preservation_v1_1.py` for the canonical V1.1 control. Use V1.3 files only as supporting robustness.
+The canonical reaction case is **MEOH-D01-v3**.
 
-### Agent claims
+Principal files:
 
-For manuscript-level Agent claims, use the evidence in this order:
+- `MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx` — frozen explicit recycle/separation workbook;
+- `meoh_candidate_ranking_D01v3.csv` — four catalyst-temperature states, upstream ranks, 2% purge NPC, economic ranks and local leverages;
+- `meoh_candidate_ranking_D01v3_provenance.json` — workbook hash and extraction provenance;
+- `meoh_purge_robustness_D01v3.csv` — 396-level purge sweep from 0.5% to 40%;
+- `meoh_purge_robustness_D01v3_summary.json` — purge-sweep summary;
+- `make_meoh_ranking_figure.py` and `meoh_purge_robustness.py` — analysis/reconstruction scripts.
 
-1. `discover_frozen_v1_hashes.json` and the frozen DISCOVER V1 protocol;
-2. DISCOVER V1 per-trace scores/failure records and `cross_model_stats_2026-09-07.csv` for the original cross-model result;
-3. `discover_boundary_c1_summary.csv` and `discover_boundary_c1_phase_b_summary.csv` for the post-V1 boundary estimates;
-4. C1 raw traces and hash-check records under `discover_boundary_c1/`;
-5. `../docs/DISCOVER_BOUNDARY_C1_RESULTS.md`, `../docs/DISCOVER_BOUNDARY_C1_PHASE_B_RESULTS.md`, `../docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A1.md`, and `../docs/DISCOVER_BOUNDARY_C1_ADDENDUM_A2.md` for interpretation and protocol-deviation provenance;
-6. README/manuscript summaries last.
+Current four-state headline result using STY per g Re as the upstream metric: **rho = 0.20**, **tau = 0**, **3/6 pairwise inversions**, with the upstream winner falling from #1 to economic rank #3.
 
-The frozen DISCOVER V1 anonymous complete-decision counts remain **6/35 (nano), 15/35 (mini), 35/35 (strong)**. C1 further resolves the boundary: fixed-VOI D reaches a complete decision at **206 CU**; at 175 CU strong/mini/nano policy E complete **19/20 / 0/20 / 0/20**, and at 225 CU **20/20 / 6/20 / 0/20**. The manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed policy threshold**, not universal adaptive superiority or universal raw-compute saving.
+## Rank-preservation control
 
-## Audit note — 2026-09-10
+### Canonical V1.1
 
-See `../docs/CLAIM_EVIDENCE_AUDIT_2026-09-10.md` for the first pass and `../docs/CLAIM_EVIDENCE_AUDIT_ADDENDUM_A1_2026-09-10.md` for the second-pass F9A exception.
+- `rank_preservation_control_v1_1.csv` — 2-6 nm Au/TiO2 particle-size states and propagated catalyst burden.
 
-The first pass found no contradiction in the promoted NH3-FINAL-1.1, MeOH, Au/TiO2 or Agent headline results. The second pass found one real lineage issue: the cross-reaction **273–410 (~328)** ratio originated before FINAL-1.1 and therefore requires targeted deterministic revalidation before it can return to the current manuscript. This does not reopen the other frozen scientific results.
+Generator: [`../controls/au_tio2_rank_preservation_v1_1.py`](../controls/au_tio2_rank_preservation_v1_1.py).
+
+Canonical result: full rank preservation, **rho = 1.000**, **tau = 1.000**, **0 inversions**, and **10,000/10,000** predefined literature-envelope draws preserving the complete order.
+
+### Supporting V1.3
+
+- `rank_preservation_semiopen_v1_3.py`
+- `rank_preservation_semiopen_v1_3_summary.csv`
+
+V1.3 tests moderate candidate-specific kinetic and operating freedom. It supports the robustness discussion but does not replace V1.1 as the canonical control.
+
+## Agent benchmark data
+
+### DISCOVER V1
+
+Principal files include:
+
+- `discover_frozen_v1_hashes.json` — frozen protocol hash pins;
+- `cross_model_scores_2026-09-06.csv` — model x variant x budget scores;
+- `cross_model_failure_matrix_2026-09-06.csv` — failure-mode matrix;
+- `cross_model_stats_2026-09-07.csv` — confidence intervals, exact tests and tier analyses;
+- `cross_model_metadata_2026-09-06.json` — model IDs, retry/exception state and metadata;
+- `cross_model_analysis.py`, `cross_model_stats.py`, `cross_model_stats_figure.py` — analysis scripts.
+
+Frozen anonymous complete-decision counts are **6/35 nano, 15/35 mini, 35/35 strong**.
+
+### DISCOVER-BOUNDARY-C1
+
+Principal files include:
+
+- `discover_boundary_c1_runs.csv`
+- `discover_boundary_c1_summary.csv`
+- `discover_boundary_c1_D_reference.csv`
+- `discover_boundary_c1_metadata.json`
+- `discover_boundary_c1_phase_b_runs.csv`
+- `discover_boundary_c1_phase_b_summary.csv`
+- `discover_boundary_c1_phase_b_tokens.csv`
+- `discover_boundary_c1_phase_b_metadata.json`
+- `discover_boundary_c1/` — raw traces, logs and frozen-hash records.
+
+The deterministic fixed-VOI policy reaches the complete decision at **206 CU**. At 175 CU, strong/mini/nano adaptive runs complete **19/20 / 0/20 / 0/20**; at 225 CU they complete **20/20 / 6/20 / 0/20**.
+
+The current interpretation is a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**. The data do not support a universal raw-compute-saving claim.
+
+## Cross-reaction comparison
+
+The current supported cross-reaction result is mechanistic:
+
+```text
+NH3  : activity -> catalyst inventory / reactor demand
+MeOH : selectivity -> feed loss / purge / recycle
+```
+
+The historical normalized ratio **273-410** is retained only as archived pre-FINAL-1.1 evidence. Its original NH3 economic-leverage metric implementation could not be established sufficiently to promote it as a current quantitative result. No replacement ratio is introduced.
+
+## Where to look next
+
+- Project-level overview: [`../README.md`](../README.md)
+- Numerical summary: [`../docs/RESULTS_AT_A_GLANCE.md`](../docs/RESULTS_AT_A_GLANCE.md)
+- Figure map: [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md)
+- Detailed documentation index: [`../docs/README.md`](../docs/README.md)
+- Frozen provenance: [`../provenance/`](../provenance/)
