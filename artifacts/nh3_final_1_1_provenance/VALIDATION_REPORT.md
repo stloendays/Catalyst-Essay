@@ -2,7 +2,7 @@
 
 Status: **PROVENANCE_VALIDATED_READY_FOR_LOCK**
 
-Checked at: `2026-09-10T08:12:02.846513+00:00`
+Checked at: `2026-09-17T07:41:40.299683+00:00`
 
 This validation is provenance-only; no scientific model was executed.
 
