@@ -1,0 +1,5422 @@
+{
+  "workbook": "data/meoh/MeOH_D01_ExplicitRecycleSeparationEconomics_v3.0.xlsx",
+  "sheet_names": [
+    "README",
+    "Controls",
+    "EC_Split_Digitized",
+    "Candidate_Inputs",
+    "Reference_Benchmark",
+    "Explicit_Loop_2pct",
+    "Equipment_Breakdown",
+    "Purge_Sweep",
+    "Engineering_Diagnostic",
+    "Methanol_Leverage",
+    "Sources",
+    "Audit"
+  ],
+  "sheets": {
+    "README": {
+      "max_row": 11,
+      "max_column": 2,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "CO2 \u2192 Methanol explicit recycle/separation economics | v3",
+            null
+          ],
+          "formulas": [
+            "CO2 \u2192 Methanol explicit recycle/separation economics | v3",
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Removes the free k_loop proxy. Species-resolved recycle/purge, compression OPEX and flow-scaled flash/distillation/loop CAPEX are explicit and anchored to a published process TEA.",
+            null
+          ],
+          "formulas": [
+            "Removes the free k_loop proxy. Species-resolved recycle/purge, compression OPEX and flow-scaled flash/distillation/loop CAPEX are explicit and anchored to a published process TEA.",
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "What changed",
+            "The previous methanol v2 used an uncalibrated k_loop coefficient. v3 explicitly solves steady-state CO2/H2/CH4/CO-like/N2 recycle and purge, fresh H2/CO2 makeup, compression work, catalyst/reactor size, flash/distillation/recycle equipment scaling, FCI/ACC and indirect OPEX."
+          ],
+          "formulas": [
+            "What changed",
+            "The previous methanol v2 used an uncalibrated k_loop coefficient. v3 explicitly solves steady-state CO2/H2/CH4/CO-like/N2 recycle and purge, fresh H2/CO2 makeup, compression work, catalyst/reactor size, flash/distillation/recycle equipment scaling, FCI/ACC and indirect OPEX."
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Primary economic anchor",
+            "Processes 2022, 10, 1535: 145 t/h MeOH, 70 bar one-step loop, 2% purge, 54,290 kmol/h recycle, EC=85.5 M\u20ac, FCI=415.9 M\u20ac, direct OPEX=874.9 M\u20ac/y, NPC=1071.8 M\u20ac/y; H2=3097.4 \u20ac/t, CO2=44.3 \u20ac/t, electricity=90 \u20ac/MWh."
+          ],
+          "formulas": [
+            "Primary economic anchor",
+            "Processes 2022, 10, 1535: 145 t/h MeOH, 70 bar one-step loop, 2% purge, 54,290 kmol/h recycle, EC=85.5 M\u20ac, FCI=415.9 M\u20ac, direct OPEX=874.9 M\u20ac/y, NPC=1071.8 M\u20ac/y; H2=3097.4 \u20ac/t, CO2=44.3 \u20ac/t, electricity=90 \u20ac/MWh."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Catalyst evidence",
+            "Gothe et al., ACS Catalysis 2025 Table 3: controlled Re/TiO2 data at 100 bar, CO2/H2=1:4, same GHSV/time-on-stream. Central comparison uses 500 C prereduction at 200 and 250 C."
+          ],
+          "formulas": [
+            "Catalyst evidence",
+            "Gothe et al., ACS Catalysis 2025 Table 3: controlled Re/TiO2 data at 100 bar, CO2/H2=1:4, same GHSV/time-on-stream. Central comparison uses 500 C prereduction at 200 and 250 C."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Critical physical correction",
+            "CH4 is not treated as an instantaneous external loss. It remains in the gas loop, accumulates, increases circulation, and leaves only through purge. This is why high methanation changes the loop architecture."
+          ],
+          "formulas": [
+            "Critical physical correction",
+            "CH4 is not treated as an instantaneous external loss. It remains in the gas loop, accumulates, increases circulation, and leaves only through purge. This is why high methanation changes the loop architecture."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Separation economics",
+            "High-pressure MeOH/H2O condensation is represented as full removal of condensables at the separator; gas-side circulation sizes heat exchangers/flash equipment, crude MeOH+H2O flow sizes distillation/pump equipment, and recycle flow sizes the recycle compressor. Variable equipment is scaled from the published Figure 11 EC split."
+          ],
+          "formulas": [
+            "Separation economics",
+            "High-pressure MeOH/H2O condensation is represented as full removal of condensables at the separator; gas-side circulation sizes heat exchangers/flash equipment, crude MeOH+H2O flow sizes distillation/pump equipment, and recycle flow sizes the recycle compressor. Variable equipment is scaled from the published Figure 11 EC split."
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Central process convention",
+            "Headline catalyst comparisons use the source-anchored 2% purge, rather than silently cost-optimizing purge. A full purge sweep is provided because the source itself selected 2% as an engineering compromise between feed loss and circulation/equipment."
+          ],
+          "formulas": [
+            "Central process convention",
+            "Headline catalyst comparisons use the source-anchored 2% purge, rather than silently cost-optimizing purge. A full purge sweep is provided because the source itself selected 2% as an engineering compromise between feed loss and circulation/equipment."
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Model boundary",
+            "This is a transparent source-anchored reduced TEA, not a new Aspen flowsheet. Figure 11 equipment split is digitized approximately and normalized to exact total EC; scaling exponents are explicit assumptions. Re catalyst purchase price is intentionally excluded from headline performance-leverage comparisons because no consistent supported catalyst price is available."
+          ],
+          "formulas": [
+            "Model boundary",
+            "This is a transparent source-anchored reduced TEA, not a new Aspen flowsheet. Figure 11 equipment split is digitized approximately and normalized to exact total EC; scaling exponents are explicit assumptions. Re catalyst purchase price is intentionally excluded from headline performance-leverage comparisons because no consistent supported catalyst price is available."
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Main result",
+            "At 2% purge, 200 C favors 5 wt% Re (~943 vs 967 \u20ac/t), while 250 C strongly favors 1 wt% Re (~975 vs 1258 \u20ac/t). The reversal is generated by explicit conversion/selectivity \u2192 feed/purge/recycle/separation economics, with no free k_loop."
+          ],
+          "formulas": [
+            "Main result",
+            "At 2% purge, 200 C favors 5 wt% Re (~943 vs 967 \u20ac/t), while 250 C strongly favors 1 wt% Re (~975 vs 1258 \u20ac/t). The reversal is generated by explicit conversion/selectivity \u2192 feed/purge/recycle/separation economics, with no free k_loop."
+          ]
+        }
+      ]
+    },
+    "Controls": {
+      "max_row": 28,
+      "max_column": 4,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Controls and source inputs",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Controls and source inputs",
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Blue = model assumption/changeable; green = imported from primary source; gray = static definition. Derived values are formulas elsewhere.",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Blue = model assumption/changeable; green = imported from primary source; gray = static definition. Derived values are formulas elsewhere.",
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Control",
+            "Value",
+            "Units",
+            "Source / rationale"
+          ],
+          "formulas": [
+            "Control",
+            "Value",
+            "Units",
+            "Source / rationale"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Plant MeOH production",
+            145,
+            "t/h",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Plant MeOH production",
+            145,
+            "t/h",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Operating hours",
+            8000,
+            "h/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Operating hours",
+            8000,
+            "h/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "H2 price",
+            3097.4,
+            "\u20ac/t",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "H2 price",
+            3097.4,
+            "\u20ac/t",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "CO2 price",
+            44.3,
+            "\u20ac/t",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "CO2 price",
+            44.3,
+            "\u20ac/t",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Electricity price",
+            90,
+            "\u20ac/MWh",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Electricity price",
+            90,
+            "\u20ac/MWh",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "H2 feed purity",
+            0.995,
+            "mol fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "H2 feed purity",
+            0.995,
+            "mol fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Reference pressure",
+            70,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Reference pressure",
+            70,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "Candidate pressure",
+            100,
+            "bar",
+            "https://www.osti.gov/pages/servlets/purl/3005244"
+          ],
+          "formulas": [
+            "Candidate pressure",
+            100,
+            "bar",
+            "https://www.osti.gov/pages/servlets/purl/3005244"
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "H2 feed pressure",
+            30,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "H2 feed pressure",
+            30,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "CO2 feed pressure",
+            1,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "CO2 feed pressure",
+            1,
+            "bar",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 15,
+          "values": [
+            "Compressor isentropic efficiency",
+            0.8,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Compressor isentropic efficiency",
+            0.8,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 16,
+          "values": [
+            "Compression temperature",
+            298.15,
+            "K",
+            "Transparent isothermal-equivalent reduced model"
+          ],
+          "formulas": [
+            "Compression temperature",
+            298.15,
+            "K",
+            "Transparent isothermal-equivalent reduced model"
+          ]
+        },
+        {
+          "row": 17,
+          "values": [
+            "Recycle loop pressure rise",
+            1.5,
+            "bar",
+            "0.75 bar reactor drop is sourced; +0.75 bar loop allowance is explicit assumption"
+          ],
+          "formulas": [
+            "Recycle loop pressure rise",
+            1.5,
+            "bar",
+            "0.75 bar reactor drop is sourced; +0.75 bar loop allowance is explicit assumption"
+          ]
+        },
+        {
+          "row": 18,
+          "values": [
+            "Lang factor",
+            4.86,
+            "-",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Lang factor",
+            4.86,
+            "-",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 19,
+          "values": [
+            "Interest rate",
+            0.1,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Interest rate",
+            0.1,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 20,
+          "values": [
+            "Plant life",
+            20,
+            "y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Plant life",
+            20,
+            "y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 21,
+          "values": [
+            "Source one-step purge",
+            0.02,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source one-step purge",
+            0.02,
+            "fraction",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 22,
+          "values": [
+            "Source recycle flow",
+            54290,
+            "kmol/h",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source recycle flow",
+            54290,
+            "kmol/h",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 23,
+          "values": [
+            "Source equipment cost",
+            85.5,
+            "M\u20ac",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source equipment cost",
+            85.5,
+            "M\u20ac",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 24,
+          "values": [
+            "Source direct OPEX",
+            874.9,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source direct OPEX",
+            874.9,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 25,
+          "values": [
+            "Source indirect OPEX",
+            143.4,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source indirect OPEX",
+            143.4,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 26,
+          "values": [
+            "Source NPC",
+            1071.8,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ],
+          "formulas": [
+            "Source NPC",
+            1071.8,
+            "M\u20ac/y",
+            "https://www.mdpi.com/2227-9717/10/8/1535"
+          ]
+        },
+        {
+          "row": 27,
+          "values": [
+            "General equipment scaling exponent",
+            0.6,
+            "-",
+            "Explicit reduced-model assumption; sensitivity-ready"
+          ],
+          "formulas": [
+            "General equipment scaling exponent",
+            0.6,
+            "-",
+            "Explicit reduced-model assumption; sensitivity-ready"
+          ]
+        },
+        {
+          "row": 28,
+          "values": [
+            "Compressor scaling exponent",
+            0.67,
+            "-",
+            "Explicit reduced-model assumption; sensitivity-ready"
+          ],
+          "formulas": [
+            "Compressor scaling exponent",
+            0.67,
+            "-",
+            "Explicit reduced-model assumption; sensitivity-ready"
+          ]
+        }
+      ]
+    },
+    "EC_Split_Digitized": {
+      "max_row": 17,
+      "max_column": 4,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Published one-step EC split used for equipment scaling",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Published one-step EC split used for equipment scaling",
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Figure 11(a) bars were digitized approximately as relative pixel lengths and normalized to the exact published EC total of 85.5 M\u20ac. This affects allocation/scaling, not baseline total EC.",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Figure 11(a) bars were digitized approximately as relative pixel lengths and normalized to the exact published EC total of 85.5 M\u20ac. This affects allocation/scaling, not baseline total EC.",
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Equipment",
+            "Pixel weight",
+            "Normalized EC (M\u20ac)",
+            "Treatment in v3"
+          ],
+          "formulas": [
+            "Equipment",
+            "Pixel weight",
+            "Normalized EC (M\u20ac)",
+            "Treatment in v3"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Reactor modules",
+            306,
+            null,
+            "scale with catalyst mass^0.60 (STY and Re wt%)"
+          ],
+          "formulas": [
+            "Reactor modules",
+            306,
+            "=Controls!$B$23*B5/SUM($B$5:$B$15)",
+            "scale with catalyst mass^0.60 (STY and Re wt%)"
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Carbon dioxide compressor",
+            257,
+            null,
+            "scale with calculated CO2 compression power^0.67"
+          ],
+          "formulas": [
+            "Carbon dioxide compressor",
+            257,
+            "=Controls!$B$23*B6/SUM($B$5:$B$15)",
+            "scale with calculated CO2 compression power^0.67"
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Hydrogen compressor",
+            94,
+            null,
+            "scale with calculated H2 compression power^0.67"
+          ],
+          "formulas": [
+            "Hydrogen compressor",
+            94,
+            "=Controls!$B$23*B7/SUM($B$5:$B$15)",
+            "scale with calculated H2 compression power^0.67"
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Reactor preheaters",
+            27,
+            null,
+            "scale with reactor-inlet gas flow^0.60"
+          ],
+          "formulas": [
+            "Reactor preheaters",
+            27,
+            "=Controls!$B$23*B8/SUM($B$5:$B$15)",
+            "scale with reactor-inlet gas flow^0.60"
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Heat exchangers",
+            23,
+            null,
+            "scale with reactor-inlet gas flow^0.60"
+          ],
+          "formulas": [
+            "Heat exchangers",
+            23,
+            "=Controls!$B$23*B9/SUM($B$5:$B$15)",
+            "scale with reactor-inlet gas flow^0.60"
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Furnace & blower",
+            37,
+            null,
+            "scale with purge gas flow^0.60"
+          ],
+          "formulas": [
+            "Furnace & blower",
+            37,
+            "=Controls!$B$23*B10/SUM($B$5:$B$15)",
+            "scale with purge gas flow^0.60"
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Distillation column",
+            27,
+            null,
+            "scale with crude MeOH+H2O flow^0.60"
+          ],
+          "formulas": [
+            "Distillation column",
+            27,
+            "=Controls!$B$23*B11/SUM($B$5:$B$15)",
+            "scale with crude MeOH+H2O flow^0.60"
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "Turbine & generator",
+            25,
+            null,
+            "scale with purge gas flow^0.60"
+          ],
+          "formulas": [
+            "Turbine & generator",
+            25,
+            "=Controls!$B$23*B12/SUM($B$5:$B$15)",
+            "scale with purge gas flow^0.60"
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "Recycle/reflux compressor",
+            3,
+            null,
+            "scale with calculated recycle compression power^0.67"
+          ],
+          "formulas": [
+            "Recycle/reflux compressor",
+            3,
+            "=Controls!$B$23*B13/SUM($B$5:$B$15)",
+            "scale with calculated recycle compression power^0.67"
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "Flash drums",
+            2,
+            null,
+            "scale with reactor-inlet gas flow^0.60"
+          ],
+          "formulas": [
+            "Flash drums",
+            2,
+            "=Controls!$B$23*B14/SUM($B$5:$B$15)",
+            "scale with reactor-inlet gas flow^0.60"
+          ]
+        },
+        {
+          "row": 15,
+          "values": [
+            "Pump",
+            1,
+            null,
+            "scale with crude liquid flow^0.60"
+          ],
+          "formulas": [
+            "Pump",
+            1,
+            "=Controls!$B$23*B15/SUM($B$5:$B$15)",
+            "scale with crude liquid flow^0.60"
+          ]
+        },
+        {
+          "row": 17,
+          "values": [
+            "Total",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Total",
+            null,
+            "=SUM(C5:C15)",
+            null
+          ]
+        }
+      ]
+    },
+    "Candidate_Inputs": {
+      "max_row": 8,
+      "max_column": 10,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Controlled Re/TiO2 catalyst inputs",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Controlled Re/TiO2 catalyst inputs",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "500 C prereduction points from Table 3. CO is reported <1%; central carbon closure assigns only the rounded residual after MeOH+CH4 to CO-like recoverable gas.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "500 C prereduction points from Table 3. CO is reported <1%; central carbon closure assigns only the rounded residual after MeOH+CH4 to CO-like recoverable gas.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Candidate",
+            "Re wt%",
+            "T (C)",
+            "STY gMeOH/gRe/h",
+            "X_CO2",
+            "S_MeOH",
+            "S_CH4 central",
+            "S_CO-like closure",
+            "CH4 reported",
+            "Source treatment"
+          ],
+          "formulas": [
+            "Candidate",
+            "Re wt%",
+            "T (C)",
+            "STY gMeOH/gRe/h",
+            "X_CO2",
+            "S_MeOH",
+            "S_CH4 central",
+            "S_CO-like closure",
+            "CH4 reported",
+            "Source treatment"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "1 wt% Re | 200 C",
+            1,
+            200,
+            55,
+            0.19,
+            0.99,
+            0,
+            0.01,
+            "<1%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            1,
+            200,
+            55,
+            0.19,
+            0.99,
+            0,
+            0.01,
+            "<1%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "5 wt% Re | 200 C",
+            5,
+            200,
+            18,
+            0.33,
+            0.97,
+            0.03,
+            0,
+            "3%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ],
+          "formulas": [
+            "5 wt% Re | 200 C",
+            5,
+            200,
+            18,
+            0.33,
+            0.97,
+            0.03,
+            0,
+            "3%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "1 wt% Re | 250 C",
+            1,
+            250,
+            65,
+            0.23,
+            0.97,
+            0.03,
+            0,
+            "3%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ],
+          "formulas": [
+            "1 wt% Re | 250 C",
+            1,
+            250,
+            65,
+            0.23,
+            0.97,
+            0.03,
+            0,
+            "3%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "5 wt% Re | 250 C",
+            5,
+            250,
+            16,
+            0.4,
+            0.74,
+            0.25,
+            0.01,
+            "25%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ],
+          "formulas": [
+            "5 wt% Re | 250 C",
+            5,
+            250,
+            16,
+            0.4,
+            0.74,
+            0.25,
+            0.01,
+            "25%",
+            "All points: 100 bar, CO2/H2=1:4; same controlled study."
+          ]
+        }
+      ]
+    },
+    "Reference_Benchmark": {
+      "max_row": 15,
+      "max_column": 5,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "One-step process benchmark reconstruction",
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "One-step process benchmark reconstruction",
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "The reduced species loop is calibrated only by a single recycle-flow correction so that the published 2% purge case exactly matches 54,290 kmol/h. Annual economics then reconstruct the published Table 7 NPC.",
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "The reduced species loop is calibrated only by a single recycle-flow correction so that the published 2% purge case exactly matches 54,290 kmol/h. Annual economics then reconstruct the published Table 7 NPC.",
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Metric",
+            "Model / formula",
+            "Published",
+            "Error",
+            "Notes"
+          ],
+          "formulas": [
+            "Metric",
+            "Model / formula",
+            "Published",
+            "Error",
+            "Notes"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Raw reduced recycle flow",
+            49403.55682922577,
+            null,
+            null,
+            "Before source flow correction"
+          ],
+          "formulas": [
+            "Raw reduced recycle flow",
+            49403.55682922577,
+            null,
+            null,
+            "Before source flow correction"
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Recycle-flow correction",
+            1.098908732172165,
+            null,
+            null,
+            "Published recycle / raw reduced balance"
+          ],
+          "formulas": [
+            "Recycle-flow correction",
+            1.098908732172165,
+            null,
+            null,
+            "Published recycle / raw reduced balance"
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Corrected recycle flow",
+            54290,
+            54290,
+            0,
+            "Calibration target"
+          ],
+          "formulas": [
+            "Corrected recycle flow",
+            54290,
+            54290,
+            0,
+            "Calibration target"
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Source-reference non-H2/CO2 fraction",
+            0.06862515529373837,
+            null,
+            null,
+            "Model-derived at source 2% purge; used only as diagnostic reference envelope"
+          ],
+          "formulas": [
+            "Source-reference non-H2/CO2 fraction",
+            0.06862515529373837,
+            null,
+            null,
+            "Model-derived at source 2% purge; used only as diagnostic reference envelope"
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Feed cost",
+            679.3279782424754,
+            null,
+            null,
+            "H2 + CO2 from explicit steady-state makeup"
+          ],
+          "formulas": [
+            "Feed cost",
+            679.3279782424754,
+            null,
+            null,
+            "H2 + CO2 from explicit steady-state makeup"
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Compression electricity",
+            17.93556521945485,
+            null,
+            null,
+            "CO2 + H2 + recycle compression"
+          ],
+          "formulas": [
+            "Compression electricity",
+            17.93556521945485,
+            null,
+            null,
+            "CO2 + H2 + recycle compression"
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Common direct OPEX residual",
+            66.07428958416088,
+            null,
+            null,
+            "Calibrated residual so annual direct OPEX equals published 874.9 M\u20ac/y"
+          ],
+          "formulas": [
+            "Common direct OPEX residual",
+            66.07428958416088,
+            null,
+            null,
+            "Calibrated residual so annual direct OPEX equals published 874.9 M\u20ac/y"
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "Rebuilt FCI",
+            415.53,
+            415.9,
+            -0.0008896369319546515,
+            "Exact EC \u00d7 Lang factor"
+          ],
+          "formulas": [
+            "Rebuilt FCI",
+            415.53,
+            415.9,
+            -0.0008896369319546515,
+            "Exact EC \u00d7 Lang factor"
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "Rebuilt ACC",
+            53.42499788173594,
+            53.5,
+            -0.001401908752599268,
+            "Annuity method"
+          ],
+          "formulas": [
+            "Rebuilt ACC",
+            53.42499788173594,
+            53.5,
+            -0.001401908752599268,
+            "Annuity method"
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "Rebuilt annual NPC",
+            1071.68336431304,
+            1071.8,
+            -0.000108822249449636,
+            "Eq. 24 + 28 solved algebraically"
+          ],
+          "formulas": [
+            "Rebuilt annual NPC",
+            1071.68336431304,
+            1071.8,
+            -0.000108822249449636,
+            "Eq. 24 + 28 solved algebraically"
+          ]
+        },
+        {
+          "row": 15,
+          "values": [
+            "Rebuilt NPC per tonne",
+            923.8649692353792,
+            920,
+            0.004201053516716513,
+            "Difference reflects rounded 145 t/h \u00d7 8000 h/y versus reported rounded \u20ac/t"
+          ],
+          "formulas": [
+            "Rebuilt NPC per tonne",
+            923.8649692353792,
+            920,
+            0.004201053516716513,
+            "Difference reflects rounded 145 t/h \u00d7 8000 h/y versus reported rounded \u20ac/t"
+          ]
+        }
+      ]
+    },
+    "Explicit_Loop_2pct": {
+      "max_row": 8,
+      "max_column": 37,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Explicit species loop and source-anchored economics | 2% purge",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Explicit species loop and source-anchored economics | 2% purge",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Every derived quantity below is an Excel formula. CH4, CO-like residual and N2 accumulate in the recycle gas and leave through purge. MeOH/H2O are removed in the condensation/distillation train.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Every derived quantity below is an Excel formula. CH4, CO-like residual and N2 accumulate in the recycle gas and leave through purge. MeOH/H2O are removed in the condensation/distillation train.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Candidate",
+            "X",
+            "SMeOH",
+            "SCH4",
+            "SCO",
+            "STY",
+            "Re wt%",
+            "CO2 in",
+            "H2 in",
+            "CH4 prod",
+            "CO prod",
+            "CO2 out",
+            "H2 out",
+            "fresh CO2",
+            "fresh H2",
+            "N2 inlet",
+            "CH4 inlet",
+            "CO inlet",
+            "recycle mol/mol",
+            "recycle kmol/h"
+          ],
+          "formulas": [
+            "Candidate",
+            "X",
+            "SMeOH",
+            "SCH4",
+            "SCO",
+            "STY",
+            "Re wt%",
+            "CO2 in",
+            "H2 in",
+            "CH4 prod",
+            "CO prod",
+            "CO2 out",
+            "H2 out",
+            "fresh CO2",
+            "fresh H2",
+            "N2 inlet",
+            "CH4 inlet",
+            "CO inlet",
+            "recycle mol/mol",
+            "recycle kmol/h"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "=Candidate_Inputs!A5",
+            "=Candidate_Inputs!E5",
+            "=Candidate_Inputs!F5",
+            "=Candidate_Inputs!G5",
+            "=Candidate_Inputs!H5",
+            "=Candidate_Inputs!D5",
+            "=Candidate_Inputs!B5",
+            "=1/(B5*C5)",
+            "=4*H5",
+            "=D5/C5",
+            "=E5/C5",
+            "=(1-B5)*H5",
+            "=I5-(3+4*J5+K5)",
+            "=H5-(1-Controls!$B$21)*L5",
+            "=I5-(1-Controls!$B$21)*M5",
+            "=O5*(1-Controls!$B$10)/Controls!$B$10/Controls!$B$21",
+            "=(1-Controls!$B$21)/Controls!$B$21*J5",
+            "=(1-Controls!$B$21)/Controls!$B$21*K5",
+            "=(1-Controls!$B$21)*(L5+M5+(Q5+J5)+(R5+K5)+P5)",
+            "=S5*Reference_Benchmark!$B$6*Controls!$B$5*1000/32.04186"
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "=Candidate_Inputs!A6",
+            "=Candidate_Inputs!E6",
+            "=Candidate_Inputs!F6",
+            "=Candidate_Inputs!G6",
+            "=Candidate_Inputs!H6",
+            "=Candidate_Inputs!D6",
+            "=Candidate_Inputs!B6",
+            "=1/(B6*C6)",
+            "=4*H6",
+            "=D6/C6",
+            "=E6/C6",
+            "=(1-B6)*H6",
+            "=I6-(3+4*J6+K6)",
+            "=H6-(1-Controls!$B$21)*L6",
+            "=I6-(1-Controls!$B$21)*M6",
+            "=O6*(1-Controls!$B$10)/Controls!$B$10/Controls!$B$21",
+            "=(1-Controls!$B$21)/Controls!$B$21*J6",
+            "=(1-Controls!$B$21)/Controls!$B$21*K6",
+            "=(1-Controls!$B$21)*(L6+M6+(Q6+J6)+(R6+K6)+P6)",
+            "=S6*Reference_Benchmark!$B$6*Controls!$B$5*1000/32.04186"
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "=Candidate_Inputs!A7",
+            "=Candidate_Inputs!E7",
+            "=Candidate_Inputs!F7",
+            "=Candidate_Inputs!G7",
+            "=Candidate_Inputs!H7",
+            "=Candidate_Inputs!D7",
+            "=Candidate_Inputs!B7",
+            "=1/(B7*C7)",
+            "=4*H7",
+            "=D7/C7",
+            "=E7/C7",
+            "=(1-B7)*H7",
+            "=I7-(3+4*J7+K7)",
+            "=H7-(1-Controls!$B$21)*L7",
+            "=I7-(1-Controls!$B$21)*M7",
+            "=O7*(1-Controls!$B$10)/Controls!$B$10/Controls!$B$21",
+            "=(1-Controls!$B$21)/Controls!$B$21*J7",
+            "=(1-Controls!$B$21)/Controls!$B$21*K7",
+            "=(1-Controls!$B$21)*(L7+M7+(Q7+J7)+(R7+K7)+P7)",
+            "=S7*Reference_Benchmark!$B$6*Controls!$B$5*1000/32.04186"
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "=Candidate_Inputs!A8",
+            "=Candidate_Inputs!E8",
+            "=Candidate_Inputs!F8",
+            "=Candidate_Inputs!G8",
+            "=Candidate_Inputs!H8",
+            "=Candidate_Inputs!D8",
+            "=Candidate_Inputs!B8",
+            "=1/(B8*C8)",
+            "=4*H8",
+            "=D8/C8",
+            "=E8/C8",
+            "=(1-B8)*H8",
+            "=I8-(3+4*J8+K8)",
+            "=H8-(1-Controls!$B$21)*L8",
+            "=I8-(1-Controls!$B$21)*M8",
+            "=O8*(1-Controls!$B$10)/Controls!$B$10/Controls!$B$21",
+            "=(1-Controls!$B$21)/Controls!$B$21*J8",
+            "=(1-Controls!$B$21)/Controls!$B$21*K8",
+            "=(1-Controls!$B$21)*(L8+M8+(Q8+J8)+(R8+K8)+P8)",
+            "=S8*Reference_Benchmark!$B$6*Controls!$B$5*1000/32.04186"
+          ]
+        }
+      ]
+    },
+    "Equipment_Breakdown": {
+      "max_row": 16,
+      "max_column": 6,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Explicit equipment-cost response to catalyst performance",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Explicit equipment-cost response to catalyst performance",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Central 2% purge. EC values are calculated from physical capacity ratios and the Figure 11(a) normalized source split. Re catalyst purchase cost is not included.",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Central 2% purge. EC values are calculated from physical capacity ratios and the Figure 11(a) normalized source split. Re catalyst purchase cost is not included.",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Equipment",
+            "1% Re 200C",
+            "5% Re 200C",
+            "1% Re 250C",
+            "5% Re 250C",
+            "Scaling driver"
+          ],
+          "formulas": [
+            "Equipment",
+            "1% Re 200C",
+            "5% Re 200C",
+            "1% Re 250C",
+            "5% Re 250C",
+            "Scaling driver"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Reactor modules",
+            7.789292523211859,
+            5.796557147888221,
+            7.046405202132989,
+            6.22102054161578,
+            "catalyst mass from plant production / STY / Re wt%"
+          ],
+          "formulas": [
+            "Reactor modules",
+            7.789292523211859,
+            5.796557147888221,
+            7.046405202132989,
+            6.22102054161578,
+            "catalyst mass from plant production / STY / Re wt%"
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Carbon dioxide compressor",
+            29.66271280077182,
+            29.23632292939994,
+            29.73029366904797,
+            34.80916819060825,
+            "fresh CO2 compression power"
+          ],
+          "formulas": [
+            "Carbon dioxide compressor",
+            29.66271280077182,
+            29.23632292939994,
+            29.73029366904797,
+            34.80916819060825,
+            "fresh CO2 compression power"
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Hydrogen compressor",
+            13.26297522197243,
+            13.09382423258097,
+            13.38018499283233,
+            16.19605384721543,
+            "fresh H2 compression power"
+          ],
+          "formulas": [
+            "Hydrogen compressor",
+            13.26297522197243,
+            13.09382423258097,
+            13.38018499283233,
+            16.19605384721543,
+            "fresh H2 compression power"
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Reactor preheaters",
+            4.155154011219842,
+            3.189246156107668,
+            3.868306233851652,
+            4.778551030436282,
+            "reactor inlet gas circulation"
+          ],
+          "formulas": [
+            "Reactor preheaters",
+            4.155154011219842,
+            3.189246156107668,
+            3.868306233851652,
+            4.778551030436282,
+            "reactor inlet gas circulation"
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Heat exchangers",
+            3.539575639187273,
+            2.716765244091717,
+            3.295223828836592,
+            4.070617544445722,
+            "reactor inlet gas circulation"
+          ],
+          "formulas": [
+            "Heat exchangers",
+            3.539575639187273,
+            2.716765244091717,
+            3.295223828836592,
+            4.070617544445722,
+            "reactor inlet gas circulation"
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Furnace & blower",
+            6.238225773375409,
+            4.493843429125565,
+            5.714441708552287,
+            7.130899229502347,
+            "purge flow"
+          ],
+          "formulas": [
+            "Furnace & blower",
+            6.238225773375409,
+            4.493843429125565,
+            5.714441708552287,
+            7.130899229502347,
+            "purge flow"
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Distillation column",
+            2.882798902999962,
+            2.927106848860658,
+            2.927106848860658,
+            3.432862693793127,
+            "crude MeOH + H2O liquid load"
+          ],
+          "formulas": [
+            "Distillation column",
+            2.882798902999962,
+            2.927106848860658,
+            2.927106848860658,
+            3.432862693793127,
+            "crude MeOH + H2O liquid load"
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "Turbine & generator",
+            4.215017414442844,
+            3.036380695355112,
+            3.861109262535329,
+            4.818175155069154,
+            "purge flow"
+          ],
+          "formulas": [
+            "Turbine & generator",
+            4.215017414442844,
+            3.036380695355112,
+            3.861109262535329,
+            4.818175155069154,
+            "purge flow"
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "Recycle/reflux compressor",
+            0.4192481373984184,
+            0.2906762993593441,
+            0.3801371758871044,
+            0.486777759007759,
+            "recycle flow and loop pressure rise"
+          ],
+          "formulas": [
+            "Recycle/reflux compressor",
+            0.4192481373984184,
+            0.2906762993593441,
+            0.3801371758871044,
+            0.486777759007759,
+            "recycle flow and loop pressure rise"
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "Flash drums",
+            0.3077891860162846,
+            0.2362404560079754,
+            0.2865412025075297,
+            0.3539667429952802,
+            "reactor outlet/separator gas handling"
+          ],
+          "formulas": [
+            "Flash drums",
+            0.3077891860162846,
+            0.2362404560079754,
+            0.2865412025075297,
+            0.3539667429952802,
+            "reactor outlet/separator gas handling"
+          ]
+        },
+        {
+          "row": 15,
+          "values": [
+            "Pump",
+            0.1067703297407393,
+            0.108411364772617,
+            0.108411364772617,
+            0.1271430627330788,
+            "crude liquid load"
+          ],
+          "formulas": [
+            "Pump",
+            0.1067703297407393,
+            0.108411364772617,
+            0.108411364772617,
+            0.1271430627330788,
+            "crude liquid load"
+          ]
+        },
+        {
+          "row": 16,
+          "values": [
+            "Total EC",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Total EC",
+            "=SUM(B5:B15)",
+            "=SUM(C5:C15)",
+            "=SUM(D5:D15)",
+            "=SUM(E5:E15)",
+            null
+          ]
+        }
+      ]
+    },
+    "Purge_Sweep": {
+      "max_row": 1588,
+      "max_column": 9,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Explicit purge sensitivity",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Explicit purge sensitivity",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "No k_loop proxy: every purge point re-solves the species balance and recalculates feed, compression, equipment scaling and NPC. Source reference 2% is the central comparison.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "No k_loop proxy: every purge point re-solves the species balance and recalculates feed, compression, equipment scaling and NPC. Source reference 2% is the central comparison.",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Candidate",
+            "Purge",
+            "NPC \u20ac/t",
+            "Recycle kmol/h",
+            "Non-H2/CO2 fraction",
+            "Methane fraction",
+            "H2 feed \u20ac/t",
+            "Compression \u20ac/t",
+            "EC M\u20ac"
+          ],
+          "formulas": [
+            "Candidate",
+            "Purge",
+            "NPC \u20ac/t",
+            "Recycle kmol/h",
+            "Non-H2/CO2 fraction",
+            "Methane fraction",
+            "H2 feed \u20ac/t",
+            "Compression \u20ac/t",
+            "EC M\u20ac"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.005,
+            895.2548685298909,
+            137054.1827183045,
+            0.1616927807088575,
+            0,
+            604.3643010153096,
+            21.62033983896469,
+            65.86405147721824
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.005,
+            895.2548685298909,
+            137054.1827183045,
+            0.1616927807088575,
+            0,
+            604.3643010153096,
+            21.62033983896469,
+            65.86405147721824
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.006,
+            900.0151452293794,
+            132759.7735684256,
+            0.1388554728590758,
+            0,
+            607.921682598538,
+            21.68674714389388,
+            66.31784465862322
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.006,
+            900.0151452293794,
+            132759.7735684256,
+            0.1388554728590758,
+            0,
+            607.921682598538,
+            21.68674714389388,
+            66.31784465862322
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.007,
+            904.8008439256245,
+            129660.1520738139,
+            0.1217661908581246,
+            0,
+            611.4790641817666,
+            21.76280185925752,
+            66.78670839564137
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.007,
+            904.8008439256245,
+            129660.1520738139,
+            0.1217661908581246,
+            0,
+            611.4790641817666,
+            21.76280185925752,
+            66.78670839564137
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.008,
+            909.5974480416301,
+            127307.2728637442,
+            0.1084973907196998,
+            0,
+            615.0364457649944,
+            21.84488620614272,
+            67.2598832041125
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.008,
+            909.5974480416301,
+            127307.2728637442,
+            0.1084973907196998,
+            0,
+            615.0364457649944,
+            21.84488620614272,
+            67.2598832041125
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.009,
+            914.3975737453773,
+            125452.2218433692,
+            0.0978967212731457,
+            0,
+            618.5938273482228,
+            21.93099030737562,
+            67.73208956476816
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.009,
+            914.3975737453773,
+            125452.2218433692,
+            0.0978967212731457,
+            0,
+            618.5938273482228,
+            21.93099030737562,
+            67.73208956476816
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.01,
+            919.1972657970623,
+            123945.6505557804,
+            0.08923293000539963,
+            0,
+            622.1512089314513,
+            22.01990823665192,
+            68.20064671284595
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.01,
+            919.1972657970623,
+            123945.6505557804,
+            0.08923293000539963,
+            0,
+            622.1512089314513,
+            22.01990823665192,
+            68.20064671284595
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.011,
+            923.9943470767195,
+            122692.5190738544,
+            0.08201961421725416,
+            0,
+            625.7085905146797,
+            22.11087258632341,
+            68.66419706202389
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.011,
+            923.9943470767195,
+            122692.5190738544,
+            0.08201961421725416,
+            0,
+            625.7085905146797,
+            22.11087258632341,
+            68.66419706202389
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.012,
+            928.7876155201761,
+            121629.4674461754,
+            0.07592065622573617,
+            0,
+            629.2659720979082,
+            22.2033717512913,
+            69.12209114334331
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.012,
+            928.7876155201761,
+            121629.4674461754,
+            0.07592065622573617,
+            0,
+            629.2659720979082,
+            22.2033717512913,
+            69.12209114334331
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.013,
+            933.5764261704887,
+            120712.6310909941,
+            0.07069634285639324,
+            0,
+            632.8233536811365,
+            22.29705154341025,
+            69.57407125110832
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.013,
+            933.5764261704887,
+            120712.6310909941,
+            0.07069634285639324,
+            0,
+            632.8233536811365,
+            22.29705154341025,
+            69.57407125110832
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.014,
+            938.3604618858911,
+            119910.678164204,
+            0.06617111480492319,
+            0,
+            636.380735264365,
+            22.3916589711479,
+            70.02010044342774
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.014,
+            938.3604618858911,
+            119910.678164204,
+            0.06617111480492319,
+            0,
+            636.380735264365,
+            22.3916589711479,
+            70.02010044342774
+          ]
+        },
+        {
+          "row": 15,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.015,
+            943.1396021680425,
+            119200.6319801267,
+            0.06221345083741201,
+            0,
+            639.9381168475935,
+            22.48700850738052,
+            70.46026650624711
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.015,
+            943.1396021680425,
+            119200.6319801267,
+            0.06221345083741201,
+            0,
+            639.9381168475935,
+            22.48700850738052,
+            70.46026650624711
+          ]
+        },
+        {
+          "row": 16,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.016,
+            947.9138455713387,
+            118565.2600245036,
+            0.05872287424977497,
+            0,
+            643.495498430822,
+            22.58296100676529,
+            70.89472643242347
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.016,
+            947.9138455713387,
+            118565.2600245036,
+            0.05872287424977497,
+            0,
+            643.495498430822,
+            22.58296100676529,
+            70.89472643242347
+          ]
+        },
+        {
+          "row": 17,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.017,
+            952.6832625722975,
+            117991.3844923133,
+            0.05562130350623444,
+            0,
+            647.0528800140505,
+            22.67941006404007,
+            71.32367364848932
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.017,
+            952.6832625722975,
+            117991.3844923133,
+            0.05562130350623444,
+            0,
+            647.0528800140505,
+            22.67941006404007,
+            71.32367364848932
+          ]
+        },
+        {
+          "row": 18,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.018,
+            957.4479663449408,
+            117468.7559796505,
+            0.05284714201992836,
+            0,
+            650.6102615972788,
+            22.77627291955652,
+            71.74731841656994
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.018,
+            957.4479663449408,
+            117468.7559796505,
+            0.05284714201992836,
+            0,
+            650.6102615972788,
+            22.77627291955652,
+            71.74731841656994
+          ]
+        },
+        {
+          "row": 19,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.019,
+            962.2080943615276,
+            116989.2828518528,
+            0.05035114578713343,
+            0,
+            654.1676431805073,
+            22.87348423675018,
+            72.1658760616398
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.019,
+            962.2080943615276,
+            116989.2828518528,
+            0.05035114578713343,
+            0,
+            654.1676431805073,
+            22.87348423675018,
+            72.1658760616398
+          ]
+        },
+        {
+          "row": 20,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.02,
+            966.9637966932681,
+            116546.4918011905,
+            0.04809347473338729,
+            0,
+            657.7250247637359,
+            22.97099174636946,
+            72.57955994033688
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.02,
+            966.9637966932681,
+            116546.4918011905,
+            0.04809347473338729,
+            0,
+            657.7250247637359,
+            22.97099174636946,
+            72.57955994033688
+          ]
+        },
+        {
+          "row": 21,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.021,
+            971.7152285394588,
+            116135.14253093,
+            0.04604155021156309,
+            0,
+            661.2824063469642,
+            23.0687531352107,
+            72.98857732662026
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.021,
+            971.7152285394588,
+            116135.14253093,
+            0.04604155021156309,
+            0,
+            661.2824063469642,
+            23.0687531352107,
+            72.98857732662026
+          ]
+        },
+        {
+          "row": 22,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.022,
+            976.4625454681894,
+            115750.9475255619,
+            0.04416847272540197,
+            0,
+            664.8397879301918,
+            23.16673378337998,
+            73.39312711044832
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.022,
+            976.4625454681894,
+            115750.9475255619,
+            0.04416847272540197,
+            0,
+            664.8397879301918,
+            23.16673378337998,
+            73.39312711044832
+          ]
+        },
+        {
+          "row": 23,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.023,
+            981.2059004180999,
+            115390.3649244481,
+            0.04245183611188903,
+            0,
+            668.3971695134204,
+            23.26490509183454,
+            73.79339862929722
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.023,
+            981.2059004180999,
+            115390.3649244481,
+            0.04245183611188903,
+            0,
+            668.3971695134204,
+            23.26490509183454,
+            73.79339862929722
+          ]
+        },
+        {
+          "row": 24,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.024,
+            985.9454418547451,
+            115050.4431770569,
+            0.04087282693432175,
+            0,
+            671.9545510966489,
+            23.3632432280387,
+            74.18957120698806
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.024,
+            985.9454418547451,
+            115050.4431770569,
+            0.04087282693432175,
+            0,
+            671.9545510966489,
+            23.3632432280387,
+            74.18957120698806
+          ]
+        },
+        {
+          "row": 25,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.025,
+            990.6813126886539,
+            114728.7029809414,
+            0.03941553213917722,
+            0,
+            675.5119326798773,
+            23.46172817266253,
+            74.58181413039554
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.025,
+            990.6813126886539,
+            114728.7029809414,
+            0.03941553213917722,
+            0,
+            675.5119326798773,
+            23.46172817266253,
+            74.58181413039554
+          ]
+        },
+        {
+          "row": 26,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.026,
+            995.4136496971083,
+            114423.0464648007,
+            0.03806640087453487,
+            0,
+            679.0693142631059,
+            23.56034298627296,
+            74.97028689193833
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.026,
+            995.4136496971083,
+            114423.0464648007,
+            0.03806640087453487,
+            0,
+            679.0693142631059,
+            23.56034298627296,
+            74.97028689193833
+          ]
+        },
+        {
+          "row": 27,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.027,
+            1000.142583278457,
+            114131.6865530819,
+            0.03681382185538744,
+            0,
+            682.6266958463342,
+            23.65907323898262,
+            75.35513958732311
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.027,
+            1000.142583278457,
+            114131.6865530819,
+            0.03681382185538744,
+            0,
+            682.6266958463342,
+            23.65907323898262,
+            75.35513958732311
+          ]
+        },
+        {
+          "row": 28,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.028,
+            1004.868237424323,
+            113853.09146674,
+            0.03564778833331542,
+            0,
+            686.1840774295626,
+            23.75790656231657,
+            75.73651339744329
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.028,
+            1004.868237424323,
+            113853.09146674,
+            0.03564778833331542,
+            0,
+            686.1840774295626,
+            23.75790656231657,
+            75.73651339744329
+          ]
+        },
+        {
+          "row": 29,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.029,
+            1009.590729832449,
+            113585.940706598,
+            0.03455963019274217,
+            0,
+            689.7414590127912,
+            23.85683229379646,
+            76.11454110883726
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.029,
+            1009.590729832449,
+            113585.940706598,
+            0.03455963019274217,
+            0,
+            689.7414590127912,
+            23.85683229379646,
+            76.11454110883726
+          ]
+        },
+        {
+          "row": 30,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.03,
+            1014.310172107881,
+            113329.0898400358,
+            0.03354179798977344,
+            0,
+            693.2988405960197,
+            23.95584119260767,
+            76.48934764373598
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.03,
+            1014.310172107881,
+            113329.0898400358,
+            0.03354179798977344,
+            0,
+            693.2988405960197,
+            23.95584119260767,
+            76.48934764373598
+          ]
+        },
+        {
+          "row": 31,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.031,
+            1019.026670017021,
+            113081.5421031587,
+            0.03258768755202431,
+            0,
+            696.8562221792481,
+            24.05492521029879,
+            76.86105058162559
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.031,
+            1019.026670017021,
+            113081.5421031587,
+            0.03258768755202431,
+            0,
+            696.8562221792481,
+            24.05492521029879,
+            76.86105058162559
+          ]
+        },
+        {
+          "row": 32,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.032,
+            1023.740323770521,
+            112842.4253275586,
+            0.03169149652152203,
+            0,
+            700.4136037624764,
+            24.15407730447484,
+            77.22976066141115
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.032,
+            1023.740323770521,
+            112842.4253275586,
+            0.03169149652152203,
+            0,
+            700.4136037624764,
+            24.15407730447484,
+            77.22976066141115
+          ]
+        },
+        {
+          "row": 33,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.033,
+            1028.45122831884,
+            112610.9730622105,
+            0.03084810625373457,
+            0,
+            703.9709853457051,
+            24.25329128636444,
+            77.59558225797245
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.033,
+            1028.45122831884,
+            112610.9730622105,
+            0.03084810625373457,
+            0,
+            703.9709853457051,
+            24.25329128636444,
+            77.59558225797245
+          ]
+        },
+        {
+          "row": 34,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.034,
+            1033.159473649644,
+            112386.5090267979,
+            0.03005298399368378,
+            0,
+            707.5283669289335,
+            24.35256169528702,
+            77.95861382998065
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.034,
+            1033.159473649644,
+            112386.5090267979,
+            0.03005298399368378,
+            0,
+            707.5283669289335,
+            24.35256169528702,
+            77.95861382998065
+          ]
+        },
+        {
+          "row": 35,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.035,
+            1037.865145079978,
+            112168.4342301836,
+            0.02930210138046901,
+            0,
+            711.0857485121619,
+            24.4518836946397,
+            78.31894833784017
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.035,
+            1037.865145079978,
+            112168.4342301836,
+            0.02930210138046901,
+            0,
+            711.0857485121619,
+            24.4518836946397,
+            78.31894833784017
+          ]
+        },
+        {
+          "row": 36,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.036,
+            1042.568323538678,
+            111956.2162358009,
+            0.02859186618653905,
+            0,
+            714.6431300953902,
+            24.55125298522002,
+            78.6766736318928
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.036,
+            1042.568323538678,
+            111956.2162358009,
+            0.02859186618653905,
+            0,
+            714.6431300953902,
+            24.55125298522002,
+            78.6766736318928
+          ]
+        },
+        {
+          "row": 37,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.037,
+            1047.269085836309,
+            111749.3801677934,
+            0.02791906485027186,
+            0,
+            718.200511678618,
+            24.65066573260409,
+            79.03187281180936
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.037,
+            1047.269085836309,
+            111749.3801677934,
+            0.02791906485027186,
+            0,
+            718.200511678618,
+            24.65066573260409,
+            79.03187281180936
+          ]
+        },
+        {
+          "row": 38,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.038,
+            1051.967504921075,
+            111547.5011372365,
+            0.02728081386192296,
+            0,
+            721.7578932618464,
+            24.75011850599163,
+            79.38462455856086
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.038,
+            1051.967504921075,
+            111547.5011372365,
+            0.02728081386192296,
+            0,
+            721.7578932618464,
+            24.75011850599163,
+            79.38462455856086
+          ]
+        },
+        {
+          "row": 39,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.039,
+            1056.663650120043,
+            111350.1978335573,
+            0.02667451845151339,
+            0,
+            725.3152748450751,
+            24.84960822645929,
+            79.73500344061141
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.039,
+            1056.663650120043,
+            111350.1978335573,
+            0.02667451845151339,
+            0,
+            725.3152748450751,
+            24.84960822645929,
+            79.73500344061141
+          ]
+        },
+        {
+          "row": 40,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.04,
+            1061.357587365547,
+            111157.1270772398,
+            0.02609783733034528,
+            0,
+            728.8726564283035,
+            24.94913212297605,
+            80.08308019608627
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.04,
+            1061.357587365547,
+            111157.1270772398,
+            0.02609783733034528,
+            0,
+            728.8726564283035,
+            24.94913212297605,
+            80.08308019608627
+          ]
+        },
+        {
+          "row": 41,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.041,
+            1066.049379407043,
+            110967.9791696967,
+            0.02554865247591129,
+            0,
+            732.4300380115319,
+            25.0486876948554,
+            80.42892199268503
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.041,
+            1066.049379407043,
+            110967.9791696967,
+            0.02554865247591129,
+            0,
+            732.4300380115319,
+            25.0486876948554,
+            80.42892199268503
+          ]
+        },
+        {
+          "row": 42,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.042,
+            1070.73908600889,
+            110782.473907444,
+            0.02502504313815077,
+            0,
+            735.9874195947604,
+            25.14827267957146,
+            80.77259266707074
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.042,
+            1070.73908600889,
+            110782.473907444,
+            0.02502504313815077,
+            0,
+            735.9874195947604,
+            25.14827267957146,
+            80.77259266707074
+          ]
+        },
+        {
+          "row": 43,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.043,
+            1075.426764134718,
+            110600.3571524382,
+            0.02452526339465151,
+            0,
+            739.5448011779888,
+            25.24788502506581,
+            81.11415294539
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.043,
+            1075.426764134718,
+            110600.3571524382,
+            0.02452526339465151,
+            0,
+            739.5448011779888,
+            25.24788502506581,
+            81.11415294539
+          ]
+        },
+        {
+          "row": 44,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.044,
+            1080.112468119101,
+            110421.3978700944,
+            0.02404772270207758,
+            0,
+            743.1021827612173,
+            25.34752286583089,
+            81.45366064648326
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.044,
+            1080.112468119101,
+            110421.3978700944,
+            0.02404772270207758,
+            0,
+            743.1021827612173,
+            25.34752286583089,
+            81.45366064648326
+          ]
+        },
+        {
+          "row": 45,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.045,
+            1084.796249827311,
+            110245.385562235,
+            0.02359096898734108,
+            0,
+            746.6595643444457,
+            25.44718450218194,
+            81.79117086923914
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.045,
+            1084.796249827311,
+            110245.385562235,
+            0.02359096898734108,
+            0,
+            746.6595643444457,
+            25.44718450218194,
+            81.79117086923914
+          ]
+        },
+        {
+          "row": 46,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.046,
+            1089.478158803912,
+            110072.1280348719,
+            0.02315367389982423,
+            0,
+            750.216945927674,
+            25.54686838223294,
+            82.12673616543863
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.046,
+            1089.478158803912,
+            110072.1280348719,
+            0.02315367389982423,
+            0,
+            750.216945927674,
+            25.54686838223294,
+            82.12673616543863
+          ]
+        },
+        {
+          "row": 47,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.047,
+            1094.158242410967,
+            109901.4494509522,
+            0.02273461990914458,
+            0,
+            753.7743275109027,
+            25.64657308617327,
+            82.46040669932688
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.047,
+            1094.158242410967,
+            109901.4494509522,
+            0.02273461990914458,
+            0,
+            753.7743275109027,
+            25.64657308617327,
+            82.46040669932688
+          ]
+        },
+        {
+          "row": 48,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.048,
+            1098.83654595659,
+            109733.1886265107,
+            0.02233268898452417,
+            0,
+            757.3317090941312,
+            25.74629731250981,
+            82.79223039504778
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.048,
+            1098.83654595659,
+            109733.1886265107,
+            0.02233268898452417,
+            0,
+            757.3317090941312,
+            25.74629731250981,
+            82.79223039504778
+          ]
+        },
+        {
+          "row": 49,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.049,
+            1103.51311281453,
+            109567.1975354569,
+            0.02194685263409936,
+            0,
+            760.8890906773596,
+            25.84603986599384,
+            83.12225307297871
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.049,
+            1103.51311281453,
+            109567.1975354569,
+            0.02194685263409936,
+            0,
+            760.8890906773596,
+            25.84603986599384,
+            83.12225307297871
+          ]
+        },
+        {
+          "row": 50,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.05,
+            1108.187984535476,
+            109403.3399937874,
+            0.0215761631173154,
+            0,
+            764.4464722605879,
+            25.94579964699651,
+            83.45051857591133
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.05,
+            1108.187984535476,
+            109403.3399937874,
+            0.0215761631173154,
+            0,
+            764.4464722605879,
+            25.94579964699651,
+            83.45051857591133
+          ]
+        },
+        {
+          "row": 51,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.051,
+            1112.861200950671,
+            109241.4904985974,
+            0.02121974567232683,
+            0,
+            768.0038538438157,
+            26.04557564213435,
+            83.77706888594035
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.051,
+            1112.861200950671,
+            109241.4904985974,
+            0.02121974567232683,
+            0,
+            768.0038538438157,
+            26.04557564213435,
+            83.77706888594035
+          ]
+        },
+        {
+          "row": 52,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.052,
+            1117.532800268431,
+            109081.5332010515,
+            0.02087679162420994,
+            0,
+            771.5612354270442,
+            26.1453669159765,
+            84.10194423284413
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.052,
+            1117.532800268431,
+            109081.5332010515,
+            0.02087679162420994,
+            0,
+            771.5612354270442,
+            26.1453669159765,
+            84.10194423284413
+          ]
+        },
+        {
+          "row": 53,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.053,
+            1122.20281916411,
+            108923.3609956226,
+            0.02054655225969384,
+            0,
+            775.1186170102727,
+            26.24517260369065,
+            84.42518319467001
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.053,
+            1122.20281916411,
+            108923.3609956226,
+            0.02054655225969384,
+            0,
+            775.1186170102727,
+            26.24517260369065,
+            84.42518319467001
+          ]
+        },
+        {
+          "row": 54,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.054,
+            1126.871292863987,
+            108766.8747105266,
+            0.02022833337075784,
+            0,
+            778.6759985935013,
+            26.34499190450611,
+            84.74682279117283
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.054,
+            1126.871292863987,
+            108766.8747105266,
+            0.02022833337075784,
+            0,
+            778.6759985935013,
+            26.34499190450611,
+            84.74682279117283
+          ]
+        },
+        {
+          "row": 55,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.055,
+            1131.538255223559,
+            108611.9823864724,
+            0.0199214903834061,
+            0,
+            782.2333801767295,
+            26.44482407589011,
+            85.06689857069576
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.055,
+            1131.538255223559,
+            108611.9823864724,
+            0.0199214903834061,
+            0,
+            782.2333801767295,
+            26.44482407589011,
+            85.06689857069576
+          ]
+        },
+        {
+          "row": 56,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.056,
+            1136.203738800647,
+            108458.59863269,
+            0.01962542399968787,
+            0,
+            785.7907617599581,
+            26.54466842834787,
+            85.38544469102905
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.056,
+            1136.203738800647,
+            108458.59863269,
+            0.01962542399968787,
+            0,
+            785.7907617599581,
+            26.54466842834787,
+            85.38544469102905
+          ]
+        },
+        {
+          "row": 57,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.057,
+            1140.867774923716,
+            108306.6440507441,
+            0.01933957629096225,
+            0,
+            789.3481433431865,
+            26.64452432077029,
+            85.70249399473472
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.057,
+            1140.867774923716,
+            108306.6440507441,
+            0.01933957629096225,
+            0,
+            789.3481433431865,
+            26.64452432077029,
+            85.70249399473472
+          ]
+        },
+        {
+          "row": 58,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.058,
+            1145.530393755752,
+            108156.0447179534,
+            0.01906342718882111,
+            0,
+            792.9055249264147,
+            26.7443911562626,
+            86.01807807937988
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.058,
+            1145.530393755752,
+            108156.0447179534,
+            0.01906342718882111,
+            0,
+            792.9055249264147,
+            26.7443911562626,
+            86.01807807937988
+          ]
+        },
+        {
+          "row": 59,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.059,
+            1150.191624354052,
+            108006.731723344,
+            0.01879649132723487,
+            0,
+            796.4629065096427,
+            26.84426837839753,
+            86.33222736308319
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.059,
+            1150.191624354052,
+            108006.731723344,
+            0.01879649132723487,
+            0,
+            796.4629065096427,
+            26.84426837839753,
+            86.33222736308319
+          ]
+        },
+        {
+          "row": 60,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.06,
+            1154.851494726207,
+            107858.6407500067,
+            0.01853831519558165,
+            0,
+            800.0202880928716,
+            26.94415546784299,
+            86.64497114574205
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.06,
+            1154.851494726207,
+            107858.6407500067,
+            0.01853831519558165,
+            0,
+            800.0202880928716,
+            26.94415546784299,
+            86.64497114574205
+          ]
+        },
+        {
+          "row": 61,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.061,
+            1159.510031882566,
+            107711.7116985349,
+            0.01828847456742895,
+            0,
+            803.5776696760996,
+            27.04405193932135,
+            86.95633766627564
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.061,
+            1159.510031882566,
+            107711.7116985349,
+            0.01828847456742895,
+            0,
+            803.5776696760996,
+            27.04405193932135,
+            86.95633766627564
+          ]
+        },
+        {
+          "row": 62,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.062,
+            1164.16726188545,
+            107565.8883469026,
+            0.01804657217440308,
+            0,
+            807.1350512593286,
+            27.14395733886334,
+            87.26635415619083
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.062,
+            1164.16726188545,
+            107565.8883469026,
+            0.01804657217440308,
+            0,
+            807.1350512593286,
+            27.14395733886334,
+            87.26635415619083
+          ]
+        },
+        {
+          "row": 63,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.063,
+            1168.823209895323,
+            107421.1180427367,
+            0.01781223559831682,
+            0,
+            810.6924328425564,
+            27.24387124132301,
+            87.57504688974898
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.063,
+            1168.823209895323,
+            107421.1180427367,
+            0.01781223559831682,
+            0,
+            810.6924328425564,
+            27.24387124132301,
+            87.57504688974898
+          ]
+        },
+        {
+          "row": 64,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.064,
+            1173.477900214179,
+            107277.351424437,
+            0.01758511535803143,
+            0,
+            814.2498144257856,
+            27.34379324812614,
+            87.88244123099034
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.064,
+            1173.477900214179,
+            107277.351424437,
+            0.01758511535803143,
+            0,
+            814.2498144257856,
+            27.34379324812614,
+            87.88244123099034
+          ]
+        },
+        {
+          "row": 65,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.065,
+            1178.131356326295,
+            107134.5421680407,
+            0.01736488317038215,
+            0,
+            817.8071960090134,
+            27.44372298522608,
+            88.18856167784857
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.065,
+            1178.131356326295,
+            107134.5421680407,
+            0.01736488317038215,
+            0,
+            817.8071960090134,
+            27.44372298522608,
+            88.18856167784857
+          ]
+        },
+        {
+          "row": 66,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.066,
+            1182.783600936588,
+            106992.6467570974,
+            0.01715123036696724,
+            0,
+            821.3645775922419,
+            27.54366010124573,
+            88.49343190356996
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.066,
+            1182.783600936588,
+            106992.6467570974,
+            0.01715123036696724,
+            0,
+            821.3645775922419,
+            27.54366010124573,
+            88.49343190356996
+          ]
+        },
+        {
+          "row": 67,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.067,
+            1187.434656006693,
+            106851.6242731541,
+            0.01694386645074263,
+            0,
+            824.9219591754702,
+            27.64360426578568,
+            88.79707479563248
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.067,
+            1187.434656006693,
+            106851.6242731541,
+            0.01694386645074263,
+            0,
+            824.9219591754702,
+            27.64360426578568,
+            88.79707479563248
+          ]
+        },
+        {
+          "row": 68,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.068,
+            1192.08454278896,
+            106711.4362047255,
+            0.01674251777822826,
+            0,
+            828.4793407586986,
+            27.7435551678818,
+            89.0995124923449
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.068,
+            1192.08454278896,
+            106711.4362047255,
+            0.01674251777822826,
+            0,
+            828.4793407586986,
+            27.7435551678818,
+            89.0995124923449
+          ]
+        },
+        {
+          "row": 69,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.069,
+            1196.733281858493,
+            106572.0462728762,
+            0.01654692635475511,
+            0,
+            832.0367223419271,
+            27.84351251459686,
+            89.40076641729043
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.069,
+            1196.733281858493,
+            106572.0462728762,
+            0.01654692635475511,
+            0,
+            832.0367223419271,
+            27.84351251459686,
+            89.40076641729043
+          ]
+        },
+        {
+          "row": 70,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.07,
+            1201.380893143364,
+            106433.4202717528,
+            0.01635684873159958,
+            0,
+            835.5941039251559,
+            27.94347602973292,
+            89.70085731176647
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.07,
+            1201.380893143364,
+            106433.4202717528,
+            0.01635684873159958,
+            0,
+            835.5941039251559,
+            27.94347602973292,
+            89.70085731176647
+          ]
+        },
+        {
+          "row": 71,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.071,
+            1206.027395953132,
+            106295.5259225922,
+            0.01617205499509224,
+            0,
+            839.1514855083834,
+            28.04344545265247,
+            89.99980526535951
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.071,
+            1206.027395953132,
+            106295.5259225922,
+            0.01617205499509224,
+            0,
+            839.1514855083834,
+            28.04344545265247,
+            89.99980526535951
+          ]
+        },
+        {
+          "row": 72,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.072,
+            1210.672809005783,
+            106158.3327398959,
+            0.01599232783887478,
+            0,
+            842.7088670916119,
+            28.14342053719785,
+            90.2976297447836
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.072,
+            1210.672809005783,
+            106158.3327398959,
+            0.01599232783887478,
+            0,
+            842.7088670916119,
+            28.14342053719785,
+            90.2976297447836
+          ]
+        },
+        {
+          "row": 73,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.073,
+            1215.317150453171,
+            106021.8119086038,
+            0.01581746171143422,
+            0,
+            846.2662486748403,
+            28.24340105069953,
+            90.59434962109992
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.073,
+            1215.317150453171,
+            106021.8119086038,
+            0.01581746171143422,
+            0,
+            846.2662486748403,
+            28.24340105069953,
+            90.59434962109992
+          ]
+        },
+        {
+          "row": 74,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.074,
+            1219.960437905099,
+            105885.9361712265,
+            0.01564726203188336,
+            0,
+            849.8236302580686,
+            28.34338677306467,
+            90.88998319542665
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.074,
+            1219.960437905099,
+            105885.9361712265,
+            0.01564726203188336,
+            0,
+            849.8236302580686,
+            28.34338677306467,
+            90.88998319542665
+          ]
+        },
+        {
+          "row": 75,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.075,
+            1224.60268845209,
+            105750.6797240075,
+            0.01548154446769726,
+            0,
+            853.3810118412971,
+            28.44337749593874,
+            91.18454822323918
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.075,
+            1224.60268845209,
+            105750.6797240075,
+            0.01548154446769726,
+            0,
+            853.3810118412971,
+            28.44337749593874,
+            91.18454822323918
+          ]
+        },
+        {
+          "row": 76,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.076,
+            1229.243918686949,
+            105616.0181212826,
+            0.01532013426876931,
+            0,
+            856.9383934245259,
+            28.54337302193323,
+            91.47806193735332
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.076,
+            1229.243918686949,
+            105616.0181212826,
+            0.01532013426876931,
+            0,
+            856.9383934245259,
+            28.54337302193323,
+            91.47806193735332
+          ]
+        },
+        {
+          "row": 77,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.077,
+            1233.884144725196,
+            105481.9281872922,
+            0.01516286565272923,
+            0,
+            860.4957750077541,
+            28.64337316391357,
+            91.77054106967745
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.077,
+            1233.884144725196,
+            105481.9281872922,
+            0.01516286565272923,
+            0,
+            860.4957750077541,
+            28.64337316391357,
+            91.77054106967745
+          ]
+        },
+        {
+          "row": 78,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.078,
+            1238.523382224432,
+            105348.3879347774,
+            0.01500958123697755,
+            0,
+            864.0531565909823,
+            28.74337774434185,
+            92.06200187181221
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.078,
+            1238.523382224432,
+            105348.3879347774,
+            0.01500958123697755,
+            0,
+            864.0531565909823,
+            28.74337774434185,
+            92.06200187181221
+          ]
+        },
+        {
+          "row": 79,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.079,
+            1243.16164640271,
+            105215.376489758,
+            0.01486013151334631,
+            0,
+            867.610538174211,
+            28.8433865946694,
+            92.35246013457164
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.079,
+            1243.16164640271,
+            105215.376489758,
+            0.01486013151334631,
+            0,
+            867.610538174211,
+            28.8433865946694,
+            92.35246013457164
+          ]
+        },
+        {
+          "row": 80,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.08,
+            1247.798952055962,
+            105082.8740219531,
+            0.01471437436169955,
+            0,
+            871.1679197574396,
+            28.943399554775,
+            92.64193120649325
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.08,
+            1247.798952055962,
+            105082.8740219531,
+            0.01471437436169955,
+            0,
+            871.1679197574396,
+            28.943399554775,
+            92.64193120649325
+          ]
+        },
+        {
+          "row": 81,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.081,
+            1252.435313574564,
+            104950.8616803545,
+            0.01457217459914751,
+            0,
+            874.7253013406679,
+            29.04341647244468,
+            92.93043001140009
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.081,
+            1252.435313574564,
+            104950.8616803545,
+            0.01457217459914751,
+            0,
+            874.7253013406679,
+            29.04341647244468,
+            92.93043001140009
+          ]
+        },
+        {
+          "row": 82,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.082,
+            1257.070744959061,
+            104819.3215335159,
+            0.01443340356186885,
+            0,
+            878.2826829238963,
+            29.14343720288947,
+            93.2179710650734
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.082,
+            1257.070744959061,
+            104819.3215335159,
+            0.01443340356186885,
+            0,
+            878.2826829238963,
+            29.14343720288947,
+            93.2179710650734
+          ]
+        },
+        {
+          "row": 83,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.083,
+            1261.705259835118,
+            104688.2365141567,
+            0.01429793871682189,
+            0,
+            881.8400645071248,
+            29.24346160829824,
+            93.50456849108974
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.083,
+            1261.705259835118,
+            104688.2365141567,
+            0.01429793871682189,
+            0,
+            881.8400645071248,
+            29.24346160829824,
+            93.50456849108974
+          ]
+        },
+        {
+          "row": 84,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.084,
+            1266.338871467751,
+            104557.590367724,
+            0.01416566330088184,
+            0,
+            885.3974460903532,
+            29.34348955742227,
+            93.79023603587346
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.084,
+            1266.338871467751,
+            104557.590367724,
+            0.01416566330088184,
+            0,
+            885.3974460903532,
+            29.34348955742227,
+            93.79023603587346
+          ]
+        },
+        {
+          "row": 85,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.085,
+            1270.971592774853,
+            104427.3676045852,
+            0.01403646598517031,
+            0,
+            888.9548276735819,
+            29.44352092518927,
+            94.07498708301083
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.085,
+            1270.971592774853,
+            104427.3676045852,
+            0.01403646598517031,
+            0,
+            888.9548276735819,
+            29.44352092518927,
+            94.07498708301083
+          ]
+        },
+        {
+          "row": 86,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.086,
+            1275.603436340091,
+            104297.5534555555,
+            0.01391024056254885,
+            0,
+            892.5122092568096,
+            29.54355559234423,
+            94.35883466686994
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.086,
+            1275.603436340091,
+            104297.5534555555,
+            0.01391024056254885,
+            0,
+            892.5122092568096,
+            29.54355559234423,
+            94.35883466686994
+          ]
+        },
+        {
+          "row": 87,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.087,
+            1280.234414425182,
+            104168.1338304934,
+            0.01378688565643273,
+            0,
+            896.0695908400378,
+            29.64359344511518,
+            94.64179148556688
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.087,
+            1280.234414425182,
+            104168.1338304934,
+            0.01378688565643273,
+            0,
+            896.0695908400378,
+            29.64359344511518,
+            94.64179148556688
+          ]
+        },
+        {
+          "row": 88,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.088,
+            1284.864538981591,
+            104039.095279718,
+            0.01366630444924722,
+            0,
+            899.6269724232664,
+            29.74363437490155,
+            94.92386991331574
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.088,
+            1284.864538981591,
+            104039.095279718,
+            0.01366630444924722,
+            0,
+            899.6269724232664,
+            29.74363437490155,
+            94.92386991331574
+          ]
+        },
+        {
+          "row": 89,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.089,
+            1289.493821661696,
+            103910.4249580288,
+            0.01354840442899757,
+            0,
+            903.1843540064948,
+            29.84367827798373,
+            95.20508201219823
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.089,
+            1289.493821661696,
+            103910.4249580288,
+            0.01354840442899757,
+            0,
+            903.1843540064948,
+            29.84367827798373,
+            95.20508201219823
+          ]
+        },
+        {
+          "row": 90,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.09,
+            1294.12227382943,
+            103782.1105911228,
+            0.0134330971525586,
+            0,
+            906.7417355897232,
+            29.94372505525186,
+            95.48543954338555
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.09,
+            1294.12227382943,
+            103782.1105911228,
+            0.0134330971525586,
+            0,
+            906.7417355897232,
+            29.94372505525186,
+            95.48543954338555
+          ]
+        },
+        {
+          "row": 91,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.091,
+            1298.749906570448,
+            103654.1404442269,
+            0.01332029802441094,
+            0,
+            910.2991171729518,
+            30.04377461195256,
+            95.76495397784348
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.091,
+            1298.749906570448,
+            103654.1404442269,
+            0.01332029802441094,
+            0,
+            910.2991171729518,
+            30.04377461195256,
+            95.76495397784348
+          ]
+        },
+        {
+          "row": 92,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.092,
+            1303.376730701827,
+            103526.5032927757,
+            0.01320992608966063,
+            0,
+            913.8564987561803,
+            30.14382685745215,
+            96.04363650654923
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.092,
+            1303.376730701827,
+            103526.5032927757,
+            0.01320992608966063,
+            0,
+            913.8564987561803,
+            30.14382685745215,
+            96.04363650654923
+          ]
+        },
+        {
+          "row": 93,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.093,
+            1308.002756781341,
+            103399.1883949805,
+            0.0131019038402778,
+            0,
+            917.4138803394085,
+            30.24388170501518,
+            96.32149805024738
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.093,
+            1308.002756781341,
+            103399.1883949805,
+            0.0131019038402778,
+            0,
+            917.4138803394085,
+            30.24388170501518,
+            96.32149805024738
+          ]
+        },
+        {
+          "row": 94,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.094,
+            1312.627995116322,
+            103272.1854661502,
+            0.01299615703357987,
+            0,
+            920.9712619226373,
+            30.3439390715971,
+            96.5985492687694
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.094,
+            1312.627995116322,
+            103272.1854661502,
+            0.01299615703357987,
+            0,
+            920.9712619226373,
+            30.3439390715971,
+            96.5985492687694
+          ]
+        },
+        {
+          "row": 95,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.095,
+            1317.25245577213,
+            103145.4846546334,
+            0.01289261452206593,
+            0,
+            924.5286435058655,
+            30.4439988776499,
+            96.87480056994114
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.095,
+            1317.25245577213,
+            103145.4846546334,
+            0.01289261452206593,
+            0,
+            924.5286435058655,
+            30.4439988776499,
+            96.87480056994114
+          ]
+        },
+        {
+          "row": 96,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.096,
+            1321.876148580269,
+            103019.0765192639,
+            0.01279120809378259,
+            0,
+            928.0860250890939,
+            30.54406104694016,
+            97.15026211809972
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.096,
+            1321.876148580269,
+            103019.0765192639,
+            0.01279120809378259,
+            0,
+            928.0860250890939,
+            30.54406104694016,
+            97.15026211809972
+          ]
+        },
+        {
+          "row": 97,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.097,
+            1326.499083146133,
+            102892.9520082022,
+            0.01269187232246888,
+            0,
+            931.6434066723225,
+            30.64412550637803,
+            97.42494384224088
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.097,
+            1326.499083146133,
+            102892.9520082022,
+            0.01269187232246888,
+            0,
+            931.6434066723225,
+            30.64412550637803,
+            97.42494384224088
+          ]
+        },
+        {
+          "row": 98,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.098,
+            1331.121268856447,
+            102767.1024390714,
+            0.01259454442678803,
+            0,
+            935.200788255551,
+            30.74419218585695,
+            97.69885544381609
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.098,
+            1331.121268856447,
+            102767.1024390714,
+            0.01259454442678803,
+            0,
+            935.200788255551,
+            30.74419218585695,
+            97.69885544381609
+          ]
+        },
+        {
+          "row": 99,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.099,
+            1335.742714886373,
+            102641.519480298,
+            0.01249916413801008,
+            0,
+            938.7581698387793,
+            30.84426101810298,
+            97.9720064041977
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.099,
+            1335.742714886373,
+            102641.519480298,
+            0.01249916413801008,
+            0,
+            938.7581698387793,
+            30.84426101810298,
+            97.9720064041977
+          ]
+        },
+        {
+          "row": 100,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.1,
+            1340.363430206332,
+            102516.1951335711,
+            0.01240567357555896,
+            0,
+            942.315551422007,
+            30.94433193853305,
+            98.24440599182924
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.1,
+            1340.363430206332,
+            102516.1951335711,
+            0.01240567357555896,
+            0,
+            942.315551422007,
+            30.94433193853305,
+            98.24440599182924
+          ]
+        },
+        {
+          "row": 101,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.101,
+            1344.983423588546,
+            102391.1217173449,
+            0.01231401712988435,
+            0,
+            945.8729330052357,
+            31.04440488512196,
+            98.51606326907698
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.101,
+            1344.983423588546,
+            102391.1217173449,
+            0.01231401712988435,
+            0,
+            945.8729330052357,
+            31.04440488512196,
+            98.51606326907698
+          ]
+        },
+        {
+          "row": 102,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.102,
+            1349.602703613293,
+            102266.2918513105,
+            0.01222414135215999,
+            0,
+            949.4303145884641,
+            31.14447979827676,
+            98.78698709879777
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.102,
+            1349.602703613293,
+            102266.2918513105,
+            0.01222414135215999,
+            0,
+            949.4303145884641,
+            31.14447979827676,
+            98.78698709879777
+          ]
+        },
+        {
+          "row": 103,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.103,
+            1354.221278674935,
+            102141.698441773,
+            0.01213599485034886,
+            0,
+            952.9876961716926,
+            31.24455662071886,
+            99.0571861506377
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.103,
+            1354.221278674935,
+            102141.698441773,
+            0.01213599485034886,
+            0,
+            952.9876961716926,
+            31.24455662071886,
+            99.0571861506377
+          ]
+        },
+        {
+          "row": 104,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.104,
+            1358.839156987678,
+            102017.334667872,
+            0.01204952819121064,
+            0,
+            956.545077754921,
+            31.34463529737262,
+            99.32666890707459
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.104,
+            1358.839156987678,
+            102017.334667872,
+            0.01204952819121064,
+            0,
+            956.545077754921,
+            31.34463529737262,
+            99.32666890707459
+          ]
+        },
+        {
+          "row": 105,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.105,
+            1363.456346591119,
+            101893.1939685892,
+            0.01196469380785862,
+            0,
+            960.1024593381494,
+            31.44471577526061,
+            99.59544366921729
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.105,
+            1363.456346591119,
+            101893.1939685892,
+            0.01196469380785862,
+            0,
+            960.1024593381494,
+            31.44471577526061,
+            99.59544366921729
+          ]
+        },
+        {
+          "row": 106,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.106,
+            1368.072855355568,
+            101769.270030492,
+            0.011881445912503,
+            0,
+            963.6598409213777,
+            31.54479800340449,
+            99.86351856237329
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.106,
+            1368.072855355568,
+            101769.270030492,
+            0.011881445912503,
+            0,
+            963.6598409213777,
+            31.54479800340449,
+            99.86351856237329
+          ]
+        },
+        {
+          "row": 107,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.107,
+            1372.688690987159,
+            101645.556776164,
+            0.01179974041404421,
+            0,
+            967.2172225046062,
+            31.64488193273165,
+            100.1309015413964
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.107,
+            1372.688690987159,
+            101645.556776164,
+            0.01179974041404421,
+            0,
+            967.2172225046062,
+            31.64488193273165,
+            100.1309015413964
+          ]
+        },
+        {
+          "row": 108,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.108,
+            1377.303861032766,
+            101522.0483532784,
+            0.01171953484020458,
+            0,
+            970.7746040878347,
+            31.744967515987,
+            100.3976003958246
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.108,
+            1377.303861032766,
+            101522.0483532784,
+            0.01171953484020458,
+            0,
+            970.7746040878347,
+            31.744967515987,
+            100.3976003958246
+          ]
+        },
+        {
+          "row": 109,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.109,
+            1381.918372884724,
+            101398.7391242724,
+            0.01164078826390951,
+            0,
+            974.3319856710632,
+            31.8450547076496,
+            100.663622754818
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.109,
+            1381.918372884724,
+            101398.7391242724,
+            0.01164078826390951,
+            0,
+            974.3319856710632,
+            31.8450547076496,
+            100.663622754818
+          ]
+        },
+        {
+          "row": 110,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.11,
+            1386.532233785383,
+            101275.6236565857,
+            0.01156346123364991,
+            0,
+            977.8893672542916,
+            31.94514346385379,
+            100.9289760919071
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.11,
+            1386.532233785383,
+            101275.6236565857,
+            0.01156346123364991,
+            0,
+            977.8893672542916,
+            31.94514346385379,
+            100.9289760919071
+          ]
+        },
+        {
+          "row": 111,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.111,
+            1391.145450831468,
+            101152.6967134259,
+            0.01148751570757705,
+            0,
+            981.4467488375199,
+            32.04523374231465,
+            101.1936677295593
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.111,
+            1391.145450831468,
+            101152.6967134259,
+            0.01148751570757705,
+            0,
+            981.4467488375199,
+            32.04523374231465,
+            101.1936677295593
+          ]
+        },
+        {
+          "row": 112,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.112,
+            1395.758030978296,
+            101029.953245029,
+            0.0114129149910985,
+            0,
+            985.0041304207488,
+            32.14532550225746,
+            101.4577048435723
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.112,
+            1395.758030978296,
+            101029.953245029,
+            0.0114129149910985,
+            0,
+            985.0041304207488,
+            32.14532550225746,
+            101.4577048435723
+          ]
+        },
+        {
+          "row": 113,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.113,
+            1400.369981043824,
+            100907.3883803834,
+            0.01133962367775996,
+            0,
+            988.561512003977,
+            32.24541870435083,
+            101.7210944673033
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.113,
+            1400.369981043824,
+            100907.3883803834,
+            0.01133962367775996,
+            0,
+            988.561512003977,
+            32.24541870435083,
+            101.7210944673033
+          ]
+        },
+        {
+          "row": 114,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.114,
+            1404.981307712549,
+            100784.9974193904,
+            0.01126760759321305,
+            0,
+            992.1188935872054,
+            32.34551331064344,
+            101.9838434957397
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.114,
+            1404.981307712549,
+            100784.9974193904,
+            0.01126760759321305,
+            0,
+            992.1188935872054,
+            32.34551331064344,
+            101.9838434957397
+          ]
+        },
+        {
+          "row": 115,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.115,
+            1409.59201753927,
+            100662.7758254331,
+            0.01119683374208257,
+            0,
+            995.6762751704332,
+            32.44560928450399,
+            102.2459586894208
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.115,
+            1409.59201753927,
+            100662.7758254331,
+            0.01119683374208257,
+            0,
+            995.6762751704332,
+            32.44560928450399,
+            102.2459586894208
+          ]
+        },
+        {
+          "row": 116,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.116,
+            1414.20211695271,
+            100540.7192183295,
+            0.01112727025755994,
+            0,
+            999.2336567536614,
+            32.54570659056438,
+            102.5074466782146
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.116,
+            1414.20211695271,
+            100540.7192183295,
+            0.01112727025755994,
+            0,
+            999.2336567536614,
+            32.54570659056438,
+            102.5074466782146
+          ]
+        },
+        {
+          "row": 117,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.117,
+            1418.811612259004,
+            100418.8233676474,
+            0.01105888635356059,
+            0,
+            1002.79103833689,
+            32.6458051946656,
+            102.7683139649587
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.117,
+            1418.811612259004,
+            100418.8233676474,
+            0.01105888635356059,
+            0,
+            1002.79103833689,
+            32.6458051946656,
+            102.7683139649587
+          ]
+        },
+        {
+          "row": 118,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.118,
+            1423.420509645065,
+            100297.0841863592,
+            0.01099165227929496,
+            0,
+            1006.348419920119,
+            32.74590506380663,
+            103.0285669289688
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.118,
+            1423.420509645065,
+            100297.0841863592,
+            0.01099165227929496,
+            0,
+            1006.348419920119,
+            32.74590506380663,
+            103.0285669289688
+          ]
+        },
+        {
+          "row": 119,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.119,
+            1428.028815181839,
+            100175.4977248163,
+            0.01092553927611176,
+            0,
+            1009.905801503347,
+            32.84600616609571,
+            103.2882118294232
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.119,
+            1428.028815181839,
+            100175.4977248163,
+            0.01092553927611176,
+            0,
+            1009.905801503347,
+            32.84600616609571,
+            103.2882118294232
+          ]
+        },
+        {
+          "row": 120,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.12,
+            1432.636534827429,
+            100054.060165025,
+            0.01086051953648229,
+            0,
+            1013.463183086575,
+            32.94610847070414,
+            103.5472548086266
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.12,
+            1432.636534827429,
+            100054.060165025,
+            0.01086051953648229,
+            0,
+            1013.463183086575,
+            32.94610847070414,
+            103.5472548086266
+          ]
+        },
+        {
+          "row": 121,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.121,
+            1437.243674430123,
+            99932.76781520646,
+            0.01079656616500279,
+            0,
+            1017.020564669804,
+            33.04621194782234,
+            103.8057018951592
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.121,
+            1437.243674430123,
+            99932.76781520646,
+            0.01079656616500279,
+            0,
+            1017.020564669804,
+            33.04621194782234,
+            103.8057018951592
+          ]
+        }
+      ]
+    },
+    "Engineering_Diagnostic": {
+      "max_row": 11,
+      "max_column": 6,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Methane accumulation / purge diagnostic",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Methane accumulation / purge diagnostic",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "The source-reference non-H2/CO2 fraction is not a universal hard limit. It is used as a same-plant reference envelope to quantify how much purge architecture would need to change for each catalyst.",
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "The source-reference non-H2/CO2 fraction is not a universal hard limit. It is used as a same-plant reference envelope to quantify how much purge architecture would need to change for each catalyst.",
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Candidate",
+            "At 2%: non-H2/CO2",
+            "At 2%: recycle kmol/h",
+            "Purge to source gas fraction",
+            "NPC at that purge \u20ac/t",
+            "Interpretation"
+          ],
+          "formulas": [
+            "Candidate",
+            "At 2%: non-H2/CO2",
+            "At 2%: recycle kmol/h",
+            "Purge to source gas fraction",
+            "NPC at that purge \u20ac/t",
+            "Interpretation"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.04809347473338729,
+            116546.4918011905,
+            0.014,
+            938.3604618858911,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.04809347473338729,
+            116546.4918011905,
+            0.014,
+            938.3604618858911,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "5 wt% Re | 200 C",
+            0.1306475147003574,
+            67467.39665524026,
+            0.042,
+            996.8064341214558,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ],
+          "formulas": [
+            "5 wt% Re | 200 C",
+            0.1306475147003574,
+            67467.39665524026,
+            0.042,
+            996.8064341214558,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "1 wt% Re | 250 C",
+            0.09580800232636336,
+            100697.8973854665,
+            0.029,
+            1009.550380475958,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ],
+          "formulas": [
+            "1 wt% Re | 250 C",
+            0.09580800232636336,
+            100697.8973854665,
+            0.029,
+            1009.550380475958,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "5 wt% Re | 250 C",
+            0.5208080092004862,
+            145648.0103387932,
+            0.241,
+            1765.139001395579,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ],
+          "formulas": [
+            "5 wt% Re | 250 C",
+            0.5208080092004862,
+            145648.0103387932,
+            0.241,
+            1765.139001395579,
+            "High required purge indicates that catalyst byproduct identity forces a different recycle architecture."
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Source reference non-H2/CO2 fraction",
+            0.06862515529373837,
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Source reference non-H2/CO2 fraction",
+            0.06862515529373837,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Source reference recycle",
+            54290,
+            "kmol/h",
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Source reference recycle",
+            54290,
+            "kmol/h",
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    "Methanol_Leverage": {
+      "max_row": 8,
+      "max_column": 5,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Local catalyst-economic leverage within methanol",
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Local catalyst-economic leverage within methanol",
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Local elasticities at the source-anchored 2% purge. L_X and L_STY are beneficial-increase elasticities; L_CH4 is the cost elasticity to CH4 while selectivity is transferred between CH4 and MeOH.",
+            null,
+            null,
+            null,
+            null
+          ],
+          "formulas": [
+            "Local elasticities at the source-anchored 2% purge. L_X and L_STY are beneficial-increase elasticities; L_CH4 is the cost elasticity to CH4 while selectivity is transferred between CH4 and MeOH.",
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Candidate",
+            "L_STY",
+            "L_conversion",
+            "L_CH4 suppression",
+            "Interpretation"
+          ],
+          "formulas": [
+            "Candidate",
+            "L_STY",
+            "L_conversion",
+            "L_CH4 suppression",
+            "Interpretation"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "1 wt% Re | 200 C",
+            0.004715299976110694,
+            0.1217419575230543,
+            null,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ],
+          "formulas": [
+            "1 wt% Re | 200 C",
+            0.004715299976110694,
+            0.1217419575230543,
+            null,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "5 wt% Re | 200 C",
+            0.003597001948674901,
+            0.07496160388292641,
+            0.03599787445800993,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ],
+          "formulas": [
+            "5 wt% Re | 200 C",
+            0.003597001948674901,
+            0.07496160388292641,
+            0.03599787445800993,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "1 wt% Re | 250 C",
+            0.00423046693982687,
+            0.1023497562415159,
+            0.03562913848311555,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ],
+          "formulas": [
+            "1 wt% Re | 250 C",
+            0.00423046693982687,
+            0.1023497562415159,
+            0.03562913848311555,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "5 wt% Re | 250 C",
+            0.00289430146472775,
+            0.05882776006061632,
+            0.3757939247335326,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ],
+          "formulas": [
+            "5 wt% Re | 250 C",
+            0.00289430146472775,
+            0.05882776006061632,
+            0.3757939247335326,
+            "A value of 0.10 means a 1% beneficial property change changes system cost by ~0.10% locally."
+          ]
+        }
+      ]
+    },
+    "Sources": {
+      "max_row": 8,
+      "max_column": 3,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Sources",
+            null,
+            null
+          ],
+          "formulas": [
+            "Sources",
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Primary/authoritative sources and exactly what is taken from each.",
+            null,
+            null
+          ],
+          "formulas": [
+            "Primary/authoritative sources and exactly what is taken from each.",
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Use",
+            "URL / local source",
+            "What is taken"
+          ],
+          "formulas": [
+            "Use",
+            "URL / local source",
+            "What is taken"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Detailed methanol process + TEA",
+            "https://www.mdpi.com/2227-9717/10/8/1535",
+            "Plant scale; 70 bar; 2% purge; recycle flow; process configuration; catalyst loading; compressor efficiencies; EC/FCI/ACC/OPEX/NPC; feed/electricity prices; Lang factor/economic equations; Figure 11 EC split."
+          ],
+          "formulas": [
+            "Detailed methanol process + TEA",
+            "https://www.mdpi.com/2227-9717/10/8/1535",
+            "Plant scale; 70 bar; 2% purge; recycle flow; process configuration; catalyst loading; compressor efficiencies; EC/FCI/ACC/OPEX/NPC; feed/electricity prices; Lang factor/economic equations; Figure 11 EC split."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Re/TiO2 catalyst data",
+            "https://www.osti.gov/pages/servlets/purl/3005244",
+            "Table 3 conversion, MeOH STY, MeOH/CH4 selectivity and controlled 100 bar CO2/H2=1:4 conditions."
+          ],
+          "formulas": [
+            "Re/TiO2 catalyst data",
+            "https://www.osti.gov/pages/servlets/purl/3005244",
+            "Table 3 conversion, MeOH STY, MeOH/CH4 selectivity and controlled 100 bar CO2/H2=1:4 conditions."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Re/TiO2 bibliographic record",
+            "https://www.osti.gov/pages/biblio/3005244",
+            "Publication/DOI metadata."
+          ],
+          "formulas": [
+            "Re/TiO2 bibliographic record",
+            "https://www.osti.gov/pages/biblio/3005244",
+            "Publication/DOI metadata."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Ammonia final model",
+            "ammonia_final_consistency_closure_v1.xlsx / NH3-FINAL-1.0",
+            "NH3-FINAL-1.0 Fe optimum and reoptimized \u00b10.5% activity perturbations for local activity-economic leverage."
+          ],
+          "formulas": [
+            "Ammonia final model",
+            "ammonia_final_consistency_closure_v1.xlsx / NH3-FINAL-1.0",
+            "NH3-FINAL-1.0 Fe optimum and reoptimized \u00b10.5% activity perturbations for local activity-economic leverage."
+          ]
+        }
+      ]
+    },
+    "Audit": {
+      "max_row": 14,
+      "max_column": 3,
+      "nonempty_preview": [
+        {
+          "row": 1,
+          "values": [
+            "Audit / scope control",
+            null,
+            null
+          ],
+          "formulas": [
+            "Audit / scope control",
+            null,
+            null
+          ]
+        },
+        {
+          "row": 2,
+          "values": [
+            "Checks required before using v3 as a paper result.",
+            null,
+            null
+          ],
+          "formulas": [
+            "Checks required before using v3 as a paper result.",
+            null,
+            null
+          ]
+        },
+        {
+          "row": 4,
+          "values": [
+            "Check",
+            "Status",
+            "Notes"
+          ],
+          "formulas": [
+            "Check",
+            "Status",
+            "Notes"
+          ]
+        },
+        {
+          "row": 5,
+          "values": [
+            "Free k_loop removed",
+            "PASS",
+            "Recycle/separation cost is no longer represented by an arbitrary cost coefficient."
+          ],
+          "formulas": [
+            "Free k_loop removed",
+            "PASS",
+            "Recycle/separation cost is no longer represented by an arbitrary cost coefficient."
+          ]
+        },
+        {
+          "row": 6,
+          "values": [
+            "Species recycle is explicit",
+            "PASS",
+            "CH4/CO-like/N2 accumulation, recycle and purge are solved at steady state; fresh H2/CO2 makeup follows from the same mass balance."
+          ],
+          "formulas": [
+            "Species recycle is explicit",
+            "PASS",
+            "CH4/CO-like/N2 accumulation, recycle and purge are solved at steady state; fresh H2/CO2 makeup follows from the same mass balance."
+          ]
+        },
+        {
+          "row": 7,
+          "values": [
+            "Source annual NPC reconstructed",
+            "PASS",
+            "Model=1071.68 vs source=1071.8 M\u20ac/y."
+          ],
+          "formulas": [
+            "Source annual NPC reconstructed",
+            "PASS",
+            "Model=1071.68 vs source=1071.8 M\u20ac/y."
+          ]
+        },
+        {
+          "row": 8,
+          "values": [
+            "Source recycle flow calibrated",
+            "PASS",
+            "One scalar flow correction 1.0989 exactly maps the reduced source balance to 54,290 kmol/h; it is then frozen for all candidates."
+          ],
+          "formulas": [
+            "Source recycle flow calibrated",
+            "PASS",
+            "One scalar flow correction 1.0989 exactly maps the reduced source balance to 54,290 kmol/h; it is then frozen for all candidates."
+          ]
+        },
+        {
+          "row": 9,
+          "values": [
+            "Product selectivity treatment",
+            "PASS",
+            "No exact CO value is invented where the catalyst paper says CO<1%; rounded carbon closure is carried as CO-like recoverable gas. 1 wt%/200C CH4<1 is central=0 with a bounded alternative available."
+          ],
+          "formulas": [
+            "Product selectivity treatment",
+            "PASS",
+            "No exact CO value is invented where the catalyst paper says CO<1%; rounded carbon closure is carried as CO-like recoverable gas. 1 wt%/200C CH4<1 is central=0 with a bounded alternative available."
+          ]
+        },
+        {
+          "row": 10,
+          "values": [
+            "Separation CAPEX explicit",
+            "PASS",
+            "Heat exchangers/flash/recycle compressor/distillation/pump all scale with explicit gas/liquid flow or compressor power."
+          ],
+          "formulas": [
+            "Separation CAPEX explicit",
+            "PASS",
+            "Heat exchangers/flash/recycle compressor/distillation/pump all scale with explicit gas/liquid flow or compressor power."
+          ]
+        },
+        {
+          "row": 11,
+          "values": [
+            "Separation utility OPEX",
+            "LIMITATION",
+            "The source process is heat-integrated; v3 does not invent an external steam tariff. Variable thermal separation duty is represented through equipment scaling, while the source-calibrated direct-OPEX residual remains fixed."
+          ],
+          "formulas": [
+            "Separation utility OPEX",
+            "LIMITATION",
+            "The source process is heat-integrated; v3 does not invent an external steam tariff. Variable thermal separation duty is represented through equipment scaling, while the source-calibrated direct-OPEX residual remains fixed."
+          ]
+        },
+        {
+          "row": 12,
+          "values": [
+            "Equipment split precision",
+            "LIMITATION",
+            "Figure 11 EC category shares are approximate digitization, normalized to exact 85.5 M\u20ac total. This is adequate for reduced sensitivity, not a substitute for the source supplementary equipment table."
+          ],
+          "formulas": [
+            "Equipment split precision",
+            "LIMITATION",
+            "Figure 11 EC category shares are approximate digitization, normalized to exact 85.5 M\u20ac total. This is adequate for reduced sensitivity, not a substitute for the source supplementary equipment table."
+          ]
+        },
+        {
+          "row": 13,
+          "values": [
+            "Re catalyst purchase price",
+            "EXCLUDED BY DESIGN",
+            "Headline comparison isolates performance-mediated leverage. A consistent supported Re/TiO2 catalyst manufacturing/recovery cost is not available in the supplied primary catalyst paper."
+          ],
+          "formulas": [
+            "Re catalyst purchase price",
+            "EXCLUDED BY DESIGN",
+            "Headline comparison isolates performance-mediated leverage. A consistent supported Re/TiO2 catalyst manufacturing/recovery cost is not available in the supplied primary catalyst paper."
+          ]
+        },
+        {
+          "row": 14,
+          "values": [
+            "Global T/P optimization",
+            "NOT CLAIMED",
+            "Catalyst performance exists only at measured 200/250 C and 100 bar; v3 compares those controlled operating points and propagates process economics. It does not interpolate a new kinetic map."
+          ],
+          "formulas": [
+            "Global T/P optimization",
+            "NOT CLAIMED",
+            "Catalyst performance exists only at measured 200/250 C and 100 bar; v3 compares those controlled operating points and propagates process economics. It does not interpolate a new kinetic map."
+          ]
+        }
+      ]
+    }
+  }
+}
