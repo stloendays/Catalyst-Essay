@@ -25,3 +25,5 @@ for s in wbv.sheetnames:
     report["sheets"][s]=info
 (OUT/"meoh_workbook_inspection.json").write_text(json.dumps(report,indent=2,default=str),encoding="utf-8")
 print(json.dumps({"sheets":report["sheet_names"],"out":"data/supervisor_2026_09_20/meoh_workbook_inspection.json"},indent=2))
+
+# trigger: 2026-09-20
