@@ -64,7 +64,7 @@ Under the canonical **NH3-FINAL-1.1** model:
 
 The result is concentrated at the **decision frontier** rather than representing a global collapse of the atomistic ranking.
 
-The economic ordering is generated after propagation through catalyst-controlled pathways involving productivity, inventory, reactor sizing, operating severity, catalyst replacement and process equipment. The relevant mechanism is therefore not metal price alone.
+The economic ordering is generated after propagation through catalyst-controlled pathways involving productivity, inventory, reactor sizing, operating severity, catalyst replacement and process equipment. A direct counterfactual with the **Ru metal price set equal to the Fe metal price** is now required before the manuscript claims that the inversion is not driven by metal price alone. Until that test is complete, the current result establishes the ranking inversion and its multiscale propagation, while the causal partition between direct metal price and downstream process/catalyst-demand terms remains open.
 
 ## Uncertainty propagation
 
@@ -155,6 +155,8 @@ DISCOVER-BOUNDARY-C1 resolves the operating envelope. Deterministic policy D rea
 The supported combined statement is:
 
 > **Adaptive decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized; it is not a universal raw-compute saving.**
+
+Under the non-binding allowance, canonical narrow-window use is **0/20**; median complete-decision stabilization occurs at **566 CU**, followed by a median **148 CU** of additional spend before self-stop, for **714 CU** median final spend. The next normalization is an oracle minimum CU for the shortest admissible complete-decision tool chain, so that 75 CU and the fixed-policy 206 CU threshold can be interpreted relative to the irreducible decision cost.
 
 ## Manuscript-level claim structure
 
