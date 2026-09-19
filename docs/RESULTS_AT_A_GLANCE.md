@@ -1,8 +1,8 @@
 # Results at a glance
 
-Snapshot: **2026-09-17**
+Snapshot: **2026-09-20**
 
-This page contains current manuscript-facing results only. Superseded values and intermediate development results are documented separately in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
+This page contains the current audited baseline results. Supervisor feedback on **2026-09-20** reopened three targeted analyses before final manuscript lock: the Ru-price-equalization counterfactual/cost decomposition, joint cost-parameter Monte Carlo, and the Agent oracle-minimum-CU normalization. Detailed scope: [`SUPERVISOR_FEEDBACK_2026-09-20.md`](SUPERVISOR_FEEDBACK_2026-09-20.md). Superseded values and intermediate development results are documented separately in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
 
 ## Ammonia ranking inversion
 
@@ -168,12 +168,20 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **7/7 at 150 CU**, **20/20 at 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
 
-Under the non-binding 5000-CU allowance, the strong tier still completes 20/20 but median final spend rises to **714 CU**, demonstrating that the Agent result is not a universal raw-compute saving.
+Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and reaches decision stability much later.
 
-The manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**.
+The manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. A deterministic oracle minimum CU is pending to normalize the 75-CU strong boundary and the 206-CU fixed-policy threshold against the shortest admissible complete-decision chain.
+
+## Targeted confirmation status
+
+The baseline values above remain the current audited reference, but three supervisor-requested additions are pending:
+
+- **NH3 price counterfactual:** set Ru metal price equal to Fe and reoptimize; until then, do not promote “not metal price alone” as a closed causal claim.
+- **Joint cost MC:** vary metal price, CAPEX coefficient, electricity price and catalyst lifetime; report `P(C_Fe < C_Ru)`, alpha* distribution, and MeOH candidate-by-rank probabilities.
+- **Metric reconciliation:** the supervisor referenced “Fe 68% first” for Fig. 3d, whereas the active baseline here is Fe Top-1 survival **28.2%**. Resolve the metric/version identity before updating F3.
 
 ## Evidence state
 
-NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER/C1 are frozen for manuscript production. F1-F8, F9B and F10 are locked; F9A is the current qualitative pathway panel.
+NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER/C1 remain the audited baseline/provenance families. F3/F10 interpretation and the NH3 mechanism wording are selectively reopened for the 2026-09-20 targeted analyses; existing source bundles and prior locks remain preserved.
 
 Primary evidence maps: `data/claim_evidence_registry_2026-09-10.csv` and `data/figure_lock_registry_2026-09-10.csv`.
