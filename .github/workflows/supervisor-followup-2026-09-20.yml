@@ -1,0 +1,34 @@
+name: Supervisor follow-up analysis
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'analysis/supervisor_2026_09_20/**'
+      - '.github/workflows/supervisor-followup-2026-09-20.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install openpyxl numpy scipy pyyaml matplotlib
+      - run: python analysis/supervisor_2026_09_20/inspect_meoh_workbook.py
+      - name: Commit generated inspection
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/supervisor_2026_09_20/
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+          else
+            git commit -m "analysis: inspect MeOH workbook for cost-MC extension"
+            git push
+          fi
