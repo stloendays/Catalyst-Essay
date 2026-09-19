@@ -1,12 +1,12 @@
 # Current project status
 
-Snapshot date: **2026-09-17**
+Snapshot date: **2026-09-20**
 
 ## Overall state
 
-The core scientific evidence is frozen for manuscript production. Current work is concentrated on manuscript integration, publication-quality figure rendering, Supporting Information organization and reproducibility packaging.
+The existing canonical results remain the audited baseline, but supervisor feedback on **2026-09-20** reopened three targeted analyses before manuscript closure: (1) an NH3 Ru-price-equalization counterfactual plus Fe/Ru cost decomposition, (2) joint cost-parameter Monte Carlo, and (3) an Agent oracle-minimum-CU baseline plus revised non-binding interpretation.
 
-No new NH3, MeOH or Au/TiO2 scientific sweep is planned as part of this production phase.
+This is a targeted reopening, not a reset of the project. Existing frozen provenance remains unchanged and continues to define the pre-extension baseline.
 
 ## Canonical scientific families
 
@@ -99,7 +99,9 @@ DISCOVER-BOUNDARY-C1 uses the unchanged frozen V1 protocol. The deterministic fi
 
 For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Canonical narrow-window allocation is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
 
-Under the non-binding 5000-CU allowance, median final spend is **714 CU**. The supported claim is a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal raw-compute saving.
+Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
+
+The supported claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal raw-compute saving. A deterministic oracle minimum CU is now required to normalize 75 CU and 206 CU against the shortest admissible complete-decision tool chain.
 
 ## Figure state
 
@@ -128,9 +130,22 @@ Current manuscript-facing headline data: `data/manuscript_headline_results_2026-
 
 Superseded conclusions, intermediate files and corrected definitions are centralized in `docs/RETIRED_RESULTS.md`. Frozen provenance and audit records remain in the repository for traceability.
 
+## Supervisor-requested targeted analyses — 2026-09-20
+
+1. **NH3 Ru-price counterfactual:** set Ru metal price equal to Fe, reoptimize the full NH3 process, and determine whether the Fe/Ru inversion survives.
+2. **NH3 cost decomposition:** explain the canonical **6.739 USD/t NH3** Fe-Ru gap using the implemented cost categories, then repeat for the price-equalized counterfactual.
+3. **Joint cost Monte Carlo:** vary metal price, CAPEX coefficient, electricity price and catalyst lifetime; report `P(C_Fe < C_Ru)`, the distribution of alpha*, and the four-candidate MeOH rank-probability matrix.
+4. **F3 metric audit:** reconcile the supervisor's “68% first” reference with the active repository's **28.2% Fe Top-1 survival** before changing the figure.
+5. **Agent oracle baseline:** compute the shortest admissible complete-decision CU under the frozen 11-action interface and ledger-true cost model; normalize 75, 206 and 566 CU against it.
+6. **Agent wording/F10 update:** make explicit that non-binding narrow-window use is **0/20** and that median 714 CU = 566 CU to decision stability + 148 CU after stability.
+
+Detailed execution note: `docs/SUPERVISOR_FEEDBACK_2026-09-20.md`.
+
 ## Next production tasks
 
-1. continue R-based visual harmonization of the locked figure set;
-2. assemble final main/Extended Data/Supporting Information layouts;
-3. complete manuscript text against the current claim and figure registries;
-4. run a final link, data and caption consistency pass before supervisor review.
+After the targeted analyses above are completed and audited:
+
+1. re-lock affected claims/figures and update the canonical result registry;
+2. continue R-based visual harmonization;
+3. assemble final main/Extended Data/Supporting Information layouts;
+4. run the final link, data and caption consistency pass before supervisor review.
