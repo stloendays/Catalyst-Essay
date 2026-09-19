@@ -139,4 +139,10 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 ## Current production state
 
-The scientific evidence and F1-F10 figure/caption set are locked except for publication-layout redraws. Current work is manuscript integration, R-based visual harmonization, Supporting Information organization and final submission packaging.
+The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**, but supervisor feedback on **2026-09-20** reopened three targeted analyses before final manuscript lock:
+
+1. Ru-price-equalization NH3 counterfactual plus Fe/Ru cost decomposition;
+2. joint cost-parameter Monte Carlo for Fe-vs-Ru preference, alpha* and MeOH rank probabilities;
+3. Agent oracle-minimum-CU normalization and revised non-binding interpretation (566 CU to decision stability + 148 CU post-stability; non-binding narrow-window use 0/20).
+
+See [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved; affected claims/figures will be re-locked only after these targeted analyses are complete and audited.
