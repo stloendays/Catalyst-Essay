@@ -1,6 +1,6 @@
 # Figure map — current manuscript architecture
 
-Snapshot: **2026-09-17**  
+Snapshot: **2026-09-20**  
 Primary ammonia basis: **NH3-FINAL-1.1**
 
 The current main figure architecture is **F1-F10**. This page contains current figure claims only; superseded values are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
@@ -31,11 +31,15 @@ The current main figure architecture is **F1-F10**. This page contains current f
 
 ## F3 — NH3 uncertainty and decision stability
 
+Current descriptor-uncertainty baseline:
+
 - Fe feasibility: **79.9%**
 - Fe Top-1 survival: **28.2%**
 - Fe Top-3 actionable probability: **94.0%**
 
-**Role:** distinguish numerical uncertainty from decision-changing uncertainty.
+**2026-09-20 extension:** add a joint cost-parameter Monte Carlo over metal price, CAPEX coefficient, electricity price and catalyst lifetime, reporting `P(C_Fe < C_Ru)`, the alpha* distribution and the four-candidate MeOH rank-probability matrix. Before rerendering F3, reconcile the supervisor's “Fe 68% first” reference with the active **28.2% Top-1 survival** metric.
+
+**Role:** distinguish numerical uncertainty from decision-changing uncertainty and test whether the decision remains stable when cost-side uncertainty is propagated.
 
 ---
 
@@ -137,9 +141,9 @@ V1.3 remains a supporting semi-open robustness annotation rather than a replacem
 
 **Panel A:** complete-decision recovery versus CU budget across model tiers, with the deterministic fixed-VOI completion threshold at **206 CU** and the strong-tier lowest stable complete-decision budget at **75 CU**.
 
-**Panel B:** canonical narrow-window allocation. For the strong tier the measured series is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**. The weaker tiers have no canonical narrow-window use in their measured cells.
+**Panel B:** canonical narrow-window allocation. For the strong tier the measured series is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; under the non-binding 5000-CU allowance it is **0/20**. The weaker tiers have no canonical narrow-window use in their measured cells. This panel now carries the key mechanism: binding budget pressure is what activates scoped window compression.
 
-**Panel C:** decision-stable CU versus final used CU. Under the non-binding 5000-CU allowance, median final spend is **714 CU**, showing that the adaptive advantage below threshold is not a universal raw-compute saving.
+**Panel C:** decision-stable CU versus final used CU. Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median post-stability overrun is **148 CU**, and median final spend is **714 CU**. Add an **oracle minimum CU** reference once computed so the 75-CU strong boundary and 206-CU fixed-policy threshold can be compared with the shortest admissible complete-decision tool chain.
 
 Boundary cells:
 
@@ -153,7 +157,7 @@ fixed-VOI             incomplete       complete
 
 **Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
 
-**Status:** **LOCKED.** Canonical asset: `../figures/agent/F10_agent_capability_bounded_envelope.svg`; final caption: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md).
+**Status:** frozen run data remain valid; **figure/caption semantics reopened on 2026-09-20** for the oracle-CU reference and the explicit 566 + 148 / 0-of-20 non-binding interpretation. Canonical pre-update asset: `../figures/agent/F10_agent_capability_bounded_envelope.svg`; caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md).
 
 ---
 
