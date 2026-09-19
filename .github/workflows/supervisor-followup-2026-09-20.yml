@@ -7,6 +7,11 @@ on:
       - 'analysis/supervisor_2026_09_20/**'
       - '.github/workflows/supervisor-followup-2026-09-20.yml'
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'analysis/supervisor_2026_09_20/**'
+      - '.github/workflows/supervisor-followup-2026-09-20.yml'
 
 permissions:
   contents: write
@@ -16,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
