@@ -19,7 +19,7 @@ for s in wbv.sheetnames:
         vals=[cell.value for cell in row]
         if any(v is not None for v in vals):
             frec=[wsf.cell(ridx,cidx).value for cidx in range(1,len(row)+1)]
-            info["nonempty_preview"].append({"row":ridx,"values":vals[:20],"formulas":frec[:20]})
+            info["nonempty_preview"].append({"row":ridx,"values":vals,"formulas":frec})
             count+=1
             if count>=120:
                 break
