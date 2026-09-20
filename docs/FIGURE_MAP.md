@@ -139,9 +139,9 @@ Using STY per g Re:
 
 ---
 
-## Figure 6 — Decision-aware computation is an operational extension of the deterministic framework
+## Figure 6 — Decision-aware agents make the multiscale framework repeatedly executable
 
-**Question:** Once the scientific decision chain is fixed, how much computation is required to close the industrial endpoint?
+**Question:** Once the scientific decision chain is fixed, can the same workflow be orchestrated repeatedly under finite compute without hard-coding every calculation sequence?
 
 **Panel a — complete-decision recovery**
 - fixed-policy completion threshold: **206 CU**
@@ -160,11 +160,11 @@ Using STY per g Re:
 - median post-stability overrun: **148 CU**
 - median final spend: **714 CU**
 
-**Interpretation:** budget pressure activates search compression. Agent performance is an operational property of executing a predefined deterministic decision geometry, not a source of the catalyst ranking or physical mechanism.
+**Interpretation:** budget pressure activates search compression. The Agent acts as the reusable orchestration layer: deterministic reaction-specific tools supply scientific truth, while the policy decides which actions are required to close each decision instance.
 
 **Source assets:** legacy F10 + Agent oracle extension.
 
-**Role:** close the paper with compute allocation after the physical ranking, causal mechanism and reachability have already been established.
+**Role:** show how the physical ranking, causal mechanism and reachability framework can be converted from a one-off analysis into a reusable, decision-aware workflow suitable for repeated and batched screening tasks.
 
 ---
 
