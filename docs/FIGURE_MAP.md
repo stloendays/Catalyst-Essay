@@ -31,20 +31,18 @@ The current main figure architecture is **F1-F10**. This page contains current f
 
 ## F3 — NH3 uncertainty and decision stability
 
-Current descriptor-uncertainty baseline:
+Updated four-panel structure:
 
-- Fe feasibility: **79.9%**
-- **Fe economic Top-1 probability: 68.1%**
-- atomic-to-economic Top-1 survival: **28.2%**
-- Fe Top-3 actionable probability: **94.0%**
+- **a — descriptor decision endpoints:** Fe feasibility **79.9%**, Fe economic Top-1 **68.1%**, atomic-to-economic Top-1 survival **28.2%**, Fe Top-3 actionable **94.0%**.
+- **b — joint cost uncertainty:** **P(C_Fe < C_Ru) = 5000/5000**; minimum sampled Ru-Fe gap **2.382 USD/t NH3**.
+- **c — alpha* distribution:** p05 / median / p95 = **70.78x / 174.27x / 462.00x**, with canonical **201.22x** shown as reference.
+- **d — MeOH rank probability:** canonical D01 economic order retained in **5000/5000** draws; the separately labelled active-Re replacement extension gives the same ordering.
 
-The 68.1% / 28.2% discrepancy is resolved: they are different metrics from the same frozen MC.
+The 68.1% / 28.2% discrepancy is resolved: they are different metrics from the same frozen descriptor MC.
 
-**2026-09-20 cost-side extension:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000** and alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**. The MeOH four-candidate rank matrix remains in the canonical economic order in 100% of draws.
+Renderer: `../figures/nh3/render_F03_uncertainty_cost_mc.R`. Caption: `../figures/nh3/F03_CAPTION.md`. Panel data: `../analysis/supervisor_2026_09_20/`.
 
-Source: `../analysis/supervisor_2026_09_20/`.
-
-**Role:** distinguish numerical uncertainty from decision-changing uncertainty and test whether the decision remains stable when cost-side uncertainty is propagated.
+**Role:** separate descriptor uncertainty, cost uncertainty and downstream decision stability rather than collapsing them into a single robustness percentage.
 
 ---
 
@@ -164,7 +162,7 @@ fixed-VOI             incomplete       complete
 
 **Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
 
-**Status:** frozen run data remain valid; the **2026-09-20 semantics are resolved** and F10 awaits rerender/caption integration of the 22-CU oracle plus the explicit 566 + 148 / 0-of-20 non-binding interpretation. Canonical pre-update asset: `../figures/agent/F10_agent_capability_bounded_envelope.svg`; caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md).
+**Status:** frozen run data remain valid; the **2026-09-20 semantics are resolved**. The current manuscript renderer is `../figures/agent/render_F10_agent_envelope.R`, which adds the 22-CU protocol oracle and keeps the non-binding 5000-CU control on a separate axis. Caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md). The pre-update Python asset remains provenance until the R render is regenerated and hashed.
 
 ---
 
