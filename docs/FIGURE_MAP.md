@@ -40,9 +40,11 @@ Updated four-panel structure:
 
 The 68.1% / 28.2% discrepancy is resolved: they are different metrics from the same frozen descriptor MC.
 
-Renderer: `../figures/nh3/render_F03_uncertainty_cost_mc.R`. Caption: `../figures/nh3/F03_CAPTION.md`. Panel data: `../analysis/supervisor_2026_09_20/`.
+Renderer: `../figures/nh3/render_F03_uncertainty_cost_mc.R`. Caption: `../figures/nh3/F03_CAPTION.md`. Panel data: `../analysis/supervisor_2026_09_20/`. The updated SVG/PDF/PNG assets were rendered on 2026-09-20 and recorded in `../figures/nh3/F03_RENDER_SHA256.txt`.
 
 **Role:** separate descriptor uncertainty, cost uncertainty and downstream decision stability rather than collapsing them into a single robustness percentage.
+
+**Status:** rendered and hash-pinned; final visual QA/re-lock pending.
 
 ---
 
@@ -162,7 +164,7 @@ fixed-VOI             incomplete       complete
 
 **Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
 
-**Status:** frozen run data remain valid; the **2026-09-20 semantics are resolved**. The current manuscript renderer is `../figures/agent/render_F10_agent_envelope.R`, which adds the 22-CU protocol oracle and keeps the non-binding 5000-CU control on a separate axis. Caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md). The pre-update Python asset remains provenance until the R render is regenerated and hashed.
+**Status:** frozen run data remain valid and the **2026-09-20 semantics are resolved**. The current manuscript renderer is `../figures/agent/render_F10_agent_envelope.R`, which adds the 22-CU protocol oracle and keeps the non-binding 5000-CU control on a separate axis. The updated SVG/PDF/PNG assets were rendered on 2026-09-20 and recorded in `../figures/agent/F10_RENDER_SHA256.txt`. Caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md). Final visual QA/re-lock remains.
 
 ---
 
