@@ -44,13 +44,15 @@ economic ranking:    Fe > Ru > Os
 
 The Top-3 Spearman correlation is **-0.50**, while the raw full-15-metal correlation is **0.929**. The ranking conflict is concentrated at the decision frontier rather than across the complete screen.
 
-For Fe under the frozen 1,000-draw uncertainty propagation, feasibility is **79.9%**, Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**.
+For Fe under the frozen 1,000-draw descriptor uncertainty propagation, feasibility is **79.9%**, economic Top-1 probability is **68.1%**, atomic-to-economic Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**. A separate preregistered 5,000-draw cost-side Monte Carlo gives **P(C_Fe < C_Ru) = 1.000**.
 
-Full process reoptimization gives an activity-only Ru-to-Fe parity requirement of approximately **201-fold**. Scaling-consistent activity headroom is **1.090x at 673 K** and at most **2.525x** over the frozen process-state library, placing the parity target outside the current reachable activity manifold.
+Full process reoptimization gives a canonical activity-only Ru-to-Fe parity requirement of approximately **201-fold**. Under joint cost uncertainty, alpha* has p05 / median / p95 = **70.78x / 174.27x / 462.00x**. Scaling-consistent activity headroom is **1.090x at 673 K** and at most **2.525x** over the frozen process-state library.
+
+A direct price counterfactual changes the mechanism interpretation: setting the Ru metal price equal to Fe = **8 USD/kg** and reoptimizing all 14,136 process states gives Ru = **14.712 USD/t NH3** at **425 C / 170 bar**, **0.580 USD/t below Fe**. The baseline inversion therefore reflects **metal cost coupled to process reoptimization**, rather than process penalties that would keep Fe ahead even if the two metals had equal purchase price.
 
 ### MeOH: a selectivity-recycle pathway
 
-The **MEOH-D01-v3** case evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3.
+The **MEOH-D01-v3** case evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3. The 2026-09-20 cost-parameter Monte Carlo retains the canonical economic order in **5,000/5,000** draws.
 
 At the 5 wt% Re / 250 C benchmark, local leverage is **0.00289** for STY, **0.05883** for single-pass conversion, and **0.37579** for CH4 suppression. The dominant tested pathway therefore runs through selectivity, feed loss, purge and recycle.
 
@@ -76,7 +78,7 @@ This control shows that multiscale propagation does not intrinsically force rank
 | nano adaptive | **0/20** | **0/20** |
 | fixed-VOI | incomplete | complete |
 
-For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median final spend rises to **714 CU**. The supported claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**, not a universal raw-compute saving.
+For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, followed by a median **148 CU** post-stability overrun to **714 CU** final spend; canonical narrow-window use is **0/20**. The protocol-complete oracle minimum is **22 CU** (with a separate 7-CU scorer-only floor), so 75 CU is **3.41x** the manuscript-facing oracle and the fixed-policy threshold of 206 CU is **9.36x**. The supported claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**, not a universal raw-compute saving.
 
 ## Scientific interpretation
 
@@ -139,10 +141,6 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 ## Current production state
 
-The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**, but supervisor feedback on **2026-09-20** reopened three targeted analyses before final manuscript lock:
+The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
 
-1. Ru-price-equalization NH3 counterfactual plus Fe/Ru cost decomposition;
-2. joint cost-parameter Monte Carlo for Fe-vs-Ru preference, alpha* and MeOH rank probabilities;
-3. Agent oracle-minimum-CU normalization and revised non-binding interpretation (566 CU to decision stability + 148 CU post-stability; non-binding narrow-window use 0/20).
-
-See [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved; affected claims/figures will be re-locked only after these targeted analyses are complete and audited.
+Results and manuscript-facing figures are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. F3 and F10 now require only rerender/caption integration before re-lock.
