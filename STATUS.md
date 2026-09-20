@@ -4,9 +4,9 @@ Snapshot date: **2026-09-20**
 
 ## Overall state
 
-The existing canonical results remain the audited baseline, but supervisor feedback on **2026-09-20** reopened three targeted analyses before manuscript closure: (1) an NH3 Ru-price-equalization counterfactual plus Fe/Ru cost decomposition, (2) joint cost-parameter Monte Carlo, and (3) an Agent oracle-minimum-CU baseline plus revised non-binding interpretation.
+The supervisor-requested **2026-09-20 targeted analyses are complete**. Existing frozen provenance remains unchanged; the new counterfactual, joint cost-MC and oracle outputs are under `analysis/supervisor_2026_09_20/`.
 
-This is a targeted reopening, not a reset of the project. Existing frozen provenance remains unchanged and continues to define the pre-extension baseline.
+The resulting interpretation is now fixed for the next manuscript pass: equalizing Ru to the Fe metal price flips the NH3 economic order; bounded joint cost uncertainty around the canonical regime leaves Fe lower-cost in 5000/5000 draws; and the Agent protocol-complete oracle floor is 22 CU.
 
 ## Canonical scientific families
 
@@ -33,13 +33,18 @@ Key values:
 - Top-3 Kendall tau: **-0.33**
 - full 15-metal raw Spearman rho: **0.929**
 - Fe feasibility: **79.9%**
-- Fe Top-1 survival: **28.2%**
+- Fe economic Top-1 probability under descriptor uncertainty: **68.1% (681/1000)**
+- atomic-to-economic Top-1 survival: **28.2%**
 - Fe Top-3 actionable probability: **94.0%**
 - Ru activity-only break-even target: **201.22x**
 - scaling-consistent headroom: **1.090x at 673 K; 2.525x maximum**
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3 at E_N = -1.215 eV**
 
 Representative optimized operating points are approximately **425 C / 180 bar / 30 C separator** for Fe and **450 C / 425 bar / 25 C** for Ru; Os has a broad shallow high-pressure minimum.
+
+**Ru-price counterfactual:** with Ru metal price set equal to Fe = **8 USD/kg**, full reoptimization gives Ru = **14.712 USD/t** at **425 C / 170 bar / 30 C**, **0.580 USD/t below Fe**. The baseline inversion therefore depends on the Ru-vs-Fe metal-price disparity, with process reoptimization mediating the response. The canonical 6.739 USD/t gap is dominated by fresh-feed compression (+4.632), metal inventory (+1.763) and compressor CAPEX (+1.181 USD/t), partly offset by vessel/recycle/reactor terms.
+
+**Joint cost MC:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000**; alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**.
 
 The FINAL-1.1 source-harness bundle is under `provenance/nh3_final_1_1/source_harness/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
 
@@ -56,6 +61,8 @@ economic order
 ```
 
 Headline statistics are **rho = 0.20**, **tau = 0.00** and **3/6 pairwise inversions**. Local leverage at 5 wt% Re / 250 C is **0.00289 / 0.05883 / 0.37579** for STY / single-pass conversion / CH4 suppression.
+
+The 2026-09-20 cost-parameter MC retains the canonical four-candidate economic order in **5,000/5,000** draws. A separately labelled active-Re replacement extension also preserves the same order in **5,000/5,000** draws.
 
 ## Au/TiO2 rank-preservation control
 
@@ -101,16 +108,19 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
 
-The supported claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal raw-compute saving. A deterministic oracle minimum CU is now required to normalize 75 CU and 206 CU against the shortest admissible complete-decision tool chain.
+The supported claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal raw-compute saving.
+
+Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol-complete S1-S3 floor of **22 CU**. The **22-CU** value is the manuscript-facing normalization: strong 75-CU allowance = **3.41x**, strong median decision-stable spend at 75 CU (52.5) = **2.39x**, fixed-policy threshold 206 = **9.36x**, and non-binding decision-stable median 566 = **25.73x**.
 
 ## Figure state
 
 Current main figure architecture is **F1-F10**.
 
-- **F1-F8** — locked
+- **F1-F2, F4-F8** — locked
+- **F3** — numerical extension resolved; rerender pending for 68.1% economic Top-1 and joint cost-MC
 - **F9A** — current qualitative catalyst-to-process pathway panel
 - **F9B** — locked rank-preservation control
-- **F10** — locked Agent capability-bounded operating-envelope figure with final caption in `figures/agent/F10_CAPTION.md`
+- **F10** — run data frozen; rerender/caption update pending for the 22-CU oracle and 566 + 148 / 0-of-20 interpretation
 - **ED1-ED3** — locked Agent Extended Data panels
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
@@ -132,20 +142,12 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Supervisor-requested targeted analyses — 2026-09-20
 
-1. **NH3 Ru-price counterfactual:** set Ru metal price equal to Fe, reoptimize the full NH3 process, and determine whether the Fe/Ru inversion survives.
-2. **NH3 cost decomposition:** explain the canonical **6.739 USD/t NH3** Fe-Ru gap using the implemented cost categories, then repeat for the price-equalized counterfactual.
-3. **Joint cost Monte Carlo:** vary metal price, CAPEX coefficient, electricity price and catalyst lifetime; report `P(C_Fe < C_Ru)`, the distribution of alpha*, and the four-candidate MeOH rank-probability matrix.
-4. **F3 metric audit:** reconcile the supervisor's “68% first” reference with the active repository's **28.2% Fe Top-1 survival** before changing the figure.
-5. **Agent oracle baseline:** compute the shortest admissible complete-decision CU under the frozen 11-action interface and ledger-true cost model; normalize 75, 206 and 566 CU against it.
-6. **Agent wording/F10 update:** make explicit that non-binding narrow-window use is **0/20** and that median 714 CU = 566 CU to decision stability + 148 CU after stability.
-
-Detailed execution note: `docs/SUPERVISOR_FEEDBACK_2026-09-20.md`.
+**Completed.** Full execution record: `analysis/supervisor_2026_09_20/README.md`. The original request and closure are in `docs/SUPERVISOR_FEEDBACK_2026-09-20.md`.
 
 ## Next production tasks
 
-After the targeted analyses above are completed and audited:
-
-1. re-lock affected claims/figures and update the canonical result registry;
-2. continue R-based visual harmonization;
-3. assemble final main/Extended Data/Supporting Information layouts;
-4. run the final link, data and caption consistency pass before supervisor review.
+1. rerender F3 and F10 with the resolved metrics/oracle reference;
+2. rewrite the NH3 mechanism paragraph to reflect the equal-price reversal;
+3. update captions, claim-evidence registry and manuscript headline table;
+4. re-lock the affected claim/figure set after a final consistency audit;
+5. continue final visual harmonization and submission assembly.
