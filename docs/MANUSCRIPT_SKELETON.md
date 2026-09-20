@@ -1,6 +1,6 @@
 # Manuscript skeleton — current working version
 
-Snapshot date: **2026-09-17**  
+Snapshot date: **2026-09-20**  
 Canonical ammonia basis: **NH3-FINAL-1.1**
 
 This document contains current manuscript logic only. Superseded values and intermediate development conclusions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
@@ -96,9 +96,15 @@ Representative optimized operating points under NH3-FINAL-1.1 are approximately:
 - Ru: **450 C / 425 bar / 25 C separator**
 - Os: broad shallow high-pressure minimum
 
-Across 1,000 descriptor-uncertainty draws, Fe feasibility is **79.9%**, Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**.
+Across 1,000 descriptor-uncertainty draws, Fe feasibility is **79.9%**, Fe is the economic Top-1 candidate in **68.1% (681/1000)** of draws, atomic-to-economic Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**. The 68.1% and 28.2% values answer different questions and should not be interchanged.
 
-The scientific endpoint is whether uncertainty changes feasibility or candidate selection. Atomistic uncertainty can be amplified by kinetics or absorbed by thermodynamic and process constraints before it reaches the industrial decision.
+A direct price counterfactual isolates the baseline Fe-Ru mechanism. When Ru metal price is set equal to Fe = **8 USD/kg**, with all other inputs unchanged, full 14,136-state reoptimization shifts Ru from 450 C / 425 bar to **425 C / 170 bar** and lowers its cost to **14.712 USD/t NH3**, **0.580 USD/t below Fe**. Thus the baseline Fe-over-Ru inversion does not survive price equalization. The supported mechanism is **metal cost coupled to process reoptimization** rather than a process penalty sufficient to keep Fe ahead at equal metal price.
+
+The canonical 6.739 USD/t Ru-Fe gap is dominated by fresh-feed compression (+4.632), metal inventory (+1.763) and compressor CAPEX (+1.181 USD/t), partly offset by vessel pressure, recycle compression and reactor-base terms. The reoptimized counterfactual is the causal test; the static line-item decomposition is explanatory rather than causal.
+
+A preregistered 5,000-draw cost-side Monte Carlo jointly perturbs metal price, CAPEX coefficient, electricity price and catalyst lifetime. Full process reoptimization gives **P(C_Fe < C_Ru) = 5000/5000 = 1.000** within this bounded uncertainty envelope. The corresponding Ru activity parity distribution is **p05 = 70.78x, median = 174.27x, p95 = 462.00x**.
+
+The scientific endpoint is whether uncertainty changes feasibility or candidate selection. Atomistic and economic uncertainties are therefore reported separately: descriptor uncertainty changes the identity of the economic winner in a substantial fraction of draws, whereas the tested cost-side envelope does not reverse Fe versus Ru.
 
 Primary/supporting figures: **F3, F4**.
 
@@ -141,7 +147,9 @@ Methane formation couples to H2 feed loss, inert accumulation, purge, recycle co
 
 The candidates here are measured catalyst-temperature states. Purge is the exposed process degree of freedom and is reoptimized in the robustness analysis; temperature and pressure are not independently reoptimized per state.
 
-Primary figures: **F7, F8**.
+A 5,000-draw cost-parameter analysis preserves the canonical four-candidate economic order in **5000/5000** draws. Because canonical D01 excludes Re purchase/replacement, metal-price and lifetime perturbations are structurally inactive in the canonical-boundary calculation. A separately labelled active-Re replacement extension, using STY-derived Re inventory, also preserves the same order in **5000/5000** draws.
+
+Primary figures: **F7, F8**; cost-uncertainty matrix: Supporting Information / F3 extension.
 
 ### 3.5 Cross-reaction comparison reveals pathway-specific propagation
 
@@ -204,7 +212,9 @@ Decision-level convergence and quantitative-target convergence occur at differen
 
 Canonical narrow-window allocation provides the below-threshold mechanism. The strong tier uses it in 20/20 runs from 50 through 175 CU, **1/8** at 200 CU, **0/20** at 225 CU and **0/9** at 250 CU. The weaker tiers do not use canonical narrow-window allocation in their measured cells.
 
-The efficiency advantage is bounded above. Under a **non-binding 5000-CU allowance**, the strong tier still completes 20/20 runs but median final spend rises to **714 CU**, or 3.5× the deterministic 206-CU threshold. The scientific decision remains unchanged; only compute consumption increases.
+The efficiency advantage is bounded above. Under a **non-binding 5000-CU allowance**, canonical narrow-window allocation disappears (**0/20**), median complete-decision stabilization is delayed to **566 CU**, and a further median **148 CU** is spent before self-stop, producing **714 CU** median final spend. The scientific decision remains unchanged; compute allocation changes.
+
+A deterministic oracle lower bound makes the scale interpretable. The literal scorer-complete floor is **7 CU**, but it can exploit incomplete screening. The manuscript-facing **protocol-complete S1-S3 oracle is 22 CU**, requiring a process window, all-candidate activity screening, optimization of the minimum unresolved Fe/Ru/Os set, backward design and reachability. Relative to 22 CU, the strong 75-CU allowance is **3.41x**, the 75-CU cell median decision-stable spend of 52.5 CU is **2.39x**, and policy D's 206-CU threshold is **9.36x**.
 
 The supported manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal adaptive superiority or universal raw-compute saving.
 
@@ -234,7 +244,9 @@ The Au/TiO2 control shows that adding model layers does not itself force an inve
 
 ### 4.6 Adaptive compute allocation has a capability-bounded operating envelope
 
-The Agent result should be interpreted as an operating envelope rather than a general efficiency claim. Below the deterministic 206-CU threshold, the strong tier can recover the complete decision by narrowing the process search and redirecting compute toward unresolved backward-design and reachability steps. Below 75 CU, affordability limits completion. Above the threshold, deterministic policy D is cheaper; under a non-binding allowance, adaptive final spend expands substantially.
+The Agent result should be interpreted as an operating envelope rather than a general efficiency claim. Below the deterministic 206-CU threshold, the strong tier can recover the complete decision by narrowing the process search and redirecting compute toward unresolved backward-design and reachability steps. Below 75 CU, affordability limits completion. The 22-CU protocol oracle shows that the strong tier's 52.5-CU median decision-stable spend at the 75-CU cell is already within **2.39x** of the shortest scientifically complete chain.
+
+Above the threshold, deterministic policy D is cheaper. When the budget becomes non-binding, narrow-window allocation falls to **0/20**, decision stabilization moves to **566 CU**, and a further **148 CU** median is spent before self-stop. The failure mode therefore begins before post-stability overspending: budget pressure is itself what induces search compression.
 
 The envelope is also bounded by model capability: weaker tiers do not reproduce the strong-tier below-threshold regime under the measured conditions. Agent performance should therefore be reported jointly as a function of **model capability, compute budget and decision endpoint**.
 
