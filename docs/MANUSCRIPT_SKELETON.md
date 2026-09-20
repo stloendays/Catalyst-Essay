@@ -12,9 +12,9 @@ ranking fidelity
  -> catalyst-to-process coupling
  -> causal boundary
  -> backward reachability
- -> decision-aware computation
+ -> scalable decision automation
 
-The scientific center is catalyst ranking at the industrial decision frontier. The Agent is an operational extension after the deterministic scientific geometry is defined.
+The scientific core is catalyst ranking, coupling and reachability at the industrial decision frontier. The Agent is the **scaling and automation layer** that turns this deterministic logic into a reusable workflow for repeated decision instances.
 
 ## Working title
 
@@ -28,7 +28,7 @@ The scientific center is catalyst ranking at the industrial decision frontier. T
 4. Local joint economic uncertainty around the canonical regime leaves Fe lower-cost in 5,000/5,000 draws.
 5. Backward design shows that the activity-only Ru target remains outside the scaling-consistent manifold throughout the tested economic envelope.
 6. MeOH transfers the decision logic through a different selectivity-recycle pathway, while Au/TiO2 shows that ranking preservation is possible under a common monotonic mapping.
-7. The Agent is mentioned last as an operational extension for allocating compute inside this already-defined decision chain.
+7. The Agent is introduced as the workflow-execution layer that makes the same deterministic decision logic reusable and batchable across repeated screening tasks.
 
 ## 1. Introduction
 
@@ -46,7 +46,7 @@ The Introduction should answer four questions in order:
 4. **What transfers across reactions?**  
    Not a universal descriptor or universal inversion mechanism, but the **catalyst-to-process coupling topology**.
 
-Agent context should occupy only the closing part of the Introduction. It is not a co-equal physical contribution.
+Agent context should occupy the closing part of the Introduction as a **methodological contribution in workflow scalability**. It is not the source of the physical mechanism, but it is a first-class contribution to making the framework repeatedly executable.
 
 ## 2. Framework
 
@@ -62,11 +62,11 @@ change one predefined driver -> preserve all other model conventions -> reoptimi
 
 industrial parity target -> required catalyst-property improvement -> admissible descriptor / scaling manifold -> reachable or unreachable
 
-### 2.4 Decision-aware operational layer
+### 2.4 Decision-aware automation and scaling layer
 
-fixed scientific decision geometry + compute budget -> choose admissible scientific action -> execute deterministic tool -> update decision state -> stop / continue / redirect
+reaction-specific deterministic tools + shared decision state + compute budget -> choose admissible scientific action -> execute tool -> update ranking / feasibility / parity / reachability -> stop / continue / redirect
 
-The AI layer allocates computation; it does not generate the physical ranking or mechanism.
+The AI layer allocates computation and turns the deterministic framework into a reusable execution workflow. Scientific truth remains in the reaction-specific deterministic tools.
 
 ## 3. Results
 
@@ -171,9 +171,9 @@ Au/TiO2 control:
 
 Primary figure: **Fig. 5**.
 
-### 3.6 Decision-aware compute allocation is an operational extension
+### 3.6 Decision-aware agents make the workflow reusable and scalable
 
-The physical decision chain is frozen before the Agent is introduced.
+The physical decision chain is fixed before Agent orchestration. This separation allows the workflow logic to be reused while reaction-specific scientific modules are replaced or extended.
 
 - deterministic completion: **206 CU**
 - protocol-complete oracle: **22 CU**
@@ -184,7 +184,7 @@ The physical decision chain is frozen before the Agent is introduced.
 - median post-stability spend: **148 CU**
 - median final spend: **714 CU**
 
-Main interpretation: **Binding budget pressure activates scoped search compression. The Agent contributes compute allocation inside a predefined scientific decision geometry; it does not supply the catalyst ranking or physical mechanism.**
+Main interpretation: **Binding budget pressure activates scoped search compression. The Agent supplies the orchestration layer that repeatedly executes a predefined scientific decision geometry; reaction-specific tools supply the physical ranking and mechanism.**
 
 Primary figure: **Fig. 6**.
 
@@ -197,7 +197,7 @@ The Discussion should follow the same dependency chain:
 3. **Decision-sensitive uncertainty** — descriptor uncertainty, a large causal intervention and local economic robustness answer different questions.
 4. **Backward reachability** — the useful design statement is envelope-level unreachability, not a universal 201x material constant.
 5. **Pathway transfer, not objective equivalence** — NH3 and MeOH are compared through coupling topology, not through absolute production-cost values.
-6. **Operational compute allocation** — Agent results close the paper as execution of the deterministic decision framework.
+6. **Scalable workflow execution** — Agent results show how the deterministic decision framework can be repeatedly executed under finite compute rather than rebuilt as a one-off analysis.
 
 ## 5. Main figures
 
@@ -208,7 +208,7 @@ Fig. 2  NH3 operating regimes + equal-price causal test + uncertainty
 Fig. 3  backward design + scaling reachability
 Fig. 4  MeOH transfer + purge/leverage + rank probability
 Fig. 5  cross-reaction coupling topology + Au/TiO2 preservation control
-Fig. 6  Agent operating envelope + oracle
+Fig. 6  Agent operating envelope + oracle + scalable workflow execution
 
 The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**.
 
@@ -226,7 +226,7 @@ The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**
 10. MeOH cost uncertainty and active-Re replacement extension
 11. Cross-reaction evidence boundary
 12. Au/TiO2 rank-preservation control and semi-open extension
-13. DISCOVER operational layer, CU accounting and oracle definitions
+13. DISCOVER workflow-automation layer, CU accounting, oracle definitions and reusable tool-interface design
 
 ## 7. Supporting Information priorities
 
