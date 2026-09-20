@@ -154,7 +154,7 @@ competing / reoptimized downstream coupling
 
 ## Decision-aware Agent result
 
-The Agent benchmark is an **operational extension** of the deterministic scientific framework. It asks whether an AI policy can allocate finite scientific compute through a frozen environment while recovering the same downstream decision; it does not supply the catalyst ranking, physical mechanism or economic ground truth.
+The Agent benchmark is the **automation and scaling layer** of the deterministic scientific framework. It asks whether an AI policy can allocate finite scientific compute through a frozen environment while recovering the same downstream decision. Reaction-specific deterministic tools supply the catalyst ranking, physical mechanism and economic ground truth; the Agent supplies reusable orchestration so the same decision logic can be executed repeatedly rather than rebuilt case by case.
 
 DISCOVER V1 anonymous complete-decision recovery is:
 
@@ -168,7 +168,7 @@ DISCOVER-BOUNDARY-C1 resolves the operating envelope. Deterministic policy D rea
 
 The supported combined statement is:
 
-> **Adaptive decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized; it is not a universal raw-compute saving.**
+> **Adaptive decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized. The broader contribution is workflow scalability: a stable decision layer can repeatedly orchestrate reaction-specific scientific tools under explicit compute budgets.**
 
 Under the non-binding allowance, canonical narrow-window use is **0/20**; median complete-decision stabilization occurs at **566 CU**, followed by a median **148 CU** of additional spend before self-stop, for **714 CU** median final spend.
 
@@ -181,6 +181,6 @@ The oracle analysis separates a **7-CU scorer-theoretic floor** from a **22-CU p
 3. Backward design separates economically required catalyst targets from physically reachable ones.
 4. Catalyst-to-economic propagation is reaction- and process-pathway dependent.
 5. A literature-calibrated control shows that multiscale propagation can also preserve an upstream ranking; inversion is conditional rather than intrinsic to the workflow.
-6. Decision-aware compute allocation has a capability-bounded operating envelope rather than a universal efficiency advantage.
+6. Decision-aware compute allocation has a capability-bounded operating envelope and provides the orchestration layer needed to turn the deterministic framework into a reusable, batch-executable workflow.
 
 Superseded values and intermediate conclusions are documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md) and provenance/audit records.
