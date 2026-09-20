@@ -34,10 +34,15 @@ The current main figure architecture is **F1-F10**. This page contains current f
 Current descriptor-uncertainty baseline:
 
 - Fe feasibility: **79.9%**
-- Fe Top-1 survival: **28.2%**
+- **Fe economic Top-1 probability: 68.1%**
+- atomic-to-economic Top-1 survival: **28.2%**
 - Fe Top-3 actionable probability: **94.0%**
 
-**2026-09-20 extension:** add a joint cost-parameter Monte Carlo over metal price, CAPEX coefficient, electricity price and catalyst lifetime, reporting `P(C_Fe < C_Ru)`, the alpha* distribution and the four-candidate MeOH rank-probability matrix. Before rerendering F3, reconcile the supervisor's “Fe 68% first” reference with the active **28.2% Top-1 survival** metric.
+The 68.1% / 28.2% discrepancy is resolved: they are different metrics from the same frozen MC.
+
+**2026-09-20 cost-side extension:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000** and alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**. The MeOH four-candidate rank matrix remains in the canonical economic order in 100% of draws.
+
+Source: `../analysis/supervisor_2026_09_20/`.
 
 **Role:** distinguish numerical uncertainty from decision-changing uncertainty and test whether the decision remains stable when cost-side uncertainty is propagated.
 
@@ -143,7 +148,9 @@ V1.3 remains a supporting semi-open robustness annotation rather than a replacem
 
 **Panel B:** canonical narrow-window allocation. For the strong tier the measured series is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; under the non-binding 5000-CU allowance it is **0/20**. The weaker tiers have no canonical narrow-window use in their measured cells. This panel now carries the key mechanism: binding budget pressure is what activates scoped window compression.
 
-**Panel C:** decision-stable CU versus final used CU. Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median post-stability overrun is **148 CU**, and median final spend is **714 CU**. Add an **oracle minimum CU** reference once computed so the 75-CU strong boundary and 206-CU fixed-policy threshold can be compared with the shortest admissible complete-decision tool chain.
+**Panel C:** decision-stable CU versus final used CU. Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median post-stability overrun is **148 CU**, and median final spend is **714 CU**.
+
+Add the oracle reference with two clearly separated lower bounds: **7 CU scorer-complete** and **22 CU protocol-complete S1-S3**. Use **22 CU** for the manuscript-facing normalization. Relative to 22 CU: 75 CU = **3.41x**, 52.5 CU decision-stable at the 75-CU cell = **2.39x**, fixed-policy 206 CU = **9.36x**, and non-binding decision-stable 566 CU = **25.73x**.
 
 Boundary cells:
 
@@ -157,7 +164,7 @@ fixed-VOI             incomplete       complete
 
 **Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
 
-**Status:** frozen run data remain valid; **figure/caption semantics reopened on 2026-09-20** for the oracle-CU reference and the explicit 566 + 148 / 0-of-20 non-binding interpretation. Canonical pre-update asset: `../figures/agent/F10_agent_capability_bounded_envelope.svg`; caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md).
+**Status:** frozen run data remain valid; the **2026-09-20 semantics are resolved** and F10 awaits rerender/caption integration of the 22-CU oracle plus the explicit 566 + 148 / 0-of-20 non-binding interpretation. Canonical pre-update asset: `../figures/agent/F10_agent_capability_bounded_envelope.svg`; caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md).
 
 ---
 
