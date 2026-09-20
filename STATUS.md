@@ -81,11 +81,18 @@ V1.3 remains a supporting semi-open robustness extension.
 The current manuscript-level comparison is mechanistic:
 
 ```text
-NH3  : activity -> catalyst inventory / reactor demand
-MeOH : selectivity -> feed loss / purge / recycle
+NH3
+intrinsic activity + metal cost
+ -> catalyst inventory + preferred operating regime
+ -> compression / reactor / equipment burden
+
+MeOH
+selectivity
+ -> reactant loss / gas accumulation
+ -> purge / recycle / compression
 ```
 
-No quantitative cross-reaction leverage ratio is promoted in the current manuscript. Superseded values are documented only in `docs/RETIRED_RESULTS.md`.
+Each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript. Superseded values are documented only in `docs/RETIRED_RESULTS.md`.
 
 ## Decision-aware Agent Harness
 
@@ -114,7 +121,7 @@ Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol
 
 ## Figure state
 
-Current main figure architecture is **F1-F10**.
+Current publication-facing figure architecture is **six composite main figures**. The previous F1-F10 files remain source assets/provenance and are mapped into the six figures in `docs/FIGURE_MAP.md`.
 
 - **F1-F2, F4-F8** — locked
 - **F3** — updated R asset rendered on 2026-09-20; SHA-256 manifest generated; final visual QA/re-lock pending
@@ -136,7 +143,7 @@ Recommended supervisor reading path:
 5. `docs/MANUSCRIPT_SKELETON.md`
 6. `docs/AGENT_HARNESS.md`
 
-Current manuscript-facing headline data: `data/manuscript_headline_results_2026-09-17.csv`.
+Current manuscript-facing headline data: `data/manuscript_headline_results_2026-09-20.csv`.
 
 Superseded conclusions, intermediate files and corrected definitions are centralized in `docs/RETIRED_RESULTS.md`. Frozen provenance and audit records remain in the repository for traceability.
 
@@ -146,12 +153,12 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v6_2026-09-20.md`**. It incorporates the Ru-price counterfactual, joint cost Monte Carlo, corrected 68.1% / 28.2% uncertainty definitions, MeOH rank-probability result, 22-CU Agent oracle and the revised non-binding mechanism. Current F1-F10 captions are in **`docs/MAIN_FIGURE_CAPTIONS_v2_2026-09-20.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md`**. It resolves the architecture issues identified after v6: the Ru-price result is framed as a causal boundary distinct from local cost-MC robustness; the backward-design claim is envelope-level rather than a universal 201.22x requirement; MeOH rank probability is moved out of the NH3 uncertainty figure; cross-reaction transfer is defined by coupling topology rather than objective equivalence; and the Agent is explicitly an operational extension of the deterministic framework. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md`**.
 
 ## Next production tasks
 
-1. perform visual QA on the rendered F3/F10 assets and re-lock them if no layout defects are found;
-2. run a cross-document audit of v6 against the claim/evidence registry, captions and Methods definitions;
-3. consolidate Supporting Information numbering for the NH3 cost decomposition and MeOH active-Re extension;
+1. assemble the six composite manuscript figures from the already frozen/hash-pinned source assets;
+2. run a cross-document audit of v7 against the claim/evidence registry, six-figure captions and Methods definitions;
+3. consolidate Supporting Information numbering for the NH3 cost decomposition, full uncertainty protocols and MeOH active-Re extension;
 4. tighten references and Data/Code Availability for submission;
-5. generate the next Word/PDF manuscript artifact only after the Markdown audit closes.
+5. generate the next Word/PDF manuscript artifact only after the v7 architecture audit closes.
