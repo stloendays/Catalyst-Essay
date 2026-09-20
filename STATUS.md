@@ -115,7 +115,7 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
 
-The supported claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal raw-compute saving.
+The benchmark-level claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. At the manuscript level, the Agent also serves as the **workflow-scaling layer**: reaction-specific deterministic tools provide scientific truth, while the policy orchestrates repeated decision instances without manually scripting every calculation path.
 
 Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol-complete S1-S3 floor of **22 CU**. The **22-CU** value is the manuscript-facing normalization: strong 75-CU allowance = **3.41x**, strong median decision-stable spend at 75 CU (52.5) = **2.39x**, fixed-policy threshold 206 = **9.36x**, and non-binding decision-stable median 566 = **25.73x**.
 
@@ -152,7 +152,7 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md`**. It resolves the architecture issues identified after v6: the Ru-price result is framed as a causal boundary distinct from local cost-MC robustness; the backward-design claim is envelope-level rather than a universal 201.22x requirement; MeOH rank probability is moved out of the NH3 uncertainty figure; cross-reaction transfer is defined by coupling topology rather than objective equivalence; and the Agent is explicitly an operational extension of the deterministic framework. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md`**. It retains the v7 physical-science architecture but strengthens the Agent contribution: DISCOVER is now framed as the **automation and scaling layer** that converts the deterministic ranking–parity–reachability framework into a reusable workflow for repeated and batch screening. Scientific truth remains in the reaction-specific tools. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`**.
 
 ## Next production tasks
 
