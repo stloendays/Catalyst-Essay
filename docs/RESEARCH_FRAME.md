@@ -107,9 +107,18 @@ For the canonical CO2-to-methanol case, local leverage at 5 wt% Re / 250 C is:
 The directly supported pathway comparison is:
 
 ```text
-NH3  : activity -> catalyst inventory / reactor demand
-MeOH : selectivity -> feed loss / purge / recycle
+NH3
+intrinsic activity + metal cost
+ -> catalyst inventory + preferred operating regime
+ -> compression / reactor / equipment burden
+
+MeOH
+selectivity
+ -> reactant loss / gas accumulation
+ -> purge / recycle / compression
 ```
+
+Each reaction is evaluated against its own frozen downstream economic objective. Absolute economic values are not compared across reactions; the transfer object is the catalyst-to-process coupling topology.
 
 The manuscript-level claim is therefore that **ranking propagation is reaction- and process-pathway dependent because different catalyst properties couple into different downstream cost pools**. No current quantitative cross-reaction leverage ratio is promoted.
 
@@ -145,7 +154,7 @@ competing / reoptimized downstream coupling
 
 ## Decision-aware Agent result
 
-The Agent benchmark asks whether an AI model can allocate finite scientific compute through a frozen scientific environment while recovering the complete downstream decision.
+The Agent benchmark is an **operational extension** of the deterministic scientific framework. It asks whether an AI policy can allocate finite scientific compute through a frozen environment while recovering the same downstream decision; it does not supply the catalyst ranking, physical mechanism or economic ground truth.
 
 DISCOVER V1 anonymous complete-decision recovery is:
 
