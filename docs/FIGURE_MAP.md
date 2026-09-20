@@ -185,4 +185,4 @@ Publication redraws may change typography, annotation placement, panel spacing, 
 
 Figure asset/provenance index: [`../figures/README.md`](../figures/README.md).  
 Current numerical summary: [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md).  
-Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv).
+Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv).
