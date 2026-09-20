@@ -123,12 +123,11 @@ Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol
 
 Current publication-facing figure architecture is **six composite main figures**. The previous F1-F10 files remain source assets/provenance and are mapped into the six figures in `docs/FIGURE_MAP.md`.
 
-- **F1-F2, F4-F8** — locked
-- **F3** — updated R asset rendered on 2026-09-20; SHA-256 manifest generated; final visual QA/re-lock pending
-- **F9A** — current qualitative catalyst-to-process pathway panel
-- **F9B** — locked rank-preservation control
-- **F10** — updated R asset rendered on 2026-09-20 with 22-CU oracle and 566 + 148 non-binding decomposition; SHA-256 manifest generated; final visual QA/re-lock pending
-- **ED1-ED3** — locked Agent Extended Data panels
+- Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
+- Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
+- Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
+- The publication-facing **six composite main figures** are specified in `docs/FIGURE_MAP.md` and captioned in `docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md`; composite rendering is pending.
+- **ED1-ED3** remain locked Agent Extended Data panels.
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
 
