@@ -1,188 +1,185 @@
-# Figure map — current manuscript architecture
+# Figure map — six-figure manuscript architecture
 
 Snapshot: **2026-09-20**  
 Primary ammonia basis: **NH3-FINAL-1.1**
 
-The current main figure architecture is **F1-F10**. This page contains current figure claims only; superseded values are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
+The manuscript now uses **six composite main figures**. The previous F1-F10 assets remain frozen or hash-pinned as source panels and provenance; they are not deleted or renumbered on disk. This document defines the publication-facing grouping.
 
-## F1 — NH3 atomic-to-economic ranking propagation
+## Figure 1 — A globally correlated screen can invert at the decision frontier
 
-**Question:** Does the atomic activity ranking survive industrial economic propagation?
+**Question:** Can atomistic screening preserve global structure while selecting a different leading catalyst industrially?
 
+**Panel a — ranking propagation**
 - atomic top three: **Ru > Os > Fe**
 - economic top three: **Fe > Ru > Os**
 - Fe / Ru / Os cost: **15.292 / 22.031 / 25.832 USD/t NH3**
 
-**Role:** establish the principal decision-frontier inversion.
-
----
-
-## F2 — Rolling Top-K rank correlation
-
-**Question:** Why can a globally correlated screen still give a different decision among the leading candidates?
-
+**Panel b — rolling Top-K fidelity**
 - Top-3 Spearman rho: **-0.50**
 - Top-3 Kendall tau: **-0.33**
 - full 15-metal raw Spearman rho: **0.929**
 
-**Role:** localize the ranking conflict to the decision frontier.
+**Source assets:** legacy F1 + F2.
+
+**Role:** establish that the failure is local to the decision frontier rather than a global collapse of the atomistic screen.
 
 ---
 
-## F3 — NH3 uncertainty and decision stability
+## Figure 2 — Metal cost and process reoptimization jointly define the ammonia decision boundary
 
-Updated four-panel structure:
+**Question:** What causes the Fe-Ru economic reversal, and how robust is that decision near the canonical regime?
 
-- **a — descriptor decision endpoints:** Fe feasibility **79.9%**, Fe economic Top-1 **68.1%**, atomic-to-economic Top-1 survival **28.2%**, Fe Top-3 actionable **94.0%**.
-- **b — joint cost uncertainty:** **P(C_Fe < C_Ru) = 5000/5000**; minimum sampled Ru-Fe gap **2.382 USD/t NH3**.
-- **c — alpha* distribution:** p05 / median / p95 = **70.78x / 174.27x / 462.00x**, with canonical **201.22x** shown as reference.
-- **d — MeOH rank probability:** canonical D01 economic order retained in **5000/5000** draws; the separately labelled active-Re replacement extension gives the same ordering.
-
-The 68.1% / 28.2% discrepancy is resolved: they are different metrics from the same frozen descriptor MC.
-
-Renderer: `../figures/nh3/render_F03_uncertainty_cost_mc.R`. Caption: `../figures/nh3/F03_CAPTION.md`. Panel data: `../analysis/supervisor_2026_09_20/`. The updated SVG/PDF/PNG assets were rendered on 2026-09-20 and recorded in `../figures/nh3/F03_RENDER_SHA256.txt`.
-
-**Role:** separate descriptor uncertainty, cost uncertainty and downstream decision stability rather than collapsing them into a single robustness percentage.
-
-**Status:** rendered and hash-pinned; final visual QA/re-lock pending.
-
----
-
-## F4 — Fe / Ru / Os operating envelopes
-
+**Panel a — candidate-specific operating regimes**
 - Fe: approximately **425 C / 180 bar / 30 C separator**
 - Ru: approximately **450 C / 425 bar / 25 C separator**
 - Os: broad shallow high-pressure minimum
 
-**Role:** show catalyst-dependent operating regimes after process/economic reoptimization.
+**Panel b — causal price intervention and cost decomposition**
+- canonical Fe / Ru: **15.292 / 22.031 USD/t NH3**
+- canonical Ru-Fe gap: **6.739 USD/t NH3**
+- equal-price Ru, fully reoptimized: **14.712 USD/t NH3**
+- equal-price Ru optimum: **425 C / 170 bar / 30 C**
+- equal-price Ru-Fe: **-0.580 USD/t NH3**
+- largest positive canonical gap terms: fresh-feed compression **+4.632**, metal inventory **+1.763**, compressor CAPEX **+1.181 USD/t NH3**
+
+**Interpretation:** the equal-price intervention is the **causal boundary test**. The Fe-over-Ru inversion requires the canonical Ru-Fe price disparity, while the process response is coupled because the Ru optimum shifts strongly when price is changed.
+
+**Panel c — descriptor uncertainty**
+- Fe feasibility: **79.9%**
+- Fe economic Top-1 probability: **68.1%**
+- atomic-to-economic Top-1 survival: **28.2%**
+- Fe Top-3 actionable probability: **94.0%**
+
+**Panel d — local economic robustness and backward-target distribution**
+- joint cost MC: **P(C_Fe < C_Ru) = 5000/5000**
+- minimum sampled Ru-Fe gap: **2.382 USD/t NH3**
+- alpha* p05 / median / p95: **70.78x / 174.27x / 462.00x**
+- canonical alpha*: **201.22x**
+
+**Source assets:** legacy F4 + legacy F3 panels a-c + `analysis/supervisor_2026_09_20/nh3_cost_decomposition.svg` + equal-price counterfactual outputs. The former MeOH rank-probability panel is removed from the NH3 uncertainty figure and reassigned to Figure 4.
+
+**Role:** separate a large causal intervention from local robustness around the canonical economic regime.
 
 ---
 
-## F5 — Ru backward-design activity sweep
+## Figure 3 — Backward design separates an economic target from a reachable catalyst target
 
-- Ru activity-only break-even: **201.22x**
+**Question:** If Ru loses economically, how much intrinsic-activity improvement is required, and is that target physically accessible?
 
-**Role:** translate an industrial economic target into a catalyst-property target.
+**Panel a — activity-only backward sweep**
+- canonical Ru activity-only break-even: **201.22x**
 
----
-
-## F6 — Scaling-manifold reachability
-
+**Panel b — scaling-manifold reachability**
 - activity headroom at 673 K: **1.090x**
-- maximum headroom over the frozen process-state library: **2.525x**
+- maximum headroom over frozen process states: **2.525x**
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**
+- cost-MC p05 activity target: **70.78x**, still far above the **2.525x** maximum headroom
 
-**Role:** separate the catalyst improvement required by economics from the improvement accessible on the current property manifold.
+**Source assets:** legacy F5 + F6.
+
+**Role:** show that 201.22x is a canonical economic reference, while the stronger conclusion is that the activity-only target remains unreachable throughout the tested economic envelope.
 
 ---
 
-## F7 — CO2-to-MeOH upstream-to-economic ranking reshuffle
+## Figure 4 — Methanol ranking reshapes through a selectivity-recycle pathway and remains stable to tested cost uncertainty
 
-Using STY per g Re as the upstream intrinsic metric:
+**Question:** Does the ranking-propagation problem transfer to a different reaction and process architecture?
 
-```text
-upstream rank                       economic NPC rank
-1 wt% Re / 250 C   #1              5 wt% Re / 200 C   #1
-1 wt% Re / 200 C   #2      ->      1 wt% Re / 200 C   #2
-5 wt% Re / 200 C   #3              1 wt% Re / 250 C   #3
-5 wt% Re / 250 C   #4              5 wt% Re / 250 C   #4
-```
-
+**Panel a — upstream-to-economic ranking reshuffle**
+Using STY per g Re:
+- upstream: **1%-250 > 1%-200 > 5%-200 > 5%-250**
+- economic: **5%-200 > 1%-200 > 1%-250 > 5%-250**
 - Spearman rho: **0.20**
 - Kendall tau: **0.00**
 - pairwise inversions: **3/6**
 
-**Role:** demonstrate transfer of the ranking-propagation question to a catalyst-state problem with a different process pathway.
+**Panel b — purge robustness and local leverage**
+- purge sweep: **0.5-40% / 396 levels**
+- max rho over sweep: **0.40**
+- at least **2/6** pairs inverted at every purge
+- local leverage at 5 wt% Re / 250 C:
+  - STY: **0.00289**
+  - conversion: **0.05883**
+  - CH4 suppression: **0.37579**
 
-**Boundary:** the candidates are catalyst-temperature states at literature points. Purge is reoptimized in the robustness analysis; T/P are not independently optimized per candidate.
+**Panel c — candidate-by-rank probability**
+- canonical D01 economic order retained in **5000/5000** cost-MC draws
+- separately labelled active-Re replacement extension also retains the same order in **5000/5000**
+
+**Boundary:** canonical D01 excludes Re purchase and replacement; sampled metal price and lifetime are therefore structurally inactive in the canonical calculation. The active-Re replacement extension is robustness evidence, not a redefinition of D01.
+
+**Source assets:** legacy F7 + F8 + the MeOH rank-probability matrix formerly placed in legacy F3d.
+
+**Role:** transfer the decision logic to a selectivity-recycle system without mixing MeOH evidence into the NH3 uncertainty figure.
 
 ---
 
-## F8 — Methane accumulation, purge and selectivity leverage
+## Figure 5 — Catalyst-to-process coupling topology determines whether rankings reshape or survive
 
-**Panel A:** NPC versus purge across the four D01 v3 states over the **0.5-40% / 396-level** sweep, with **2% purge** marked as the canonical comparison.
+**Question:** What transfers across reactions, and when should a ranking remain preserved?
 
-**Panel B:** local leverage at 5 wt% Re / 250 C:
+**Panel a — pathway topology**
+- **NH3:** intrinsic activity + metal cost -> catalyst inventory + preferred operating regime -> compression / reactor / equipment burden -> economic ranking
+- **MeOH:** selectivity -> reactant loss / gas accumulation -> purge / recycle / compression -> economic ranking
 
-- STY: **0.00289**
-- single-pass conversion: **0.05883**
-- CH4 suppression: **0.37579**
+**Scope rule:** each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are **not** compared across reactions.
 
-**Role:** identify selectivity/methane suppression as the dominant tested local economic pathway in the current MeOH regime.
-
-**Status:** **LOCKED**.
-
----
-
-## F9 — When rankings invert and when they survive
-
-### F9A — Cross-reaction catalyst-to-process pathways
-
-Current evidence is a qualitative mechanism comparison:
-
-```text
-NH3  : activity -> catalyst inventory / reactor demand
-MeOH : selectivity -> feed loss / purge / recycle
-```
-
-**Role:** show that the dominant propagation pathway is reaction- and process-dependent. No current quantitative cross-reaction ratio is plotted.
-
-### F9B — Au/TiO2 rank-preservation control
-
+**Panel b — Au/TiO2 rank-preservation control**
 - activity rank = burden rank = **2 > 3 > 4 > 5 > 6 nm**
 - Spearman rho: **1.000**
 - Kendall tau: **1.000**
 - pairwise inversions: **0**
 - full order preserved in **10,000/10,000** predefined literature-envelope draws
-- 6 nm / 2 nm required-catalyst ratio: **8.064x**
+- 6 nm / 2 nm burden ratio: **8.064x**
+- semi-open 273.15-293.15 K extension: **92.16%** exact preservation, mean rho **0.99214**
 
-**Role:** demonstrate that multiscale propagation can preserve a ranking when the downstream mapping remains monotonic.
+**Source assets:** legacy F9A + F9B.
 
-V1.3 remains a supporting semi-open robustness annotation rather than a replacement for V1.1.
-
----
-
-## F10 — Agent capability-bounded operating envelope
-
-**Panel A:** complete-decision recovery versus CU budget across model tiers, with the deterministic fixed-VOI completion threshold at **206 CU** and the strong-tier lowest stable complete-decision budget at **75 CU**.
-
-**Panel B:** canonical narrow-window allocation. For the strong tier the measured series is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; under the non-binding 5000-CU allowance it is **0/20**. The weaker tiers have no canonical narrow-window use in their measured cells. This panel now carries the key mechanism: binding budget pressure is what activates scoped window compression.
-
-**Panel C:** decision-stable CU versus final used CU. Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median post-stability overrun is **148 CU**, and median final spend is **714 CU**.
-
-Add the oracle reference with two clearly separated lower bounds: **7 CU scorer-complete** and **22 CU protocol-complete S1-S3**. Use **22 CU** for the manuscript-facing normalization. Relative to 22 CU: 75 CU = **3.41x**, 52.5 CU decision-stable at the 75-CU cell = **2.39x**, fixed-policy 206 CU = **9.36x**, and non-binding decision-stable 566 CU = **25.73x**.
-
-Boundary cells:
-
-```text
-                     175 CU          225 CU
-strong adaptive       19/20           20/20
-mini adaptive           0/20            6/20
-nano adaptive           0/20            0/20
-fixed-VOI             incomplete       complete
-```
-
-**Role:** support a model-tier-dependent, budget-localized decision-recovery claim below the fixed-policy completion threshold.
-
-**Status:** frozen run data remain valid and the **2026-09-20 semantics are resolved**. The current manuscript renderer is `../figures/agent/render_F10_agent_envelope.R`, which adds the 22-CU protocol oracle and keeps the non-binding 5000-CU control on a separate axis. The updated SVG/PDF/PNG assets were rendered on 2026-09-20 and recorded in `../figures/agent/F10_RENDER_SHA256.txt`. Caption source: [`../figures/agent/F10_CAPTION.md`](../figures/agent/F10_CAPTION.md). Final visual QA/re-lock remains.
+**Role:** establish that multiscale propagation does not mechanically create inversions; the transferable object is coupling topology, not a universal scalar descriptor.
 
 ---
 
-## Main-text structure
+## Figure 6 — Decision-aware computation is an operational extension of the deterministic framework
 
-```text
-F1-F4   forward propagation and decision-frontier inversion
-F5-F6   backward design and reachability
-F7-F9   transfer across process pathways and rank-preservation control
-F10     decision-aware compute allocation
-```
+**Question:** Once the scientific decision chain is fixed, how much computation is required to close the industrial endpoint?
 
-If the journal requires fewer main figures, F3 and F4 remain natural candidates for Extended Data / Supporting Information.
+**Panel a — complete-decision recovery**
+- fixed-policy completion threshold: **206 CU**
+- strong lowest tested stable complete-decision allowance: **75 CU**
+- protocol-complete S1-S3 oracle: **22 CU**
+- 75 CU = **3.41x oracle**
+- 75-CU-cell median decision-stable spend: **52.5 CU = 2.39x oracle**
 
-## Figure-production rule
+**Panel b — scoped search as the below-threshold mechanism**
+- strong tier uses narrow windows in the constrained regime
+- narrow-window use at 225 CU: **0/20**
+- non-binding 5000-CU allowance: **0/20**
 
-Publication redraws may change typography, annotation placement, panel spacing, line weights and export format. They must preserve the frozen scientific values, data identity and geometry implied by the canonical source.
+**Panel c — upper cost boundary**
+- non-binding median decision-stable spend: **566 CU = 25.73x oracle**
+- median post-stability overrun: **148 CU**
+- median final spend: **714 CU**
 
-Figure asset/provenance index: [`../figures/README.md`](../figures/README.md).  
+**Interpretation:** budget pressure activates search compression. Agent performance is an operational property of executing a predefined deterministic decision geometry, not a source of the catalyst ranking or physical mechanism.
+
+**Source assets:** legacy F10 + Agent oracle extension.
+
+**Role:** close the paper with compute allocation after the physical ranking, causal mechanism and reachability have already been established.
+
+---
+
+## Publication-facing source-asset mapping
+
+| New main figure | Source assets / analyses |
+|---|---|
+| Fig. 1 | legacy F1 + F2 |
+| Fig. 2 | legacy F4 + legacy F3a-c + NH3 cost decomposition + Ru equal-price counterfactual |
+| Fig. 3 | legacy F5 + F6 |
+| Fig. 4 | legacy F7 + F8 + former legacy F3d MeOH rank-probability matrix |
+| Fig. 5 | legacy F9A + F9B |
+| Fig. 6 | legacy F10 + 22-CU oracle extension |
+
+The legacy F1-F10 files remain provenance-bearing source assets. Composite publication figures may redraw typography, panel arrangement and annotations while preserving the frozen values and source geometry.
+
 Current numerical summary: [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md).  
 Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv).
