@@ -30,7 +30,7 @@ The uncertainty analysis asks whether descriptor uncertainty changes feasibility
 
 The methanol case tests a different catalyst-to-process pathway in which selectivity and methane formation couple to feed loss, purge and recycle. The Au/TiO2 control provides the complementary case in which a ranking is preserved under a monotonic downstream mapping.
 
-The Agent work is evaluated as an **operational decision-allocation layer after the physical framework is fixed**. Its current claim is capability- and budget-dependent: the strong tier can recover the full decision below the fixed-policy completion threshold, while the non-binding allowance demonstrates that this is not a universal raw-compute saving.
+The Agent work is evaluated as the **workflow-automation and scaling layer** of the physical framework. The strong tier can recover the full decision below the fixed-policy completion threshold, and the same separation between deterministic scientific tools and decision-level orchestration provides a reusable pattern for repeated or batch screening tasks.
 
 ## Evidence hierarchy
 
