@@ -2,7 +2,7 @@
 
 ## Role in the project
 
-The **Decision-aware Agent Harness** is the AI layer used to allocate scientific computation through the deterministic multiscale environment. It does not replace the physics, process model or economics.
+The **Decision-aware Agent Harness** is the workflow-automation layer used to make the deterministic multiscale framework repeatedly executable. It does not replace the physics, process model or economics; instead, it orchestrates reaction-specific scientific tools under a shared decision logic.
 
 ```text
 Layer A — deterministic multiscale harness
@@ -25,7 +25,7 @@ inspect current evidence
 
 The central AI question is:
 
-> Given a finite scientific-compute budget, can an agent allocate calculations according to their value to the downstream industrial decision?
+> Given a finite scientific-compute budget, can an agent allocate calculations according to their value to the downstream industrial decision, so that the same ranking–parity–reachability workflow can be reused across repeated screening tasks?
 
 ## Benchmark families
 
@@ -170,9 +170,11 @@ A separate interface intervention improved mini-tier tool validity and winner re
 
 ## Manuscript claim
 
-The supported Agent statement is:
+The supported Agent statement has two levels:
 
-> **Under the frozen benchmark, adaptive complete-decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized. It does not constitute a universal raw-compute saving.**
+> **Benchmark result:** under the frozen benchmark, adaptive complete-decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized.
+>
+> **Workflow result:** separating deterministic scientific modules from decision-level orchestration turns the framework into a reusable execution pattern for repeated and batch screening tasks. Scientific truth remains in the reaction-specific tools.
 
 This wording separates three quantities that should not be conflated:
 
@@ -182,7 +184,7 @@ This wording separates three quantities that should not be conflated:
 
 ## Figure and Extended Data mapping
 
-**F10 — Agent capability-bounded operating envelope**
+**Source F10 — Agent capability-bounded operating envelope**
 
 - Panel A: complete-decision recovery versus CU budget
 - Panel B: canonical narrow-window allocation
@@ -211,6 +213,6 @@ The full frozen evidence bundle is under `../provenance/discover_v1/`.
 
 ## Production state
 
-DISCOVER V1 remains frozen. DISCOVER-BOUNDARY-C1 is complete and the Agent figure/caption set is locked. Current work is manuscript integration and Supporting Information packaging rather than additional benchmark tuning.
+DISCOVER V1 remains frozen. DISCOVER-BOUNDARY-C1 is complete. The current manuscript uses these frozen results to support the Agent as the workflow-scaling layer; the publication-facing composite Figure 6 combines the locked F10 source asset with the 22-CU oracle framing. Current work is manuscript integration, composite-figure assembly and Supporting Information packaging rather than additional benchmark tuning.
 
 Superseded intermediate claims and corrected definitions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
