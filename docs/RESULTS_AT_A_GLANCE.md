@@ -112,9 +112,18 @@ CH4 suppression is approximately **6.39x** more leveraged than single-pass conve
 The current cross-reaction result is mechanistic:
 
 ```text
-NH3   : activity -> catalyst inventory / reactor demand
-MeOH  : selectivity -> feed loss / purge / recycle
+NH3
+intrinsic activity + metal cost
+ -> catalyst inventory + preferred operating regime
+ -> compression / reactor / equipment burden
+
+MeOH
+selectivity
+ -> reactant loss / gas accumulation
+ -> purge / recycle / compression
 ```
+
+Each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions; the transferable object is the catalyst-to-process coupling topology.
 
 No current quantitative cross-reaction leverage ratio is reported. The retired historical metric is documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
 
@@ -193,6 +202,6 @@ The 2026-09-20 requested analyses are **complete**. Machine-readable results and
 
 ## Evidence state
 
-NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER/C1 remain the audited provenance families. The new analyses change interpretation and uncertainty reporting without overwriting those frozen sources. F3 and F10 require rerender/caption integration before re-lock.
+NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER/C1 remain the audited provenance families. The 2026-09-20 extensions change interpretation and uncertainty reporting without overwriting those frozen sources. The publication-facing manuscript now uses six composite main figures assembled from the existing provenance-bearing source assets; the composite render step remains a production task.
 
 Primary evidence maps: `data/claim_evidence_registry_2026-09-10.csv` and `data/figure_lock_registry_2026-09-10.csv`.
