@@ -1,8 +1,8 @@
 # Figure 10 — caption (2026-09-20 oracle update)
 
 Asset: `F10_agent_capability_bounded_envelope.svg` (canonical), `.pdf`, `.png` (600 dpi).  
-Data: `data/agent_figure_panel_data_2026-09-13.csv` and `data/discover_boundary_c1_error_taxonomy_summary.csv`.  
-Renderer: `render_F10_agent_envelope.py`. Manifest: `F10_RENDER_SHA256.txt`.  
+Data: `data/agent_figure_panel_data_2026-09-13.csv`, `analysis/supervisor_2026_09_20/agent_window_summary.csv` and `analysis/supervisor_2026_09_20/agent_oracle_summary.csv`.  
+Renderer: `render_F10_agent_envelope.R` (current manuscript renderer; the older Python renderer is retained for provenance). Manifest will be regenerated after the R asset is rendered.  
 Metric definitions: `docs/AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`.
 
 ## Caption
