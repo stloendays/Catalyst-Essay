@@ -1,0 +1,51 @@
+{
+  "schema": "discover-oracle-min-cu-v1",
+  "date": "2026-09-20",
+  "window": {
+    "T_C": [425.0],
+    "P_bar": [180.0, 190.0],
+    "Tsep_C": [30.0],
+    "n_states": 3,
+    "build_CU": 1
+  },
+  "window_check": {
+    "Fe_cost_USD_t": 15.291704676621135,
+    "Ru_cost_USD_t": 168.0407009111686,
+    "Os_cost_USD_t": 883.8905845985548,
+    "winner": "Fe",
+    "atomic_best": "Ru",
+    "alpha_star": 201.22344298784037,
+    "canonical_alpha_star": 201.2234429878984,
+    "alpha_star_relative_error": 2.8842131808854566e-13,
+    "reachability": "unreachable"
+  },
+  "scored_full_decision_oracle": {
+    "minimum_CU": 7,
+    "definition": "Shortest legal 11-action-interface chain yielding scorer-correct winner + pair + reachability; oracle may select only decision-relevant candidates.",
+    "costs": {
+      "BUILD_PROCESS_WINDOW": 1,
+      "COMPUTE_ACTIVITY_Ru": 1,
+      "OPTIMIZE_Fe": 1,
+      "OPTIMIZE_Ru": 1,
+      "BACKWARD_Ru_vs_Fe": 1,
+      "TEST_REACHABILITY_reference": 2
+    }
+  },
+  "protocol_complete_S1_S3_oracle": {
+    "minimum_CU": 22,
+    "definition": "Shortest chain additionally satisfying environment S1-S3, including complete activity screening and no unresolved candidate.",
+    "costs": {
+      "BUILD_PROCESS_WINDOW": 1,
+      "COMPUTE_ACTIVITY_all_15": 15,
+      "OPTIMIZE_Fe_Ru_Os": 3,
+      "BACKWARD_Ru_vs_Fe": 1,
+      "TEST_REACHABILITY_reference": 2
+    }
+  },
+  "manuscript_normalization_to_22_CU": {
+    "strong_allowance_75_CU": 3.409090909090909,
+    "strong_75_cell_median_decision_stable_52_5_CU": 2.3863636363636362,
+    "fixed_policy_threshold_206_CU": 9.363636363636363,
+    "nonbinding_median_decision_stable_566_CU": 25.727272727272727
+  }
+}
