@@ -1,302 +1,246 @@
-# Manuscript skeleton — current working version
+# Manuscript skeleton — v7 architecture
 
 Snapshot date: **2026-09-20**  
-Canonical ammonia basis: **NH3-FINAL-1.1**
+Canonical ammonia basis: **NH3-FINAL-1.1**  
+Current main-text draft: **MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md**
 
-This document contains current manuscript logic only. Superseded values and intermediate development conclusions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
+## Canonical story
 
-## Working title options
+The paper now follows one dependency chain:
 
-1. **Multiscale economics reshapes catalyst rankings at the industrial decision frontier**
-2. **Industrial objectives reshape catalyst rankings across scales**
-3. **Catalyst rankings invert under multiscale economic propagation**
+ranking fidelity
+ -> catalyst-to-process coupling
+ -> causal boundary
+ -> backward reachability
+ -> decision-aware computation
+
+The scientific center is catalyst ranking at the industrial decision frontier. The Agent is an operational extension after the deterministic scientific geometry is defined.
+
+## Working title
+
+**Multiscale economics reshapes catalyst rankings at the industrial decision frontier**
 
 ## Abstract logic
 
-The abstract should carry the scientific logic rather than a dense list of numbers:
-
-1. Atomic-scale rankings can change at the industrial decision frontier after kinetic, process and economic propagation.
-2. The effect is conditional rather than inevitable: NH3 and MeOH show ranking reshaping through different catalyst-to-process pathways, while an Au/TiO2 control preserves the upstream order under a monotonic mapping.
-3. Backward design converts an economic target into a required catalyst-property improvement and tests whether that target is reachable on the frozen property manifold.
-4. A decision-aware AI layer is evaluated separately as a compute-allocation mechanism; under the frozen benchmark, its below-threshold decision-recovery advantage is bounded by model capability and budget.
+1. Atomistic screening can remain globally correlated while selecting a different leading candidate industrially.
+2. In NH3, Ru > Os > Fe becomes Fe > Ru > Os after candidate-specific process and economic propagation.
+3. A Ru-price-equalization counterfactual flips the Fe-Ru order, identifying **metal cost coupled to process reoptimization** as the causal boundary.
+4. Local joint economic uncertainty around the canonical regime leaves Fe lower-cost in 5,000/5,000 draws.
+5. Backward design shows that the activity-only Ru target remains outside the scaling-consistent manifold throughout the tested economic envelope.
+6. MeOH transfers the decision logic through a different selectivity-recycle pathway, while Au/TiO2 shows that ranking preservation is possible under a common monotonic mapping.
+7. The Agent is mentioned last as an operational extension for allocating compute inside this already-defined decision chain.
 
 ## 1. Introduction
 
-Catalyst discovery commonly ranks candidates using adsorption energies, descriptors, intrinsic turnover frequencies or other atomistic proxies. Industrial selection is made on a different objective: product cost under coupled kinetic, catalyst-inventory, reactor, recycle, separation and replacement constraints.
+The Introduction should answer four questions in order:
 
-The central questions are therefore:
+1. **Why is global catalyst-screen quality insufficient?**  
+   Screening is comparative, and industrial effort concentrates near the leading candidates.
 
-- When does an upstream catalyst ranking survive multiscale propagation?
-- When and why does it reshape or invert?
-- Which uncertainties change the downstream decision?
-- What catalyst-property improvement is required by an industrial target, and is it physically reachable?
-- Can scientific compute be allocated adaptively to recover the same decision under a constrained budget?
+2. **What is missing from existing catalyst/process integration?**  
+   The key object here is the ordering among discrete screened candidates after candidate-specific process and economic propagation.
 
-A rank-preservation control provides the necessary counterfactual: if the downstream mapping remains monotonic, the framework should preserve rather than manufacture a ranking inversion.
+3. **What does backward design add?**  
+   It converts the industrial decision into a required catalyst-property shift and tests whether the shift is reachable on the admissible material manifold.
+
+4. **What transfers across reactions?**  
+   Not a universal descriptor or universal inversion mechanism, but the **catalyst-to-process coupling topology**.
+
+Agent context should occupy only the closing part of the Introduction. It is not a co-equal physical contribution.
 
 ## 2. Framework
 
 ### 2.1 Forward propagation
 
-```text
-descriptor / DFT
- -> scaling + BEP
- -> microkinetics
- -> catalyst productivity / inventory
- -> reactor + process optimization
- -> economics
- -> industrial ranking
-```
+descriptor / intrinsic property -> scaling + microkinetics -> catalyst productivity / inventory -> process optimization -> system-specific economic objective -> industrial ranking
 
-### 2.2 Backward design
+### 2.2 Causal boundary test
 
-```text
-industrial economic target
- -> required catalyst-property improvement
- -> descriptor / scaling manifold
- -> reachable or unreachable
-```
+change one predefined driver -> preserve all other model conventions -> reoptimize the full process -> test whether the industrial decision flips
 
-### 2.3 Decision-aware AI harness
+### 2.3 Backward design
 
-The deterministic numerical chain is Layer A. The AI layer does not replace the physics or economics; it chooses among admissible scientific actions under a compute budget.
+industrial parity target -> required catalyst-property improvement -> admissible descriptor / scaling manifold -> reachable or unreachable
 
-```text
-industrial objective + compute budget
- -> inspect current evidence
- -> choose scientific action
- -> execute calculation
- -> update ranking / feasibility / reachability
- -> stop, continue or redirect
-```
+### 2.4 Decision-aware operational layer
 
-The AI contribution is framed as **decision allocation**, not as the source of the physical result.
+fixed scientific decision geometry + compute budget -> choose admissible scientific action -> execute deterministic tool -> update decision state -> stop / continue / redirect
+
+The AI layer allocates computation; it does not generate the physical ranking or mechanism.
 
 ## 3. Results
 
-### 3.1 Atomic and economic rankings diverge in ammonia synthesis
+### 3.1 A globally correlated screen can invert at the decision frontier
 
-The 15-metal intrinsic activity screen places **Ru, Os and Fe** first, second and third. After catalyst-dependent reactor/process optimization and economic propagation, the leading economic order becomes **Fe, Ru and Os**.
+NH3:
+- atomic top three: **Ru > Os > Fe**
+- economic top three: **Fe > Ru > Os**
+- Fe / Ru / Os: **15.292 / 22.031 / 25.832 USD/t NH3**
+- Top-3 Spearman: **-0.50**
+- full-15 Spearman: **0.929**
 
-Canonical catalyst-dependent costs are:
+Primary figure: **Fig. 1**.
 
-- Fe: **15.292 USD/t NH3**
-- Ru: **22.031 USD/t NH3**
-- Os: **25.832 USD/t NH3**
+### 3.2 Metal cost and process reoptimization define the ammonia decision boundary
 
-The Top-3 Spearman correlation is **-0.50**, while the full 15-metal raw correlation remains **0.929**. The central result is therefore a concentrated inversion at the **decision frontier**, not a global collapse of atomistic screening.
-
-Primary figures: **F1, F2**.
-
-### 3.2 Process reoptimization and uncertainty define the actionable region
-
-Representative optimized operating points under NH3-FINAL-1.1 are approximately:
-
+Canonical operating regimes:
 - Fe: **425 C / 180 bar / 30 C separator**
-- Ru: **450 C / 425 bar / 25 C separator**
+- Ru: **450 C / 425 bar / 25 C**
 - Os: broad shallow high-pressure minimum
 
-Across 1,000 descriptor-uncertainty draws, Fe feasibility is **79.9%**, Fe is the economic Top-1 candidate in **68.1% (681/1000)** of draws, atomic-to-economic Top-1 survival is **28.2%**, and Top-3 actionable probability is **94.0%**. The 68.1% and 28.2% values answer different questions and should not be interchanged.
+Equal-price causal intervention:
+- Ru price set to Fe = **8 USD/kg**
+- reoptimized Ru = **14.712 USD/t NH3**
+- optimum shifts to **425 C / 170 bar / 30 C**
+- Ru - Fe = **-0.580 USD/t NH3**
 
-A direct price counterfactual isolates the baseline Fe-Ru mechanism. When Ru metal price is set equal to Fe = **8 USD/kg**, with all other inputs unchanged, full 14,136-state reoptimization shifts Ru from 450 C / 425 bar to **425 C / 170 bar** and lowers its cost to **14.712 USD/t NH3**, **0.580 USD/t below Fe**. Thus the baseline Fe-over-Ru inversion does not survive price equalization. The supported mechanism is **metal cost coupled to process reoptimization** rather than a process penalty sufficient to keep Fe ahead at equal metal price.
+Canonical 6.739 USD/t Ru-Fe gap:
+- fresh compression **+4.632**
+- metal inventory **+1.763**
+- compressor CAPEX **+1.181**
+- refrigeration **+0.629**
+- offsets from vessel pressure, recycle compression and reactor base
 
-The canonical 6.739 USD/t Ru-Fe gap is dominated by fresh-feed compression (+4.632), metal inventory (+1.763) and compressor CAPEX (+1.181 USD/t), partly offset by vessel pressure, recycle compression and reactor-base terms. The reoptimized counterfactual is the causal test; the static line-item decomposition is explanatory rather than causal.
+Descriptor uncertainty:
+- Fe feasible **79.9%**
+- Fe economic Top-1 **68.1%**
+- atomic-to-economic Top-1 survival **28.2%**
+- Fe Top-3 actionable **94.0%**
 
-A preregistered 5,000-draw cost-side Monte Carlo jointly perturbs metal price, CAPEX coefficient, electricity price and catalyst lifetime. Full process reoptimization gives **P(C_Fe < C_Ru) = 5000/5000 = 1.000** within this bounded uncertainty envelope. The corresponding Ru activity parity distribution is **p05 = 70.78x, median = 174.27x, p95 = 462.00x**.
+Local economic robustness:
+- **P(C_Fe < C_Ru) = 5000/5000**
+- minimum Ru-Fe gap **2.382 USD/t**
+- alpha* p05 / median / p95 **70.78x / 174.27x / 462.00x**
 
-The scientific endpoint is whether uncertainty changes feasibility or candidate selection. Atomistic and economic uncertainties are therefore reported separately: descriptor uncertainty changes the identity of the economic winner in a substantial fraction of draws, whereas the tested cost-side envelope does not reverse Fe versus Ru.
+Interpretive rule: **Equal-price intervention = causal boundary test. Joint cost MC = local robustness test.**
 
-Primary/supporting figures: **F3, F4**.
+Primary figure: **Fig. 2**.
 
-### 3.3 Backward design places the Ru activity target outside the current scaling manifold
+### 3.3 Backward design closes the activity-only route throughout the tested economic envelope
 
-Full process reoptimization gives a Ru activity-only break-even requirement of **201.22x** relative to baseline Ru.
+- canonical alpha*: **201.22x**
+- cost-MC p05 alpha*: **70.78x**
+- scaling headroom at 673 K: **1.090x**
+- maximum headroom: **2.525x**
+- strict-scaling Ru minimum: **21.398 USD/t NH3 at E_N = -1.215 eV**
 
-The scaling-consistent activity headroom is only:
+The main claim is not that 201.22x is a universal Ru requirement. It is that **the backward-designed activity target remains outside the accessible scaling manifold throughout the tested economic envelope**.
 
-- **1.090x** at 673 K
-- **2.525x** maximum over the frozen process-state library
+Primary figure: **Fig. 3**.
 
-The strict-scaling lowest Ru cost is **21.398 USD/t NH3** at **E_N = -1.215 eV**, still above Fe.
+### 3.4 Methanol transfers the ranking problem through a selectivity-recycle pathway
 
-The result is an activity-only reachability statement under the current process model, operating constraints and scaling-consistent design path.
+Canonical D01:
+- upstream per-Re order: **1%-250 > 1%-200 > 5%-200 > 5%-250**
+- economic order: **5%-200 > 1%-200 > 1%-250 > 5%-250**
+- rho **0.20**, tau **0.00**, inversions **3/6**
 
-Primary figures: **F5, F6**.
+Purge robustness:
+- **0.5-40% / 396 levels**
+- rho never above **0.40**
+- at least **2/6** inverted pairs throughout
 
-### 3.4 Methanol rankings reshape through a selectivity-recycle pathway
+Local leverage:
+- STY **0.00289**
+- conversion **0.05883**
+- CH4 suppression **0.37579**
 
-The canonical **MEOH-D01-v3** case contains four Re/TiO2 catalyst-temperature states evaluated through an explicit recycle/separation loop at **2% purge**. Using **STY per g Re** as the upstream intrinsic-productivity metric:
+Cost-side rank probability:
+- canonical D01 order retained **5000/5000**
+- active-Re replacement extension also **5000/5000**
 
-```text
-upstream rank                       economic NPC rank
-1 wt% Re / 250 C   #1              5 wt% Re / 200 C   #1
-1 wt% Re / 200 C   #2      ->      1 wt% Re / 200 C   #2
-5 wt% Re / 200 C   #3              1 wt% Re / 250 C   #3
-5 wt% Re / 250 C   #4              5 wt% Re / 250 C   #4
-```
+The MeOH probability matrix belongs here, not in the NH3 uncertainty figure.
 
-The four-state comparison gives **Spearman rho = 0.20**, **Kendall tau = 0.00**, and **3/6 pairwise inversions**. The upstream per-Re winner falls to economic rank #3.
+Primary figure: **Fig. 4**.
 
-The mechanism is consistent with a **selectivity-recycle pathway**. At 5 wt% Re / 250 C, local economic leverage is:
+### 3.5 Coupling topology explains both reshaping and preservation
 
-- STY: **0.00289**
-- single-pass conversion: **0.05883**
-- CH4 suppression: **0.37579**
+NH3: intrinsic activity + metal cost -> catalyst inventory + preferred operating regime -> compression / reactor / equipment burden -> economic ranking
 
-Methane formation couples to H2 feed loss, inert accumulation, purge, recycle compression and equipment burden. Across the complete **0.5-40% / 396-level** purge sweep, the per-Re winner is never the economic winner, rho does not exceed **0.40**, and at least **2/6** pairs remain inverted.
+MeOH: selectivity -> reactant loss / gas accumulation -> purge / recycle / compression -> economic ranking
 
-The candidates here are measured catalyst-temperature states. Purge is the exposed process degree of freedom and is reoptimized in the robustness analysis; temperature and pressure are not independently reoptimized per state.
+Cross-reaction scope rule: **Each reaction uses its own frozen downstream economic objective. Absolute economic values are not compared across reactions.**
 
-A 5,000-draw cost-parameter analysis preserves the canonical four-candidate economic order in **5000/5000** draws. Because canonical D01 excludes Re purchase/replacement, metal-price and lifetime perturbations are structurally inactive in the canonical-boundary calculation. A separately labelled active-Re replacement extension, using STY-derived Re inventory, also preserves the same order in **5000/5000** draws.
+Au/TiO2 control:
+- rank **2 > 3 > 4 > 5 > 6 nm**
+- rho **1.000**
+- tau **1.000**
+- **0** inversions
+- **10,000/10,000** full preservation
+- semi-open primary extension: **92.16%** exact, mean rho **0.99214**
 
-Primary figures: **F7, F8**; cost-uncertainty matrix: Supporting Information / F3 extension.
+Primary figure: **Fig. 5**.
 
-### 3.5 Cross-reaction comparison reveals pathway-specific propagation
+### 3.6 Decision-aware compute allocation is an operational extension
 
-The directly supported comparison is mechanistic:
+The physical decision chain is frozen before the Agent is introduced.
 
-```text
-NH3  : activity -> catalyst inventory / reactor demand
-MeOH : selectivity -> feed loss / purge / recycle
-```
+- deterministic completion: **206 CU**
+- protocol-complete oracle: **22 CU**
+- strong lowest stable allowance: **75 CU = 3.41x oracle**
+- 75-CU-cell median decision-stable spend: **52.5 CU = 2.39x oracle**
+- non-binding narrow-window use: **0/20**
+- non-binding decision stability: **566 CU**
+- median post-stability spend: **148 CU**
+- median final spend: **714 CU**
 
-The manuscript therefore argues that ranking changes are **reaction- and process-pathway dependent**. It does not assign a current quantitative cross-reaction leverage ratio.
+Main interpretation: **Binding budget pressure activates scoped search compression. The Agent contributes compute allocation inside a predefined scientific decision geometry; it does not supply the catalyst ranking or physical mechanism.**
 
-Primary figure: **F9A**, qualitative pathway panel.
-
-### 3.6 A rank-preservation control shows that inversion is conditional
-
-A separate literature-calibrated Au/TiO2 CO-oxidation control uses common chemistry and process conditions across 2-6 nm particle-size states. The canonical V1.1 mapping preserves the complete order:
-
-```text
-2 nm > 3 nm > 4 nm > 5 nm > 6 nm
-```
-
-with:
-
-- Spearman rho = **1.000**
-- Kendall tau = **1.000**
-- pairwise inversions = **0**
-- 10,000/10,000 predefined literature-envelope draws preserving the full order
-- 6 nm / 2 nm required-catalyst ratio = **8.064x**
-
-A supporting V1.3 semi-open extension allows moderate candidate-specific kinetic and operating freedom. In the primary 273.15-293.15 K window, exact full order is preserved in **92.16%** of draws and mean rho is **0.99214**; in the wider 273.15-313.15 K sensitivity window, exact preservation is **72.62%** and mean rho is **0.96802**.
-
-The combined interpretation of F1-F9 is conditional: multiscale propagation can preserve, weakly reshape or invert a ranking depending on the coupling topology between catalyst properties, screening objectives and downstream decision variables.
-
-Primary figure: **F9B**.
-
-### 3.7 The decision-aware agent recovers complete decisions below the fixed-policy threshold
-
-DISCOVER V1 evaluates scientific decision allocation under a frozen 11-action interface and CU accounting scheme. The frozen primary endpoint is:
-
-`full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`
-
-Anonymous complete-decision recovery in DISCOVER V1 is **6/35 nano, 15/35 mini and 35/35 strong**. The original hypothesis that adaptive policy E would outperform fixed-VOI policy D across tiers was not supported.
-
-DISCOVER-BOUNDARY-C1 retains the frozen environment and resolves the budget boundary against deterministic policy D, which reaches the complete decision at **206 CU**.
-
-At the two weak-tier boundary cells:
-
-```text
-                     175 CU          225 CU
-strong adaptive       19/20           20/20
-mini adaptive           0/20            6/20
-nano adaptive           0/20            0/20
-fixed-VOI             incomplete       complete
-```
-
-For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. At **50 CU**, completion falls to **13/20** while winner and decision pair remain correct in 20/20 runs, identifying reachability closure as the limiting component.
-
-Decision-level convergence and quantitative-target convergence occur at different budgets: 75 CU is the lowest tested stable complete-decision budget, whereas **225 CU** is the lowest tested budget with 20/20 recovery of the canonical backward parity multiplier.
-
-Canonical narrow-window allocation provides the below-threshold mechanism. The strong tier uses it in 20/20 runs from 50 through 175 CU, **1/8** at 200 CU, **0/20** at 225 CU and **0/9** at 250 CU. The weaker tiers do not use canonical narrow-window allocation in their measured cells.
-
-The efficiency advantage is bounded above. Under a **non-binding 5000-CU allowance**, canonical narrow-window allocation disappears (**0/20**), median complete-decision stabilization is delayed to **566 CU**, and a further median **148 CU** is spent before self-stop, producing **714 CU** median final spend. The scientific decision remains unchanged; compute allocation changes.
-
-A deterministic oracle lower bound makes the scale interpretable. The literal scorer-complete floor is **7 CU**, but it can exploit incomplete screening. The manuscript-facing **protocol-complete S1-S3 oracle is 22 CU**, requiring a process window, all-candidate activity screening, optimization of the minimum unresolved Fe/Ru/Os set, backward design and reachability. Relative to 22 CU, the strong 75-CU allowance is **3.41x**, the 75-CU cell median decision-stable spend of 52.5 CU is **2.39x**, and policy D's 206-CU threshold is **9.36x**.
-
-The supported manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**, not universal adaptive superiority or universal raw-compute saving.
-
-Primary figure: **F10**. Extended Data: **ED1-ED3**.
+Primary figure: **Fig. 6**.
 
 ## 4. Discussion
 
-### 4.1 Screening objectives should be defined at the level of downstream economic leverage
+The Discussion should follow the same dependency chain:
 
-A catalyst property is valuable insofar as it changes a process pathway that matters to the industrial objective. High intrinsic sensitivity is not equivalent to high economic leverage.
+1. **Decision-frontier rank fidelity** — full-set correlation can hide a different leading industrial choice.
+2. **Causal price-process coupling** — equal-price reversal shows that the Fe-Ru inversion depends on the price disparity, while the large shift in the Ru optimum shows process mediation.
+3. **Decision-sensitive uncertainty** — descriptor uncertainty, a large causal intervention and local economic robustness answer different questions.
+4. **Backward reachability** — the useful design statement is envelope-level unreachability, not a universal 201x material constant.
+5. **Pathway transfer, not objective equivalence** — NH3 and MeOH are compared through coupling topology, not through absolute production-cost values.
+6. **Operational compute allocation** — Agent results close the paper as execution of the deterministic decision framework.
 
-### 4.2 The relevant uncertainty is decision sensitivity
+## 5. Main figures
 
-A descriptor with large uncertainty may deserve little additional compute if the downstream decision is insensitive to it. A smaller uncertainty may be worth resolving if it controls a rank boundary or feasibility transition.
+The publication-facing architecture is now **six composite figures**:
 
-### 4.3 Backward design changes the interpretation of catalyst targets
+Fig. 1  NH3 ranking inversion + rolling Top-K fidelity
+Fig. 2  NH3 operating regimes + equal-price causal test + uncertainty
+Fig. 3  backward design + scaling reachability
+Fig. 4  MeOH transfer + purge/leverage + rank probability
+Fig. 5  cross-reaction coupling topology + Au/TiO2 preservation control
+Fig. 6  Agent operating envelope + oracle
 
-Rather than asking only whether a catalyst can be made more active, backward design asks how much improvement is required for an industrial objective and whether that improvement lies on the admissible catalyst-property manifold.
-
-### 4.4 Reaction transfer requires pathway transfer
-
-A new reaction should not inherit the ammonia mechanism by analogy. The relevant question is which catalyst property controls which downstream cost pool in that process architecture.
-
-### 4.5 Ranking inversion is conditional
-
-The Au/TiO2 control shows that adding model layers does not itself force an inversion. Substantial reshaping appears when candidate-specific downstream coupling is strong enough to overcome upstream separation. The relevant object is the **coupling topology between catalyst properties, screening objectives and downstream decision variables**.
-
-### 4.6 Adaptive compute allocation has a capability-bounded operating envelope
-
-The Agent result should be interpreted as an operating envelope rather than a general efficiency claim. Below the deterministic 206-CU threshold, the strong tier can recover the complete decision by narrowing the process search and redirecting compute toward unresolved backward-design and reachability steps. Below 75 CU, affordability limits completion. The 22-CU protocol oracle shows that the strong tier's 52.5-CU median decision-stable spend at the 75-CU cell is already within **2.39x** of the shortest scientifically complete chain.
-
-Above the threshold, deterministic policy D is cheaper. When the budget becomes non-binding, narrow-window allocation falls to **0/20**, decision stabilization moves to **566 CU**, and a further **148 CU** median is spent before self-stop. The failure mode therefore begins before post-stability overspending: budget pressure is itself what induces search compression.
-
-The envelope is also bounded by model capability: weaker tiers do not reproduce the strong-tier below-threshold regime under the measured conditions. Agent performance should therefore be reported jointly as a function of **model capability, compute budget and decision endpoint**.
-
-## 5. Figures
-
-See [`FIGURE_MAP.md`](FIGURE_MAP.md) for the current **F1-F10** architecture and canonical values.
-
-```text
-F1-F4   forward propagation and decision-frontier inversion
-F5-F6   backward design and reachability
-F7-F9   transfer across pathways and rank-preservation control
-F10     decision-aware compute allocation
-```
-
-F9A is qualitative. F10 and ED1-ED3 are locked to their current data/caption definitions.
+The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**.
 
 ## 6. Methods structure
 
-A compact Methods section can be organized as:
-
-1. Descriptor and scaling relations
-2. Microkinetic model
-3. Catalyst productivity and inventory mapping
-4. Reactor and process-state optimization
-5. Pressure-dependent equipment and catalyst-dependent economics
-6. Uncertainty propagation
-7. Backward-design and scaling reachability
-8. Methanol catalyst-state definition and explicit recycle/separation model
-9. Methanol upstream-to-economic rank reconstruction and purge robustness
-10. Cross-reaction pathway comparison and evidence boundary
-11. Au/TiO2 fixed-condition rank-preservation control and literature calibration
-12. Au/TiO2 semi-open robustness extension
-13. Decision-aware AI harness, DISCOVER V1 and DISCOVER-BOUNDARY-C1: 11-action interface, CU accounting, anonymous task, fixed scorer/stopping rule, deterministic D reference, repeated sampling, complete-decision endpoint, backward-target secondary endpoint, narrow-window definition and frozen-hash verification
+1. Multiscale decision analysis and system-specific economic objectives
+2. NH3 descriptors, kinetics and process-state optimization
+3. NH3 catalyst-dependent economics
+4. Descriptor uncertainty propagation
+5. Ru price-equalization causal intervention
+6. Joint cost-parameter Monte Carlo
+7. Backward activity design and scaling reachability
+8. MEOH-D01-v3 state definition and explicit recycle/separation model
+9. MeOH purge robustness and alternative upstream metrics
+10. MeOH cost uncertainty and active-Re replacement extension
+11. Cross-reaction evidence boundary
+12. Au/TiO2 rank-preservation control and semi-open extension
+13. DISCOVER operational layer, CU accounting and oracle definitions
 
 ## 7. Supporting Information priorities
 
-Supporting Information should contain the technical evidence needed to trust the main claims:
-
-- NH3-FINAL-1.1 pressure/CAPEX validation and provenance
-- Monte Carlo protocol and full distributions
-- detailed operating envelopes and cost-pool decomposition
-- scaling-manifold derivation and backward-design sweep
-- MeOH D01 v3 workbook provenance, four-state rank table, alternative upstream metrics and purge sweep
-- cross-reaction pathway provenance/evidence boundary
-- Au/TiO2 V1.1 literature anchors and 10,000-draw preservation test
-- Au/TiO2 V1.3 semi-open robustness protocol and summary statistics
-- DISCOVER action schema, scorer, hashes and cross-model results
-- C1 budget curves, narrow-window usage, failure taxonomy, interface intervention and non-binding-allowance audit
-- ED1-ED3 source tables and render provenance
+- NH3 pressure/CAPEX validation
+- full Ru-Fe cost decomposition
+- equal-price counterfactual audit
+- descriptor-MC and joint cost-MC protocols/distributions
+- backward-design sweep and scaling-manifold derivation
+- MeOH workbook provenance and purge sweep
+- active-Re replacement extension
+- Au/TiO2 literature calibration and semi-open robustness
+- DISCOVER action schema, scorer, oracle proof, raw boundary series and non-binding audit
+- composite-figure panel provenance
 
 ## Current-source rule
 
-Current manuscript values should be taken from [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md), [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv), and the claim/figure registries. Historical or superseded values are documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md) and provenance/audit records.
+Current manuscript values should be taken from **RESULTS_AT_A_GLANCE.md**, **../data/manuscript_headline_results_2026-09-20.csv**, and the claim/figure registries. Historical or superseded values remain only in **RETIRED_RESULTS.md** and provenance/audit records.
