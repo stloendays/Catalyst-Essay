@@ -64,7 +64,9 @@ Under the canonical **NH3-FINAL-1.1** model:
 
 The result is concentrated at the **decision frontier** rather than representing a global collapse of the atomistic ranking.
 
-The economic ordering is generated after propagation through catalyst-controlled pathways involving productivity, inventory, reactor sizing, operating severity, catalyst replacement and process equipment. A direct counterfactual with the **Ru metal price set equal to the Fe metal price** is now required before the manuscript claims that the inversion is not driven by metal price alone. Until that test is complete, the current result establishes the ranking inversion and its multiscale propagation, while the causal partition between direct metal price and downstream process/catalyst-demand terms remains open.
+The economic ordering is generated after propagation through catalyst-controlled pathways involving productivity, inventory, reactor sizing, operating severity, catalyst replacement and process equipment.
+
+The direct price counterfactual resolves the causal partition. Setting Ru metal price equal to Fe = **8 USD/kg** and fully reoptimizing the 14,136-state process model gives Ru = **14.712 USD/t** at **425 C / 170 bar / 30 C**, below Fe = **15.292 USD/t**. The baseline Fe-over-Ru inversion therefore **depends on the Ru-vs-Fe metal-price disparity**. The response is not a static line-item subtraction: price equalization drives Ru from 450 C / 425 bar to a Fe-like low-pressure operating regime. The mechanism is **metal cost coupled to process reoptimization**.
 
 ## Uncertainty propagation
 
@@ -72,11 +74,14 @@ A small energetic error can be amplified at the kinetic level because rates depe
 
 The useful quantity is the **decision sensitivity of the industrial objective to the uncertainty**.
 
-For Fe under the frozen 1,000-draw analysis:
+For Fe under the frozen 1,000-draw descriptor analysis:
 
 - feasibility: **79.9%**
-- Top-1 survival: **28.2%**
+- economic Top-1 probability: **68.1%**
+- atomic-to-economic Top-1 survival: **28.2%**
 - Top-3 actionable probability: **94.0%**
+
+The preregistered 5,000-draw cost-side MC gives **P(C_Fe < C_Ru) = 1.000** within the tested price/CAPEX/electricity/lifetime envelope. The Ru alpha* requirement broadens to p05 / median / p95 = **70.78x / 174.27x / 462.00x**.
 
 ## Backward-design result for Ru
 
@@ -156,7 +161,9 @@ The supported combined statement is:
 
 > **Adaptive decision recovery below the fixed-policy completion threshold is model-tier dependent and budget localized; it is not a universal raw-compute saving.**
 
-Under the non-binding allowance, canonical narrow-window use is **0/20**; median complete-decision stabilization occurs at **566 CU**, followed by a median **148 CU** of additional spend before self-stop, for **714 CU** median final spend. The next normalization is an oracle minimum CU for the shortest admissible complete-decision tool chain, so that 75 CU and the fixed-policy 206 CU threshold can be interpreted relative to the irreducible decision cost.
+Under the non-binding allowance, canonical narrow-window use is **0/20**; median complete-decision stabilization occurs at **566 CU**, followed by a median **148 CU** of additional spend before self-stop, for **714 CU** median final spend.
+
+The oracle analysis separates a **7-CU scorer-theoretic floor** from a **22-CU protocol-complete S1-S3 minimum**. The 22-CU value is used for manuscript interpretation: the strong 75-CU allowance is **3.41x oracle**, its 52.5-CU median decision-stable spend is **2.39x oracle**, fixed-VOI's 206-CU threshold is **9.36x oracle**, and the non-binding 566-CU decision-stable median is **25.73x oracle**.
 
 ## Manuscript-level claim structure
 
