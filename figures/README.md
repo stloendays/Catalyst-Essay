@@ -10,7 +10,7 @@ Scientific values are frozen independently from publication styling. Typography,
 |---|---|---|
 | F1 | NH3 atomic-to-economic ranking propagation | **LOCKED** |
 | F2 | Rolling Top-K rank correlation | **LOCKED** |
-| F3 | NH3 uncertainty / decision stability | **LOCKED** |
+| F3 | NH3 uncertainty / decision stability | **RERENDER PENDING — 2026-09-20 cost-MC extension resolved** |
 | F4 | Fe / Ru / Os operating envelopes | **LOCKED** |
 | F5 | Ru backward-design activity sweep | **LOCKED** |
 | F6 | Scaling-manifold reachability | **LOCKED** |
@@ -18,7 +18,7 @@ Scientific values are frozen independently from publication styling. Typography,
 | F8 | Methane accumulation / purge / selectivity leverage | **LOCKED** |
 | F9A | Cross-reaction catalyst-to-process pathway comparison | **QUALITATIVE CURRENT PANEL** |
 | F9B | Au/TiO2 rank-preservation control | **LOCKED** |
-| F10 | Agent capability-bounded operating envelope | **LOCKED** |
+| F10 | Agent capability-bounded operating envelope | **RERENDER PENDING — 22-CU oracle semantics resolved** |
 
 The current scientific role and canonical values are defined in [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md). Superseded figure claims are centralized in [`../docs/RETIRED_RESULTS.md`](../docs/RETIRED_RESULTS.md).
 
@@ -111,7 +111,7 @@ Final caption:
 
 - [`agent/F10_CAPTION.md`](agent/F10_CAPTION.md)
 
-F10 keeps the **206 CU** fixed-policy threshold distinct from adaptive decision-stable spend and final spend. The strong tier has a lowest tested stable complete-decision budget of **75 CU**; under the non-binding 5000-CU allowance, median final spend is **714 CU**.
+F10 keeps the **206 CU** fixed-policy threshold distinct from adaptive decision-stable spend and final spend. The strong tier has a lowest tested stable complete-decision budget of **75 CU**. The 2026-09-20 oracle audit adds a **22-CU protocol-complete minimum** (plus a 7-CU scorer-only diagnostic floor). Under the non-binding 5000-CU allowance, narrow-window use is **0/20**, median decision-stable spend is **566 CU**, and median final spend is **714 CU** after a median **148 CU** post-stability overrun.
 
 ## Agent Extended Data
 
@@ -149,3 +149,13 @@ A manuscript figure is final only when all four are present:
 Current figure roles and values: [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md).  
 Current numerical summary: [`../docs/RESULTS_AT_A_GLANCE.md`](../docs/RESULTS_AT_A_GLANCE.md).  
 Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv).
+
+
+## 2026-09-20 supervisor extension figures
+
+Before F3/F10 are rerendered into the final manuscript layout, the exact new results are visualized in:
+
+- `../analysis/supervisor_2026_09_20/nh3_cost_decomposition.svg` — Fe/Ru canonical pools plus the fully reoptimized Ru-price-equalization counterfactual;
+- `../analysis/supervisor_2026_09_20/cost_mc_summary.svg` — NH3 alpha* cost-MC distribution and MeOH candidate rank-probability matrix.
+
+These are analysis-facing figures with exact manuscript numbers; final figure numbering will be assigned during the F3/F10 redraw.
