@@ -84,14 +84,23 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 ```text
 NH3
-activity -> catalyst inventory / reactor demand -> decision-frontier inversion
+intrinsic activity + metal cost
+ -> catalyst inventory + preferred operating regime
+ -> compression / reactor / equipment burden
+ -> decision-frontier inversion
 
 MeOH
-selectivity -> feed loss / purge / recycle -> catalyst-state ranking reshuffle
+selectivity
+ -> reactant loss / gas accumulation
+ -> purge / recycle / compression
+ -> catalyst-state ranking reshuffle
 
 Au/TiO2
-monotonic downstream mapping -> rank preservation
+common monotonic downstream mapping
+ -> rank preservation
 ```
+
+The NH3 and MeOH systems use different frozen downstream economic objectives; absolute cost values are not compared across reactions. The transferable object is the catalyst-to-process coupling topology.
 
 The central question is **which catalyst-to-process coupling determines whether an upstream ranking survives, reshapes or inverts**.
 
@@ -104,7 +113,7 @@ STATUS.md                current production state
 docs/                    scientific frame, manuscript map, methods and audit records
   README.md              recommended reading order
   RESULTS_AT_A_GLANCE.md current numerical summary
-  FIGURE_MAP.md          F1-F10 scientific roles
+  FIGURE_MAP.md          six-figure manuscript architecture and source-panel mapping
   RETIRED_RESULTS.md     single note for superseded results
 
 data/                    current machine-readable manuscript-facing datasets
@@ -143,4 +152,4 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
 
-Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. Updated F3 and F10 assets have now been rendered in R with SHA-256 manifests; they await final visual QA before re-lock. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT_v6_2026-09-20.md`](docs/MANUSCRIPT_MAIN_TEXT_v6_2026-09-20.md), with F1-F10 captions in [`docs/MAIN_FIGURE_CAPTIONS_v2_2026-09-20.md`](docs/MAIN_FIGURE_CAPTIONS_v2_2026-09-20.md).
+Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md`](docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md). The publication-facing architecture is now six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md`](docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md). The previous F1-F10 rendered assets remain provenance-bearing source panels.
