@@ -146,8 +146,8 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Next production tasks
 
-1. rerender F3 and F10 with the resolved metrics/oracle reference;
-2. rewrite the NH3 mechanism paragraph to reflect the equal-price reversal;
-3. update captions, claim-evidence registry and manuscript headline table;
-4. re-lock the affected claim/figure set after a final consistency audit;
+1. **F3/F10 figure logic and R renderers are now updated**; run the final R render to SVG/PDF/PNG and inspect typography/spacing;
+2. NH3 mechanism prose, captions, claim-evidence registry and headline table have been updated to the equal-price/cost-MC interpretation;
+3. regenerate render hashes and re-lock F3/F10 after visual QA;
+4. run the final cross-document consistency audit;
 5. continue final visual harmonization and submission assembly.
