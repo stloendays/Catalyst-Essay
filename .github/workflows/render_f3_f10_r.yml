@@ -1,0 +1,59 @@
+name: Render updated F3 and F10 in R
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/render_f3_f10_r.yml'
+      - 'figures/nh3/render_F03_uncertainty_cost_mc.R'
+      - 'figures/agent/render_F10_agent_envelope.R'
+      - 'analysis/supervisor_2026_09_20/f3_panel_summary.csv'
+      - 'analysis/supervisor_2026_09_20/nh3_cost_mc_histogram.csv'
+      - 'analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv'
+      - 'analysis/supervisor_2026_09_20/agent_oracle_summary.csv'
+      - 'analysis/supervisor_2026_09_20/agent_window_summary.csv'
+      - 'data/agent_figure_panel_data_2026-09-13.csv'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Render F3 and F10
+        run: |
+          Rscript figures/nh3/render_F03_uncertainty_cost_mc.R .
+          Rscript figures/agent/render_F10_agent_envelope.R .
+
+      - name: Build render manifests
+        run: |
+          {
+            echo "# F03 R render manifest — 2026-09-20"
+            sha256sum               figures/nh3/F03_uncertainty_cost_mc_2026-09-20.svg               figures/nh3/F03_uncertainty_cost_mc_2026-09-20.pdf               figures/nh3/F03_uncertainty_cost_mc_2026-09-20.png               figures/nh3/render_F03_uncertainty_cost_mc.R               analysis/supervisor_2026_09_20/f3_panel_summary.csv               analysis/supervisor_2026_09_20/nh3_cost_mc_histogram.csv               analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv
+          } > figures/nh3/F03_RENDER_SHA256.txt
+          {
+            echo "# F10 R render manifest — 2026-09-20"
+            sha256sum               figures/agent/F10_agent_capability_bounded_envelope.svg               figures/agent/F10_agent_capability_bounded_envelope.pdf               figures/agent/F10_agent_capability_bounded_envelope.png               figures/agent/render_F10_agent_envelope.R               data/agent_figure_panel_data_2026-09-13.csv               analysis/supervisor_2026_09_20/agent_oracle_summary.csv               analysis/supervisor_2026_09_20/agent_window_summary.csv
+          } > figures/agent/F10_RENDER_SHA256.txt
+
+      - name: Commit rendered assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add             figures/nh3/F03_uncertainty_cost_mc_2026-09-20.svg             figures/nh3/F03_uncertainty_cost_mc_2026-09-20.pdf             figures/nh3/F03_uncertainty_cost_mc_2026-09-20.png             figures/nh3/F03_RENDER_SHA256.txt             figures/agent/F10_agent_capability_bounded_envelope.svg             figures/agent/F10_agent_capability_bounded_envelope.pdf             figures/agent/F10_agent_capability_bounded_envelope.png             figures/agent/F10_RENDER_SHA256.txt
+          if git diff --cached --quiet; then
+            echo "No render changes."
+          else
+            git commit -m "figures: render supervisor-updated F3 and F10 in R"
+            git push
+          fi
