@@ -299,4 +299,4 @@ Supporting Information should contain the technical evidence needed to trust the
 
 ## Current-source rule
 
-Current manuscript values should be taken from [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md), [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv), and the claim/figure registries. Historical or superseded values are documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md) and provenance/audit records.
+Current manuscript values should be taken from [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md), [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv), and the claim/figure registries. Historical or superseded values are documented only in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md) and provenance/audit records.
