@@ -8,7 +8,7 @@ The repository separates current manuscript-facing results from detailed provena
 
 1. [`RESEARCH_FRAME.md`](RESEARCH_FRAME.md) — scientific question, multiscale logic and the role of the decision-aware AI layer.
 2. [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md) — current numerical results only.
-3. [`FIGURE_MAP.md`](FIGURE_MAP.md) — scientific role of F1-F10.
+3. [`FIGURE_MAP.md`](FIGURE_MAP.md) — six publication-facing composite figures and their source-panel mapping.
 4. [`MANUSCRIPT_SKELETON.md`](MANUSCRIPT_SKELETON.md) — current paper structure and argument flow.
 5. [`AGENT_HARNESS.md`](AGENT_HARNESS.md) — deterministic multiscale harness and decision layer.
 6. [`DATA_AND_CODE_AVAILABILITY.md`](DATA_AND_CODE_AVAILABILITY.md) — reproducibility and data/code map.
@@ -30,7 +30,7 @@ The uncertainty analysis asks whether descriptor uncertainty changes feasibility
 
 The methanol case tests a different catalyst-to-process pathway in which selectivity and methane formation couple to feed loss, purge and recycle. The Au/TiO2 control provides the complementary case in which a ranking is preserved under a monotonic downstream mapping.
 
-The Agent work is evaluated as a decision-allocation problem. Its current claim is capability- and budget-dependent: the strong tier can recover the full decision below the fixed-policy completion threshold, while the non-binding allowance demonstrates that this is not a universal raw-compute saving.
+The Agent work is evaluated as an **operational decision-allocation layer after the physical framework is fixed**. Its current claim is capability- and budget-dependent: the strong tier can recover the full decision below the fixed-policy completion threshold, while the non-binding allowance demonstrates that this is not a universal raw-compute saving.
 
 ## Evidence hierarchy
 
