@@ -67,9 +67,9 @@ The literature-calibrated **Au/TiO2-RP V1.1** control preserves the complete 2-6
 
 This control shows that multiscale propagation does not intrinsically force ranking inversion.
 
-### Decision-aware Agent benchmark
+### Decision-aware Agent workflow
 
-**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test decision allocation under a frozen scientific-compute interface. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
+**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -78,7 +78,7 @@ This control shows that multiscale propagation does not intrinsically force rank
 | nano adaptive | **0/20** | **0/20** |
 | fixed-VOI | incomplete | complete |
 
-For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, followed by a median **148 CU** post-stability overrun to **714 CU** final spend; canonical narrow-window use is **0/20**. The protocol-complete oracle minimum is **22 CU** (with a separate 7-CU scorer-only floor), so 75 CU is **3.41x** the manuscript-facing oracle and the fixed-policy threshold of 206 CU is **9.36x**. The supported claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy threshold**, not a universal raw-compute saving.
+For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, followed by a median **148 CU** post-stability overrun to **714 CU** final spend; canonical narrow-window use is **0/20**. The protocol-complete oracle minimum is **22 CU** (with a separate 7-CU scorer-only floor), so 75 CU is **3.41x** the manuscript-facing oracle and the fixed-policy threshold of 206 CU is **9.36x**. The immediate benchmark claim remains model-tier- and budget-dependent, while the broader methodological role is **workflow scalability**: deterministic reaction modules carry the science and the Agent reuses the same decision logic to orchestrate repeated screening tasks.
 
 ## Scientific interpretation
 
@@ -152,4 +152,4 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
 
-Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md`](docs/MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md). The publication-facing architecture is now six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md`](docs/MAIN_FIGURE_CAPTIONS_v3_2026-09-20.md). The previous F1-F10 rendered assets remain provenance-bearing source panels.
+Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md`](docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md). The publication-facing architecture remains six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`](docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md). V8 keeps the physical science attribution unchanged while elevating the Agent to the framework's workflow-scaling and batch-execution layer.
