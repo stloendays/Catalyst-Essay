@@ -24,6 +24,23 @@ The current scientific role and canonical values are defined in [`../docs/FIGURE
 
 ## NH3 — F1 to F6
 
+### F3 — 2026-09-20 uncertainty extension
+
+Current manuscript renderer:
+
+- `nh3/render_F03_uncertainty_cost_mc.R`
+
+Panel tables:
+
+- `../analysis/supervisor_2026_09_20/f3_panel_summary.csv`
+- `../analysis/supervisor_2026_09_20/nh3_cost_mc_histogram.csv`
+- `../analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv`
+
+Caption: `nh3/F03_CAPTION.md`.
+
+The old NH3-FINAL-1.1 F3 asset remains frozen provenance; the updated F3 combines the original descriptor uncertainty with the supervisor-requested cost-side Monte Carlo.
+
+
 Canonical source bundle:
 
 `../provenance/nh3_final_1_1/source_harness/`
@@ -97,7 +114,11 @@ Canonical scientific panel data:
 
 - [`../data/agent_figure_panel_data_2026-09-13.csv`](../data/agent_figure_panel_data_2026-09-13.csv)
 
-Renderer:
+Current manuscript renderer:
+
+- `agent/render_F10_agent_envelope.R`
+
+Historical renderer retained for provenance:
 
 - `agent/render_F10_agent_envelope.py`
 
