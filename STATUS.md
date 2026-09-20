@@ -117,10 +117,10 @@ Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol
 Current main figure architecture is **F1-F10**.
 
 - **F1-F2, F4-F8** — locked
-- **F3** — numerical extension resolved; rerender pending for 68.1% economic Top-1 and joint cost-MC
+- **F3** — updated R asset rendered on 2026-09-20; SHA-256 manifest generated; final visual QA/re-lock pending
 - **F9A** — current qualitative catalyst-to-process pathway panel
 - **F9B** — locked rank-preservation control
-- **F10** — run data frozen; rerender/caption update pending for the 22-CU oracle and 566 + 148 / 0-of-20 interpretation
+- **F10** — updated R asset rendered on 2026-09-20 with 22-CU oracle and 566 + 148 non-binding decomposition; SHA-256 manifest generated; final visual QA/re-lock pending
 - **ED1-ED3** — locked Agent Extended Data panels
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
@@ -144,10 +144,14 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 **Completed.** Full execution record: `analysis/supervisor_2026_09_20/README.md`. The original request and closure are in `docs/SUPERVISOR_FEEDBACK_2026-09-20.md`.
 
+## Current manuscript draft
+
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v6_2026-09-20.md`**. It incorporates the Ru-price counterfactual, joint cost Monte Carlo, corrected 68.1% / 28.2% uncertainty definitions, MeOH rank-probability result, 22-CU Agent oracle and the revised non-binding mechanism. Current F1-F10 captions are in **`docs/MAIN_FIGURE_CAPTIONS_v2_2026-09-20.md`**.
+
 ## Next production tasks
 
-1. **F3/F10 figure logic and R renderers are now updated**; run the final R render to SVG/PDF/PNG and inspect typography/spacing;
-2. NH3 mechanism prose, captions, claim-evidence registry and headline table have been updated to the equal-price/cost-MC interpretation;
-3. regenerate render hashes and re-lock F3/F10 after visual QA;
-4. run the final cross-document consistency audit;
-5. continue final visual harmonization and submission assembly.
+1. perform visual QA on the rendered F3/F10 assets and re-lock them if no layout defects are found;
+2. run a cross-document audit of v6 against the claim/evidence registry, captions and Methods definitions;
+3. consolidate Supporting Information numbering for the NH3 cost decomposition and MeOH active-Re extension;
+4. tighten references and Data/Code Availability for submission;
+5. generate the next Word/PDF manuscript artifact only after the Markdown audit closes.
