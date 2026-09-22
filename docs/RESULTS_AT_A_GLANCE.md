@@ -172,7 +172,7 @@ mini       15/35
 strong     35/35
 ```
 
-The frozen primary endpoint is the conjunction of the correct economic winner, decision pair and reachability verdict. The original across-tier adaptive-vs-fixed superiority criterion was not met.
+The frozen primary endpoint is `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`: economic winner, decision pair and reachability verdict. The workflow uses `BACKWARD` to support the reachability classification, but numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint. The original across-tier adaptive-vs-fixed superiority criterion was not met.
 
 ## DISCOVER-BOUNDARY-C1
 
@@ -188,7 +188,9 @@ fixed-VOI             incomplete       complete
 
 For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. At **50 CU**, completion is **13/20**, while winner and decision pair remain 20/20 and reachability is the limiting component.
 
-Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **7/7 at 150 CU**, **20/20 at 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
+The primary decision endpoint and the quantitative target separate. Strong adaptive reaches **20/20 complete decisions at 75 CU**, where canonical **201.22x** backward parity-multiplier recovery is only **9/20**; that quantitative target reaches **20/20 at 225 CU**.
+
+Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **7/7 at 150 CU**, **20/20 at 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**. In the same 175-CU cell the weaker tiers show **0/20 mini** and **0/20 nano**, and neither weak tier has canonical narrow-window use in any measured cell.
 
 Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and reaches decision stability much later.
 

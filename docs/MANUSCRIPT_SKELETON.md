@@ -175,10 +175,14 @@ Primary figure: **Fig. 5**.
 
 The physical decision chain is fixed before Agent orchestration. This separation allows the workflow logic to be reused while reaction-specific scientific modules are replaced or extended.
 
+The frozen primary endpoint is `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`; numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint.
+
 - deterministic completion: **206 CU**
 - protocol-complete oracle: **22 CU**
 - strong lowest stable allowance: **75 CU = 3.41x oracle**
 - 75-CU-cell median decision-stable spend: **52.5 CU = 2.39x oracle**
+- canonical 201.22x backward-target recovery: **9/20 at 75 CU**, **20/20 at 225 CU**
+- narrow-window allocation at 175 CU: **20/20 strong**, **0/20 mini**, **0/20 nano**
 - non-binding narrow-window use: **0/20**
 - non-binding decision stability: **566 CU**
 - median post-stability spend: **148 CU**

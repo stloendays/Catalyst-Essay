@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/MANUSCRIPT_SKELETON.md'
-      - 'docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'
+      - 'docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md'
       - 'docs/AGENT_HARNESS.md'
       - 'docs/RESULTS_AT_A_GLANCE.md'
       - 'README.md'
@@ -13,7 +13,7 @@ on:
   pull_request:
     paths:
       - 'docs/MANUSCRIPT_SKELETON.md'
-      - 'docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'
+      - 'docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md'
       - 'docs/AGENT_HARNESS.md'
       - 'docs/RESULTS_AT_A_GLANCE.md'
       - 'README.md'
@@ -34,7 +34,7 @@ jobs:
 
           files = {
               'manuscript': Path('docs/MANUSCRIPT_SKELETON.md'),
-              'v6': Path('docs/MANUSCRIPT_SKELETON_v6_2026-09-17.md'),
+              'main_text': Path('docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md'),
               'harness': Path('docs/AGENT_HARNESS.md'),
               'results': Path('docs/RESULTS_AT_A_GLANCE.md'),
               'readme': Path('README.md'),
@@ -52,7 +52,7 @@ jobs:
                       raise SystemExit(f'{name}: stale four-component primary-endpoint wording: {phrase}')
 
           formula = 'full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct'
-          for name in ('manuscript', 'v6', 'harness', 'results'):
+          for name in ('manuscript', 'main_text', 'harness', 'results'):
               if formula not in text[name]:
                   raise SystemExit(f'{name}: frozen primary-endpoint formula missing')
 

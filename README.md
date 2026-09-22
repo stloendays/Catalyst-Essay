@@ -69,7 +69,7 @@ This control shows that multiscale propagation does not intrinsically force rank
 
 ### Decision-aware Agent workflow
 
-**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
+**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. A complete decision is the frozen primary endpoint `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`; numerical recovery of the backward parity multiplier is scored separately as a secondary quantitative endpoint. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -77,6 +77,8 @@ This control shows that multiscale propagation does not intrinsically force rank
 | mini adaptive | **0/20** | **6/20** |
 | nano adaptive | **0/20** | **0/20** |
 | fixed-VOI | incomplete | complete |
+
+Under the canonical narrow-window rule, allocation at 175 CU occurs in **20/20 strong**, **0/20 mini** and **0/20 nano** runs. The primary decision endpoint and the quantitative target separate: strong adaptive reaches **20/20 complete decisions at 75 CU**, whereas the canonical **201.22x** backward parity target reaches **20/20 at 225 CU**.
 
 For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Under a non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, followed by a median **148 CU** post-stability overrun to **714 CU** final spend; canonical narrow-window use is **0/20**. The protocol-complete oracle minimum is **22 CU** (with a separate 7-CU scorer-only floor), so 75 CU is **3.41x** the manuscript-facing oracle and the fixed-policy threshold of 206 CU is **9.36x**. The immediate benchmark claim remains model-tier- and budget-dependent, while the broader methodological role is **workflow scalability**: deterministic reaction modules carry the science and the Agent reuses the same decision logic to orchestrate repeated screening tasks.
 
