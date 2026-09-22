@@ -10,7 +10,7 @@ OUT.mkdir(parents=True,exist_ok=True)
 
 wbv=openpyxl.load_workbook(WB,data_only=True,read_only=True)
 wbf=openpyxl.load_workbook(WB,data_only=False,read_only=True)
-report={"workbook":str(WB.relative_to(ROOT)),"sheet_names":wbv.sheetnames,"sheets":{}}
+report={"workbook":WB.relative_to(ROOT).as_posix(),"sheet_names":wbv.sheetnames,"sheets":{}}
 for s in wbv.sheetnames:
     wsv=wbv[s]; wsf=wbf[s]
     info={"max_row":wsv.max_row,"max_column":wsv.max_column,"nonempty_preview":[]}
