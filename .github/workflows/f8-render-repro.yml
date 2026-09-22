@@ -37,6 +37,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends r-base-core
           Rscript --version
+          Rscript -e 'cat(R.version.string, "\n")' | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Render from the frozen inputs into a scratch tree
         run: |
@@ -79,6 +80,39 @@ jobs:
             fi
           done
           exit $missing
+
+      - name: Separate drawing content from encoding metadata in the SVG
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          f=F08_MeOH_selectivity_recycle_D01v3.svg
+          new="/tmp/repro/figures/meoh/$f"
+          [ -s "$new" ] || { echo "no fresh SVG to compare"; exit 0; }
+          # Cairo mints fresh element ids on every run. Strip those and the
+          # surface/glyph counters: what survives is the drawing itself.
+          norm() {
+            sed -E 's/id="[^"]*"/id=""/g; s/xlink:href="#[^"]*"/xlink:href="#"/g; s/(glyph|surface|clip)[0-9]+(-[0-9]+)?/\1/g' "$1"
+          }
+          norm "figures/meoh/$f" > /tmp/committed.norm
+          norm "$new"            > /tmp/rendered.norm
+          a=$(sha256sum /tmp/committed.norm | cut -c1-16)
+          b=$(sha256sum /tmp/rendered.norm  | cut -c1-16)
+          echo >> "$GITHUB_STEP_SUMMARY"
+          if [ "$a" = "$b" ]; then
+            echo "SVG drawing content is identical once cairo element ids are normalised."
+            echo "**SVG drawing content is identical** once cairo element ids are normalised; the byte difference above is encoding metadata only." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "SVG drawing content differs beyond element ids."
+            {
+              echo "**SVG drawing content differs** beyond element ids ($a vs $b). First differing lines:"
+              echo
+              echo '```diff'
+              diff /tmp/committed.norm /tmp/rendered.norm | head -40
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            diff /tmp/committed.norm /tmp/rendered.norm | head -40 || true
+          fi
 
       - name: Upload the fresh render for inspection
         if: always()
