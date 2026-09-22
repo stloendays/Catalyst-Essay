@@ -86,3 +86,13 @@ This V1.2 result should not yet replace V1.1 as the main literature-calibrated c
 - Output: `data/rank_preservation_partial_relaxation.csv`
 - Draws: 100,000 per envelope
 - Base seed: 20260907
+
+The V1.2 script and its output were removed from `main` as superseded
+intermediates (commits `26d677a` and `34945e8`); V1.3 is the current
+supporting robustness extension. Both files remain reachable at the tag
+`archive/discover-v1-boundary-20260908`:
+
+```bash
+git show archive/discover-v1-boundary-20260908:data/rank_preservation_partial_relaxation.py
+git show archive/discover-v1-boundary-20260908:data/rank_preservation_partial_relaxation.csv
+```
