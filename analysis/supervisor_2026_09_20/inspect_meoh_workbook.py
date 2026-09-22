@@ -15,11 +15,14 @@ for s in wbv.sheetnames:
     wsv=wbv[s]; wsf=wbf[s]
     info={"max_row":wsv.max_row,"max_column":wsv.max_column,"nonempty_preview":[]}
     count=0
-    for row in wsv.iter_rows():
+    # Read-only worksheets have no random access: ws.cell() does not exist and blank
+    # cells come back as EmptyCell, which carries no .row/.column. Walk the value and
+    # formula sheets together and take the row number from the iteration instead.
+    for rownum,(row,frow) in enumerate(zip(wsv.iter_rows(),wsf.iter_rows()),start=1):
         vals=[c.value for c in row]
         if any(v is not None for v in vals):
-            frec=[wsf.cell(c.row,c.column).value for c in row]
-            info["nonempty_preview"].append({"row":row[0].row,"values":vals[:20],"formulas":frec[:20]})
+            frec=[c.value for c in frow]
+            info["nonempty_preview"].append({"row":rownum,"values":vals[:20],"formulas":frec[:20]})
             count+=1
             if count>=80: break
     report["sheets"][s]=info
