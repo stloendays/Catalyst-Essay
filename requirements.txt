@@ -1,0 +1,24 @@
+# Python environment for Catalyst-Essay.
+#
+# The pinned block is not a guess: it is the interpreter and package set recorded
+# in the frozen DISCOVER-BOUNDARY-C1 run metadata, which is what produced the
+# agent results the manuscript reports.
+#
+#   provenance/discover_v1/source_harness/DISCOVER_BOUNDARY_C1/data/
+#       discover_boundary_c1_metadata.json  ->  "python" and "packages"
+#
+# Recorded interpreter: CPython 3.12.14
+
+numpy==2.3.5
+scipy==1.18.0
+matplotlib==3.11.0
+
+# Required to re-execute the LLM policy arm of the benchmark. Re-running it also
+# needs an API key in the environment; the frozen traces under provenance/ are
+# sufficient to reproduce every reported number without one.
+openai==3.7.0
+
+# Used by the workbook-reading and tabular analysis scripts. These are outside
+# the frozen agent record, so they carry floors rather than pins.
+openpyxl>=3.1
+pandas>=2.0
