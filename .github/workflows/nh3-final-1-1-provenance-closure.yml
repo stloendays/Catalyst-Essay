@@ -8,7 +8,6 @@ on:
       - 'provenance/nh3_final_1_1/**'
       - 'tools/prepare_nh3_final_1_1_bundle.py'
       - 'ci/validate_nh3_final_1_1_provenance.py'
-      - '.github/workflows/nh3-final-1-1-provenance-closure.yml'
 
 permissions:
   contents: write
@@ -40,8 +39,18 @@ jobs:
             echo 'No validation artifact changed.'
           else
             git commit -m 'Record NH3-FINAL-1.1 provenance closure status'
-            git pull --rebase origin main
-            git push origin HEAD:main
+            # Several jobs can be in flight at once; a bare push loses the race
+            # and throws away a run whose checks already passed.
+            target="main"
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin "$target" && git push origin HEAD:"$target"; then
+                pushed=1; break
+              fi
+              echo "push attempt $attempt lost a race with another job; retrying"
+              sleep $(( (RANDOM % 5) + 2 ))
+            done
+            [ "$pushed" = 1 ] || { echo "could not push after 5 attempts"; exit 1; }
           fi
 
       - name: Enforce integrity failures only

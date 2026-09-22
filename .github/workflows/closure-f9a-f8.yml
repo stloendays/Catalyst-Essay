@@ -6,7 +6,6 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/closure-f9a-f8.yml'
       - 'ci/f9a_ci_revalidation_probe.py'
 
 permissions:
@@ -89,8 +88,18 @@ jobs:
             echo 'No closure outputs changed.'
           else
             git commit -m 'Record F9A CI revalidation attempt and Figure 8 render'
-            git pull --rebase origin main
-            git push origin HEAD:main
+            # Several jobs can be in flight at once; a bare push loses the race
+            # and throws away a run whose checks already passed.
+            target="main"
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin "$target" && git push origin HEAD:"$target"; then
+                pushed=1; break
+              fi
+              echo "push attempt $attempt lost a race with another job; retrying"
+              sleep $(( (RANDOM % 5) + 2 ))
+            done
+            [ "$pushed" = 1 ] || { echo "could not push after 5 attempts"; exit 1; }
           fi
 
       - name: Final infrastructure status

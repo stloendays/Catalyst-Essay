@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/render_f3_f10_r.yml'
       - 'figures/nh3/render_F03_uncertainty_cost_mc.R'
       - 'figures/agent/render_F10_agent_envelope.R'
       - 'analysis/supervisor_2026_09_20/f3_panel_summary.csv'
@@ -55,6 +54,16 @@ jobs:
             echo "No render changes."
           else
             git commit -m "figures: render supervisor-updated F3 and F10 in R"
-            git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)"
-            git push
+            # Several jobs can be in flight at once; a bare push loses the race
+            # and throws away a run whose checks already passed.
+            target="$(git rev-parse --abbrev-ref HEAD)"
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin "$target" && git push origin HEAD:"$target"; then
+                pushed=1; break
+              fi
+              echo "push attempt $attempt lost a race with another job; retrying"
+              sleep $(( (RANDOM % 5) + 2 ))
+            done
+            [ "$pushed" = 1 ] || { echo "could not push after 5 attempts"; exit 1; }
           fi

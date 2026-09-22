@@ -7,7 +7,6 @@ on:
     paths:
       - '.gitattributes'
       - 'ci/repair_nh3_provenance_line_endings.py'
-      - '.github/workflows/repair-nh3-provenance-line-endings.yml'
 
 permissions:
   contents: write
@@ -43,8 +42,16 @@ jobs:
             echo 'No byte-level repair was required.'
           else
             git commit -m 'Preserve NH3-FINAL-1.1 provenance source bytes'
-            # main can have moved while this job ran; without this the push is
-            # rejected as non-fast-forward and a passing validation is lost.
-            git pull --rebase origin main
-            git push origin HEAD:main
+            # Several jobs can be in flight at once; a bare push loses the race
+            # and throws away a run whose checks already passed.
+            target="main"
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git pull --rebase origin "$target" && git push origin HEAD:"$target"; then
+                pushed=1; break
+              fi
+              echo "push attempt $attempt lost a race with another job; retrying"
+              sleep $(( (RANDOM % 5) + 2 ))
+            done
+            [ "$pushed" = 1 ] || { echo "could not push after 5 attempts"; exit 1; }
           fi

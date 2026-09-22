@@ -85,9 +85,12 @@ jobs:
         if: always()
         shell: bash
         run: |
-          set -uo pipefail
+          # Diagnostic only: it reports, it never decides whether the job passed,
+          # so every path below ends in exit 0.
+          set +e
           f=F08_MeOH_selectivity_recycle_D01v3.svg
           new="/tmp/repro/figures/meoh/$f"
+          ls -l "figures/meoh/$f" "$new" 2>&1 || true
           [ -s "$new" ] || { echo "no fresh SVG to compare"; exit 0; }
           # Cairo mints fresh element ids on every run. Strip those and the
           # surface/glyph counters: what survives is the drawing itself.
@@ -111,8 +114,9 @@ jobs:
               diff /tmp/committed.norm /tmp/rendered.norm | head -40
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
-            diff /tmp/committed.norm /tmp/rendered.norm | head -40 || true
+            diff /tmp/committed.norm /tmp/rendered.norm | head -40
           fi
+          exit 0
 
       - name: Upload the fresh render for inspection
         if: always()
