@@ -1,0 +1,89 @@
+name: Figure 8 render reproducibility
+
+# The committing renderer (render-figure8-meoh.yml) has never completed: both
+# attempts landed in the 2026-09-10 window when no runner was assigned, and the
+# F08 assets in the repository were rendered locally instead.
+#
+# This job answers the question that one cannot: does a clean checkout render
+# Figure 8 from the frozen inputs, and do the bytes match what is committed? It
+# renders into a scratch tree and never writes to figures/, so a byte difference
+# is reported rather than silently replacing a locked manuscript asset.
+#
+# Byte identity is reported, not required. R's pdf() device embeds a creation
+# timestamp, so a differing PDF hash is expected and is not a failure. The job
+# fails only if the render itself fails or an output is missing.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'figures/meoh/render_F08_selectivity_recycle.R'
+      - 'data/meoh/meoh_candidate_ranking_D01v3.csv'
+      - 'data/meoh/meoh_purge_robustness_D01v3.csv'
+      - '.github/workflows/f8-render-repro.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  repro:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install R
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends r-base-core
+          Rscript --version
+
+      - name: Render from the frozen inputs into a scratch tree
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/repro/data/meoh /tmp/repro/figures/meoh
+          cp data/meoh/meoh_candidate_ranking_D01v3.csv \
+             data/meoh/meoh_purge_robustness_D01v3.csv \
+             /tmp/repro/data/meoh/
+          Rscript figures/meoh/render_F08_selectivity_recycle.R /tmp/repro
+
+      - name: Compare the fresh render with the committed assets
+        shell: bash
+        run: |
+          set -uo pipefail
+          {
+            echo "### Figure 8 clean-checkout render"
+            echo
+            echo "| asset | committed | re-rendered | |"
+            echo "|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          missing=0
+          for f in F08_MeOH_selectivity_recycle_D01v3.svg \
+                   F08_MeOH_selectivity_recycle_D01v3.pdf \
+                   F08_MeOH_selectivity_recycle_D01v3.png; do
+            new="/tmp/repro/figures/meoh/$f"
+            if [ ! -s "$new" ]; then
+              echo "MISSING   $f"
+              echo "| \`$f\` | | | **not produced** |" >> "$GITHUB_STEP_SUMMARY"
+              missing=1
+              continue
+            fi
+            a=$(sha256sum "figures/meoh/$f" | cut -c1-16)
+            b=$(sha256sum "$new" | cut -c1-16)
+            if [ "$a" = "$b" ]; then
+              echo "MATCH     $f  $a"
+              echo "| \`$f\` | \`$a\` | \`$b\` | identical |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "DIFFERS   $f  committed $a  rendered $b"
+              echo "| \`$f\` | \`$a\` | \`$b\` | differs |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          exit $missing
+
+      - name: Upload the fresh render for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f08-clean-checkout-render
+          path: /tmp/repro/figures/meoh/
+          if-no-files-found: error

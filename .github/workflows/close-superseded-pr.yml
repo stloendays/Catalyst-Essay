@@ -1,0 +1,38 @@
+name: Close superseded analysis PR
+
+# One-shot. Draft PR #5 was opened on 2026-09-19 as a temporary vehicle for the
+# supervisor follow-up workbook inspection. Its outputs are on main, so the PR
+# only carries a stale red check. GITHUB_TOKEN can close it; repository
+# description and topics it cannot touch, since Actions tokens have no
+# administration scope.
+#
+# This file is deleted once it has run.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/close-superseded-pr.yml'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close PR 5 if it is still open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          state=$(gh pr view 5 --json state --jq .state)
+          echo "PR #5 state: $state"
+          if [ "$state" != "OPEN" ]; then
+            echo "Already $state, nothing to do."
+            exit 0
+          fi
+          gh pr close 5 --comment "Closing: this was a temporary analysis PR for the 2026-09-20 supervisor follow-up. Its outputs are on \`main\` under \`analysis/supervisor_2026_09_20/\`, and the workbook inspection now runs green there. The branch is kept."
+          echo "Closed."
