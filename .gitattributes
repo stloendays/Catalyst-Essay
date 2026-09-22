@@ -7,3 +7,15 @@ provenance/nh3_final_1_1/source_harness/** -text
 # original source-harness bytes, so line-ending normalization on checkout would invalidate
 # the provenance on any machine that clones the repository.
 provenance/discover_v1/source_harness/** -text
+
+# The figure render manifests (figures/*/*_RENDER_SHA256.txt) hash the bytes as
+# stored, so the same rule has to cover the manifests and every file they list.
+# Without it, `sha256sum -c` fails on any CRLF checkout for reasons that have
+# nothing to do with the science: on a Windows clone, 14 of the 33 covered
+# entries failed while the LF bytes in the repository were correct all along.
+figures/*/*_RENDER_SHA256.txt -text
+figures/**/*.svg -text
+figures/**/*.R -text
+figures/**/*.py -text
+data/**/*.csv -text
+analysis/supervisor_2026_09_20/*.csv -text

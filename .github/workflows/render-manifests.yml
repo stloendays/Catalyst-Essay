@@ -1,0 +1,67 @@
+name: Render manifests
+
+# Verifies every figure render manifest against the bytes a referee actually
+# gets from a clean checkout. This is the check that catches the failure mode
+# the manifests are most exposed to: hashes computed on a working copy whose
+# line endings differ from the stored bytes, which verifies for the author and
+# fails for everyone else.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'figures/**'
+      - 'data/**'
+      - 'analysis/**'
+      - '.gitattributes'
+      - '.github/workflows/render-manifests.yml'
+  pull_request:
+    paths:
+      - 'figures/**'
+      - 'data/**'
+      - 'analysis/**'
+      - '.gitattributes'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify every render manifest
+        shell: bash
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          found=0
+          status=0
+          for m in figures/*/*_RENDER_SHA256.txt; do
+            found=$((found + 1))
+            entries=$(mktemp)
+            grep -E '^[0-9a-f]{64}[[:space:]]' "$m" > "$entries" || true
+            n=$(wc -l < "$entries")
+            echo "== $m ($n entries)"
+            if [ "$n" -eq 0 ]; then
+              echo "   no hash entries -- manifest is a comment block only"
+              status=1
+              continue
+            fi
+            if sha256sum -c "$entries"; then
+              echo "   PASS $n/$n"
+            else
+              echo "   FAIL: the checked-out bytes do not match the recorded hashes."
+              echo "   If the mismatch is text-only, the manifest was generated on a"
+              echo "   working copy with different line endings; the paths it covers"
+              echo "   need a -text rule in .gitattributes."
+              status=1
+            fi
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No render manifest found under figures/*/"
+            exit 1
+          fi
+          exit $status
