@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-20**
+Snapshot date: **2026-09-23**
 
 ## Overall state
 
@@ -126,7 +126,7 @@ Current publication-facing figure architecture is **six composite main figures**
 - Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
 - Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
 - Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
-- The publication-facing **six composite main figures** are specified in `docs/FIGURE_MAP.md` and captioned in `docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`; composite rendering is pending.
+- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md`.
 - **ED1-ED3** remain locked Agent Extended Data panels.
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
@@ -152,7 +152,7 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md`**. It retains the v7 physical-science architecture but strengthens the Agent contribution: DISCOVER is now framed as the **automation and scaling layer** that converts the deterministic ranking–parity–reachability framework into a reusable workflow for repeated and batch screening. Scientific truth remains in the reaction-specific tools. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v9_2026-09-23.md`**. This pass preserves the scientific results and numerical anchors while replacing compressed project-specific wording with conventional academic English. Reader-facing version labels and engineering terminology have been removed where they are not required for interpretation. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md`**.
 
 ## Next production tasks
 
