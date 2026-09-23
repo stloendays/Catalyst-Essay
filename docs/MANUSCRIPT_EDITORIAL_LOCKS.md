@@ -24,3 +24,16 @@ This lock remains active unless the author explicitly asks to reconsider the Age
 Reader-facing manuscript, figure, README and supervisor-facing documents should use the semantic names defined in `docs/SCIENTIFIC_NAMING.md`. Development-version labels remain only where provenance or implementation traceability requires them.
 
 Do not create new reader-facing `V1.x`-style names unless the author explicitly asks for versioned nomenclature.
+
+
+## LOCK-03 — No legacy-name mapping in reader-facing documents
+
+Do not display internal development identifiers or explicit legacy-name → scientific-name mappings in reader-facing material.
+
+- Use the scientific name directly.
+- Do not write constructions of the form `internal label → scientific label`.
+- Do not add a “historical provenance key” column to README, STATUS, manuscript-facing tables or naming guides.
+- Historical identifiers may remain only where they are operationally necessary for provenance, frozen manifests, implementation paths or Git history.
+- If a reader-facing document needs to point to provenance, link to the provenance location without reproducing the internal development identifier in the prose.
+
+This lock remains active unless the author explicitly asks to expose historical identifiers.
