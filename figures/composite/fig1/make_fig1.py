@@ -28,7 +28,7 @@ INK, MID, GRID = "#1B1B1B", "#6B6F76", "#E4E4E4"
 C = {"Fe": "#89AA7B", "Ru": "#7789B7", "Os": "#9DACCB"}
 OTHER, RED = "#B3B8C0", "#EB6969"
 TINT_G, TINT_B, PAPER = "#E4ECDE", "#E3E7F0", "#F0EEEF"
-W_MM, H_MM = 183.0, 172.0
+W_MM, H_MM = 183.0, 170.0
 
 plt.rcParams.update({
     "font.family": "Arial", "font.size": 7, "axes.linewidth": 0.6,
@@ -87,8 +87,8 @@ def boxed(ax):
 
 
 # ---- a: forward propagation and backward design ----------------------------
-letter("a", 2.0, 170.0)
-ax = ax_mm(4.0, 116.0, 118.0, 52.0)
+letter("a", 2.0, 168.0)
+ax = ax_mm(4.0, 114.0, 118.0, 52.0)
 ax.set_xlim(0, 118)
 ax.set_ylim(0, 52)
 ax.set_aspect("equal")
@@ -184,8 +184,8 @@ ax.text((xs[0] + xs[4]) / 2, 6.0, "Backward design: activity multiplier α* need
         "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="bottom")
 
 # ---- b: the three frontier candidates --------------------------------------
-letter("b", 124.0, 170.0)
-axb = ax_mm(125.0, 116.0, 56.0, 52.0)
+letter("b", 124.0, 168.0)
+axb = ax_mm(125.0, 114.0, 56.0, 52.0)
 axb.set_xlim(0, 56)
 axb.set_ylim(0, 52)
 axb.axis("off")
@@ -211,7 +211,7 @@ for i, m in enumerate(order):
 axb.text(28.0, 3.2, "atomic rank  →  economic rank", ha="center", va="top", fontsize=5.8, color=MID)
 
 # ---- row 2 ------------------------------------------------------------------
-ROW2_Y, ROW2_H = 68.0, 36.0
+ROW2_Y, ROW2_H = 66.0, 36.0
 COLS = [(14.0, 46.0), (75.0, 46.0), (135.0, 46.0)]
 
 
@@ -322,7 +322,7 @@ axe.text(0.03, 0.97, "Ag, Au off scale\n(TOF 10$^{−52}$, 10$^{−53}$)", trans
          fontsize=5.3, color=MID, ha="left", va="top")
 
 # ---- row 3 ------------------------------------------------------------------
-ROW3_Y, ROW3_H = 12.0, 36.0
+ROW3_Y, ROW3_H = 11.0, 36.0
 
 # f: rank slopegraph
 letter("f", 2.0, ROW3_Y + ROW3_H + 6.0)

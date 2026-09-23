@@ -1,7 +1,7 @@
 # Figure 1 — composite
 
 A globally correlated catalyst screen inverts at the industrial decision frontier.
-183 × 172 mm, eight panels: `Fig1.{svg,pdf,png}`.
+183 × 170 mm, eight panels: `Fig1.{svg,pdf,png}`.
 
 | Panel | Content | Source |
 |---|---|---|
