@@ -37,3 +37,17 @@ Do not display internal development identifiers or explicit legacy-name → scie
 - If a reader-facing document needs to point to provenance, link to the provenance location without reproducing the internal development identifier in the prose.
 
 This lock remains active unless the author explicitly asks to expose historical identifiers.
+
+
+## LOCK-04 — Superseded work stays out of the active narrative
+
+Once a later validated analysis, figure, model treatment or manuscript interpretation supersedes an earlier development stage, the later work becomes the sole reader-facing basis.
+
+- Do not mention an older stage simply because it exists in the repository.
+- Do not compare the current result with obsolete intermediate results unless the historical comparison changes the scientific interpretation or the author explicitly requests it.
+- Do not carry superseded values, figures, model variants, partial analyses or development-stage conclusions forward as secondary support after a later analysis has replaced them.
+- Keep obsolete material only in provenance, archive records and Git history when traceability is required.
+- README, STATUS, supervisor-facing summaries, captions, SI prose and manuscript text should describe the current scientific state directly, without phrases such as “legacy”, “previous version”, “earlier version”, “superseded result” or similar development-history commentary.
+- If later work merely refines an earlier result, cite and discuss the refined result directly unless the refinement history is scientifically necessary.
+
+This lock remains active unless the author explicitly asks to discuss development history.
