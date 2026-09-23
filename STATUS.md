@@ -4,22 +4,26 @@ Snapshot date: **2026-09-23**
 
 ## Overall state
 
+Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LOCKS.md`](docs/MANUSCRIPT_EDITORIAL_LOCKS.md). The Agent scaling-layer / reusable-execution framing remains locked unless the author explicitly reopens it.
+
 The supervisor-requested **2026-09-20 targeted analyses are complete**. Existing frozen provenance remains unchanged; the new counterfactual, joint cost-MC and oracle outputs are under `analysis/supervisor_2026_09_20/`.
 
 The resulting interpretation is now fixed for the next manuscript pass: equalizing Ru to the Fe metal price flips the NH3 economic order; bounded joint cost uncertainty around the canonical regime leaves Fe lower-cost in 5000/5000 draws; and the Agent protocol-complete oracle floor is 22 CU.
 
-## Canonical scientific families
+## Active scientific families
 
-| Family | Current label | State |
-|---|---|---|
-| Ammonia | **NH3-FINAL-1.1** | frozen / provenance closed |
-| Methanol | **MEOH-D01-v3** | frozen |
-| Rank-preservation control | **Au/TiO2-RP V1.1** | frozen canonical control |
-| Rank-preservation robustness | **Au/TiO2-RP V1.3** | supporting extension |
-| Agent benchmark | **DISCOVER V1** | frozen protocol |
-| Agent boundary extension | **DISCOVER-BOUNDARY-C1** | completed confirmatory extension |
+Reader-facing names follow [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md); historical identifiers remain in provenance.
 
-## NH3-FINAL-1.1
+| Family | Reader-facing name | Historical provenance key | State |
+|---|---|---|---|
+| Ammonia | **Ammonia process–economics model** | `NH3-FINAL-1.1` | provenance closed |
+| Methanol | **Methanol recycle–economics model** | `MEOH-D01-v3` | provenance closed |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** | `Au/TiO2-RP V1.1` | provenance closed |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | `Au/TiO2-RP V1.3` | supporting extension |
+| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** | `DISCOVER V1` | frozen protocol |
+| Agent compute-budget extension | **ACSA budget-boundary study** | `DISCOVER-BOUNDARY-C1` | completed confirmatory extension |
+
+## Ammonia process–economics model
 
 ```text
 Atomic activity ranking:  Ru > Os > Fe
@@ -48,7 +52,7 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 
 The FINAL-1.1 source-harness bundle is under `provenance/nh3_final_1_1/source_harness/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
 
-## MEOH-D01-v3
+## Methanol recycle–economics model
 
 Using STY per g Re as the upstream intrinsic metric:
 
@@ -64,9 +68,9 @@ Headline statistics are **rho = 0.20**, **tau = 0.00** and **3/6 pairwise invers
 
 The 2026-09-20 cost-parameter MC retains the canonical four-candidate economic order in **5,000/5,000** draws. A separately labelled active-Re replacement extension also preserves the same order in **5,000/5,000** draws.
 
-## Au/TiO2 rank-preservation control
+## Au/TiO₂ rank-preservation control
 
-The canonical V1.1 control preserves the complete 2-6 nm ranking:
+The rank-preservation control preserves the complete 2-6 nm ranking:
 
 - Spearman rho: **1.000**
 - Kendall tau: **1.000**
@@ -74,7 +78,7 @@ The canonical V1.1 control preserves the complete 2-6 nm ranking:
 - 10,000/10,000 predefined literature-envelope draws preserve the full order
 - 6 nm / 2 nm required-catalyst ratio: **8.064x**
 
-V1.3 remains a supporting semi-open robustness extension.
+The semi-open robustness extension remains a supporting analysis.
 
 ## Cross-reaction comparison
 
@@ -94,15 +98,15 @@ selectivity
 
 Each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript. Superseded values are documented only in `docs/RETIRED_RESULTS.md`.
 
-## Decision-aware Agent Harness
+## Adaptive Catalyst Screening Agent (ACSA)
 
-DISCOVER V1 anonymous complete-decision recovery:
+ACSA anonymous complete-decision recovery:
 
 - nano: **6/35**
 - mini: **15/35**
 - strong: **35/35**
 
-DISCOVER-BOUNDARY-C1 uses the unchanged frozen V1 protocol. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
+The ACSA budget-boundary study uses the unchanged frozen Agent protocol. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -115,7 +119,7 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
 
-The benchmark-level claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. At the manuscript level, the Agent also serves as the **workflow-scaling layer**: reaction-specific deterministic tools provide scientific truth, while the policy orchestrates repeated decision instances without manually scripting every calculation path.
+The budget study identifies a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. At the manuscript level, ACSA serves as the **scaling layer and reusable execution pattern**: reaction-specific deterministic tools provide the scientific calculations, while the policy orchestrates repeated decision instances without manually scripting every calculation path.
 
 Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol-complete S1-S3 floor of **22 CU**. The **22-CU** value is the manuscript-facing normalization: strong 75-CU allowance = **3.41x**, strong median decision-stable spend at 75 CU (52.5) = **2.39x**, fixed-policy threshold 206 = **9.36x**, and non-binding decision-stable median 566 = **25.73x**.
 
@@ -126,7 +130,7 @@ Current publication-facing figure architecture is **six composite main figures**
 - Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
 - Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
 - Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
-- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md`.
+- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS.md`.
 - **ED1-ED3** remain locked Agent Extended Data panels.
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
@@ -152,7 +156,7 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v12_2026-09-23.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS.md`**.
 
 ## Next production tasks
 
