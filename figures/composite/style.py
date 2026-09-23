@@ -62,7 +62,7 @@ class Page:
 
     def save(self, here, stem):
         for ext in ("svg", "pdf", "png"):
-            self.fig.savefig(os.path.join(here, "%s.%s" % (stem, ext)), dpi=600 if ext == "png" else None,
+            self.fig.savefig(os.path.join(here, "%s.%s" % (stem, ext)), dpi=600,
                              facecolor="white")
         print("wrote %s.{svg,pdf,png}  %.0f x %.0f mm" % (stem, self.W, self.H))
 

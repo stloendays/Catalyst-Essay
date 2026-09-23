@@ -393,5 +393,5 @@ axh.text(0.5, 0.965, "economic #1 = atomic #3", transform=axh.transAxes, ha="cen
          fontsize=6.3, color=RED, fontweight="bold")
 
 for ext in ("svg", "pdf", "png"):
-    fig.savefig(os.path.join(HERE, "Fig1." + ext), dpi=600 if ext == "png" else None, facecolor="white")
+    fig.savefig(os.path.join(HERE, "Fig1." + ext), dpi=600, facecolor="white")
 print("wrote Fig1.{svg,pdf,png}  %.0f x %.0f mm" % (W_MM, H_MM))
