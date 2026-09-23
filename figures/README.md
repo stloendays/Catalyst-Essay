@@ -4,7 +4,26 @@ This directory contains manuscript figure assets, renderers and figure-specific 
 
 Scientific values are frozen independently from publication styling. Typography, spacing, annotation placement and export quality may be revised, but each redraw must remain traceable to its canonical source.
 
-## Current main figure set
+## Composite main figures (2026-09-23)
+
+The six publication figures are built in [`composite/`](composite/): `fig1` … `fig6`, each 183 mm wide,
+rendered to `FigN.{svg,pdf,png}` from its own scripts (`make_figN.py`, shared style in
+`composite/style.py`), with OVITO structure renders where the figure shows a catalyst or bed
+(`build_*.py`, run with the OVITO 3.16 environment). Every README lists its sources; the model
+tables of Figures 2 and 6 are regenerated from the frozen harness and the committed traces and
+checked against the frozen values before they are written. Captions:
+[`../docs/MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md`](../docs/MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md).
+
+| Figure | Panels | Structures |
+|---|---|---|
+| [Fig. 1](composite/fig1/) | a–h | Ru, Os, Fe fcc(211) step sites with N* |
+| [Fig. 2](composite/fig2/) | a–h | catalyst beds at the Fe, Ru and Ru-priced-as-Fe optima, to scale |
+| [Fig. 3](composite/fig3/) | a–e | Ru and Fe step sites (from Fig. 1) |
+| [Fig. 4](composite/fig4/) | a–g | Re/TiO2 at 1 and 5 wt% Re |
+| [Fig. 5](composite/fig5/) | a–f | 2–6 nm Au particles on TiO2, to scale |
+| [Fig. 6](composite/fig6/) | a–g | — |
+
+## Source figure set (F1–F10)
 
 | Figure | Scientific role | Status |
 |---|---|---|
