@@ -38,8 +38,8 @@ of the archived FINAL-1.0 model, in which the Ru and Os optima were pinned to th
 feasible optimum lies on a grid bound. Fe optimises at **425 C / 180 bar / 30 C** separator with a 17.06 m3 bed, having
 moved from 400 C / 150 bar with an 86.6 m3 bed in FINAL-1.0: under a pressure-resolved shell cost the optimizer avoids
 the large vessel rather than paying for it. Ru optimises at **450 C / 425 bar / 25 C**, now an interior point. Os has a
-broad, shallow high-pressure minimum: its numerical argmin is 450 C / 425 bar / 0 C, but the entire 220-430 bar band
-lies within 0.1 USD/t of that argmin, and two of eight handbook-constant perturbations move the argmin to
+broad, shallow high-pressure minimum: its numerical argmin is 450 C / 425 bar / 0 C, the 360-430 bar band lies
+within 0.1 USD/t of that argmin and the 220-430 bar band within 0.5 USD/t, and two of eight handbook-constant perturbations move the argmin to
 approximately 220 bar. The Os operating pressure should not be quoted more precisely than the valley allows.
 
 Propagating descriptor uncertainty over 1,000 draws (seed 20260816; Fe sigma 0.2271 eV, other metals uniform with

@@ -190,7 +190,7 @@ A manuscript figure is final only when all four are present:
 
 Current figure roles and values: [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md).  
 Current numerical summary: [`../docs/RESULTS_AT_A_GLANCE.md`](../docs/RESULTS_AT_A_GLANCE.md).  
-Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv).
+Current machine-readable headlines: [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv).
 
 
 ## 2026-09-20 supervisor extension figures

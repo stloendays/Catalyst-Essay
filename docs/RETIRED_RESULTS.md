@@ -2,7 +2,7 @@
 
 This page is the single repository note for results that appeared in earlier development stages but must not be used in the current manuscript, figures or manuscript-facing data tables.
 
-The active scientific sources are **NH3-FINAL-1.1**, **MEOH-D01-v3**, **Au/TiO2-RP V1.1** with V1.3 as supporting robustness, **DISCOVER V1**, and **DISCOVER-BOUNDARY-C1**. Current headline values are in [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md) and [`../data/manuscript_headline_results_2026-09-17.csv`](../data/manuscript_headline_results_2026-09-17.csv).
+The active scientific sources are **NH3-FINAL-1.1**, **MEOH-D01-v3**, **Au/TiO2-RP V1.1** with V1.3 as supporting robustness, **DISCOVER V1**, and **DISCOVER-BOUNDARY-C1**. Current headline values are in [`RESULTS_AT_A_GLANCE.md`](RESULTS_AT_A_GLANCE.md) and [`../data/manuscript_headline_results_2026-09-20.csv`](../data/manuscript_headline_results_2026-09-20.csv).
 
 ## NH3-FINAL-1.0
 
@@ -36,7 +36,7 @@ Early C1 summaries used a permissive narrow-window count that treated any bounde
 1. a window strictly smaller than the full 14,136-state domain; and
 2. successful use of that window by a later scoped action.
 
-Under this rule, narrow-window allocation is confined to the strong tier in the measured boundary series: **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**. The weaker tiers have **0** canonical narrow-window uses in the measured cells.
+Under this rule, narrow-window allocation is confined to the strong tier in the measured boundary series: **20/20 in every cell from 50 to 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**. An earlier count of 7/7 at 150 CU described the first seven runs of that cell, before it was extended to *n* = 20 on 2026-09-11. The weaker tiers have **0** canonical narrow-window uses in the measured cells.
 
 ## Repository policy
 

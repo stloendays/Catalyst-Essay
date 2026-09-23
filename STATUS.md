@@ -111,7 +111,7 @@ DISCOVER-BOUNDARY-C1 uses the unchanged frozen V1 protocol. The deterministic fi
 | nano adaptive | **0/20** | **0/20** |
 | fixed-VOI | incomplete | complete |
 
-For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Canonical narrow-window allocation is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
+For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Canonical narrow-window allocation is **20/20 in every cell from 50 to 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
 
 Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
 

@@ -52,6 +52,8 @@ Canonical Fe / Ru costs are **15.292 / 22.031 USD/t NH3**, a Ru-Fe gap of **6.73
 
 When Ru metal price is set equal to Fe = **8 USD/kg** and Ru is fully reoptimized, Ru moves to **425 C / 170 bar / 30 C** and costs **14.712 USD/t**, which is **0.580 USD/t below Fe**. The Fe-over-Ru inversion therefore does not survive price equalization.
 
+Sweeping the Ru metal price with the same full reoptimization (2026-09-23, `figures/composite/fig2/fig2_model.py`, frozen NH3-FINAL-1.1 harness) places Fe-Ru parity at **163.76 USD/kg**, 329-fold below the canonical Ru price, with Ru at **425 C / 185 bar / 30 C** and a 6.24 m3 bed. The optimized Ru cost is monotone in its price; the optimum moves from 170 bar and a 9.4 m3 bed at 1 USD/kg to 420-430 bar, a 0 C separator and a 0.014 m3 bed at 3 x 10^5 USD/kg.
+
 The supported mechanism is **metal cost coupled to process reoptimization**; process penalties alone are not sufficient to keep Fe ahead of equal-priced Ru in the current model.
 
 ## Canonical operating points
@@ -190,7 +192,7 @@ For the strong tier, **75 CU** is the lowest tested stable complete-decision bud
 
 The primary decision endpoint and the quantitative target separate. Strong adaptive reaches **20/20 complete decisions at 75 CU**, where canonical **201.22x** backward parity-multiplier recovery is only **9/20**; that quantitative target reaches **20/20 at 225 CU**.
 
-Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **7/7 at 150 CU**, **20/20 at 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**. In the same 175-CU cell the weaker tiers show **0/20 mini** and **0/20 nano**, and neither weak tier has canonical narrow-window use in any measured cell.
+Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **20/20** runs in every cell from **50 to 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**. In the same 175-CU cell the weaker tiers show **0/20 mini** and **0/20 nano**, and neither weak tier has canonical narrow-window use in any measured cell.
 
 Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and reaches decision stability much later.
 

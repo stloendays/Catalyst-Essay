@@ -2,7 +2,7 @@
 
 This directory contains current machine-readable datasets used for manuscript-facing analysis, figure generation and benchmark summaries.
 
-For a one-file overview, start with [`manuscript_headline_results_2026-09-17.csv`](manuscript_headline_results_2026-09-17.csv). Superseded compact tables and intermediate analyses are removed from the active data surface and recorded in [`../docs/RETIRED_RESULTS.md`](../docs/RETIRED_RESULTS.md).
+For a one-file overview, start with [`manuscript_headline_results_2026-09-20.csv`](manuscript_headline_results_2026-09-20.csv). Superseded compact tables and intermediate analyses are removed from the active data surface and recorded in [`../docs/RETIRED_RESULTS.md`](../docs/RETIRED_RESULTS.md).
 
 Frozen source-harness provenance is stored under [`../provenance/`](../provenance/); validation outputs are under [`../artifacts/`](../artifacts/); figure assets and renderers are under [`../figures/`](../figures/).
 
@@ -110,11 +110,20 @@ Current summary/provenance files include:
 - `discover_boundary_c1_phase_b_tokens.csv`
 - `discover_boundary_c1_phase_b_metadata.json`
 - `agent_figure_panel_data_2026-09-13.csv`
+- `discover_boundary_c1_decision_components.csv` — per-cell winner, pair, reachability and complete counts
+- `discover_boundary_c1_error_taxonomy_runs.csv`, `discover_boundary_c1_error_taxonomy_summary.csv` — action errors by layer
+- `discover_boundary_c1_overrun_runs.csv`, `discover_boundary_c1_overrun_summary.csv`, `discover_boundary_c1_overrun_metadata.json` — decision-stable and post-stability spend
+- `discover_boundary_c1_uncapped_breakeven_audit.csv`, `discover_boundary_c1_uncapped_breakeven_audit_metadata.json` — non-binding 5,000-CU parity-multiplier audit
+- `discover_boundary_c1_cu_quantities.csv` — CU quantities per cell
 - `discover_boundary_c1/` — raw traces, logs and frozen-hash records
+
+Post-hoc V1 diagnostics, not replacements for the preregistered V1 criterion: `discover_v1_boundary_reanalysis.py` and its outputs `discover_v1_boundary_diagnostics_2026-09-08.csv` and `discover_v1_strong_efficiency_diagnostics_2026-09-08.csv`.
 
 The deterministic fixed-VOI policy reaches the complete decision at **206 CU**. At 175 CU, strong/mini/nano adaptive runs complete **19/20 / 0/20 / 0/20**; at 225 CU they complete **20/20 / 6/20 / 0/20**.
 
-Canonical narrow-window allocation for the strong tier is **7/7 at 150 CU, 20/20 at 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**. The weaker tiers have no canonical narrow-window use in their measured cells.
+Canonical narrow-window allocation for the strong tier is **20/20 in every cell from 50 to 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**. The weaker tiers have no canonical narrow-window use in their measured cells.
+
+`discover_boundary_c1_runs.csv` and `discover_boundary_c1_summary.csv` are the phase-A tables: they hold the first 7 runs of the 150-CU cell (2026-09-09) and none of the 50–125-CU or non-binding 5,000-CU cells. The complete per-run set, with *n* = 20 at 150 CU after the 2026-09-11 extension, is `discover_boundary_c1_error_taxonomy_runs.csv` and `discover_boundary_c1_overrun_runs.csv`; per-cell counts are in `discover_boundary_c1_decision_components.csv` and `agent_figure_panel_data_2026-09-13.csv`.
 
 ## Cross-reaction comparison
 
@@ -129,7 +138,7 @@ No current quantitative cross-reaction ratio is stored in the canonical or headl
 
 ## Where to look next
 
-- Current headline table: [`manuscript_headline_results_2026-09-17.csv`](manuscript_headline_results_2026-09-17.csv)
+- Current headline table: [`manuscript_headline_results_2026-09-20.csv`](manuscript_headline_results_2026-09-20.csv)
 - Project overview: [`../README.md`](../README.md)
 - Numerical summary: [`../docs/RESULTS_AT_A_GLANCE.md`](../docs/RESULTS_AT_A_GLANCE.md)
 - Figure map: [`../docs/FIGURE_MAP.md`](../docs/FIGURE_MAP.md)
