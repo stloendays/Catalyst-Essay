@@ -1,17 +1,18 @@
-name: Figure 8 render reproducibility
+name: Figure 8 R reference render
 
-# The committing renderer (render-figure8-meoh.yml) has never completed: both
-# attempts landed in the 2026-09-10 window when no runner was assigned, and the
-# F08 assets in the repository were rendered locally instead.
+# The canonical Figure 8 is the Origin build promoted on 2026-09-23; its inputs,
+# build scripts and outputs are pinned in figures/meoh/F08_RENDER_SHA256.txt and
+# verified on every push by render-manifests.yml.
 #
-# This job answers the question that one cannot: does a clean checkout render
-# Figure 8 from the frozen inputs, and do the bytes match what is committed? It
-# renders into a scratch tree and never writes to figures/, so a byte difference
-# is reported rather than silently replacing a locked manuscript asset.
+# The R renderer (figures/meoh/render_F08_selectivity_recycle.R) is kept as the
+# fully scriptable reference implementation of the same frozen design: Origin is
+# not available on a CI runner, R is. This job confirms that the reference still
+# renders from the frozen D01 v3 inputs on a clean checkout, and uploads what it
+# draws. It renders into a scratch tree and never writes to figures/.
 #
-# Byte identity is reported, not required. R's pdf() device embeds a creation
-# timestamp, so a differing PDF hash is expected and is not a failure. The job
-# fails only if the render itself fails or an output is missing.
+# History: the R render was the canonical asset from 2026-09-10 (CI run
+# 34449914480 of closure-f9a-f8.yml) until the promotion. No byte comparison is
+# made against the committed files, since they now come from a different renderer.
 
 on:
   workflow_dispatch:
@@ -27,7 +28,7 @@ permissions:
   contents: read
 
 jobs:
-  repro:
+  reference:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,92 +37,25 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends r-base-core
-          Rscript --version
           Rscript -e 'cat(R.version.string, "\n")' | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Render from the frozen inputs into a scratch tree
+      - name: Render the reference from the frozen inputs into a scratch tree
         run: |
           set -euo pipefail
-          mkdir -p /tmp/repro/data/meoh /tmp/repro/figures/meoh
+          mkdir -p /tmp/ref/data/meoh /tmp/ref/figures/meoh
           cp data/meoh/meoh_candidate_ranking_D01v3.csv \
              data/meoh/meoh_purge_robustness_D01v3.csv \
-             /tmp/repro/data/meoh/
-          Rscript figures/meoh/render_F08_selectivity_recycle.R /tmp/repro
-
-      - name: Compare the fresh render with the committed assets
-        shell: bash
-        run: |
-          set -uo pipefail
-          {
-            echo "### Figure 8 clean-checkout render"
-            echo
-            echo "| asset | committed | re-rendered | |"
-            echo "|---|---|---|---|"
-          } >> "$GITHUB_STEP_SUMMARY"
-          missing=0
-          for f in F08_MeOH_selectivity_recycle_D01v3.svg \
-                   F08_MeOH_selectivity_recycle_D01v3.pdf \
-                   F08_MeOH_selectivity_recycle_D01v3.png; do
-            new="/tmp/repro/figures/meoh/$f"
-            if [ ! -s "$new" ]; then
-              echo "MISSING   $f"
-              echo "| \`$f\` | | | **not produced** |" >> "$GITHUB_STEP_SUMMARY"
-              missing=1
-              continue
-            fi
-            a=$(sha256sum "figures/meoh/$f" | cut -c1-16)
-            b=$(sha256sum "$new" | cut -c1-16)
-            if [ "$a" = "$b" ]; then
-              echo "MATCH     $f  $a"
-              echo "| \`$f\` | \`$a\` | \`$b\` | identical |" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "DIFFERS   $f  committed $a  rendered $b"
-              echo "| \`$f\` | \`$a\` | \`$b\` | differs |" >> "$GITHUB_STEP_SUMMARY"
-            fi
+             /tmp/ref/data/meoh/
+          Rscript figures/meoh/render_F08_selectivity_recycle.R /tmp/ref
+          for f in svg pdf png; do
+            test -s "/tmp/ref/figures/meoh/F08_MeOH_selectivity_recycle_D01v3.$f"
           done
-          exit $missing
+          echo "R reference render completed from the frozen inputs." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Separate drawing content from encoding metadata in the SVG
-        if: always()
-        shell: bash
-        run: |
-          # Diagnostic only: it reports, it never decides whether the job passed,
-          # so every path below ends in exit 0.
-          set +e
-          f=F08_MeOH_selectivity_recycle_D01v3.svg
-          new="/tmp/repro/figures/meoh/$f"
-          ls -l "figures/meoh/$f" "$new" 2>&1 || true
-          [ -s "$new" ] || { echo "no fresh SVG to compare"; exit 0; }
-          # Cairo mints fresh element ids on every run. Strip those and the
-          # surface/glyph counters: what survives is the drawing itself.
-          norm() {
-            sed -E 's/id="[^"]*"/id=""/g; s/xlink:href="#[^"]*"/xlink:href="#"/g; s/(glyph|surface|clip)[0-9]+(-[0-9]+)?/\1/g' "$1"
-          }
-          norm "figures/meoh/$f" > /tmp/committed.norm
-          norm "$new"            > /tmp/rendered.norm
-          a=$(sha256sum /tmp/committed.norm | cut -c1-16)
-          b=$(sha256sum /tmp/rendered.norm  | cut -c1-16)
-          echo >> "$GITHUB_STEP_SUMMARY"
-          if [ "$a" = "$b" ]; then
-            echo "SVG drawing content is identical once cairo element ids are normalised."
-            echo "**SVG drawing content is identical** once cairo element ids are normalised; the byte difference above is encoding metadata only." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "SVG drawing content differs beyond element ids."
-            {
-              echo "**SVG drawing content differs** beyond element ids ($a vs $b). First differing lines:"
-              echo
-              echo '```diff'
-              diff /tmp/committed.norm /tmp/rendered.norm | head -40
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-            diff /tmp/committed.norm /tmp/rendered.norm | head -40
-          fi
-          exit 0
-
-      - name: Upload the fresh render for inspection
+      - name: Upload the reference render
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: f08-clean-checkout-render
-          path: /tmp/repro/figures/meoh/
+          name: f08-r-reference-render
+          path: /tmp/ref/figures/meoh/
           if-no-files-found: error

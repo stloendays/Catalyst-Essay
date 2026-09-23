@@ -67,16 +67,18 @@ Source data/provenance are in `../data/meoh/`.
 
 ### F8
 
-Frozen R renderer:
+Canonical outputs (Origin build, locked 2026-09-23):
+
+- `F08_MeOH_selectivity_recycle_D01v3.svg` — single-file vector, 183 mm wide
+- `F08_MeOH_selectivity_recycle_D01v3.pdf` — printed from that SVG, fonts embedded, no raster objects
+- `F08_MeOH_selectivity_recycle_D01v3.png` — rasterised from that SVG
+- `F08_RENDER_SHA256.txt` — pins the frozen inputs, every build script and the three outputs
+
+Build: [`meoh/rebuild_2026-09-23/`](meoh/rebuild_2026-09-23/) (`f08_prep.py` → Origin panels → text-rule cleanup → `render_composite.py`). Details and the reasons for replacing the 2026-09-10 render are in its README and in [`../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md`](../docs/F8_METHANOL_FIGURE_LOCK_SPEC.md).
+
+Reference renderer, kept runnable on CI without writing to this directory:
 
 - `meoh/render_F08_selectivity_recycle.R`
-
-Canonical outputs:
-
-- `F08_MeOH_selectivity_recycle_D01v3.svg`
-- `F08_MeOH_selectivity_recycle_D01v3.pdf`
-- `F08_MeOH_selectivity_recycle_D01v3.png`
-- `F08_RENDER_SHA256.txt`
 
 Panel A reports NPC versus purge over the 396-level 0.5-40% sweep; Panel B reports local leverage for STY, single-pass conversion and CH4 suppression.
 

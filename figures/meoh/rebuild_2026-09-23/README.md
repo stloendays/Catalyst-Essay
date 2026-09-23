@@ -1,8 +1,9 @@
 # Figure 8 — Origin rebuild, 2026-09-23
 
-A re-render of Figure 8 from the same frozen D01 v3 inputs. **The science is
-unchanged and the locked assets one directory up are untouched**; this is a
-rendering alternative, not a new result.
+The build behind the canonical Figure 8 assets one directory up
+(`../F08_MeOH_selectivity_recycle_D01v3.{svg,pdf,png}`), promoted on 2026-09-23.
+It re-renders the same frozen D01 v3 inputs: **the science is unchanged**, only
+the rendering is.
 
 ## Why
 
@@ -42,19 +43,28 @@ leverage at 5 wt% Re / 250 C   STY 0.0028943 | conversion 0.0588278 | CH4 suppre
 
 Origin 2024 via the originlab MCP, one graph per panel — multi-layer panel
 positioning is a silent no-op on this install, so the panels are composed after
-export by `png_compose.py`.
+export.
 
 Every text object in an Origin export carries a stray rule along it at cap
-height. It is removed from the **SVG**, which is then rasterised; the PNG is
-never edited, because the rule sits exactly on the top bar of capital letters.
+height. It is removed from the **SVG**; the PNG is never edited, because the rule
+sits exactly on the top bar of capital letters.
 
 ```
-clean_origin_export.py  <panel>.svg          # strips the rules (14 in a, 10 in b)
-chrome --headless=new --force-device-scale-factor=1 \
-       --default-background-color=FFFFFFFF --window-size=2400,1837 \
-       --screenshot=<panel>.png file:///<panel>.svg
-png_compose.py F08_panel_a.png F08_panel_b.png F08_...origin.png
+python f08_prep.py                               # Origin inputs, with the frozen-value guards
+# build the two panels in Origin, export each as SVG
+clean_origin_export.py  F08_panel_a.svg          # strips 14 text rules
+clean_origin_export.py  F08_panel_b.svg          # strips 10
+chrome --headless=new --force-device-scale-factor=1 --default-background-color=FFFFFFFF
+       --window-size=2400,1837 --screenshot=F08_panel_x.png file:///F08_panel_x.svg   # one command
+python render_composite.py ..                    # -> ../F08_MeOH_selectivity_recycle_D01v3.{svg,png,pdf}
 ```
+
+`render_composite.py` calls `compose_svg.py`, which crops each panel to its ink
+box, nests both in one 183-mm SVG, prefixes element ids per panel, and converts
+Origin's single-rectangle clipping masks to clip paths. The masks matter: PDF
+writers flatten masked content into a bitmap, so with them left in place every
+curve in the PDF was a raster. The PDF and PNG are then printed and rasterised
+from that one SVG, so the three canonical files cannot drift apart.
 
 `clean_origin_export.py` lives in the PUR-NEW analysis tree; the measured Origin
 behaviour behind all of this is recorded in the `nature-figures` skill's
@@ -64,16 +74,18 @@ behaviour behind all of this is recorded in the `nature-figures` skill's
 
 | File | What |
 |---|---|
-| `F08_MeOH_selectivity_recycle_origin.png` | composed figure, 4061 × 1761 (≈ 560 dpi at 183 mm) |
-| `F08_panel_a.svg` / `F08_panel_b.svg` | cleaned vector, one per panel — the editable form |
-| `F08_panel_a.png` / `F08_panel_b.png` | the rasterised panels the composite is built from |
+| `F08_panel_a.svg` / `F08_panel_b.svg` | cleaned vector, one per panel |
+| `F08_panel_a.png` / `F08_panel_b.png` | rasterised panels; `compose_svg.py` measures ink boxes on them |
 | `f08_panel_a.csv`, `f08_panel_b.csv`, `f08_panel_b_highlight.csv` | Origin inputs, generated |
 | `f08_prep.py` | regenerates those CSVs from the frozen sources, with the guards |
-| `png_compose.py` | ink-box crop, height match, side-by-side composition |
+| `compose_svg.py` | panels → one vector SVG |
+| `render_composite.py` | SVG → canonical `.svg` / `.pdf` / `.png` |
+| `png_compose.py` | PNG reader used by `compose_svg.py` (and the earlier raster-only composite) |
 
 ## Status
 
-Not promoted. `docs/F8_METHANOL_FIGURE_LOCK_SPEC.md` still points at the locked
-render, and `../F08_RENDER_SHA256.txt` still describes it. Promoting this one
-means updating both, and that is a decision about the figure, not about the
-rendering.
+**Locked** on 2026-09-23. `../F08_RENDER_SHA256.txt` pins the two frozen inputs,
+every script and panel above, and the three canonical outputs; CI re-verifies it
+on every push. The 2026-09-10 R render it replaced remains in git history, and
+its renderer (`../render_F08_selectivity_recycle.R`) still runs on CI as a
+reference without writing to `figures/`.
