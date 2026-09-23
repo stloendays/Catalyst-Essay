@@ -28,3 +28,8 @@ Reader-facing material must not display internal development identifiers, number
 Historical identifiers may remain inside provenance directories, frozen manifests, implementation filenames and Git history when required for traceability, but they should not be surfaced in the manuscript, captions, README, STATUS, supervisor-facing summaries, figure maps, Data/Code Availability text or other reader-facing documentation.
 
 Do not introduce new reader-facing names based on development chronology. If a scientifically distinct extension is added, name it by function, such as **semi-open robustness extension** or **budget-boundary study**.
+
+
+## Superseded-work rule
+
+When a later validated analysis or scientific treatment replaces an earlier stage, use the later work directly and do not mention the older stage in reader-facing material. Older artifacts remain archival/provenance material only. Development history is surfaced only when it is necessary to interpret the current science or when the author explicitly requests it.
