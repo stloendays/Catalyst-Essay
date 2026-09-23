@@ -152,7 +152,7 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v11_2026-09-23.md`**. This pass keeps the scientific results and numerical anchors unchanged while revising the manuscript toward conventional article-style scientific prose. The Results and Discussion now lead with scientific findings rather than benchmark mechanics, and engineering terminology is retained only where it is needed for reproducibility. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v12_2026-09-23.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md`**.
 
 ## Next production tasks
 
