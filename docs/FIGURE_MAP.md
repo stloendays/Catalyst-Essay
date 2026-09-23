@@ -1,11 +1,11 @@
 # Figure map — six-figure manuscript architecture
 
-Snapshot: **2026-09-20**  
+Snapshot: **2026-09-23**  
 Primary ammonia basis: **NH3-FINAL-1.1**
 
 The manuscript now uses **six composite main figures**. The previous F1-F10 assets remain frozen or hash-pinned as source panels and provenance; they are not deleted or renumbered on disk. This document defines the publication-facing grouping.
 
-**Rendered composites (2026-09-23):** `figures/composite/fig1` … `fig6`, each with its build scripts, model tables, structure renders and a README naming every source. The composites carry more panels than the grouping below (schematics, OVITO structure renders and added data views); their panel lettering and captions are in [`MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md`](MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md), and the v8 main text cites that lettering.
+**Rendered composites (2026-09-23):** `figures/composite/fig1` … `fig6`, each with its build scripts, model tables, structure renders and a README naming every source. The composites carry more panels than the grouping below (schematics, OVITO structure renders and added data views); their panel lettering and captions are in [`MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md`](MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md), and the v9 main text cites that lettering.
 
 ## Figure 1 — A globally correlated screen can invert at the decision frontier
 
