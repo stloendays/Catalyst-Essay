@@ -2,18 +2,18 @@
 
 Snapshot: **2026-09-23**
 
-Reader-facing documents use stable scientific names rather than development-version labels. Historical identifiers remain unchanged in provenance directories, code, frozen manifests and Git history so that existing results remain traceable.
+Reader-facing documents use stable scientific names rather than development-version labels.
 
 ## Active scientific names
 
-| Scientific family | Reader-facing name | Historical provenance key |
-|---|---|---|
-| Ammonia model | **Ammonia process–economics model** | `NH3-FINAL-1.1` |
-| Methanol model | **Methanol recycle–economics model** | `MEOH-D01-v3` |
-| Rank-preservation control | **Au/TiO₂ rank-preservation control** | `Au/TiO2-RP V1.1` |
-| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | `Au/TiO2-RP V1.3` |
-| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** | `DISCOVER V1` |
-| Agent compute-budget extension | **ACSA budget-boundary study** | `DISCOVER-BOUNDARY-C1` |
+| Scientific family | Reader-facing name |
+|---|---|
+| Ammonia model | **Ammonia process–economics model** |
+| Methanol model | **Methanol recycle–economics model** |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** |
+| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** |
+| Agent compute-budget extension | **ACSA budget-boundary study** |
 
 ## Active manuscript entry points
 
@@ -21,10 +21,10 @@ Reader-facing documents use stable scientific names rather than development-vers
 - Main-figure captions: `docs/MAIN_FIGURE_CAPTIONS.md`
 - Figure architecture: `docs/FIGURE_MAP.md`
 
-Versioned manuscript and caption files remain in the repository as revision history, but they are no longer the preferred reader-facing entry points.
-
 ## Naming rule
 
-Do not introduce new reader-facing labels such as `V1.4`, `V1.5`, `v4`, `FINAL-1.2`, or similar development chronology. If a scientifically distinct extension is added, name it by function, for example `semi-open robustness extension`, `budget-boundary study`, or another descriptive scientific name. If a machine-readable internal identifier is required, keep it in provenance and map it here to the stable scientific name.
+Reader-facing material must not display internal development identifiers, numbered architecture labels, or explicit old-name → new-name mapping tables. Use the scientific-function names above directly, as if they were the only manuscript-facing names.
 
-Historical files are not renamed or deleted solely to satisfy this convention because their paths are part of the provenance record.
+Historical identifiers may remain inside provenance directories, frozen manifests, implementation filenames and Git history when required for traceability, but they should not be surfaced in the manuscript, captions, README, STATUS, supervisor-facing summaries, figure maps, Data/Code Availability text or other reader-facing documentation.
+
+Do not introduce new reader-facing names based on development chronology. If a scientifically distinct extension is added, name it by function, such as **semi-open robustness extension** or **budget-boundary study**.
