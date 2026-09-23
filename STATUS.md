@@ -12,16 +12,16 @@ The resulting interpretation is now fixed for the next manuscript pass: equalizi
 
 ## Active scientific families
 
-Reader-facing names follow [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md); historical identifiers remain in provenance.
+Reader-facing names follow [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md). Internal development identifiers are not reproduced in reader-facing documentation.
 
-| Family | Reader-facing name | Historical provenance key | State |
-|---|---|---|---|
-| Ammonia | **Ammonia process–economics model** | `NH3-FINAL-1.1` | provenance closed |
-| Methanol | **Methanol recycle–economics model** | `MEOH-D01-v3` | provenance closed |
-| Rank-preservation control | **Au/TiO₂ rank-preservation control** | `Au/TiO2-RP V1.1` | provenance closed |
-| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | `Au/TiO2-RP V1.3` | supporting extension |
-| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** | `DISCOVER V1` | frozen protocol |
-| Agent compute-budget extension | **ACSA budget-boundary study** | `DISCOVER-BOUNDARY-C1` | completed confirmatory extension |
+| Family | Reader-facing name | State |
+|---|---|---|
+| Ammonia | **Ammonia process–economics model** | provenance closed |
+| Methanol | **Methanol recycle–economics model** | provenance closed |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** | provenance closed |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | supporting extension |
+| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** | frozen protocol |
+| Agent compute-budget extension | **ACSA budget-boundary study** | completed confirmatory extension |
 
 ## Ammonia process–economics model
 
@@ -50,7 +50,7 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 
 **Joint cost MC:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000**; alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**.
 
-The FINAL-1.1 source-harness bundle is under `provenance/nh3_final_1_1/source_harness/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
+The frozen ammonia source-harness provenance is retained under `provenance/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
 
 ## Methanol recycle–economics model
 
