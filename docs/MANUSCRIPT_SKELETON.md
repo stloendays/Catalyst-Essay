@@ -1,8 +1,10 @@
-# Manuscript skeleton — v7 architecture
+# Manuscript skeleton
+
+Current editorial locks: [`MANUSCRIPT_EDITORIAL_LOCKS.md`](MANUSCRIPT_EDITORIAL_LOCKS.md). Semantic names: [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md).
 
 Snapshot date: **2026-09-20**  
-Canonical ammonia basis: **NH3-FINAL-1.1**  
-Current main-text draft: **MANUSCRIPT_MAIN_TEXT_v7_2026-09-20.md**
+Ammonia basis: **ammonia process–economics model**  
+Current main text: **MANUSCRIPT_MAIN_TEXT.md**
 
 ## Canonical story
 
@@ -225,12 +227,12 @@ The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**
 5. Ru price-equalization causal intervention
 6. Joint cost-parameter Monte Carlo
 7. Backward activity design and scaling reachability
-8. MEOH-D01-v3 state definition and explicit recycle/separation model
+8. methanol recycle–economics state definition and explicit recycle/separation model
 9. MeOH purge robustness and alternative upstream metrics
 10. MeOH cost uncertainty and active-Re replacement extension
 11. Cross-reaction evidence boundary
 12. Au/TiO2 rank-preservation control and semi-open extension
-13. DISCOVER workflow-automation layer, CU accounting, oracle definitions and reusable tool-interface design
+13. ACSA workflow-scaling layer, CU accounting, oracle definitions and reusable tool-interface design
 
 ## 7. Supporting Information priorities
 
@@ -242,7 +244,7 @@ The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**
 - MeOH workbook provenance and purge sweep
 - active-Re replacement extension
 - Au/TiO2 literature calibration and semi-open robustness
-- DISCOVER action schema, scorer, oracle proof, raw boundary series and non-binding audit
+- ACSA action schema, scorer, oracle proof, raw boundary series and non-binding audit
 - composite-figure panel provenance
 
 ## Current-source rule
