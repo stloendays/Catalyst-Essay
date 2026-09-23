@@ -31,21 +31,21 @@ The central AI question is:
 
 The Agent benchmark families have distinct roles:
 
-- **DRIFT v2** — supporting model/interface drift diagnosis
-- **TRANSFER v1** — supporting reaction-transfer and minimum-sufficient-model selection
-- **DISCOVER V1** — frozen formal closed-book decision-allocation benchmark
-- **DISCOVER-BOUNDARY-C1** — confirmatory boundary extension on the unchanged DISCOVER V1 protocol
-- **DISCOVER V2** — reserved for a future protocol redesign; not a current result
+- **Model–interface drift diagnostic** — supporting model/interface drift diagnosis
+- **Reaction-transfer study** — supporting reaction transfer and minimum-sufficient-model selection
+- **Adaptive Catalyst Screening Agent (ACSA)** — frozen formal closed-book decision-allocation benchmark and reusable execution layer
+- **ACSA budget-boundary study** — confirmatory boundary extension on the unchanged Agent protocol
+- A future protocol redesign is reserved for later work and is not a current result.
 
 Version labels are family-specific. See [`VERSION_REGISTRY.md`](VERSION_REGISTRY.md).
 
-## DRIFT v2
+## Model–interface drift diagnostic
 
-DRIFT v2 tests whether the decision layer can diagnose model/interface inconsistencies and choose the appropriate response after inspecting evidence. It supports the broader provenance/interface role of the Agent Harness but is not the manuscript's formal decision-allocation benchmark.
+The model–interface drift diagnostic tests whether the decision layer can diagnose model/interface inconsistencies and choose the appropriate response after inspecting evidence. It supports the broader provenance/interface role of the Agent Harness but is not the manuscript's formal decision-allocation benchmark.
 
-## TRANSFER v1
+## Reaction-transfer study
 
-TRANSFER v1 tests reaction transfer through a structured decision chain:
+The reaction-transfer study tests reaction transfer through a structured decision chain:
 
 ```text
 inspect reaction case
@@ -60,9 +60,9 @@ inspect reaction case
 
 Its purpose is to avoid automatically rebuilding every upstream layer when the downstream decision requires only a subset of the model.
 
-## DISCOVER V1 environment
+## Adaptive Catalyst Screening Agent environment
 
-DISCOVER V1 exposes 11 fine-grained actions:
+ACSA exposes 11 fine-grained actions:
 
 1. `INSPECT_CANDIDATES`
 2. `COMPUTE_ACTIVITY`
@@ -94,7 +94,7 @@ The frozen primary endpoint is:
 
 The economic winner, decision pair and reachability verdict must all be correct. Numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint.
 
-## DISCOVER V1 cross-model result
+## ACSA cross-model result
 
 Anonymous complete-decision recovery is:
 
@@ -104,11 +104,11 @@ mini       15/35
 strong     35/35
 ```
 
-This establishes a clear model-capability dependence in executing the full decision chain. The original stronger hypothesis that adaptive policy E would outperform fixed-VOI policy D across model tiers was **not supported** and remains a negative result of the frozen V1 benchmark.
+This establishes a clear model-capability dependence in executing the full decision chain. The original stronger hypothesis that adaptive policy E would outperform fixed-VOI policy D across model tiers was **not supported** and remains a negative result of the frozen Agent benchmark.
 
-## DISCOVER-BOUNDARY-C1
+## ACSA budget-boundary study
 
-C1 keeps the DISCOVER V1 task, prompt, 11-action schema, CU accounting, scorer and stopping rule unchanged. It resolves where adaptive decision recovery appears relative to deterministic fixed-VOI policy D.
+The budget-boundary study keeps the Agent task, prompt, 11-action schema, CU accounting, scorer and stopping rule unchanged. It resolves where adaptive decision recovery appears relative to deterministic fixed-VOI policy D.
 
 Policy D reaches the complete decision at **206 CU**.
 
@@ -203,7 +203,7 @@ Extended Data:
 
 For manuscript-level Agent claims, use evidence in this order:
 
-1. frozen DISCOVER V1 protocol hashes and source harness
+1. frozen ACSA protocol hashes and source harness
 2. raw/scored traces and C1 ledger records
 3. current machine-readable summary tables, especially `../data/agent_figure_panel_data_2026-09-13.csv`
 4. F10 / Extended Data renderers and captions
@@ -213,6 +213,6 @@ The full frozen evidence bundle is under `../provenance/discover_v1/`.
 
 ## Production state
 
-DISCOVER V1 remains frozen. DISCOVER-BOUNDARY-C1 is complete. The current manuscript uses these frozen results to support the Agent as the workflow-scaling layer; the publication-facing composite Figure 6 combines the locked F10 source asset with the 22-CU oracle framing. Current work is manuscript integration, composite-figure assembly and Supporting Information packaging rather than additional benchmark tuning.
+ACSA remains frozen and the budget-boundary study is complete. The current manuscript uses these frozen results to support ACSA as the workflow-scaling layer and reusable execution pattern; the publication-facing composite Figure 6 combines the locked F10 source asset with the 22-CU oracle framing. Current work is manuscript integration, composite-figure assembly and Supporting Information packaging rather than additional benchmark tuning.
 
 Superseded intermediate claims and corrected definitions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
