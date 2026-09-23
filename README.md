@@ -129,22 +129,26 @@ artifacts/               validation outputs and reproducibility records
 
 For a first review:
 
+Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LOCKS.md`](docs/MANUSCRIPT_EDITORIAL_LOCKS.md); semantic reader-facing names are defined in [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md).
+
 1. [`docs/RESEARCH_FRAME.md`](docs/RESEARCH_FRAME.md)
 2. [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md)
 3. [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md)
 4. [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md)
 5. [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md)
 
-## Current version families
+## Current scientific families
 
-| Family | Current label | Role |
-|---|---|---|
-| Ammonia | **NH3-FINAL-1.1** | canonical frozen scientific model |
-| Methanol | **MEOH-D01-v3** | canonical explicit-loop case |
-| Rank-preservation control | **Au/TiO2-RP V1.1** | canonical control |
-| Rank-preservation robustness | **Au/TiO2-RP V1.3** | supporting semi-open extension |
-| Agent benchmark | **DISCOVER V1** | frozen formal benchmark |
-| Agent boundary extension | **DISCOVER-BOUNDARY-C1** | confirmatory extension on unchanged V1 protocol |
+Reader-facing names are semantic rather than version-based. The complete mapping to historical provenance identifiers is in [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md).
+
+| Family | Reader-facing name | Historical provenance key | Role |
+|---|---|---|---|
+| Ammonia | **Ammonia process–economics model** | `NH3-FINAL-1.1` | primary ammonia model |
+| Methanol | **Methanol recycle–economics model** | `MEOH-D01-v3` | explicit recycle/separation case |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** | `Au/TiO2-RP V1.1` | primary control |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | `Au/TiO2-RP V1.3` | supporting extension |
+| Agent | **Adaptive Catalyst Screening Agent (ACSA)** | `DISCOVER V1` | reusable execution layer |
+| Agent compute-budget study | **ACSA budget-boundary study** | `DISCOVER-BOUNDARY-C1` | confirmatory budget extension |
 
 The principal frozen source bundles are under [`provenance/`](provenance/). Current manuscript-facing values are under [`data/`](data/), and figure assets/renderers are under [`figures/`](figures/).
 
@@ -152,6 +156,6 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 ## Current production state
 
-The audited baseline remains **NH3-FINAL-1.1 / MEOH-D01-v3 / Au/TiO2-RP V1.1 / DISCOVER-BOUNDARY-C1**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
+The audited baseline comprises the **ammonia process–economics model, methanol recycle–economics model, Au/TiO₂ rank-preservation control and ACSA budget-boundary study**; historical provenance keys are listed above. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
 
-Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT_v12_2026-09-23.md`](docs/MANUSCRIPT_MAIN_TEXT_v12_2026-09-23.md). The publication-facing architecture remains six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md`](docs/MAIN_FIGURE_CAPTIONS_v8_2026-09-23.md). The current draft keeps the physical-science attribution unchanged and presents the Agent as an adaptive selector of deterministic calculations under finite computational budgets.
+Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT.md`](docs/MANUSCRIPT_MAIN_TEXT.md). The publication-facing architecture remains six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS.md`](docs/MAIN_FIGURE_CAPTIONS.md). The current draft keeps the physical-science attribution unchanged and presents ACSA as the scaling layer that makes the deterministic ranking–parity–reachability analysis reusable across repeated screening tasks; the budget study explains how search compression changes with the available computation.
