@@ -29,7 +29,7 @@ current evidence
 
 ### NH3: decision-frontier ranking inversion
 
-Under the frozen **NH3-FINAL-1.1** model:
+Under the **ammonia process–economics model**:
 
 ```text
 intrinsic activity:  Ru > Os > Fe
@@ -52,13 +52,13 @@ A direct price counterfactual changes the mechanism interpretation: setting the 
 
 ### MeOH: a selectivity-recycle pathway
 
-The **MEOH-D01-v3** case evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3. The 2026-09-20 cost-parameter Monte Carlo retains the canonical economic order in **5,000/5,000** draws.
+The **methanol recycle–economics model** evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3. The 2026-09-20 cost-parameter Monte Carlo retains the canonical economic order in **5,000/5,000** draws.
 
 At the 5 wt% Re / 250 C benchmark, local leverage is **0.00289** for STY, **0.05883** for single-pass conversion, and **0.37579** for CH4 suppression. The dominant tested pathway therefore runs through selectivity, feed loss, purge and recycle.
 
 ### Rank preservation is also possible
 
-The literature-calibrated **Au/TiO2-RP V1.1** control preserves the complete 2-6 nm activity ranking after downstream propagation:
+The literature-calibrated **Au/TiO₂ rank-preservation control** preserves the complete 2-6 nm activity ranking after downstream propagation:
 
 - Spearman rho = **1.000**
 - Kendall tau = **1.000**
@@ -69,7 +69,7 @@ This control shows that multiscale propagation does not intrinsically force rank
 
 ### Decision-aware Agent workflow
 
-**DISCOVER V1** and **DISCOVER-BOUNDARY-C1** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. A complete decision is the frozen primary endpoint `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`; numerical recovery of the backward parity multiplier is scored separately as a secondary quantitative endpoint. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
+The **Adaptive Catalyst Screening Agent (ACSA)** and its **budget-boundary study** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. A complete decision is the frozen primary endpoint `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`; numerical recovery of the backward parity multiplier is scored separately as a secondary quantitative endpoint. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -139,16 +139,16 @@ Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LO
 
 ## Current scientific families
 
-Reader-facing names are semantic rather than version-based. The complete mapping to historical provenance identifiers is in [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md).
+Reader-facing names are semantic rather than version-based. Naming rules are defined in [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md).
 
-| Family | Reader-facing name | Historical provenance key | Role |
-|---|---|---|---|
-| Ammonia | **Ammonia process–economics model** | `NH3-FINAL-1.1` | primary ammonia model |
-| Methanol | **Methanol recycle–economics model** | `MEOH-D01-v3` | explicit recycle/separation case |
-| Rank-preservation control | **Au/TiO₂ rank-preservation control** | `Au/TiO2-RP V1.1` | primary control |
-| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | `Au/TiO2-RP V1.3` | supporting extension |
-| Agent | **Adaptive Catalyst Screening Agent (ACSA)** | `DISCOVER V1` | reusable execution layer |
-| Agent compute-budget study | **ACSA budget-boundary study** | `DISCOVER-BOUNDARY-C1` | confirmatory budget extension |
+| Family | Reader-facing name | Role |
+|---|---|---|
+| Ammonia | **Ammonia process–economics model** | primary ammonia model |
+| Methanol | **Methanol recycle–economics model** | explicit recycle/separation case |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** | primary control |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | supporting extension |
+| Agent | **Adaptive Catalyst Screening Agent (ACSA)** | reusable execution layer |
+| Agent compute-budget study | **ACSA budget-boundary study** | confirmatory budget extension |
 
 The principal frozen source bundles are under [`provenance/`](provenance/). Current manuscript-facing values are under [`data/`](data/), and figure assets/renderers are under [`figures/`](figures/).
 
@@ -156,6 +156,6 @@ Superseded conclusions and intermediate values are kept out of the active result
 
 ## Current production state
 
-The audited baseline comprises the **ammonia process–economics model, methanol recycle–economics model, Au/TiO₂ rank-preservation control and ACSA budget-boundary study**; historical provenance keys are listed above. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
+The audited baseline comprises the **ammonia process–economics model, methanol recycle–economics model, Au/TiO₂ rank-preservation control and ACSA budget-boundary study**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.
 
 Results and manuscript-facing extension data are under [`analysis/supervisor_2026_09_20/`](analysis/supervisor_2026_09_20/); the request/closure record is [`docs/SUPERVISOR_FEEDBACK_2026-09-20.md`](docs/SUPERVISOR_FEEDBACK_2026-09-20.md). Existing frozen provenance is preserved. The current integrated manuscript draft is [`docs/MANUSCRIPT_MAIN_TEXT.md`](docs/MANUSCRIPT_MAIN_TEXT.md). The publication-facing architecture remains six composite main figures, with source-panel mapping in [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md) and captions in [`docs/MAIN_FIGURE_CAPTIONS.md`](docs/MAIN_FIGURE_CAPTIONS.md). The current draft keeps the physical-science attribution unchanged and presents ACSA as the scaling layer that makes the deterministic ranking–parity–reachability analysis reusable across repeated screening tasks; the budget study explains how search compression changes with the available computation.
