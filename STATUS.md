@@ -126,7 +126,7 @@ Current publication-facing figure architecture is **six composite main figures**
 - Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
 - Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
 - Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
-- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md`.
+- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS_v7_2026-09-23.md`.
 - **ED1-ED3** remain locked Agent Extended Data panels.
 
 Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
@@ -152,7 +152,7 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v9_2026-09-23.md`**. This pass preserves the scientific results and numerical anchors while replacing compressed project-specific wording with conventional academic English. Reader-facing version labels and engineering terminology have been removed where they are not required for interpretation. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v6_2026-09-23.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v10_2026-09-23.md`**. This pass keeps the scientific results and numerical anchors unchanged while revising the manuscript toward conventional article-style scientific prose. Report-like engineering language, internal benchmark terminology and compressed compound expressions have been reduced in the reader-facing text. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v7_2026-09-23.md`**.
 
 ## Next production tasks
 
