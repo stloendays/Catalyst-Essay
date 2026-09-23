@@ -116,7 +116,6 @@ docs/                    scientific frame, manuscript map, methods and audit rec
   README.md              recommended reading order
   RESULTS_AT_A_GLANCE.md current numerical summary
   FIGURE_MAP.md          six-figure manuscript architecture and source-panel mapping
-  RETIRED_RESULTS.md     single note for superseded results
 
 data/                    current machine-readable manuscript-facing datasets
 figures/                 canonical/manuscript figure assets and renderers
@@ -152,7 +151,7 @@ Reader-facing names are semantic rather than version-based. Naming rules are def
 
 The principal frozen source bundles are under [`provenance/`](provenance/). Current manuscript-facing values are under [`data/`](data/), and figure assets/renderers are under [`figures/`](figures/).
 
-Superseded conclusions and intermediate values are kept out of the active result tables; the retirement record is [`docs/RETIRED_RESULTS.md`](docs/RETIRED_RESULTS.md), while frozen provenance, audit files and Git history remain available for traceability.
+Frozen provenance, audit files and Git history remain available for traceability.
 
 ## Current production state
 
