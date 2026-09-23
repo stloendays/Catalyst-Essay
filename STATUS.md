@@ -96,7 +96,7 @@ selectivity
  -> purge / recycle / compression
 ```
 
-Each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript. Superseded values are documented only in `docs/RETIRED_RESULTS.md`.
+Each reaction is evaluated against its own downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript.
 
 ## Adaptive Catalyst Screening Agent (ACSA)
 
@@ -125,15 +125,9 @@ Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol
 
 ## Figure state
 
-Current publication-facing figure architecture is **six composite main figures**. The previous F1-F10 files remain source assets/provenance and are mapped into the six figures in `docs/FIGURE_MAP.md`.
+Current publication-facing figure architecture is **six composite main figures** rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS.md`.
 
-- Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
-- Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
-- Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
-- The publication-facing **six composite main figures** are rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS.md`.
-- **ED1-ED3** remain locked Agent Extended Data panels.
-
-Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
+Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the verified values and traceability.
 
 ## Repository organization
 
@@ -148,7 +142,7 @@ Recommended supervisor reading path:
 
 Current manuscript-facing headline data: `data/manuscript_headline_results_2026-09-20.csv`.
 
-Superseded conclusions, intermediate files and corrected definitions are centralized in `docs/RETIRED_RESULTS.md`. Frozen provenance and audit records remain in the repository for traceability.
+Frozen provenance and audit records remain in the repository for traceability.
 
 ## Supervisor-requested targeted analyses — 2026-09-20
 
@@ -160,8 +154,7 @@ The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. Th
 
 ## Next production tasks
 
-1. assemble the six composite manuscript figures from the already frozen/hash-pinned source assets;
-2. run a cross-document audit of v7 against the claim/evidence registry, six-figure captions and Methods definitions;
-3. consolidate Supporting Information numbering for the NH3 cost decomposition, full uncertainty protocols and MeOH active-Re extension;
-4. tighten references and Data/Code Availability for submission;
-5. generate the next Word/PDF manuscript artifact only after the v7 architecture audit closes.
+1. run a cross-document audit of the current main text, six-figure captions and Methods definitions;
+2. consolidate Supporting Information numbering for the NH3 cost decomposition, uncertainty protocols and MeOH active-Re extension;
+3. tighten references and Data/Code Availability for submission;
+4. generate the next Word/PDF manuscript artifact from the current semantic manuscript entry points.
