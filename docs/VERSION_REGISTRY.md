@@ -18,6 +18,7 @@ This file is the human-readable source of truth for naming across the repository
 | Formal decision-allocation benchmark | **DISCOVER V1** | frozen canonical Agent benchmark | Closed-book, budgeted anonymous decision allocation |
 | Boundary confirmatory extension | **DISCOVER-BOUNDARY-C1** | completed confirmatory extension | Boundary mapping on the unchanged DISCOVER V1 protocol |
 | Future DISCOVER redesign | **DISCOVER V2** | reserved | Any future change to the frozen V1 protocol |
+| Stopping-gate arm of the redesign | **DISCOVER-V2-STOP** | preregistered 2026-09-26, not run | V1 task/scorer/cost model inherited; stopping mechanism changed (S-hard / S-gate / S-anytime), see `DISCOVER_STOPPING_TEST_2026-09-26.md` |
 
 ## Architecture vocabulary
 
@@ -48,6 +49,7 @@ Layer B — decision layer
 - **DISCOVER V1**: frozen formal benchmark for closed-book, budgeted decision allocation.
 - **DISCOVER-BOUNDARY-C1**: confirmatory extension on the unchanged DISCOVER V1 protocol; it does not define a new protocol version.
 - **DISCOVER V2**: reserved for a future protocol redesign.
+- **DISCOVER-V2-STOP**: preregistered stopping-gate sub-family (2026-09-26); no result yet. The 2026-09-26 stopping test itself is a read-only replay of frozen V1/C1 traces and mints no label.
 
 ## Current manuscript-eligible Agent claim
 

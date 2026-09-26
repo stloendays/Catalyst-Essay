@@ -215,4 +215,6 @@ The full frozen evidence bundle is under `../provenance/discover_v1/`.
 
 DISCOVER V1 remains frozen. DISCOVER-BOUNDARY-C1 is complete. The current manuscript uses these frozen results to support the Agent as the workflow-scaling layer; the publication-facing composite Figure 6 combines the locked F10 source asset with the 22-CU oracle framing. Current work is manuscript integration, composite-figure assembly and Supporting Information packaging rather than additional benchmark tuning.
 
+**Stopping test (2026-09-26, read-only replay, no new runs).** The public S1–S3 rule is satisfied in 189/212 strong-tier anonymous runs and the decision is already correct at that moment in 188 of them; 89 runs keep paying afterwards (26.6% of strong-tier spend; 46.8% under the non-binding allowance, all RUN_MC). The 225-CU excess over 75 CU is pre-decision full-window scoping, not late stopping. Results, the DISCOVER-V2-STOP gate preregistration and the open-weights cross-model plan are in [`DISCOVER_STOPPING_TEST_2026-09-26.md`](DISCOVER_STOPPING_TEST_2026-09-26.md).
+
 Superseded intermediate claims and corrected definitions are centralized in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
