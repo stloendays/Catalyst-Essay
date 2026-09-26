@@ -1,0 +1,46 @@
+{
+  "protocol": "DISCOVER-V2-STOP",
+  "utc": "2026-09-26T09:05:33.801583+00:00",
+  "frozen_v1_hashcheck": "PASS",
+  "arms": [
+    "hard",
+    "gate",
+    "anytime"
+  ],
+  "cells_CU": [
+    75,
+    225,
+    5000
+  ],
+  "runs_per_cell": 20,
+  "variant": "anonymous",
+  "model": "gpt-5.5-2026-04-23",
+  "sampling": "API defaults",
+  "gates": {
+    "completion": ">= 19/20 per cell and arm (frozen scorer)",
+    "post_rule_spend": "median 0 CU in S-hard and S-gate at 75 and 5000 CU",
+    "false_positive_S3prime": "0/60 across S-gate cells",
+    "allowance_invariance": "S-anytime median final spend at 225 CU within 25 CU of the 75-CU median",
+    "parity_recovery": "reported, not gated"
+  },
+  "protocol_delta": {
+    "final_answer_rule": "last matching record (V1: first)",
+    "hard": "env-forced stop at first S1^S2^S3",
+    "gate": "flip-capability gate on paid actions after S1^S2^S3; 3 consecutive rejections end the run",
+    "anytime": "prompt addendum only"
+  },
+  "sha256": {
+    "driver": "d30e980653e1bfaff280ed1843dfa1e22fdb0e3b38b9d952dd16880c876f84f3",
+    "addenda": "caca957032d18dc92e65ce82270241e974dd7a4bd0132f44e0d3c01993686108",
+    "base_prompt": "5a0b1e297fb9ee84e6f1917d8c68bcfbbfb6670ea8dd5b0129cdc89beb6580ed",
+    "frozen": "be2ab4f1f7e1d324a0ab35bd4a70817ae924a5ca8944781880e55d3a3f98a235",
+    "formal_e": "d4451c424dbfac5f7a6176038864f35cc6326ac04ae5efcb91f14574f8aeee93",
+    "env": "f2e39a57ce2cfd3bae58988d1f5dc25e4f8042a39b2aec9de16cda7b829b39ce",
+    "scorer": "406b0f53be51b49596dc45e086408912dfccfecea316800f5ced3d5f7df1c3ae"
+  },
+  "addenda": {
+    "hard": "Protocol addendum (DISCOVER-V2-STOP, arm S-hard). The environment ends the episode automatically after the first action following which the stopping rule S1 (feasible lowest-cost candidate identified), S2 (no unresolved candidate) and S3 (backward parity and reachability classified for the highest-activity candidate versus the winner, when they differ) all hold; your final answer is then read from the environment state. Plan your calculations so that the decision is complete when the rule first holds.",
+    "gate": "Protocol addendum (DISCOVER-V2-STOP, arm S-gate). Once the stopping rule S1, S2 and S3 holds, the environment arms a gate: a paid action is executed only if its result can still change the winner, the decision pair or the reachability verdict. Admissible paid actions while the gate is armed are CHECK_MODEL_VALIDITY (any scope); BUILD_PROCESS_WINDOW and OPTIMIZE_PROCESS of the winner or the highest-activity candidate only while the environment reports an edge flag (their optimum, or the parity state, lies on an edge of its window that is not a bound of the full domain), in a window other than the one already used; BACKWARD for the pair only after such a re-optimisation; TEST_REACHABILITY only after a new BACKWARD. Every other paid action (RUN_MC, TEST_LEVER, repeat windows on validated optima, optimisation of other candidates) is rejected at 0 CU with the reason, and three consecutive rejections end the episode. Free actions are never gated. Each tool result carries a _v2 field with the gate state, the edge flags and the admissible paid actions; when _v2.S3prime_validated_stop is true, nothing paid can change the decision and you should STOP.",
+    "anytime": "Protocol addendum (DISCOVER-V2-STOP, arm S-anytime). Regardless of the size of your allowance, reach the stopping rule S1, S2 and S3 at the minimum spend first: use the smallest process window that can contain the candidates' optima, optimise only the candidates that can be the industrial choice, then run BACKWARD and TEST_REACHABILITY. Widen or rebuild a window only if the environment's _v2.edge_flags report that the optimum of the winner or of the highest-activity candidate, or the parity state, lies on a window edge that is not a bound of the full domain. When _v2.S3prime_validated_stop is true, STOP; do not spend remaining allowance on calculations that cannot change the winner, the decision pair or the reachability verdict."
+  }
+}

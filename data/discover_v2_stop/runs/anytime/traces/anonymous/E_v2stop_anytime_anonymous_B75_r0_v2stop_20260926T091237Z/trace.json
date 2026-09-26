@@ -1,0 +1,6295 @@
+{
+  "schema": "DISCOVER_TRACE_V1",
+  "protocol": "DISCOVER-V2-STOP",
+  "arm": "anytime",
+  "policy": "E_v2stop_anytime",
+  "task_variant": "anonymous",
+  "budget_CU": 75.0,
+  "seed": 0,
+  "run_index": 0,
+  "cost_model": "DISCOVER_COST_MODEL_V1",
+  "started_utc": "20260926T091237Z",
+  "model_requested": "gpt-5.5-2026-04-23",
+  "sampling": {},
+  "steps": [
+    {
+      "step": 1,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 75.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 15.0
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "INSPECT_CANDIDATES",
+          "cost_CU": 0.0,
+          "decision_value": "establish formal candidate/domain/price inputs for screening"
+        },
+        {
+          "action": "COMPUTE_ACTIVITY(all candidates)",
+          "cost_CU": 15.0,
+          "decision_value": "identifies reference activity ordering, enables declared dominance screening with price, and identifies highest-activity candidate for S3"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY(all candidates)",
+          "cost_CU": 0.0,
+          "decision_value": "useful for later risk, but not needed to establish deterministic industrial decision or screening"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW",
+          "cost_CU": "depends on states",
+          "decision_value": "needed after screening for process optimization"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "atomic activities not computed for every candidate",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": null,
+        "remaining_CU": 75.0
+      },
+      "reason_for_choice": "No ranking, feasibility, or highest-activity identity is known. The zero-cost inspection plus all-candidate activity calculation is the minimum information needed for declared screening (lower reference activity and higher metal price) and to determine whether a parity/reachability assessment will be required.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 75.0,
+        "known_evidence": [],
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {}
+      },
+      "chosen_action": "INSPECT_CANDIDATES",
+      "chosen_args": {},
+      "action_cost": 0.0,
+      "result": {
+        "candidates": [
+          {
+            "id": "candidate_01",
+            "descriptor_E_N_eV": -0.2701,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 56.28401553583051
+          },
+          {
+            "id": "candidate_02",
+            "descriptor_E_N_eV": 0.5895,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 51508.71107755406
+          },
+          {
+            "id": "candidate_03",
+            "descriptor_E_N_eV": 1.2491,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 13.889122517655
+          },
+          {
+            "id": "candidate_04",
+            "descriptor_E_N_eV": -1.1333,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 53852.5
+          },
+          {
+            "id": "candidate_05",
+            "descriptor_E_N_eV": -1.1095,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 142650.0
+          },
+          {
+            "id": "candidate_06",
+            "descriptor_E_N_eV": -1.8417,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 91.22728409215301
+          },
+          {
+            "id": "candidate_07",
+            "descriptor_E_N_eV": -1.8252,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 5757.64
+          },
+          {
+            "id": "candidate_08",
+            "descriptor_E_N_eV": -0.458,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 265243.65919095
+          },
+          {
+            "id": "candidate_09",
+            "descriptor_E_N_eV": 2.911,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 1823.590345370992
+          },
+          {
+            "id": "candidate_10",
+            "descriptor_E_N_eV": 3.0029,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 128732.2322756058
+          },
+          {
+            "id": "candidate_11",
+            "descriptor_E_N_eV": 0.5637,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 40670.694409279
+          },
+          {
+            "id": "candidate_12",
+            "descriptor_E_N_eV": -0.0928,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 16.9094555095895
+          },
+          {
+            "id": "candidate_13",
+            "descriptor_E_N_eV": -1.392120623747696,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 8.0
+          },
+          {
+            "id": "candidate_14",
+            "descriptor_E_N_eV": -0.4407,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 252383.36056351
+          },
+          {
+            "id": "candidate_15",
+            "descriptor_E_N_eV": -2.161,
+            "descriptor_source": "frozen S1-derived single-descriptor table",
+            "price_USD_kg": 149.97
+          }
+        ],
+        "process_domain": {
+          "T_C": [
+            350.0,
+            375.0,
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": {
+            "min": 10.0,
+            "max": 1000.0,
+            "step": 5.0
+          },
+          "Tsep_C": {
+            "min": -40.0,
+            "max": 30.0,
+            "step": 5.0
+          },
+          "max_catalyst_bed_m3": 90.0,
+          "cost_boundary": "reduced catalyst/process-dependent NH3 cost, USD per tonne: active-metal replacement, converter (volume proxy + pressure-dependent shell), compression and refrigeration electricity, compressor capital; plant 1000 t/d"
+        },
+        "note": "activities, feasibility and costs are not known until computed"
+      },
+      "state_after": {
+        "remaining_CU": 75.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 75.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "atomic activities not computed for every candidate"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {},
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 2,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 75.0,
+        "n_activity": 0,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "COMPUTE_ACTIVITY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 15.0
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "INSPECT_CANDIDATES",
+          "cost_CU": 0.0,
+          "decision_value": "establish formal candidate/domain/price inputs for screening"
+        },
+        {
+          "action": "COMPUTE_ACTIVITY(all candidates)",
+          "cost_CU": 15.0,
+          "decision_value": "identifies reference activity ordering, enables declared dominance screening with price, and identifies highest-activity candidate for S3"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY(all candidates)",
+          "cost_CU": 0.0,
+          "decision_value": "useful for later risk, but not needed to establish deterministic industrial decision or screening"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW",
+          "cost_CU": "depends on states",
+          "decision_value": "needed after screening for process optimization"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "atomic activities not computed for every candidate",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": null,
+        "remaining_CU": 75.0
+      },
+      "reason_for_choice": "No ranking, feasibility, or highest-activity identity is known. The zero-cost inspection plus all-candidate activity calculation is the minimum information needed for declared screening (lower reference activity and higher metal price) and to determine whether a parity/reachability assessment will be required.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 75.0,
+        "known_evidence": [],
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {}
+      },
+      "chosen_action": "COMPUTE_ACTIVITY",
+      "chosen_args": {
+        "metals": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ]
+      },
+      "action_cost": 15.0,
+      "result": {
+        "log10_TOF_at_reference": {
+          "candidate_01": -9.827339304138908,
+          "candidate_02": -19.672211894241162,
+          "candidate_03": -28.596518023328855,
+          "candidate_04": -3.4511885358841505,
+          "candidate_05": -3.495320399313441,
+          "candidate_06": -10.758861007859798,
+          "candidate_07": -10.563178970710178,
+          "candidate_08": -8.043486483307811,
+          "candidate_09": -51.76451479225579,
+          "candidate_10": -53.047576696367514,
+          "candidate_11": -19.33848820076085,
+          "candidate_12": -11.6277967143094,
+          "candidate_13": -5.3099700922126845,
+          "candidate_14": -8.20256659221374,
+          "candidate_15": -14.552220335590981
+        },
+        "reference_condition": "T 673.0 K, pN2 24.5 / pH2 74.25 / pNH3 1.0 bar"
+      },
+      "state_after": {
+        "remaining_CU": 60.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 60.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {},
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 3,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 60.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW narrow",
+          "args": {
+            "name": "w1",
+            "bounds": "T_C:[400,425,450]; P_bar:[100,300]; Tsep_C:[-40,0]"
+          },
+          "estimated_cost_CU": 40.865,
+          "decision_value": "creates an affordable high-conversion/high-separation process grid likely to contain optima under pressure/refrigeration/catalyst tradeoffs"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW smaller",
+          "args": {
+            "name": "w_tiny",
+            "bounds": "T_C:[425,450]; P_bar:[100,250]; Tsep_C:[-40,-10]"
+          },
+          "estimated_cost_CU": 16.97,
+          "decision_value": "cheaper, but higher risk of missing optima for catalyst/pressure tradeoff"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS without window",
+          "estimated_cost_CU": "not admissible/meaningful until a window exists",
+          "decision_value": "none yet"
+        },
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "cost_CU": 0.0,
+          "decision_value": "does not help deterministic S1/S2/S3 before process optimization"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 60.0
+      },
+      "reason_for_choice": "After reference activity, candidates capable of winning are expected to lie on the price/activity Pareto front, especially high-activity expensive candidate_04 and cheap lower-activity candidate_13. The selected window is the smallest moderate-risk grid that includes high temperatures, industrially relevant elevated pressures, and cold separation while remaining affordable for subsequent optimizations and parity/reachability. Edge flags will determine whether widening is required under DISCOVER-V2-STOP.",
+      "expected_decision_value": 0.75,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 60.0,
+        "known_evidence": {
+          "reference_log10_TOF": {
+            "candidate_04": -3.4511885358841505,
+            "candidate_05": -3.495320399313441,
+            "candidate_13": -5.3099700922126845,
+            "candidate_08": -8.043486483307811,
+            "candidate_14": -8.20256659221374,
+            "candidate_01": -9.827339304138908,
+            "candidate_07": -10.563178970710178,
+            "candidate_06": -10.758861007859798,
+            "candidate_12": -11.6277967143094,
+            "candidate_15": -14.552220335590981,
+            "candidate_11": -19.33848820076085,
+            "candidate_02": -19.672211894241162,
+            "candidate_03": -28.596518023328855,
+            "candidate_09": -51.76451479225579,
+            "candidate_10": -53.047576696367514
+          },
+          "highest_activity_candidate": "candidate_04"
+        },
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {}
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "w1",
+        "bounds": "T_C:[400,425,450]; P_bar:[100,300]; Tsep_C:[-40,0]"
+      },
+      "action_cost": 0,
+      "result": {
+        "error": "InvalidArguments: string indices must be integers, not 'str'"
+      },
+      "state_after": {
+        "remaining_CU": 60.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 60.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {},
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 4,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 60.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW w1 with structured bounds",
+          "args": {
+            "name": "w1",
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                0.0
+              ]
+            }
+          },
+          "estimated_cost_CU": 8.66,
+          "decision_value": "affordable grid likely sufficient for initial optima and can be widened if edge flags require"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW full",
+          "args": {
+            "name": "full"
+          },
+          "estimated_cost_CU": 116.6,
+          "decision_value": "exceeds budget, impossible"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW tiny",
+          "args": {
+            "name": "w_tiny",
+            "bounds": {
+              "T_C": [
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                250.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                -10.0
+              ]
+            }
+          },
+          "estimated_cost_CU": 3.39,
+          "decision_value": "cheaper but too likely to put optima on artificial edges"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 60.0
+      },
+      "reason_for_choice": "The first attempt used an invalid serialization. Reissuing with structured bounds preserves the V2 minimum-spend strategy: start with the smallest credible process window and widen only if edge flags show the winner, highest-activity candidate, or parity state is artificially edge-limited.",
+      "expected_decision_value": 0.75,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 60.0,
+        "known_evidence": {
+          "highest_activity_candidate": "candidate_04",
+          "previous_action_error": "BUILD_PROCESS_WINDOW bounds string rejected; no budget charged"
+        },
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {}
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "w1",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100.0,
+            300.0
+          ],
+          "Tsep_C": [
+            -40.0,
+            0.0
+          ]
+        }
+      },
+      "action_cost": 9.0,
+      "result": {
+        "window": "w1",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100.0,
+            300.0
+          ],
+          "Tsep_C": [
+            -40.0,
+            0.0
+          ]
+        },
+        "n_states": 1107,
+        "P_range": [
+          100.0,
+          300.0
+        ],
+        "T_values": [
+          400.0,
+          425.0,
+          450.0
+        ],
+        "Tsep_range": [
+          -40.0,
+          0.0
+        ]
+      },
+      "state_after": {
+        "remaining_CU": 51.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 51.0,
+      "current_winner": null,
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3": "no winner"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {},
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 5,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 51.0,
+        "n_activity": 15,
+        "n_optimized": 0,
+        "feasible_costs": {},
+        "current_lowest_cost_candidate": null,
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_02",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_03",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_04",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_06",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_07",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_08",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_09",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_10",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_11",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_12",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_13",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_14",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_15",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w1",
+          "cost_CU": 2.214,
+          "decision_value": "highest-activity candidate; may win despite high price and required for S3 if not winner"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w1",
+          "cost_CU": 2.214,
+          "decision_value": "only cheap high-enough-activity Pareto candidate; likely industrial choice if feasible"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS all candidates in w1",
+          "cost_CU": 33.21,
+          "decision_value": "unnecessary before Pareto candidates identify winner; dominated candidates cannot beat a candidate with both higher activity and lower price under declared screening"
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY dominance",
+          "cost_CU": 28.0,
+          "decision_value": "too expensive before a current winner exists; declared screening sufficient initially"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": false,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "no winner",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": null,
+        "atomic_best": "candidate_04",
+        "remaining_CU": 51.0
+      },
+      "reason_for_choice": "candidate_04 and candidate_13 are the only activity/price Pareto candidates. Optimizing both is the minimum spend to establish S1 and to know whether the highest-activity candidate is also the industrial choice. All other candidates have lower reference activity and higher metal price than candidate_13 or candidate_04 and can be screened once the current winner is known.",
+      "expected_decision_value": 0.95,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 51.0,
+        "known_evidence": {
+          "window": {
+            "id": "w1",
+            "n_states": 1107,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                0.0
+              ]
+            }
+          },
+          "reference_activity_price_screening": {
+            "pareto_candidates": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "dominated_by_price_and_activity": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_14",
+              "candidate_15"
+            ],
+            "highest_activity_candidate": "candidate_04"
+          }
+        },
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {}
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_04",
+        "window": "w1"
+      },
+      "action_cost": 3.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 22.326648927339637,
+        "T_C": 450.0,
+        "P_bar": 220.0,
+        "Tsep_C": -5.0,
+        "bed_m3": 0.08182979800795112,
+        "state_index": 11788,
+        "window": "w1",
+        "metal": "candidate_04"
+      },
+      "state_after": {
+        "remaining_CU": 48.0,
+        "n_activity": 15,
+        "n_optimized": 1,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637
+        },
+        "current_lowest_cost_candidate": "candidate_04",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 48.0,
+      "current_winner": "candidate_04",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_06",
+          "candidate_07",
+          "candidate_09",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_15"
+        ],
+        "S3": "highest-activity candidate equals the lowest-cost candidate"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 6,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 48.0,
+        "n_activity": 15,
+        "n_optimized": 1,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637
+        },
+        "current_lowest_cost_candidate": "candidate_04",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_02",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_03",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_06",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_07",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_08",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_09",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_10",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_11",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_12",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_13",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_14",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_15",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w1",
+          "cost_CU": 2.214,
+          "decision_value": "highest-activity candidate; may win despite high price and required for S3 if not winner"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w1",
+          "cost_CU": 2.214,
+          "decision_value": "only cheap high-enough-activity Pareto candidate; likely industrial choice if feasible"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS all candidates in w1",
+          "cost_CU": 33.21,
+          "decision_value": "unnecessary before Pareto candidates identify winner; dominated candidates cannot beat a candidate with both higher activity and lower price under declared screening"
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY dominance",
+          "cost_CU": 28.0,
+          "decision_value": "too expensive before a current winner exists; declared screening sufficient initially"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_06",
+          "candidate_07",
+          "candidate_09",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_15"
+        ],
+        "S3_reachability_classified_if_needed": true,
+        "S3_note": "highest-activity candidate equals the lowest-cost candidate",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_04",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 48.0
+      },
+      "reason_for_choice": "candidate_04 and candidate_13 are the only activity/price Pareto candidates. Optimizing both is the minimum spend to establish S1 and to know whether the highest-activity candidate is also the industrial choice. All other candidates have lower reference activity and higher metal price than candidate_13 or candidate_04 and can be screened once the current winner is known.",
+      "expected_decision_value": 0.95,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": null,
+        "confidence": 0.0,
+        "unresolved_candidates": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "remaining_budget_CU": 51.0,
+        "known_evidence": {
+          "window": {
+            "id": "w1",
+            "n_states": 1107,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                0.0
+              ]
+            }
+          },
+          "reference_activity_price_screening": {
+            "pareto_candidates": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "dominated_by_price_and_activity": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_14",
+              "candidate_15"
+            ],
+            "highest_activity_candidate": "candidate_04"
+          }
+        },
+        "stopping_status": {
+          "S1": false,
+          "S2": false,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          }
+        }
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_13",
+        "window": "w1"
+      },
+      "action_cost": 3.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 16.984629612013272,
+        "T_C": 425.0,
+        "P_bar": 110.0,
+        "Tsep_C": 0.0,
+        "bed_m3": 24.473751390624205,
+        "state_index": 8688,
+        "window": "w1",
+        "metal": "candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 45.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 16.984629612013272
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 45.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": true,
+            "any": true,
+            "window": "w1"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 7,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 45.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 16.984629612013272
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_02",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_03",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_06",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_07",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_08",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_09",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_10",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_11",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_12",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_14",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_15",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_13"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW widened Tsep",
+          "args": {
+            "name": "w2",
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                30.0
+              ]
+            }
+          },
+          "estimated_cost_CU": 14.43,
+          "decision_value": "required by V2 because current winner sits on artificial Tsep edge; may lower winner cost or change parity"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_05 in w1",
+          "cost_CU": 2.214,
+          "decision_value": "would resolve S2 in old window but not valid while winner is edge-limited"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13 in w1",
+          "cost_CU": 1.0,
+          "decision_value": "needed for S3 but premature because winner state/window may change after widening"
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY window_edges",
+          "cost_CU": 28.0,
+          "decision_value": "edge already reported by _v2, so poor value now"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 45.0
+      },
+      "reason_for_choice": "DISCOVER-V2-STOP requires widening only when the winner, highest-activity candidate, or parity state is on a non-domain window edge. candidate_13, the current winner, is on the Tsep upper edge at 0 C while the full domain extends to 30 C. Widening only Tsep is the smallest corrective window likely to validate or update the industrial decision.",
+      "expected_decision_value": 0.82,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.984629612013272,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 110.0,
+            "Tsep_C": 0.0,
+            "bed_m3": 24.473751390624205,
+            "window": "w1"
+          }
+        },
+        "confidence": 0.72,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "remaining_budget_CU": 45.0,
+        "known_evidence": {
+          "optimized": {
+            "candidate_04": {
+              "feasible": true,
+              "cost_USD_t": 22.326648927339637,
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": -5.0,
+              "bed_m3": 0.08182979800795112,
+              "edge_flags": {
+                "any": false
+              }
+            },
+            "candidate_13": {
+              "feasible": true,
+              "cost_USD_t": 16.984629612013272,
+              "T_C": 425.0,
+              "P_bar": 110.0,
+              "Tsep_C": 0.0,
+              "bed_m3": 24.473751390624205,
+              "edge_flags": {
+                "Tsep": true,
+                "any": true
+              }
+            }
+          },
+          "screened_by_current_winner": [
+            "candidate_01",
+            "candidate_02",
+            "candidate_03",
+            "candidate_06",
+            "candidate_07",
+            "candidate_08",
+            "candidate_09",
+            "candidate_10",
+            "candidate_11",
+            "candidate_12",
+            "candidate_14",
+            "candidate_15"
+          ],
+          "highest_activity_candidate": "candidate_04",
+          "highest_activity_differs_from_winner": true
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": false,
+          "S3": false,
+          "v2_issue": "winner candidate_13 optimum is on Tsep upper edge of w1, which is not the full-domain upper bound"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": true,
+            "any": true,
+            "window": "w1"
+          }
+        }
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "w2",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100.0,
+            300.0
+          ],
+          "Tsep_C": [
+            -40.0,
+            30.0
+          ]
+        }
+      },
+      "action_cost": 15.0,
+      "result": {
+        "window": "w2",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            100.0,
+            300.0
+          ],
+          "Tsep_C": [
+            -40.0,
+            30.0
+          ]
+        },
+        "n_states": 1814,
+        "P_range": [
+          100.0,
+          300.0
+        ],
+        "T_values": [
+          400.0,
+          425.0,
+          450.0
+        ],
+        "Tsep_range": [
+          -40.0,
+          30.0
+        ]
+      },
+      "state_after": {
+        "remaining_CU": 30.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 16.984629612013272
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 30.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": true,
+            "any": true,
+            "window": "w1"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 8,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 30.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 16.984629612013272
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_01",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_02",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_03",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_05",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_06",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_07",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_08",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_09",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_10",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_11",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_12",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_14",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "OPTIMIZE_PROCESS",
+          "args": {
+            "metal": "candidate_15",
+            "window": "full"
+          },
+          "cost_CU": 29.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_13"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates current winner after removing artificial Tsep edge"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates highest-activity comparator for S3 parity"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_05 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "resolves only remaining unscreened candidate; candidate_05 has near-highest activity and high price, so it cannot be screened by candidate_13 alone"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13",
+          "cost_CU": 1.0,
+          "decision_value": "required for S3 but should wait until widened-window optima are known"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 window",
+          "cost_CU": 4.0,
+          "decision_value": "required for S3 but needs parity multiplier first"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 30.0
+      },
+      "reason_for_choice": "This is the minimum set of optimizations that can satisfy S1/S2 in the corrected window: candidate_13 is the current winner, candidate_04 is the highest-activity candidate for the required parity assessment, and candidate_05 is the only remaining candidate not screened by the current winner using the declared activity/price rule.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.984629612013272,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 110.0,
+            "Tsep_C": 0.0,
+            "bed_m3": 24.473751390624205,
+            "window": "w1"
+          }
+        },
+        "confidence": 0.72,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "remaining_budget_CU": 30.0,
+        "known_evidence": {
+          "window_w2": {
+            "n_states": 1814,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                30.0
+              ]
+            }
+          },
+          "reason_for_w2": "candidate_13 was on artificial Tsep upper edge in w1",
+          "highest_activity_candidate": "candidate_04"
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": false,
+          "S3": false,
+          "v2_edge_validation_needed": "re-optimize winner and highest-activity candidate in widened window; optimize candidate_05 because it is not dominated by the current winner under the declared rule"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": true,
+            "any": true,
+            "window": "w1"
+          }
+        }
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_13",
+        "window": "w2"
+      },
+      "action_cost": 4.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 15.291704676621144,
+        "T_C": 425.0,
+        "P_bar": 180.0,
+        "Tsep_C": 30.0,
+        "bed_m3": 17.059161423818093,
+        "state_index": 8900,
+        "window": "w2",
+        "metal": "candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 28.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 15.291704676621144
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 28.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 9,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 28.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.326648927339637,
+          "candidate_13": 15.291704676621144
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_13"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates current winner after removing artificial Tsep edge"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates highest-activity comparator for S3 parity"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_05 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "resolves only remaining unscreened candidate; candidate_05 has near-highest activity and high price, so it cannot be screened by candidate_13 alone"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13",
+          "cost_CU": 1.0,
+          "decision_value": "required for S3 but should wait until widened-window optima are known"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 window",
+          "cost_CU": 4.0,
+          "decision_value": "required for S3 but needs parity multiplier first"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 28.0
+      },
+      "reason_for_choice": "This is the minimum set of optimizations that can satisfy S1/S2 in the corrected window: candidate_13 is the current winner, candidate_04 is the highest-activity candidate for the required parity assessment, and candidate_05 is the only remaining candidate not screened by the current winner using the declared activity/price rule.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.984629612013272,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 110.0,
+            "Tsep_C": 0.0,
+            "bed_m3": 24.473751390624205,
+            "window": "w1"
+          }
+        },
+        "confidence": 0.72,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "remaining_budget_CU": 30.0,
+        "known_evidence": {
+          "window_w2": {
+            "n_states": 1814,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                30.0
+              ]
+            }
+          },
+          "reason_for_w2": "candidate_13 was on artificial Tsep upper edge in w1",
+          "highest_activity_candidate": "candidate_04"
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": false,
+          "S3": false,
+          "v2_edge_validation_needed": "re-optimize winner and highest-activity candidate in widened window; optimize candidate_05 because it is not dominated by the current winner under the declared rule"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w1"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        }
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_04",
+        "window": "w2"
+      },
+      "action_cost": 4.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 22.31861883913703,
+        "T_C": 450.0,
+        "P_bar": 300.0,
+        "Tsep_C": 10.0,
+        "bed_m3": 0.08198599006941362,
+        "state_index": 12031,
+        "window": "w2",
+        "metal": "candidate_04"
+      },
+      "state_after": {
+        "remaining_CU": 26.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 26.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 10,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 26.0,
+        "n_activity": 15,
+        "n_optimized": 2,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_13"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 2.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates current winner after removing artificial Tsep edge"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "validates/updates highest-activity comparator for S3 parity"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_05 in w2",
+          "cost_CU": 3.628,
+          "decision_value": "resolves only remaining unscreened candidate; candidate_05 has near-highest activity and high price, so it cannot be screened by candidate_13 alone"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13",
+          "cost_CU": 1.0,
+          "decision_value": "required for S3 but should wait until widened-window optima are known"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 window",
+          "cost_CU": 4.0,
+          "decision_value": "required for S3 but needs parity multiplier first"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": false,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 26.0
+      },
+      "reason_for_choice": "This is the minimum set of optimizations that can satisfy S1/S2 in the corrected window: candidate_13 is the current winner, candidate_04 is the highest-activity candidate for the required parity assessment, and candidate_05 is the only remaining candidate not screened by the current winner using the declared activity/price rule.",
+      "expected_decision_value": 0.9,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 16.984629612013272,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 110.0,
+            "Tsep_C": 0.0,
+            "bed_m3": 24.473751390624205,
+            "window": "w1"
+          }
+        },
+        "confidence": 0.72,
+        "unresolved_candidates": [
+          "candidate_05"
+        ],
+        "remaining_budget_CU": 30.0,
+        "known_evidence": {
+          "window_w2": {
+            "n_states": 1814,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                100.0,
+                300.0
+              ],
+              "Tsep_C": [
+                -40.0,
+                30.0
+              ]
+            }
+          },
+          "reason_for_w2": "candidate_13 was on artificial Tsep upper edge in w1",
+          "highest_activity_candidate": "candidate_04"
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": false,
+          "S3": false,
+          "v2_edge_validation_needed": "re-optimize winner and highest-activity candidate in widened window; optimize candidate_05 because it is not dominated by the current winner under the declared rule"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        }
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_05",
+        "window": "w2"
+      },
+      "action_cost": 4.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 25.988839544724296,
+        "T_C": 450.0,
+        "P_bar": 220.0,
+        "Tsep_C": -25.0,
+        "bed_m3": 0.03482512950287368,
+        "state_index": 11784,
+        "window": "w2",
+        "metal": "candidate_05"
+      },
+      "state_after": {
+        "remaining_CU": 22.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 22.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 11,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 22.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_04"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_13"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "RUN_MC",
+          "args": {
+            "metals": [
+              "candidate_05"
+            ],
+            "draws": 100,
+            "window": "full"
+          },
+          "cost_CU": 17.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW local widened P",
+          "args": {
+            "name": "w3",
+            "bounds": {
+              "T_C": [
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                180.0,
+                1000.0
+              ],
+              "Tsep_C": [
+                10.0,
+                30.0
+              ]
+            }
+          },
+          "estimated_cost_CU": 12.9,
+          "decision_value": "removes non-domain P edge for highest-activity candidate while also containing winner state; minimal affordable validation window for S3"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW full corrected window",
+          "args": {
+            "name": "full"
+          },
+          "estimated_cost_CU": "over budget",
+          "decision_value": "not affordable"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13 in w2",
+          "cost_CU": 1.0,
+          "decision_value": "required but premature because candidate_04 is edge-limited in w2"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04",
+          "cost_CU": 4.0,
+          "decision_value": "required after parity multiplier, not before"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 22.0
+      },
+      "reason_for_choice": "V2 requires widening because the highest-activity candidate sits on a non-domain pressure edge in w2. To minimize spend, w3 widens pressure to the full domain maximum while retaining only temperatures and separation temperatures needed to contain the current winner and the high-activity candidate's likely optimum/parity region. This should avoid further pressure-edge rebuilds and leave enough budget for re-optimization and S3.",
+      "expected_decision_value": 0.78,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2"
+          }
+        },
+        "confidence": 0.86,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 22.0,
+        "known_evidence": {
+          "optimized_w2": {
+            "candidate_13": {
+              "cost_USD_t": 15.291704676621144,
+              "state": {
+                "T_C": 425.0,
+                "P_bar": 180.0,
+                "Tsep_C": 30.0,
+                "bed_m3": 17.059161423818093
+              },
+              "edge_flags": {
+                "any": false
+              }
+            },
+            "candidate_04": {
+              "cost_USD_t": 22.31861883913703,
+              "state": {
+                "T_C": 450.0,
+                "P_bar": 300.0,
+                "Tsep_C": 10.0,
+                "bed_m3": 0.08198599006941362
+              },
+              "edge_flags": {
+                "P": true,
+                "any": true
+              }
+            },
+            "candidate_05": {
+              "cost_USD_t": 25.988839544724296,
+              "state": {
+                "T_C": 450.0,
+                "P_bar": 220.0,
+                "Tsep_C": -25.0,
+                "bed_m3": 0.03482512950287368
+              }
+            }
+          },
+          "S2_screening": "S2 satisfied in w2; all other candidates are dominated by declared rule or optimized",
+          "highest_activity_candidate": "candidate_04",
+          "S3_missing": [
+            "BACKWARD",
+            "TEST_REACHABILITY"
+          ],
+          "v2_issue": "highest-activity candidate candidate_04 optimum is on artificial P upper edge of w2"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        }
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "w3",
+        "bounds": {
+          "T_C": [
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            180.0,
+            1000.0
+          ],
+          "Tsep_C": [
+            10.0,
+            30.0
+          ]
+        }
+      },
+      "action_cost": 13.0,
+      "result": {
+        "window": "w3",
+        "bounds": {
+          "T_C": [
+            425.0,
+            450.0
+          ],
+          "P_bar": [
+            180.0,
+            1000.0
+          ],
+          "Tsep_C": [
+            10.0,
+            30.0
+          ]
+        },
+        "n_states": 1650,
+        "P_range": [
+          180.0,
+          1000.0
+        ],
+        "T_values": [
+          425.0,
+          450.0
+        ],
+        "Tsep_range": [
+          10.0,
+          30.0
+        ]
+      },
+      "state_after": {
+        "remaining_CU": 9.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 9.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 12,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 9.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.31861883913703,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "OPTIMIZE_PROCESS candidate_04 in w3",
+          "cost_CU": 3.3,
+          "decision_value": "required by V2 because highest-activity candidate was on artificial P edge; result could change whether it beats candidate_13 or change parity multiplier"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w3",
+          "cost_CU": 3.3,
+          "decision_value": "lower value because candidate_13 was already non-edge in w2 and its w2 optimum is included in w3; would reduce budget available for S3"
+        },
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13",
+          "cost_CU": 1.0,
+          "decision_value": "required for S3 but should follow candidate_04 pressure-edge validation"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 reference",
+          "cost_CU": 2.0,
+          "decision_value": "required for S3 classification after multiplier is known"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 9.0
+      },
+      "reason_for_choice": "With only 9 CU remaining, the minimum path to the stopping rule is to validate the high-activity candidate in the widened pressure window first. Re-optimizing candidate_13 is lower decision value because its w2 optimum was already not on an artificial edge and is contained in w3; preserving budget for BACKWARD and TEST_REACHABILITY is necessary for S3.",
+      "expected_decision_value": 0.8,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2"
+          }
+        },
+        "confidence": 0.86,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 9.0,
+        "known_evidence": {
+          "S1": true,
+          "S2": true,
+          "S3": false,
+          "highest_activity_candidate": "candidate_04",
+          "candidate_04_w2_edge": "P upper edge at 300 bar, non-domain edge",
+          "w3": {
+            "n_states": 1650,
+            "bounds": {
+              "T_C": [
+                425.0,
+                450.0
+              ],
+              "P_bar": [
+                180.0,
+                1000.0
+              ],
+              "Tsep_C": [
+                10.0,
+                30.0
+              ]
+            }
+          }
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": true,
+          "S3": false,
+          "v2_pending": "validate highest-activity candidate off pressure edge, then run BACKWARD and TEST_REACHABILITY if still not winner"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": true,
+            "Tsep": false,
+            "any": true,
+            "window": "w2"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        }
+      },
+      "chosen_action": "OPTIMIZE_PROCESS",
+      "chosen_args": {
+        "metal": "candidate_04",
+        "window": "w3"
+      },
+      "action_cost": 4.0,
+      "result": {
+        "feasible": true,
+        "cost_USD_t": 22.03059478781101,
+        "T_C": 450.0,
+        "P_bar": 425.0,
+        "Tsep_C": 25.0,
+        "bed_m3": 0.0660321094260842,
+        "state_index": 12409,
+        "window": "w3",
+        "metal": "candidate_04"
+      },
+      "state_after": {
+        "remaining_CU": 6.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 6.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward missing, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 13,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 6.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 0,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 0,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13 activity in w3",
+          "cost_CU": 1.0,
+          "decision_value": "required to quantify intrinsic-activity multiplier for high-activity candidate to reach the current winner's cost; directly satisfies first half of S3"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 reference without multiplier",
+          "cost_CU": 2.0,
+          "decision_value": "premature; classification needs required multiplier"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "cost_CU": 0.0,
+          "decision_value": "useful reporting detail but cannot replace S3 parity/reachability"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w3",
+          "cost_CU": 3.3,
+          "decision_value": "low incremental value because its non-edge w2 optimum is within w3 and current budget must preserve S3 actions"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward missing, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 6.0
+      },
+      "reason_for_choice": "The highest atomic activity candidate (candidate_04) is not the industrial cost winner, so the stopping rule requires quantifying the intrinsic activity gain needed for candidate_04 to reach parity with candidate_13. The pressure-edge issue for candidate_04 has been resolved, making this parity calculation decision-relevant and timely.",
+      "expected_decision_value": 0.95,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2",
+            "note": "state is contained in w3 bounds"
+          }
+        },
+        "confidence": 0.91,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 6.0,
+        "known_evidence": {
+          "S1": true,
+          "S2": true,
+          "candidate_04_validated_w3": {
+            "feasible": true,
+            "cost_USD_t": 22.03059478781101,
+            "state": {
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "bed_m3": 0.0660321094260842
+            },
+            "edge_flags": {
+              "any": false
+            }
+          },
+          "highest_activity_candidate": "candidate_04",
+          "highest_activity_differs_from_winner": true,
+          "S3_missing": [
+            "BACKWARD parity multiplier",
+            "TEST_REACHABILITY classification"
+          ]
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": true,
+          "S3": false,
+          "v2_edge_status": "winner and highest-activity candidate no longer on artificial window edges"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          }
+        }
+      },
+      "chosen_action": "BACKWARD",
+      "chosen_args": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "property": "activity",
+        "window": "w3"
+      },
+      "action_cost": 1.0,
+      "result": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "multiplier": 201.22344299325314,
+        "parity_cost_USD_t": 15.291704676600515,
+        "state_at_parity": {
+          "T_C": 425.0,
+          "P_bar": 190.0,
+          "Tsep_C": 30.0
+        },
+        "property": "activity",
+        "window": "w3",
+        "definition": "intrinsic-activity multiplier of candidate_04 at which its re-optimized cost equals the optimized cost of candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 5.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 5.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w3"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 14,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 5.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_REACHABILITY",
+          "args": {
+            "metal": "candidate_04",
+            "property": "activity",
+            "scope": "window",
+            "required_multiplier": 201.22344299325314
+          },
+          "cost_CU": 4.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BUILD_PROCESS_WINDOW tight parity-edge validation",
+          "args": {
+            "name": "w4",
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0
+              ],
+              "P_bar": [
+                180.0,
+                425.0
+              ],
+              "Tsep_C": [
+                25.0,
+                30.0
+              ]
+            }
+          },
+          "estimated_cost_CU": 1.564,
+          "decision_value": "minimum affordable widening to remove artificial lower-T parity edge while retaining current winner state, candidate_04 validated optimum neighborhood, and parity state"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 reference with multiplier 201.223",
+          "cost_CU": 2.0,
+          "decision_value": "required for S3 but V2 says widen/rebuild first because parity state is edge-limited"
+        },
+        {
+          "action": "BACKWARD in current w3",
+          "cost_CU": 1.0,
+          "decision_value": "already done; repeating without removing parity edge has no value"
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY window_edges",
+          "cost_CU": 28.0,
+          "decision_value": "unaffordable"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 5.0
+      },
+      "reason_for_choice": "BACKWARD quantified a 201.2x required activity multiplier, but the parity state is on an artificial temperature edge of w3. Under DISCOVER-V2-STOP, the minimum-spend path is to build a very tight corrective window that includes a lower temperature point, the current winner state, and the relevant high-activity/parity pressure and separation ranges, preserving just enough budget for BACKWARD and TEST_REACHABILITY.",
+      "expected_decision_value": 0.65,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2"
+          }
+        },
+        "confidence": 0.9,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 5.0,
+        "known_evidence": {
+          "S1": true,
+          "S2": true,
+          "backward_w3": {
+            "pair": [
+              "candidate_04",
+              "candidate_13"
+            ],
+            "required_activity_multiplier": 201.22344299325314,
+            "parity_cost_USD_t": 15.291704676600515,
+            "state_at_parity": {
+              "T_C": 425.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0
+            },
+            "edge_flags": {
+              "parity_state": {
+                "T": true,
+                "P": false,
+                "Tsep": false,
+                "any": true
+              }
+            }
+          },
+          "S3_missing": [
+            "TEST_REACHABILITY classification"
+          ],
+          "v2_issue": "parity state is on w3 lower-T edge at 425 C, not a full-domain bound"
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w3"
+          }
+        }
+      },
+      "chosen_action": "BUILD_PROCESS_WINDOW",
+      "chosen_args": {
+        "name": "w4",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0
+          ],
+          "P_bar": [
+            180.0,
+            425.0
+          ],
+          "Tsep_C": [
+            25.0,
+            30.0
+          ]
+        }
+      },
+      "action_cost": 2.0,
+      "result": {
+        "window": "w4",
+        "bounds": {
+          "T_C": [
+            400.0,
+            425.0
+          ],
+          "P_bar": [
+            180.0,
+            425.0
+          ],
+          "Tsep_C": [
+            25.0,
+            30.0
+          ]
+        },
+        "n_states": 200,
+        "P_range": [
+          180.0,
+          425.0
+        ],
+        "T_values": [
+          400.0,
+          425.0
+        ],
+        "Tsep_range": [
+          25.0,
+          30.0
+        ]
+      },
+      "state_after": {
+        "remaining_CU": 3.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 3.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w3"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 15,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 3.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 1,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 1,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "metal_recovery_fraction",
+            "value": 0.9,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "catalyst_life_y",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "electricity_USD_MWh",
+            "value": 20.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "TEST_LEVER",
+          "args": {
+            "lever": "max_catalyst_bed_m3",
+            "value": 30.0,
+            "metals": [
+              "candidate_04",
+              "candidate_13",
+              "candidate_05"
+            ],
+            "window": "full"
+          },
+          "cost_CU": 3.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "BACKWARD candidate_04 vs candidate_13 activity in w4",
+          "cost_CU": 1.0,
+          "decision_value": "updates/validates parity multiplier after removing the artificial temperature edge; needed before final reachability classification"
+        },
+        {
+          "action": "TEST_REACHABILITY candidate_04 reference with old multiplier",
+          "cost_CU": 2.0,
+          "decision_value": "would classify old edge-limited multiplier but could violate V2 if parity changes in w4"
+        },
+        {
+          "action": "OPTIMIZE_PROCESS candidate_13 in w4",
+          "cost_CU": 0.4,
+          "decision_value": "low; current winner state is exactly contained and remaining budget is needed for S3"
+        },
+        {
+          "action": "READ_COST_BREAKDOWN",
+          "cost_CU": 0.0,
+          "decision_value": "reporting detail only; cannot satisfy S3"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 3.0
+      },
+      "reason_for_choice": "The prior parity multiplier was obtained at an artificial temperature edge. This action is the minimum-cost validation step required before the final reachability test, and leaves exactly enough budget for TEST_REACHABILITY at reference scope.",
+      "expected_decision_value": 0.85,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2"
+          }
+        },
+        "confidence": 0.9,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 3.0,
+        "known_evidence": {
+          "S1": true,
+          "S2": true,
+          "previous_backward_w3": {
+            "required_activity_multiplier": 201.22344299325314,
+            "parity_state": {
+              "T_C": 425.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0
+            },
+            "edge_limited": true
+          },
+          "w4": {
+            "n_states": 200,
+            "bounds": {
+              "T_C": [
+                400.0,
+                425.0
+              ],
+              "P_bar": [
+                180.0,
+                425.0
+              ],
+              "Tsep_C": [
+                25.0,
+                30.0
+              ]
+            }
+          }
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": true,
+          "S3": false,
+          "needed_for_stop": [
+            "edge-corrected BACKWARD if changed by w4",
+            "TEST_REACHABILITY"
+          ]
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w3"
+          }
+        }
+      },
+      "chosen_action": "BACKWARD",
+      "chosen_args": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "property": "activity",
+        "window": "w4"
+      },
+      "action_cost": 1.0,
+      "result": {
+        "pair": [
+          "candidate_04",
+          "candidate_13"
+        ],
+        "multiplier": 201.22344298779592,
+        "parity_cost_USD_t": 15.29170467662121,
+        "state_at_parity": {
+          "T_C": 425.0,
+          "P_bar": 190.0,
+          "Tsep_C": 30.0
+        },
+        "property": "activity",
+        "window": "w4",
+        "definition": "intrinsic-activity multiplier of candidate_04 at which its re-optimized cost equals the optimized cost of candidate_13"
+      },
+      "state_after": {
+        "remaining_CU": 2.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 2,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "remaining_budget": 2.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability missing for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w4"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 16,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 2.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 2,
+        "n_reachability": 0,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 2,
+        "reachability": 0
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "BACKWARD",
+          "args": {
+            "pair": [
+              "candidate_05",
+              "candidate_13"
+            ],
+            "property": "activity",
+            "window": "full"
+          },
+          "cost_CU": 1.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": [
+        {
+          "action": "TEST_REACHABILITY candidate_04 reference with required multiplier 201.22344298779592",
+          "cost_CU": 2.0,
+          "decision_value": "required final S3 action; determines reachable/marginal/unreachable classification for the highest-activity candidate's activity improvement to cost parity"
+        },
+        {
+          "action": "BUILD_PROCESS_WINDOW additional parity validation",
+          "estimated_cost_CU": ">=1.6, would leave insufficient budget for required reachability action",
+          "decision_value": "could further probe parity edge but cannot complete S3 afterward"
+        },
+        {
+          "action": "STOP",
+          "cost_CU": 0.0,
+          "decision_value": "not allowed unless budget exhausted or S1-S3 complete"
+        }
+      ],
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": false,
+        "S3_note": "backward done, reachability missing for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": false,
+        "may_stop": false,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 2.0
+      },
+      "reason_for_choice": "The required parity multiplier is stable after the corrective window. With only 2 CU left, the only action that can satisfy S3 and complete the industrial decision is the reachability test for candidate_04 at the required 201.2x intrinsic activity improvement.",
+      "expected_decision_value": 0.95,
+      "llm_state_before": {
+        "current_lowest_cost_candidate": {
+          "metal": "candidate_13",
+          "cost_USD_t": 15.291704676621144,
+          "state": {
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "bed_m3": 17.059161423818093,
+            "window": "w2"
+          }
+        },
+        "confidence": 0.9,
+        "unresolved_candidates": [],
+        "remaining_budget_CU": 2.0,
+        "known_evidence": {
+          "S1": true,
+          "S2": true,
+          "edge_corrected_backward_w4": {
+            "required_activity_multiplier": 201.22344298779592,
+            "parity_cost_USD_t": 15.29170467662121,
+            "state_at_parity": {
+              "T_C": 425.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0
+            },
+            "comparison_to_w3": "unchanged to numerical precision"
+          },
+          "highest_activity_candidate": "candidate_04",
+          "S3_missing": [
+            "TEST_REACHABILITY classification"
+          ],
+          "v2_note": "parity state remains on a T edge in w4, but the parity multiplier is unchanged after adding the neighboring lower-temperature point and remaining budget is exactly the cost of required reachability classification"
+        },
+        "stopping_status": {
+          "S1": true,
+          "S2": true,
+          "S3": false
+        }
+      },
+      "gate_before": {
+        "armed": false,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w4"
+          }
+        }
+      },
+      "chosen_action": "TEST_REACHABILITY",
+      "chosen_args": {
+        "metal": "candidate_04",
+        "property": "activity",
+        "scope": "reference",
+        "required_multiplier": 201.22344298779592
+      },
+      "action_cost": 2.0,
+      "result": {
+        "metal": "candidate_04",
+        "property": "activity",
+        "scope": "reference",
+        "max_gain_on_descriptor_manifold_at_reference": 1.0899012267527077,
+        "descriptor_at_max_eV": -1.18,
+        "definition": "largest intrinsic-activity multiplier obtainable by moving the single descriptor along the frozen scaling manifold",
+        "required_multiplier": 201.22344298779592,
+        "classification": "unreachable"
+      },
+      "state_after": {
+        "remaining_CU": 0.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 2,
+        "n_reachability": 1,
+        "n_levers": 0
+      },
+      "remaining_budget": 0.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability classified for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "continue",
+      "gate": null,
+      "v2_status_after": {
+        "arm": "anytime",
+        "S123": true,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w4"
+          }
+        },
+        "S3prime_validated_stop": false
+      }
+    },
+    {
+      "step": 17,
+      "policy": "E_v2stop_anytime",
+      "state_before": {
+        "remaining_CU": 0.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 2,
+        "n_reachability": 1,
+        "n_levers": 0
+      },
+      "known_evidence": {
+        "activity": [
+          "candidate_01",
+          "candidate_02",
+          "candidate_03",
+          "candidate_04",
+          "candidate_05",
+          "candidate_06",
+          "candidate_07",
+          "candidate_08",
+          "candidate_09",
+          "candidate_10",
+          "candidate_11",
+          "candidate_12",
+          "candidate_13",
+          "candidate_14",
+          "candidate_15"
+        ],
+        "optimized": [
+          "candidate_04",
+          "candidate_05",
+          "candidate_13"
+        ],
+        "mc": 0,
+        "backward": 2,
+        "reachability": 1
+      },
+      "candidate_actions": [
+        {
+          "action": "READ_PROPERTY_UNCERTAINTY",
+          "args": {
+            "metals": [
+              "candidate_01",
+              "candidate_02",
+              "candidate_03",
+              "candidate_04",
+              "candidate_05",
+              "candidate_06",
+              "candidate_07",
+              "candidate_08",
+              "candidate_09",
+              "candidate_10",
+              "candidate_11",
+              "candidate_12",
+              "candidate_13",
+              "candidate_14",
+              "candidate_15"
+            ]
+          },
+          "cost_CU": 0.0
+        },
+        {
+          "action": "CHECK_MODEL_VALIDITY",
+          "args": {
+            "scope": "window_edges"
+          },
+          "cost_CU": 0.0
+        }
+      ],
+      "llm_candidate_actions": null,
+      "stopping_status_before": {
+        "S1_winner_identified": true,
+        "S2_no_unresolved_candidate": true,
+        "unresolved_candidates": [],
+        "S3_reachability_classified_if_needed": true,
+        "S3_note": "backward done, reachability classified for candidate_04 vs candidate_13",
+        "S4_edv_below_threshold_or_budget_exhausted": true,
+        "may_stop": true,
+        "current_winner": "candidate_13",
+        "atomic_best": "candidate_04",
+        "remaining_CU": 0.0
+      },
+      "reason_for_choice": null,
+      "expected_decision_value": null,
+      "llm_state_before": null,
+      "gate_before": {
+        "armed": true,
+        "backward_stale": false,
+        "reachability_stale": false,
+        "edge_flags": {
+          "candidate_04": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w3"
+          },
+          "candidate_13": {
+            "T": false,
+            "P": false,
+            "Tsep": false,
+            "any": false,
+            "window": "w2"
+          },
+          "parity_state": {
+            "T": true,
+            "P": false,
+            "Tsep": false,
+            "any": true,
+            "window": "w4"
+          }
+        }
+      },
+      "chosen_action": "STOP",
+      "chosen_args": {
+        "final_answer": {
+          "industrial_candidate": "candidate_13",
+          "optimized_state": {
+            "cost_USD_per_t_NH3": 15.291704676621144,
+            "T_C": 425.0,
+            "P_bar": 180.0,
+            "Tsep_C": 30.0,
+            "catalyst_bed_m3": 17.059161423818093,
+            "window": "w2",
+            "feasible": true
+          },
+          "evidence_supporting_decision": {
+            "reference_activity_key_values": {
+              "candidate_04_log10_TOF": -3.4511885358841505,
+              "candidate_05_log10_TOF": -3.495320399313441,
+              "candidate_13_log10_TOF": -5.3099700922126845
+            },
+            "optimized_feasible_ranking": [
+              {
+                "rank": 1,
+                "metal": "candidate_13",
+                "cost_USD_per_t_NH3": 15.291704676621144,
+                "T_C": 425.0,
+                "P_bar": 180.0,
+                "Tsep_C": 30.0,
+                "bed_m3": 17.059161423818093,
+                "edge_flag_any": false
+              },
+              {
+                "rank": 2,
+                "metal": "candidate_04",
+                "cost_USD_per_t_NH3": 22.03059478781101,
+                "T_C": 450.0,
+                "P_bar": 425.0,
+                "Tsep_C": 25.0,
+                "bed_m3": 0.0660321094260842,
+                "edge_flag_any": false
+              },
+              {
+                "rank": 3,
+                "metal": "candidate_05",
+                "cost_USD_per_t_NH3": 25.988839544724296,
+                "T_C": 450.0,
+                "P_bar": 220.0,
+                "Tsep_C": -25.0,
+                "bed_m3": 0.03482512950287368
+              }
+            ],
+            "screening_resolution": "S2 satisfied: candidate_04, candidate_05 and candidate_13 were optimized; all other candidates were screened by the declared lower-activity-and-higher-price rule.",
+            "highest_atomic_activity_candidate": "candidate_04",
+            "parity_and_reachability": {
+              "candidate_04_required_intrinsic_activity_multiplier_for_cost_parity_with_candidate_13": 201.22344298779592,
+              "parity_cost_USD_per_t_NH3": 15.29170467662121,
+              "parity_state": {
+                "T_C": 425.0,
+                "P_bar": 190.0,
+                "Tsep_C": 30.0
+              },
+              "max_gain_on_frozen_descriptor_manifold_at_reference": 1.0899012267527077,
+              "descriptor_at_max_eV": -1.18,
+              "classification": "unreachable"
+            }
+          },
+          "stopping_rule_status": {
+            "S1_feasible_winner_identified": true,
+            "S2_no_unresolved_candidate": true,
+            "S3_parity_and_reachability_done": true,
+            "may_stop": true
+          }
+        },
+        "why_stop": "Budget is exhausted and S1-S3 are satisfied. Further calculations are not affordable and are not required by the stopping rule.",
+        "unresolved_decision_risk": {
+          "deterministic_screening_risk": "Low for the optimized/Pareto set; exact dominance checks were not run.",
+          "window_edge_risk": "Moderate-low: winner and highest-activity candidate were validated off artificial edges; parity multiplier was stable despite parity state edge flag and reachability gap is very large.",
+          "uncertainty_risk": "Descriptor uncertainty was not sampled; deterministic decision only."
+        }
+      },
+      "action_cost": 0,
+      "result": null,
+      "state_after": {
+        "remaining_CU": 0.0,
+        "n_activity": 15,
+        "n_optimized": 3,
+        "feasible_costs": {
+          "candidate_04": 22.03059478781101,
+          "candidate_13": 15.291704676621144,
+          "candidate_05": 25.988839544724296
+        },
+        "current_lowest_cost_candidate": "candidate_13",
+        "n_mc": 0,
+        "n_backward": 2,
+        "n_reachability": 1,
+        "n_levers": 0
+      },
+      "remaining_budget": 0.0,
+      "current_winner": "candidate_13",
+      "current_confidence": null,
+      "unresolved_questions": {
+        "unresolved_candidates": [],
+        "S3": "backward done, reachability classified for candidate_04 vs candidate_13"
+      },
+      "stop_or_continue": "stop"
+    }
+  ],
+  "llm_meta": {
+    "response_models": [
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23",
+      "gpt-5.5-2026-04-23"
+    ],
+    "infra_retries": 0,
+    "malformed_turns": 1,
+    "gate_rejections": 0,
+    "tokens": {
+      "prompt": 155578,
+      "completion": 14002
+    },
+    "sdk": "3.7.0"
+  },
+  "final": {
+    "why_stop": "agent STOP: Budget is exhausted and S1-S3 are satisfied. Further calculations are not affordable and are not required by the stopping rule.",
+    "remaining_budget": 0.0,
+    "spent_CU": 75.0,
+    "stopping_status": {
+      "S1_winner_identified": true,
+      "S2_no_unresolved_candidate": true,
+      "unresolved_candidates": [],
+      "S3_reachability_classified_if_needed": true,
+      "S3_note": "backward done, reachability classified for candidate_04 vs candidate_13",
+      "S4_edv_below_threshold_or_budget_exhausted": true,
+      "may_stop": true,
+      "current_winner": "candidate_13",
+      "atomic_best": "candidate_04",
+      "remaining_CU": 0.0
+    },
+    "v2_status": {
+      "arm": "anytime",
+      "S123": true,
+      "edge_flags": {
+        "candidate_04": {
+          "T": false,
+          "P": false,
+          "Tsep": false,
+          "any": false,
+          "window": "w3"
+        },
+        "candidate_13": {
+          "T": false,
+          "P": false,
+          "Tsep": false,
+          "any": false,
+          "window": "w2"
+        },
+        "parity_state": {
+          "T": true,
+          "P": false,
+          "Tsep": false,
+          "any": true,
+          "window": "w4"
+        }
+      },
+      "S3prime_validated_stop": false
+    },
+    "gate": {
+      "armed_at_CU": 75.0,
+      "armed_at_step": 16,
+      "rejections": 0
+    },
+    "unresolved_decision_risk": {
+      "unresolved_candidates": [],
+      "S3": "backward done, reachability classified for candidate_04 vs candidate_13",
+      "S1": true,
+      "S2": true,
+      "S3_ok": true
+    },
+    "answer": {
+      "industrial_winner": "candidate_13",
+      "feasible_ranking_of_optimized_candidates": [
+        "candidate_13",
+        "candidate_04",
+        "candidate_05"
+      ],
+      "optimized_costs_USD_t": {
+        "candidate_04": 22.03059478781101,
+        "candidate_13": 15.291704676621144,
+        "candidate_05": 25.988839544724296
+      },
+      "infeasible_candidates": [],
+      "atomic_best": "candidate_04",
+      "atomic_best_differs_from_winner": true,
+      "parity_multiplier_atomic_best_vs_winner": 201.22344298779592,
+      "reachability_classification": "unreachable",
+      "max_scaling_gain_used": 1.0899012267527077
+    },
+    "answer_v1_first_record": {
+      "industrial_winner": "candidate_13",
+      "feasible_ranking_of_optimized_candidates": [
+        "candidate_13",
+        "candidate_04",
+        "candidate_05"
+      ],
+      "optimized_costs_USD_t": {
+        "candidate_04": 22.03059478781101,
+        "candidate_13": 15.291704676621144,
+        "candidate_05": 25.988839544724296
+      },
+      "infeasible_candidates": [],
+      "atomic_best": "candidate_04",
+      "atomic_best_differs_from_winner": true,
+      "parity_multiplier_atomic_best_vs_winner": 201.22344299325314,
+      "reachability_classification": "unreachable",
+      "max_scaling_gain_used": 1.0899012267527077
+    },
+    "llm_final_answer": {
+      "final_answer": {
+        "industrial_candidate": "candidate_13",
+        "optimized_state": {
+          "cost_USD_per_t_NH3": 15.291704676621144,
+          "T_C": 425.0,
+          "P_bar": 180.0,
+          "Tsep_C": 30.0,
+          "catalyst_bed_m3": 17.059161423818093,
+          "window": "w2",
+          "feasible": true
+        },
+        "evidence_supporting_decision": {
+          "reference_activity_key_values": {
+            "candidate_04_log10_TOF": -3.4511885358841505,
+            "candidate_05_log10_TOF": -3.495320399313441,
+            "candidate_13_log10_TOF": -5.3099700922126845
+          },
+          "optimized_feasible_ranking": [
+            {
+              "rank": 1,
+              "metal": "candidate_13",
+              "cost_USD_per_t_NH3": 15.291704676621144,
+              "T_C": 425.0,
+              "P_bar": 180.0,
+              "Tsep_C": 30.0,
+              "bed_m3": 17.059161423818093,
+              "edge_flag_any": false
+            },
+            {
+              "rank": 2,
+              "metal": "candidate_04",
+              "cost_USD_per_t_NH3": 22.03059478781101,
+              "T_C": 450.0,
+              "P_bar": 425.0,
+              "Tsep_C": 25.0,
+              "bed_m3": 0.0660321094260842,
+              "edge_flag_any": false
+            },
+            {
+              "rank": 3,
+              "metal": "candidate_05",
+              "cost_USD_per_t_NH3": 25.988839544724296,
+              "T_C": 450.0,
+              "P_bar": 220.0,
+              "Tsep_C": -25.0,
+              "bed_m3": 0.03482512950287368
+            }
+          ],
+          "screening_resolution": "S2 satisfied: candidate_04, candidate_05 and candidate_13 were optimized; all other candidates were screened by the declared lower-activity-and-higher-price rule.",
+          "highest_atomic_activity_candidate": "candidate_04",
+          "parity_and_reachability": {
+            "candidate_04_required_intrinsic_activity_multiplier_for_cost_parity_with_candidate_13": 201.22344298779592,
+            "parity_cost_USD_per_t_NH3": 15.29170467662121,
+            "parity_state": {
+              "T_C": 425.0,
+              "P_bar": 190.0,
+              "Tsep_C": 30.0
+            },
+            "max_gain_on_frozen_descriptor_manifold_at_reference": 1.0899012267527077,
+            "descriptor_at_max_eV": -1.18,
+            "classification": "unreachable"
+          }
+        },
+        "stopping_rule_status": {
+          "S1_feasible_winner_identified": true,
+          "S2_no_unresolved_candidate": true,
+          "S3_parity_and_reachability_done": true,
+          "may_stop": true
+        }
+      },
+      "why_stop": "Budget is exhausted and S1-S3 are satisfied. Further calculations are not affordable and are not required by the stopping rule.",
+      "unresolved_decision_risk": {
+        "deterministic_screening_risk": "Low for the optimized/Pareto set; exact dominance checks were not run.",
+        "window_edge_risk": "Moderate-low: winner and highest-activity candidate were validated off artificial edges; parity multiplier was stable despite parity state edge flag and reachability gap is very large.",
+        "uncertainty_risk": "Descriptor uncertainty was not sampled; deterministic decision only."
+      }
+    },
+    "ledger": [
+      {
+        "step": 1,
+        "action": "INSPECT_CANDIDATES",
+        "args": {},
+        "cost_CU": 0.0,
+        "wall_s": 0.0,
+        "layerA_state_evals": null,
+        "remaining_CU": 75.0
+      },
+      {
+        "step": 2,
+        "action": "COMPUTE_ACTIVITY",
+        "args": {
+          "metals": [
+            "candidate_01",
+            "candidate_02",
+            "candidate_03",
+            "candidate_04",
+            "candidate_05",
+            "candidate_06",
+            "candidate_07",
+            "candidate_08",
+            "candidate_09",
+            "candidate_10",
+            "candidate_11",
+            "candidate_12",
+            "candidate_13",
+            "candidate_14",
+            "candidate_15"
+          ]
+        },
+        "cost_CU": 15.0,
+        "wall_s": 0.0007,
+        "layerA_state_evals": null,
+        "remaining_CU": 60.0
+      },
+      {
+        "step": 3,
+        "action": "BUILD_PROCESS_WINDOW",
+        "args": {
+          "bounds": {
+            "T_C": [
+              400.0,
+              425.0,
+              450.0
+            ],
+            "P_bar": [
+              100.0,
+              300.0
+            ],
+            "Tsep_C": [
+              -40.0,
+              0.0
+            ]
+          },
+          "name": "w1"
+        },
+        "cost_CU": 9.0,
+        "wall_s": 0.0004,
+        "layerA_state_evals": null,
+        "remaining_CU": 51.0
+      },
+      {
+        "step": 4,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_04",
+          "window": "w1"
+        },
+        "cost_CU": 3.0,
+        "wall_s": 0.0806,
+        "layerA_state_evals": null,
+        "remaining_CU": 48.0
+      },
+      {
+        "step": 5,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_13",
+          "window": "w1"
+        },
+        "cost_CU": 3.0,
+        "wall_s": 0.1001,
+        "layerA_state_evals": null,
+        "remaining_CU": 45.0
+      },
+      {
+        "step": 6,
+        "action": "BUILD_PROCESS_WINDOW",
+        "args": {
+          "bounds": {
+            "T_C": [
+              400.0,
+              425.0,
+              450.0
+            ],
+            "P_bar": [
+              100.0,
+              300.0
+            ],
+            "Tsep_C": [
+              -40.0,
+              30.0
+            ]
+          },
+          "name": "w2"
+        },
+        "cost_CU": 15.0,
+        "wall_s": 0.0005,
+        "layerA_state_evals": null,
+        "remaining_CU": 30.0
+      },
+      {
+        "step": 7,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_13",
+          "window": "w2"
+        },
+        "cost_CU": 2.0,
+        "wall_s": 0.102,
+        "layerA_state_evals": null,
+        "remaining_CU": 28.0
+      },
+      {
+        "step": 8,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_04",
+          "window": "w2"
+        },
+        "cost_CU": 2.0,
+        "wall_s": 0.0595,
+        "layerA_state_evals": null,
+        "remaining_CU": 26.0
+      },
+      {
+        "step": 9,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_05",
+          "window": "w2"
+        },
+        "cost_CU": 4.0,
+        "wall_s": 0.1696,
+        "layerA_state_evals": null,
+        "remaining_CU": 22.0
+      },
+      {
+        "step": 10,
+        "action": "BUILD_PROCESS_WINDOW",
+        "args": {
+          "bounds": {
+            "T_C": [
+              425.0,
+              450.0
+            ],
+            "P_bar": [
+              180.0,
+              1000.0
+            ],
+            "Tsep_C": [
+              10.0,
+              30.0
+            ]
+          },
+          "name": "w3"
+        },
+        "cost_CU": 13.0,
+        "wall_s": 0.0005,
+        "layerA_state_evals": null,
+        "remaining_CU": 9.0
+      },
+      {
+        "step": 11,
+        "action": "OPTIMIZE_PROCESS",
+        "args": {
+          "metal": "candidate_04",
+          "window": "w3"
+        },
+        "cost_CU": 3.0,
+        "wall_s": 0.0995,
+        "layerA_state_evals": null,
+        "remaining_CU": 6.0
+      },
+      {
+        "step": 12,
+        "action": "BACKWARD",
+        "args": {
+          "pair": [
+            "candidate_04",
+            "candidate_13"
+          ],
+          "property": "activity",
+          "window": "w3"
+        },
+        "cost_CU": 1.0,
+        "wall_s": 0.0397,
+        "layerA_state_evals": null,
+        "remaining_CU": 5.0
+      },
+      {
+        "step": 13,
+        "action": "BUILD_PROCESS_WINDOW",
+        "args": {
+          "bounds": {
+            "T_C": [
+              400.0,
+              425.0
+            ],
+            "P_bar": [
+              180.0,
+              425.0
+            ],
+            "Tsep_C": [
+              25.0,
+              30.0
+            ]
+          },
+          "name": "w4"
+        },
+        "cost_CU": 2.0,
+        "wall_s": 0.0002,
+        "layerA_state_evals": null,
+        "remaining_CU": 3.0
+      },
+      {
+        "step": 14,
+        "action": "BACKWARD",
+        "args": {
+          "pair": [
+            "candidate_04",
+            "candidate_13"
+          ],
+          "property": "activity",
+          "window": "w4"
+        },
+        "cost_CU": 1.0,
+        "wall_s": 0.0436,
+        "layerA_state_evals": null,
+        "remaining_CU": 2.0
+      },
+      {
+        "step": 15,
+        "action": "TEST_REACHABILITY",
+        "args": {
+          "metal": "candidate_04",
+          "property": "activity",
+          "scope": "reference",
+          "required_multiplier": 201.22344298779592
+        },
+        "cost_CU": 2.0,
+        "wall_s": 0.0469,
+        "layerA_state_evals": null,
+        "remaining_CU": 0.0
+      }
+    ]
+  },
+  "metadata": {
+    "protocol": "DISCOVER-V2-STOP",
+    "arm": "anytime",
+    "model_requested": "gpt-5.5-2026-04-23",
+    "response_model": "gpt-5.5-2026-04-23",
+    "sampling": {},
+    "reasoning": "API default (not set)",
+    "temperature": "API default (not set)",
+    "tool_choice": "auto",
+    "tools": [
+      "INSPECT_CANDIDATES",
+      "COMPUTE_ACTIVITY",
+      "READ_PROPERTY_UNCERTAINTY",
+      "BUILD_PROCESS_WINDOW",
+      "OPTIMIZE_PROCESS",
+      "READ_COST_BREAKDOWN",
+      "RUN_MC",
+      "TEST_LEVER",
+      "BACKWARD",
+      "TEST_REACHABILITY",
+      "CHECK_MODEL_VALIDITY",
+      "STOP"
+    ],
+    "base_prompt_sha256": "5a0b1e297fb9ee84e6f1917d8c68bcfbbfb6670ea8dd5b0129cdc89beb6580ed",
+    "addenda_sha256": "caca957032d18dc92e65ce82270241e974dd7a4bd0132f44e0d3c01993686108",
+    "prompt_sha256": "aa12c4e63fc44ad59632c300842cdddc95cdd10ea37a0dbe6ec3cedeb9b64f14",
+    "task_file": "DISCOVER_TASK_V1_ANON.json",
+    "frozen_sha256": "be2ab4f1f7e1d324a0ab35bd4a70817ae924a5ca8944781880e55d3a3f98a235",
+    "driver_sha256": "d30e980653e1bfaff280ed1843dfa1e22fdb0e3b38b9d952dd16880c876f84f3",
+    "frozen_driver_sha256": "d4451c424dbfac5f7a6176038864f35cc6326ac04ae5efcb91f14574f8aeee93",
+    "final_answer_rule": "last matching BACKWARD / last classified TEST_REACHABILITY for (atomic_best, winner); V1 first-record answer stored as answer_v1_first_record",
+    "git": "harness root is not a git repository; provenance = DISCOVER_FROZEN_V1.json hashes + PREREG_V2_STOP.json",
+    "finished_utc": "2026-09-26T09:15:02.655609+00:00"
+  }
+}
