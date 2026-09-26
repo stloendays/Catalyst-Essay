@@ -1,8 +1,8 @@
 # Extended Data — captions and Table 1
 
 Assets: `ED1_mini_interface_intervention.{svg,pdf,png}`, `ED2_failure_mechanism_by_tier.{svg,pdf,png}`,
-`ED3_non_binding_per_run_spread.{svg,pdf,png}`. Manifest: `ED_RENDER_SHA256.txt`.
-Renderer: `render_ED_agent_panels.py`. Metric definitions: `docs/AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`.
+`ED3_non_binding_per_run_spread.{svg,pdf,png}`, `ED4_v2stop_stopping_arms.{svg,pdf,png}`. Manifest: `ED_RENDER_SHA256.txt`.
+Renderers: `render_ED_agent_panels.py` (ED1–ED3), `render_ED4_v2stop.py` (ED4). Metric definitions: `docs/AGENT_METRIC_DEFINITIONS_SOURCE_OF_TRUTH_2026-09-13.md`.
 
 All counts are runs out of *n* in that cell. Every plotted value is read from a committed CSV; none is hand-entered.
 
@@ -44,6 +44,30 @@ reaching the 60-turn cap. Six runs stop at 218 CU with 14–17 steps, matching t
 cells; the remainder continue to 28–30 steps and 566 CU or beyond, with the most extreme single run at 3,021 CU. Every
 run in this cell recovers the canonical Ru→Fe parity multiplier and the `unreachable` verdict, so the spread is in cost
 alone. The dashed line is policy D's 206 CU completion threshold.
+
+## Extended Data Fig. 4
+
+**Extended Data Fig. 4 | Enforcing or gating the S1–S3 stopping rule removes post-decision compute without changing
+the decision; prompt-level scoping removes most of the allowance-driven spend.** DISCOVER-V2-STOP inherits the frozen
+V1 task, actions, cost model, environment, scorer and ledger and changes only the stopping mechanism; strong tier,
+anonymous task, *n* = 20 per cell, 180 runs. S-hard: the environment ends the episode when S1 ∧ S2 ∧ S3 first holds.
+S-gate: after the rule holds, a paid action executes only if it can still change the winner, decision pair or
+reachability verdict (validity checks; re-optimisation of the winner or atomic-best candidate while its optimum or the
+parity state sits on a window edge; the backward and reachability steps that follow such a re-optimisation); everything
+else is rejected at 0 CU. S-anytime: prompt addendum only, asking for minimum-spend scoping and widening only on an edge
+flag.
+**a**, Final spend per run (log scale) for the frozen protocol and the three arms at the 75-, 225- and 5,000-CU
+allowances, cell medians as bars and complete-decision counts in the margin. Under the non-binding 5,000-CU allowance
+both S-hard and S-gate complete 20/20 with no compute after the rule (medians 566 CU and a 218/566 bimodal split against
+714 CU under the frozen protocol; the frozen cell's 8,207 CU of post-rule Monte Carlo has no counterpart). At 75 CU the
+S-hard median is unchanged (71 versus 70 CU) because the policy defers the reachability test to the end of a binding
+allowance. S-anytime lowers the 225-CU median from 218 to 158 CU and the non-binding median to 216 CU, completing 20/20
+in every cell, but does not reach the 75-CU value (73.5 CU).
+**b**, Runs using a canonical narrow process window. S-anytime raises narrow-window use at 225 CU from 0/20 to 16/20
+and at 5,000 CU from 0/20 to 4/20. Runs paying for any action after the rule first held: S-hard 0/20 in every cell;
+S-gate 5/20 at 75 CU (all edge-flag re-optimisations) and 0/20 elsewhere; S-anytime 8/20, 2/20 and 0/20. Sources:
+`data/discover_v2_stop/v2_stop_runs_2026-09-26.csv`, `data/discover_boundary_c1_overrun_runs.csv`,
+`data/discover_boundary_c1_error_taxonomy_runs.csv`; protocol and gates in `docs/DISCOVER_V2_STOP_RESULTS_2026-09-26.md`.
 
 ---
 

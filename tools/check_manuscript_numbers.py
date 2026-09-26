@@ -237,6 +237,31 @@ if REPLAY.exists():
     claim("parity multiplier 9/20 at 75", "recovered in %d/%d runs at 75 CU and %d/%d at 225 CU"
           % (cb["75"]["canonical_backward"], cb["75"]["n"], cb["225"]["canonical_backward"], cb["225"]["n"]))
 
+# ---- stopping test and DISCOVER-V2-STOP (2026-09-26) --------------------------------------------------------------
+stop_runs = [r for r in rows("data/discover_stopping_test_runs_2026-09-26.csv")
+             if r["policy"] == "E_llm_agent" and r["variant"] == "anonymous" and r["tier"] == "strong"]
+reached = [r for r in stop_runs if r["S123_reached"] == "1"]
+paid = [r for r in reached if float(r["post_S123_CU"]) > 0]
+share = sum(float(r["post_S123_CU"]) for r in reached) / sum(float(r["final_CU"]) for r in stop_runs)
+nb = [r for r in stop_runs if r["budget_CU"] == "5000.0"]
+share_nb = sum(float(r["post_S123_CU"]) for r in nb if r["S123_reached"] == "1") / sum(float(r["final_CU"]) for r in nb)
+claim("stopping rule reached", "satisfied in %d/%d runs" % (len(reached), len(stop_runs)))
+claim("correct at rule", "already correct at that moment in %d of them" % sum(int(r["correct_at_S123"]) for r in reached))
+claim("runs paying after rule", "while %d runs keep paying afterwards" % len(paid))
+claim("post-rule share", "(%s%% of strong-tier spend; %s%% under the non-binding allowance)" % (f(100 * share, 1), f(100 * share_nb, 1)))
+v2 = {(r["arm"], r["budget_CU"]): r for r in rows("data/discover_v2_stop/v2_stop_cells_2026-09-26.csv")}
+h5, g5, h75 = v2[("hard", "5000.0")], v2[("gate", "5000.0")], v2[("hard", "75.0")]
+fact("V2-STOP hard/gate 5000 complete 20/20 with 0 post-rule CU", h5["full_correct"] == "20" and g5["full_correct"] == "20"
+     and float(h5["median_post_arm_CU"]) == 0 and float(g5["median_post_arm_CU"]) == 0)
+claim("V2-STOP non-binding spend", "(median final spend %d CU against %d CU)" % (float(h5["median_spent_CU"]), float(h5["C1_median_spent_CU"])))
+claim("V2-STOP gate false stops", "no false stop in %d runs" % sum(int(v2[("gate", b)]["n"]) for b in ("75.0", "225.0", "5000.0")))
+fact("V2-STOP gate false positives are zero", sum(int(v2[("gate", b)]["false_positive_S3prime"]) for b in ("75.0", "225.0", "5000.0")) == 0)
+claim("V2-STOP hard 75 spend", "(median %d CU against %d CU)" % (float(h75["median_spent_CU"]), float(h75["C1_median_spent_CU"])))
+a225 = v2[("anytime", "225.0")]
+claim("V2-STOP anytime narrow windows", "raises narrow-window use at 225 CU from %d/20 to %d/20" % (int(cell("strong", 225)["narrow_window_canonical"]), int(a225["narrow_window_runs"])))
+claim("V2-STOP anytime spend", "lowers median spend from %d to %d CU" % (float(a225["C1_median_spent_CU"]), float(a225["median_spent_CU"])))
+claim("V2-STOP run count", "on the strong tier (%d runs)" % sum(int(r["n"]) for r in v2.values()))
+
 # ---- report ----------------------------------------------------------------------------------------------
 bad = [c for c in checks if not c[2]]
 for label, detail, ok in checks:
