@@ -95,8 +95,8 @@ a.text(1.22, ru_cost[i1] + 0.25, "current Ru\n%.2f" % RU_COST,
        fontsize=5.8, color=DARK_B, va="bottom", ha="left")
 a.text(A_STAR * 1.08, FE_COST + 0.35, r"$\alpha^*$ = %.1f×" % A_STAR,
        fontsize=6.2, color=RED, fontweight="bold", va="bottom", ha="left")
-a.text(0.03, 0.95, "strict-scaling\nheadroom", transform=a.transAxes,
-       fontsize=5.5, color=DARK_G, fontweight="bold", va="top")
+a.text(1.05, 15.72, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
+       fontsize=5.3, color=DARK_G, fontweight="bold", va="bottom", ha="left")
 a.text(0.98, 0.94, "economic uncertainty\np05–p95: %.1f×–%.0f×" % (P05, P95),
        transform=a.transAxes, fontsize=5.5, color=RED, ha="right", va="top")
 a.text(0.98, 0.08, "Fe %.3f USD t$^{-1}$" % FE_COST,
