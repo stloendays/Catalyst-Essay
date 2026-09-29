@@ -23,7 +23,7 @@ Canonical values:
 
 These dimensionless regrets are comparable as *decision consequences* but do not make absolute NH3 and MeOH costs comparable.
 
-A complementary pairwise transfer index is defined as `chi_AB = ln(J_A/J_B) / ln(s_A/s_B)` for a higher-is-better upstream metric `s` and lower-is-better downstream objective `J`. For `s_A > s_B`, **chi < 0** preserves the upstream direction and **chi > 0** identifies a pairwise inversion. Canonical values are **+0.0853** for Ru vs Fe in NH3, **+0.0257** for the MeOH STY winner vs NPC winner, and approximately **-1.00** for 2 nm vs 6 nm Au/TiO2. The magnitude is not promoted as universal across reactions; the sign is the transferable diagnostic.
+A local first-order criterion separates direct catalyst benefit from downstream coupling: `delta ln J ≈ -epsilon_s delta ln s + sum_k epsilon_k delta ln z_k`. For an upstream-better candidate (`delta ln s > 0`), ranking inversion occurs when the aggregate downstream penalty exceeds the direct-performance benefit. A complementary finite-difference transfer index is `chi_AB = ln(J_A/J_B) / ln(s_A/s_B)`; **chi < 0** preserves the upstream direction and **chi > 0** identifies inversion. Canonical values are **+0.0853** for Ru vs Fe in NH3, **+0.0257** for the MeOH STY winner vs NPC winner, and approximately **-1.00** for 2 nm vs 6 nm Au/TiO2. The elasticities and magnitudes are reaction-specific; the competition between direct benefit and downstream penalty is the transferable criterion.
 
 ## 2. Correlated descriptor-error sensitivity
 
