@@ -221,7 +221,7 @@ for alpha in alpha_grid:
     )
 
 with (HERE / "activity_lifecycle_certified_boundary.csv").open("w", encoding="utf-8", newline="") as fh:
-    w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+    w = csv.DictWriter(fh, fieldnames=list(rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(rows)
 
@@ -246,7 +246,7 @@ for life_i, recovery_i in ((10.0, 0.99), (15.0, 0.99), (20.0, 0.99), (20.0, 0.98
     )
 
 with (HERE / "activity_lifecycle_target_keypoints.csv").open("w", encoding="utf-8", newline="") as fh:
-    w = csv.DictWriter(fh, fieldnames=list(target_rows[0]))
+    w = csv.DictWriter(fh, fieldnames=list(target_rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(target_rows)
 
