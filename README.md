@@ -132,6 +132,7 @@ Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LO
 
 1. [`docs/RESEARCH_FRAME.md`](docs/RESEARCH_FRAME.md)
 2. [`docs/RESULTS_AT_A_GLANCE.md`](docs/RESULTS_AT_A_GLANCE.md)
+- [`docs/SOURCE_OF_TRUTH_2026-09-29.md`](docs/SOURCE_OF_TRUTH_2026-09-29.md) — current publication-facing truth hierarchy; canonical vs derived vs pending claims.
 3. [`docs/FIGURE_MAP.md`](docs/FIGURE_MAP.md)
 4. [`docs/MANUSCRIPT_SKELETON.md`](docs/MANUSCRIPT_SKELETON.md)
 5. [`docs/AGENT_HARNESS.md`](docs/AGENT_HARNESS.md)
