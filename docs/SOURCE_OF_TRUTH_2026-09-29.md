@@ -130,11 +130,13 @@ Their current manuscript-facing values remain in `data/manuscript_headline_resul
 
 - backward direct-target reproducibility: GitHub Actions run **36516398387 — PASS**
 - strict-scaling lifecycle result gate: GitHub Actions run **36527291341 — PASS**
-- non-figure scientific upgrade audit: GitHub Actions run **36552119758 — PASS**
-- section-aware live manuscript truth audit after the non-figure validation update: GitHub Actions run **36552119846 — PASS**
+- exact NH3 5,000-draw cost-MC reconstruction: GitHub Actions run **36553584460 — PASS**
+- section-aware live manuscript truth audit with regret distribution: GitHub Actions run **36553822171 — PASS**
+- non-figure scientific upgrade audit: the active workflow reruns on every change under `analysis/nonfigure_upgrades_2026_09_29/`.
 
 Active automated gates:
 
+- `analysis/nonfigure_upgrades_2026_09_29/reproduce_nh3_cost_mc.py`
 - `analysis/nonfigure_upgrades_2026_09_29/validate_nonfigure_upgrades.py`
 - `tools/audit_live_manuscript_truth.py`
 
