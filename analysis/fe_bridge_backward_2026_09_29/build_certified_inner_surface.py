@@ -257,8 +257,8 @@ peff = P_RU * (1 - recovery) * (10.0 / life_y)
 key = subset_optimum(GALL, peff)
 pcrit_gall, boundary_gall = parity_price(GALL)
 record = {
-    "schema": "nh3-backward-certified-inner-region-v1",
-    "method": "minimize exact reconstructed cost over the 53 distinct process states already present in the fully reoptimized Ru price sweep; this is a certified inner approximation to the full 14,136-state feasible region",
+    "schema": "nh3-backward-direct-activity-lifecycle-target-v2",
+    "method": "minimize reconstructed FINAL-1.1 cost over the 53 distinct process states already present in the fully reoptimized Ru price sweep; this gives a conservative upper bound on the direct activity multiplier required for parity at each lifecycle condition",
     "no_new_DFT": True,
     "frozen_sources_modified": False,
     "Fe_cost_USD_t": q(FE_COST, 9),
@@ -283,7 +283,7 @@ record = {
         "certified_cost_feasible_given_direct_activity_multiplier": key["cost"] <= FE_COST,
         "strict_scaling_reachability_established": False,
     },
-    "boundary_state_at_max_headroom": {
+    "boundary_state_at_reference_multiplier": {
         "cost": q(boundary_gall["cost"], 9),
         "V_m3": q(boundary_gall["V_m3"], 9),
         "T_C": int(round(boundary_gall["T_C"])),
