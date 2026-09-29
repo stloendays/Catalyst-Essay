@@ -2,7 +2,7 @@
 
 Reader-facing names follow [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md).
 
-Snapshot: **2026-09-20**
+Snapshot: **2026-09-29**
 
 This page contains the current audited baseline plus the completed **2026-09-20 supervisor-requested targeted analyses**. Execution record: [`../analysis/supervisor_2026_09_20/README.md`](../analysis/supervisor_2026_09_20/README.md). Superseded values and intermediate development results are documented separately in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
 
@@ -47,6 +47,8 @@ Under the preregistered 5,000-draw **cost-side** Monte Carlo, **P(C_Fe < C_Ru) =
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**
 
 The activity-only path therefore does not close the Ru-Fe economic gap within the frozen scaling-consistent design space.
+
+A conservative joint-property audit changes the combined-design conclusion without changing the activity-only result. Reusing only the 53 process states already present in the fully reoptimized Ru price sweep gives a certified inner feasible region. At the maximum scaling-consistent activity gain (**2.5246x**), the effective Ru parity-price boundary is at least **566.96 USD/kg**. Thus, with a **20-year** catalyst life, parity requires no more than **97.894%** Ru recovery in this certified subset. The explicit point **2.5246x activity + 20 y life + 98% recovery** gives **15.257 USD/t NH3** at **425 C / 185 bar / 30 C**, below Fe at 15.292 USD/t. The refined backward-design statement is: **activity alone is unreachable, but a combined activity–lifetime–recovery region intersects parity near the upper edge of the tested property envelope.**
 
 ## Ru-price counterfactual and canonical cost gap
 
