@@ -3,16 +3,18 @@ name: Strict scaling lifecycle result gate
 on:
   push:
     paths:
-      - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_boundary.csv"
+      - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json"
+      - "analysis/fe_bridge_backward_2026_09_29/run_statewise_strict_scaling_lifecycle.py"
       - "analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py"
       - ".github/workflows/strict-scaling-lifecycle-result-gate.yml"
   pull_request:
     paths:
-      - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_boundary.csv"
+      - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json"
+      - "analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py"
   workflow_dispatch:
 
 jobs:
@@ -23,5 +25,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate exact imported result
+      - name: Validate promoted exact result
         run: python analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py
