@@ -36,6 +36,10 @@ For Fe under the 90 m3 catalyst-bed criterion and 1,000 descriptor-uncertainty d
 
 The 68.1% and 28.2% values are different metrics: the former is P(Fe is the economic winner); the latter is P(atomic Top-1 = economic Top-1).
 
+A complementary decision metric asks what is lost by following the upstream winner. Selecting Ru from intrinsic activity instead of Fe from the catalyst-dependent economic objective gives a normalized decision regret of **44.07%**. The corresponding regret is **3.36%** for the MeOH STY-per-g-Re winner and **0** for the Au/TiO2 preservation control.
+
+The headline NH3 descriptor Monte Carlo retains its frozen independent-error specification. A supporting Gaussian-copula sensitivity preserves the same Fe and Ru/Os marginals while varying positive latent error correlation. In 100,000-draw audits, Fe's atomistic Top-1 probability changes from **10.71% at rho=0** to **21.68% at rho=0.9**. A separate common additive descriptor shift changes the canonical Ru > Os > Fe order outside an approximate interval of **-0.0573 to +0.1030 eV**. These are uncertainty-model sensitivities, not replacement downstream probabilities.
+
 Under the preregistered 5,000-draw **cost-side** Monte Carlo, **P(C_Fe < C_Ru) = 1.000**. The Ru activity-parity distribution is **70.78x / 174.27x / 462.00x** at p05 / median / p95.
 
 ## Backward target versus reachable headroom
@@ -200,7 +204,7 @@ The primary decision endpoint and the quantitative target separate. Strong adapt
 
 Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **20/20** runs in every cell from **50 to 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**. In the same 175-CU cell the weaker tiers show **0/20 mini** and **0/20 nano**, and neither weak tier has canonical narrow-window use in any measured cell.
 
-Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and reaches decision stability much later.
+Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. **14/20** runs consume additional CU after the hindsight stable-decision point; summed across the 20 traces, **8,207 / 17,535 CU = 46.8%** of final compute is post-stability. This is a retrospective stopping-efficiency diagnostic, not an online saving estimate. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and lacks a reliable operational completion detector.
 
 The manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**.
 
