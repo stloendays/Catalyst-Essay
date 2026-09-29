@@ -72,6 +72,7 @@ regret = {r["system"]: r for r in rows("analysis/nonfigure_upgrades_2026_09_29/d
 transfer = {r["system"]: r for r in rows("analysis/nonfigure_upgrades_2026_09_29/pairwise_inversion_index.csv")}
 corr_uq = rows("analysis/nonfigure_upgrades_2026_09_29/descriptor_correlation_sensitivity.csv")
 stop_eff = json.loads((ROOT / "analysis/nonfigure_upgrades_2026_09_29/agent_stopping_efficiency.json").read_text(encoding="utf-8"))
+regret_mc = json.loads((ROOT / "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_regret_summary.json").read_text(encoding="utf-8"))
 
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
 meoh_prov = json.loads((ROOT / "data/meoh/meoh_candidate_ranking_D01v3_provenance.json").read_text(encoding="utf-8"))
@@ -172,6 +173,23 @@ tokens(
     f"{a['p05']:.2f}-fold",
     f"{a['p50']:.2f}-fold",
     f"{a['p95']:.2f}-fold",
+)
+rq = regret_mc["regret_quantiles"]
+tokens(
+    "NH3 cost-MC decision-regret distribution",
+    s2,
+    f"{100*rq['p05']:.2f}%",
+    f"{100*rq['p50']:.2f}%",
+    f"{100*rq['p95']:.2f}%",
+    "all 5,000 draws",
+)
+ok(
+    "NH3 regret MC source",
+    regret_mc["draws"] == 5000
+    and regret_mc["P_regret_gt_0"] == 1.0
+    and abs(rq["p05"] - 0.30479402441495995) < 1e-12
+    and abs(rq["p50"] - 0.4088909107436396) < 1e-12
+    and abs(rq["p95"] - 0.5425375993576715) < 1e-12,
 )
 rho0 = next(r for r in corr_uq if abs(float(r["latent_pairwise_correlation"]) - 0.0) < 1e-12)
 rho9 = next(r for r in corr_uq if abs(float(r["latent_pairwise_correlation"]) - 0.9) < 1e-12)
@@ -366,6 +384,12 @@ tokens(
     methods,
     "reduced catalyst-dependent cost objective",
     "not total levelized ammonia production cost",
+)
+tokens(
+    "NH3 draw-level cost-MC reconstruction lock",
+    methods,
+    "complete draw sequence has been reconstructed",
+    "(C_Ru-C_Fe)/C_Fe",
 )
 ok(
     "no stale pending joint-reachability language",
