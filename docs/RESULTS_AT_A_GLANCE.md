@@ -60,7 +60,7 @@ When Ru metal price is set equal to Fe = **8 USD/kg** and Ru is fully reoptimize
 
 Sweeping the Ru metal price with the same full reoptimization (2026-09-23, `figures/composite/fig2/fig2_model.py`, ammonia process–economics model) places Fe-Ru parity at **163.76 USD/kg**, 329-fold below the canonical Ru price, with Ru at **425 C / 185 bar / 30 C** and a 6.24 m3 bed. The optimized Ru cost is monotone in its price; the optimum moves from 170 bar and a 9.4 m3 bed at 1 USD/kg to 420-430 bar, a 0 C separator and a 0.014 m3 bed at 3 x 10^5 USD/kg.
 
-The supported mechanism is **metal cost coupled to process reoptimization**; process penalties alone are not sufficient to keep Fe ahead of equal-priced Ru in the current model.
+A layer-localization diagnostic makes the mechanism more specific. At the common 673 K reference, converting activity into normalized active-metal demand preserves the Ru > Os > Fe preference; weighting those demands by canonical metal price and the frozen 10-year replacement interval changes the order to **Fe < Ru < Os before any process cost is added**. The equal-price full-process intervention then shows that process reoptimization alone does not make Fe beat Ru. The supported mechanism is therefore **price-weighted catalyst lifecycle economics as the trigger, followed by process reoptimization as an amplifier**.
 
 ## Canonical operating points
 
