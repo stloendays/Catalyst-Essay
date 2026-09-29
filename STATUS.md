@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-29**
+Snapshot date: **2026-09-30**
 
 ## Overall state
 
@@ -55,6 +55,8 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 **Joint backward-design target and reachability closure (2026-09-29):** activity alone remains unreachable (201.22x required vs 2.525x maximum state-specific scaling headroom). A conservative 53-state direct-activity/lifecycle audit gives target-space upper bounds of **2.418x / 1.742x / 1.401x** at **10 / 15 / 20 y** with 99% Ru recovery. The separate strict-scaling lifecycle audit now evaluates all **14,136** process states. The prespecified box (**life <= 20 y, recovery <= 99%**) does **not** intersect parity: its best corner, **20 y + 99%**, gives **15.36249 USD/t NH3**, **0.07078 USD/t (0.46%)** above Fe. Parity lies just outside at **99.1186% recovery for 20 y** or **22.69 y life at 99% recovery**.
 
 **Decision consequence and uncertainty-structure extensions (2026-09-29):** normalized upstream-selection regret is **44.07% for NH3**, **3.36% for MeOH** and **0 for the Au/TiO2 preservation control**. A supporting Gaussian-copula descriptor audit and common-bias sweep show that atomistic rank probabilities are conditional on error dependence; these analyses do not replace the preregistered downstream Monte Carlo. The pairwise transfer-index sign is positive for the inverted NH3 and MeOH examples and negative for the preserved Au/TiO2 pair.
+
+**External process/economic validation (2026-09-30):** independent ammonia literature now anchors three separate claims: the Fe optimum lies within the conventional industrial temperature/pressure range; recycle/compression/separation are strongly pressure-coupled; and published Fe/Ru process studies change the preferred catalyst with plant scale and loop configuration. This is used to validate the **coupling structure**, not the model-specific pure-Ru pressure optimum or absolute reduced cost. The Discussion has been rewritten around decision consequence, inversion layer, reachability and applicability domain rather than repeating Results.
 
 The frozen ammonia source-harness provenance is retained under `provenance/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
 
