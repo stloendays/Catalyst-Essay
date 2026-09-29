@@ -3,7 +3,7 @@
 Uses only frozen repository data. No DFT, process rerun, or LLM call.
 """
 from __future__ import annotations
-import csv, json, math, random
+import csv, json, math
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -46,15 +46,31 @@ half=0.15
 def phi(z):
     return 0.5*(1+math.erf(z/math.sqrt(2)))
 
+class LCGNormal:
+    """Match the deterministic JS audit stream used for the committed 2026-09-29 table."""
+    def __init__(self, seed):
+        self.seed=int(seed) & 0xffffffff
+    def uniform(self):
+        self.seed=(1664525*self.seed+1013904223) & 0xffffffff
+        return self.seed/4294967296.0
+    def normal(self):
+        u=0.0
+        v=0.0
+        while u==0.0:
+            u=self.uniform()
+        while v==0.0:
+            v=self.uniform()
+        return math.sqrt(-2.0*math.log(u))*math.cos(2.0*math.pi*v)
+
 out=[]
 for rho in (0,0.25,0.5,0.75,0.9):
-    rng=random.Random(20260929+round(rho*1000))
+    rng=LCGNormal(20260929+round(rho*1000))
     n=100000
     cnt={"Ru":0,"Os":0,"Fe":0}; full=0
     sr,si=math.sqrt(rho),math.sqrt(1-rho)
     for _ in range(n):
-        g0=rng.gauss(0,1)
-        z={m:sr*g0+si*rng.gauss(0,1) for m in ("Fe","Ru","Os")}
+        g0=rng.normal()
+        z={m:sr*g0+si*rng.normal() for m in ("Fe","Ru","Os")}
         E={
             "Fe":cent["Fe"]+sig_fe*z["Fe"],
             "Ru":cent["Ru"]+half*(2*phi(z["Ru"])-1),
