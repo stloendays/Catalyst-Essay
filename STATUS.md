@@ -158,9 +158,10 @@ Frozen provenance and audit records remain in the repository for traceability.
 
 The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS.md`**.
 
-## Remaining non-figure provenance item
+## Non-figure provenance closure
 
-The 2026-09-20 NH3 economic Monte Carlo is fully supported at the summary level, but the current Git snapshot does not contain the preregistered per-draw cost table. The committed evidence is sufficient for **P(C_Fe < C_Ru)=1.000** and the alpha* summary distribution, and therefore for the sign of selection regret under the sampled economic uncertainty. Before submission, restore or exactly regenerate the draw-level table if a median/95% interval for **regret magnitude** is to be reported. See `analysis/nonfigure_upgrades_2026_09_29/REPRODUCIBILITY_NOTES.md`.
+The preregistered NH3 5,000-draw cost-side Monte Carlo is now exactly reconstructable at draw level from committed deterministic inputs and the frozen FINAL-1.1 harness. The regenerated cost summary matches the existing 2026-09-20 result to machine precision. The normalized Ru-vs-Fe selection regret remains positive in **5,000/5,000** draws, with **p05 / median / p95 = 30.48% / 40.89% / 54.25%**. CI writes and uploads the reconstructed draw table on every relevant change.
+
 
 ## Next production tasks
 
