@@ -127,11 +127,13 @@ Their current manuscript-facing values remain in `data/manuscript_headline_resul
 
 - backward direct-target reproducibility: GitHub Actions run **36516398387 — PASS**
 - strict-scaling lifecycle result gate: GitHub Actions run **36527291341 — PASS**
-- section-aware live manuscript truth audit after inversion-layer rewrite: GitHub Actions run **36527629470 — PASS**
+- non-figure scientific upgrade audit: GitHub Actions run **36552119758 — PASS**
+- section-aware live manuscript truth audit after the non-figure validation update: GitHub Actions run **36552119846 — PASS**
 
-The active automated manuscript audit is:
+Active automated gates:
 
-`tools/audit_live_manuscript_truth.py`
+- `analysis/nonfigure_upgrades_2026_09_29/validate_nonfigure_upgrades.py`
+- `tools/audit_live_manuscript_truth.py`
 
 The older phrase-sensitive checker is retained for development history but is no longer the publication gate.
 
