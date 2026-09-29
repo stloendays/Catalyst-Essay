@@ -144,5 +144,5 @@ This directory is an audit/derived-analysis layer only.
 
 GitHub Actions workflow `.github/workflows/backward-joint-region-audit.yml` recomputes the direct-alpha boundary, representative target keypoints and conditional diagnostic JSON from the pinned Ru price-sweep states. Run **36516350623** passed on 2026-09-29 after the target/reachability separation and byte-stable output fix.
 
-This CI gate validates the **backward target calculation only**. The strict-scaling x lifecycle reachability result remains pending execution of `run_exact_scaling_lifecycle_surface.py` on the original frozen harness/cache.
+This CI gate validates the **backward target calculation**. The strict-scaling × lifecycle closure is now recorded separately in `scaling_lifecycle_exact_summary.json` and reproduced by `run_statewise_strict_scaling_lifecycle.py`, which uses all 14,136 FINAL-1.1 process states and the canonical 0.005-eV scaling grid without new DFT. The brute-force cached-response script is retained as an independent implementation for cross-checking.
 
