@@ -161,7 +161,7 @@ tokens(
 )
 
 # ----- Results 3: backward target and reachability ----------------------------
-s3 = section("Backward design shows that the required Ru activity is outside the accessible range")
+s3 = section("Backward design separates the required catalyst-property region from physical reachability")
 tokens(
     "NH3 activity-only backward/reachability anchors",
     s3,
