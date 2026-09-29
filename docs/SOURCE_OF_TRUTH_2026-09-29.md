@@ -46,24 +46,31 @@ A prepared calculation with no completed output is **PENDING** and must not be w
 
 The direct activity/lifecycle values are **backward targets**, not physical-reachability results. The 53-state restriction makes them conservative upper bounds on the activity multiplier required for parity.
 
-## NH3 — pending reachability closure
+## NH3 — strict-scaling lifecycle reachability closure
 
-**Question:** does the joint backward target region intersect the strict E_N scaling manifold after lifecycle economics and full process reoptimization?
+The joint backward target has now been tested against the **strict E_N scaling manifold** with all **14,136 FINAL-1.1 process states** and no new DFT.
 
-**State:** **PENDING_EXACT_CACHE_SWEEP**
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| canonical strict-scaling anchor | 21.397873 USD/t at E_N = -1.215 eV | CANONICAL | FINAL-1.1 scaling reachability |
+| critical lifecycle factor q* = (1-r)/L | 4.40683454e-4 y^-1 | DERIVED-A | strict-scaling lifecycle audit |
+| equivalent Ru parity price on 10-y basis | 237.319 USD/kg | DERIVED-A | strict-scaling lifecycle audit |
+| strict-scaling parity descriptor/state | E_N = -1.230 eV; 425 C / 190 bar / 30 C; 4.298 m3 | DERIVED-A | strict-scaling lifecycle audit |
+| best point inside L<=20 y, r<=0.99 | 20 y + 99%; 15.36249 USD/t | DERIVED-A | strict-scaling lifecycle audit |
+| miss versus Fe at tested-box corner | +0.07078 USD/t (+0.46%) | DERIVED-A | strict-scaling lifecycle audit |
+| required recovery at 20 y | 99.1186% | DERIVED-A | strict-scaling lifecycle audit |
+| required lifetime at 99% recovery | 22.69 y | DERIVED-A | strict-scaling lifecycle audit |
 
-Prepared calculation:
+**Decision:** the prespecified lifecycle box (**life <= 20 y; recovery <= 0.99**) does **not** intersect the strict scaling manifold, although the boundary lies just outside it.
 
-`analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py`
+**Semantic lock:** the **2.525x** all-state scaling gain remains a state-specific activity diagnostic. It is not used as a uniform activity multiplier in the joint reachability result.
 
-Required gate before promotion:
+Authoritative derived files:
 
-- use the existing cached response; no new DFT;
-- evaluate strict-scaling E_N x lifetime x recovery;
-- reoptimize all 14,136 process states;
-- reproduce the canonical strict-scaling minimum **21.397873 USD/t at E_N = -1.215 eV** before reporting the joint result.
-
-The **2.525x** all-state maximum is state-specific and must not be used as a uniform activity multiplier to claim joint reachability.
+- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json`
+- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv`
+- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv`
+- `analysis/fe_bridge_backward_2026_09_29/run_statewise_strict_scaling_lifecycle.py`
 
 ## First NH3 inversion layer
 
