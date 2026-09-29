@@ -40,6 +40,13 @@ jobs:
       - name: Render Figure 3
         run: python figures/composite/fig3/make_fig3.py
 
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: composite-fig3-preview
+          path: figures/composite/fig3/Fig3.png
+          retention-days: 7
+
       - name: Build render manifest
         run: |
           {
