@@ -1,109 +1,65 @@
-# Figure 3 joint backward-design panel specification — 2026-09-29
+# Figure 3 backward-design panel specification — 2026-09-29
 
-Status: **TARGET REGION + STRICT-SCALING REACHABILITY CLOSED; COMPOSITE REBUILD PENDING**.
-
-The current committed `Fig3.svg/pdf/png` is still the five-panel pre-extension figure. This specification defines the next publication-facing rebuild and must not be read as a claim that the raster has already been replaced.
+Status: **CLOSED AND PROMOTED**.
 
 ## Scientific message
 
-Figure 3 should now make the backward-design logic explicit as two separate operations:
+The figure must distinguish what economics **requires** from what the scaling-constrained catalyst space can **reach**.
 
-```
-economic target inversion
-        ->
-required catalyst-property region
-        ->
-strict scaling-manifold reachability
-```
+### Panel a — activity-only economic target
 
-The activity-only result remains important, but the new result is that joint lifecycle improvement moves the target close to the strict scaling manifold without quite entering the prespecified property box.
+Show fully reoptimized Ru cost against a direct activity multiplier.
 
-## Panel a — activity-only backward target
+Canonical anchors:
+- Ru activity-only parity: **201.223x**;
+- cost-MC target distribution: **70.78x / 174.27x / 462.00x** at p05 / median / p95;
+- Fe reference cost: **15.2917 USD/t NH3**.
 
-Keep the established result:
+### Panel b — activity-only physical reachability
 
-- canonical direct Ru activity multiplier for Fe parity: **201.22x**;
-- cost-MC p05 / median / p95: **70.78x / 174.27x / 462.00x**.
+Show the strict `E_N` scaling line independently.
 
-This remains the single-property reference.
+Canonical anchors:
+- strict-scaling minimum Ru cost: **21.397873 USD/t**;
+- descriptor at minimum: **E_N = -1.215 eV**;
+- 673 K scaling headroom: **1.0899x**;
+- state-specific maximum headroom: **2.524565x**.
 
-## Panel b — activity-only physical reachability
+Conclusion: activity alone remains outside reach.
 
-Keep the strict-scaling reference:
-
-- 673 K scaling gain: **1.090x**;
-- largest state-specific scaling gain in the frozen process library: **2.525x**;
-- strict-scaling minimum Ru cost: **21.397873 USD/t NH3 at E_N = -1.215 eV**.
-
-The **2.525x** quantity is explicitly labelled a **state-specific maximum**, not a uniform activity multiplier.
-
-## Panel c — joint direct-activity / lifetime / recovery target region
+### Panel c — joint direct-activity/lifecycle backward target
 
 Plot:
+- x: direct Ru activity multiplier;
+- y: recovery required for Fe parity;
+- curves: 10, 15, 20 y catalyst lifetime.
 
-- x axis: direct Ru activity multiplier, alpha;
-- y axis: Ru recovery required for Fe parity;
-- curves: catalyst lifetime 10 y, 15 y and 20 y.
+At **99% recovery**:
+- 10 y: **alpha <= 2.41794x**;
+- 15 y: **alpha <= 1.74213x**;
+- 20 y: **alpha <= 1.40129x**.
 
-Highlight the conservative 53-state target upper bounds:
+These are conservative economic targets from the 53-state subset. They are **not** reachability results.
 
-- **10 y + 99% recovery -> alpha_req <= 2.41794x**;
-- **15 y + 99% -> <= 1.74213x**;
-- **20 y + 99% -> <= 1.40129x**;
-- **20 y + 98% -> <= 2.41794x**.
+### Panel d — strict-scaling × lifecycle reachability
 
-Use the wording **required direct activity target**, not reachable activity.
+Use the exact 14,136-state closure:
+- canonical regression gate: **21.397873 USD/t at E_N=-1.215 eV**;
+- critical factor: **q*=(1-r)/L = 4.40683454e-4 y^-1**;
+- strict-scaling parity state: **E_N=-1.230 eV; 425 C / 190 bar / 30 C; V=4.298 m3**;
+- tested box: **L<=20 y, recovery<=99%**;
+- best tested corner: **20 y + 99%**, cost **15.36249 USD/t**, margin **+0.07078 USD/t** versus Fe;
+- exact boundary: **99.1186% recovery at 20 y**, or **22.69 y lifetime at 99% recovery**.
 
-## Panel d — exact strict-scaling x lifecycle reachability
-
-This panel is now closed using all **14,136** FINAL-1.1 process states and the canonical **0.005-eV E_N grid**, without new DFT.
-
-Primary quantity:
-
-```
-q = (1 - recovery) / catalyst_lifetime
-q* = 4.40683454e-4 y^-1
-```
-
-Exact boundary and nearest tested point:
-
-- equivalent 10-y effective Ru price at parity: **237.319 USD/kg**;
-- parity descriptor/state: **E_N = -1.230 eV**, **425 C / 190 bar / 30 C**, **4.298 m3** bed;
-- prespecified box: **life <= 20 y; recovery <= 99%**;
-- closest tested corner: **20 y + 99% recovery**;
-- strict-scaling cost there: **15.36249 USD/t NH3**;
-- miss versus Fe: **+0.07078 USD/t (+0.46%)**;
-- parity at 20 y requires **99.1186% recovery**;
-- equivalently, 99% recovery requires **22.69 y lifetime**.
-
-Recommended plot:
-
-- x axis: catalyst lifetime (y);
-- y axis: Ru recovery required for Fe parity (%);
-- solid line: exact strict-scaling parity boundary;
-- dashed reference lines: 20 y and 99% recovery;
-- mark the tested-box corner (20 y, 99%) and the boundary point (20 y, 99.1186%).
-
-The scientific conclusion is: **the tested lifecycle box does not intersect the strict scaling manifold, but misses it only narrowly.**
-
-## Evidence
-
-Direct target:
-- `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv`
-- `analysis/fe_bridge_backward_2026_09_29/build_certified_inner_surface.py`
-
-Strict reachability:
-- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json`
-- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv`
-- `analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv`
-- `analysis/fe_bridge_backward_2026_09_29/run_statewise_strict_scaling_lifecycle.py`
-
-## Proposed caption wording
-
-**c,** Joint backward design reduces the economic activity target when lifecycle properties improve. At 99% Ru recovery, the conservative upper bound on the direct activity multiplier required for Fe parity falls from 2.418x at 10 y catalyst life to 1.742x at 15 y and 1.401x at 20 y.
-
-**d,** Exact strict-scaling × lifecycle reachability over all 14,136 process states. The tested box (life <= 20 y, Ru recovery <= 99%) remains outside parity: its closest corner, 20 y and 99% recovery, gives 15.362 US dollars per tonne, 0.071 above Fe. The parity boundary lies just outside the box at 99.1186% recovery for a 20-y lifetime, or 22.69 y lifetime at 99% recovery.
+Conclusion: the joint target approaches but does not enter the prespecified strict-scaling property box.
 
 ## Figure-lock rule
 
-The new scientific result is promoted and CI-gated. The remaining task is **render production**: rebuild `Fig3.svg/pdf/png` from Panels a-d and only then update the publication caption to describe those exact rendered panels.
+The publication figure may now be rebuilt and frozen from:
+- `activity_lifecycle_certified_boundary.csv`
+- `activity_lifecycle_target_keypoints.csv`
+- `scaling_lifecycle_exact_global_boundary.csv`
+- `scaling_lifecycle_exact_keypoints.csv`
+- `scaling_lifecycle_exact_summary.json`
+
+Do not reintroduce the earlier interpretation that the 2.524565x state-specific maximum is a uniform activity multiplier.
