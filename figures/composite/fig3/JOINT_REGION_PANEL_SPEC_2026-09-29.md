@@ -1,43 +1,59 @@
-# Figure 3 joint-region panel specification — 2026-09-29
+# Figure 3 joint backward-target panel specification — 2026-09-29
 
-Status: **READY FOR NEXT COMPOSITE REDRAW**. This note does not claim that the current Fig3.svg/pdf/png already contains the panel.
+Status: **TARGET PANEL READY; STRICT-SCALING REACHABILITY PANEL PENDING**. This note does not claim that the current `Fig3.svg/pdf/png` already contains either panel.
 
 ## Scientific message
 
-Keep the existing activity-only panels unchanged, then add one compact panel showing that the backward-design answer becomes a **property region** once activity, lifetime and Ru recovery are allowed to move together.
+Keep the existing activity-only backward and scaling panels unchanged. Add a compact panel that shows how allowing catalyst lifetime and Ru recovery to improve changes the **economic target region**. Keep physical reachability as a separate panel/question.
 
-## Plot
+## Panel c — direct-activity/lifecycle backward target
 
-- x axis: Ru activity multiplier alpha, 1.0 to 2.524565.
-- y axis: minimum Ru recovery required for Fe cost parity, 97–100%.
-- curves: catalyst lifetime 10 y, 15 y, 20 y.
-- vertical references:
-  - 1.089901x = scaling-consistent gain at 673 K;
-  - 2.524565x = maximum scaling-consistent gain over frozen process states.
-- horizontal references: 98% and 99% recovery.
-- highlighted certified point:
-  - alpha = 2.524565x
-  - life = 20 y
-  - recovery = 98%
-  - effective Ru price = 538.525 USD/kg
-  - process state = 425 C / 185 bar / 30 C
-  - Ru cost = 15.2571 USD/t NH3
-  - Fe cost = 15.2917 USD/t NH3
-  - margin = -0.0346 USD/t
+Plot:
 
-## Evidence logic
+- x axis: direct Ru activity multiplier, alpha;
+- y axis: Ru recovery required for Fe parity;
+- curves: catalyst lifetime 10 y, 15 y and 20 y;
+- highlight the 99% recovery targets:
+  - 10 y: alpha <= **2.41794x**
+  - 15 y: alpha <= **1.74213x**
+  - 20 y: alpha <= **1.40129x**
+- additional point: 20 y + 98% recovery -> alpha <= **2.41794x**.
 
-The panel uses the certified inner-region calculation in:
+Use the wording **"required direct activity target"**, not "reachable activity". The 53-state calculation is conservative because it searches only process states already visited in the fully reoptimized Ru price sweep; full 14,136-state reoptimization can only reduce the activity multiplier required for parity.
+
+### Reference lines
+
+The existing **1.0899x at 673 K** and **2.524565x maximum over all process states** may be shown only as reference markers. The latter is explicitly labelled **state-specific maximum**, not a uniform activity multiplier.
+
+## Panel d — strict-scaling x lifecycle reachability
+
+Do not infer this panel from Panel c. It must come from the exact cached-response calculation:
+
+- script: `analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py`;
+- no new DFT;
+- reuse the frozen 14,136-state response cache;
+- vary Ru `E_N` on the strict-scaling grid;
+- propagate `P_eff = P_Ru (1-r) (10 y/L)`;
+- reoptimize the full process for every point;
+- baseline regression gate: recover **21.397873 USD/t at E_N = -1.215 eV** under canonical Ru economics.
+
+Until that exact run is completed, label Panel d **PENDING** and do not state that the tested lifecycle region intersects the strict scaling manifold.
+
+## Evidence
+
+Direct target panel:
 - `analysis/fe_bridge_backward_2026_09_29/build_certified_inner_surface.py`
+- `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv`
 - `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_boundary.csv`
-- `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_keypoint.json`
 
-The calculation reuses the 53 distinct process states already present in the fully reoptimized Ru price sweep. For each state, bed volume scales as V/alpha and the FINAL-1.1 reactor/vessel terms are recomputed exactly. Because only a subset of the full 14,136 states is searched, the resulting feasible region is conservative: a point declared feasible is guaranteed feasible under the full model.
+Strict reachability panel:
+- `analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py`
+- output files are intentionally absent until the frozen-harness run passes its baseline gate
 
-## Caption sentence
+## Caption wording for Panel c
 
-"Combining catalyst properties changes the reachability conclusion: although activity alone requires 201.22x, the certified inner region reaches Fe parity at the edge of the existing design envelope; 2.524565x activity with 20 y lifetime and 98% Ru recovery gives 15.257 USD t^-1 NH3 at an existing 425 C / 185 bar / 30 C process state."
+"Joint backward design reduces the economic activity target when lifecycle properties improve. At 99% Ru recovery, the conservative upper bound on the direct activity multiplier required for Fe parity falls from 2.418x at 10 y catalyst life to 1.742x at 15 y and 1.401x at 20 y. These values define the required property region; strict scaling-manifold reachability is evaluated separately."
 
-## Full-state confirmation
+## Figure-lock rule
 
-`run_exact_joint_surface.py` is ready for the original frozen harness machine. It reuses the cached response surface and performs no DFT. Its purpose is to expand the conservative inner region to the exact 14,136-state parity boundary before final figure lock.
+Do not rebuild/freeze the publication Fig. 3 with a joint-reachability conclusion until the exact strict-scaling x lifecycle cached-response run has completed successfully.
