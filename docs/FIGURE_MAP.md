@@ -64,30 +64,39 @@ The manuscript now uses **six composite main figures**. Reader-facing scientific
 
 ---
 
-## Figure 3 — Backward design separates single-property limits from a reachable joint catalyst target
+## Figure 3 — Backward design separates the required property region from physical reachability
 
-**Question:** If Ru loses economically, what property changes are required for parity, and does a reachable combination exist even when the activity-only target does not?
+**Question:** If Ru loses economically, what catalyst-property changes are required for parity, and which of those targets remain reachable under the strict scaling relation?
 
 **Panel a — activity-only backward sweep**
 - canonical Ru activity-only break-even: **201.22x**
+- cost-MC target distribution: p05 / median / p95 = **70.78x / 174.27x / 462.00x**
 
-**Panel b — scaling-manifold reachability**
+**Panel b — activity-only scaling-manifold reachability**
 - activity headroom at 673 K: **1.090x**
-- maximum headroom over frozen process states: **2.525x**
+- maximum state-specific headroom over frozen process states: **2.525x**
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**
-- cost-MC p05 activity target: **70.78x**, still far above the **2.525x** maximum headroom
+- the activity-only target remains outside the strict-scaling manifold
 
-**Panel c — certified joint activity-lifetime-recovery region**
-- 53-state certified inner approximation; no new DFT
-- at **2.524565x** activity, certified parity effective Ru price: **566.964 USD/kg**
-- equivalent recovery threshold at **20 y** life: **97.894%**
-- explicit point **2.524565x + 20 y + 98% recovery**: Ru **15.257 USD/t NH3** at **425 C / 185 bar / 30 C**, below Fe **15.292 USD/t**
-- because the calculation minimizes over a subset of already validated process states, feasibility is conservative: full 14,136-state reoptimization can only equal or improve the identified point
+**Panel c — joint direct-activity/lifetime/recovery backward target region**
+- 53-state conservative subset; no new DFT
+- at **99% Ru recovery**, required direct activity multiplier is at most:
+  - **2.418x** at **10 y** life
+  - **1.742x** at **15 y**
+  - **1.401x** at **20 y**
+- **20 y + 98% recovery** requires at most **2.418x**
+- these are upper bounds on the *required target*, because restricting process optimization to 53 already visited states can only overestimate the activity improvement needed
 
-**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_boundary.csv` + certified key-point audit.
+**Panel d — strict-scaling x lifecycle reachability**
+- do **not** substitute the **2.525x** all-state maximum as a uniform multiplier: scaling gain is process-state dependent
+- exact test prepared in `analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py`
+- test varies **E_N** on the frozen scaling grid, propagates lifecycle economics, and reoptimizes all **14,136** process states from the existing cache
+- baseline gate must reproduce **21.397873 USD/t at E_N = -1.215 eV**
+- panel remains **PENDING EXACT CACHED-RESPONSE RUN**; no manuscript reachability claim is promoted until that gate passes
 
-**Role:** separate two conclusions that would otherwise be conflated: the activity-only target is unreachable, but a joint catalyst-property region intersects parity near the upper edge of the tested activity/lifecycle envelope. The current Fig. 3 raster predates Panel c; this panel is queued for the next composite redraw.
+**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv` + direct-target audit.
 
+**Role:** make the backward-design logic explicit as two operations: **economic target inversion -> physical reachability test**. The current Fig. 3 raster predates Panels c–d and remains unchanged until the strict-scaling lifecycle audit is closed.
 ---
 
 ## Figure 4 — Methanol ranking reshapes through a selectivity-recycle pathway and remains stable to tested cost uncertainty
