@@ -57,6 +57,21 @@ Consequences:
 
 The prespecified lifecycle envelope used by the lever audit (5–20 y life; 0.99 as optimistic recovery bound) therefore does not reach Fe parity at the current Ru activity. This adds a genuine two-property feasible region to the backward-design result without rerunning DFT.
 
+### Joint activity-lifecycle region: certified non-DFT inner approximation
+
+Allowing activity and lifecycle properties to improve together changes the reachability conclusion. To avoid assuming that the two levers are separable after process optimization, the audit reuses the 53 distinct process states that already appear in the fully reoptimized Ru metal-price sweep. For each frozen state, a direct Ru activity multiplier rescales required bed volume exactly as V(alpha)=V(1)/alpha; lifetime and recovery map exactly to the effective Ru metal price; and the reactor-volume and vessel-pressure terms are recomputed from the frozen FINAL-1.1 cost correlations. Minimizing over this state subset gives an upper bound on the true fully reoptimized Ru cost. Therefore every point classified as feasible by this audit is guaranteed feasible in the full 14,136-state model; the method can only miss additional feasible points.
+
+The subset reproduces both independent parity anchors to numerical tolerance:
+
+- alpha = 1: effective Ru parity price = **163.7633 USD kg^-1**;
+- alpha = 201.223: parity returns to the canonical Ru price **53,852.5 USD kg^-1**.
+
+At the maximum scaling-consistent activity gain already present in the frozen model, alpha = **2.524565**, the certified effective-price parity boundary rises to **566.964 USD kg^-1**. This implies a recovery requirement of **98.947% at 10 y**, **98.421% at 15 y**, and **97.894% at 20 y**.
+
+Most importantly, the explicit joint point alpha = **2.524565x**, catalyst lifetime = **20 y**, Ru recovery = **98.0%**, effective Ru price = **538.525 USD kg^-1** is already feasible without any new process state: the existing **425 C / 185 bar / 30 C** state gives **15.2571 USD t^-1 NH3**, **0.0346 USD t^-1 below Fe**. Because this is a direct feasible-state evaluation, full reoptimization can only preserve or improve that result.
+
+This refines the backward-design conclusion: **activity alone is unreachable, and lifecycle improvement alone misses parity inside the prespecified range, but the combined activity-lifetime-recovery design region does intersect parity near the upper edge of the existing property envelope.** The reproducible audit is implemented in build_certified_inner_surface.py; run_exact_joint_surface.py is prepared for the original harness machine to map the complete 14,136-state boundary without new DFT.
+
 ## 3. First layer at which the NH3 ranking inverts
 
 The intermediate order localizes the causal trigger:
