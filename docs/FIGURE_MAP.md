@@ -88,15 +88,18 @@ The manuscript now uses **six composite main figures**. Reader-facing scientific
 - these are upper bounds on the *required target*, because restricting process optimization to 53 already visited states can only overestimate the activity improvement needed
 
 **Panel d — strict-scaling x lifecycle reachability**
-- do **not** substitute the **2.525x** all-state maximum as a uniform multiplier: scaling gain is process-state dependent
-- exact test prepared in `analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py`
-- test varies **E_N** on the frozen scaling grid, propagates lifecycle economics, and reoptimizes all **14,136** process states from the existing cache
-- baseline gate must reproduce **21.397873 USD/t at E_N = -1.215 eV**
-- panel remains **PENDING EXACT CACHED-RESPONSE RUN**; no manuscript reachability claim is promoted until that gate passes
+- full **14,136-state** strict-scaling audit; no new DFT
+- canonical gate reproduced: **21.397873 USD/t at E_N = -1.215 eV**
+- critical lifecycle factor: **q* = (1-r)/L = 4.4068 × 10^-4 y^-1**
+- parity state: **E_N = -1.230 eV**, **425 C / 190 bar / 30 C**, **4.298 m3**
+- inside the prespecified box (**L <= 20 y, r <= 0.99**), the closest point is **20 y + 99% recovery**
+- that corner gives **15.36249 USD/t NH3**, **+0.07078 USD/t** above Fe
+- exact boundary lies just outside the box: **99.1186% recovery at 20 y**, or **22.69 y lifetime at 99% recovery**
+- the **2.525x** all-state activity gain remains a state-specific diagnostic and is not used as a uniform multiplier
 
-**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv` + direct-target audit.
+**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv` + `scaling_lifecycle_exact_keypoints.csv` + `scaling_lifecycle_exact_global_boundary.csv`.
 
-**Role:** make the backward-design logic explicit as two operations: **economic target inversion -> physical reachability test**. The current Fig. 3 raster predates Panels c–d and remains unchanged until the strict-scaling lifecycle audit is closed.
+**Role:** make the backward-design logic explicit as two operations: **economic target inversion -> physical reachability test**. Panel d now closes the second operation and shows that lifecycle co-improvement brings the target close to, but still just outside, the prespecified scaling-constrained property box.
 ---
 
 ## Figure 4 — Methanol ranking reshapes through a selectivity-recycle pathway and remains stable to tested cost uncertainty
