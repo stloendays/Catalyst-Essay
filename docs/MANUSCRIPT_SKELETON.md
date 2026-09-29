@@ -247,6 +247,20 @@ The previous F1-F10 files remain source assets/provenance. See **FIGURE_MAP.md**
 - ACSA action schema, scorer, oracle proof, raw boundary series and non-binding audit
 - composite-figure panel provenance
 
+## Editorial lock: scope without self-weakening
+
+The manuscript should define model scope through **scientific purpose and controlled comparison**, not through a defensive limitation inventory.
+
+- Lead with what each model resolves: ranking propagation, causal inversion, backward reachability and decision-aware allocation.
+- Describe the NH3 objective as **catalyst-responsive economics**; common upstream H2/N2 contributions are held fixed to preserve the catalyst-dependent decision signal.
+- Treat promoter/support/morphology as modular formulation-specific extensions, not as a reason to weaken the descriptor-level result.
+- Present MeOH as transfer through a distinct selectivity-purge-recycle pathway and Au/TiO2 as the complementary rank-preservation regime.
+- Present the frozen ACSA environment as experimental control that isolates policy/allocation effects.
+- Do not use a concentrated "applicability domain" disclaimer paragraph that reads as a list of what the work does not model.
+- Preserve factual scope definitions in Methods, but phrase them positively and do not imply claims beyond the modeled objective.
+
+This lock is intended to keep the paper scientifically precise **without weakening the central multiscale decision claim**.
+
 ## Current-source rule
 
 Current manuscript values should be taken from **RESULTS_AT_A_GLANCE.md**, **../data/manuscript_headline_results_2026-09-20.csv**, and the claim/figure registries. Historical or superseded values remain only in **RETIRED_RESULTS.md** and provenance/audit records.
