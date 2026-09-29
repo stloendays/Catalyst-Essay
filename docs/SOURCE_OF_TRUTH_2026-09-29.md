@@ -119,6 +119,18 @@ These values strengthen interpretation without modifying the frozen reaction mod
 Model validation and scope are recorded in `analysis/nonfigure_upgrades_2026_09_29/MODEL_VALIDATION_MATRIX.md`.
 External process/economic comparison is recorded in `analysis/nonfigure_upgrades_2026_09_29/EXTERNAL_VALIDATION_AND_BENCHMARK_2026-09-30.md`. The reader-facing interpretation is locked as follows: **external literature supports the Fe operating window and catalyst–process coupling structure, but it does not validate the model-specific pure-Ru optimum or the absolute reduced-cost values. Published Fe/Ru studies themselves show that the preferred catalyst changes with plant scale, pressure and loop configuration.**
 
+## Independent process/economic validation — 2026-09-30
+
+External ammonia-process literature now provides mechanism-level support for the process/economic interpretation.
+
+- Yoshida, Ogawa & Ishihara (2024) independently report that higher-activity Ru catalysts can reduce reactant-gas pressurization cost while ammonia-separation refrigeration, expensive Ru and catalyst lifetime can offset the benefit.
+- Recent low- vs high-pressure Haber-Bosch TEA confirms that loop pressure changes energy and economics.
+- Recent Ru-catalyst reviews identify Ru price, loading, lifetime and recycling as practical deployment constraints.
+
+**Semantic lock:** these studies support the **qualitative multiscale mechanism**. They do **not** numerically validate the present Fe/Ru costs, reproduce the Fe > Ru result, or justify treating the pure-metal Ru optimum as a commercial promoted-Ru operating point.
+
+Authoritative note: `analysis/nonfigure_upgrades_2026_09_29/EXTERNAL_PROCESS_ECONOMIC_VALIDATION.md`.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
