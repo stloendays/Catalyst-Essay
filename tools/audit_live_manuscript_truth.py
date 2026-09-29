@@ -1,8 +1,8 @@
 """Audit the current live manuscript against committed scientific sources.
 
 This checker is intentionally section-aware rather than phrase-fragile. It verifies that
-current canonical/derived numbers appear in the Results section where they belong, and
-that the pending strict-scaling x lifecycle reachability result is not silently promoted.
+current canonical/derived numbers appear in the Results section where they belong,
+including the closed strict-scaling x lifecycle reachability result.
 
 Usage:
   python tools/audit_live_manuscript_truth.py [docs/MANUSCRIPT_MAIN_TEXT.md]
@@ -66,6 +66,7 @@ cmc = json.loads((SUP / "nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
 price_sweep = rows("figures/composite/fig2/fig2_ru_price_sweep.csv")
 parity = price_sweep[-1]
 targets = rows("analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv")
+strict_joint = json.loads((ROOT / "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json").read_text(encoding="utf-8"))
 headline = rows("data/manuscript_headline_results_2026-09-20.csv")
 
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
@@ -191,23 +192,32 @@ tokens(
 )
 ok("joint target ordering", t20 < t15 < t10)
 ok("20y/98 target equals 10y/99 within audit", abs(t20r98 - t10) < 1e-9)
-ok(
-    "strict-scaling joint reachability not promoted",
-    "15.257" not in text
-    and "97.894%" not in text
-    and "reaches parity near the upper edge" not in text,
+tokens(
+    "NH3 strict-scaling lifecycle closure",
+    s3,
+    "4.4068",
+    "15.362",
+    "0.071",
+    "99.119%",
+    "22.69-year",
+    "-1.230",
 )
 ok(
-    "strict-scaling lifecycle sweep is explicitly pending in truth table",
+    "strict-scaling tested lifecycle box remains outside parity",
+    strict_joint["tested_lifecycle_envelope"]["intersects_strict_scaling_manifold"] is False,
+)
+ok(
+    "strict-scaling headline table promoted",
     any(
         r["metric"] == "strict_scaling_lifecycle_joint_reachability"
-        and r["value"] == "PENDING_EXACT_CACHE_SWEEP"
+        and r["value"] == "NO_INTERSECTION_WITHIN_TESTED_BOX"
         for r in headline
     ),
 )
 ok(
-    "strict-scaling lifecycle audit script present",
-    (ROOT / "analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py").exists(),
+    "strict-scaling lifecycle audit scripts present",
+    (ROOT / "analysis/fe_bridge_backward_2026_09_29/run_statewise_strict_scaling_lifecycle.py").exists()
+    and (ROOT / "analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py").exists(),
 )
 
 # ----- Results 4: methanol ----------------------------------------------------
