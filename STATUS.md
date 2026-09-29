@@ -4,6 +4,8 @@ Snapshot date: **2026-09-29**
 
 ## Overall state
 
+Publication-facing truth hierarchy: [`docs/SOURCE_OF_TRUTH_2026-09-29.md`](docs/SOURCE_OF_TRUTH_2026-09-29.md). The section-aware manuscript truth audit and the backward-target reproducibility audit both pass on the current main branch.
+
 Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LOCKS.md`](docs/MANUSCRIPT_EDITORIAL_LOCKS.md). The Agent scaling-layer / reusable-execution framing remains locked unless the author explicitly reopens it.
 
 The supervisor-requested **2026-09-20 targeted analyses are complete**. Existing frozen provenance remains unchanged; the new counterfactual, joint cost-MC and oracle outputs are under `analysis/supervisor_2026_09_20/`.
