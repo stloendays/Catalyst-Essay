@@ -88,6 +88,33 @@ At the common atomistic reference, the normalized active-metal demands are **2,1
 
 The publication interpretation is therefore: **the first ranking inversion occurs at the catalyst-demand-to-lifecycle-economics interface; candidate-specific process reoptimization subsequently amplifies the cost difference.** The equal-price full-process ablation independently confirms that process optimization alone is insufficient to make Fe beat Ru.
 
+## Non-figure derived diagnostics — 2026-09-29
+
+These values strengthen interpretation without modifying the frozen reaction models.
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| NH3 normalized upstream-selection regret | 44.0689% | DERIVED-A | `analysis/nonfigure_upgrades_2026_09_29/decision_regret_summary.csv` |
+| MeOH normalized upstream-selection regret | 3.3595% | DERIVED-A | same |
+| Au/TiO2 selection regret | 0 | DERIVED-A | same |
+| pairwise transfer index, NH3 Ru vs Fe | +0.08531 | DERIVED-A | `pairwise_inversion_index.csv` |
+| pairwise transfer index, MeOH STY winner vs NPC winner | +0.02573 | DERIVED-A | same |
+| pairwise transfer index, Au/TiO2 2 nm vs 6 nm | -1.0000 | DERIVED-A | same |
+| Fe atomistic Top-1, matched independent copula audit | 10.71% | SUPPORTING | `descriptor_correlation_sensitivity.csv` |
+| Fe atomistic Top-1, latent rho=0.9 | 21.68% | SUPPORTING | same |
+| common descriptor-shift interval preserving Ru > Os > Fe | approximately -0.0573 to +0.1030 eV | SUPPORTING | `common_mode_descriptor_shift.json` |
+| non-binding Agent runs with post-stability compute | 14/20 | DERIVED-A diagnostic | `agent_stopping_efficiency.json` |
+| total CU after hindsight stability | 8207/17535 = 46.8% | DERIVED-A diagnostic | same |
+
+**Semantic locks:**
+
+- Decision regret is normalized **within each system**; it does not make absolute NH3 and MeOH objectives comparable.
+- The copula/common-bias calculations are **uncertainty-model sensitivities**, not replacements for the preregistered descriptor or cost Monte Carlo.
+- The Agent 46.8% value uses hindsight decision stability and is **not an online saving estimate**.
+- The NH3 values of 15–26 USD/t are a **reduced catalyst-dependent cost objective**, not total levelized ammonia production cost.
+
+Model validation and scope are recorded in `analysis/nonfigure_upgrades_2026_09_29/MODEL_VALIDATION_MATRIX.md`.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
