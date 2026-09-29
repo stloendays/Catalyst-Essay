@@ -4,6 +4,8 @@ Backward design now separates four logically distinct operations: the activity-o
 
 183 × 122 mm, four panels: `Fig3.{svg,pdf,png}`.
 
+Render status: **rebuilt and committed on 2026-09-29 from the four-layer renderer; render manifest current**.
+
 | Panel | Content | Source |
 |---|---|---|
 | a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=201.22x`; cost-side uncertainty p05–p95 = 70.78–462.00x; strict-scaling headroom shown only as a reference band | FINAL-1.1 `breakeven_sweep.csv`, 5,000-draw cost MC |
