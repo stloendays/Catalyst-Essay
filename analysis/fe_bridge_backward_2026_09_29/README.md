@@ -108,26 +108,38 @@ Machine-readable outputs are `scaling_lifecycle_exact_summary.json`, `scaling_li
 
 ## 3. First layer at which the NH3 ranking inverts
 
-The intermediate order localizes the causal trigger:
+The causal localization is now supported by two complementary tests.
 
-1. **Atomic/MKM activity:** Ru > Os > Fe.
-2. **Catalyst demand:** Ru > Os > Fe remains preserved; minimum bed burden still favors Ru/Os over Fe.
-3. **Full process with Ru price set equal to Fe:** Ru = 14.712 USD t^-1, Fe = 15.292 USD t^-1. Fe still does not win after full reoptimization.
-4. **Catalyst inventory monetized at canonical metal prices:** Fe < Ru < Os. This is the first explicit top-three flip.
-5. **Full canonical process and economics:** Fe < Ru < Os; reoptimization amplifies the initial flip.
+First, a **common-reference layer diagnostic** keeps the 673 K atomistic activity condition fixed and converts activity into the same plant-throughput active-metal normalization used by the FINAL-1.1 cost model. The activity order and catalyst-demand order agree:
 
-Thus the causal trigger is the **catalyst-inventory -> lifecycle-economics interface**, where required inventory is weighted by the actual metal-price disparity. The high Ru price then changes the preferred operating regime, and fresh compression, compressor CAPEX and refrigeration widen the final Ru–Fe gap.
+```
+activity                         Ru > Os > Fe
+required active-metal burden     Ru < Os < Fe   (lower is better)
+```
 
-Canonical Ru − Fe cost-gap contributions (USD t^-1 NH3):
+The normalized active-metal demands are **2,161.5 kg Ru, 4,503.5 kg Os and 86,279 kg Fe**. Thus the catalyst-demand layer itself does not invert the activity ranking.
 
-- metal inventory +1.763013
-- fresh-feed compression +4.631668
-- compressor CAPEX +1.180730
-- refrigeration +0.629119
-- reactor base −0.085671
-- vessel pressure premium −0.733129
-- recycle compression −0.646840
-- total +6.738890
+The first explicit flip appears when this demand is monetized using the canonical metal prices and the frozen 10-y catalyst lifetime, before adding any reactor, compression, refrigeration or equipment term:
+
+```
+annualized replacement cost:
+Fe 0.199 < Ru 33.570 < Os 185.270 USD/t NH3
+```
+
+Second, the independent **equal-price full-process ablation** removes the Ru-Fe price disparity and reoptimizes all 14,136 process states. Ru then remains less costly than Fe (**14.712 vs 15.292 USD/t**). Therefore process reoptimization by itself is not sufficient to produce the Fe-over-Ru order.
+
+Together these checks identify the trigger more tightly:
+
+```
+intrinsic activity
+    -> catalyst demand                      (order preserved)
+    -> actual-price lifecycle monetization  (FIRST FLIP)
+    -> process reoptimization               (gap amplified)
+```
+
+The canonical Ru - Fe gap is then widened mainly by fresh compression (**+4.632 USD/t**), compressor CAPEX (**+1.181**) and refrigeration (**+0.629**) on top of the metal-inventory contribution (**+1.763**), while vessel pressure, recycle compression and reactor-base terms partly offset the difference.
+
+The common-reference diagnostic is intentionally a **layer-localization calculation**, not a replacement for the final process model. Its role is to show that the order change exists before downstream process costs are introduced; the equal-price full-process calculation independently confirms the causal role of metal-price-weighted inventory.
 
 ## Source hierarchy
 
