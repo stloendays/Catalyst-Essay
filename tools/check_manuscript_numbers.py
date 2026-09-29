@@ -195,7 +195,7 @@ claim(
 )
 claim(
     "joint target 20y at 98% recovery",
-    "20-year lifetime with 98% recovery requires at most %s-fold" % f(a20r98, 3),
+    f"20-year lifetime with 98% recovery requires at most {a20r98:.3f}-fold",
 )
 fact(
     "strict-scaling joint reachability not overclaimed",
