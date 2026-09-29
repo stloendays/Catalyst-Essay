@@ -165,6 +165,14 @@ The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. Th
 The preregistered NH3 5,000-draw cost-side Monte Carlo is now exactly reconstructable at draw level from committed deterministic inputs and the frozen FINAL-1.1 harness. The regenerated cost summary matches the existing 2026-09-20 result to machine precision. The normalized Ru-vs-Fe selection regret remains positive in **5,000/5,000** draws, with **p05 / median / p95 = 30.48% / 40.89% / 54.25%**. CI writes and uploads the reconstructed draw table on every relevant change.
 
 
+## External validation and Discussion closure — 2026-09-30
+
+- Independent ammonia-process literature now supports the **qualitative mechanism**: high-activity Ru can reduce compression demand, but separation/refrigeration, Ru price and catalyst lifetime can offset that gain.
+- This is treated as **mechanism-level support**, not numerical validation of the present reduced cost values or commercial promoted-Ru operating conditions.
+- The Discussion has been compressed around four reader-facing concepts: **decision consequence, inversion criterion, backward reachability, and applicability domain**.
+- A local transferable criterion now states that ranking inversion occurs when the aggregate downstream penalty exceeds the direct upstream-performance benefit; the finite-difference transfer-index sign provides the corresponding diagnostic.
+- The reader-facing limitations now explicitly separate reduced NH3 catalyst-dependent economics, the four-state MeOH mapping, the Au/TiO2 preservation control and the fixed-tool-interface ACSA benchmark.
+
 ## Next production tasks
 
 1. run a cross-document audit of the current main text, six-figure captions and Methods definitions;
