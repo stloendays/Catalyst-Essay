@@ -4,7 +4,7 @@ This note separates **validation**, **plausibility checks**, and **declared mode
 
 | Layer | External/internal anchor | Current model result | Status | What is supported | What is not supported |
 |---|---|---|---|---|---|
-| Descriptor / volcano concept | Nørskov et al., J. Catal. 197 (2001) 229–231, DOI 10.1006/jcat.2000.3087 | N adsorption descriptor produces a volcano-shaped activity relation | qualitative external validation | use of N binding / BEP-type scaling as an activity descriptor | absolute TOF calibration |
+| Descriptor / volcano concept | Logadottir et al., J. Catal. 197 (2001) 229–231, DOI 10.1006/jcat.2000.3087 | N adsorption descriptor produces a volcano-shaped activity relation | qualitative external validation | use of N binding / BEP-type scaling as an activity descriptor | absolute TOF calibration |
 | Step-site dataset and conditions | Wang & Abild-Pedersen, PNAS 118 (2021) e2106527118, DOI 10.1073/pnas.2106527118 | source workbook is derived from Dataset S1; atomic reference is 673 K, pN2=24.5 bar, pH2=74.25 bar, pNH3=1 bar | source-level match | same literature dataset family, step-site scaling logic and reference conditions | exact reproduction of the authors' CatMAP / absolute rates |
 | Leading transition metals | Wang 2021 and prior volcano literature place Ru/Os/Fe near the high-activity region | reduced MKM gives Ru > Os > Fe | ranking-level consistency | headline intrinsic top-three is literature-consistent | universal ranking for promoted/support-dependent catalysts |
 | Industrial Fe operating envelope | reviews describe conventional Fe Haber–Bosch near 400–500 C and roughly 150–300 bar | Fe optimum 425 C / 180 bar | plausibility PASS | Fe optimum lies inside a realistic industrial window | calibration of conversion, heat integration or full loop design |
@@ -15,7 +15,7 @@ This note separates **validation**, **plausibility checks**, and **declared mode
 
 ## Literature anchors used here
 
-1. J. K. Nørskov et al., *The Brønsted–Evans–Polanyi Relation and the Volcano Plot for Ammonia Synthesis over Transition Metal Catalysts*, Journal of Catalysis 197 (2001) 229–231. DOI: **10.1006/jcat.2000.3087**.
+1. A. Logadottir et al., *The Brønsted–Evans–Polanyi Relation and the Volcano Plot for Ammonia Synthesis over Transition Metal Catalysts*, Journal of Catalysis 197 (2001) 229–231. DOI: **10.1006/jcat.2000.3087**.
 2. Tao Wang and Frank Abild-Pedersen, *Achieving industrial ammonia synthesis rates at near-ambient conditions through modified scaling relations on a confined dual site*, PNAS 118 (2021) e2106527118. DOI: **10.1073/pnas.2106527118**.
 3. *Facilitating green ammonia manufacture under milder conditions: what do heterogeneous catalyst formulations have to offer?*, Chemical Science (2022). DOI: **10.1039/D1SC04734E**.
 
