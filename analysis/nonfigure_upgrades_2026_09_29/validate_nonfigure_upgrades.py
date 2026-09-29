@@ -38,6 +38,21 @@ r_meoh = (up - best) / best
 assert close(reg["MeOH"]["normalized_decision_regret"], r_meoh, 1e-12)
 assert close(reg["AuTiO2"]["normalized_decision_regret"], 0.0, 0.0)
 
+# Cost-side uncertainty distribution of NH3 decision regret is reconstructed by
+# reproduce_nh3_cost_mc.py; this lightweight gate checks the promoted summary
+# against the already frozen 2026-09-20 cost-MC source.
+reg_mc = json.loads((HERE / "nh3_cost_mc_regret_summary.json").read_text(encoding="utf-8"))
+cost_mc = json.loads((ROOT / "analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
+assert reg_mc["draws"] == cost_mc["draws"] == 5000
+assert reg_mc["seed"] == cost_mc["seed"] == 20260920
+assert reg_mc["P_regret_gt_0"] == cost_mc["full_14136_state_direct_cost_verification"]["P_C_Fe_lt_C_Ru"] == 1.0
+rq = reg_mc["regret_quantiles"]
+assert close(rq["p05"], 0.30479402441495995, 1e-12)
+assert close(rq["p50"], 0.4088909107436396, 1e-12)
+assert close(rq["p95"], 0.5425375993576715, 1e-12)
+assert (HERE / "reproduce_nh3_cost_mc.py").exists()
+
+
 # ---- pairwise transfer index ------------------------------------------------
 tr = {r["system"]: r for r in rows(HERE / "pairwise_inversion_index.csv")}
 fig1 = {r["metal"]: r for r in rows(ROOT / "figures/composite/fig1/fig1_metals.csv")}
@@ -179,6 +194,7 @@ assert close(stop["fraction_total_compute_after_hindsight_stability"], sum(over)
 
 print("PASS non-figure scientific upgrade audit")
 print(f"NH3/MeOH/Au regret: {r_nh3:.6f}, {r_meoh:.6f}, 0")
+print(f"NH3 regret MC p05/median/p95: {rq['p05']:.6f} / {rq['p50']:.6f} / {rq['p95']:.6f}")
 print(f"pairwise chi: NH3={chi_nh3:.6f}, MeOH={chi_meoh:.6f}, Au={chi_au:.6f}")
 print("descriptor correlation table: 5/5 rho cells reproduced")
 print(f"Agent post-stability: {sum(v > 0 for v in over)}/20 runs; {sum(over)/sum(final):.3%} of total CU")
