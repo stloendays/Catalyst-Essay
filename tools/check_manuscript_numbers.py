@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ARGS = [a for a in sys.argv[1:] if not a.startswith("-")]
-TEXT_PATH = Path(ARGS[0]) if ARGS else ROOT / "docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md"
+TEXT_PATH = Path(ARGS[0]) if ARGS else ROOT / "docs/MANUSCRIPT_MAIN_TEXT.md"
 REPLAY = Path(next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--replay=")),
                    ROOT / "artifacts/discover_v1_scorer_replay/replay.json"))
 text = TEXT_PATH.read_text(encoding="utf-8")
@@ -46,6 +46,7 @@ cmc = json.loads((SUP / "nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
 orc = {r["metric"]: float(r["value"]) for r in rows("analysis/supervisor_2026_09_20/agent_oracle_summary.csv")}
 sweep = rows("figures/composite/fig2/fig2_ru_price_sweep.csv")
 parity = sweep.pop()
+bwd_targets = rows("analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv")
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
 meoh_prov = json.loads((ROOT / "data/meoh/meoh_candidate_ranking_D01v3_provenance.json").read_text(encoding="utf-8"))
 purge = rows("data/meoh/meoh_purge_robustness_D01v3.csv")
@@ -168,6 +169,44 @@ claim("headroom 673 K", "headroom is %s-fold at 673 K" % f(bw["Ru_scaling_max_ga
 claim("headroom max", "maximum of %s-fold" % f(bw["Ru_scaling_max_gain_all_states"], 3))
 claim("best scaling cost", "remains %s US dollars per tonne of NH3 at E_N = %s eV" % (f(bw["Ru_best_scaling_cost_USD_t"], 3), minus(f(bw["Ru_best_scaling_EN_eV"], 3))))
 fact("p05 exceeds headroom by > 10x", a["p05"] / bw["Ru_scaling_max_gain_all_states"] > 10, "%.1f" % (a["p05"] / bw["Ru_scaling_max_gain_all_states"]))
+
+
+def bwd_target(life_y, recovery):
+    return next(
+        r for r in bwd_targets
+        if int(r["catalyst_life_y"]) == life_y
+        and abs(float(r["Ru_recovery_fraction"]) - recovery) < 1e-12
+    )
+
+
+t10 = bwd_target(10, 0.99)
+t15 = bwd_target(15, 0.99)
+t20 = bwd_target(20, 0.99)
+t20r98 = bwd_target(20, 0.98)
+a10 = float(t10["certified_upper_bound_required_direct_activity_multiplier"])
+a15 = float(t15["certified_upper_bound_required_direct_activity_multiplier"])
+a20 = float(t20["certified_upper_bound_required_direct_activity_multiplier"])
+a20r98 = float(t20r98["certified_upper_bound_required_direct_activity_multiplier"])
+fact("joint target ordering", a20 < a15 < a10, f"{a20:.6f} < {a15:.6f} < {a10:.6f}")
+claim(
+    "joint target 10y/15y/20y at 99% recovery",
+    "from at most %s-fold to %s-fold and %s-fold"
+    % (f(a10, 3), f(a15, 3), f(a20, 3)),
+)
+claim(
+    "joint target 20y at 98% recovery",
+    "20-year lifetime with 98% recovery requires at most %s-fold" % f(a20r98, 3),
+)
+fact(
+    "strict-scaling joint reachability not overclaimed",
+    "15.257" not in text
+    and "97.894%" not in text
+    and "reaches parity near the upper edge" not in text,
+)
+fact(
+    "strict-scaling lifecycle audit script present",
+    (ROOT / "analysis/fe_bridge_backward_2026_09_29/run_exact_scaling_lifecycle_surface.py").exists(),
+)
 
 # ---- methanol ---------------------------------------------------------------------------------------
 K = {"1wt250": "1 wt% Re | 250 C", "1wt200": "1 wt% Re | 200 C", "5wt200": "5 wt% Re | 200 C", "5wt250": "5 wt% Re | 250 C"}
