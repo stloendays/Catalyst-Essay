@@ -64,6 +64,12 @@ def read_rows(path: Path):
         return list(csv.DictReader(fh))
 
 
+def q(value: float, ndigits: int = 9) -> float:
+    """Quantize derived outputs so the audit is byte-stable across platforms."""
+    y = round(float(value), ndigits)
+    return 0.0 if abs(y) < 10 ** (-ndigits) else y
+
+
 raw = read_rows(PRICE_SWEEP)
 states = {}
 for row in raw:
@@ -180,15 +186,15 @@ for alpha in alpha_grid:
     rec20 = 1 - pcrit / P_RU * 2.0
     rows.append(
         {
-            "alpha": alpha,
-            "certified_parity_effective_Ru_price_USD_kg": pcrit,
-            "boundary_T_C": opt["T_C"],
-            "boundary_P_bar": opt["P_bar"],
-            "boundary_Tsep_C": opt["Tsep_C"],
-            "boundary_V_m3": opt["V_m3"],
-            "required_recovery_at_10y": rec10,
-            "required_recovery_at_15y": rec15,
-            "required_recovery_at_20y": rec20,
+            "alpha": q(alpha, 12),
+            "certified_parity_effective_Ru_price_USD_kg": q(pcrit, 6),
+            "boundary_T_C": int(round(opt["T_C"])),
+            "boundary_P_bar": int(round(opt["P_bar"])),
+            "boundary_Tsep_C": int(round(opt["Tsep_C"])),
+            "boundary_V_m3": q(opt["V_m3"], 9),
+            "required_recovery_at_10y": q(rec10, 9),
+            "required_recovery_at_15y": q(rec15, 9),
+            "required_recovery_at_20y": q(rec20, 9),
         }
     )
 
@@ -208,27 +214,33 @@ record = {
     "method": "minimize exact reconstructed cost over the 53 distinct process states already present in the fully reoptimized Ru price sweep; this is a certified inner approximation to the full 14,136-state feasible region",
     "no_new_DFT": True,
     "frozen_sources_modified": False,
-    "Fe_cost_USD_t": FE_COST,
-    "canonical_Ru_price_USD_kg": P_RU,
-    "max_scaling_consistent_activity_gain": GALL,
-    "certified_parity_effective_price_at_max_headroom_USD_kg": pcrit_gall,
-    "required_recovery_at_max_headroom_and_20y": 1 - pcrit_gall / P_RU * 2.0,
+    "Fe_cost_USD_t": q(FE_COST, 9),
+    "canonical_Ru_price_USD_kg": q(P_RU, 6),
+    "max_scaling_consistent_activity_gain": q(GALL, 12),
+    "certified_parity_effective_price_at_max_headroom_USD_kg": q(pcrit_gall, 6),
+    "required_recovery_at_max_headroom_and_20y": q(1 - pcrit_gall / P_RU * 2.0, 9),
     "explicit_point": {
-        "activity_multiplier": GALL,
-        "catalyst_life_y": life_y,
-        "metal_recovery_fraction": recovery,
-        "effective_Ru_price_USD_kg": peff,
-        "best_subset_cost_USD_t": key["cost"],
-        "margin_vs_Fe_USD_t": key["cost"] - FE_COST,
+        "activity_multiplier": q(GALL, 12),
+        "catalyst_life_y": int(round(life_y)),
+        "metal_recovery_fraction": q(recovery, 6),
+        "effective_Ru_price_USD_kg": q(peff, 6),
+        "best_subset_cost_USD_t": q(key["cost"], 9),
+        "margin_vs_Fe_USD_t": q(key["cost"] - FE_COST, 9),
         "state": {
-            "T_C": key["T_C"],
-            "P_bar": key["P_bar"],
-            "Tsep_C": key["Tsep_C"],
-            "V_m3": key["V_m3"],
+            "T_C": int(round(key["T_C"])),
+            "P_bar": int(round(key["P_bar"])),
+            "Tsep_C": int(round(key["Tsep_C"])),
+            "V_m3": q(key["V_m3"], 9),
         },
         "certified_feasible": key["cost"] <= FE_COST,
     },
-    "boundary_state_at_max_headroom": boundary_gall,
+    "boundary_state_at_max_headroom": {
+        "cost": q(boundary_gall["cost"], 9),
+        "V_m3": q(boundary_gall["V_m3"], 9),
+        "T_C": int(round(boundary_gall["T_C"])),
+        "P_bar": int(round(boundary_gall["P_bar"])),
+        "Tsep_C": int(round(boundary_gall["Tsep_C"])),
+    },
 }
 assert record["explicit_point"]["certified_feasible"]
 (HERE / "activity_lifecycle_certified_keypoint.json").write_text(
