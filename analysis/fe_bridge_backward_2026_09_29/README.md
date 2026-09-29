@@ -129,4 +129,7 @@ This directory is an audit/derived-analysis layer only.
 
 ## Reproducibility gate
 
-GitHub Actions workflow `.github/workflows/backward-joint-region-audit.yml` recomputes the certified inner-region CSV/JSON from the pinned price-sweep states and fails if the committed outputs drift.
+GitHub Actions workflow `.github/workflows/backward-joint-region-audit.yml` recomputes the direct-alpha boundary, representative target keypoints and conditional diagnostic JSON from the pinned Ru price-sweep states. Run **36516350623** passed on 2026-09-29 after the target/reachability separation and byte-stable output fix.
+
+This CI gate validates the **backward target calculation only**. The strict-scaling x lifecycle reachability result remains pending execution of `run_exact_scaling_lifecycle_surface.py` on the original frozen harness/cache.
+
