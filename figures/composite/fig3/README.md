@@ -1,26 +1,36 @@
 # Figure 3 — composite
 
-Backward design separates the activity economics requires from the activity the material can reach.
-183 × 122 mm, five panels: `Fig3.{svg,pdf,png}`.
+Backward design now separates four logically distinct operations: the activity-only economic target, activity-only physical reachability, the joint activity/lifecycle economic target region, and the exact strict-scaling lifecycle reachability test.
+
+183 × 122 mm, four panels: `Fig3.{svg,pdf,png}`.
 
 | Panel | Content | Source |
 |---|---|---|
-| a | the backward-design question: Ru step site, activity multiplier α, full process reoptimization, parity with the Fe optimum | schematic; step-site renders from `../fig1/renders` |
-| b | required and reachable activity on one axis: the 5,000-draw α\* distribution (p05 70.8, canonical 201.2, p95 462) against the scaling-line peak (1.09×), the direct DFT check (1.84×) and the best over all process states (2.52×); top axis k_BT ln α at 673 K | `nh3_cost_mc_histogram.csv`, `nh3_cost_mc_summary.json`, `headline_1_1.json`, `results.json` |
-| c | Ru reoptimized cost against α with the optimal pressure it moves through; at α\* Ru sits at 425 °C, 190 bar, T_sep 30 °C | `closure/breakeven_sweep.csv`, `headline_1_1.json` |
-| d | activity gain along the strict scaling line at 673 K against the required band | `closure/scaling_reachability.csv` |
-| e | lowest feasible Ru cost along the scaling line: 21.40 USD/t at E_N = −1.215 eV, 6.11 above Fe | `closure/scaling_reachability.csv` |
+| a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=201.22x`; cost-side uncertainty p05–p95 = 70.78–462.00x; strict-scaling headroom shown only as a reference band | FINAL-1.1 `breakeven_sweep.csv`, 5,000-draw cost MC |
+| b | Lowest feasible Ru cost along the strict `E_N` scaling line; minimum 21.397873 USD/t at `E_N=-1.215 eV`, still above Fe 15.291705 USD/t | FINAL-1.1 `scaling_reachability.csv` |
+| c | Conservative direct-activity / lifetime / recovery target curves. At 99% recovery: <=2.41794x (10 y), <=1.74213x (15 y), <=1.40129x (20 y) | `activity_lifecycle_certified_boundary.csv`, `activity_lifecycle_target_keypoints.csv` |
+| d | Exact strict-scaling lifecycle boundary over all 14,136 process states. Tested box `L<=20 y, recovery<=99%` misses parity by 0.07078 USD/t at its best corner; parity requires 99.1186% recovery at 20 y or 22.69 y at 99% recovery | `scaling_lifecycle_exact_global_boundary.csv`, `scaling_lifecycle_exact_summary.json` |
 
-All inputs are pinned NH3-FINAL-1.1 provenance
-(`provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/`) or the preregistered
-joint cost Monte Carlo (`analysis/supervisor_2026_09_20/`); `make_fig3.py` asserts α\* = 201.2234,
-the 2.5246 headroom, p05 = 70.78 and the 5,000-draw total before drawing.
+## Scientific reading order
 
-The top axis of panel b is a unit conversion, ΔE = k_BT ln α at the 673 K atomic reference
-temperature: 2.52× corresponds to 0.054 eV, 70.8× to 0.247 eV and 201× to 0.308 eV.
+```text
+activity-only target
+        ->
+activity-only reachability
+        ->
+joint economic target region
+        ->
+strict-scaling joint reachability
+```
+
+The important distinction is **target versus reachability**. Panel c reports the catalyst-property combinations economics asks for; Panel d independently tests whether the strict scaling-constrained materials space reaches those requirements.
+
+The value **2.524565x** remains a state-specific maximum activity gain and is never treated as a uniform multiplier in the joint reachability calculation.
 
 ## Build
 
+```bash
+python figures/composite/fig3/make_fig3.py
 ```
-pur_bridge_env/python   make_fig3.py      # -> Fig3.svg / .pdf / .png
-```
+
+The script asserts the canonical activity-only and strict-scaling anchors before rendering.
