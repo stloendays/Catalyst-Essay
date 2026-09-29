@@ -1,4 +1,4 @@
-"""Build a certified inner approximation to the Ru activity-lifecycle parity region.
+"""Build a certified inner approximation to the Ru direct-activity/lifecycle target region.
 
 No DFT and no frozen response-cache rebuild are performed. The calculation reuses
 only process states that already appear in the fully reoptimized Ru metal-price
@@ -15,9 +15,12 @@ Fresh/recycle compression, refrigeration and compressor CAPEX are state properti
 Reactor-volume and vessel-pressure terms are recomputed from the frozen FINAL-1.1
 cost correlations at the rescaled V. Minimizing over the 53 states present in the
 price sweep therefore gives an upper bound on the true fully reoptimized Ru cost.
-Consequently, every point declared feasible here is certified feasible in the full
-14,136-state model; points declared infeasible may simply require a state not in
-this subset.
+Consequently, every point declared cost-feasible here is certified cost-feasible
+in the full 14,136-state model for the specified direct, state-independent activity
+multiplier. This is a backward-target calculation, not proof that the same multiplier
+is reachable on the strict descriptor-scaling manifold: the scaling-derived activity
+gain is process-state dependent. Points declared infeasible may simply require a
+state not in this subset.
 
 The subset reproduces both exact one-dimensional parity anchors:
   alpha=1       -> P_eff* ~= 163.763 USD/kg
@@ -25,6 +28,7 @@ The subset reproduces both exact one-dimensional parity anchors:
 
 Outputs:
   activity_lifecycle_certified_boundary.csv
+  activity_lifecycle_target_keypoints.csv
   activity_lifecycle_certified_keypoint.json
 """
 from __future__ import annotations
@@ -155,6 +159,24 @@ def parity_price(alpha: float):
     return lo, opt
 
 
+def parity_alpha(effective_price: float):
+    """Smallest direct activity multiplier that reaches Fe parity in the state subset."""
+    lo, hi = 0.05, 10.0
+    if subset_optimum(lo, effective_price)["cost"] <= FE_COST:
+        return lo, subset_optimum(lo, effective_price)
+    while subset_optimum(hi, effective_price)["cost"] > FE_COST:
+        hi *= 2
+        if hi > 1e6:
+            raise RuntimeError("failed to bracket parity activity")
+    for _ in range(100):
+        mid = 0.5 * (lo + hi)
+        if subset_optimum(mid, effective_price)["cost"] <= FE_COST:
+            hi = mid
+        else:
+            lo = mid
+    return hi, subset_optimum(hi, effective_price)
+
+
 # Axis-anchor validation.
 p1, _ = parity_price(1.0)
 assert abs(p1 - 163.76330261666772) < 1e-3
@@ -203,7 +225,32 @@ with (HERE / "activity_lifecycle_certified_boundary.csv").open("w", encoding="ut
     w.writeheader()
     w.writerows(rows)
 
-# Explicit certified feasible point at the maximum scaling-consistent activity headroom.
+
+# Representative backward targets. These are requirements in direct-alpha space;
+# strict scaling-manifold reachability is a separate calculation.
+target_rows = []
+for life_i, recovery_i in ((10.0, 0.99), (15.0, 0.99), (20.0, 0.99), (20.0, 0.98)):
+    peff_i = P_RU * (1 - recovery_i) * (10.0 / life_i)
+    alpha_i, opt_i = parity_alpha(peff_i)
+    target_rows.append(
+        {
+            "catalyst_life_y": int(round(life_i)),
+            "Ru_recovery_fraction": q(recovery_i, 6),
+            "effective_Ru_price_USD_kg": q(peff_i, 6),
+            "certified_upper_bound_required_direct_activity_multiplier": q(alpha_i, 9),
+            "boundary_T_C": int(round(opt_i["T_C"])),
+            "boundary_P_bar": int(round(opt_i["P_bar"])),
+            "boundary_Tsep_C": int(round(opt_i["Tsep_C"])),
+            "boundary_V_m3": q(opt_i["V_m3"], 9),
+        }
+    )
+
+with (HERE / "activity_lifecycle_target_keypoints.csv").open("w", encoding="utf-8", newline="") as fh:
+    w = csv.DictWriter(fh, fieldnames=list(target_rows[0]))
+    w.writeheader()
+    w.writerows(target_rows)
+
+# Conditional cost-feasibility point using the numerical all-state scaling gain maximum only as a comparison value.
 life_y = 20.0
 recovery = 0.98
 peff = P_RU * (1 - recovery) * (10.0 / life_y)
@@ -216,9 +263,10 @@ record = {
     "frozen_sources_modified": False,
     "Fe_cost_USD_t": q(FE_COST, 9),
     "canonical_Ru_price_USD_kg": q(P_RU, 6),
-    "max_scaling_consistent_activity_gain": q(GALL, 12),
-    "certified_parity_effective_price_at_max_headroom_USD_kg": q(pcrit_gall, 6),
-    "required_recovery_at_max_headroom_and_20y": q(1 - pcrit_gall / P_RU * 2.0, 9),
+    "reference_direct_activity_multiplier_equal_to_all_state_scaling_gain_maximum": q(GALL, 12),
+    "conditional_parity_effective_price_at_reference_multiplier_USD_kg": q(pcrit_gall, 6),
+    "conditional_required_recovery_at_reference_multiplier_and_20y": q(1 - pcrit_gall / P_RU * 2.0, 9),
+    "reachability_caution": "The 2.524565 value is the maximum scaling-derived gain at any process state, not a uniform multiplier proven reachable at the cost-optimal state. The explicit point below certifies cost feasibility only under the direct-multiplier parameterization; strict scaling-consistent joint reachability requires a separate E_N x lifecycle sweep.",
     "explicit_point": {
         "activity_multiplier": q(GALL, 12),
         "catalyst_life_y": int(round(life_y)),
@@ -232,7 +280,8 @@ record = {
             "Tsep_C": int(round(key["Tsep_C"])),
             "V_m3": q(key["V_m3"], 9),
         },
-        "certified_feasible": key["cost"] <= FE_COST,
+        "certified_cost_feasible_given_direct_activity_multiplier": key["cost"] <= FE_COST,
+        "strict_scaling_reachability_established": False,
     },
     "boundary_state_at_max_headroom": {
         "cost": q(boundary_gall["cost"], 9),
@@ -242,7 +291,7 @@ record = {
         "Tsep_C": int(round(boundary_gall["Tsep_C"])),
     },
 }
-assert record["explicit_point"]["certified_feasible"]
+assert record["explicit_point"]["certified_cost_feasible_given_direct_activity_multiplier"]
 (HERE / "activity_lifecycle_certified_keypoint.json").write_text(
     json.dumps(record, indent=2), encoding="utf-8"
 )
