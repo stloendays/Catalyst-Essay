@@ -6,6 +6,7 @@ on:
       - ".github/workflows/manuscript-number-audit.yml"
       - "docs/MANUSCRIPT_MAIN_TEXT.md"
       - "tools/check_manuscript_numbers.py"
+      - "tools/audit_live_manuscript_truth.py"
       - "data/manuscript_headline_results_2026-09-20.csv"
       - "analysis/fe_bridge_backward_2026_09_29/**"
       - "analysis/supervisor_2026_09_20/**"
@@ -32,4 +33,4 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check live manuscript numbers against committed evidence
-        run: python tools/check_manuscript_numbers.py docs/MANUSCRIPT_MAIN_TEXT.md -v
+        run: python tools/audit_live_manuscript_truth.py docs/MANUSCRIPT_MAIN_TEXT.md
