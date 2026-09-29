@@ -104,3 +104,8 @@ No new source of truth is introduced. Current manuscript numbers remain pinned t
 - frozen NH3-FINAL-1.1 provenance under `provenance/nh3_final_1_1/`
 
 This directory is an audit/derived-analysis layer only.
+
+
+## Reproducibility gate
+
+GitHub Actions workflow `.github/workflows/backward-joint-region-audit.yml` recomputes the certified inner-region CSV/JSON from the pinned price-sweep states and fails if the committed outputs drift.
