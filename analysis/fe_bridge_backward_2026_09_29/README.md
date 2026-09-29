@@ -57,20 +57,41 @@ Consequences:
 
 The prespecified lifecycle envelope used by the lever audit (5–20 y life; 0.99 as optimistic recovery bound) therefore does not reach Fe parity at the current Ru activity. This adds a genuine two-property feasible region to the backward-design result without rerunning DFT.
 
-### Joint activity-lifecycle region: certified non-DFT inner approximation
+### Joint direct-activity/lifecycle target region
 
-Allowing activity and lifecycle properties to improve together changes the reachability conclusion. To avoid assuming that the two levers are separable after process optimization, the audit reuses the 53 distinct process states that already appear in the fully reoptimized Ru metal-price sweep. For each frozen state, a direct Ru activity multiplier rescales required bed volume exactly as V(alpha)=V(1)/alpha; lifetime and recovery map exactly to the effective Ru metal price; and the reactor-volume and vessel-pressure terms are recomputed from the frozen FINAL-1.1 cost correlations. Minimizing over this state subset gives an upper bound on the true fully reoptimized Ru cost. Therefore every point classified as feasible by this audit is guaranteed feasible in the full 14,136-state model; the method can only miss additional feasible points.
+Allowing activity and lifecycle variables to move together changes the **required backward target**, but target determination and physical reachability must remain separate. The audit reuses the 53 distinct process states that already appear in the fully reoptimized Ru metal-price sweep. For each frozen state, a direct, state-independent Ru activity multiplier rescales required bed volume as V(alpha)=V(1)/alpha; lifetime and recovery map exactly to the effective Ru metal price; and the reactor-volume and vessel-pressure terms are recomputed from the frozen FINAL-1.1 cost correlations.
 
-The subset reproduces both independent parity anchors to numerical tolerance:
+Because this search minimizes over only a subset of the full 14,136-state library, it gives a conservative upper bound on the direct activity multiplier required for parity. The subset reproduces both independent one-dimensional parity anchors:
 
-- alpha = 1: effective Ru parity price = **163.7633 USD kg^-1**;
-- alpha = 201.223: parity returns to the canonical Ru price **53,852.5 USD kg^-1**.
+- alpha = 1 -> effective Ru parity price = **163.7633 USD kg^-1**;
+- alpha = 201.223 -> parity returns to the canonical Ru price **53,852.5 USD kg^-1**.
 
-At the maximum scaling-consistent activity gain already present in the frozen model, alpha = **2.524565**, the certified effective-price parity boundary rises to **566.964 USD kg^-1**. This implies a recovery requirement of **98.947% at 10 y**, **98.421% at 15 y**, and **97.894% at 20 y**.
+Representative backward targets are:
 
-Most importantly, the explicit joint point alpha = **2.524565x**, catalyst lifetime = **20 y**, Ru recovery = **98.0%**, effective Ru price = **538.525 USD kg^-1** is already feasible without any new process state: the existing **425 C / 185 bar / 30 C** state gives **15.2571 USD t^-1 NH3**, **0.0346 USD t^-1 below Fe**. Because this is a direct feasible-state evaluation, full reoptimization can only preserve or improve that result.
+- **10 y life + 99% recovery:** direct activity multiplier <= **2.41794x**;
+- **15 y life + 99% recovery:** <= **1.74213x**;
+- **20 y life + 99% recovery:** <= **1.40129x**;
+- **20 y life + 98% recovery:** <= **2.41794x**.
 
-This refines the backward-design conclusion: **activity alone is unreachable, and lifecycle improvement alone misses parity inside the prespecified range, but the combined activity-lifetime-recovery design region does intersect parity near the upper edge of the existing property envelope.** The reproducible audit is implemented in build_certified_inner_surface.py; run_exact_joint_surface.py is prepared for the original harness machine to map the complete 14,136-state boundary without new DFT.
+These results are the useful P1 extension: the original 201.22x single-property target collapses into a much smaller **activity-lifetime-recovery target region** once lifecycle properties are allowed to improve simultaneously.
+
+### Reachability caution
+
+The target region above is **not yet evidence that the same property combinations are physically reachable along the strict E_N scaling manifold**. The published 2.524565x value is the maximum scaling-derived activity gain found at any one process state. Because the scaling-derived gain is process-state dependent, that maximum cannot be treated as a uniform activity multiplier and applied to a different cost-optimal state.
+
+Accordingly, the earlier conditional calculation at direct alpha = 2.524565 is retained only as a diagnostic cost-space comparison and is not promoted as a manuscript reachability claim.
+
+The correct next test is an exact strict-scaling x lifecycle sweep:
+
+1. vary Ru E_N along the frozen scaling grid;
+2. obtain the state-resolved logTOF vector from the existing cached response surface;
+3. apply lifecycle economics through P_eff = P_Ru (1-r) (10 y/L);
+4. fully reoptimize all 14,136 process states;
+5. test whether any point with L <= 20 y and r <= 0.99 reaches C_Ru <= C_Fe.
+
+`run_exact_scaling_lifecycle_surface.py` now implements this test for the original frozen harness machine. It explicitly refuses to rebuild the response cache and performs no new DFT. The baseline regression gate requires it to reproduce the canonical strict-scaling minimum **21.397873 USD/t at E_N = -1.215 eV** before any joint reachability result is accepted.
+
+The direct-target audit remains reproducible through `build_certified_inner_surface.py`, and `run_exact_joint_surface.py` is retained as the full-state direct-alpha counterpart.
 
 ## 3. First layer at which the NH3 ranking inverts
 
