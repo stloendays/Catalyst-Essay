@@ -158,6 +158,10 @@ Frozen provenance and audit records remain in the repository for traceability.
 
 The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS.md`**.
 
+## Remaining non-figure provenance item
+
+The 2026-09-20 NH3 economic Monte Carlo is fully supported at the summary level, but the current Git snapshot does not contain the preregistered per-draw cost table. The committed evidence is sufficient for **P(C_Fe < C_Ru)=1.000** and the alpha* summary distribution, and therefore for the sign of selection regret under the sampled economic uncertainty. Before submission, restore or exactly regenerate the draw-level table if a median/95% interval for **regret magnitude** is to be reported. See `analysis/nonfigure_upgrades_2026_09_29/REPRODUCIBILITY_NOTES.md`.
+
 ## Next production tasks
 
 1. run a cross-document audit of the current main text, six-figure captions and Methods definitions;
