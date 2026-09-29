@@ -68,6 +68,10 @@ parity = price_sweep[-1]
 targets = rows("analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv")
 strict_joint = json.loads((ROOT / "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json").read_text(encoding="utf-8"))
 headline = rows("data/manuscript_headline_results_2026-09-20.csv")
+regret = {r["system"]: r for r in rows("analysis/nonfigure_upgrades_2026_09_29/decision_regret_summary.csv")}
+transfer = {r["system"]: r for r in rows("analysis/nonfigure_upgrades_2026_09_29/pairwise_inversion_index.csv")}
+corr_uq = rows("analysis/nonfigure_upgrades_2026_09_29/descriptor_correlation_sensitivity.csv")
+stop_eff = json.loads((ROOT / "analysis/nonfigure_upgrades_2026_09_29/agent_stopping_efficiency.json").read_text(encoding="utf-8"))
 
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
 meoh_prov = json.loads((ROOT / "data/meoh/meoh_candidate_ranking_D01v3_provenance.json").read_text(encoding="utf-8"))
@@ -109,6 +113,15 @@ tokens(
 )
 ok("NH3 atomic top3 source", det["activity_order"][:3] == ["Ru", "Os", "Fe"])
 ok("NH3 economic top3 source", det["raw_economic_order"][:3] == ["Fe", "Ru", "Os"])
+tokens(
+    "NH3 decision regret in ranking section",
+    s1,
+    "44.1%",
+)
+ok(
+    "NH3 decision regret source",
+    abs(float(regret["NH3"]["normalized_decision_regret"]) - 0.44068926608899806) < 1e-12,
+)
 
 # ----- Results 2: price/process/uncertainty ----------------------------------
 s2 = section("Metal price and process optimization jointly determine the Fe-Ru ranking")
@@ -159,6 +172,21 @@ tokens(
     f"{a['p05']:.2f}-fold",
     f"{a['p50']:.2f}-fold",
     f"{a['p95']:.2f}-fold",
+)
+rho0 = next(r for r in corr_uq if abs(float(r["latent_pairwise_correlation"]) - 0.0) < 1e-12)
+rho9 = next(r for r in corr_uq if abs(float(r["latent_pairwise_correlation"]) - 0.9) < 1e-12)
+tokens(
+    "NH3 descriptor error-dependence sensitivity",
+    s2,
+    "21.7%",
+    "10.7%",
+    "Gaussian copula",
+    "common-offset",
+)
+ok(
+    "NH3 copula Fe-top1 anchors",
+    abs(float(rho0["P_atomic_top1_Fe"]) - 0.10707) < 1e-8
+    and abs(float(rho9["P_atomic_top1_Fe"]) - 0.21678) < 1e-8,
 )
 
 # ----- Results 3: backward target and reachability ----------------------------
@@ -248,6 +276,11 @@ tokens(
     "5,000",
 )
 ok("MeOH at least two inversions across purge", min(int(r["pairwise_inversions"]) for r in purge) == 2)
+tokens("MeOH decision regret", s4, "3.36%")
+ok(
+    "MeOH regret source",
+    abs(float(regret["MeOH"]["normalized_decision_regret"]) - 0.03359482667232064) < 1e-12,
+)
 
 # ----- Results 5: rank-preservation control ----------------------------------
 s5 = section("Catalyst effects on process operation determine whether rankings change")
@@ -271,6 +304,8 @@ ok(
         for a, b in zip(au, au[1:])
     ),
 )
+tokens("Au zero decision regret", s5, "zero selection regret")
+ok("Au regret source", float(regret["AuTiO2"]["normalized_decision_regret"]) == 0.0)
 
 # ----- Results 6: Agent -------------------------------------------------------
 s6 = section("Adaptive calculation selection makes the multiscale analysis repeatedly executable")
@@ -294,6 +329,49 @@ tokens(
 ok("Agent interface source has 11 actions", len(schema["actions"]) == 11)
 c50 = next(r for r in comp if r["tier"] == "strong" and r["arm"] == "E" and r["budget_CU"] == "50")
 ok("Agent winner/pair 20/20 at 50 CU", c50["k_winner"] == c50["k_pair"] == c50["n"] == "20")
+tokens(
+    "Agent nonbinding stopping diagnostic",
+    s6,
+    "14/20",
+    "8,207",
+    "17,535",
+    "46.8%",
+)
+ok(
+    "Agent post-stability source",
+    stop_eff["runs_with_positive_overrun"] == 14
+    and stop_eff["total_post_stability_overrun_CU"] == 8207
+    and abs(stop_eff["fraction_total_compute_after_hindsight_stability"] - 0.46803535785571715) < 1e-12,
+)
+
+# ----- Discussion / Methods semantic locks ------------------------------------
+discussion = raw_text[raw_text.index("## Discussion"):raw_text.index("## Methods")]
+methods = raw_text[raw_text.index("## Methods"):]
+tokens(
+    "pairwise transfer-index interpretation",
+    discussion,
+    "χ_AB",
+    "+0.085",
+    "+0.026",
+    "-1.00",
+)
+ok(
+    "pairwise transfer-index source signs",
+    float(transfer["NH3"]["pairwise_transfer_index_chi"]) > 0
+    and float(transfer["MeOH"]["pairwise_transfer_index_chi"]) > 0
+    and float(transfer["AuTiO2"]["pairwise_transfer_index_chi"]) < 0,
+)
+tokens(
+    "NH3 reduced-cost scope lock",
+    methods,
+    "reduced catalyst-dependent cost objective",
+    "not total levelized ammonia production cost",
+)
+ok(
+    "no stale pending joint-reachability language",
+    "Strict scaling-consistent joint reachability is not yet promoted" not in raw_text
+    and "PENDING_EXACT_CACHE_SWEEP" not in raw_text,
+)
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
