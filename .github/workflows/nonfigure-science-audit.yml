@@ -1,0 +1,30 @@
+name: Non-figure scientific upgrade audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analysis/nonfigure_upgrades_2026_09_29/**"
+      - "figures/composite/fig1/fig1_metals.csv"
+      - "data/meoh/meoh_candidate_ranking_D01v3.csv"
+      - "data/rank_preservation_control_v1_1.csv"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/closure/scaling_reachability.csv"
+      - "provenance/discover_v1/source_harness/DISCOVER_BOUNDARY_C1/data/discover_boundary_c1_uncapped_breakeven_audit.csv"
+      - ".github/workflows/nonfigure-science-audit.yml"
+  pull_request:
+    paths:
+      - "analysis/nonfigure_upgrades_2026_09_29/**"
+      - ".github/workflows/nonfigure-science-audit.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate non-figure derived science
+        run: python analysis/nonfigure_upgrades_2026_09_29/validate_nonfigure_upgrades.py
