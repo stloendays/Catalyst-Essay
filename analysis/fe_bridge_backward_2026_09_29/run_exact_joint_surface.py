@@ -1,8 +1,13 @@
-"""Full 14,136-state joint Ru activity/lifecycle parity sweep.
+"""Full 14,136-state joint Ru direct-activity/lifecycle target sweep.
 
 This script is designed for the original NH3-FINAL-1.1 harness machine. It performs
 NO DFT and refuses to rebuild the frozen response surface. It only reuses the cached
 MKM/process response and reoptimizes the existing 14,136 process states.
+
+Important: alpha here is a direct, state-independent multiplier applied to the frozen
+Ru activity vector. This maps the *required* backward target region. It does not establish
+that a given alpha is reachable along the strict E_N scaling manifold, where the activity
+gain is process-state dependent. Use run_exact_scaling_lifecycle_surface.py for that test.
 
 Usage:
   python run_exact_joint_surface.py /path/to/Catalyst_Economic_Leverage_Automation_Harness_v0.1
