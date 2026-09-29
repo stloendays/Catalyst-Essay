@@ -17,6 +17,7 @@ where lower downstream objective is better.
 Canonical values:
 
 - NH3: choosing Ru from intrinsic activity instead of Fe from catalyst-dependent economics gives **R = 44.07%**.
+  Under the preregistered 5,000-draw cost-side Monte Carlo, **R stays positive in 5,000/5,000 draws** and its p05 / median / p95 are **30.48% / 40.89% / 54.25%**. The original Fe/Ru cost-gap and cost quantiles are reproduced exactly by `reproduce_nh3_cost_mc.py`.
 - MeOH: choosing 1 wt% Re / 250 C from STY per g Re instead of 5 wt% Re / 200 C from NPC gives **R = 3.36%**.
 - Au/TiO2: the upstream and downstream winners coincide, so **R = 0**.
 
