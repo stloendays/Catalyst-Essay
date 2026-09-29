@@ -1,0 +1,40 @@
+name: NH3 cost MC reconstruction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_repro_inputs.json"
+      - "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_regret_summary.json"
+      - "analysis/nonfigure_upgrades_2026_09_29/reproduce_nh3_cost_mc.py"
+      - "analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json"
+      - "provenance/discover_v1/source_harness/harness_core.py"
+      - "provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml"
+      - ".github/workflows/nh3-cost-mc-reconstruction.yml"
+  pull_request:
+    paths:
+      - "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_repro_inputs.json"
+      - "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_regret_summary.json"
+      - "analysis/nonfigure_upgrades_2026_09_29/reproduce_nh3_cost_mc.py"
+      - ".github/workflows/nh3-cost-mc-reconstruction.yml"
+  workflow_dispatch:
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scientific dependencies
+        run: pip install numpy scipy openpyxl pyyaml
+      - name: Reconstruct frozen cost-side Monte Carlo
+        run: python analysis/nonfigure_upgrades_2026_09_29/reproduce_nh3_cost_mc.py
+      - name: Upload reconstructed draw table
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-cost-mc-draws-reproduced
+          path: analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_draws_reproduced.csv
+          retention-days: 90
