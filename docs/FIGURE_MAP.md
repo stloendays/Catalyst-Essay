@@ -1,6 +1,6 @@
 # Figure map — six-figure manuscript architecture
 
-Snapshot: **2026-09-23**  
+Snapshot: **2026-09-29**  
 Primary ammonia basis: **ammonia process–economics model**
 
 The manuscript now uses **six composite main figures**. Reader-facing scientific names follow [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md). The previous F1-F10 assets remain frozen or hash-pinned as source panels and provenance; they are not deleted or renumbered on disk. This document defines the publication-facing grouping.
@@ -64,9 +64,9 @@ The manuscript now uses **six composite main figures**. Reader-facing scientific
 
 ---
 
-## Figure 3 — Backward design separates an economic target from a reachable catalyst target
+## Figure 3 — Backward design separates single-property limits from a reachable joint catalyst target
 
-**Question:** If Ru loses economically, how much intrinsic-activity improvement is required, and is that target physically accessible?
+**Question:** If Ru loses economically, what property changes are required for parity, and does a reachable combination exist even when the activity-only target does not?
 
 **Panel a — activity-only backward sweep**
 - canonical Ru activity-only break-even: **201.22x**
@@ -77,9 +77,16 @@ The manuscript now uses **six composite main figures**. Reader-facing scientific
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**
 - cost-MC p05 activity target: **70.78x**, still far above the **2.525x** maximum headroom
 
-**Source assets:** legacy F5 + F6.
+**Panel c — certified joint activity-lifetime-recovery region**
+- 53-state certified inner approximation; no new DFT
+- at **2.524565x** activity, certified parity effective Ru price: **566.964 USD/kg**
+- equivalent recovery threshold at **20 y** life: **97.894%**
+- explicit point **2.524565x + 20 y + 98% recovery**: Ru **15.257 USD/t NH3** at **425 C / 185 bar / 30 C**, below Fe **15.292 USD/t**
+- because the calculation minimizes over a subset of already validated process states, feasibility is conservative: full 14,136-state reoptimization can only equal or improve the identified point
 
-**Role:** show that 201.22x is a canonical economic reference, while the stronger conclusion is that the activity-only target remains unreachable throughout the tested economic envelope.
+**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_boundary.csv` + certified key-point audit.
+
+**Role:** separate two conclusions that would otherwise be conflated: the activity-only target is unreachable, but a joint catalyst-property region intersects parity near the upper edge of the tested activity/lifecycle envelope. The current Fig. 3 raster predates Panel c; this panel is queued for the next composite redraw.
 
 ---
 
