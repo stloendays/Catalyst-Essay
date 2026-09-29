@@ -75,23 +75,36 @@ Representative backward targets are:
 
 These results are the useful P1 extension: the original 201.22x single-property target collapses into a much smaller **activity-lifetime-recovery target region** once lifecycle properties are allowed to improve simultaneously.
 
-### Reachability caution
+### Exact strict-scaling × lifecycle reachability closure
 
-The target region above is **not yet evidence that the same property combinations are physically reachable along the strict E_N scaling manifold**. The published 2.524565x value is the maximum scaling-derived activity gain found at any one process state. Because the scaling-derived gain is process-state dependent, that maximum cannot be treated as a uniform activity multiplier and applied to a different cost-optimal state.
+The physical-reachability test is now closed without new DFT. The strict-scaling calculation was evaluated over all **14,136** FINAL-1.1 process states using the same Wang/S1-derived kinetic model and the canonical **0.005 eV** descriptor grid. The canonical regression gate is reproduced exactly: the activity-only strict-scaling minimum remains **21.397873 USD t^-1 NH3 at E_N = -1.215 eV**.
 
-Accordingly, the earlier conditional calculation at direct alpha = 2.524565 is retained only as a diagnostic cost-space comparison and is not promoted as a manuscript reachability claim.
+A useful reduction makes the joint sweep exact and inexpensive. At a fixed process state, changing E_N changes cost only through TOF -> required active metal -> catalyst-bed volume. Metal replacement cost, the reactor-volume term and the vessel-pressure term all increase monotonically with required active metal / volume, while the process-state compression and refrigeration terms are independent of E_N. Therefore, for every process state and every lifetime/recovery choice, the cost-minimizing E_N is simply that state's TOF-maximizing E_N on the strict-scaling grid. The audit first finds that statewise descriptor optimum and then takes the lower cost envelope over all 14,136 states.
 
-The correct next test is an exact strict-scaling x lifecycle sweep:
+The resulting lifecycle variable is
 
-1. vary Ru E_N along the frozen scaling grid;
-2. obtain the state-resolved logTOF vector from the existing cached response surface;
-3. apply lifecycle economics through P_eff = P_Ru (1-r) (10 y/L);
-4. fully reoptimize all 14,136 process states;
-5. test whether any point with L <= 20 y and r <= 0.99 reaches C_Ru <= C_Fe.
+```
+q = (1 - recovery) / catalyst_lifetime
+```
 
-`run_exact_scaling_lifecycle_surface.py` now implements this test for the original frozen harness machine. It explicitly refuses to rebuild the response cache and performs no new DFT. The baseline regression gate requires it to reproduce the canonical strict-scaling minimum **21.397873 USD/t at E_N = -1.215 eV** before any joint reachability result is accepted.
+and the strict-scaling parity boundary is
 
-The direct-target audit remains reproducible through `build_certified_inner_surface.py`, and `run_exact_joint_surface.py` is retained as the full-state direct-alpha counterpart.
+- q* = **4.40683454e-4 y^-1**;
+- equivalent Ru effective price at the 10-year basis = **237.319 USD kg^-1**;
+- parity occurs at **E_N = -1.230 eV**, **425 C / 190 bar / 30 C**, with a **4.298 m3** bed.
+
+Within the prespecified lifecycle envelope (**life <= 20 y; recovery <= 0.99**), the best corner is 20 y + 99% recovery. Its strict-scaling optimum is **15.36249 USD t^-1 NH3**, still **0.07078 USD t^-1** above Fe (**0.46%**). Thus the tested lifecycle box **does not intersect** the strict E_N scaling manifold.
+
+The boundary lies only slightly outside that box:
+
+- **20 y lifetime -> 99.1186% recovery** is required for parity;
+- **99% recovery -> 22.69 y lifetime** is required;
+- **10 y -> 99.5593% recovery**;
+- **15 y -> 99.3390% recovery**.
+
+This is the key P1 result. The direct backward target region moves very close to physical reachability when lifecycle properties improve simultaneously, but under the prespecified 5–20 y / <=99% recovery envelope the strict-scaling manifold still misses Fe parity. The conclusion is therefore neither "activity can never work" nor "the combined target is reachable": **activity alone is far outside reach; joint lifecycle improvement nearly closes the gap, but the tested material-property envelope remains just short of the industrial target.**
+
+Machine-readable outputs are `scaling_lifecycle_exact_summary.json`, `scaling_lifecycle_exact_keypoints.csv` and `scaling_lifecycle_exact_global_boundary.csv`. The fast reproducible calculation is `run_statewise_strict_scaling_lifecycle.py`; `run_exact_scaling_lifecycle_surface.py` is retained as the brute-force cached-response implementation of the same scientific test.
 
 ## 3. First layer at which the NH3 ranking inverts
 
