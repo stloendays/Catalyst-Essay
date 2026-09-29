@@ -95,6 +95,8 @@ These values strengthen interpretation without modifying the frozen reaction mod
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
 | NH3 normalized upstream-selection regret | 44.0689% | DERIVED-A | `analysis/nonfigure_upgrades_2026_09_29/decision_regret_summary.csv` |
+| NH3 regret p05 / median / p95 under preregistered cost MC | 30.48% / 40.89% / 54.25% | DERIVED-A | `analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_regret_summary.json` |
+| NH3 P(regret > 0) under cost MC | 1.000 (5000/5000) | DERIVED-A | same |
 | MeOH normalized upstream-selection regret | 3.3595% | DERIVED-A | same |
 | Au/TiO2 selection regret | 0 | DERIVED-A | same |
 | pairwise transfer index, NH3 Ru vs Fe | +0.08531 | DERIVED-A | `pairwise_inversion_index.csv` |
@@ -109,6 +111,7 @@ These values strengthen interpretation without modifying the frozen reaction mod
 **Semantic locks:**
 
 - Decision regret is normalized **within each system**; it does not make absolute NH3 and MeOH objectives comparable.
+- The NH3 cost-MC regret distribution is calculated from an exact reconstruction of the preregistered draw sequence; its regenerated Fe/Ru cost summary matches the previously promoted 2026-09-20 summary to machine precision.
 - The copula/common-bias calculations are **uncertainty-model sensitivities**, not replacements for the preregistered descriptor or cost Monte Carlo.
 - The Agent 46.8% value uses hindsight decision stability and is **not an online saving estimate**.
 - The NH3 values of 15–26 USD/t are a **reduced catalyst-dependent cost objective**, not total levelized ammonia production cost.
