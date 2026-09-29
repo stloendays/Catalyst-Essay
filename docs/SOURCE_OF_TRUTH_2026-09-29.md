@@ -117,6 +117,7 @@ These values strengthen interpretation without modifying the frozen reaction mod
 - The NH3 values of 15–26 USD/t are a **reduced catalyst-dependent cost objective**, not total levelized ammonia production cost.
 
 Model validation and scope are recorded in `analysis/nonfigure_upgrades_2026_09_29/MODEL_VALIDATION_MATRIX.md`.
+External process/economic comparison is recorded in `analysis/nonfigure_upgrades_2026_09_29/EXTERNAL_VALIDATION_AND_BENCHMARK_2026-09-30.md`. The reader-facing interpretation is locked as follows: **external literature supports the Fe operating window and catalyst–process coupling structure, but it does not validate the model-specific pure-Ru optimum or the absolute reduced-cost values. Published Fe/Ru studies themselves show that the preferred catalyst changes with plant scale, pressure and loop configuration.**
 
 ## Other active scientific families
 
