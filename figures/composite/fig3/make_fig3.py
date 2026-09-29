@@ -234,7 +234,7 @@ d.plot(20.0, boundary20, "o", ms=4.0, mfc=RU, mec=INK, mew=0.5, zorder=5)
 d.plot(life99, 99.0, "o", ms=3.7, mfc=RU, mec=INK, mew=0.5, zorder=5)
 
 d.annotate(
-    "tested corner\n20 y + 99%\n+%.3f USD t$^{-1}$" % corner_margin,
+    "tested corner\n20 y + 99%%\n+%.3f USD t$^{-1}$" % corner_margin,
     xy=(20.0, 99.0), xytext=(26.2, 99.55),
     fontsize=5.4, va="top", ha="left",
     arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
