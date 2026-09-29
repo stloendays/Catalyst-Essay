@@ -1,6 +1,6 @@
 # Current project status
 
-Snapshot date: **2026-09-23**
+Snapshot date: **2026-09-29**
 
 ## Overall state
 
@@ -49,6 +49,8 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 **Ru-price counterfactual:** with Ru metal price set equal to Fe = **8 USD/kg**, full reoptimization gives Ru = **14.712 USD/t** at **425 C / 170 bar / 30 C**, **0.580 USD/t below Fe**. The baseline inversion therefore depends on the Ru-vs-Fe metal-price disparity, with process reoptimization mediating the response. The canonical 6.739 USD/t gap is dominated by fresh-feed compression (+4.632), metal inventory (+1.763) and compressor CAPEX (+1.181 USD/t), partly offset by vessel/recycle/reactor terms.
 
 **Joint cost MC:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000**; alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**.
+
+**Joint backward-design region (2026-09-29):** activity alone remains unreachable (201.22x required vs 2.525x maximum scaling-consistent headroom), but a certified inner-region audit over 53 previously optimized Ru price-sweep states shows that a combined target is feasible without new DFT. At **2.524565x activity + 20 y life + 98% Ru recovery**, the existing **425 C / 185 bar / 30 C** state costs **15.257 USD/t NH3**, below Fe at 15.292. At the same activity headroom, the certified parity effective-price boundary is **566.964 USD/kg**, corresponding to a **97.894%** recovery requirement at 20 y.
 
 The frozen ammonia source-harness provenance is retained under `provenance/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
 
