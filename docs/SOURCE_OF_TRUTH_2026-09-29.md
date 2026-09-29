@@ -99,7 +99,8 @@ Their current manuscript-facing values remain in `data/manuscript_headline_resul
 ## Machine gates
 
 - backward direct-target reproducibility: GitHub Actions run **36516398387 — PASS**
-- section-aware live manuscript truth audit: GitHub Actions run **36516694081 — PASS**
+- strict-scaling lifecycle result gate: GitHub Actions run **36527291341 — PASS**
+- section-aware live manuscript truth audit after inversion-layer rewrite: GitHub Actions run **36527629470 — PASS**
 
 The active automated manuscript audit is:
 
