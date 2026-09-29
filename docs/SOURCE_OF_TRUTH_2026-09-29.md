@@ -74,17 +74,19 @@ Authoritative derived files:
 
 ## First NH3 inversion layer
 
-The layer-wise causal audit is:
+The layer-wise causal audit now has a common-reference diagnostic plus an independent full-process intervention:
 
 ```text
-intrinsic activity                 Ru > Os > Fe
-minimum catalyst demand            Ru > Os > Fe
-full process, Ru priced as Fe      Ru remains below Fe in cost
-actual-price inventory economics   Fe < Ru < Os   <-- first explicit flip
-full canonical optimization        Fe < Ru < Os   <-- flip amplified
+673 K intrinsic activity                      Ru > Os > Fe
+same-reference active-metal demand            Ru < Os < Fe   (lower burden is better)
+canonical price + 10-y replacement economics Fe < Ru < Os   <-- FIRST FLIP
+full process, Ru priced as Fe                 Ru remains below Fe in cost
+full canonical optimization                   Fe < Ru < Os   <-- flip amplified
 ```
 
-The manuscript interpretation is therefore: **metal-price-weighted catalyst inventory triggers the Fe-Ru inversion; the coupled process response amplifies the resulting cost gap.**
+At the common atomistic reference, the normalized active-metal demands are **2,161.5 kg Ru / 4,503.5 kg Os / 86,279 kg Fe**. Annualizing only the metal replacement term at canonical prices changes these to **0.199 / 33.570 / 185.270 USD/t NH3 for Fe / Ru / Os**, before reactor, compression, refrigeration or equipment costs are added.
+
+The publication interpretation is therefore: **the first ranking inversion occurs at the catalyst-demand-to-lifecycle-economics interface; candidate-specific process reoptimization subsequently amplifies the cost difference.** The equal-price full-process ablation independently confirms that process optimization alone is insufficient to make Fe beat Ru.
 
 ## Other active scientific families
 
