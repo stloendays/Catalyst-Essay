@@ -21,7 +21,7 @@ The Mamun values are put on the S1 terrace scale with a linear fit over the 14 p
   proportion to atomic fraction, so every pure metal sits exactly at its frozen descriptor. Ni has no pure Mamun
   surface and keeps a zero offset.
 
-## Results (309 surfaces whose elements all carry a frozen price)
+## Results with frozen prices (309 surfaces whose elements all carry a frozen price)
 
 | | Global route | Element-anchored route |
 |---|---|---|
@@ -42,5 +42,28 @@ surfaces below Fe.
 - A descriptor-only lower bound (best-state activity, smallest reactor, cheapest process state) rules out 243 of 309
   candidates (78.6 %) before the full 14,136-state optimization. All 309 are also optimized in full: no candidate
   below Fe is ruled out.
-- 1,487 surfaces contain an element without a frozen price (Nb, Ti, Al, La, V, Zr, Hf, Sn, Ta, Tc, Y, Zn, Cd, In,
-  Sc, Pb, Ga, Cr, Hg, Tl, Mn, Bi) and are not costed.
+
+## Extension to all priced elements (USGS Mineral Commodity Summaries 2026)
+
+The 22 elements without a frozen price take the 2025 annual-average prices of the USGS Mineral Commodity Summaries 2026
+(https://pubs.usgs.gov/publication/mcs2026, per-commodity PDFs `mcs2026-<commodity>.pdf`), expressed per kg of contained
+metal: oxide, ore and ferroalloy quotations are divided by the metal mass fraction (`element_prices_usgs_mcs2026.csv`
+lists the quotation, unit, conversion and basis for each element; Hg uses 2024, the latest year reported). Tc has no
+market price; its 101 surfaces stay uncosted. The frozen 15-metal prices are unchanged and the frozen-price results
+above are reproduced exactly.
+
+Each surface carries a `domain` label, because the activity model is fitted on transition metals:
+
+| Layer | Costed | Inside bed cap | Below Fe, global route | Below Fe, anchored route |
+|---|---:|---:|---|---|
+| transition metals only (no sp metal, no group 3–5 element) | 372 | 138 | Cu3Cr 14.36, Fe3Mo, Cu3Mo, Fe3W, Ni3W | Cu3Cr 14.36, Cu3Mo, CuMo, MoNi, CoMo, CoW |
+| + group 3–5 elements (Sc, Y, La, Ti, Zr, Hf, V, Nb, Ta) | 912 | 222 | 13 (Fe3V 14.30 first) | 16 (Cu3Cr first) |
+| + sp metals (Al, Zn, Cd, Hg, Ga, In, Tl, Sn, Pb, Bi) | 1,695 | 406 | 52 (Al3Ti 13.85 first) | 56 |
+
+- In the transition-metal layer every surface below Fe, in either route, is one cheap 3d metal (Fe, Co, Ni, Cu) with a
+  group-6 metal (Cr, Mo, W). The highest-activity surface ranks 43rd (Os3Pt, regret 70.9 %) or 40th (AuW, 62.9 %).
+- Surfaces containing sp metals lie outside the transition-metal scaling and BEP relations the activity model is built
+  on (pure Al, for example, is placed near Fe on the descriptor axis and priced at 3.97 USD/kg). Group 3–5 elements form
+  very stable bulk nitrides, which a surface-descriptor screen does not represent. Both layers are reported, not ranked.
+- Descriptor-only pruning over all 1,695 costed surfaces rules out 1,397 (82.4 %) before full optimization, with no
+  false prunes.

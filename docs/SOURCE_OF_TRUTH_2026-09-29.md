@@ -280,10 +280,13 @@ workbook terrace→step regression → per-state activity on the cached response
 | below Fe, element-anchored route | Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 USD/t | DERIVED-A | same |
 | highest-activity surface | Os3Pt economic #32, regret 69.0 % (global); AuW #29, 60.2 % (anchored) | DERIVED-A | `summary.json` |
 | descriptor-only pruning | 243/309 (78.6 %) ruled out before full optimization; 0 false prunes | DERIVED-A | same |
+| all priced elements (USGS MCS 2026 for the 22 non-model elements), transition-metal layer | 372 costed; below Fe: Cu3Cr, Fe3Mo, Cu3Mo, Fe3W, Ni3W (global) / Cu3Cr, Cu3Mo, CuMo, MoNi, CoMo, CoW (anchored) | DERIVED-A | `summary.json` (`extended_excluding_sp_and_group3to5`) |
+| all priced elements, every layer | 1,695 costed; pruning 1,397 (82.4 %), 0 false prunes | DERIVED-A | `summary.json` (`extended_with_usgs_prices`) |
 
 **Semantic lock:** individual below-Fe alloys depend on the descriptor bridge; the family does not — every surface below
 Fe in either route is one cheap 3d metal (Fe, Co, Ni, Cu) with Mo or W. Mamun surfaces are ideal L1₂(111)/L1₀(101)
-slabs; bulk phase stability is not part of this screen.
+slabs; bulk phase stability is not part of this screen. Surfaces with sp metals (outside the transition-metal scaling
+relations) or group 3–5 elements (stable bulk nitrides) are reported as separate layers and are not ranked against Fe.
 
 ## Other active scientific families
 
