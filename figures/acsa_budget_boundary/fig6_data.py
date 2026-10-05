@@ -14,7 +14,7 @@ import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 AGENT = ("data/discover_boundary_c1/runs/gpt-5.5-2026-04-23/traces/anonymous/"
          "E_llm_agent_anonymous_B150_r1_c1_20260909T124030Z")
 DREF = "data/discover_boundary_c1/D_reference/traces/anonymous/D_fixed_voi_anon_B225_s0_c1_20260908T102449Z"

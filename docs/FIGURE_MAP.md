@@ -160,32 +160,17 @@ Using STY per g Re:
 
 ---
 
-## Figure 6 — Decision-aware agents make the multiscale framework repeatedly executable
+## Figure 6 — An automated agent extends the analysis to published and computed catalysts
 
-**Question:** Once the scientific decision chain is fixed, can the same workflow be orchestrated repeatedly under finite compute without hard-coding every calculation sequence?
+**Question:** Does the ranking change found in the hand-built cases hold across the candidates that publications and databases provide?
 
-**Panel a — complete-decision recovery**
-- fixed-policy completion threshold: **206 CU**
-- strong lowest tested stable complete-decision allowance: **75 CU**
-- protocol-complete S1-S3 oracle: **22 CU**
-- 75 CU = **3.41x oracle**
-- 75-CU-cell median decision-stable spend: **52.5 CU = 2.39x oracle**
+- **a** — ACSA workflow: extraction with source location, self-check against the frozen cases, full chain with descriptor-only bound, leaderboards.
+- **b** — extraction accuracy by source (`agent/extraction/eval/field_accuracy_by_source.csv`).
+- **c** — 138 transition-metal bimetallic surfaces in the bed limit; 5 below Fe, all cheap 3d + Cr/Mo/W (`analysis/nh3_alloy_extension_2026_10_05/`).
+- **d** — published methanol comparisons whose leader changes, by leaderboard metric (`analysis/meoh_literature_inversion_2026_10_05/`).
+- **e** — two comparison groups, space-time yield against net cost.
 
-**Panel b — scoped search as the below-threshold mechanism**
-- strong tier uses narrow windows in the constrained regime
-- narrow-window use at 225 CU: **0/20**
-- non-binding 5000-CU allowance: **0/20**
-
-**Panel c — upper cost boundary**
-- non-binding median decision-stable spend: **566 CU = 25.73x oracle**
-- median post-stability overrun: **148 CU**
-- median final spend: **714 CU**
-
-**Interpretation:** budget pressure activates search compression. The Agent acts as the reusable orchestration layer: deterministic reaction-specific tools supply scientific truth, while the policy decides which actions are required to close each decision instance.
-
-**Source assets:** legacy F10 + Agent oracle extension.
-
-**Role:** show how the physical ranking, causal mechanism and reachability framework can be converted from a one-off analysis into a reusable, decision-aware workflow suitable for repeated and batched screening tasks.
+**Source assets:** `figures/composite/fig6/make_fig6.py`.
 
 ---
 
@@ -198,7 +183,7 @@ Using STY per g Re:
 | Fig. 3 | legacy F5 + F6 |
 | Fig. 4 | legacy F7 + F8 + former legacy F3d MeOH rank-probability matrix |
 | Fig. 5 | legacy F9A + F9B |
-| Fig. 6 | legacy F10 + 22-CU oracle extension |
+| Fig. 6 | literature extraction evaluation + bimetallic surface extension + published methanol comparisons |
 
 The legacy F1-F10 files remain provenance-bearing source assets. Composite publication figures may redraw typography, panel arrangement and annotations while preserving the frozen values and source geometry.
 

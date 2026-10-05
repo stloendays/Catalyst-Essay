@@ -336,43 +336,6 @@ ok(
 tokens("Au zero decision regret", s5, "zero selection regret")
 ok("Au regret source", float(regret["AuTiO2"]["normalized_decision_regret"]) == 0.0)
 
-# ----- Results 6: Agent -------------------------------------------------------
-s6 = section("Adaptive calculation selection makes the multiscale analysis repeatedly executable")
-s75 = agent_cell("strong", 75)
-s50 = agent_cell("strong", 50)
-tokens(
-    "Agent compute-budget anchors",
-    s6,
-    "11 predefined calculations",
-    f"{int(orc['D_threshold_CU'])} compute units",
-    f"{s75['k_complete_decision']}/{s75['n']}",
-    "75-CU",
-    f"{s75['decision_stable_CU_median']} CU",
-    f"{s50['k_complete_decision']}/{s50['n']}",
-    "50 CU",
-    "5,000-CU",
-    f"{int(orc['nonbinding_stable_CU'])} CU",
-    f"{int(orc['nonbinding_overrun_CU'])} CU",
-    f"{int(orc['nonbinding_final_CU'])} CU",
-)
-ok("Agent interface source has 11 actions", len(schema["actions"]) == 11)
-c50 = next(r for r in comp if r["tier"] == "strong" and r["arm"] == "E" and r["budget_CU"] == "50")
-ok("Agent winner/pair 20/20 at 50 CU", c50["k_winner"] == c50["k_pair"] == c50["n"] == "20")
-tokens(
-    "Agent nonbinding stopping diagnostic",
-    s6,
-    "14/20",
-    "8,207",
-    "17,535",
-    "46.8%",
-)
-ok(
-    "Agent post-stability source",
-    stop_eff["runs_with_positive_overrun"] == 14
-    and stop_eff["total_post_stability_overrun_CU"] == 8207
-    and abs(stop_eff["fraction_total_compute_after_hindsight_stability"] - 0.46803535785571715) < 1e-12,
-)
-
 # ----- Discussion / Methods semantic locks ------------------------------------
 discussion = raw_text[raw_text.index("## Discussion"):raw_text.index("## Methods")]
 methods = raw_text[raw_text.index("## Methods"):]
@@ -447,6 +410,104 @@ tokens(
     f"{float(mbw['single-pass CO2 conversion']['required']):.3f}",
 )
 ok("MeOH backward: STY alone cannot reach parity", mbw["STY per g Re (multiplier)"]["required"] == "unreachable")
+
+# ----- Agent scaling: extraction accuracy, self-check, pruning ----------------------------------------------
+s6 = section("An automated agent extends the analysis to published and computed catalysts")
+ent = {r["doi"]: r for r in rows("agent/extraction/eval/entry_metrics.csv")}
+tot = ent["TOTAL"]
+src = {(r["source_type"], r["field"]): r for r in rows("agent/extraction/eval/field_accuracy_by_source.csv")}
+
+
+def n_ok(source, field):
+    r = src[(source, field)]
+    return f"{round(float(r['acc_strict']) * int(r['n_extracted']))} of {r['n_extracted']}"
+
+
+ext = json.loads((ROOT / "agent/extraction/eval/summary.json").read_text(encoding="utf-8"))
+lit = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/summary.json").read_text(encoding="utf-8"))
+alloy = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/summary.json").read_text(encoding="utf-8"))
+ext_all = alloy["extended_with_usgs_prices"]
+tokens(
+    "Agent extraction accuracy",
+    s6,
+    f"{tot['matched']} of the {tot['curated']} curated entries ({float(tot['recall']) * 100:.0f}%)",
+    n_ok("table", "X_CO2"), n_ok("table", "S_MeOH"),
+    n_ok("SI", "X_CO2"), n_ok("SI", "S_MeOH"), n_ok("SI", "STY"),
+    n_ok("plot", "X_CO2"), n_ok("plot", "S_MeOH"),
+    f"{float(tot['precision_with_review']) * 100:.0f}% are correct",
+    f"{ext['n_errata_cells']} curated cells",
+)
+ok("Agent: Gothe Table 4 extracted exactly", ext["gothe"]["matched"] == 21 and ext["gothe"]["X_CO2"] == "21/21")
+canon = lit["selfcheck"]["canonical_states"]
+tokens(
+    "Agent self-check",
+    s6,
+    "2.3 × 10⁻¹³",
+    "943.30, 961.51, 966.96 and 1,258.17",
+)
+ok("Agent self-check source", lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
+   and sorted(round(v, 2) for v in canon.values()) == [943.3, 961.51, 966.96, 1258.17])
+ok("Agent: pure-metal self-check source", all(r["match"] for r in alloy["self_check"]))
+tokens(
+    "Agent pruning",
+    s6,
+    f"{ext_all['costed']:,} priced bimetallic surfaces",
+    f"excludes {ext_all['pruning']['pruned']:,} candidates ({ext_all['pruning']['fraction_saved'] * 100:.1f}%)",
+)
+ok("Agent pruning: no false exclusion", ext_all["pruning"]["false_prunes"] == [])
+
+# ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
+s7 = section("Bimetallic surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
+tm = alloy["extended_excluding_sp_and_group3to5"]
+glob_below = tm["below_Fe_surfaces"]
+anch_below = [x[0] for x in tm["below_Fe_anchored_surfaces"]]
+sub = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+tokens(
+    "NH3 alloy screen",
+    s7,
+    f"{alloy['surfaces_fetched']:,} bimetallic and pure-metal surfaces",
+    f"Among the {tm['costed']} surfaces", f"{tm['feasible']} satisfy",
+    *[x.translate(sub) for x in glob_below], *[x.translate(sub) for x in anch_below],
+    f"ranks {tm['route_global']['upstream_winner_economic_rank']}rd economically",
+    f"({tm['route_global']['upstream_winner'].translate(sub)}, {tm['route_global']['regret'] * 100:.1f}% regret)",
+    f"{tm['route_anchored']['upstream_winner_economic_rank']}th ({tm['route_anchored']['upstream_winner']}, "
+    f"{tm['route_anchored']['regret'] * 100:.1f}%)",
+    f"{tm['route_global']['spearman']:.2f} and {tm['route_anchored']['spearman']:.2f}",
+)
+ok("NH3 alloy: below-Fe family is cheap 3d + group 6", tm["below_Fe_either_route_all_3d_plus_group6"])
+ok("NH3 alloy: counts in text match source", len(glob_below) == 5 and len(anch_below) == 6)
+
+# ----- MeOH published leaderboards ------------------------------------------------------------------------------
+s8 = section("Published methanol leaderboards and plant-cost leaderboards often disagree")
+P0 = lit["primary"]
+V = lit["variants"]
+tokens(
+    "MeOH literature leaderboards",
+    s8,
+    f"{lit['candidates']} operating points", f"from {lit['papers_with_candidates']} studies",
+    f"{P0['groups']} comparisons with {P0['entries']} entries",
+    f"in {P0['top1_mismatch_groups']} of {P0['groups']} comparisons ({P0['top1_mismatch_fraction'] * 100:.0f}%)",
+    f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
+    f"{int(P0['pairwise_inversions'].split('/')[0]):,} of {int(P0['pairwise_inversions'].split('/')[1]):,} pairwise orderings "
+    f"({P0['pairwise_inversion_fraction'] * 100:.0f}%)",
+    f"in {V['leaderboard_S_MeOH']['top1_mismatch_groups']} of {V['leaderboard_S_MeOH']['groups']} comparisons "
+    f"({V['leaderboard_S_MeOH']['top1_mismatch_fraction'] * 100:.0f}%) across {V['leaderboard_S_MeOH']['papers_with_mismatch']} papers",
+    f"median regret of {V['leaderboard_S_MeOH']['regret_median_mismatched'] * 100:.0f}%",
+    f"in {V['leaderboard_X']['top1_mismatch_groups']} of {V['leaderboard_X']['groups']}",
+    f"to {V['inert_opt']['top1_mismatch_groups']} of {V['inert_opt']['groups']} comparisons across {V['inert_opt']['papers_with_mismatch']} papers",
+    f"({V['printed_values_only']['top1_mismatch_groups']} of {V['printed_values_only']['groups']} comparisons)",
+    f"({V['methanol_products_only']['top1_mismatch_groups']} of {V['methanol_products_only']['groups']})",
+    f"up to {P0['regret_max'] * 100:.0f}%",
+)
+wo = V["without_paper_with_most_groups"]
+ok("MeOH literature: regret outside the largest paper below 4 %", wo["regret_max"] < 0.04
+   and "c2cy20604h" in wo["variant"])
+tokens("Abstract headline numbers", text, "1,695 bimetallic surfaces", "443 operating points from 19 methanol studies",
+       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of cases",
+       f"in {V['leaderboard_S_MeOH']['top1_mismatch_fraction'] * 100:.0f}%")
+ok("no compute-budget Agent section in the manuscript",
+   "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
+   and "5,000-CU" not in raw_text)
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
