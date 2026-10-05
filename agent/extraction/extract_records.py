@@ -12,8 +12,9 @@ Every call is logged to out/token_usage.csv. Hard caps: --max-papers
 log, so the cap holds across reruns). Nothing from the evaluation datasets is
 read here; the prompt contains only the paper itself.
 
-The API key is resolved by the harness resolver and handed straight to the
-client; it is never printed, logged or stored.
+The API key is resolved by the harness resolver, or with --api-yes taken from
+the local API-YES gateway (127.0.0.1:8788) proxy key that serves the requested
+model, and handed straight to the client; it is never printed, logged or stored.
 """
 from __future__ import annotations
 
@@ -105,6 +106,8 @@ def build_messages(doi: str, use_images: bool) -> tuple[list, int, int]:
 def extract_one(client, doi: str, model: str, effort: str, use_images: bool, max_out: int) -> dict:
     messages, n_img, _ = build_messages(doi, use_images)
     t0 = time.time()
+    if getattr(client, "_api_yes", False):
+        return extract_one_responses(client, doi, model, effort, messages, n_img, t0)
     resp = client.chat.completions.create(
         model=model,
         messages=messages,
@@ -136,6 +139,74 @@ def extract_one(client, doi: str, model: str, effort: str, use_images: bool, max
     return data, usage
 
 
+def extract_one_responses(client, doi, model, effort, messages, n_img, t0):
+    """API-YES route: the gateway forwards only streamed Responses calls with store=false intact
+    (its chat-completions route drops images and the JSON schema), so the output is assembled
+    from the streamed text deltas."""
+    system, user = messages[0]["content"], messages[1]["content"]
+    content = []
+    for part in user:
+        if part["type"] == "text":
+            content.append({"type": "input_text", "text": part["text"]})
+        else:
+            content.append({"type": "input_image", "image_url": part["image_url"]["url"],
+                            "detail": part["image_url"].get("detail", "high")})
+    stream = client.responses.create(
+        model=model, instructions=system, input=[{"role": "user", "content": content}],
+        text={"format": {"type": "json_schema", "name": "meoh_catalyst_records", "strict": True, "schema": SCHEMA}},
+        reasoning={"effort": effort}, store=False, stream=True)
+    pieces, final = [], None
+    for ev in stream:
+        if ev.type == "response.output_text.delta":
+            pieces.append(ev.delta)
+        elif ev.type in ("response.completed", "response.incomplete"):
+            final = ev.response
+    dt = time.time() - t0
+    text = "".join(pieces)
+    try:
+        data = json.loads(text or "{}")
+    except json.JSONDecodeError:
+        data = {"doi": doi, "title": "", "records": [], "extraction_notes": "UNPARSEABLE OUTPUT"}
+    u = final.usage
+    usage = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "doi": doi, "model": final.model, "reasoning_effort": effort, "images": n_img,
+        "prompt_tokens": u.input_tokens,
+        "cached_tokens": getattr(u.input_tokens_details, "cached_tokens", 0) or 0,
+        "completion_tokens": u.output_tokens,
+        "reasoning_tokens": getattr(u.output_tokens_details, "reasoning_tokens", 0) or 0,
+        "total_tokens": u.total_tokens,
+        "finish_reason": final.status,
+        "n_records": len(data.get("records", [])),
+        "seconds": round(dt, 1),
+    }
+    data["_meta"] = {k: usage[k] for k in ("model", "reasoning_effort", "images", "prompt_tokens", "completion_tokens",
+                                            "reasoning_tokens", "total_tokens", "finish_reason", "seconds", "timestamp")}
+    data["_meta"]["route"] = "api-yes responses"
+    return data, usage
+
+
+API_YES_URL = "http://127.0.0.1:8788/v1"
+API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
+
+
+def api_yes_key(model: str) -> str:
+    """Return the enabled API-YES proxy key whose model list contains `model`."""
+    import urllib.request
+    proxies = json.loads(API_YES_CONFIG.read_text(encoding="utf-8"))["proxies"]
+    for p in proxies:
+        if not p.get("enabled"):
+            continue
+        req = urllib.request.Request(API_YES_URL + "/models", headers={"Authorization": "Bearer " + p["key"]})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                if model in {m["id"] for m in json.load(r).get("data", [])}:
+                    return p["key"]
+        except OSError:
+            continue
+    sys.exit(f"no enabled API-YES proxy serves {model}; is API-YES running?")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--doi", action="append", help="limit to these DOIs (repeatable)")
@@ -146,6 +217,7 @@ def main() -> None:
     ap.add_argument("--token-cap", type=int, default=3_000_000)
     ap.add_argument("--max-out", type=int, default=100_000)
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--api-yes", action="store_true", help="route calls through the local API-YES gateway")
     args = ap.parse_args()
 
     manifest = json.loads((HERE / "fetch_manifest.json").read_text(encoding="utf-8"))
@@ -156,10 +228,14 @@ def main() -> None:
     if len(dois) > args.max_papers:
         sys.exit(f"{len(dois)} papers exceed --max-papers {args.max_papers}")
 
-    sys.path.insert(0, HARNESS_AGENT)
-    from llm_client import resolve_api_key
     import openai
-    client = openai.OpenAI(api_key=resolve_api_key(), timeout=1800)
+    if args.api_yes:
+        client = openai.OpenAI(api_key=api_yes_key(args.model), base_url=API_YES_URL, timeout=1800)
+        client._api_yes = True
+    else:
+        sys.path.insert(0, HARNESS_AGENT)
+        from llm_client import resolve_api_key
+        client = openai.OpenAI(api_key=resolve_api_key(), timeout=1800)
 
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     for doi in dois:
@@ -180,6 +256,9 @@ def main() -> None:
             continue
         usage["cumulative_total_tokens"] = spent + usage["total_tokens"]
         log_usage(usage)
+        if data.get("extraction_notes") == "UNPARSEABLE OUTPUT":
+            print(f"  UNPARSEABLE output not saved ({usage['total_tokens']:,} tokens); rerun retries this paper")
+            continue
         out_path.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
         print(f"  {usage['n_records']} records, {usage['total_tokens']:,} tokens "
               f"(prompt {usage['prompt_tokens']:,}, out {usage['completion_tokens']:,}, reasoning {usage['reasoning_tokens']:,}), "

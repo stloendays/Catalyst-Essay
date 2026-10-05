@@ -13,6 +13,10 @@ Model basis
     cat_mass_g     g
     STY_g_gcat_h   g MeOH (g cat)-1 h-1   (sty_basis per_g_catalyst)
     STY_g_gmetal_h g MeOH (g metal)-1 h-1 (sty_basis per_g_metal)
+                   A basis written in the unit (kg_cat, g_Re ...) overrides an extracted
+                   sty_basis of 'other'/'unspecified'. A per-metal STY is also expressed per g
+                   catalyst (x metal wt% / 100) when the record states the metal loading;
+                   STY_gcat_from_metal marks these.
     metal_wt_pct   sum of components with role active_metal whose loading unit is wt%
 Each converted value keeps its qualifier (=, <, ~ ...) in a *_q column; raw
 value+unit strings are kept so every conversion can be audited.
@@ -73,7 +77,7 @@ def pct(v, u):
 # --- composite units (GHSV, STY) -------------------------------------------------
 _PREFIX = {"": 1.0, "k": 1e3, "m": 1e-3, "u": 1e-6, "n": 1e-9}
 _TOKEN = re.compile(
-    r"(?P<pre>[kmun]?)(?P<base>mol|ml|nml|nl|l|g|h|hr|min|s|cm3)"
+    r"(?P<pre>[kmun]?)(?P<base>mol|ml|nml|nl|l|g|hours|hour|hr|h|min|s|cm3)"
     r"(?P<label>[_ ]?(?:cat|catalyst|meoh|ch3oh|methanol|metal|cu|in|in2o3|pd|re|zn|ir|pt|au|ni|co))?"
     r"(?P<exp>-?\d)?$")
 
@@ -84,8 +88,6 @@ def _parse(unit: str):
     s = s.replace("gcat", "g_cat").replace("kgcat", "kg_cat")
     s = re.sub(r"\bnml", "ml", s)            # normal mL / L: same number, STP basis
     s = re.sub(r"\bnl(?=[\s/_-]|$)", "l", s)
-    s = re.sub(r"nml", "ml", s)          # normal mL / L: same number, STP basis
-    s = re.sub(r"nl|nl(?=[-\s/])", "l", s)
     num, *dens = s.split("/")
     parts = [(num, 1)] + [(d, -1) for d in dens]
     out = []
@@ -107,7 +109,7 @@ def _parse(unit: str):
                 pre, base = "m", "l"
             if base == "cm3":
                 pre, base = "m", "l"
-            if base == "hr":
+            if base in ("hr", "hour", "hours"):
                 base = "h"
             if base == "min" or base == "mol" or base == "l" or base == "g" or base == "h" or base == "s":
                 pass
@@ -192,6 +194,25 @@ def ratio(v, u):
     return v
 
 
+_METAL_LABELS = {"metal", "cu", "in", "pd", "re", "zn", "ir", "pt", "au", "ni", "co"}
+
+
+def sty_basis_from_unit(unit):
+    """Basis written into the unit itself (g_cat / kg_cat -> catalyst, g_Re / g_metal -> metal), else None."""
+    t = _parse(unit or "")
+    if not t:
+        return None
+    mass = [x for x in t if x[1] == "g" and x[3] == -1]
+    if len(mass) != 1 or not mass[0][2]:
+        return None
+    lab = mass[0][2]
+    if lab in ("cat", "catalyst"):
+        return "per_g_catalyst"
+    if lab in _METAL_LABELS:
+        return "per_g_metal"
+    return None
+
+
 def metal_wt(components):
     vals = [c["loading"]["value"] for c in components
             if c["role"] == "active_metal" and c["loading"]["value"] is not None
@@ -208,6 +229,19 @@ def normalize_record(doi: str, r: dict) -> dict:
         return None if n["value"] is None else f"{n['value']} {n['unit'] or ''}".strip()
 
     sty_raw = sty_g_g_h(r["methanol_sty"]["value"], r["methanol_sty"]["unit"])
+    # An explicit basis in the unit (mmol kgcat-1 h-1, g gRe-1 h-1) overrides an 'other'/'unspecified' label.
+    basis = r["sty_basis"]
+    unit_basis = sty_basis_from_unit(r["methanol_sty"]["unit"])
+    if basis in ("other", "unspecified") and unit_basis:
+        basis = unit_basis
+    m_wt = metal_wt(r["components"])
+    sty_cat = sty_raw if basis == "per_g_catalyst" else None
+    sty_metal = sty_raw if basis == "per_g_metal" else None
+    # per g metal -> per g catalyst with the stated metal loading (wt%); marked as derived
+    sty_cat_derived = False
+    if sty_cat is None and sty_metal is not None and m_wt:
+        sty_cat = sty_metal * m_wt / 100
+        sty_cat_derived = True
     row = {
         "doi": doi,
         "entry_label": r["entry_label"],
@@ -217,7 +251,7 @@ def normalize_record(doi: str, r: dict) -> dict:
         "promoters": ";".join(r["promoters"]),
         "preparation": r["preparation"],
         "active_metals": ";".join(c["component"] for c in r["components"] if c["role"] == "active_metal"),
-        "metal_wt_pct": metal_wt(r["components"]),
+        "metal_wt_pct": m_wt,
         "T_K": temp_K(r["temperature"]["value"], r["temperature"]["unit"]),
         "P_bar": press_bar(r["pressure"]["value"], r["pressure"]["unit"]),
         "H2_CO2": ratio(r["h2_co2_ratio"]["value"], r["h2_co2_ratio"]["unit"]),
@@ -236,10 +270,12 @@ def normalize_record(doi: str, r: dict) -> dict:
         "S_CH4_pct": pct(r["selectivity_ch4"]["value"], r["selectivity_ch4"]["unit"]),
         "S_CH4_q": q("selectivity_ch4"),
         "selectivity_basis": r["selectivity_basis"],
-        "STY_g_gcat_h": sty_raw if r["sty_basis"] == "per_g_catalyst" else None,
-        "STY_g_gmetal_h": sty_raw if r["sty_basis"] == "per_g_metal" else None,
+        "STY_g_gcat_h": sty_cat,
+        "STY_g_gmetal_h": sty_metal,
+        "STY_gcat_from_metal": sty_cat_derived,
         "STY_raw": raw("methanol_sty"),
-        "sty_basis": r["sty_basis"],
+        "sty_basis": basis,
+        "sty_basis_extracted": r["sty_basis"],
         "STY_q": q("methanol_sty"),
         "data_source_type": r["data_source_type"],
         "primary_location": r["primary_location"],
