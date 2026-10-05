@@ -1,5 +1,7 @@
 # Research frame
 
+Reader-facing names follow [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md).
+
 ## Core scientific question
 
 Catalyst screening is usually performed using atomic-scale proxies such as adsorption energies, descriptors and intrinsic activity. Industrial deployment is governed by a different objective: product cost under coupled kinetic, catalyst-inventory, reactor, recycle, separation and replacement constraints.
@@ -55,7 +57,7 @@ The useful output of backward design can be a feasible catalyst-property region 
 
 ## Ammonia as the primary case
 
-Under the canonical **NH3-FINAL-1.1** model:
+Under the **ammonia process–economics model**:
 
 - atomic activity top three: **Ru > Os > Fe**
 - economic top three: **Fe > Ru > Os**
@@ -140,7 +142,7 @@ with:
 - 10,000/10,000 predefined literature-envelope draws preserving the full ranking
 - 6 nm / 2 nm required-catalyst ratio = **8.064x**
 
-A supporting V1.3 semi-open extension allows moderate candidate-specific kinetic and operating freedom while retaining strong rank preservation. V1.1 remains the canonical control.
+A supporting **Au/TiO₂ semi-open robustness extension** allows moderate candidate-specific kinetic and operating freedom while retaining strong rank preservation. The **Au/TiO₂ rank-preservation control** remains the primary control.
 
 This establishes the counterfactual:
 
@@ -156,7 +158,7 @@ competing / reoptimized downstream coupling
 
 The Agent benchmark is the **automation and scaling layer** of the deterministic scientific framework. It asks whether an AI policy can allocate finite scientific compute through a frozen environment while recovering the same downstream decision. Reaction-specific deterministic tools supply the catalyst ranking, physical mechanism and economic ground truth; the Agent supplies reusable orchestration so the same decision logic can be executed repeatedly rather than rebuilt case by case.
 
-DISCOVER V1 anonymous complete-decision recovery is:
+**Adaptive Catalyst Screening Agent (ACSA)** anonymous complete-decision recovery is:
 
 - nano: **6/35**
 - mini: **15/35**
@@ -164,7 +166,7 @@ DISCOVER V1 anonymous complete-decision recovery is:
 
 The original across-tier hypothesis that adaptive policy E would outperform fixed-VOI policy D was not supported.
 
-DISCOVER-BOUNDARY-C1 resolves the operating envelope. Deterministic policy D reaches the complete decision at **206 CU**. The strong tier reaches a lowest tested stable complete-decision budget of **75 CU**; at 175 CU it completes **19/20** runs while D remains incomplete. The same below-threshold regime does not transfer to the weaker tiers. Under the non-binding 5000-CU allowance, median final adaptive spend rises to **714 CU**.
+The **ACSA budget-boundary study** resolves the operating envelope. Deterministic policy D reaches the complete decision at **206 CU**. The strong tier reaches a lowest tested stable complete-decision budget of **75 CU**; at 175 CU it completes **19/20** runs while D remains incomplete. The same below-threshold regime does not transfer to the weaker tiers. Under the non-binding 5000-CU allowance, median final adaptive spend rises to **714 CU**.
 
 The supported combined statement is:
 

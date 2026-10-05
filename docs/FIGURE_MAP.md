@@ -1,11 +1,11 @@
 # Figure map — six-figure manuscript architecture
 
-Snapshot: **2026-09-20**  
-Primary ammonia basis: **NH3-FINAL-1.1**
+Snapshot: **2026-09-29**  
+Primary ammonia basis: **ammonia process–economics model**
 
-The manuscript now uses **six composite main figures**. The previous F1-F10 assets remain frozen or hash-pinned as source panels and provenance; they are not deleted or renumbered on disk. This document defines the publication-facing grouping.
+The manuscript now uses **six composite main figures**. Reader-facing scientific names follow [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md). The previous F1-F10 assets remain frozen or hash-pinned as source panels and provenance; they are not deleted or renumbered on disk. This document defines the publication-facing grouping.
 
-**Rendered composites (2026-09-23):** `figures/composite/fig1` … `fig6`, each with its build scripts, model tables, structure renders and a README naming every source. The composites carry more panels than the grouping below (schematics, OVITO structure renders and added data views); their panel lettering and captions are in [`MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md`](MAIN_FIGURE_CAPTIONS_v5_2026-09-23.md), and the v8 main text cites that lettering.
+**Rendered composites (2026-09-23):** `figures/composite/fig1` … `fig6`, each with its build scripts, model tables, structure renders and a README naming every source. The composites carry more panels than the grouping below (schematics, OVITO structure renders and added data views); their panel lettering and captions are in [`MAIN_FIGURE_CAPTIONS.md`](MAIN_FIGURE_CAPTIONS.md), and the current main text cites that lettering.
 
 ## Figure 1 — A globally correlated screen can invert at the decision frontier
 
@@ -64,23 +64,42 @@ The manuscript now uses **six composite main figures**. The previous F1-F10 asse
 
 ---
 
-## Figure 3 — Backward design separates an economic target from a reachable catalyst target
+## Figure 3 — Backward design separates the required property region from physical reachability
 
-**Question:** If Ru loses economically, how much intrinsic-activity improvement is required, and is that target physically accessible?
+**Question:** If Ru loses economically, what catalyst-property changes are required for parity, and which of those targets remain reachable under the strict scaling relation?
 
 **Panel a — activity-only backward sweep**
 - canonical Ru activity-only break-even: **201.22x**
+- cost-MC target distribution: p05 / median / p95 = **70.78x / 174.27x / 462.00x**
 
-**Panel b — scaling-manifold reachability**
+**Panel b — activity-only scaling-manifold reachability**
 - activity headroom at 673 K: **1.090x**
-- maximum headroom over frozen process states: **2.525x**
+- maximum state-specific headroom over frozen process states: **2.525x**
 - strict-scaling lowest Ru cost: **21.398 USD/t NH3** at **E_N = -1.215 eV**
-- cost-MC p05 activity target: **70.78x**, still far above the **2.525x** maximum headroom
+- the activity-only target remains outside the strict-scaling manifold
 
-**Source assets:** legacy F5 + F6.
+**Panel c — joint direct-activity/lifetime/recovery backward target region**
+- 53-state conservative subset; no new DFT
+- at **99% Ru recovery**, required direct activity multiplier is at most:
+  - **2.418x** at **10 y** life
+  - **1.742x** at **15 y**
+  - **1.401x** at **20 y**
+- **20 y + 98% recovery** requires at most **2.418x**
+- these are upper bounds on the *required target*, because restricting process optimization to 53 already visited states can only overestimate the activity improvement needed
 
-**Role:** show that 201.22x is a canonical economic reference, while the stronger conclusion is that the activity-only target remains unreachable throughout the tested economic envelope.
+**Panel d — strict-scaling x lifecycle reachability**
+- full **14,136-state** strict-scaling audit; no new DFT
+- canonical gate reproduced: **21.397873 USD/t at E_N = -1.215 eV**
+- critical lifecycle factor: **q* = (1-r)/L = 4.4068 × 10^-4 y^-1**
+- parity state: **E_N = -1.230 eV**, **425 C / 190 bar / 30 C**, **4.298 m3**
+- inside the prespecified box (**L <= 20 y, r <= 0.99**), the closest point is **20 y + 99% recovery**
+- that corner gives **15.36249 USD/t NH3**, **+0.07078 USD/t** above Fe
+- exact boundary lies just outside the box: **99.1186% recovery at 20 y**, or **22.69 y lifetime at 99% recovery**
+- the **2.525x** all-state activity gain remains a state-specific diagnostic and is not used as a uniform multiplier
 
+**Source assets:** legacy F5 + F6 + `analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv` + `scaling_lifecycle_exact_keypoints.csv` + `scaling_lifecycle_exact_global_boundary.csv`.
+
+**Role:** make the backward-design logic explicit as two operations: **economic target inversion -> physical reachability test**. Panel d now closes the second operation and shows that lifecycle co-improvement brings the target close to, but still just outside, the prespecified scaling-constrained property box.
 ---
 
 ## Figure 4 — Methanol ranking reshapes through a selectivity-recycle pathway and remains stable to tested cost uncertainty

@@ -1,0 +1,38 @@
+name: Manuscript number audit
+
+on:
+  push:
+    paths:
+      - ".github/workflows/manuscript-number-audit.yml"
+      - "docs/MANUSCRIPT_MAIN_TEXT.md"
+      - "tools/check_manuscript_numbers.py"
+      - "tools/audit_live_manuscript_truth.py"
+      - "data/manuscript_headline_results_2026-09-20.csv"
+      - "analysis/fe_bridge_backward_2026_09_29/**"
+      - "analysis/nonfigure_upgrades_2026_09_29/**"
+      - "analysis/supervisor_2026_09_20/**"
+      - "provenance/nh3_final_1_1/**"
+      - "data/meoh/**"
+      - "data/rank_preservation_*"
+      - "data/agent_*"
+      - "data/discover_*"
+  pull_request:
+    paths:
+      - ".github/workflows/manuscript-number-audit.yml"
+      - "docs/MANUSCRIPT_MAIN_TEXT.md"
+      - "tools/check_manuscript_numbers.py"
+      - "data/manuscript_headline_results_2026-09-20.csv"
+      - "analysis/fe_bridge_backward_2026_09_29/**"
+      - "analysis/nonfigure_upgrades_2026_09_29/**"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check live manuscript numbers against committed evidence
+        run: python tools/audit_live_manuscript_truth.py docs/MANUSCRIPT_MAIN_TEXT.md

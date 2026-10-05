@@ -1,6 +1,8 @@
 # Results at a glance
 
-Snapshot: **2026-09-20**
+Reader-facing names follow [`SCIENTIFIC_NAMING.md`](SCIENTIFIC_NAMING.md).
+
+Snapshot: **2026-09-29**
 
 This page contains the current audited baseline plus the completed **2026-09-20 supervisor-requested targeted analyses**. Execution record: [`../analysis/supervisor_2026_09_20/README.md`](../analysis/supervisor_2026_09_20/README.md). Superseded values and intermediate development results are documented separately in [`RETIRED_RESULTS.md`](RETIRED_RESULTS.md).
 
@@ -34,6 +36,10 @@ For Fe under the 90 m3 catalyst-bed criterion and 1,000 descriptor-uncertainty d
 
 The 68.1% and 28.2% values are different metrics: the former is P(Fe is the economic winner); the latter is P(atomic Top-1 = economic Top-1).
 
+A complementary decision metric asks what is lost by following the upstream winner. Selecting Ru from intrinsic activity instead of Fe from the catalyst-dependent economic objective gives a normalized decision regret of **44.07%**. The corresponding regret is **3.36%** for the MeOH STY-per-g-Re winner and **0** for the Au/TiO2 preservation control.
+
+The headline NH3 descriptor Monte Carlo retains its frozen independent-error specification. A supporting Gaussian-copula sensitivity preserves the same Fe and Ru/Os marginals while varying positive latent error correlation. In 100,000-draw audits, Fe's atomistic Top-1 probability changes from **10.71% at rho=0** to **21.68% at rho=0.9**. A separate common additive descriptor shift changes the canonical Ru > Os > Fe order outside an approximate interval of **-0.0573 to +0.1030 eV**. These are uncertainty-model sensitivities, not replacement downstream probabilities.
+
 Under the preregistered 5,000-draw **cost-side** Monte Carlo, **P(C_Fe < C_Ru) = 1.000**. The Ru activity-parity distribution is **70.78x / 174.27x / 462.00x** at p05 / median / p95.
 
 ## Backward target versus reachable headroom
@@ -46,15 +52,19 @@ Under the preregistered 5,000-draw **cost-side** Monte Carlo, **P(C_Fe < C_Ru) =
 
 The activity-only path therefore does not close the Ru-Fe economic gap within the frozen scaling-consistent design space.
 
+A conservative joint-property audit first defines the **required target region**. Reusing the 53 process states already present in the fully reoptimized Ru price sweep gives upper bounds on the direct activity improvement required for parity. At **99% Ru recovery**, the required multiplier is at most **2.418x** for a **10-year** lifetime, **1.742x** for **15 years**, and **1.401x** for **20 years**; with **20 years / 98% recovery**, it is at most **2.418x**.
+
+The physical-reachability test is now closed on the strict *E_N* scaling manifold across all **14,136** process states. The critical lifecycle factor is **q* = (1-r)/L = 4.4068 × 10^-4 y^-1**, equivalent to an effective Ru price of **237.319 USD/kg** on the 10-year basis. The parity state is **E_N = -1.230 eV**, **425 C / 190 bar / 30 C**, with a **4.298 m3** bed. The prespecified box (**life <= 20 y; recovery <= 99%**) still does **not** intersect the strict-scaling manifold: its best corner, **20 y + 99% recovery**, gives **15.36249 USD/t NH3**, only **0.07078 USD/t (0.46%)** above Fe. Parity lies just outside the box at **99.1186% recovery for 20 y**, or **22.69 y lifetime at 99% recovery**.
+
 ## Ru-price counterfactual and canonical cost gap
 
 Canonical Fe / Ru costs are **15.292 / 22.031 USD/t NH3**, a Ru-Fe gap of **6.739 USD/t**. Decomposition of that gap gives fresh-feed compression **+4.632**, metal inventory **+1.763**, compressor CAPEX **+1.181**, refrigeration **+0.629**, vessel pressure **-0.733**, recycle compression **-0.647** and reactor base **-0.086 USD/t**.
 
 When Ru metal price is set equal to Fe = **8 USD/kg** and Ru is fully reoptimized, Ru moves to **425 C / 170 bar / 30 C** and costs **14.712 USD/t**, which is **0.580 USD/t below Fe**. The Fe-over-Ru inversion therefore does not survive price equalization.
 
-Sweeping the Ru metal price with the same full reoptimization (2026-09-23, `figures/composite/fig2/fig2_model.py`, frozen NH3-FINAL-1.1 harness) places Fe-Ru parity at **163.76 USD/kg**, 329-fold below the canonical Ru price, with Ru at **425 C / 185 bar / 30 C** and a 6.24 m3 bed. The optimized Ru cost is monotone in its price; the optimum moves from 170 bar and a 9.4 m3 bed at 1 USD/kg to 420-430 bar, a 0 C separator and a 0.014 m3 bed at 3 x 10^5 USD/kg.
+Sweeping the Ru metal price with the same full reoptimization (2026-09-23, `figures/composite/fig2/fig2_model.py`, ammonia process–economics model) places Fe-Ru parity at **163.76 USD/kg**, 329-fold below the canonical Ru price, with Ru at **425 C / 185 bar / 30 C** and a 6.24 m3 bed. The optimized Ru cost is monotone in its price; the optimum moves from 170 bar and a 9.4 m3 bed at 1 USD/kg to 420-430 bar, a 0 C separator and a 0.014 m3 bed at 3 x 10^5 USD/kg.
 
-The supported mechanism is **metal cost coupled to process reoptimization**; process penalties alone are not sufficient to keep Fe ahead of equal-priced Ru in the current model.
+A layer-localization diagnostic makes the mechanism more specific. At the common 673 K reference, converting activity into normalized active-metal demand preserves the Ru > Os > Fe preference; weighting those demands by canonical metal price and the frozen 10-year replacement interval changes the order to **Fe < Ru < Os before any process cost is added**. The equal-price full-process intervention then shows that process reoptimization alone does not make Fe beat Ru. The supported mechanism is therefore **price-weighted catalyst lifecycle economics as the trigger, followed by process reoptimization as an amplifier**.
 
 ## Canonical operating points
 
@@ -62,7 +72,7 @@ The supported mechanism is **metal cost coupled to process reoptimization**; pro
 - Ru: approximately **450 C / 425 bar / 25 C separator**
 - Os: broad shallow high-pressure minimum
 
-## Catalyst-economic levers in NH3-FINAL-1.1
+## Catalyst-economic levers in the ammonia process–economics model
 
 ```text
 metal recovery      0.69
@@ -76,7 +86,7 @@ The strongest tested non-activity route is metal recovery, followed by catalyst 
 
 ## Methanol catalyst-state ranking reshuffle
 
-The canonical **MEOH-D01-v3** case contains four Re/TiO2 catalyst-temperature states evaluated through the explicit recycle/separation loop at **2% purge**.
+The **methanol recycle–economics model** contains four Re/TiO2 catalyst-temperature states evaluated through the explicit recycle/separation loop at **2% purge**.
 
 Using STY per g Re as the upstream intrinsic-productivity metric:
 
@@ -131,7 +141,7 @@ No current quantitative cross-reaction leverage ratio is reported. The retired h
 
 ## Rank-preservation control
 
-The literature-calibrated **Au/TiO2-RP V1.1** control preserves the complete 2-6 nm order:
+The literature-calibrated **Au/TiO₂ rank-preservation control** preserves the complete 2-6 nm order:
 
 ```text
 Intrinsic activity rank      Downstream catalyst-burden rank
@@ -148,7 +158,7 @@ Intrinsic activity rank      Downstream catalyst-burden rank
 - 10,000/10,000 predefined literature-envelope draws preserve the full ranking
 - 6 nm / 2 nm required-catalyst ratio: **8.064x**
 
-### Supporting semi-open robustness — V1.3
+### Supporting Au/TiO₂ semi-open robustness extension
 
 For the primary 273.15-293.15 K window under moderate stress:
 
@@ -162,9 +172,9 @@ For the wider 273.15-313.15 K sensitivity window:
 - mean Spearman rho: **0.96802**
 - rho >= 0.9 in **97.56%** of draws
 
-V1.1 remains the canonical control; V1.3 is supporting robustness.
+The rank-preservation control remains primary; the semi-open extension is supporting robustness.
 
-## Decision-aware AI benchmark — DISCOVER V1
+## Adaptive Catalyst Screening Agent (ACSA)
 
 On the frozen anonymous closed-book task, complete decision recovery was:
 
@@ -176,7 +186,7 @@ strong     35/35
 
 The frozen primary endpoint is `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`: economic winner, decision pair and reachability verdict. The workflow uses `BACKWARD` to support the reachability classification, but numerical recovery of the backward parity multiplier is a separate quantitative secondary endpoint. The original across-tier adaptive-vs-fixed superiority criterion was not met.
 
-## DISCOVER-BOUNDARY-C1
+## ACSA budget-boundary study
 
 The deterministic fixed-VOI policy reaches the complete scientific decision at **206 CU**.
 
@@ -194,7 +204,7 @@ The primary decision endpoint and the quantitative target separate. Strong adapt
 
 Under the canonical narrow-window rule, the strong tier uses narrow-window allocation in **20/20** runs in every cell from **50 to 175 CU**, **1/8 at 200 CU**, **0/20 at 225 CU** and **0/9 at 250 CU**. In the same 175-CU cell the weaker tiers show **0/20 mini** and **0/20 nano**, and neither weak tier has canonical narrow-window use in any measured cell.
 
-Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and reaches decision stability much later.
+Under the non-binding 5000-CU allowance, the strong tier still completes 20/20. Median complete-decision stabilization is **566 CU**, median final spend is **714 CU**, median post-stability overrun is **148 CU**, and canonical narrow-window use is **0/20**. **14/20** runs consume additional CU after the hindsight stable-decision point; summed across the 20 traces, **8,207 / 17,535 CU = 46.8%** of final compute is post-stability. This is a retrospective stopping-efficiency diagnostic, not an online saving estimate. The interpretation is therefore not only post-stability overspending: without binding budget pressure, the policy also stops compressing the process search and lacks a reliable operational completion detector.
 
 The manuscript claim is therefore a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**.
 
@@ -206,6 +216,6 @@ The 2026-09-20 requested analyses are **complete**. Machine-readable results and
 
 ## Evidence state
 
-NH3-FINAL-1.1, MEOH-D01-v3, Au/TiO2-RP V1.1/V1.3 and DISCOVER/C1 remain the audited provenance families. The 2026-09-20 extensions change interpretation and uncertainty reporting without overwriting those frozen sources. The publication-facing manuscript now uses six composite main figures assembled from the existing provenance-bearing source assets; the composite render step remains a production task.
+The ammonia process–economics model, methanol recycle–economics model, Au/TiO₂ rank-preservation analyses and ACSA studies remain the audited scientific families; historical identifiers are retained only for provenance. The 2026-09-20 extensions change interpretation and uncertainty reporting without overwriting those frozen sources. The publication-facing manuscript now uses six composite main figures assembled from the existing provenance-bearing source assets; the composite render step remains a production task.
 
 Primary evidence maps: `data/claim_evidence_registry_2026-09-10.csv` and `data/figure_lock_registry_2026-09-10.csv`.

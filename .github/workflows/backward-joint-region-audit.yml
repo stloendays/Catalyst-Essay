@@ -1,0 +1,31 @@
+name: Backward joint-region audit
+
+on:
+  push:
+    paths:
+      - "analysis/fe_bridge_backward_2026_09_29/**"
+      - "figures/composite/fig2/fig2_ru_price_sweep.csv"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json"
+  pull_request:
+    paths:
+      - "analysis/fe_bridge_backward_2026_09_29/**"
+      - "figures/composite/fig2/fig2_ru_price_sweep.csv"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml"
+      - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json"
+  workflow_dispatch:
+
+jobs:
+  certified-inner-region:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pyyaml
+      - name: Recompute certified inner region
+        run: python analysis/fe_bridge_backward_2026_09_29/build_certified_inner_surface.py
+      - name: Verify committed outputs are reproducible
+        run: |
+          git diff --exit-code --             analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_boundary.csv             analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_keypoint.json

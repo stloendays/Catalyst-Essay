@@ -2,6 +2,7 @@
 
 Composite, 183 x 170 mm.
   fig2_pressure_envelopes.csv, fig2_ru_price_sweep.csv   fig2_model.py (frozen NH3-FINAL-1.1 harness)
+  fig2_ru_alpha_sweep.csv, fig2_ru_actual_cost_points.csv fig2_ru_actual_cost.py (same harness, literature u, r, KAAP)
   renders/bed_*.png, renders/beds.json                     build_beds.py (OVITO)
   closure/mc_draws.csv                                     NH3-FINAL-1.1 provenance, 1,000 descriptor draws
   analysis/supervisor_2026_09_20/*                         cost decomposition, equal-price test, joint cost MC
@@ -10,12 +11,13 @@ Composite, 183 x 170 mm.
 """
 import csv
 import json
+import math
 import os
 import sys
 
 import numpy as np
 from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
-from matplotlib.ticker import FixedLocator, LogLocator, MultipleLocator, NullFormatter
+from matplotlib.ticker import FixedLocator, FuncFormatter, LogLocator, MultipleLocator, NullFormatter, NullLocator
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
@@ -35,6 +37,11 @@ def read_csv(path):
 env = read_csv(os.path.join(HERE, "fig2_pressure_envelopes.csv"))
 sweep = read_csv(os.path.join(HERE, "fig2_ru_price_sweep.csv"))
 parity = sweep.pop()                                   # last row: the Ru = Fe price
+alpha_sweep = read_csv(os.path.join(HERE, "fig2_ru_alpha_sweep.csv"))   # fig2_ru_actual_cost.py
+assert len(alpha_sweep) == len(sweep) + 1
+alpha_sweep.pop()                                      # parity row: alpha* = 1 by construction
+PTS = {r["key"]: r for r in read_csv(os.path.join(HERE, "fig2_ru_actual_cost_points.csv"))}
+P_REACH = float(PTS["strict_scaling_reach"]["p_eff_USD_kg"])   # 237.3: audited strict-scaling lifecycle boundary
 decomp = {r["cost_pool"]: r for r in read_csv(os.path.join(SUP, "nh3_cost_decomposition.csv"))}
 f3 = {r["metric"]: float(r["value"]) for r in read_csv(os.path.join(SUP, "f3_panel_summary.csv"))}
 hist = read_csv(os.path.join(SUP, "nh3_cost_mc_histogram.csv"))
@@ -210,7 +217,9 @@ c.set_ylabel(r"Lowest cost (USD t$^{-1}$ NH$_3$)")
 c.xaxis.set_minor_locator(MultipleLocator(100))
 c.yaxis.set_minor_locator(MultipleLocator(1))
 
-# ---- d: Ru metal price sweep -------------------------------------------------------------
+# ---- d: Ru at its actual catalyst cost, and the activity it needs at each price -------------------
+# x is the effective Ru price p (1 - r) / u: the benchmark price p, divided by the dispersion gain u of a
+# supported catalyst over fused iron and multiplied by the unrecovered fraction 1 - r (fig2_ru_actual_cost.py)
 pg.letter("d", 62.0, RY0 + RH + 7.0)
 d1 = pg.ax(75.0, RY0 + 13.0, 42.0, RH - 13.0)
 d2 = pg.ax(75.0, RY0, 42.0, 11.5, sharex=d1)
@@ -219,43 +228,74 @@ boxed(d2)
 pr = np.array([float(r["price_USD_kg"]) for r in sweep])
 co = np.array([float(r["cost"]) for r in sweep])
 Popt = np.array([float(r["P_bar"]) for r in sweep])
-Vopt = np.array([float(r["V_m3"]) for r in sweep])
 fe_cost = OPT["Fe"]["cost"]
 p_star = float(parity["price_USD_kg"])
-for ax_ in (d1, d2):
-    ax_.axvspan(1.0, p_star, color=TINT_B, lw=0, zorder=0)
+assert abs(float(PTS["pure"]["cost"]) - OPT["Ru"]["cost"]) < 1e-9
+d1.axvspan(1.0, p_star, color=TINT_B, lw=0, zorder=0)
+d2.axvspan(1.0, P_REACH, color=PALE_G, lw=0, zorder=0)
 d1.axhline(fe_cost, color=FE, lw=0.9, ls=(0, (3, 1.6)), zorder=2)
-d1.text(2.2e5, fe_cost + 0.4, "Fe 15.29", fontsize=5.8, color=DARK_G, ha="right", va="bottom", fontweight="bold")
+d1.text(2.2e5, fe_cost + 0.35, "Fe 15.29", fontsize=5.8, color=DARK_G, ha="right", va="bottom", fontweight="bold")
 d1.plot(pr, co, color=RU, lw=1.2, zorder=3)
-i8 = int(np.argmin(np.abs(pr - 8.0)))
-ic = int(np.argmin(np.abs(pr - 53852.5)))
-for i in (i8, ic):
-    d1.plot(pr[i], co[i], "o", ms=3.4, mfc=RU, mec=INK, mew=0.5, zorder=5)
-d1.text(1.35, fe_cost + 0.7, "8 USD kg$^{-1}$: %.2f" % co[i8], fontsize=5.6, ha="left", va="bottom")
-d1.annotate("53,853 USD kg$^{-1}$\n%.2f" % co[ic], (pr[ic], co[ic]), xytext=(-5, 4), textcoords="offset points",
-            fontsize=5.6, ha="right", va="bottom", linespacing=1.1)
-d1.plot(p_star, fe_cost, "o", ms=4.0, mfc=RED, mec=INK, mew=0.5, zorder=6)
-d1.text(p_star * 1.45, fe_cost - 1.25, "parity at %d USD kg$^{-1}$" % round(p_star), fontsize=5.8, color=RED,
-        fontweight="bold", va="center", ha="left")
-d1.text(1.5, 26.0, "Ru cheaper", fontsize=5.6, color=DARK_B, va="top")
+d1.text(1.4, 25.9, "Ru cheaper", fontsize=5.6, color=DARK_B, va="top")
+
+
+def pt(key):
+    r = PTS[key]
+    return float(r["p_eff_USD_kg"]), float(r["cost"])
+
+
+x0, y0_ = pt("pure")
+x1, y1 = pt("supported")
+x9, y9 = pt("supp_rec90")
+x4, y4 = pt("supp_rec94")
+d1.plot([x4, x9], [y4, y9], color=INK, lw=2.2, solid_capstyle="butt", zorder=5)
+for x_, y_ in ((x0, y0_), (x1, y1), (x4, y4), (x9, y9)):
+    d1.plot(x_, y_, "o", ms=3.4, mfc=RU, mec=INK, mew=0.5, zorder=6)
+d1.plot(p_star, fe_cost, "o", ms=3.6, mfc=RED, mec=INK, mew=0.5, zorder=7)
+d1.text(p_star / 1.15, fe_cost + 0.45, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
+        ha="right", va="bottom")
+d1.text(x0 * 1.25, y0_ - 0.5, "pure Ru", fontsize=5.6, ha="left", va="top")
+d1.text(x1 * 1.35, y1 - 0.15, "Ru/C", fontsize=5.6, ha="left", va="top")
+d1.text(x9 * 1.3, fe_cost - 0.45, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
+# KAAP loop: Ru/C with recovery against fused iron at the same 90 bar, -20 C separator
+k9, k4, kf = (float(PTS[k]["cost"]) for k in ("kaap90", "kaap94", "fe_kaap"))
+d1.plot([x4 / 1.6, x9 * 1.6], [kf, kf], color=FE, lw=1.0, zorder=5)
+d1.plot([x4, x9], [k4, k9], "D", ms=2.8, mfc="white", mec=RU, mew=0.8, zorder=6)
+d1.text(x4 / 1.8, (k4 + kf) / 2, "KAAP loop\n90 bar", fontsize=5.4, ha="right", va="center", color=DARK_B,
+        linespacing=1.05)
+d1.text(x9 * 1.75, kf, "Fe", fontsize=5.4, ha="left", va="center", color=DARK_G)
 d1.set_xscale("log")
 d1.set_xlim(1.0, 3e5)
-d1.set_ylim(12.6, 26.6)
+d1.set_ylim(13.0, 26.6)
 d1.yaxis.set_major_locator(FixedLocator([15, 20, 25]))
 d1.yaxis.set_minor_locator(MultipleLocator(1))
 d1.set_ylabel(r"Ru cost (USD t$^{-1}$)")
 d1.tick_params(axis="x", labelbottom=False)
-d2.step(pr, Popt, where="post", color=INK, lw=0.8)
-d2.set_ylim(100, 500)
-d2.yaxis.set_major_locator(FixedLocator([200, 400]))
-d2.set_ylabel("$P_\\mathrm{opt}$\n(bar)", labelpad=1.5)
+
+ap = np.array([float(r["alpha_star"]) for r in alpha_sweep])
+d2.axhline(1.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=2)
+d2.text(1.4, 40, "parity within\nstrict scaling", fontsize=5.2, color=DARK_G, va="bottom", linespacing=1.05)
+d2.plot(pr, ap, color=INK, lw=0.9, zorder=3)
+for key in ("pure", "supported", "supp_rec90", "supp_rec94"):
+    d2.plot(float(PTS[key]["p_eff_USD_kg"]), float(PTS[key]["alpha_star"]), "o", ms=3.0, mfc=RU, mec=INK,
+            mew=0.5, zorder=5)
+d2.text(x0 / 1.3, float(PTS["pure"]["alpha_star"]), "%d×" % round(float(PTS["pure"]["alpha_star"])),
+        fontsize=5.5, ha="right", va="center")
+d2.text(x1 / 1.3, float(PTS["supported"]["alpha_star"]), "%d×" % round(float(PTS["supported"]["alpha_star"])),
+        fontsize=5.5, ha="right", va="center")
+d2.text(x9 * 1.5, 0.26, "%.1f–%.1f×" % (float(PTS["supp_rec94"]["alpha_star"]), float(PTS["supp_rec90"]["alpha_star"])),
+        fontsize=5.5, ha="left", va="bottom", fontweight="bold")
+d2.set_yscale("log")
+d2.set_ylim(0.2, 3000)
+d2.yaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))
+d2.yaxis.set_major_formatter(FuncFormatter(lambda v, _: "%g" % v))
+d2.yaxis.set_minor_locator(NullLocator())
+d2.set_ylabel("Activity\nfor parity", labelpad=1.5)
 d2.set_xscale("log")
 d2.xaxis.set_major_locator(LogLocator(base=10, numticks=8))
 d2.xaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10), numticks=12))
 d2.xaxis.set_minor_formatter(NullFormatter())
-d2.set_xlabel(r"Ru metal price (USD kg$^{-1}$)")
-d2.text(1.5, 470, "bed %.1f m$^3$" % Vopt[i8], fontsize=5.5, color=MID, va="top")
-d2.text(2.4e5, 140, "bed %.3f m$^3$" % Vopt[ic], fontsize=5.5, color=MID, va="bottom", ha="right")
+d2.set_xlabel(r"Effective Ru price $p(1-r)/u$ (USD kg$^{-1}$)")
 
 # ---- e: where the canonical gap sits, and the equal-price intervention ---------------------------
 pg.letter("e", 121.0, RY0 + RH + 7.0)

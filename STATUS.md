@@ -1,25 +1,31 @@
 # Current project status
 
-Snapshot date: **2026-09-20**
+Snapshot date: **2026-09-30**
 
 ## Overall state
+
+Publication-facing truth hierarchy: [`docs/SOURCE_OF_TRUTH_2026-09-29.md`](docs/SOURCE_OF_TRUTH_2026-09-29.md). The section-aware manuscript truth audit and the backward-target reproducibility audit both pass on the current main branch.
+
+Author-level manuscript decisions are recorded in [`docs/MANUSCRIPT_EDITORIAL_LOCKS.md`](docs/MANUSCRIPT_EDITORIAL_LOCKS.md). The Agent scaling-layer / reusable-execution framing remains locked unless the author explicitly reopens it.
 
 The supervisor-requested **2026-09-20 targeted analyses are complete**. Existing frozen provenance remains unchanged; the new counterfactual, joint cost-MC and oracle outputs are under `analysis/supervisor_2026_09_20/`.
 
 The resulting interpretation is now fixed for the next manuscript pass: equalizing Ru to the Fe metal price flips the NH3 economic order; bounded joint cost uncertainty around the canonical regime leaves Fe lower-cost in 5000/5000 draws; and the Agent protocol-complete oracle floor is 22 CU.
 
-## Canonical scientific families
+## Active scientific families
 
-| Family | Current label | State |
+Reader-facing names follow [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.md). Internal development identifiers are not reproduced in reader-facing documentation.
+
+| Family | Reader-facing name | State |
 |---|---|---|
-| Ammonia | **NH3-FINAL-1.1** | frozen / provenance closed |
-| Methanol | **MEOH-D01-v3** | frozen |
-| Rank-preservation control | **Au/TiO2-RP V1.1** | frozen canonical control |
-| Rank-preservation robustness | **Au/TiO2-RP V1.3** | supporting extension |
-| Agent benchmark | **DISCOVER V1** | frozen protocol |
-| Agent boundary extension | **DISCOVER-BOUNDARY-C1** | completed confirmatory extension |
+| Ammonia | **Ammonia process–economics model** | provenance closed |
+| Methanol | **Methanol recycle–economics model** | provenance closed |
+| Rank-preservation control | **Au/TiO₂ rank-preservation control** | provenance closed |
+| Rank-preservation robustness | **Au/TiO₂ semi-open robustness extension** | supporting extension |
+| Agent architecture | **Adaptive Catalyst Screening Agent (ACSA)** | frozen protocol |
+| Agent compute-budget extension | **ACSA budget-boundary study** | completed confirmatory extension |
 
-## NH3-FINAL-1.1
+## Ammonia process–economics model
 
 ```text
 Atomic activity ranking:  Ru > Os > Fe
@@ -46,9 +52,15 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 
 **Joint cost MC:** 5,000 preregistered draws give **P(C_Fe < C_Ru) = 1.000**; alpha* p05 / median / p95 = **70.78x / 174.27x / 462.00x**.
 
-The FINAL-1.1 source-harness bundle is under `provenance/nh3_final_1_1/source_harness/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
+**Joint backward-design target and reachability closure (2026-09-29):** activity alone remains unreachable (201.22x required vs 2.525x maximum state-specific scaling headroom). A conservative 53-state direct-activity/lifecycle audit gives target-space upper bounds of **2.418x / 1.742x / 1.401x** at **10 / 15 / 20 y** with 99% Ru recovery. The separate strict-scaling lifecycle audit now evaluates all **14,136** process states. The prespecified box (**life <= 20 y, recovery <= 99%**) does **not** intersect parity: its best corner, **20 y + 99%**, gives **15.36249 USD/t NH3**, **0.07078 USD/t (0.46%)** above Fe. Parity lies just outside at **99.1186% recovery for 20 y** or **22.69 y life at 99% recovery**.
 
-## MEOH-D01-v3
+**Decision consequence and uncertainty-structure extensions (2026-09-29):** normalized upstream-selection regret is **44.07% for NH3**, **3.36% for MeOH** and **0 for the Au/TiO2 preservation control**. A supporting Gaussian-copula descriptor audit and common-bias sweep show that atomistic rank probabilities are conditional on error dependence; these analyses do not replace the preregistered downstream Monte Carlo. The pairwise transfer-index sign is positive for the inverted NH3 and MeOH examples and negative for the preserved Au/TiO2 pair.
+
+**External process/economic validation (2026-09-30):** independent ammonia literature now anchors three separate claims: the Fe optimum lies within the conventional industrial temperature/pressure range; recycle/compression/separation are strongly pressure-coupled; and published Fe/Ru process studies change the preferred catalyst with plant scale and loop configuration. This is used to validate the **coupling structure**, not the model-specific pure-Ru pressure optimum or absolute reduced cost. The Discussion has been rewritten around decision consequence, inversion layer, reachability and applicability domain rather than repeating Results.
+
+The frozen ammonia source-harness provenance is retained under `provenance/`. Repository validation reports **13/13 canonical anchors, 6/6 evidence classes, 6/6 figure mappings, 28/28 manifest files and 0 source-manifest hash mismatches**.
+
+## Methanol recycle–economics model
 
 Using STY per g Re as the upstream intrinsic metric:
 
@@ -64,9 +76,9 @@ Headline statistics are **rho = 0.20**, **tau = 0.00** and **3/6 pairwise invers
 
 The 2026-09-20 cost-parameter MC retains the canonical four-candidate economic order in **5,000/5,000** draws. A separately labelled active-Re replacement extension also preserves the same order in **5,000/5,000** draws.
 
-## Au/TiO2 rank-preservation control
+## Au/TiO₂ rank-preservation control
 
-The canonical V1.1 control preserves the complete 2-6 nm ranking:
+The rank-preservation control preserves the complete 2-6 nm ranking:
 
 - Spearman rho: **1.000**
 - Kendall tau: **1.000**
@@ -74,7 +86,7 @@ The canonical V1.1 control preserves the complete 2-6 nm ranking:
 - 10,000/10,000 predefined literature-envelope draws preserve the full order
 - 6 nm / 2 nm required-catalyst ratio: **8.064x**
 
-V1.3 remains a supporting semi-open robustness extension.
+The semi-open robustness extension remains a supporting analysis.
 
 ## Cross-reaction comparison
 
@@ -92,17 +104,17 @@ selectivity
  -> purge / recycle / compression
 ```
 
-Each reaction is evaluated against its own frozen downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript. Superseded values are documented only in `docs/RETIRED_RESULTS.md`.
+Each reaction is evaluated against its own downstream economic objective. Absolute NH3 and MeOH cost values are not compared across reactions. No quantitative cross-reaction leverage ratio is promoted in the current manuscript.
 
-## Decision-aware Agent Harness
+## Adaptive Catalyst Screening Agent (ACSA)
 
-DISCOVER V1 anonymous complete-decision recovery:
+ACSA anonymous complete-decision recovery:
 
 - nano: **6/35**
 - mini: **15/35**
 - strong: **35/35**
 
-DISCOVER-BOUNDARY-C1 uses the unchanged frozen V1 protocol. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
+The ACSA budget-boundary study uses the unchanged frozen Agent protocol. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |
 |---|---:|---:|
@@ -113,23 +125,17 @@ DISCOVER-BOUNDARY-C1 uses the unchanged frozen V1 protocol. The deterministic fi
 
 For the strong tier, **75 CU** is the lowest tested stable complete-decision budget. Canonical narrow-window allocation is **20/20 in every cell from 50 to 175 CU, 1/8 at 200 CU, 0/20 at 225 CU and 0/9 at 250 CU**; the weaker tiers have no canonical narrow-window use in their measured cells.
 
-Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. The revised interpretation is that budget pressure activates scoped window compression; when the allowance becomes non-binding, the policy no longer narrows the process domain and stabilizes the complete decision much later, then continues for a further median 148 CU.
+Under the non-binding 5000-CU allowance, median decision-stable spend is **566 CU**, median final spend is **714 CU**, and median post-stability overrun is **148 CU**. Canonical narrow-window use is **0/20** in this condition. In the retained 20-run audit, **14/20** runs spend additional compute after the hindsight stable-decision point, and **8,207 of 17,535 CU (46.8%)** are spent after that point. Because stability is defined using the remainder of each trace, 46.8% is a retrospective diagnostic rather than an automatically recoverable online saving. The revised interpretation is that budget pressure activates scoped window compression, while the non-binding policy lacks a reliable operational detector of decision completion.
 
-The benchmark-level claim remains a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. At the manuscript level, the Agent also serves as the **workflow-scaling layer**: reaction-specific deterministic tools provide scientific truth, while the policy orchestrates repeated decision instances without manually scripting every calculation path.
+The budget study identifies a **model-tier-dependent, budget-localized decision-recovery advantage below the fixed-policy completion threshold**. At the manuscript level, ACSA serves as the **scaling layer and reusable execution pattern**: reaction-specific deterministic tools provide the scientific calculations, while the policy orchestrates repeated decision instances without manually scripting every calculation path.
 
 Oracle analysis gives a literal scorer-complete floor of **7 CU** and a protocol-complete S1-S3 floor of **22 CU**. The **22-CU** value is the manuscript-facing normalization: strong 75-CU allowance = **3.41x**, strong median decision-stable spend at 75 CU (52.5) = **2.39x**, fixed-policy threshold 206 = **9.36x**, and non-binding decision-stable median 566 = **25.73x**.
 
 ## Figure state
 
-Current publication-facing figure architecture is **six composite main figures**. The previous F1-F10 files remain source assets/provenance and are mapped into the six figures in `docs/FIGURE_MAP.md`.
+Current publication-facing figure architecture is **six composite main figures** rendered under `figures/composite/fig1` … `fig6`, specified in `docs/FIGURE_MAP.md`, and captioned in `docs/MAIN_FIGURE_CAPTIONS.md`.
 
-- Legacy **F1-F2, F4-F8, F9B** remain locked source assets.
-- Legacy **F3** and **F10** are rendered and hash-pinned source assets with the 2026-09-20 extensions.
-- Legacy **F9A** is the qualitative pathway source panel and now requires the updated NH3 pathway label: activity + metal cost -> inventory + preferred operating regime.
-- The publication-facing **six composite main figures** are specified in `docs/FIGURE_MAP.md` and captioned in `docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`; composite rendering is pending.
-- **ED1-ED3** remain locked Agent Extended Data panels.
-
-Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the frozen values and traceability.
+Publication redraws may change typography, annotation placement, panel spacing and export format, but must preserve the verified values and traceability.
 
 ## Repository organization
 
@@ -144,7 +150,7 @@ Recommended supervisor reading path:
 
 Current manuscript-facing headline data: `data/manuscript_headline_results_2026-09-20.csv`.
 
-Superseded conclusions, intermediate files and corrected definitions are centralized in `docs/RETIRED_RESULTS.md`. Frozen provenance and audit records remain in the repository for traceability.
+Frozen provenance and audit records remain in the repository for traceability.
 
 ## Supervisor-requested targeted analyses — 2026-09-20
 
@@ -152,12 +158,24 @@ Superseded conclusions, intermediate files and corrected definitions are central
 
 ## Current manuscript draft
 
-The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT_v8_2026-09-20.md`**. It retains the v7 physical-science architecture but strengthens the Agent contribution: DISCOVER is now framed as the **automation and scaling layer** that converts the deterministic ranking–parity–reachability framework into a reusable workflow for repeated and batch screening. Scientific truth remains in the reaction-specific tools. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS_v4_2026-09-20.md`**.
+The current integrated main-text draft is **`docs/MANUSCRIPT_MAIN_TEXT.md`**. This pass keeps the scientific results and numerical anchors unchanged while completing the article-style language and logic revision. The Abstract is more compact, Results paragraphs lead with scientific claims, Discussion emphasizes interpretation rather than repeating the Results, and Agent details are confined to the computational question they support. Current six-figure captions are in **`docs/MAIN_FIGURE_CAPTIONS.md`**.
+
+## Non-figure provenance closure
+
+The preregistered NH3 5,000-draw cost-side Monte Carlo is now exactly reconstructable at draw level from committed deterministic inputs and the frozen FINAL-1.1 harness. The regenerated cost summary matches the existing 2026-09-20 result to machine precision. The normalized Ru-vs-Fe selection regret remains positive in **5,000/5,000** draws, with **p05 / median / p95 = 30.48% / 40.89% / 54.25%**. CI writes and uploads the reconstructed draw table on every relevant change.
+
+
+## External validation and Discussion closure — 2026-09-30
+
+- Independent ammonia-process literature now supports the **qualitative mechanism**: high-activity Ru can reduce compression demand, but separation/refrigeration, Ru price and catalyst lifetime can offset that gain.
+- This is treated as **mechanism-level support**, not numerical validation of the present reduced cost values or commercial promoted-Ru operating conditions.
+- The Discussion has been compressed around four reader-facing concepts: **decision consequence, inversion criterion, backward reachability, and applicability domain**.
+- A local transferable criterion now states that ranking inversion occurs when the aggregate downstream penalty exceeds the direct upstream-performance benefit; the finite-difference transfer-index sign provides the corresponding diagnostic.
+- The reader-facing limitations now explicitly separate reduced NH3 catalyst-dependent economics, the four-state MeOH mapping, the Au/TiO2 preservation control and the fixed-tool-interface ACSA benchmark.
 
 ## Next production tasks
 
-1. assemble the six composite manuscript figures from the already frozen/hash-pinned source assets;
-2. run a cross-document audit of v7 against the claim/evidence registry, six-figure captions and Methods definitions;
-3. consolidate Supporting Information numbering for the NH3 cost decomposition, full uncertainty protocols and MeOH active-Re extension;
-4. tighten references and Data/Code Availability for submission;
-5. generate the next Word/PDF manuscript artifact only after the v7 architecture audit closes.
+1. run a cross-document audit of the current main text, six-figure captions and Methods definitions;
+2. consolidate Supporting Information numbering for the NH3 cost decomposition, uncertainty protocols and MeOH active-Re extension;
+3. tighten references and Data/Code Availability for submission;
+4. generate the next Word/PDF manuscript artifact from the current semantic manuscript entry points.
