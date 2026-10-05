@@ -240,31 +240,38 @@ CH4-dominated set (S_CO <= 2 %); it matters for CO-selective catalyst families.
 ## Literature extraction pilot (CO2-to-methanol) — 2026-10-05
 
 `agent/extraction/` fetches papers, converts them to page-marked text and page images, extracts every catalyst entry
-with value, unit, qualifier, location and page in one strict-JSON model call per paper (`gpt-5.5`, reasoning effort
-medium; the second and third batches ran through the local API-YES gateway with `--api-yes`; the nine ScienceDirect
-papers of the third batch were downloaded by hand and identified by the DOI printed in each PDF), normalizes units to
-the model basis and scores against curated references. `normalize.py` and `evaluate.py` rerun offline from the
-committed raw outputs and reproduce `eval/` byte for byte.
+with value, unit, qualifier, location and page in strict-JSON model calls (`gpt-5.5`, reasoning effort medium; the
+later batches and the recall passes ran through the local API-YES gateway with `--api-yes`; the nine ScienceDirect
+papers were downloaded by hand and identified by the DOI printed in each PDF), normalizes units to the model basis and
+scores against curated references. Besides the main pass there are three recall passes merged by `normalize.py`:
+
+- digitisation of the main-text figures;
+- the Supporting Information (SI) text;
+- digitisation of the SI figures.
+
+A printed main-text value outranks an SI value, which outranks a plot reading. `normalize.py` and `evaluate.py` rerun
+offline from the committed raw outputs and reproduce `eval/` byte for byte.
 
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
-| scored papers | 19 TheMeCat papers (412 curated entries) + Gothe 2025 Table 4 (21 rows) | SUPPORTING | `agent/extraction/eval/summary.json` |
-| entry recall / precision | 257/412 = 0.62; precision 0.81 on matched entries, 0.95 after PDF review of unmatched entries | SUPPORTING | same |
-| field accuracy, strict, adjudicated reference | T, P, H2/CO2 1.000; GHSV 0.979; X_CO2 0.913; S_MeOH 0.743 (0.913 loose); STY 0.410 (0.564 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
-| values printed in tables | X 58/58, S_MeOH 58/58 exact; STY 34/40 (the 6 others reproduce the printed value: paper-internal inconsistency or reference rounding) | SUPPORTING | `agent/extraction/README.md` |
+| scored papers | 19 TheMeCat papers (413 curated entries) + Gothe 2025 Table 4 (21 rows); SI retrieved for 19 papers | SUPPORTING | `agent/extraction/eval/summary.json`, `agent/extraction/si_manifest.json` |
+| entry recall / precision | 396/413 = 0.96 (main pass alone 258/413 = 0.62); precision 0.69 on matched entries, 0.89 after PDF review of unmatched entries | SUPPORTING | `agent/extraction/eval/entry_metrics.csv` |
+| field accuracy, strict, adjudicated reference | T, P, H2/CO2 1.000; GHSV 0.990; X_CO2 0.914 (coverage 1.00); S_MeOH 0.739 (0.911 loose, coverage 1.00); STY 0.697 (0.754 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
+| values printed in tables and SI | main-text tables X 58/58, S_MeOH 58/58; SI X 117/117, S_MeOH 113/114, STY 107/107; plot readings X 131/153, S_MeOH 59/131 strict | SUPPORTING | `agent/extraction/eval/field_accuracy_by_source.csv` |
 | Gothe Table 4 | 21/21 rows; X, S_MeOH, S_CO, S_CH4, STY per g Re each 21/21 | SUPPORTING | `agent/extraction/eval/gothe_table4_scores.csv` |
-| reference errata | 160 TheMeCat cells corrected against the PDFs (68 rows); one contradicted row dropped | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
-| cost per paper | about 50k tokens and 1–8 min; 1.05 M tokens for the 20-paper pilot | SUPPORTING | `agent/extraction/out/token_usage.csv` |
+| reference errata | 271 TheMeCat cells corrected against the PDFs and SI (179 rows); one mislabelled row renamed | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
+| tokens | 2.90 M for the pilot (main 1.05 M; figures 1.05 M; SI 0.44 M; SI figures 0.36 M) | SUPPORTING | `agent/extraction/out/token_usage.csv` |
 
-**Semantic lock:** "adjudicated" means TheMeCat after the listed PDF-verified corrections; accuracy against the raw
-TheMeCat values is reported alongside in `field_accuracy.csv`.
+**Semantic lock:** "adjudicated" means TheMeCat after the listed PDF- and SI-verified corrections; accuracy against the
+raw TheMeCat values is reported alongside in `field_accuracy.csv`.
 
 - GHSV is scored on the total feed or the inert-free feed, because the reference uses both conventions.
-- Of the 155 missed entries:
-  - 74 are in main-text plots that were not digitized;
-  - 67 are only in Supporting Information that was not retrieved;
-  - 7 are values the paper quotes from another study.
-- Residual field errors are plot readings, plus STY values from two papers (Chou 2019, Shi 2020) whose printed rates contradict their own conversion and selectivity.
+- Of the 17 entries still missed:
+  - 7 are values the paper quotes from another study;
+  - 6 are Sci. Adv. points or curated duplicates;
+  - 3 are zero-activity rows;
+  - 1 is a reference label error.
+- Residual field errors are plot readings (including secondary- or broken-axis misreads), plus STY values from two papers (Chou 2019, Shi 2020) whose printed rates contradict their own conversion and selectivity.
 
 ## NH3 — bimetallic alloy extension — 2026-10-05
 
