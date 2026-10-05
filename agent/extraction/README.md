@@ -14,12 +14,13 @@ Gothe et al. 2025 Table 4.
 | PDFs retrieved by nus-fetch | 11 (10 TheMeCat + Gothe). The other TheMeCat candidates are ScienceDirect, which nus-fetch marks `manual` (publisher bot check) |
 | Extracted with gpt-5.5, first batch | 4: Gothe 2025, Wu 2017, Bansode 2013, Wang 2017 (RSC Adv.); OpenAI API, chat completions |
 | Extracted with gpt-5.5, second batch | 7: Samson 2014, Chen 2019 (ACS Catal.), Wang 2017 (Sci. Adv.), Chen 2024 (Angew.), Yang 2024 (ChemPhysChem), Chen 2019 (Energy Technol.), Bahruji 2016; `--api-yes` route (local API-YES gateway, streamed Responses API), same prompt and schema |
-| Adjudicated against the PDFs | all 11 |
+| Extracted with gpt-5.5, third batch | 9 ScienceDirect papers downloaded by hand and re-identified by the DOI printed in each PDF: Rui 2017, Ghosh 2022, Sharma 2023, Zaman 2023, Ota 2012, Jiang 2020, Hou 2024, Shi 2020, Chou 2019; `--api-yes` route |
+| Adjudicated against the PDFs | all 20 |
 
 The first batch stopped when the OpenAI organisation ran out of credit (HTTP 429 `insufficient_quota`).
 The second batch was extracted later through the local gateway. All 11 papers were then scored with the same `normalize.py` and `evaluate.py`.
 Every mismatch was checked in the PDF: TheMeCat errors go to `eval/themecat_errata.csv`, extraction errors to `eval/field_mismatch_review.csv` and `eval/unmatched_review.csv`.
-The 11-paper results are in "Accuracy, 11 papers"; the 4-paper results from the first run are kept below them as "First batch".
+The 20-paper results are in "Accuracy, 20 papers". The 11-paper results and the 4-paper first run are kept below as the earlier stages.
 
 ## Pipeline
 
@@ -79,6 +80,12 @@ Fixes made while adjudicating the second batch (genuine parsing bugs, found from
 - Per-metal STY (Chen 2024) had no per-catalyst value; it now gets one when the loading is stated.
 - Two unanchored copies of the NmL/NL rule were removed.
 
+Fixes made while adjudicating the third batch:
+
+- `(STP)`, the hyphenated `g-cat`, `.` as a multiplication dot (`mmol/kgcat.h`, `mL/gcat.h`) and `.` as an abbreviation point (`gcat.-1`) were not parsed. This dropped the Jiang 2020 GHSV, the Shi 2020 STY and GHSV values, and the Chou 2019 GHSV and STY values from Fig. 5.
+- A molar space velocity (`10 mmol gcat-1 min-1`, Ota 2012) is now converted at 22.414 NL/mol (0 °C, 1 atm).
+- `GHSV_inert_free_NL_gcat_h` gives the same GHSV counted on reactants only, when the feed composition names N2/Ar/He (`inert_frac`). TheMeCat uses this convention for some papers (Chen 2024: 9000 x 0.96 = 8.64; Hou 2024: 18000 x 5/6 = 15; Jiang 2020: 26000 x 5/6.5 = 20) and the total feed for others (Yang 2024, Wu 2017).
+
 ### Model and settings
 
 - Model: `gpt-5.5` (the API returns `gpt-5.5-2026-04-23`). It was available, so no fallback was needed.
@@ -114,8 +121,23 @@ Second batch (7 papers, `--api-yes` gateway, streamed Responses API). Three firs
 | Wang 2017 Sci. Adv. | 32,632 | 4,557 (1,351) | 37,189 | 4 | 106 s |
 | **Second batch total** | **296,429** | **114,737** | **411,166** | | |
 
-Pilot total: 650,673 tokens (455,349 prompt, 195,324 output), 22 % of the 3 M cap.
-At the list price above, that is about **USD 8.14**. Second-batch successful calls averaged 35 k prompt and 14 k output tokens per paper.
+Third batch (9 Elsevier papers, `--api-yes`, one call each):
+
+| Paper | Prompt | Output (of which reasoning) | Total | Records | Time |
+|---|---:|---:|---:|---:|---:|
+| Rui 2017 Appl. Catal. B | 30,522 | 4,888 (1,034) | 35,410 | 5 | 93 s |
+| Ghosh 2022 Chem. Eng. J. | 37,810 | 12,318 (2,185) | 50,128 | 14 | 226 s |
+| Sharma 2023 Fuel | 36,816 | 7,587 (2,510) | 44,403 | 7 | 65 s |
+| Zaman 2023 Fuel | 26,390 | 21,023 (1,245) | 47,413 | 28 | 381 s |
+| Ota 2012 J. Catal. | 34,718 | 7,671 (2,070) | 42,389 | 7 | 141 s |
+| Jiang 2020 J. Catal. | 40,165 | 8,361 (1,034) | 48,526 | 10 | 155 s |
+| Hou 2024 J. Environ. Sci. | 31,199 | 12,614 (1,428) | 43,813 | 15 | 233 s |
+| Shi 2020 J. Saudi Chem. Soc. | 27,787 | 7,022 (1,784) | 34,809 | 8 | 130 s |
+| Chou 2019 Appl. Catal. A | 29,670 | 23,625 (1,547) | 53,295 | 20 | 430 s |
+| **Third batch total** | **295,077** | **105,109** | **400,186** | | |
+
+Pilot total: 1,050,859 tokens (750,426 prompt, 300,433 output), 35 % of the 3 M cap.
+At the list price above, that is about **USD 12.77**. Third-batch calls averaged 33 k prompt and 12 k output tokens per paper.
 
 Per paper (first batch, n = 5 calls): about 32 k prompt tokens (text ~20 k plus 8–16 page images), about 16 k output tokens and 100 s.
 That is about **USD 0.64 per paper**. Output tokens are 75 % of the cost, because every number carries its own unit, location and page.
@@ -150,7 +172,148 @@ The name rules were tightened during the second-batch adjudication, because the 
 
 The first-batch results are unchanged by the stricter rule.
 
-### Accuracy, 11 papers (10 TheMeCat DOIs + Gothe)
+Third-batch changes:
+
+- The prefix rule is now also limited to names without an exact or alias partner. Otherwise 'In2O3' (pure oxide) paired with 'In2O3/HZSM-5' in Ghosh 2022.
+- GHSV counts as matching when either the total-feed or the inert-free value is within tolerance (for candidate pairs: 10 %).
+- A value printed as a bound ('>20 %', '<1') is correct when the curated value satisfies the bound.
+- New aliases (all checked in the PDF): Jiang 'Cat-A(In2O3/ZrO2)' = 'In2O3/ZrO2'; Sharma 'In2O3' = 'bulk In2O3'; Ghosh 'In2O3/HZSM(Zeolite)' = 'In2O3/HZSM-5'; Zaman 'PZC(PdZn/CeO2)' = 'PZC'; Chou '1.5YIn2O3/ZrO2' (Table 1) = '1.5Y9In/ZrO2' (text).
+- The 24 Chen 2024 GHSV errata cells from the second batch are withdrawn: TheMeCat's 8.64 and 51.84 are the printed values on the inert-free basis, not errors.
+
+### Accuracy, 20 papers (19 TheMeCat DOIs + Gothe)
+
+TheMeCat has 413 entries for the 19 DOIs; one is dropped after adjudication, leaving 412.
+Tolerances: T ±1 K; P, GHSV and STY ±1 % (loose ±5 %); H2/CO2 ±0.05; X and S ±0.5 pp (loose ±2 pp).
+
+#### Field-level accuracy (257 matched entries)
+
+| Field | Curated | Extracted | Coverage | Strict (adjudicated) | Loose (adjudicated) | Strict (raw TheMeCat) | Loose (raw TheMeCat) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| T | 257 | 257 | 1.00 | **1.000** | 1.000 | 1.000 | 1.000 |
+| P | 257 | 257 | 1.00 | **1.000** | 1.000 | 0.825 | 0.825 |
+| H2/CO2 | 257 | 257 | 1.00 | **1.000** | 1.000 | 0.984 | 1.000 |
+| GHSV | 239 | 143 | 0.60 | **0.979** | 0.979 | 0.846 | 0.846 |
+| X_CO2 | 257 | 206 | 0.80 | **0.913** | 0.995 | 0.869 | 0.961 |
+| S_MeOH | 233 | 206 | 0.88 | **0.743** | 0.913 | 0.723 | 0.883 |
+| STY | 239 | 117 | 0.49 | **0.410** | 0.564 | 0.094 | 0.282 |
+
+- GHSV: 74 curated values are not comparable because the paper gives only a volume-based GHSV (h-1). The 3 GHSV misses are the Ota molar space velocity converted at 0 °C (TheMeCat at about 25 °C).
+- Third batch alone (9 papers, 93 matched entries, adjudicated strict / loose):
+  - X_CO2 0.907 / 0.988
+  - S_MeOH 0.605 / 0.919
+  - STY 0.375 / 0.411
+  - GHSV 0.964 / 0.964
+- STY below 0.5 is driven by two papers whose printed or plotted methanol rates disagree with their own X x S x F (Chou 2019: 18 values, about 25–30 % lower; Shi 2020: 5 values, 2–3x higher). TheMeCat recomputes these from X x S x F; the extraction reports the paper's numbers.
+
+Strict accuracy (adjudicated) by source type of the extracted value:
+
+| Source | X_CO2 | S_MeOH | STY |
+|---|---|---|---|
+| Table | 58/58 | 58/58 | 34/40 |
+| Text | 5/5 | 5/5 | 0/1 |
+| Mixed (text + figure) | 26/28 | 26/28 | 9/19 |
+| Figure (plot reading, `~`) | 99/115 | 64/115 | 5/57 |
+
+All six table-STY misses are reproduced exactly from the PDF:
+
+- 5 are Shi 2020 yields, where the paper's printed methanol yield is 2-3x its own X x S x F;
+- 1 is Ota PdMgAl, which TheMeCat rounds to 4 decimals.
+
+#### Entry-level recall and precision
+
+| DOI | Curated | Extracted | Matched | Matched with X and S | Recall | Precision (matched only) | Precision (with PDF review) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 10.1021/acs.iecr.7b01464 (Wu 2017) | 22 | 26 | 22 | 22 | 1.00 | 0.85 | 1.00 |
+| 10.1039/c2cy20604h (Bansode 2013) | 60 | 45 | 45 | 20 | 0.75 | 1.00 | 1.00 |
+| 10.1039/c6ra28305e (Wang 2017 RSC Adv.) | 4 | 4 | 4 | 4 | 1.00 | 1.00 | 1.00 |
+| 10.1002/anie.202401168 (Chen 2024) | 26 | 15 | 11 | 10 | 0.42 | 0.73 | 0.80 |
+| 10.1002/cphc.202300530 (Yang 2024) | 24 | 24 | 24 | 0 | 1.00 | 1.00 | 1.00 |
+| 10.1002/ente.201800747 (Chen 2019) | 30 | 5 | 5 | 2 | 0.17 | 1.00 | 1.00 |
+| 10.1016/j.jcat.2016.03.017 (Bahruji 2016) | 19 | 21 | 19 | 19 | 1.00 | 0.90 | 1.00 |
+| 10.1021/acscatal.9b01869 (Chen 2019) | 16 | 40 | 15 | 0 | 0.94 | 0.38 | 0.73 |
+| 10.1021/cs500979c (Samson 2014) | 20 | 19 | 18 | 18 | 0.90 | 0.95 | 1.00 |
+| 10.1126/sciadv.1701290 (Wang 2017 Sci. Adv.) | 49 | 4 | 1 | 1 | 0.02 | 0.25 | 1.00 |
+| 10.1016/j.apcatb.2017.06.069 (Rui 2017) | 15 | 5 | 5 | 1 | 0.33 | 1.00 | 1.00 |
+| 10.1016/j.cej.2022.135090 (Ghosh 2022) | 14 | 14 | 7 | 7 | 0.50 | 0.50 | 0.86 |
+| 10.1016/j.fuel.2022.125878 (Sharma 2023) | 23 | 7 | 7 | 2 | 0.30 | 1.00 | 1.00 |
+| 10.1016/j.fuel.2023.127927 (Zaman 2023) | 28 | 28 | 28 | 28 | 1.00 | 1.00 | 1.00 |
+| 10.1016/j.jcat.2012.05.020 (Ota 2012) | 3 | 7 | 3 | 3 | 1.00 | 0.43 | 1.00 |
+| 10.1016/j.jcat.2020.01.014 (Jiang 2020) | 2 | 10 | 2 | 2 | 1.00 | 0.20 | 1.00 |
+| 10.1016/j.jes.2023.05.010 (Hou 2024) | 30 | 15 | 14 | 14 | 0.47 | 0.93 | 0.93 |
+| 10.1016/j.jscs.2019.09.002 (Shi 2020) | 7 | 8 | 7 | 7 | 1.00 | 0.88 | 1.00 |
+| 10.1016/j.apcata.2019.117144 (Chou 2019) | 20 | 20 | 20 | 20 | 1.00 | 1.00 | 1.00 |
+| **Total** | **412** | **317** | **257** | **180** | **0.62** | **0.81** | **0.95** |
+
+The 60 unmatched extracted entries (`eval/unmatched_review.csv`):
+
+- 43 are confirmed correct by the PDF. Of these, 18 are from the third batch:
+  - Ghosh Fig. 8b 3:1 bed (5);
+  - the Ota CuZnAl reference and 3 steady-state rates from the text;
+  - Jiang's H2O co-feed series (8);
+  - Shi Fig. 7 at GHSV 3000.
+- 17 are wrong (3 in the third batch): 2 Ghosh Fig. 8b misreads, and the Hou Au/In2O3-NP 200 °C selectivity, extracted as 70 % where the plot shows about 48 %.
+
+#### Third batch: what the per-paper gaps were
+
+- **Hou 2024** (0/30 matched before review, 14/30 after):
+  - The paper prints GHSV = 18,000 mL gcat-1 h-1 (60 mL/min over 0.2 g, p3 and p8). TheMeCat's 15 is the inert-free value (H2:CO2:Ar = 4:1:1), so the 10 % GHSV gate rejected every pair. Matching now accepts either basis.
+  - The 16 curated entries still missing: 15 pure In2O3-HM/NP/NS rows from Appendix A Fig. S4 (SI), and one second 'Au/In2O3-HM' 473 K row that is the NP point under the wrong label in TheMeCat.
+- **Jiang 2020** (10 extracted vs 2 curated):
+  - TheMeCat 'Cat-A(In2O3/ZrO2)' is the paper's In2O3/ZrO2; an alias was added.
+  - The 8 extra entries are the H2O co-feed series of Fig. 1 (0.1–3.8 mol% H2O). All are correct against the plot; TheMeCat keeps only the dry runs.
+  - The GHSV unit `mL (STP) g-cat-1 h-1` was a normalisation bug, now fixed.
+- **Ghosh 2022** (precision 0.5 -> 0.86):
+  - The 7 unmatched extracted entries are a second catalyst bed (In2O3:HZSM-5 = 3:1, Fig. 8b) that TheMeCat does not list; 5 are correct, 2 misread.
+  - The 7 missed curated entries are pure In2O3 from Fig. 2a/c. The paper marks them as data from its ref. [21], and the prompt excludes values quoted from other papers.
+  - TheMeCat's methanol selectivity for In2O3/HZSM-5 is 100x too high (see errata).
+- **Ota 2012** (7 vs 3): the 4 extra entries are the CuZnAl reference in Table 2 (TheMeCat omits it) and the three steady-state rates printed in Section 3.4.1. These belong to the same catalysts as Table 2 but come from the Fig. 11A time-on-stream runs.
+- **Rui 2017** (5 vs 15): TheMeCat's 15 entries come from main-text Fig. 1a/b. The model did not digitise that figure ("small plotted points"). It extracted the 4 Table 2 rates and the printed 300 °C headline values; the 10 missing entries are Fig. 1 points.
+- **Chou 2019** (20 vs 20): every Fig. 5 point matched after the `gcat.-1` unit fix and the Table 1 name alias. The STY values are the Fig. 5c rates, which the paper itself prints in Table 1 (0.465 / 0.420 / 0.420 / 0.241). TheMeCat's STY is about 25–30 % higher because it recomputes from X x S x F, which the paper's own rates do not satisfy. This is classified as a paper inconsistency, not an errata.
+- **Sharma 2023** (7 vs 23): all 16 missing entries are main-text Fig. 9/10 points, which the model chose not to digitise. Every value it took from the text is correct, and five of them corrected TheMeCat.
+
+#### Where all 155 missing curated entries come from
+
+| Cause | Entries | Papers |
+|---|---:|---|
+| Main-text figure not digitised | 74 | Wang Sci. Adv. Fig. 1 (32), Chen 2019 Energy Technol. Fig. 4a/b (16), Sharma Fig. 9/10 (16), Rui Fig. 1 (10) |
+| Supporting Information only (not fetched) | 67 | Bansode (15), Chen 2019 Energy Technol. (9), Chen 2024 (12), Wang Sci. Adv. (16), Hou Fig. S4 (15) |
+| Values quoted from another paper (excluded by the prompt) | 7 | Ghosh pure In2O3 (ref. [21]) |
+| Zero-activity rows skipped | 3 | Samson (2), Chen 2019 ACS Catal. (1) |
+| Extracted under the wrong catalyst name | 3 | Chen 2024 Fig. 4b |
+| TheMeCat label error | 1 | Hou: Au/In2O3-NP 200 °C listed as a second Au/In2O3-HM row |
+
+#### Field mismatches checked against the PDF (`eval/field_mismatch_review.csv`)
+
+| Failure mode | 20 papers | Third batch | Where (third batch) |
+|---|---:|---:|---|
+| Plot reading error on the right series and point | 69 | 38 | Zaman Fig. 6A/7b (16), Hou Fig. 6a (16), Chou Fig. 5 (4), Ghosh, Jiang |
+| Series or point confusion | 26 | 3 | Ghosh Fig. 2b selectivity series read in reverse order (2), Hou NP point read from the NS curve (1) |
+| Paper internally inconsistent | 24 | 24 | Chou rates vs its own X x S x F (18); Shi printed yields (5); Ghosh Fig. 2c vs Fig. 8b conversion for the same bed (1) |
+| TheMeCat value differs from the plotted value; extraction closer to the plot | 12 | 9 | Hou Fig. 6b STY. TheMeCat computes STY from X x S x feed; differences are below the errata threshold |
+| Printed value rounded | 6 | 2 | Ghosh text "25 %", Sharma text "68 %" |
+| Basis conversion | 5 | 3 | Ota molar space velocity, 0 °C vs 25 °C molar volume |
+| TheMeCat rounding (4 decimals) | 1 | 1 | Ota PdMgAl STY |
+
+Rule for STY errata: a printed STY overrides TheMeCat unless it disagrees with the paper's own X x S x F by more than about 20 %. Those cases are classified as paper inconsistency. Bansode (9 %), Bahruji (6 %) and Rui (1 %) pass this check; Shi and Chou do not.
+
+#### TheMeCat errors found against the PDFs (third batch)
+
+There are 160 corrected cells in 68 errata rows. The third batch adds 40 cells in 28 rows. The 24 Chen 2024 GHSV cells of batch 2 are withdrawn (inert-free basis).
+
+| DOI | TheMeCat | PDF | Cells |
+|---|---|---|---:|
+| Ghosh 2022 | In2O3/HZSM-5 S(CH3OH) 0–90 % and the STY computed from it | Fig. 2b p5: the selectivity is on the 0–1 % segment of the broken axis, so TheMeCat is 100x too high | 14 |
+| Zaman 2023 | 0.5Ca-PZC X at 5 / 10 / 40 / 50 bar: 2.5 / 8.6 / 11.8 / 5.4 % | Fig. 7b p8: 8.4 / 11.8 / 13.7 / 10.0 %; p7 text "~9 % at 5 bar", "~14 % at 40 bar" | 4 |
+| Zaman 2023 | STY at 5 bar 0.0188; Table 1 STY of five catalysts | p7 text 62.66 g/kgcat/h; Table 1 p3 printed 105.0 / 89.6 / 122.1 / 116.4 / 90.7 g/kgcat/h | 6 |
+| Rui 2017 | STY of Pd-I and Pd-P at 200 / 225 C and Pd-P at 300 C | Table 2 p8 rates (1.9 / 7.4 / 4.1 / 16.7 x 10-7 mol s-1 gcat-1); 0.89 g h-1 gcat-1 in the abstract | 5 |
+| Sharma 2023 | In13/ZrO2 X 0.68 / 8.1 / 12.8 %; STY 0.1498 and 0.0040 | p8 text: 0.6 / 7.9 / 12.7 %; 0.17 and 0.007 gMeOH h-1 gcat-1 | 5 |
+| Hou 2024 | Au/In2O3-NS STY 0.3028 at 300 C; three 275 C STY values | p8 text: 0.32; Fig. 6b bars 0.161 / 0.106 / 0.089 | 4 |
+| Ota 2012 | PdMgGa STY 0.0229 | Table 2 p11: 10.5 umol min-1 gcat-1 = 0.0202 | 1 |
+| Jiang 2020 | In2O3/ZrO2 STY 0.0815 | p3 text: 2.75 mol kg-1 h-1 = 0.0881 | 1 |
+
+### Accuracy, 11 papers (second stage, kept as reported)
+
+Computed before the third-batch rule changes. Two things have changed since: the Chen 2024 GHSV errata in this section are withdrawn, and GHSV is now scored on either basis.
 
 Tolerances, accuracy and coverage are defined as in the first batch below.
 TheMeCat has 271 entries for the 10 DOIs; one is dropped after adjudication (see errata), leaving 270.
@@ -385,6 +548,9 @@ and checked against the PDFs by hand. All **20/20 are correct**:
 8. **Entry identity.** Three Fig. 4b points of Chen 2024 carry the right STY values and the right loading in `entry_label`, but `catalyst_name` lacks the loading prefix (2Ir1Pd1 etc.). Separately, one reference run in Bahruji 2016 is repeated in three tables and was extracted three times. Records need a de-duplication step on (catalyst, conditions, values).
 9. **Zero-activity entries** (X = 0) were skipped (3 entries: two Samson Table 6 rows, the inert bulk ZrO2 in Chen 2019 ACS Catal.). The prompt excludes support blanks without products, and the model extended this to catalysts that show zero conversion at low temperature.
 10. **Rounded printed values.** When the main text prints two significant figures (0.20 g g-1 h-1) and the SI holds more digits, the extraction is faithful to the text but outside the 1 % tolerance.
+11. **GHSV convention.** Curated data mix total-feed and reactant-only GHSV. Both are now computed, and scoring accepts either.
+12. **STY basis left unlabelled.** For `mol kg-1 h-1` without `cat` in the unit (Jiang 2020), the model set `sty_basis: other`. The 10 STY values stay unused rather than being assumed to be per catalyst.
+13. **Papers that contradict themselves.** Shi 2020's printed methanol yields are 2–3x what its own X, S and GHSV give. Ghosh 2022 plots two different conversions for the same bed (Fig. 2c vs Fig. 8b). The extraction reports what is printed; these cases are classified separately, not as extraction errors.
 
 ## Manual-required DOIs (publisher bot check, not automated)
 
@@ -394,12 +560,14 @@ nus-fetch returned `manual` with the note "Elsevier API: no subscription from th
 - `10.1016/j.jes.2023.05.010` (Hou 2023, Au/In2O3, pilot)
 - `10.1016/j.fuel.2023.127927`, `10.1016/j.cej.2022.135090`, `10.1016/j.fuel.2022.125878`, `10.1016/j.jscs.2019.09.002`, `10.1016/j.jcat.2012.05.020`, `10.1016/j.jcat.2020.01.014`, `10.1016/j.apcata.2019.117144` (substitutes, all ScienceDirect)
 
-There are two ways to get them:
+Update (third batch): the user downloaded the ScienceDirect papers by hand. Each file was re-identified by the DOI printed in the PDF, because nus-fetch `collect` had mis-claimed several by title similarity. All nine, including Chou 2019, are now extracted.
 
-- Rerun `fetch_papers.py -f dois_pilot.txt` (and the backup lists) on NUS VPN. The Elsevier API key route only grants access from an NUS IP.
-- Use nus-fetch menu 7 (open in your own browser) and then menu 8 (collect).
+For future Elsevier papers, there are two routes:
 
-All 9 non-Elsevier TheMeCat DOIs are in the pilot, plus Bahruji 2016, which came from an open-access copy. That makes 10 TheMeCat papers instead of 12.
+- Rerun `fetch_papers.py` on NUS VPN. The Elsevier API key route only grants access from an NUS IP.
+- Use nus-fetch menu 7 (open in your own browser) and then menu 8 (collect). Check each collected file against the DOI printed in the PDF.
+
+All 9 non-Elsevier TheMeCat DOIs are in the pilot, plus Bahruji 2016 (open-access copy) and, since the third batch, 9 hand-downloaded ScienceDirect papers: 19 TheMeCat papers in total.
 
 Pilot coverage by catalyst family:
 
@@ -413,6 +581,11 @@ Pilot coverage by catalyst family:
 | ZnO–ZrO2 | Wang 2017 Sci. Adv. |
 | Ir1Pd1/In2O3 | Chen 2024 |
 | Re/TiO2 | Gothe 2025 |
+| Pd/In2O3, Au/In2O3 | Rui 2017, Hou 2024 (third batch) |
+| In2O3 on ZrO2/CeO2, promoted In2O3/ZrO2 | Sharma 2023, Jiang 2020 (H2O co-feed), Chou 2019 (Y/La) (third batch) |
+| In2O3/HZSM-5 tandem bed | Ghosh 2022 (third batch) |
+| PdZn and Pd2Ga intermetallics, Ca-PdZn/CeO2 | Ota 2012, Zaman 2023 (third batch) |
+| Cu/ZnO morphology | Shi 2020 (third batch) |
 
 Table-heavy papers in the set include Gothe and Wang RSC Adv.; figure-heavy ones include Bansode and Wang Sci. Adv.
 

@@ -241,24 +241,30 @@ CH4-dominated set (S_CO <= 2 %); it matters for CO-selective catalyst families.
 
 `agent/extraction/` fetches papers, converts them to page-marked text and page images, extracts every catalyst entry
 with value, unit, qualifier, location and page in one strict-JSON model call per paper (`gpt-5.5`, reasoning effort
-medium; the second batch ran through the local API-YES gateway with `--api-yes`), normalizes units to the model basis
-and scores against curated references. `normalize.py` and `evaluate.py` rerun offline from the committed raw outputs
-and reproduce `eval/` byte for byte.
+medium; the second and third batches ran through the local API-YES gateway with `--api-yes`; the nine ScienceDirect
+papers of the third batch were downloaded by hand and identified by the DOI printed in each PDF), normalizes units to
+the model basis and scores against curated references. `normalize.py` and `evaluate.py` rerun offline from the
+committed raw outputs and reproduce `eval/` byte for byte.
 
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
-| scored papers | 10 TheMeCat papers (270 curated entries) + Gothe 2025 Table 4 (21 rows) | SUPPORTING | `agent/extraction/eval/summary.json` |
-| entry recall / precision | 164/270 = 0.61; precision 0.81 on matched entries, 0.93 after PDF review of unmatched entries | SUPPORTING | same |
-| field accuracy, strict, adjudicated reference | T, P, H2/CO2, GHSV 1.000; X_CO2 0.917; S_MeOH 0.842; STY 0.443 (0.705 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
-| values printed in tables | X 45/45, S_MeOH 45/45, STY 23/23 exact | SUPPORTING | `agent/extraction/README.md` |
+| scored papers | 19 TheMeCat papers (412 curated entries) + Gothe 2025 Table 4 (21 rows) | SUPPORTING | `agent/extraction/eval/summary.json` |
+| entry recall / precision | 257/412 = 0.62; precision 0.81 on matched entries, 0.95 after PDF review of unmatched entries | SUPPORTING | same |
+| field accuracy, strict, adjudicated reference | T, P, H2/CO2 1.000; GHSV 0.979; X_CO2 0.913; S_MeOH 0.743 (0.913 loose); STY 0.410 (0.564 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
+| values printed in tables | X 58/58, S_MeOH 58/58 exact; STY 34/40 (the 6 others reproduce the printed value: paper-internal inconsistency or reference rounding) | SUPPORTING | `agent/extraction/README.md` |
 | Gothe Table 4 | 21/21 rows; X, S_MeOH, S_CO, S_CH4, STY per g Re each 21/21 | SUPPORTING | `agent/extraction/eval/gothe_table4_scores.csv` |
-| reference errata | 144 TheMeCat cells corrected against the PDFs; one contradicted row dropped | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
-| cost per paper | about 50k tokens and 1–8 min | SUPPORTING | `agent/extraction/out/token_usage.csv` |
+| reference errata | 160 TheMeCat cells corrected against the PDFs (68 rows); one contradicted row dropped | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
+| cost per paper | about 50k tokens and 1–8 min; 1.05 M tokens for the 20-paper pilot | SUPPORTING | `agent/extraction/out/token_usage.csv` |
 
 **Semantic lock:** "adjudicated" means TheMeCat after the listed PDF-verified corrections; accuracy against the raw
-TheMeCat values is reported alongside in `field_accuracy.csv`. Of the 106 missed entries, 52 are only in Supporting
-Information that was not retrieved and 48 are in main-text plots that were not digitized; residual field errors are
-plot readings.
+TheMeCat values is reported alongside in `field_accuracy.csv`.
+
+- GHSV is scored on the total feed or the inert-free feed, because the reference uses both conventions.
+- Of the 155 missed entries:
+  - 74 are in main-text plots that were not digitized;
+  - 67 are only in Supporting Information that was not retrieved;
+  - 7 are values the paper quotes from another study.
+- Residual field errors are plot readings, plus STY values from two papers (Chou 2019, Shi 2020) whose printed rates contradict their own conversion and selectivity.
 
 ## NH3 — bimetallic alloy extension — 2026-10-05
 
