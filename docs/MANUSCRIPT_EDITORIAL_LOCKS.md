@@ -51,3 +51,18 @@ Once a later validated analysis, figure, model treatment or manuscript interpret
 - If later work merely refines an earlier result, cite and discuss the refined result directly unless the refinement history is scientifically necessary.
 
 This lock remains active unless the author explicitly asks to discuss development history.
+
+## LOCK-05 — MeOH uncertainty wording and evidence hierarchy
+
+Reader-facing text must not foreground the MeOH uncertainty analysis as being “assumption-aware”, “assumption-derived”, or otherwise frame the result around the word *assumption*.
+
+Required treatment:
+
+- In Results, Discussion, figures and supervisor-facing summaries, call the analysis **performance-input uncertainty propagation**, **published-data-resolution uncertainty**, or an equivalently neutral scientific description.
+- Keep the source basis precise but secondary: the catalytic-performance quantities propagated in the MeOH model do not come with directly reported replicate standard deviations in the source paper, so the performance-input uncertainty scale is constructed from the information carried by the published catalytic data (integer reporting resolution, censored “<1%” entries, and table-internal consistency of the reported performance relationships).
+- State that source/boundary information once in Methods or Supporting Information. Do not make it the headline interpretation of the result.
+- Do not call the constructed scale an experimentally reported SD, SEM or replicate error unless the source explicitly supplies such a statistic.
+- Keep two uncertainty questions separate: (i) **performance-input uncertainty**, which can move the candidate ranking and is the primary MeOH ranking-robustness test; and (ii) **economic-parameter robustness**, for which the existing cost-side Monte Carlo can remain as supporting evidence.
+- Once a reproducible performance-input Monte Carlo bundle is committed and audited, it should become the reader-facing MeOH rank-probability result. The older 5,000/5,000 invariant cost-side matrix should not be used as the sole or primary MeOH uncertainty claim.
+
+This lock remains active unless the author explicitly reopens the MeOH uncertainty framing.
