@@ -86,6 +86,10 @@ def _parse(unit: str):
     """Return list of (prefix, base, label, exponent). None if a token is not understood."""
     s = _clean(unit).lower()
     s = s.replace("gcat", "g_cat").replace("kgcat", "kg_cat")
+    s = re.sub(r"\(?\b(stp|ntp)\b\)?", " ", s)   # 'mL (STP) g-cat-1 h-1': the volume is already normal
+    s = s.replace("g-cat", "g_cat")
+    s = re.sub(r"(?<=[a-z])\.(?=[a-z])", " ", s)   # 'mmol/kgcat.h': '.' used as the multiplication dot
+    s = re.sub(r"(?<=[a-z])\.(?=-|\d|\s|$|/|\))", "", s)   # abbreviation dot: 'gcat.-1', 'gcat. h'
     s = re.sub(r"\bnml", "ml", s)            # normal mL / L: same number, STP basis
     s = re.sub(r"\bnl(?=[\s/_-]|$)", "l", s)
     num, *dens = s.split("/")
@@ -137,11 +141,15 @@ def ghsv_NL_gcat_h(v, u, basis):
     if not t:
         return None
     vol = [x for x in t if x[1] == "l" and x[3] == 1]
+    mol = [x for x in t if x[1] == "mol" and x[3] == 1]
     mass = [x for x in t if x[1] == "g" and x[3] == -1]
     tim = [x for x in t if x[1] in ("h", "min", "s") and x[3] == -1]
-    if len(vol) != 1 or len(mass) != 1 or len(tim) != 1:
+    if len(vol) + len(mol) != 1 or len(mass) != 1 or len(tim) != 1:
         return None
-    val = v * _PREFIX[vol[0][0]] / _PREFIX[mass[0][0]]
+    if vol:
+        val = v * _PREFIX[vol[0][0]] / _PREFIX[mass[0][0]]
+    else:  # molar space velocity (mmol gcat-1 min-1): 22.414 NL per mol (0 C, 1 atm)
+        val = v * _PREFIX[mol[0][0]] * 22.414 / _PREFIX[mass[0][0]]
     # per min -> per h: x60 ; per s -> x3600
     val *= {"h": 1, "min": 60, "s": 3600}[tim[0][1]]
     return val
@@ -181,6 +189,40 @@ def flow_NL_h(v, u):
     if len(vol) != 1 or len(tim) != 1 or len(t) != 2:
         return None
     return v * _PREFIX[vol[0][0]] * {"h": 1, "min": 60, "s": 3600}[tim[0][1]]
+
+
+_SPECIES = r"(?:H2|CO2|CO|N2|Ar|He|CH4)"
+_INERT = {"N2", "Ar", "He"}
+
+
+def inert_fraction(feed):
+    """Molar fraction of N2/Ar/He in a stated feed ('H2/CO2/N2 = 72/24/4', 'CO2/H2/Ar = 1/4/1.5',
+    'H2:CO2:N2 = 60%:20%:20%', '60% H2/15% CO2/25% N2', '... containing 4 vol% Ar'). 0 when only H2 and
+    CO2 are listed; None when the feed cannot be read."""
+    if not isinstance(feed, str) or not feed.strip():
+        return None
+    f = re.sub(r"V\((\w+)\)", r"\1", feed)
+    # '60% H2/15% CO2/25% N2'
+    pairs = re.findall(rf"(\d+(?:\.\d+)?)\s*%\s*({_SPECIES})\b", f)
+    if not pairs:  # 'CO2 (20%), H2 (72.5%) and Ar (7.5%)'
+        pairs = [(n, s_) for s_, n in re.findall(rf"\b({_SPECIES})\s*\((\d+(?:\.\d+)?)\s*%\)", f)]
+    if len(pairs) >= 2:
+        tot = sum(float(n) for n, _ in pairs)
+        return sum(float(n) for n, s_ in pairs if s_ in _INERT) / tot if tot else None
+    # 'A/B/C = x/y/z', 'A:B:C at x:y:z', 'A/B/C (x/y/z)'
+    m = re.search(rf"({_SPECIES}(?:\s*[/:]\s*{_SPECIES})+)\s*(?:=|at|\(|-)?\s*\(?\s*"
+                  r"(\d+(?:\.\d+)?\s*%?(?:\s*[/:]\s*\d+(?:\.\d+)?\s*%?)+)", f)
+    if m:
+        sp = re.split(r"\s*[/:]\s*", m.group(1).strip())
+        nums = [float(x.replace("%", "")) for x in re.split(r"\s*[/:]\s*", m.group(2).strip())]
+        if len(sp) == len(nums) and sum(nums) > 0:
+            return sum(n for s_, n in zip(sp, nums) if s_ in _INERT) / sum(nums)
+    m = re.search(r"(\d+(?:\.\d+)?)\s*vol\s*%\s*(N2|Ar|He)", f)   # '... containing 4 vol% Ar'
+    if m:
+        return float(m.group(1)) / 100
+    if re.search(r"H2", f) and re.search(r"CO2", f) and not re.search(r"\b(N2|Ar|He)\b", f):
+        return 0.0
+    return None
 
 
 def mass_g(v, u):
@@ -298,6 +340,11 @@ def normalize_record(doi: str, r: dict) -> dict:
     if row["GHSV_NL_gcat_h"] is None and row["flow_NL_h"] and row["cat_mass_g"]:
         row["GHSV_NL_gcat_h"] = row["flow_NL_h"] / row["cat_mass_g"]
         row["ghsv_derived"] = True
+    # Same GHSV counted on reactants only (inert N2/Ar/He removed), when the feed composition is stated.
+    # Curated datasets use both conventions, so both are kept.
+    row["inert_frac"] = inert_fraction(r["feed_composition"])
+    row["GHSV_inert_free_NL_gcat_h"] = (row["GHSV_NL_gcat_h"] * (1 - row["inert_frac"])
+                                        if row["GHSV_NL_gcat_h"] is not None and row["inert_frac"] is not None else None)
     row["flags"] = ";".join(flags)
     return row
 

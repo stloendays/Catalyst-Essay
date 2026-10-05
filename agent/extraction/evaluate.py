@@ -85,7 +85,7 @@ def names_match(a: str, b: str, aliases: dict, allow_fuzzy: bool = True) -> bool
     # and not 'Ir1Pd1-In2O3' ~ '2Ir1Pd1-In2O3'
     ta, tb = name_tokens(a), name_tokens(b)
     short, long_ = sorted((ta, tb), key=len)
-    if short and len("".join(short)) >= 4 and long_[:len(short)] == short:
+    if allow_fuzzy and short and len("".join(short)) >= 4 and long_[:len(short)] == short:
         return True
     # spelling slips only: one edit apart on keys of >= 6 characters with identical digits
     # ('13% ZnO-ZrO2' must not match '10% ZnO-ZrO2', 'Ir1Pd1-In2O3(CP-CP)' must not match 'Ir1Pd1-In2O3(PM)')
@@ -144,8 +144,9 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
         return []
     BIG = 1e6
     C = np.full((len(ex), len(cur)), BIG)
-    # The one-edit spelling rule is used only for names that have no exact/prefix/alias partner in the
-    # other set, so 'Ir1Pd1-In2O3(PM)' can never be paired with 'Ir1Pd1-In2O3(GM)' when both exist.
+    # The prefix and one-edit rules are used only for names that have no exact or alias partner in the
+    # other set, so 'Ir1Pd1-In2O3(PM)' is never paired with 'Ir1Pd1-In2O3(GM)', nor 'In2O3' with
+    # 'In2O3/HZSM-5', when the exact partners exist.
     ex_names, cur_names = set(ex.catalyst_name), set(cur.catalyst_name)
     ex_strong = {a for a in ex_names if any(names_match(a, b, aliases, False) for b in cur_names)}
     cur_strong = {b for b in cur_names if any(names_match(a, b, aliases, False) for a in ex_names)}
@@ -160,7 +161,9 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
                 continue
             if pd.notna(e.H2_CO2) and pd.notna(c.pH2_pCO2_ratio) and abs(e.H2_CO2 - c.pH2_pCO2_ratio) > 0.10 * c.pH2_pCO2_ratio:
                 continue
-            if pd.notna(e.GHSV_NL_gcat_h) and pd.notna(c.GHSV_nlph_gcat) and abs(e.GHSV_NL_gcat_h - c.GHSV_nlph_gcat) > 0.10 * c.GHSV_nlph_gcat:
+            if pd.notna(e.GHSV_NL_gcat_h) and pd.notna(c.GHSV_nlph_gcat) and not any(
+                    pd.notna(g) and abs(g - c.GHSV_nlph_gcat) <= 0.10 * c.GHSV_nlph_gcat
+                    for g in (e.GHSV_NL_gcat_h, e.get("GHSV_inert_free_NL_gcat_h"))):
                 continue
             cost = abs(e.T_K - c.temperature_k) / 3 + abs(e.P_bar - c.pressure_bar) / c.pressure_bar / 0.05
             for a, b in (("X_CO2_pct", "CO2_conversion"), ("S_MeOH_pct", "selectivity_CH3OH")):
@@ -171,6 +174,9 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
             C[i, j] = cost
     rows, cols = linear_sum_assignment(C)
     return [(ex.index[r], cur.index[c]) for r, c in zip(rows, cols) if C[r, c] < BIG]
+
+
+QUAL = {"X_CO2": "X_CO2_q", "S_MeOH": "S_MeOH_q", "STY": "STY_q"}
 
 
 def field_scores(pairs, ex, cur_raw, cur_adj):
@@ -188,8 +194,19 @@ def field_scores(pairs, ex, cur_raw, cur_adj):
                 elif pd.isna(ev):
                     status_s = status_l = "missing"
                 else:
-                    status_s = "correct" if within(ev, tv, kind, st) else "wrong"
-                    status_l = "correct" if within(ev, tv, kind, lo) else "wrong"
+                    cands = [ev]
+                    if f == "GHSV" and pd.notna(e.get("GHSV_inert_free_NL_gcat_h")):
+                        # curated GHSV is computed on the total feed or on reactants only; either counts
+                        cands.append(e["GHSV_inert_free_NL_gcat_h"])
+                        ev = min(cands, key=lambda g: abs(g - tv))
+                    qual = e.get(QUAL.get(f, ""), "=")
+                    if qual in (">", ">=") and tv >= ev - 1e-9:      # printed as a bound, e.g. '>20 %'
+                        status_s = status_l = "correct"
+                    elif qual in ("<", "<=") and tv <= ev + 1e-9:
+                        status_s = status_l = "correct"
+                    else:
+                        status_s = "correct" if within(ev, tv, kind, st) else "wrong"
+                        status_l = "correct" if within(ev, tv, kind, lo) else "wrong"
                 out.append({"doi": e.doi, "ex_id": ei, "cur_id": ci, "catalyst": e.catalyst_name, "field": f,
                             "truth": truth_name, "extracted": ev, "curated": tv,
                             "source_type": e.data_source_type, "strict": status_s, "loose": status_l})

@@ -100,6 +100,56 @@ for i, r in out.iterrows():
     key = (r.doi, r.catalyst, r.field)
     if key in manual:
         out.loc[i, ['pdf_reading', 'pdf_location', 'failure_mode', 'note']] = manual[key]
+
+# ---- batch 3 (Elsevier papers): classified by hand against the PDF, keyed by (doi, ex_id, field);
+# ex_id is the row of out/records_normalized.csv for the 20-paper set ----
+PP, CONF, ROUND, UNRES, BASIS, INCONS, TROUND = ('plot_precision', 'series_or_point_confusion', 'rounded_main_text',
+    'unresolved_figure_vs_SI', 'basis_derivation', 'paper_internal_inconsistency', 'themecat_rounding')
+b3 = {
+    ('10.1016/j.cej.2022.135090', 70, 'S_MeOH'): ('Fig. 2b p5: about 1.0 %', CONF, 'extracted S(CH3OH) series rises 0.2 -> 0.9 % with T; the plotted bars fall (0, 1.0, 0.8, 0.9, 0.7, 0.6, 0.5 %)'),
+    ('10.1016/j.cej.2022.135090', 75, 'S_MeOH'): ('Fig. 2b p5: about 0.5 %', CONF, 'same reversed series'),
+    ('10.1016/j.cej.2022.135090', 71, 'X_CO2'): ('Fig. 2c p5: 7.3 %', PP, ''),
+    ('10.1016/j.cej.2022.135090', 74, 'X_CO2'): ('Fig. 2c p5: 17.6 %; Fig. 8b p12 (same 2:1 bed): 22.3 %', INCONS, 'the paper plots two different conversions for the same bed and condition; TheMeCat took Fig. 2c'),
+    ('10.1016/j.cej.2022.135090', 75, 'X_CO2'): ('p11 text: 25 % CO2 conversion', ROUND, 'TheMeCat 26 read from Fig. 2c'),
+    ('10.1016/j.fuel.2022.125878', 88, 'S_MeOH'): ('p8 text: 68 % (rounded)', ROUND, 'TheMeCat 68.8 read from Fig. 10'),
+    ('10.1016/j.jcat.2012.05.020', 118, 'GHSV'): ('p11 Table 2: 10 mmol gcat-1 min-1', BASIS, 'molar space velocity; 22.414 NL/mol (0 C) gives 13.4, TheMeCat uses about 24.4 L/mol (25 C) = 14.6'),
+    ('10.1016/j.jcat.2012.05.020', 119, 'GHSV'): ('p11 Table 2: 10 mmol gcat-1 min-1', BASIS, 'as above'),
+    ('10.1016/j.jcat.2012.05.020', 120, 'GHSV'): ('p11 Table 2: 10 mmol gcat-1 min-1', BASIS, 'as above'),
+    ('10.1016/j.jcat.2012.05.020', 120, 'STY'): ('p11 Table 2: 0.3 umol min-1 gcat-1 = 0.000577 g g-1 h-1', TROUND, 'TheMeCat stores 4 decimals (0.0006)'),
+    ('10.1016/j.jcat.2020.01.014', 151, 'S_MeOH'): ('Fig. 1b-2 p4: 78.5 %', PP, ''),
+    ('10.1016/j.jes.2023.05.010', 164, 'S_MeOH'): ('Fig. 6a p9: 64.5 %', PP, ''),
+    ('10.1016/j.jes.2023.05.010', 165, 'S_MeOH'): ('Fig. 6a p9: about 54 %', CONF, 'extracted 60 % is the Au/In2O3-NS point (58-60 %) at 300 C'),
+    ('10.1016/j.jes.2023.05.010', 170, 'S_MeOH'): ('Fig. 6a p9: 56 %', PP, ''),
+    ('10.1016/j.jes.2023.05.010', 169, 'STY'): ('Fig. 6b p9: 0.089', PP, ''),
+    ('10.1016/j.jscs.2019.09.002', 171, 'STY'): ('p6 Table 2: 48 mmol/kgcat.h', INCONS, 'printed methanol yield is about 3x X x S x F from the same table; TheMeCat recomputes it'),
+    ('10.1016/j.jscs.2019.09.002', 172, 'STY'): ('p6 Table 2: 660 mmol/kgcat.h', INCONS, 'printed yield 2.7x X x S x F; TheMeCat recomputes it'),
+    ('10.1016/j.jscs.2019.09.002', 173, 'STY'): ('p7 Table 3: 777 mmol/kgcat.h', INCONS, 'as above'),
+    ('10.1016/j.jscs.2019.09.002', 174, 'STY'): ('p7 Table 3/4: 1703 mmol/kgcat.h', INCONS, 'as above'),
+    ('10.1016/j.jscs.2019.09.002', 175, 'STY'): ('p8 Table 4: 1194 mmol/kgcat.h', INCONS, 'as above'),
+}
+chou_plot = {44: 0.14, 46: 0.465, 47: 0.377, 48: 0.08, 49: 0.163, 51: 0.42, 52: 0.072, 53: 0.133, 54: 0.234, 55: 0.37,
+             56: 0.062, 57: 0.115, 58: 0.208, 59: 0.33, 60: 0.148, 61: 0.241, 62: 0.345, 63: 0.42}
+for k, v in chou_plot.items():
+    b3[('10.1016/j.apcata.2019.117144', k, 'STY')] = (f'Fig. 5c p6 (Table 1 p3 at 573 K and 3La 543 K): {v} g gcat-1 h-1', INCONS,
+        "the paper's methanol rates are about 25-30 % below its own X x S x F (e.g. In2O3/ZrO2 573 K: 0.465 printed vs 0.64); TheMeCat recomputes from X x S x F, the extraction follows the paper")
+b3[('10.1016/j.apcata.2019.117144', 50, 'STY')] = ('Fig. 5c p6: 0.27 g gcat-1 h-1', PP, 'extracted 0.30')
+for k, v in {54: 80, 58: 81, 59: 74}.items():
+    b3[('10.1016/j.apcata.2019.117144', k, 'S_MeOH')] = (f'Fig. 5b p6: {v} %', PP, '')
+hou_sty = {156: 0.008, 157: 0.019, 158: 0.078, 162: 0.017, 165: 0.189, 166: 0.006, 167: 0.015, 168: 0.035, 170: 0.156}
+for k, v in hou_sty.items():
+    b3[('10.1016/j.jes.2023.05.010', k, 'STY')] = (f'Fig. 6b p9: {v} g/(hr gcat)', UNRES,
+        'TheMeCat computes STY from X x S x feed instead of using the plotted bars; extraction follows the bars (difference below the 5 % of axis threshold used for errata)')
+for _, r in f.iterrows():
+    pass
+for i, r in out.iterrows():
+    key = (r.doi, int(r.ex_id), r.field)
+    if key in b3:
+        out.loc[i, ['pdf_reading', 'failure_mode', 'note']] = b3[key]
+        out.loc[i, 'pdf_location'] = b3[key][0].split(':')[0]
+    elif r.doi in ('10.1016/j.fuel.2023.127927', '10.1016/j.jes.2023.05.010') and pd.isna(r.failure_mode):
+        out.loc[i, ['pdf_reading', 'pdf_location', 'failure_mode', 'note']] = (
+            'Zaman Fig. 6A/7b p7-8' if 'fuel' in r.doi else 'Hou Fig. 6a p9', 'figure', PP,
+            'right series and point; reading error' + (' (TheMeCat reading also differs from the plot)' if r.field == 'X_CO2' else ''))
 out.to_csv(BASE + 'eval/field_mismatch_review.csv', index=False)
 print(out.failure_mode.value_counts(dropna=False))
 print(out.groupby(['doi', 'failure_mode']).size())
