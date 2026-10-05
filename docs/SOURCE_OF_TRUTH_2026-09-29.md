@@ -257,6 +257,25 @@ rerun offline from the committed raw outputs and reproduce `eval/` byte for byte
 TheMeCat values is reported alongside in `field_accuracy.csv`. Missed entries come from Supporting Information that was
 not retrieved; GHSV and most STY values are not printed in these papers and are computed downstream.
 
+## NH3 — bimetallic alloy extension — 2026-10-05
+
+`analysis/nh3_alloy_extension_2026_10_05/` takes the 1,796 Mamun et al. (2019) surfaces (Catalysis-Hub
+`MamunHighT2019`) through the frozen chain: most stable N* site → Dataset S1 terrace scale (14-metal fit, R² 0.973) →
+workbook terrace→step regression → per-state activity on the cached response surface → frozen cost model under the
+90 m³ cap. The same code path reproduces every canonical pure-metal cost to < 1e-9 USD/t.
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| costed surfaces (all elements carry a frozen price) | 309; 114 (global) / 121 (anchored) inside the bed cap | DERIVED-A | `summary.json` |
+| below Fe, global route | Fe3Mo 14.53, Cu3Mo 14.83, Fe3W 14.90, Ni3W 15.08 USD/t | DERIVED-A | `alloy_chain_results.csv` |
+| below Fe, element-anchored route | Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 USD/t | DERIVED-A | same |
+| highest-activity surface | Os3Pt economic #32, regret 69.0 % (global); AuW #29, 60.2 % (anchored) | DERIVED-A | `summary.json` |
+| descriptor-only pruning | 243/309 (78.6 %) ruled out before full optimization; 0 false prunes | DERIVED-A | same |
+
+**Semantic lock:** individual below-Fe alloys depend on the descriptor bridge; the family does not — every surface below
+Fe in either route is one cheap 3d metal (Fe, Co, Ni, Cu) with Mo or W. Mamun surfaces are ideal L1₂(111)/L1₀(101)
+slabs; bulk phase stability is not part of this screen.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
