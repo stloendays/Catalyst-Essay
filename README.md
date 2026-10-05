@@ -69,6 +69,8 @@ This control shows that multiscale propagation does not intrinsically force rank
 
 ### Decision-aware Agent workflow
 
+In the manuscript, **ACSA** is the automation engine that extracts catalytic data from publications, reproduces the hand-built cases and runs the full chain on every candidate (Fig. 6: `agent/extraction/`, `analysis/nh3_alloy_extension_2026_10_05/`, `analysis/meoh_literature_inversion_2026_10_05/`). The budget-boundary study below is source material for a separate methods paper.
+
 The **Adaptive Catalyst Screening Agent (ACSA)** and its **budget-boundary study** test whether the multiscale decision framework can be executed as a reusable, budget-aware workflow rather than as a manually scripted one-off analysis. A complete decision is the frozen primary endpoint `full_decision_correct = winner_correct ∧ pair_decision_correct ∧ reachability_correct`; numerical recovery of the backward parity multiplier is scored separately as a secondary quantitative endpoint. The deterministic fixed-VOI policy reaches the complete decision at **206 CU**.
 
 | Tier / policy | 175 CU | 225 CU |

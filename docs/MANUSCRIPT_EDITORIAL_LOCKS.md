@@ -6,16 +6,16 @@ These are author-level editorial decisions for the current manuscript. They shou
 
 ## LOCK-01 — Agent manuscript role
 
-The manuscript-level role of the Agent is **the scaling layer / reusable execution pattern of the multiscale analysis**.
+Revised 2026-10-05 on the supervisor's direction. The manuscript-level role of the Agent is **the automation engine that scales the multiscale analysis to the candidates that publications and databases provide**.
 
 Required interpretation:
 
-- Reaction-specific kinetic, process and economic tools remain responsible for the scientific calculations.
-- The language-model policy selects which deterministic calculations to invoke for each decision instance.
-- This separation makes the ranking–parity–reachability analysis repeatedly executable across candidate sets without manually scripting a complete calculation sequence for every case.
-- The non-binding 5,000-CU result is used to explain the mechanism of the budget effect: budget pressure induces search compression, while a non-binding budget removes that pressure and permits additional post-stability computation.
-- The non-binding result **must not be used to demote the Agent to merely a budget-saving heuristic or to replace the manuscript-level scaling/reusability claim**.
-- Do not rewrite the Discussion into a conclusion that the Agent's main role is only that it is computationally advantageous under constrained budgets. The budget study is a mechanistic qualification of the scaling layer, not a replacement for it.
+- Reaction-specific kinetic, process and economic tools remain responsible for the scientific calculations; the Agent adds no scientific model.
+- The Agent does three things: it extracts catalytic data from publications and Supporting Information with the location of every value; it takes every candidate through the full chain, with cheap bounds deciding where the expensive calculations are spent; and it must reproduce the frozen hand-built cases before it scores new candidates.
+- The evidence for the Agent is extraction accuracy against a curated reference, the self-check against the hand-built cases, and the computation saved relative to full enumeration.
+- The main result the Agent enables is the share of published catalyst comparisons whose leader changes after process and economic evaluation.
+- The compute-budget study (budget curves, stopping behaviour, model tiers) belongs to the separate methods paper and is not part of this manuscript; its figure is kept in `figures/acsa_budget_boundary/`.
+- Do not use sophisticated agent architecture as a selling point; the contribution is scale.
 
 This lock remains active unless the author explicitly asks to reconsider the Agent's manuscript-level role.
 
@@ -62,7 +62,7 @@ Required treatment:
 - Keep the source basis precise but secondary: the catalytic-performance quantities propagated in the MeOH model do not come with directly reported replicate standard deviations in the source paper, so the performance-input uncertainty scale is constructed from the information carried by the published catalytic data (integer reporting resolution, censored “<1%” entries, and table-internal consistency of the reported performance relationships).
 - State that source/boundary information once in Methods or Supporting Information. Do not make it the headline interpretation of the result.
 - Do not call the constructed scale an experimentally reported SD, SEM or replicate error unless the source explicitly supplies such a statistic.
-- Keep two uncertainty questions separate: (i) **performance-input uncertainty**, which can move the candidate ranking and is the primary MeOH ranking-robustness test; and (ii) **economic-parameter robustness**, for which the existing cost-side Monte Carlo can remain as supporting evidence.
-- Once a reproducible performance-input Monte Carlo bundle is committed and audited, it should become the reader-facing MeOH rank-probability result. The older 5,000/5,000 invariant cost-side matrix should not be used as the sole or primary MeOH uncertainty claim.
+- Keep two uncertainty questions separate: (i) **performance-input uncertainty**, which can move the candidate ranking and is the primary MeOH ranking-robustness test; and (ii) **economic-parameter robustness**, which is supporting evidence only. The 2026-09-20 cost-side matrix (5,000/5,000 invariant order) was computed before the Table 3 correction and must be rerun on the corrected inputs before it is cited.
+- The reader-facing MeOH rank-probability result is the committed performance-input Monte Carlo (`analysis/meoh_measurement_mc_2026_10_05/`, 5,000 draws, seed 20261005): economic winner first in 4,559/5,000 (91.2%), 5 wt% Re / 250 °C last in 5,000/5,000, ranks 2 and 3 exchanged in 1,054/5,000 (21.1%). The earlier ~97.0% / ~47.8% figures came from the uncorrected inputs and are not cited.
 
 This lock remains active unless the author explicitly reopens the MeOH uncertainty framing.
