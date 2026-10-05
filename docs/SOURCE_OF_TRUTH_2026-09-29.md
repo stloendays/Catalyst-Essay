@@ -237,6 +237,26 @@ hydrogenated per pass. With inert CO (x_CO = 0), 100 bar and H2/CO2 = 4 it repro
 points; the model does not represent weaker condensation in 20–40 bar loops. CO recycling changes no rank in this
 CH4-dominated set (S_CO <= 2 %); it matters for CO-selective catalyst families.
 
+## Literature extraction pilot (CO2-to-methanol) — 2026-10-05
+
+`agent/extraction/` fetches papers, converts them to page-marked text and page images, extracts every catalyst entry
+with value, unit, qualifier, location and page in one strict-JSON model call per paper (`gpt-5.5`, reasoning effort
+medium), normalizes units to the model basis and scores against curated references. `normalize.py` and `evaluate.py`
+rerun offline from the committed raw outputs and reproduce `eval/` byte for byte.
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| scored papers | Wu 2017, Bansode 2013, Wang 2017 (86 curated TheMeCat entries) + Gothe 2025 Table 4 (21 rows) | SUPPORTING | `agent/extraction/eval/summary.json` |
+| entry recall / precision | 71/86 = 0.83; precision 0.95 on matched entries, 1.00 after PDF review of the 4 unmatched | SUPPORTING | same |
+| field accuracy, strict, adjudicated reference | T, P, H2/CO2, X_CO2, STY 1.000; S_MeOH 0.945 (0.982 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
+| Gothe Table 4 | 21/21 rows; X, S_MeOH, S_CO, S_CH4, STY per g Re each 21/21 | SUPPORTING | `agent/extraction/eval/gothe_table4_scores.csv` |
+| reference errata | 69 TheMeCat cells corrected against the PDFs (Bansode pressures MPa stored as bar, STY values; Wu CZA200 conversion; Wang STY and feed ratio) | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
+| cost per paper | about 48k tokens and 100 s | SUPPORTING | `agent/extraction/out/token_usage.csv` |
+
+**Semantic lock:** "adjudicated" means TheMeCat after the listed PDF-verified corrections; accuracy against the raw
+TheMeCat values is reported alongside in `field_accuracy.csv`. Missed entries come from Supporting Information that was
+not retrieved; GHSV and most STY values are not printed in these papers and are computed downstream.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
