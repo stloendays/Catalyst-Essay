@@ -72,6 +72,40 @@ remains the 180-bar Fe loop.
 Reproduction: `figures/composite/fig2/fig2_ru_actual_cost.py` (asserts the canonical Fe and Ru costs, the 201.22x
 alpha* and the strict-scaling Fe reference before writing). Note: `docs/RU_ACTUAL_CATALYST_COST_2026-10-05.md`.
 
+## NH3 — measured activity gains of modified Ru (Fig. 3a strip) — 2026-10-05
+
+Literature activity-enhancement factors of promoted, support-modified and confined Ru over a reference Ru catalyst
+measured in the same study (`analysis/promoted_ru_literature_2026_10_05/`, 35 rows from 25 sources; 9 plotted).
+
+| Strategy | Factor | Basis | Conditions | Source |
+|---|---:|---|---|---|
+| Ba–Ru/C vs Ru/C | 75× | TOF per surface Ru | 300 C, 0.3 MPa | Siporin et al., Catal. Lett. 2004 |
+| Cs–Ru/C vs Ru/C | 65× | TOF per surface Ru | 300 C, 0.3 MPa | same |
+| Ba–Ru/BN vs Ru/BN | >100× | per g, same Ru loading | 400 C, 5 MPa | Hansen et al., Science 2001 |
+| Cs–Ru/MgO vs Ru/MgO | >134× (350 C), >30× (300 C) | per g, matched Ru | 0.1 MPa | Larichev et al., J. Phys. Chem. C 2007 |
+| Cs–Ru/YSZ vs Ru/YSZ | ~10× | per g Ru | 450 C, <= 1.1 MPa | ACS Sustain. Chem. Eng. 2019 |
+| Ru/C12A7:e- vs Ru/C12A7:O2- | 9.8× | TOF (CO count) | 400 C, 1 MPa | Kitano et al., Nat. Chem. 2012 |
+| Ru/BaTiO2.5H0.5 vs Ru/BaTiO3 | 8.4× | TOF | 400 C, 5 MPa | Tang et al., Adv. Energy Mater. 2018 |
+| Ru/Ba–Ca(NH2)2 vs Cs–Ru/MgO | >= 33.5× | TOF (STEM count) | 300 C, 0.9 MPa | Kitano et al., Angew. Chem. 2018 |
+| Ru inside vs outside CNT | 0.5× | TOF | 400 C, 1–4 MPa | Chem. Eur. J. 2010 |
+
+State: SUPPORTING (external literature placed on the model's multiplier axis). **Semantic lock:** the model's alpha
+multiplies the turnover frequency of an unpromoted Ru step site, so only factors against an unpromoted reference on
+the same support are like-for-like; the Ba–Ca(NH2)2 factor is against an already promoted reference and is a lower
+bound. Most factors were measured at 0.1–1 MPa; the Ba–Ru/BN and BaTiO2.5H0.5 points are at 5 MPa.
+
+## Methanol — counterfactual and backward design — 2026-10-05
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| CH4 selectivity removed (moved to MeOH) | rho -0.80 vs STY per g Re | DERIVED-A | `analysis/meoh_counterfactual_backward_2026_10_05/` |
+| conversion equalized (X = 0.2875) | rho +0.80 | DERIVED-A | same |
+| STY-winner parity by STY alone | unreachable (unlimited STY: 954.64 vs 943.30 EUR/t) | DERIVED-A | same |
+| STY-winner parity by conversion alone | X 0.23 -> 0.281 | DERIVED-A | same |
+| STY-winner parity by 100 % MeOH selectivity | 941.27 EUR/t (reaches parity) | DERIVED-A | same |
+
+The common five-step protocol across the three systems is tabulated in `docs/UNIFIED_PROTOCOL_2026-10-05.md`.
+
 ## NH3 — strict-scaling lifecycle reachability closure
 
 The joint backward target has now been tested against the **strict E_N scaling manifold** with all **14,136 FINAL-1.1 process states** and no new DFT.
