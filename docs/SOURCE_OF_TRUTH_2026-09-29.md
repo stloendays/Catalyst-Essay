@@ -288,6 +288,25 @@ Fe in either route is one cheap 3d metal (Fe, Co, Ni, Cu) with Mo or W. Mamun su
 slabs; bulk phase stability is not part of this screen. Surfaces with sp metals (outside the transition-metal scaling
 relations) or group 3–5 elements (stable bulk nitrides) are reported as separate layers and are not ranked against Fe.
 
+## Methanol — paper leaderboards versus plant-cost leaderboards — 2026-10-05
+
+`analysis/meoh_literature_inversion_2026_10_05/` runs the extraction Agent's records (used as extracted) through the
+generalized methanol model. Comparison groups are the entries of one paper at the same P, H2/CO2 and space velocity.
+The paper leaderboard is STY per g catalyst; the plant leaderboard is the net production cost with CO recycled
+(central rule) and entry-optimal purge.
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| Agent self-check: Gothe Table 4 from extracted inputs | 21/21 entries equal the frozen costs (max 2.3e-13 EUR/t); canonical states 943.30 / 961.51 / 966.96 / 1258.17 | DERIVED-A | `selfcheck_gothe_table4.csv` |
+| scored comparison | 22 groups, 169 entries, 15 papers | DERIVED-A | `summary.json` |
+| different winner, STY leaderboard (primary) | 4/22 groups (18 %), 4/15 papers; regret median 1.2 %, max 1.8 %; 133/991 pairs inverted | DERIVED-A | same |
+| different winner, selectivity leaderboard | 14/22 groups (64 %), 11/15 papers; regret median 53 % | DERIVED-A | same |
+| robustness, STY leaderboard | density 0.5 / 2.0 g/mL: 5 / 3 groups; printed values only: 2/13; 2 % purge: 5/22 | DERIVED-A | same |
+
+**Semantic lock:** groups compare entries at equal pressure, so the model's simplified condensation at 20–40 bar does
+not enter within-group rankings. Inert-CO variants are the engine convention, not the physical treatment for
+CO-selective catalysts, and are reported as sensitivity only.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
