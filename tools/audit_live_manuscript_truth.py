@@ -408,6 +408,46 @@ ok(
     and "PENDING_EXACT_CACHE_SWEEP" not in raw_text,
 )
 
+# ----- 2026-10-05 additions: actual Ru catalyst cost, literature gains, methanol backward design --------------
+ac = {r["key"]: r for r in rows("figures/composite/fig2/fig2_ru_actual_cost_points.csv")}
+tokens(
+    "NH3 actual-catalyst cost (Fig. 2d)",
+    s2,
+    "11%",
+    f"{float(ac['supp_rec94']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
+    f"{float(ac['supp_rec94']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
+    f"{float(ac['supp_rec94']['gap_to_Fe']):.2f}–{float(ac['supp_rec90']['gap_to_Fe']):.2f}",
+    f"{float(ac['supp_rec94']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
+    f"{float(ac['kaap94']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
+    f"{float(ac['fe_kaap']['cost']):.2f}",
+)
+ok("NH3 actual-catalyst: Ru/C with recovery below Fe in the KAAP loop",
+   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap94"]["cost"]) < float(ac["fe_kaap"]["cost"]))
+lit = {r["id"]: r for r in rows("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")}
+tokens(
+    "NH3 literature activity gains (Fig. 3a)",
+    s3,
+    f"{float(lit['P01']['factor_low']):.0f}- and {float(lit['P02']['factor_low']):.0f}-fold",
+    f"more than {float(lit['P03']['factor_high']):.0f}-fold at 5 MPa",
+    f"more than {float(lit['P04']['factor_high']):.0f}-fold",
+    f"{float(lit['E01']['factor_low']):.1f}-fold",
+    f"{float(lit['E10']['factor_low']):.1f}-fold",
+    f"{float(lit['E09']['factor_low']):.1f}-fold",
+    f"{float(lit['C01']['factor_low']):.1f}-fold",
+)
+mcb = json.loads((ROOT / "analysis/meoh_counterfactual_backward_2026_10_05/summary.json").read_text(encoding="utf-8"))
+cf = {r["case"].split(" (")[0]: r for r in mcb["counterfactuals"]}
+mbw = {r["property"]: r for r in mcb["backward"]}
+tokens(
+    "MeOH counterfactual and backward design",
+    s4,
+    f"rho = -{abs(cf['CH4 selectivity removed']['rho']):.2f}",
+    f"rho to +{cf['conversion equalized']['rho']:.2f}",
+    mbw["STY per g Re (multiplier)"]["note"].split("= ")[1].split(" ")[0],
+    f"{float(mbw['single-pass CO2 conversion']['required']):.3f}",
+)
+ok("MeOH backward: STY alone cannot reach parity", mbw["STY per g Re (multiplier)"]["required"] == "unreachable")
+
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
 for label, passed, detail in checks:
