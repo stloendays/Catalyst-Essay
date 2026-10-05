@@ -17,7 +17,7 @@ can be produced by tuning.
 | item | state |
 |---|---|
 | task, prompt, 11 actions + STOP, cost model, environment, scorer, ledger, stopping rule | DISCOVER V1 frozen files, hashes in `DISCOVER_FROZEN_V1.json` (15) |
-| driver | `discover/formal_e2.py` unchanged; it takes `--model` and honours `OPENAI_BASE_URL` |
+| driver | `discover/formal_e.py` (frozen policy-E driver, byte-identical to the V1 formal run) unchanged; it takes `--model` and honours `OPENAI_BASE_URL`. Orchestration (hash check, admission, cell order, analysis) in `tools/discover/open_weights_runner.py` |
 | variant | anonymous (closed-book); named only as the secondary prior-leak probe, as in V1 |
 | sampling | API defaults, as for the closed tiers; the vLLM server is started with the model's default generation config and **no** temperature/top-p override |
 | scoring | `DISCOVER_SCORER_V1.score_trace`; statistics via `discover/cross_model_stats.py` (Wilson, Fisher, Cochran-Armitage) |
@@ -85,11 +85,11 @@ next run index, as in C1.
 Commands (harness root, after `hashcheck --label openweights_before`):
 
 ```bash
-python discover/formal_e2.py --variant anonymous --model <MODEL> --budgets 225 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL> --tag ow
-python discover/formal_e2.py --variant anonymous --model <MODEL> --budgets 175 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL> --tag ow
-python discover/formal_e2.py --variant anonymous --model <MODEL> --budgets 75  --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL> --tag ow
+python discover/formal_e.py --variant anonymous --model <MODEL> --budgets 225 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL>/runs --tag ow
+python discover/formal_e.py --variant anonymous --model <MODEL> --budgets 175 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL>/runs --tag ow
+python discover/formal_e.py --variant anonymous --model <MODEL> --budgets 75  --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL>/runs --tag ow
 # conditional
-python discover/formal_e2.py --variant anonymous --model <MODEL> --budgets 5000 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL> --tag owuncapped
+python discover/formal_e.py --variant anonymous --model <MODEL> --budgets 5000 --runs 20 --out DISCOVER_OPEN_WEIGHTS/<MODEL>/runs --tag owuncapped
 python discover/v2_stop_runner.py run --arms gate --budgets 75,5000 --runs 20 --model <MODEL> --tag owgate
 ```
 
