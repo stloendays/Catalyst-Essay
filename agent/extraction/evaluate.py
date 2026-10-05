@@ -13,8 +13,9 @@ Inputs
 
 Matching rule (documented in README):
     same DOI; catalyst names equal after normalisation (case, spaces, punctuation,
-    dashes removed), or one contained in the other (>= 4 chars), or difflib
-    ratio >= 0.85, or listed in name_aliases.json; |dT| <= 3 K; |dP|/P <= 5 %;
+    dashes removed), or the shorter name's word tokens are a prefix of the longer
+    name's tokens, or keys one edit apart with identical digit sequences, or
+    listed in name_aliases.json; |dT| <= 3 K; |dP|/P <= 5 %;
     H2/CO2 within 10 % when both present; GHSV within 10 % when both are on a
     mass basis. Among the candidate pairs that pass, a one-to-one assignment
     (Hungarian) minimises |dT|/3 + |dP|/P/0.05 + |dX| + |dS| (pp), so performance
@@ -24,7 +25,6 @@ Field accuracy is reported against both the raw and the adjudicated TheMeCat val
 """
 from __future__ import annotations
 
-import difflib
 import json
 import re
 import unicodedata
@@ -62,14 +62,34 @@ def name_key(s: str) -> str:
     return re.sub(r"[\s.\-_(),/:;%]+", "", s)
 
 
-def names_match(a: str, b: str, aliases: dict) -> bool:
+def edit_distance(a: str, b: str) -> int:
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
+def name_tokens(s: str) -> list[str]:
+    s = unicodedata.normalize("NFKC", str(s)).lower().replace("–", "-").replace("—", "-")
+    return [t for t in re.split(r"[^0-9a-z]+", s) if t]
+
+
+def names_match(a: str, b: str, aliases: dict, allow_fuzzy: bool = True) -> bool:
     ka, kb = name_key(a), name_key(b)
     if ka == kb:
         return True
-    for x, y in ((ka, kb), (kb, ka)):
-        if len(x) >= 4 and x in y:
-            return True
-    if difflib.SequenceMatcher(None, ka, kb).ratio() >= 0.85:
+    # word-level prefix: 'Cat-4.5' ~ 'Cat-4.5 H-In2O3/Al2O3/Al-fiber', but not 'Cu/ZrO2(I)' ~ 'Cu/ZrO2(II)'
+    # and not 'Ir1Pd1-In2O3' ~ '2Ir1Pd1-In2O3'
+    ta, tb = name_tokens(a), name_tokens(b)
+    short, long_ = sorted((ta, tb), key=len)
+    if short and len("".join(short)) >= 4 and long_[:len(short)] == short:
+        return True
+    # spelling slips only: one edit apart on keys of >= 6 characters with identical digits
+    # ('13% ZnO-ZrO2' must not match '10% ZnO-ZrO2', 'Ir1Pd1-In2O3(CP-CP)' must not match 'Ir1Pd1-In2O3(PM)')
+    if allow_fuzzy and min(len(ka), len(kb)) >= 6 and re.findall(r"\d+", ka) == re.findall(r"\d+", kb) and edit_distance(ka, kb) <= 1:
         return True
     for pair in aliases:
         if {name_key(pair[0]), name_key(pair[1])} == {ka, kb}:
@@ -104,6 +124,12 @@ def apply_errata(t: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         m = adj.doi == e.doi.lower()
         if isinstance(e.selector, str) and e.selector.strip():
             m &= adj.eval(e.selector)
+        if e.action == "drop":  # row contradicted by the PDF and not repairable: excluded from the adjudicated set
+            for idx in adj[m].index:
+                log.append({"cur_id": idx, "doi": e.doi, "catalyst_name": adj.at[idx, "catalyst_name"],
+                            "field": "(row dropped)", "themecat": None, "pdf": None, "evidence": e.evidence})
+            adj = adj[~m]
+            continue
         for idx in adj[m].index:
             old = adj.at[idx, e.field]
             new = old * float(e.value) if e.action == "multiply" else float(e.value)
@@ -118,9 +144,15 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
         return []
     BIG = 1e6
     C = np.full((len(ex), len(cur)), BIG)
+    # The one-edit spelling rule is used only for names that have no exact/prefix/alias partner in the
+    # other set, so 'Ir1Pd1-In2O3(PM)' can never be paired with 'Ir1Pd1-In2O3(GM)' when both exist.
+    ex_names, cur_names = set(ex.catalyst_name), set(cur.catalyst_name)
+    ex_strong = {a for a in ex_names if any(names_match(a, b, aliases, False) for b in cur_names)}
+    cur_strong = {b for b in cur_names if any(names_match(a, b, aliases, False) for a in ex_names)}
     for i, (_, e) in enumerate(ex.iterrows()):
         for j, (_, c) in enumerate(cur.iterrows()):
-            if not names_match(e.catalyst_name, c.catalyst_name, aliases):
+            fuzzy_ok = e.catalyst_name not in ex_strong and c.catalyst_name not in cur_strong
+            if not names_match(e.catalyst_name, c.catalyst_name, aliases, fuzzy_ok):
                 continue
             if pd.isna(e.T_K) or pd.isna(c.temperature_k) or abs(e.T_K - c.temperature_k) > 3:
                 continue
