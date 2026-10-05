@@ -16,11 +16,12 @@ Gothe et al. 2025 Table 4.
 | Extracted with gpt-5.5, second batch | 7: Samson 2014, Chen 2019 (ACS Catal.), Wang 2017 (Sci. Adv.), Chen 2024 (Angew.), Yang 2024 (ChemPhysChem), Chen 2019 (Energy Technol.), Bahruji 2016; `--api-yes` route (local API-YES gateway, streamed Responses API), same prompt and schema |
 | Extracted with gpt-5.5, third batch | 9 ScienceDirect papers downloaded by hand and re-identified by the DOI printed in each PDF: Rui 2017, Ghosh 2022, Sharma 2023, Zaman 2023, Ota 2012, Jiang 2020, Hou 2024, Shi 2020, Chou 2019; `--api-yes` route |
 | Adjudicated against the PDFs | all 20 |
+| Recall passes (figures, SI, SI figures) | all 20 papers; SI obtained for 19 (Shi 2020 has none on the public CDN) |
 
 The first batch stopped when the OpenAI organisation ran out of credit (HTTP 429 `insufficient_quota`).
 The second batch was extracted later through the local gateway. All 11 papers were then scored with the same `normalize.py` and `evaluate.py`.
 Every mismatch was checked in the PDF: TheMeCat errors go to `eval/themecat_errata.csv`, extraction errors to `eval/field_mismatch_review.csv` and `eval/unmatched_review.csv`.
-The 20-paper results are in "Accuracy, 20 papers". The 11-paper results and the 4-paper first run are kept below as the earlier stages.
+The current results are in "Recall passes". The 20-paper single-pass results, the 11-paper results and the 4-paper first run are kept below as the earlier stages.
 
 ## Pipeline
 
@@ -29,7 +30,9 @@ The 20-paper results are in "Accuracy, 20 papers". The 11-paper results and the 
 | 1 | `fetch_papers.py` | DOI list -> PDFs through `D:\Tools\nus-fetch` (`fetch -f <list> -o pdf --headless --json`). Reads `pdf/last_run.json` and writes `fetch_manifest.json` (status, pages, `doi_in_pdf`, note). `manual` rows are listed and never automated. |
 | 2 | `pdf_to_text.py` | Writes `text/<slug>.txt` and `.json`. Running text comes from pypdfium2, which keeps two-column layouts in reading order (pdfplumber interleaves the two columns line by line). Tables come from pdfplumber `extract_tables()`. Each page gets an `=== PAGE n ===` marker and is also rendered to `text/img/<slug>_p<n>.jpg` (scale 1.5). |
 | 3 | `extract_records.py` | One chat-completions call per paper: system rules, then the full text, then all page images (`detail: high`). Output is strict JSON-schema (`schema.json`). Raw output goes to `out/raw/<slug>.json`, and every call is logged to `out/token_usage.csv`. Hard caps: 15 papers and 3,000,000 tokens, both summed from the log so they hold across reruns. |
-| 4 | `normalize.py` | Converts to the model basis and writes `out/records_normalized.csv` (see below). |
+| 1b | `fetch_si.py` (+ `si_docx2pdf.ps1`, `pdf_to_text.py --si`) | SI files into the git-ignored `si/`. Elsevier SI from the public CDN `ars.els-cdn.com/content/image/1-s2.0-<PII>-mmc<k>`; ACS, RSC, Wiley and Science SI through the publisher page in the nus-fetch browser profile (EZproxy), imported read-only (cookies not written back). Word SI is exported to PDF with WPS (read-only), then converted to `text_si/` with continuous page numbers. Bot checks are never automated; `si_manifest.json` records status per DOI. |
+| 3b | `extract_records.py --pass figures / si / si_figures` | Recall passes, same schema and model. `figures`: full text plus high-resolution (2.2x) images of the main-text pages that carry a figure caption; the model digitises every plotted performance point (qualifier `~`) -> `out/raw_figures/`. `si`: SI text plus images of SI pages that mention performance quantities -> `out/raw_si/`. `si_figures`: the figure prompt on SI pages whose captions describe catalytic performance -> `out/raw_si_figures/`. Each pass is told the catalyst names the main pass used. |
+| 4 | `normalize.py` | Converts to the model basis and merges the passes into `out/records_normalized.csv` (see below). |
 | 5 | `evaluate.py` | Matches extracted records to TheMeCat and to the Gothe manual table. Writes the scores to `eval/`. |
 
 `make_schema.py` generates `schema.json`. The API key comes from the harness resolver
@@ -79,6 +82,8 @@ Fixes made while adjudicating the second batch (genuine parsing bugs, found from
 - Bahruji 2016 rates in `mmol kgcat-1 h-1` were labelled `sty_basis: other` by the model, so 21 STY values were not used. The basis is now read from the unit.
 - Per-metal STY (Chen 2024) had no per-catalyst value; it now gets one when the loading is stated.
 - Two unanchored copies of the NmL/NL rule were removed.
+
+Pass merge (recall work): records of the four passes are merged per entry (same paper; same catalyst by name key or word prefix; T within 1.5 K; P within 1 %; H2/CO2 within 2 %; GHSV within 5 % on either basis; time on stream within 0.5 h when both are given). A value printed in the main text beats a value printed in the SI, which beats any plot reading; a lower-ranked pass only fills empty or plot-read fields. `pass` gives the origin of an entry, `filled` the fields taken from another pass, `<field>_src` the source of each value (table, text, mixed, plot, SI, SI-plot). A converted STY above 10 g g-1 h-1 (5000 per g metal) is flagged `STY_implausible` and not used (Zaman SI Fig. SF9 prints its axis as "kg/g_cat/h").
 
 Fixes made while adjudicating the third batch:
 
@@ -139,6 +144,17 @@ Third batch (9 Elsevier papers, `--api-yes`, one call each):
 Pilot total: 1,050,859 tokens (750,426 prompt, 300,433 output), 35 % of the 3 M cap.
 At the list price above, that is about **USD 12.77**. Third-batch calls averaged 33 k prompt and 12 k output tokens per paper.
 
+Recall passes (figure digitisation, SI and SI figures, all through `--api-yes`; `pass` column in `out/token_usage.csv`):
+
+| Pass | Calls | Prompt | Output | Total | Cost at USD 5 / 30 per M |
+|---|---:|---:|---:|---:|---:|
+| figures (main-text plots) | 20 | 724,843 | 326,093 | **1,050,936** | USD 13.41 |
+| si (SI text and tables) | 19 | 298,511 | 139,208 | **437,719** | USD 5.67 |
+| si_figures (SI plots; Sci. Adv. and Ghosh rerun after widening the caption filter) | 12 | 224,255 | 140,063 | **364,318** | USD 5.32 |
+| **Recall passes total** | 51 | 1,247,609 | 605,364 | **1,852,973** | **USD 24.40** |
+
+The figure pass stayed under the 1.5 M stop threshold. The API-YES team plan hit its 300-minute usage window once (HTTP 429 `usage_limit_reached`); the remaining 18 calls ran after the reset. Pilot total: 2,903,832 tokens (USD 37.16), 48 % of the 6 M cap now set in `extract_records.py`.
+
 Per paper (first batch, n = 5 calls): about 32 k prompt tokens (text ~20 k plus 8–16 page images), about 16 k output tokens and 100 s.
 That is about **USD 0.64 per paper**. Output tokens are 75 % of the cost, because every number carries its own unit, location and page.
 
@@ -180,7 +196,128 @@ Third-batch changes:
 - New aliases (all checked in the PDF): Jiang 'Cat-A(In2O3/ZrO2)' = 'In2O3/ZrO2'; Sharma 'In2O3' = 'bulk In2O3'; Ghosh 'In2O3/HZSM(Zeolite)' = 'In2O3/HZSM-5'; Zaman 'PZC(PdZn/CeO2)' = 'PZC'; Chou '1.5YIn2O3/ZrO2' (Table 1) = '1.5Y9In/ZrO2' (text).
 - The 24 Chen 2024 GHSV errata cells from the second batch are withdrawn: TheMeCat's 8.64 and 51.84 are the printed values on the inert-free basis, not errors.
 
-### Accuracy, 20 papers (19 TheMeCat DOIs + Gothe)
+### Recall passes: figures and Supporting Information (20 papers, current)
+
+Before = the main pass alone, scored with the same (current) errata, matcher and normaliser; after = main + SI + figures + SI figures merged.
+
+#### Recall and precision, before vs after
+
+| Paper | Curated | Recall before | Recall after | Extracted before / after | Precision (matched) before / after | Precision (reviewed) before / after |
+|---|---:|---:|---:|---:|---:|---:|
+| Wu 2017 | 22 | 22/22 = 1.00 | 22/22 = 1.00 | 26 / 26 | 0.85 / 0.85 | 1.00 / 1.00 |
+| Bansode 2013 | 60 | 45/60 = 0.75 | 60/60 = 1.00 | 45 / 60 | 1.00 / 1.00 | 1.00 / 1.00 |
+| Wang 2017 RSC Adv. | 4 | 4/4 = 1.00 | 4/4 = 1.00 | 4 / 12 | 1.00 / 0.33 | 1.00 / 1.00 |
+| Chen 2024 | 26 | 11/26 = 0.42 | 26/26 = 1.00 | 15 / 51 | 0.73 / 0.51 | 0.80 / 0.90 |
+| Yang 2024 | 24 | 24/24 = 1.00 | 24/24 = 1.00 | 24 / 24 | 1.00 / 1.00 | 1.00 / 1.00 |
+| Chen 2019 Energy Technol. | 30 | 5/30 = 0.17 | 30/30 = 1.00 | 5 / 32 | 1.00 / 0.94 | 1.00 / 1.00 |
+| Bahruji 2016 | 19 | 19/19 = 1.00 | 19/19 = 1.00 | 21 / 31 | 0.91 / 0.61 | 1.00 / 1.00 |
+| Chen 2019 ACS Catal. | 17 | 16/17 = 0.94 | 16/17 = 0.94 | 40 / 47 | 0.40 / 0.34 | 0.72 / 0.68 |
+| Samson 2014 | 20 | 18/20 = 0.90 | 18/20 = 0.90 | 19 / 19 | 0.95 / 0.95 | 1.00 / 1.00 |
+| Wang 2017 Sci. Adv. | 49 | 1/49 = 0.02 | 43/49 = 0.88 | 4 / 71 | 0.25 / 0.61 | 1.00 / 0.69 |
+| Rui 2017 | 15 | 5/15 = 0.33 | 15/15 = 1.00 | 5 / 39 | 1.00 / 0.39 | 1.00 / 1.00 |
+| Ghosh 2022 | 14 | 7/14 = 0.50 | 7/14 = 0.50 | 14 / 14 | 0.50 / 0.50 | 0.86 / 0.86 |
+| Sharma 2023 | 23 | 7/23 = 0.30 | 23/23 = 1.00 | 7 / 23 | 1.00 / 1.00 | 1.00 / 1.00 |
+| Zaman 2023 | 28 | 28/28 = 1.00 | 28/28 = 1.00 | 28 / 46 | 1.00 / 0.61 | 1.00 / 0.65 |
+| Ota 2012 | 3 | 3/3 = 1.00 | 3/3 = 1.00 | 7 / 13 | 0.43 / 0.23 | 1.00 / 1.00 |
+| Jiang 2020 | 2 | 2/2 = 1.00 | 2/2 = 1.00 | 10 / 10 | 0.20 / 0.20 | 1.00 / 1.00 |
+| Hou 2024 | 30 | 14/30 = 0.47 | 29/30 = 0.97 | 15 / 30 | 0.93 / 0.97 | 0.93 / 0.97 |
+| Shi 2020 | 7 | 7/7 = 1.00 | 7/7 = 1.00 | 8 / 8 | 0.88 / 0.88 | 1.00 / 1.00 |
+| Chou 2019 | 20 | 20/20 = 1.00 | 20/20 = 1.00 | 20 / 20 | 1.00 / 1.00 | 1.00 / 1.00 |
+| **Total** | 413 | 258/413 = 0.62 | 396/413 = 0.96 | 317 / 576 | 0.81 / 0.69 | 0.95 / 0.89 |
+
+- Recall rose from 0.62 to **0.96** (258 -> 396 of 413 curated entries). Gothe Table 4 stays 21/21 on every field.
+- Precision on matched entries fell (0.81 -> 0.69) because the passes add many genuine entries that TheMeCat does not list. After PDF review of the 180 unmatched extracted entries, precision is **0.89** (0.95 before):
+  - 120 are correct: 74 genuine entries TheMeCat omits (for example Rui GHSV and pressure series, Bahruji Fig. 10a, Jiang H2O series), 43 additional time-on-stream points (first/last point of stability runs; Chen 2024 SI Figs. S21–S29, Ota Fig. 11A, c6ra SI Fig. S4), 3 duplicates;
+  - 61 are wrong: 22 plot misreads (Sci. Adv. SI figs. S17/S18 above all), 19 entries without a temperature (Zaman SI Fig. SF8 plots selectivity against conversion), 13 series confusions, 4 incomplete, 3 wrong names.
+
+#### The 17 curated entries still missing
+
+| Cause | Entries |
+|---|---:|
+| Values the paper quotes from another study (Ghosh pure In2O3, ref. [21]; excluded by the prompt) | 7 |
+| Wang Sci. Adv.: curated duplicates of the 330 C / 2 MPa centre point (3 series), the 30 % and 38 % composition points the figure pass skipped, the 4:1 330 C point, the supported 13%ZnO/ZrO2 row | 6 |
+| Zero-activity rows (Samson 2, bulk ZrO2 1) | 3 |
+| TheMeCat label error (Hou Au/In2O3-NP 200 C listed as Au/In2O3-HM) | 1 |
+
+#### Field accuracy, before vs after
+
+| Field | Coverage before -> after | Strict adjudicated before -> after | Loose adjudicated before -> after | Strict raw before -> after |
+|---|---|---|---|---|
+| T | 1.00 -> 1.00 | 1.000 -> 1.000 | 1.000 -> 1.000 | 1.000 -> 1.000 |
+| P | 1.00 -> 1.00 | 1.000 -> 1.000 | 1.000 -> 1.000 | 0.826 -> 0.848 |
+| H2/CO2 | 1.00 -> 0.99 | 1.000 -> 1.000 | 1.000 -> 1.000 | 0.984 -> 0.990 |
+| GHSV | 0.60 -> 0.79 | 0.979 -> **0.990** | 0.979 -> 0.990 | 0.846 -> 0.927 |
+| X_CO2 | 0.80 -> **1.00** | 0.913 -> **0.914** | 0.995 -> 0.987 | 0.869 -> 0.891 |
+| S_MeOH | 0.88 -> **1.00** | 0.739 -> **0.739** | 0.913 -> 0.911 | 0.720 -> 0.731 |
+| STY | 0.49 -> 0.60 | 0.436 -> **0.697** | 0.573 -> 0.754 | 0.094 -> 0.075 |
+
+Strict accuracy by source of the value (adjudicated), after:
+
+| Source | X_CO2 | S_MeOH | STY | GHSV |
+|---|---|---|---|---|
+| Table (main text) | 58/58 | 58/58 | 34/40 | 33/36 |
+| Text | 5/5 | 5/5 | 0/1 | 5/5 |
+| Mixed (text + figure) | 22/24 | 23/25 | 12/19 | 16/16 |
+| Plot (main-text figures) | 131/153 (loose 152) | 59/131 (loose 106) | 6/61 (loose 14) | 183/183 |
+| SI (printed) | **117/117** | **113/114** | **107/107** | 34/34 |
+| SI plot | 29/39 (loose 35) | 17/39 (loose 31) | - | 26/26 |
+
+Values printed in the SI are as exact as those in main-text tables; plot readings are what limits accuracy. Before the recall passes, plot readings scored X 99/115, S 64/116, STY 5/57.
+
+#### Field mismatches and failure modes (`eval/field_mismatch_review.csv`, all 203 strict mismatches)
+
+| Failure mode | All | From the recall passes |
+|---|---:|---:|
+| Plot reading error on the right series and point | 118 | 59 |
+| Paper internally inconsistent (Chou, Shi, Ghosh) | 24 | 0 |
+| Axis misread (secondary or broken axis) | 18 | 18 |
+| TheMeCat differs from the plotted value; extraction follows the plot | 18 | 9 |
+| Series or point confusion | 17 | 4 |
+| Basis conversion | 5 | 0 |
+| Printed value rounded | 2 | 0 |
+| TheMeCat rounding | 1 | 0 |
+
+New failure mode from the figure passes, **axis misread**:
+- Sharma Fig. 10b: the red series belong to the right axis.
+- Rui Fig. 1a: selectivity on the right axis, 4–5 pp off.
+- Sci. Adv. SI fig. S2: broken right axis, X about 30 % high.
+- Sharma's case also exposed a TheMeCat error (below).
+
+#### TheMeCat errors found in this round (`eval/themecat_errata.csv`)
+
+111 new errata cells in 111 rows (179 rows, 271 cells in total). Most come from SI tables that TheMeCat transcribed with recomputed or coarse values:
+
+| Paper | TheMeCat | PDF / SI | Cells |
+|---|---|---|---:|
+| Bansode 2013 | STY in steps of about 0.003 g g-1 h-1 | ESI Tables S1–S3 print CH3OH yield in mg gcat-1 h-1 (e.g. 1.8 vs 2.9) | 52 |
+| Chen 2019 Energy Technol. | STY about 6 % high | SI Table S1 (printed STY agrees with X x S x F) | 30 |
+| Chen 2019 ACS Catal. | STY of 15 entries; second In0.1/ZrO2 553 K row | SI Table S5 STY; that row is bulk In2O3 at 280 C (renamed instead of dropped; STY 0.171) | 17 |
+| Sharma 2023 | ZrO2 and In1/ZrO2 selectivity read on the wrong axis | Fig. 10b red series use the right axis (confirmed by the printed 57.3 %) | 6 |
+| Wang 2017 Sci. Adv. | table S2 STY | SI table S2 printed STY (mg/(g h)) | 5 |
+| Rui 2017 | In2O3 and Pd-I/In2O3 STY at 300 C | SI Tables S1/S2: 0.352 and 0.814 | 2 |
+
+`evaluate.py` gained an errata action `rename` (a row that carries another catalyst's data).
+
+#### SI files
+
+| Status | DOIs |
+|---|---|
+| Obtained, public CDN (Elsevier mmc1, Word or PDF) | 10.1016/j.apcata.2019.117144, j.apcatb.2017.06.069, j.cej.2022.135090, j.fuel.2022.125878, j.fuel.2023.127927, j.jcat.2012.05.020, j.jcat.2016.03.017, j.jcat.2020.01.014, j.jes.2023.05.010 |
+| Obtained through the publisher page (EZproxy, nus-fetch profile, read-only) | 10.1021/acs.iecr.7b01464, acscatal.5c05984, acscatal.9b01869, cs500979c (2 files); 10.1039/c2cy20604h, c6ra28305e; 10.1002/anie.202401168, cphc.202300530, ente.201800747; 10.1126/sciadv.1701290 |
+| Not found / manual check | 10.1016/j.jscs.2019.09.002 (Shi 2020): no mmc file on the public CDN; the ScienceDirect page is bot-checked and was not automated. The article may have no SI |
+
+No bot check was met on any SI download.
+
+#### Code changes in this round
+
+- `extract_records.py`: `--pass figures/si/si_figures`, `--pass-cap` (1.5 M), cap raised to 6 M, `pass` column in the usage log.
+- `fetch_si.py`, `si_docx2pdf.ps1`, `pdf_to_text.py --si`.
+- `normalize.py`: pass merge, STY range check.
+- `evaluate.py`: per-field source, a 0.05 cost tie-break that prefers the main pass, errata action `rename`.
+
+The prompts contain only the paper (main text or SI) and the catalyst names of the main pass. No TheMeCat or evaluation data enters any prompt.
+
+### Accuracy, 20 papers (single main pass, as reported before the recall passes)
 
 TheMeCat has 413 entries for the 19 DOIs; one is dropped after adjudication, leaving 412.
 Tolerances: T ±1 K; P, GHSV and STY ±1 % (loose ±5 %); H2/CO2 ±0.05; X and S ±0.5 pp (loose ±2 pp).
@@ -551,6 +688,8 @@ and checked against the PDFs by hand. All **20/20 are correct**:
 11. **GHSV convention.** Curated data mix total-feed and reactant-only GHSV. Both are now computed, and scoring accepts either.
 12. **STY basis left unlabelled.** For `mol kg-1 h-1` without `cat` in the unit (Jiang 2020), the model set `sty_basis: other`. The 10 STY values stay unused rather than being assumed to be per catalyst.
 13. **Papers that contradict themselves.** Shi 2020's printed methanol yields are 2–3x what its own X, S and GHSV give. Ghosh 2022 plots two different conversions for the same bed (Fig. 2c vs Fig. 8b). The extraction reports what is printed; these cases are classified separately, not as extraction errors.
+14. **Figure pass: axis and series errors.** Readings on secondary or broken axes and dense legends are the main error source of the recall passes (18 axis misreads, 4 series confusions, 22 wrong unmatched plot readings). SI pages rendered at 1.5x were too small for the SI text pass; a dedicated SI-figure pass at 2.2x was needed.
+15. **Plots without a condition axis.** Selectivity-vs-conversion plots (Zaman SI Fig. SF8) yield points with no temperature; these 16 entries are unusable.
 
 ## Manual-required DOIs (publisher bot check, not automated)
 
@@ -624,3 +763,6 @@ At the measured precision, review means spot-checking flagged values rather than
 | `eval/name_aliases.json` | Catalyst-name aliases used by the matcher (with the PDF justification) |
 | `eval/field_mismatch_review.csv`, `eval/make_field_mismatch_review.py` | Every strict field mismatch with the PDF reading and failure mode; the script holds the plot readings |
 | `eval/evaluate_stdout.txt` | Console output of the last `evaluate.py` run |
+| `out/raw_figures/`, `out/raw_si/`, `out/raw_si_figures/` | Raw outputs of the recall passes (provenance per pass) |
+| `si_manifest.json` | SI retrieval status per DOI (files, route, note) |
+| `eval/before_recall/` | Scores before the recall passes: as committed after batch 3, and main pass alone under the current errata |

@@ -150,7 +150,60 @@ for i, r in out.iterrows():
         out.loc[i, ['pdf_reading', 'pdf_location', 'failure_mode', 'note']] = (
             'Zaman Fig. 6A/7b p7-8' if 'fuel' in r.doi else 'Hou Fig. 6a p9', 'figure', PP,
             'right series and point; reading error' + (' (TheMeCat reading also differs from the plot)' if r.field == 'X_CO2' else ''))
+
+# ---- recall passes (figures, SI, SI figures): a value that comes from another pass, or a row created by one,
+# is classified here and overrides the batch 1-3 key (whose value may have been replaced by the merge) ----
+AXIS = 'axis_misread'
+rec = pd.read_csv(BASE + 'out/records_normalized.csv')
+fs_all = pd.read_csv(BASE + 'eval/field_scores.csv')
+fs_all = fs_all[(fs_all.truth == 'adjudicated')]
+
+
+def from_new_pass(ex_id, field):
+    row = rec.loc[ex_id]
+    filled = row['filled'] if isinstance(row['filled'], str) else ''
+    return row['pass'] != 'main' or (field + '<-') in filled
+
+
+RP = {  # (doi, ex_id, field): (pdf reading, mode, note)
+    ('10.1016/j.apcatb.2017.06.069', 416, 'S_MeOH'): ('Fig. 1a p3: In2O3 at 200 C, X = 0', UNRES, 'TheMeCat stores S = 0 where conversion is zero; the extraction read the plotted 99 %'),
+    ('10.1016/j.fuel.2022.125878', 86, 'STY'): ('Fig. 11 p9 (dual STY axes)', UNRES, 'In2O3 STY axis assignment cannot be fixed from the figure'),
+    ('10.1016/j.fuel.2022.125878', 450, 'S_MeOH'): ('Fig. 10b p9: In2O3 98 % at 493 K', CONF, 'extracted 60 % belongs to another series'),
+    ('10.1016/j.fuel.2022.125878', 456, 'S_MeOH'): ('Fig. 10b p9: In1/CeO2 64 % at 553 K', PP, 'extraction closer to the plot than TheMeCat (62.4)'),
+    ('10.1016/j.jcat.2020.01.014', 151, 'STY'): ('Fig. 1b-1 p4: 1.65 mol kg-1 h-1', PP, ''),
+}
+for k in (417, 418, 419, 420, 421, 422, 423):
+    RP[('10.1016/j.apcatb.2017.06.069', k, 'S_MeOH')] = ('Fig. 1a p3 (selectivity on the right axis, 0-100)', AXIS,
+                                                         'extracted selectivity is 4-5 pp off on the right-hand axis; TheMeCat matches the plot')
+    RP[('10.1016/j.apcatb.2017.06.069', k, 'STY')] = ('Fig. 1b p3', UNRES,
+                                                      'extraction equals the plotted STY (0.01-0.79); TheMeCat recomputes STY and differs by 5-10 %, below the errata threshold')
+for k in (458, 459, 460, 462, 463):
+    RP[('10.1016/j.fuel.2022.125878', k, 'S_MeOH')] = ('Fig. 10b p9 (red series on the right axis)', AXIS,
+                                                       'the figure pass read the red ZrO2 / In1/ZrO2 series on the left axis; adjudicated values use the right axis')
+for k in (482, 486, 488):
+    RP[('10.1126/sciadv.1701290', k, 'S_MeOH')] = ('Fig. 1A p2', CONF, 'composition labels shifted along the x axis (a 17 % point was invented, 29/38 % skipped)')
+for k in (495, 497):
+    RP[('10.1126/sciadv.1701290', k, 'S_MeOH')] = ('Fig. 1B p2', PP, '2-3 pp reading error')
+for k, f in ((570, 'S_MeOH'), (572, 'X_CO2'), (573, 'X_CO2'), (574, 'X_CO2'), (574, 'S_MeOH'), (576, 'X_CO2')):
+    RP[('10.1126/sciadv.1701290', k, f)] = ('SI p4 fig. S2 (broken right axis: 0-10 for X, 40-90 for S)', AXIS,
+                                            'X read about 30 % high on the broken axis; TheMeCat (4.0/6.2/8.1/9.6/11.0 %) matches the plot')
+for k in range(540, 560):
+    RP[('10.1016/j.jes.2023.05.010', k, 'S_MeOH')] = ('SI Fig. S4 p10', PP, 'both values are readings of the same SI plot (difference up to 4.3 pp)')
+
+keep = []
+for i, r in out.iterrows():
+    if from_new_pass(int(r.ex_id), r.field):
+        key = (r.doi, int(r.ex_id), r.field)
+        loose = fs_all[(fs_all.ex_id == r.ex_id) & (fs_all.field == r.field)].loose.iloc[0]
+        if key in RP:
+            out.loc[i, ['pdf_reading', 'failure_mode', 'note']] = RP[key]
+        elif loose == 'correct':
+            out.loc[i, ['pdf_reading', 'failure_mode', 'note']] = ('', PP, 'value from a recall pass, within the loose tolerance')
+        else:
+            out.loc[i, ['pdf_reading', 'failure_mode', 'note']] = ('', 'unreviewed', '')
+        out.loc[i, 'pass_origin'] = rec.loc[int(r.ex_id), 'pass'] if rec.loc[int(r.ex_id), 'pass'] != 'main' else 'filled'
 out.to_csv(BASE + 'eval/field_mismatch_review.csv', index=False)
+print('recall-pass rows:', out['pass_origin'].notna().sum() if 'pass_origin' in out else 0)
 print(out.failure_mode.value_counts(dropna=False))
 print(out.groupby(['doi', 'failure_mode']).size())
 print(out[out.failure_mode.isna()])

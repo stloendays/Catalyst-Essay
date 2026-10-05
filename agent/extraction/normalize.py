@@ -18,6 +18,11 @@ Model basis
                    catalyst (x metal wt% / 100) when the record states the metal loading;
                    STY_gcat_from_metal marks these.
     metal_wt_pct   sum of components with role active_metal whose loading unit is wt%
+Passes: records of the main, SI and figure passes (out/raw, out/raw_si, out/raw_figures) are merged per
+entry (same paper, same catalyst, same T/P/H2:CO2/GHSV/time on stream). A printed main-text value beats a
+printed SI value, which beats any plot reading; a lower-ranked pass only fills fields that are empty or
+plot-read. `pass` gives the origin of each entry, `filled` the fields taken from another pass, and
+<field>_src the source of each value (table, text, mixed, plot, SI).
 Each converted value keeps its qualifier (=, <, ~ ...) in a *_q column; raw
 value+unit strings are kept so every conversion can be audited.
 """
@@ -27,6 +32,7 @@ import json
 import re
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
@@ -333,6 +339,11 @@ def normalize_record(doi: str, r: dict) -> dict:
         flags.append("STY_unit")
     if r["ghsv"]["value"] is not None and r["ghsv_basis"] == "per_mass_catalyst" and row["GHSV_NL_gcat_h"] is None:
         flags.append("GHSV_unit")
+    # physical range check: a converted STY above 10 g MeOH per g catalyst per h (or 5000 per g metal) means the
+    # unit was transcribed wrongly (e.g. 'kg/g_cat/h' for g/kg); the value is flagged and not used
+    if (row["STY_g_gcat_h"] or 0) > 10 or (row["STY_g_gmetal_h"] or 0) > 5000:
+        flags.append("STY_implausible")
+        row["STY_g_gcat_h"] = row["STY_g_gmetal_h"] = None
     # GHSV from total flow / catalyst mass when the paper gives no mass-based GHSV (schema v2 field)
     tf = r.get("total_flow") or {}
     row["flow_NL_h"] = flow_NL_h(tf.get("value"), tf.get("unit"))
@@ -349,16 +360,148 @@ def normalize_record(doi: str, r: dict) -> dict:
     return row
 
 
-def main() -> None:
+# ---------------------------------------------------------------- merging the passes
+PASS_DIRS = {"main": HERE / "out" / "raw", "si": HERE / "out" / "raw_si", "figures": HERE / "out" / "raw_figures",
+             "si_figures": HERE / "out" / "raw_si_figures"}
+# field groups merged together; the first column is the value, the qualifier column decides printed vs plotted
+FIELD_GROUPS = {
+    "X_CO2": (["X_CO2_pct", "X_CO2_q"], "X_CO2_q"),
+    "S_MeOH": (["S_MeOH_pct", "S_MeOH_q"], "S_MeOH_q"),
+    "S_CO": (["S_CO_pct", "S_CO_q"], "S_CO_q"),
+    "S_CH4": (["S_CH4_pct", "S_CH4_q"], "S_CH4_q"),
+    "STY": (["STY_g_gcat_h", "STY_g_gmetal_h", "STY_gcat_from_metal", "STY_raw", "sty_basis", "sty_basis_extracted", "STY_q"], "STY_q"),
+    "GHSV": (["GHSV_NL_gcat_h", "GHSV_raw", "ghsv_basis", "GHSV_inert_free_NL_gcat_h", "inert_frac", "ghsv_derived", "flow_NL_h"], None),
+    "H2_CO2": (["H2_CO2", "feed"], None),
+    "cat_mass_g": (["cat_mass_g"], None),
+    "metal_wt_pct": (["metal_wt_pct"], None),
+}
+SRC_FIELDS = ("X_CO2", "S_MeOH", "S_CO", "S_CH4", "STY", "GHSV")
+
+
+def _key(name) -> str:
+    return re.sub(r"[\s.\-_(),/:;%–—]+", "", str(name).lower())
+
+
+def _tokens(name) -> list[str]:
+    return [t for t in re.split(r"[^0-9a-z]+", str(name).lower().replace("–", "-")) if t]
+
+
+def _same_catalyst(a, b) -> bool:
+    if _key(a) == _key(b):
+        return True
+    ta, tb = _tokens(a), _tokens(b)
+    short, long_ = sorted((ta, tb), key=len)
+    return bool(short) and len("".join(short)) >= 4 and long_[:len(short)] == short and \
+        re.findall(r"\d+", "".join(short)) == re.findall(r"\d+", "".join(long_))[:len(re.findall(r"\d+", "".join(short)))]
+
+
+def _close(a, b, rel) -> bool | None:
+    if a is None or b is None or (isinstance(a, float) and np.isnan(a)) or (isinstance(b, float) and np.isnan(b)):
+        return None
+    return abs(a - b) <= rel * max(abs(a), abs(b), 1e-12)
+
+
+def _tos_h(raw):
+    """'3 hours', '3 h', '180 min', '2 d' -> hours; None when absent or unreadable."""
+    if _empty(raw):
+        return None
+    m = re.match(r"\s*([\d.]+)\s*([a-zA-Z]*)", str(raw))
+    if not m:
+        return None
+    unit = m.group(2).lower()
+    f = 1 / 60 if unit.startswith("min") else 1 / 3600 if unit in ("s", "sec") else 24 if unit.startswith("d") else 1
+    return float(m.group(1)) * f
+
+
+def _same_entry(r, m) -> bool:
+    if r["doi"] != m["doi"] or not _same_catalyst(r["catalyst_name"], m["catalyst_name"]):
+        return False
+    if r["T_K"] is None or m["T_K"] is None or abs(r["T_K"] - m["T_K"]) > 1.5:
+        return False
+    for col, rel in (("P_bar", 0.01), ("H2_CO2", 0.02)):
+        if _close(r[col], m[col], rel) is False:
+            return False
+    g = [_close(x, y, 0.05) for x in (r["GHSV_NL_gcat_h"], r["GHSV_inert_free_NL_gcat_h"])
+         for y in (m["GHSV_NL_gcat_h"], m["GHSV_inert_free_NL_gcat_h"])]
+    if any(v is not None for v in g) and not any(v for v in g):
+        return False
+    ta, tb = _tos_h(r["TOS_raw"]), _tos_h(m["TOS_raw"])
+    if ta is not None and tb is not None and abs(ta - tb) > max(0.5, 0.05 * max(ta, tb)):
+        return False
+    return True
+
+
+def _rank(row, qual_col) -> int:
+    """3 printed in the main text, 2 printed in the SI, 1 any plot reading."""
+    plotted = (qual_col and row.get(qual_col) == "~") or row["data_source_type"] == "figure"
+    if row["pass"] in ("figures", "si_figures") or plotted:
+        return 1
+    return 3 if row["pass"] == "main" else 2
+
+
+def _src(row) -> str:
+    if row["pass"] == "si_figures" or (row["pass"] == "si" and row["data_source_type"] == "figure"):
+        return "SI-plot"
+    if row["pass"] == "si":
+        return "SI"
+    if row["pass"] == "figures" or row["data_source_type"] == "figure":
+        return "plot"
+    return row["data_source_type"]   # table / text / mixed
+
+
+def _empty(v) -> bool:
+    return v is None or (isinstance(v, float) and np.isnan(v))
+
+
+def merge_passes(rows_by_pass: dict[str, list[dict]]) -> list[dict]:
+    merged: list[dict] = []
+    for pass_ in ("main", "si", "figures", "si_figures"):
+        for r in rows_by_pass.get(pass_, []):
+            r = dict(r, **{"pass": pass_, "filled": ""})
+            for f in SRC_FIELDS:
+                r[f + "_src"] = _src(r) if not _empty(r[FIELD_GROUPS[f][0][0]]) else None
+            target = next((m for m in merged if _same_entry(r, m)), None) if pass_ != "main" else None
+            if target is None:
+                merged.append(r)
+                continue
+            for f, (cols, qcol) in FIELD_GROUPS.items():
+                if _empty(r[cols[0]]):
+                    continue
+                if _empty(target[cols[0]]) or _rank(r, qcol) > _rank(target, qcol):
+                    for c in cols:
+                        target[c] = r[c]
+                    if f in SRC_FIELDS:
+                        target[f + "_src"] = _src(r)
+                    target["filled"] = ";".join(x for x in (target["filled"], f"{f}<-{pass_}") if x)
+    return merged
+
+
+def load_pass(pass_: str, slug_to_doi: dict) -> list[dict]:
     rows = []
-    for f in sorted(RAW_DIR.glob("*.json")):
+    for f in sorted(PASS_DIRS[pass_].glob("*.json")):
         d = json.loads(f.read_text(encoding="utf-8"))
-        doi = d.get("doi") or f.stem
+        doi = slug_to_doi.get(f.stem, (d.get("doi") or f.stem).lower())
         for r in d["records"]:
             rows.append(normalize_record(doi.lower(), r))
+    return rows
+
+
+def main() -> None:
+    import argparse
+    import re as _re
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--passes", default="main,si,figures,si_figures", help="comma list of passes to merge")
+    args = ap.parse_args()
+    man = json.loads((HERE / "fetch_manifest.json").read_text(encoding="utf-8"))
+    slug_to_doi = {_re.sub(r"[^a-z0-9]+", "_", r["doi"].lower()).strip("_"): r["doi"].lower() for r in man}
+    passes = [x.strip() for x in args.passes.split(",") if x.strip()]
+    by_pass = {p_: load_pass(p_, slug_to_doi) for p_ in passes}
+    rows = merge_passes(by_pass)
     df = pd.DataFrame(rows)
     df.to_csv(HERE / "out" / "records_normalized.csv", index=False, encoding="utf-8")
-    print(f"{len(df)} records from {df.doi.nunique()} papers -> out/records_normalized.csv")
+    counts = {p_: len(v) for p_, v in by_pass.items()}
+    print(f"{len(df)} merged records from {df.doi.nunique()} papers -> out/records_normalized.csv; per-pass records {counts}; "
+          f"entries by origin {df['pass'].value_counts().to_dict()}; rows with filled fields {(df['filled'] != '').sum()}")
     bad = df["flags"].astype(bool)
     if bad.any():
         print(df[bad][["doi", "entry_label", "flags", "STY_raw", "GHSV_raw"]].to_string())

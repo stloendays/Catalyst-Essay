@@ -130,6 +130,13 @@ def apply_errata(t: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
                             "field": "(row dropped)", "themecat": None, "pdf": None, "evidence": e.evidence})
             adj = adj[~m]
             continue
+        if e.action == "rename":  # row carries another catalyst's data; value = the catalyst name the PDF gives
+            for idx in adj[m].index:
+                log.append({"cur_id": idx, "doi": e.doi, "catalyst_name": adj.at[idx, "catalyst_name"],
+                            "field": "catalyst_name", "themecat": adj.at[idx, "catalyst_name"], "pdf": e.value,
+                            "evidence": e.evidence})
+                adj.at[idx, "catalyst_name"] = e.value
+            continue
         for idx in adj[m].index:
             old = adj.at[idx, e.field]
             new = old * float(e.value) if e.action == "multiply" else float(e.value)
@@ -166,6 +173,8 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
                     for g in (e.GHSV_NL_gcat_h, e.get("GHSV_inert_free_NL_gcat_h"))):
                 continue
             cost = abs(e.T_K - c.temperature_k) / 3 + abs(e.P_bar - c.pressure_bar) / c.pressure_bar / 0.05
+            # tie-break only: prefer the main extraction, then SI, then plot passes (0.05 per rank)
+            cost += 0.05 * {"main": 0, "si": 1, "figures": 2, "si_figures": 3}.get(e.get("pass", "main"), 0)
             for a, b in (("X_CO2_pct", "CO2_conversion"), ("S_MeOH_pct", "selectivity_CH3OH")):
                 if pd.notna(e[a]) and pd.notna(c[b]):
                     cost += abs(e[a] - c[b])
@@ -177,6 +186,21 @@ def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[
 
 
 QUAL = {"X_CO2": "X_CO2_q", "S_MeOH": "S_MeOH_q", "STY": "STY_q"}
+SRC_COL = {"X_CO2": "X_CO2_src", "S_MeOH": "S_MeOH_src", "STY": "STY_src", "GHSV": "GHSV_src"}
+
+
+def field_source(e, f) -> str:
+    """Source of one value: table, text, mixed, plot or SI (per field after the pass merge)."""
+    v = e.get(SRC_COL.get(f, ""), None)
+    if isinstance(v, str) and v:
+        return v
+    if e.get("pass") == "si_figures":
+        return "SI-plot"
+    if e.get("pass") == "si":
+        return "SI"
+    if e.get("pass") == "figures" or e.data_source_type == "figure":
+        return "plot"
+    return e.data_source_type
 
 
 def field_scores(pairs, ex, cur_raw, cur_adj):
@@ -209,7 +233,7 @@ def field_scores(pairs, ex, cur_raw, cur_adj):
                         status_l = "correct" if within(ev, tv, kind, lo) else "wrong"
                 out.append({"doi": e.doi, "ex_id": ei, "cur_id": ci, "catalyst": e.catalyst_name, "field": f,
                             "truth": truth_name, "extracted": ev, "curated": tv,
-                            "source_type": e.data_source_type, "strict": status_s, "loose": status_l})
+                            "source_type": field_source(e, f), "strict": status_s, "loose": status_l})
     return pd.DataFrame(out)
 
 
