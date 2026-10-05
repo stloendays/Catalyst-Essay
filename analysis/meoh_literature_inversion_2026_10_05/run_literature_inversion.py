@@ -121,7 +121,7 @@ for key, g in cand.groupby("group"):
     g["sty_basis"] = basis
     g["STY"] = sty
     parts.append(g)
-cand = pd.concat(parts).dropna(subset=["STY"])
+cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
 cand = cand[cand.STY > 0].reset_index(drop=True)
 
 
@@ -210,6 +210,8 @@ def aggregate(frame, cost_col, up_col="STY", label=""):
              top1_mismatch_groups=int(gm.top1_mismatch.sum()),
              top1_mismatch_fraction=float(gm.top1_mismatch.mean()),
              papers_with_mismatch=int(papers.sum()),
+             paper_weighted_mismatch_fraction=float(gm.groupby("doi").top1_mismatch.mean().mean()),
+             regret_median_all=float(gm.regret.median()),
              regret_median_mismatched=float(gm.loc[gm.top1_mismatch, "regret"].median()) if gm.top1_mismatch.any() else 0.0,
              regret_max=float(gm.regret.max()),
              regret_mean_all=float(gm.regret.mean()),
@@ -232,6 +234,9 @@ variants["leaderboard_X_times_S"] = aggregate(cand, "cost_recycled_opt", up_col=
 variants["leaderboard_X"] = aggregate(cand, "cost_recycled_opt", up_col="X", label="X leaderboard")[1]
 variants["leaderboard_S_MeOH"] = aggregate(cand, "cost_recycled_opt", up_col="SMeOH", label="S_MeOH leaderboard")[1]
 variants["printed_values_only"] = aggregate(cand[~cand.plot_read], "cost_recycled_opt", label="no plot readings")[1]
+BIGGEST = primary_gm.groupby("doi").size().idxmax()          # paper contributing the most scored groups
+variants["without_paper_with_most_groups"] = aggregate(cand[cand.doi != BIGGEST], "cost_recycled_opt",
+                                                       label=f"without {BIGGEST}")[1]
 variants["methanol_products_only"] = aggregate(cand[~cand.other_products], "cost_recycled_opt",
                                                label="reported S_MeOH+S_CO+S_CH4 >= 95 %")[1]
 

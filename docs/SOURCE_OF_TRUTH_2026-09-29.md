@@ -305,14 +305,16 @@ The paper leaderboard is STY per g catalyst; the plant leaderboard is the net pr
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
 | Agent self-check: Gothe Table 4 from extracted inputs | 21/21 entries equal the frozen costs (max 2.3e-13 EUR/t); canonical states 943.30 / 961.51 / 966.96 / 1258.17 | DERIVED-A | `selfcheck_gothe_table4.csv` |
-| scored comparison | 22 groups, 169 entries, 15 papers | DERIVED-A | `summary.json` |
-| different winner, STY leaderboard (primary) | 4/22 groups (18 %), 4/15 papers; regret median 1.2 %, max 1.8 %; 133/991 pairs inverted | DERIVED-A | same |
-| different winner, selectivity leaderboard | 14/22 groups (64 %), 11/15 papers; regret median 53 % | DERIVED-A | same |
-| robustness, STY leaderboard | density 0.5 / 2.0 g/mL: 5 / 3 groups; printed values only: 2/13; 2 % purge: 5/22 | DERIVED-A | same |
+| scored comparison | 36 groups, 413 entries, 19 papers (main text, figures and SI after the recall passes) | DERIVED-A | `summary.json` |
+| different winner, STY leaderboard (primary) | 16/36 groups (44 %), 7/19 papers; regret median 2.9 % (mismatched), max 182 %; 492/3801 pairs inverted | DERIVED-A | same |
+| different winner, STY leaderboard, inert CO | 19/36 groups (53 %), 14/19 papers | DERIVED-A | same |
+| different winner, selectivity leaderboard | 27/36 groups (75 %), 16/19 papers; regret median 69 % (mismatched) | DERIVED-A | same |
+| robustness, STY leaderboard | printed values only 10/26; methanol products only 13/30; without Bansode 2013 9/28 groups, 6/18 papers, regret max 3.9 % | DERIVED-A | same |
 
 **Semantic lock:** groups compare entries at equal pressure, so the model's simplified condensation at 20–40 bar does
-not enter within-group rankings. Inert-CO variants are the engine convention, not the physical treatment for
-CO-selective catalysts, and are reported as sensitivity only.
+not enter within-group rankings. Recycled and inert CO bound the plant ranking; the winner-change counts hold under
+both, and regret magnitudes depend on the treatment. Regrets above 4 % all come from low-conversion entries of one
+paper (Bansode 2013).
 
 ## Other active scientific families
 
