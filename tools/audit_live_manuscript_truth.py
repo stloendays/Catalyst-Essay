@@ -77,7 +77,8 @@ regret_mc = json.loads((ROOT / "analysis/nonfigure_upgrades_2026_09_29/nh3_cost_
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
 meoh_prov = json.loads((ROOT / "data/meoh/meoh_candidate_ranking_D01v3_provenance.json").read_text(encoding="utf-8"))
 purge = rows("data/meoh/meoh_purge_robustness_D01v3.csv")
-rankp = rows("analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv")
+meoh_mc = json.loads((ROOT / "analysis/meoh_measurement_mc_2026_10_05/mc_summary.json").read_text(encoding="utf-8"))[
+    "sets"]["canonical"]["k=1"]
 au = rows("data/rank_preservation_control_v1_1.csv")
 semi = {(r["window"], r["stress"]): r for r in rows("data/rank_preservation_semiopen_v1_3_summary.csv")}
 
@@ -279,7 +280,7 @@ tokens(
     *(f"{x:,}" for x in npc),
     f"{sty_metric['spearman']:.2f}",
     f"{sty_metric['kendall']:.2f}",
-    "three of six",
+    "two of six",
 )
 tokens(
     "MeOH leverage/purge robustness",
@@ -291,13 +292,23 @@ tokens(
     f"{100*min(float(r['purge']) for r in purge):.1f}%",
     f"{round(100*max(float(r['purge']) for r in purge))}%",
     f"{max(float(r['spearman']) for r in purge):.2f}",
-    "5,000",
 )
-ok("MeOH at least two inversions across purge", min(int(r["pairwise_inversions"]) for r in purge) == 2)
-tokens("MeOH decision regret", s4, "3.36%")
+ok("MeOH at least one inversion across purge", min(int(r["pairwise_inversions"]) for r in purge) == 1)
+tokens("MeOH decision regret", s4, "1.93%")
+tokens(
+    "MeOH measurement Monte Carlo",
+    s4,
+    "5,000",
+    f"{round(meoh_mc['P_winner_stays_first'] * 5000):,}",
+    f"{100 * meoh_mc['P_winner_stays_first']:.1f}%",
+    f"{round(meoh_mc['second_vs_third']['P_inverted'] * 5000):,}",
+    f"{100 * meoh_mc['second_vs_third']['P_inverted']:.1f}%",
+    f"{round(meoh_mc['P_upstream_winner_1wtRe_250C_economic_first'] * 5000)}",
+)
+ok("MeOH measurement MC: last place fixed", meoh_mc["rank_probability"]["5wtRe_250C"][3] == 1.0)
 ok(
     "MeOH regret source",
-    abs(float(regret["MeOH"]["normalized_decision_regret"]) - 0.03359482667232064) < 1e-12,
+    abs(float(regret["MeOH"]["normalized_decision_regret"]) - 0.019304569066044774) < 1e-12,
 )
 
 # ----- Results 5: rank-preservation control ----------------------------------
@@ -370,7 +381,7 @@ tokens(
     discussion,
     "χ_AB",
     "+0.085",
-    "+0.026",
+    "+0.015",
     "-1.00",
 )
 ok(

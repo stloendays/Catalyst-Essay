@@ -52,7 +52,7 @@ A direct price counterfactual changes the mechanism interpretation: setting the 
 
 ### MeOH: a selectivity-recycle pathway
 
-The **methanol recycle–economics model** evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.20**, **tau = 0**, and **3/6 pairwise inversions**; the upstream winner falls to economic rank #3. The 2026-09-20 cost-parameter Monte Carlo retains the canonical economic order in **5,000/5,000** draws.
+The **methanol recycle–economics model** evaluates four Re/TiO2 catalyst-temperature states through an explicit recycle/separation loop. Using STY per g Re as the upstream screening metric, the four-state comparison gives **rho = 0.40**, **tau = 0.33**, and **2/6 pairwise inversions**; the upstream winner falls to economic rank #2 and the third-ranked state is the economic optimum. Sampling each state's own measurement uncertainty keeps the economic winner first in **4,559/5,000** draws.
 
 At the 5 wt% Re / 250 C benchmark, local leverage is **0.00289** for STY, **0.05883** for single-pass conversion, and **0.37579** for CH4 suppression. The dominant tested pathway therefore runs through selectivity, feed loss, purge and recycle.
 

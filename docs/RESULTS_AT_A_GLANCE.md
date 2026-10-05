@@ -36,7 +36,7 @@ For Fe under the 90 m3 catalyst-bed criterion and 1,000 descriptor-uncertainty d
 
 The 68.1% and 28.2% values are different metrics: the former is P(Fe is the economic winner); the latter is P(atomic Top-1 = economic Top-1).
 
-A complementary decision metric asks what is lost by following the upstream winner. Selecting Ru from intrinsic activity instead of Fe from the catalyst-dependent economic objective gives a normalized decision regret of **44.07%**. The corresponding regret is **3.36%** for the MeOH STY-per-g-Re winner and **0** for the Au/TiO2 preservation control.
+A complementary decision metric asks what is lost by following the upstream winner. Selecting Ru from intrinsic activity instead of Fe from the catalyst-dependent economic objective gives a normalized decision regret of **44.07%**. The corresponding regret is **1.93%** for the MeOH STY-per-g-Re winner and **0** for the Au/TiO2 preservation control.
 
 The headline NH3 descriptor Monte Carlo retains its frozen independent-error specification. A supporting Gaussian-copula sensitivity preserves the same Fe and Ru/Os marginals while varying positive latent error correlation. In 100,000-draw audits, Fe's atomistic Top-1 probability changes from **10.71% at rho=0** to **21.68% at rho=0.9**. A separate common additive descriptor shift changes the canonical Ru > Os > Fe order outside an approximate interval of **-0.0573 to +0.1030 eV**. These are uncertainty-model sensitivities, not replacement downstream probabilities.
 
@@ -93,19 +93,19 @@ Using STY per g Re as the upstream intrinsic-productivity metric:
 ```text
 Upstream intrinsic rank                  Economic NPC rank
 1 wt% Re, 250 C   #1   65 g/gRe/h       5 wt% Re, 200 C   #1   943 EUR/t
-1 wt% Re, 200 C   #2   55                1 wt% Re, 200 C   #2   967 EUR/t
-5 wt% Re, 200 C   #3   18        ->      1 wt% Re, 250 C   #3   975 EUR/t
+1 wt% Re, 200 C   #2   55                1 wt% Re, 250 C   #2   962 EUR/t
+5 wt% Re, 200 C   #3   18        ->      1 wt% Re, 200 C   #3   967 EUR/t
 5 wt% Re, 250 C   #4   16                5 wt% Re, 250 C   #4   1258 EUR/t
 ```
 
-- Spearman rho: **0.20**
-- Kendall tau: **0.00**
-- Pairwise inversions: **3 of 6**
-- Upstream per-Re winner falls from **#1 to economic rank #3**
+- Spearman rho: **0.40**
+- Kendall tau: **0.33**
+- Pairwise inversions: **2 of 6**
+- Upstream per-Re winner falls from **#1 to economic rank #2**; the upstream #3 is the economic #1
 
-Across the 396-level purge sweep from 0.5% to 40%, the per-Re winner is never the economic winner, rho does not exceed **0.40**, and at least **2/6** pairs remain inverted.
+Across the 396-level purge sweep from 0.5% to 40%, the per-Re winner is never the economic winner, rho does not exceed **0.80**, and at least **1/6** pairs remain inverted.
 
-In the 2026-09-20 cost-parameter MC, the four-candidate economic order is preserved in **5,000/5,000** draws under the canonical D01 boundary. A separately labelled active-Re replacement extension likewise preserves the same order in **5,000/5,000** draws.
+Sampling each state's own measurement uncertainty (5,000 draws) keeps the economic winner first in **4,559/5,000** and 5 wt% Re / 250 C last in **5,000/5,000**; ranks 2 and 3 exchange in **1,054/5,000**, and the STY winner becomes the economic optimum in **413/5,000**.
 
 ## Methanol selectivity-recycle mechanism
 

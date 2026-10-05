@@ -86,6 +86,8 @@ File: `nh3_cost_mc_summary.json`; `cost_mc_summary.svg` visualizes alpha* and th
 
 ## 5. MeOH four-candidate rank probability
 
+> Superseded 2026-10-05. This matrix was computed on the previous methanol inputs (CH4 3 % for 1 wt% Re, 250 C) and perturbs only parameters shared by all four states. Fig. 4d now shows the measurement Monte Carlo in `../meoh_measurement_mc_2026_10_05/` (Table 3 inputs). The file is kept unchanged because the F03 render manifest lists it.
+
 MEOH-D01-v3 excludes Re purchase/replacement from its canonical NPC boundary. Therefore two matrices are reported rather than silently changing the model.
 
 ### Canonical D01 boundary

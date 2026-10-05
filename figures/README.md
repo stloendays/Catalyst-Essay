@@ -86,7 +86,9 @@ Source data/provenance are in `../data/meoh/`.
 
 ### F8
 
-Canonical outputs (Origin build, locked 2026-09-23):
+> Retired 2026-10-05. F8 was built from the previous methanol inputs (CH4 3 % for 1 wt% Re, 250 C) and is superseded by the composite Figure 4 (`composite/fig4/`), which uses the Table 3 inputs. The render manifest is kept as `meoh/F08_RENDER_SHA256.retired-2026-10-05.txt` and no longer runs in the render-manifest check.
+
+Outputs (Origin build, locked 2026-09-23):
 
 - `F08_MeOH_selectivity_recycle_D01v3.svg` — single-file vector, 183 mm wide
 - `F08_MeOH_selectivity_recycle_D01v3.pdf` — printed from that SVG, fonts embedded, no raster objects

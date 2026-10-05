@@ -21,7 +21,7 @@ meoh={r["candidate"]:r for r in rows(ROOT/"data/meoh/meoh_candidate_ranking_D01v
 j_up=float(meoh["1 wt% Re | 250 C"]["NPC_EUR_t_2pct_purge"])
 j_best=float(meoh["5 wt% Re | 200 C"]["NPC_EUR_t_2pct_purge"])
 assert abs(nh3-0.44068926608899806)<1e-12
-assert abs((j_up-j_best)/j_best-0.03359482667232064)<1e-12
+assert abs((j_up-j_best)/j_best-0.019304569066044774)<1e-12  # Table 3-corrected inputs (2026-10-05)
 
 # Frozen 673 K one-descriptor volcano.
 sc=rows(RUN/"closure/scaling_reachability.csv")

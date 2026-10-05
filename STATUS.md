@@ -54,7 +54,7 @@ Representative optimized operating points are approximately **425 C / 180 bar / 
 
 **Joint backward-design target and reachability closure (2026-09-29):** activity alone remains unreachable (201.22x required vs 2.525x maximum state-specific scaling headroom). A conservative 53-state direct-activity/lifecycle audit gives target-space upper bounds of **2.418x / 1.742x / 1.401x** at **10 / 15 / 20 y** with 99% Ru recovery. The separate strict-scaling lifecycle audit now evaluates all **14,136** process states. The prespecified box (**life <= 20 y, recovery <= 99%**) does **not** intersect parity: its best corner, **20 y + 99%**, gives **15.36249 USD/t NH3**, **0.07078 USD/t (0.46%)** above Fe. Parity lies just outside at **99.1186% recovery for 20 y** or **22.69 y life at 99% recovery**.
 
-**Decision consequence and uncertainty-structure extensions (2026-09-29):** normalized upstream-selection regret is **44.07% for NH3**, **3.36% for MeOH** and **0 for the Au/TiO2 preservation control**. A supporting Gaussian-copula descriptor audit and common-bias sweep show that atomistic rank probabilities are conditional on error dependence; these analyses do not replace the preregistered downstream Monte Carlo. The pairwise transfer-index sign is positive for the inverted NH3 and MeOH examples and negative for the preserved Au/TiO2 pair.
+**Decision consequence and uncertainty-structure extensions (2026-09-29):** normalized upstream-selection regret is **44.07% for NH3**, **1.93% for MeOH** and **0 for the Au/TiO2 preservation control**. A supporting Gaussian-copula descriptor audit and common-bias sweep show that atomistic rank probabilities are conditional on error dependence; these analyses do not replace the preregistered downstream Monte Carlo. The pairwise transfer-index sign is positive for the inverted NH3 and MeOH examples and negative for the preserved Au/TiO2 pair.
 
 **External process/economic validation (2026-09-30):** independent ammonia literature now anchors three separate claims: the Fe optimum lies within the conventional industrial temperature/pressure range; recycle/compression/separation are strongly pressure-coupled; and published Fe/Ru process studies change the preferred catalyst with plant scale and loop configuration. This is used to validate the **coupling structure**, not the model-specific pure-Ru pressure optimum or absolute reduced cost. The Discussion has been rewritten around decision consequence, inversion layer, reachability and applicability domain rather than repeating Results.
 
@@ -69,12 +69,12 @@ upstream order
 1 wt% Re / 250 C > 1 wt% Re / 200 C > 5 wt% Re / 200 C > 5 wt% Re / 250 C
 
 economic order
-5 wt% Re / 200 C > 1 wt% Re / 200 C > 1 wt% Re / 250 C > 5 wt% Re / 250 C
+5 wt% Re / 200 C > 1 wt% Re / 250 C > 1 wt% Re / 200 C > 5 wt% Re / 250 C
 ```
 
-Headline statistics are **rho = 0.20**, **tau = 0.00** and **3/6 pairwise inversions**. Local leverage at 5 wt% Re / 250 C is **0.00289 / 0.05883 / 0.37579** for STY / single-pass conversion / CH4 suppression.
+Headline statistics are **rho = 0.40**, **tau = 0.33** and **2/6 pairwise inversions** (Table 3 inputs; see `docs/SOURCE_OF_TRUTH_2026-09-29.md`). Local leverage at 5 wt% Re / 250 C is **0.00289 / 0.05883 / 0.37579** for STY / single-pass conversion / CH4 suppression.
 
-The 2026-09-20 cost-parameter MC retains the canonical four-candidate economic order in **5,000/5,000** draws. A separately labelled active-Re replacement extension also preserves the same order in **5,000/5,000** draws.
+Sampling each state's own measurement uncertainty (5,000 draws, full plant model re-solved) keeps the economic winner first in **4,559/5,000** draws and 5 wt% Re / 250 C last in **5,000/5,000**; ranks 2 and 3 exchange in **1,054/5,000**.
 
 ## Au/TiO₂ rank-preservation control
 
