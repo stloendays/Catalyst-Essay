@@ -390,11 +390,11 @@ ok(
     and float(transfer["MeOH"]["pairwise_transfer_index_chi"]) > 0
     and float(transfer["AuTiO2"]["pairwise_transfer_index_chi"]) < 0,
 )
-tokens(
+tokens(  # wording of the 2026-09-30 scope framing: the objective holds only catalyst-responsive terms
     "NH3 reduced-cost scope lock",
     methods,
-    "reduced catalyst-dependent cost objective",
-    "not total levelized ammonia production cost",
+    "the economic objective contains the terms that respond directly to catalyst identity",
+    "Common upstream H₂/N₂ supply contributions are held fixed",
 )
 tokens(
     "NH3 draw-level cost-MC reconstruction lock",
