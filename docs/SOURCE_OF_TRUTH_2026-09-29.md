@@ -218,6 +218,25 @@ MeOH-CH₄ exchange from 11 runs of one catalyst; `derive_uncertainty_basis.py`)
 matrix (`analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv`) was computed on the previous inputs and
 is superseded by the measurement Monte Carlo in Fig. 4d.
 
+## Methanol — generalized model and 21-candidate extension — 2026-10-05
+
+`data/meoh/meoh_general_model.py` extends the recycle-economics engine to arbitrary catalysts: pressure and H2/CO2 as
+inputs, productivity per g metal or per g catalyst, optional catalyst replacement (off by default), and recycled CO
+hydrogenated per pass. With inert CO (x_CO = 0), 100 bar and H2/CO2 = 4 it reproduces the canonical workbook to
+< 1e-12 EUR/t (`analysis/meoh_general_model_2026_10_05/validate_general_model.py`).
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| central CO rule | x_CO = smallest per-pass CO conversion keeping the outlet at or below RWGS equilibrium | method | `analysis/meoh_general_model_2026_10_05/README.md` |
+| reference loop (Processes 2022), loop CO in/out | central 1.45/1.71 mol% vs published 1.50/1.76; inert 1.63/1.91 | DERIVED-A | `reference_loop_comparison.csv` |
+| canonical four states under recycled CO | order unchanged; regret 1.53 % (central), 1.03 % (high) | DERIVED-A | `canonical_states_co_treatments.csv` |
+| Gothe Table 4, 21 entries, 2 % purge | STY-per-g-Re winner economic #8; rho 0.66, 57/210 pairs inverted; regret 3.58 % (inert) / 3.99 % (central) | DERIVED-A | `table4_rank_metrics.csv`, `table4_summary.json` |
+| Gothe Table 4, 14 entries at 100 bar and 1:4 | STY-per-g-Re winner economic #5; regret 3.38 % / 2.96 % | DERIVED-A | same |
+
+**Semantic lock:** seven Table 4 entries are at other pressures or feed ratios and are flagged as different operating
+points; the model does not represent weaker condensation in 20–40 bar loops. CO recycling changes no rank in this
+CH4-dominated set (S_CO <= 2 %); it matters for CO-selective catalyst families.
+
 ## Other active scientific families
 
 - **Methanol recycle-economics model:** MEOH-D01-v3.
