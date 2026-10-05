@@ -101,7 +101,7 @@ a.text(1.05, 15.6, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
        fontsize=5.3, color=DARK_G, fontweight="bold", va="bottom", ha="left")
 a.text(P05 / 1.12, 22.9, "economic uncertainty\np05–p95: %.1f×–%.0f×" % (P05, P95),
        fontsize=5.5, color=RED, ha="right", va="top")
-a.text(4.0, FE_COST - 0.12, "Fe %.3f USD t$^{-1}$" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="top")
+a.text(12.0, FE_COST + 0.2, "Fe %.2f" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="bottom")
 
 a.set_xscale("log")
 a.set_xlim(0.3, 800)
@@ -144,9 +144,10 @@ for text, x, y, ha, va in LBL:
     lit.text(x, y, text, fontsize=4.9, ha=ha, va=va, color=INK)
 lit.set_ylim(-0.6, 3.05)
 lit.set_yticks([2, 1, 0])
-lit.set_yticklabels(["promoters", "supports", "confinement"], fontsize=5.4)
+lit.set_yticklabels(["promoter", "support", "confined"], fontsize=5.4)
 lit.tick_params(axis="y", length=0)
-lit.set_xlabel(r"Ru activity multiplier $\alpha$ (literature: measured gain over reference Ru)")
+lit.set_xlabel(r"Ru activity multiplier $\alpha$")
+lit.text(0.32, 2.95, "measured gains", fontsize=4.9, color=MID, ha="left", va="top")
 
 # --------------------------------------------------------------------------------------
 # b — activity-only strict-scaling reachability
