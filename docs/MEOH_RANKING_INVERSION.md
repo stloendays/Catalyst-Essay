@@ -1,5 +1,38 @@
 # CO2-to-MeOH: candidate-state upstream ranking → economic ranking (D01 v3)
 
+## Current values (2026-10-05, Table 3 inputs)
+
+Table 3 of Gothe et al. reports CH3OH 97 %, CO 1 %, CH4 1 % for 1 wt% Re at 250 C; the workbook had carried CH4 3 %.
+With S_CH4 = 0.01 and S_CO-like = 0.02 (closure convention) every model-written workbook value was recomputed by
+`data/meoh/regenerate_d01_values.py` (engine `data/meoh/meoh_d01_model.py`, which reproduced every previously stored
+value to < 1e-10 EUR/t). The sections further down record the analysis on the previous inputs.
+
+| candidate | STY (g MeOH / g Re / h) | X_CO2 | S_MeOH | S_CH4 | upstream rank (STY) | NPC €/t (2 % purge) | economic rank |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 wt% Re, 250 °C | 65 | 0.23 | 0.97 | 0.01 | **1** | 961.51 | 2 |
+| 1 wt% Re, 200 °C | 55 | 0.19 | 0.99 | 0.00 | 2 | 966.96 | 3 |
+| 5 wt% Re, 200 °C | 18 | 0.33 | 0.97 | 0.03 | 3 | **943.30** | **1** |
+| 5 wt% Re, 250 °C | 16 | 0.40 | 0.74 | 0.25 | 4 | 1258.17 | 4 |
+
+- Spearman ρ = 0.40, Kendall τ = 0.33, 2 of 6 pairs inverted; the upstream winner is economic #2 and the upstream #3 is
+  economic #1. Normalized decision regret of following the upstream winner: 1.93 %.
+- Purge sweep (396 levels, 0.5–40 %): the upstream winner is never the economic winner; ρ ≤ 0.80; ≥ 1 of 6 pairs inverted.
+
+| purge range | economic order | ρ | inversions |
+|---|---|---:|---:|
+| 0.5–0.7 % | 1%-200 > 1%-250 > 5%-200 > 5%-250 | 0.80 | 1/6 |
+| 0.8–0.9 % | 1%-200 > 5%-200 > 1%-250 > 5%-250 | 0.40 | 2/6 |
+| 1.0–1.3 % | 5%-200 > 1%-200 > 1%-250 > 5%-250 | 0.20 | 3/6 |
+| 1.4–14.3 % (incl. canonical 2 %) | 5%-200 > 1%-250 > 1%-200 > 5%-250 | 0.40 | 2/6 |
+| 14.4–22.1 % | 5%-200 > 1%-250 > 5%-250 > 1%-200 | 0.00 | 3/6 |
+| 22.2–40 % | 5%-200 > 5%-250 > 1%-250 > 1%-200 | −0.60 | 4/6 |
+
+- Measurement Monte Carlo (each state's own conversion/selectivity uncertainty, 5,000 draws,
+  `analysis/meoh_measurement_mc_2026_10_05/`): winner first in 4,559/5,000; 5%-250 last in 5,000/5,000; ranks 2 and 3
+  exchange in 1,054/5,000; the STY winner is economic #1 in 413/5,000.
+
+## Previous inputs (CH4 3 % for 1 wt% Re, 250 °C) — record
+
 Restored 2026-09-07. The 2026-08-19 v1.0 and 2026-08-22 v2.2 archives contain the MeOH inversion evidence only as Figure 11
 panel D ("economic ranking flips with operating temperature") and the workbook column `rank within T`; no dedicated
 upstream-rank → economic-rank figure existed. `figures/meoh/MeOH_F03_UpstreamToEconomicRanking_D01v3.png` is rebuilt from the

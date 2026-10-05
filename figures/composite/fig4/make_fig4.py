@@ -1,18 +1,21 @@
 """Figure 4 — methanol catalyst states re-rank through a selectivity-recycle pathway.
 
-Composite, 183 mm wide. Frozen MEOH-D01-v3 data only:
+Composite, 183 mm wide. Methanol recycle-economics model data only (Table 3 inputs):
   data/meoh/meoh_candidate_ranking_D01v3.csv     measured catalyst metrics, loop state and NPC at 2 % purge
   data/meoh/meoh_purge_robustness_D01v3.csv      396 purge levels, 0.5-40 %
-  analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv   5,000-draw rank probabilities
+  analysis/meoh_measurement_mc_2026_10_05/mc_rank_probability_matrix.csv, mc_summary.json
+                                                 5,000 draws of each state's own measurement uncertainty
 Re/TiO2 renders from build_re_tio2.py.
 
     pur_bridge_env/python make_fig4.py            -> Fig4.{svg,pdf,png}
 """
 import csv
+import json
 import os
 import sys
 
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle
 from matplotlib.ticker import FixedLocator, LogLocator, MultipleLocator, NullFormatter
@@ -30,7 +33,13 @@ def read_csv(path):
 
 cand = {r["candidate"]: r for r in read_csv(os.path.join(REPO, "data/meoh/meoh_candidate_ranking_D01v3.csv"))}
 purge = read_csv(os.path.join(REPO, "data/meoh/meoh_purge_robustness_D01v3.csv"))
-rankp = read_csv(os.path.join(REPO, "analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv"))
+MC = os.path.join(REPO, "analysis/meoh_measurement_mc_2026_10_05")
+rankp = {r["state"]: r for r in read_csv(os.path.join(MC, "mc_rank_probability_matrix.csv"))
+         if r["input_set"] == "canonical" and float(r["scale"]) == 1.0}
+mcs = json.load(open(os.path.join(MC, "mc_summary.json"), encoding="utf-8"))["sets"]["canonical"]["k=1"]
+met = json.load(open(os.path.join(REPO, "data/meoh/meoh_candidate_ranking_D01v3_provenance.json"),
+                     encoding="utf-8"))["metrics"]
+met = met[[k for k in met if k.startswith("STY_per_gRe")][0]]
 assert len(purge) == 396
 
 KEY = {"1wtRe_200C": "1 wt% Re | 200 C", "5wtRe_200C": "5 wt% Re | 200 C",
@@ -42,11 +51,11 @@ COLOR = {"1wtRe_200C": "#ACBF9F", "5wtRe_200C": "#6E8E62", "1wtRe_250C": "#9DACC
 WIN = "5wtRe_200C"                                                          # upstream #3, economic #1
 ECON = sorted(KEY, key=lambda k: int(cand[KEY[k]]["economic_rank"]))        # rows, economic rank 1..4
 UP = sorted(KEY, key=lambda k: int(cand[KEY[k]]["rank_STY_per_gRe"]))
-assert ECON == ["5wtRe_200C", "1wtRe_200C", "1wtRe_250C", "5wtRe_250C"]
+assert ECON == ["5wtRe_200C", "1wtRe_250C", "1wtRe_200C", "5wtRe_250C"]
 assert UP == ["1wtRe_250C", "1wtRe_200C", "5wtRe_200C", "5wtRe_250C"]
-for r in rankp:
-    assert float(r["rank_%d" % (ECON.index(r["candidate"]) + 1)]) == 1.0, "rank matrix is not the identity"
-assert len(rankp) == 8
+assert len(rankp) == 4 and mcs["central_economic_order"] == ECON
+for key in ECON:   # the MC centre is the plotted canonical cost
+    assert abs(mcs["central_cost_EUR_t"][key] - float(cand[KEY[key]]["NPC_EUR_t_2pct_purge"])) < 0.006
 
 pg = Page(183.0, 168.0)
 
@@ -163,13 +172,13 @@ for i, (tag, name, sub) in enumerate((("1wt", "1 wt% Re", "12 Re atoms"), ("5wt"
 # ---- c: from catalyst to loop to cost ---------------------------------------------------------------
 CY, CH = 70.0, 25.0
 pg.letter("c", 2.0, CY + CH + 12.0)
-cols = [("STY_gMeOH_gRe_h", "STY", "g g$_\\mathrm{Re}^{-1}$ h$^{-1}$", 1.0, 82, "%d"),
-        ("X_CO2", "CO$_2$ conv.", "%", 100.0, 52, "%d"),
-        ("S_CH4", "CH$_4$ select.", "%", 100.0, 34, "%d"),
+cols = [("STY_gMeOH_gRe_h", "STY", "g g$_\\mathrm{Re}^{-1}$ h$^{-1}$", 1.0, 82, "%.0f"),
+        ("X_CO2", "CO$_2$ conv.", "%", 100.0, 52, "%.0f"),
+        ("S_CH4", "CH$_4$ select.", "%", 100.0, 34, "%.0f"),
         ("CH4_fraction", "CH$_4$ in loop", "%", 100.0, 64, "%.1f"),
         ("recycle_kmol_h", "Recycle", "10$^3$ kmol h$^{-1}$", 1e-3, 205, "%.1f"),
-        ("H2_feed_EUR_t", "H$_2$ feed", "EUR t$^{-1}$", 1.0, 1200, "%d"),
-        ("NPC_EUR_t_2pct_purge", "Net cost", "EUR t$^{-1}$", 1.0, 1650, "%d")]
+        ("H2_feed_EUR_t", "H$_2$ feed", "EUR t$^{-1}$", 1.0, 1200, "%.0f"),
+        ("NPC_EUR_t_2pct_purge", "Net cost", "EUR t$^{-1}$", 1.0, 1650, "%.0f")]
 x0, cw, gap, ggap = 30.0, 12.6, 2.6, 2.6
 xpos, xcur = [], x0
 for k in range(len(cols)):
@@ -205,26 +214,35 @@ for (k0, k1, text) in ((0, 2, "Catalyst, measured"), (3, 5, "Loop at 2% purge"),
     pg.fig.text(xa / pg.W, (CY + CH + 8.6) / pg.H, text, fontsize=6.3, fontweight="bold", va="bottom")
     pg.fig.add_artist(Line2D([xa / pg.W, xb / pg.W], [(CY + CH + 8.1) / pg.H] * 2, color=INK, lw=0.5))
 
-# ---- d: rank probability under the cost draws -----------------------------------------------------
+# ---- d: rank probability under each state's own measurement uncertainty ------------------------------
 xm0 = 148.0
 pg.letter("d", xm0 - 4.5, CY + CH + 12.0)
 m = pg.ax(xm0, CY, 30.0, CH)
 m.set_xlim(-0.5, 3.5)
 m.set_ylim(-0.6, 3.6)
 m.axis("off")
-for i, key in enumerate(ECON):
+cmap = LinearSegmentedColormap.from_list("rp", ["#FFFFFF", "#3E4452"])
+
+
+def pfmt(p):
+    return "<0.01" if p < 0.005 else (">0.99" if 0.995 < p < 1 else "%.2f" % p)
+
+
+for key in ECON:
     y = rows_y[key]
     for j in range(4):
-        on = j == i
-        m.add_patch(Rectangle((j - 0.46, y - 0.4), 0.92, 0.8, fc="#3E4452" if on else "white", ec=LINE, lw=0.5))
-        if on:
-            m.text(j, y, "1.00", ha="center", va="center", fontsize=5.3, color="white", fontweight="bold")
+        pv = float(rankp[key]["rank_%d" % (j + 1)])
+        m.add_patch(Rectangle((j - 0.46, y - 0.4), 0.92, 0.8, fc=cmap(pv), ec=LINE, lw=0.5))
+        if pv > 0:
+            m.text(j, y, pfmt(pv), ha="center", va="center", fontsize=5.3,
+                   color="white" if pv >= 0.6 else INK, fontweight="bold" if pv >= 0.6 else "normal")
 for j in range(4):
     m.text(j, 3.72, "#%d" % (j + 1), ha="center", va="bottom", fontsize=5.7)
 pg.fig.text(xm0 / pg.W, (CY + CH + 8.6) / pg.H, "Rank probability", fontsize=6.3, fontweight="bold", va="bottom")
-pg.fig.text(xm0 / pg.W, (CY + CH + 5.6) / pg.H, "5,000 cost draws", fontsize=5.4, color=MID, va="bottom")
-m.text(1.5, -0.8, "canonical and active-Re\nboundaries, 5,000 / 5,000", ha="center", va="top", fontsize=5.4,
-       color=MID, linespacing=1.1)
+pg.fig.text(xm0 / pg.W, (CY + CH + 5.6) / pg.H, "5,000 measurement draws", fontsize=5.4, color=MID, va="bottom")
+m.text(1.5, -0.8, "#1 kept in {:,} / 5,000\n#2 ↔ #3 swap in {:,} / 5,000".format(
+    round(mcs["P_winner_stays_first"] * 5000), round(mcs["second_vs_third"]["P_inverted"] * 5000)),
+    ha="center", va="top", fontsize=5.4, color=MID, linespacing=1.1)
 
 # ---- e: upstream to economic rank --------------------------------------------------------------------
 LY, LH = 12.0, 36.0
@@ -243,8 +261,10 @@ for key in KEY:
                color=RED if hl else INK)
 e.text(0, 0.1, "STY per g Re", ha="center", va="bottom", fontsize=6.0, fontweight="bold")
 e.text(1, 0.1, "Net cost", ha="center", va="bottom", fontsize=6.0, fontweight="bold")
-e.text(0.5, 5.15, "ρ = 0.20,  τ = 0.00", ha="center", va="top", fontsize=6.0, color=RED, fontweight="bold")
-e.text(0.5, 5.8, "3 of 6 pairs inverted", ha="center", va="top", fontsize=5.8, color=MID)
+e.text(0.5, 5.15, "ρ = %.2f,  τ = %.2f" % (met["spearman"], met["kendall"]), ha="center", va="top", fontsize=6.0,
+       color=RED, fontweight="bold")
+e.text(0.5, 5.8, "%d of %d pairs inverted" % (met["pairwise_inversions"], met["pairs"]), ha="center", va="top",
+       fontsize=5.8, color=MID)
 
 # ---- f: purge sweep ------------------------------------------------------------------------------------
 pg.letter("f", 66.0, LY + LH + 7.0)
@@ -271,11 +291,10 @@ f1.yaxis.set_minor_locator(MultipleLocator(250))
 f1.set_ylabel(r"Net cost (EUR t$^{-1}$)")
 f1.tick_params(axis="x", labelbottom=False)
 rho = np.array([float(r["spearman"]) for r in purge])
-assert abs(rho.max() - 0.4) < 1e-12
 f2.step(pp, rho, where="mid", color=INK, lw=0.8)
-f2.axhline(0.4, color=RED, lw=0.5, ls=(0, (2, 1.5)))
-f2.text(56.0, 0.47, "max 0.40", fontsize=5.4, color=RED, ha="right", va="bottom")
-f2.set_ylim(-0.8, 0.85)
+f2.axhline(rho.max(), color=RED, lw=0.5, ls=(0, (2, 1.5)))
+f2.text(56.0, rho.max() - 0.08, "max %.2f" % rho.max(), fontsize=5.4, color=RED, ha="right", va="top")
+f2.set_ylim(-0.8, 1.0)
 f2.yaxis.set_major_locator(FixedLocator([-0.5, 0, 0.5]))
 f2.set_yticklabels(["−0.5", "0", "0.5"])
 f2.set_ylabel("ρ", labelpad=2.0)

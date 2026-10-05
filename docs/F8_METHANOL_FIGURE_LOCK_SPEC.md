@@ -1,5 +1,7 @@
 # Figure 8 lock specification — MeOH selectivity–recycle pathway
 
+> Retired 2026-10-05: F8 was built from the previous methanol inputs (CH4 3 % for 1 wt% Re, 250 C) and is superseded by the composite Figure 4; its manifest is kept as `figures/meoh/F08_RENDER_SHA256.retired-2026-10-05.txt`.
+
 Date: **2026-09-10** (design) · **2026-09-23** (render locked)
 
 Status: **LOCKED** — scientific design frozen by this document; canonical render is the Origin build promoted on 2026-09-23 (see [Locked render](#locked-render)).

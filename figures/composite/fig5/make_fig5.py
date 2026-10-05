@@ -245,9 +245,14 @@ e.legend(loc="upper right", fontsize=5.4, handlelength=1.0, handletextpad=0.4, b
 pg.letter("f", 124.0, LY + LH + 7.0)
 f = pg.ax(151.0, LY, 30.0, LH)
 boxed(f)
+_met = json.load(open(os.path.join(REPO, "data/meoh/meoh_candidate_ranking_D01v3_provenance.json"),
+                      encoding="utf-8"))["metrics"]
+MEOH_RHO = _met[[k for k in _met if k.startswith("STY_per_gRe")][0]]["spearman"]
+_prho = [float(r["spearman"]) for r in read_csv(os.path.join(REPO, "data/meoh/meoh_purge_robustness_D01v3.csv"))]
+MEOH_RHO_RANGE = (min(_prho), max(_prho))
 rows = [("NH$_3$, all 15 metals", 0.929, None, INK),
         ("NH$_3$, frontier top 3", -0.50, None, RED),
-        ("MeOH, 4 states", 0.20, (-0.6, 0.4), INK),
+        ("MeOH, 4 states", MEOH_RHO, MEOH_RHO_RANGE, INK),
         ("Au/TiO$_2$, 5 sizes", 1.000, None, INK),
         ("Au, semi-open mean", 0.99214, None, MID)]
 for i, (name, v, rng_, col) in enumerate(rows):

@@ -123,10 +123,10 @@ These values strengthen interpretation without modifying the frozen reaction mod
 | NH3 normalized upstream-selection regret | 44.0689% | DERIVED-A | `analysis/nonfigure_upgrades_2026_09_29/decision_regret_summary.csv` |
 | NH3 regret p05 / median / p95 under preregistered cost MC | 30.48% / 40.89% / 54.25% | DERIVED-A | `analysis/nonfigure_upgrades_2026_09_29/nh3_cost_mc_regret_summary.json` |
 | NH3 P(regret > 0) under cost MC | 1.000 (5000/5000) | DERIVED-A | same |
-| MeOH normalized upstream-selection regret | 3.3595% | DERIVED-A | same |
+| MeOH normalized upstream-selection regret | 1.9305% | DERIVED-A | same |
 | Au/TiO2 selection regret | 0 | DERIVED-A | same |
 | pairwise transfer index, NH3 Ru vs Fe | +0.08531 | DERIVED-A | `pairwise_inversion_index.csv` |
-| pairwise transfer index, MeOH STY winner vs NPC winner | +0.02573 | DERIVED-A | same |
+| pairwise transfer index, MeOH STY winner vs NPC winner | +0.01489 | DERIVED-A | same |
 | pairwise transfer index, Au/TiO2 2 nm vs 6 nm | -1.0000 | DERIVED-A | same |
 | Fe atomistic Top-1, matched independent copula audit | 10.71% | SUPPORTING | `descriptor_correlation_sensitivity.csv` |
 | Fe atomistic Top-1, latent rho=0.9 | 21.68% | SUPPORTING | same |
@@ -156,6 +156,33 @@ External ammonia-process literature now provides mechanism-level support for the
 **Semantic lock:** these studies support the **qualitative multiscale mechanism**. They do **not** numerically validate the present Fe/Ru costs, reproduce the Fe > Ru result, or justify treating the pure-metal Ru optimum as a commercial promoted-Ru operating point.
 
 Authoritative note: `analysis/nonfigure_upgrades_2026_09_29/EXTERNAL_PROCESS_ECONOMIC_VALIDATION.md`.
+
+## Methanol — Table 3 input correction and measurement Monte Carlo — 2026-10-05
+
+The 1 wt% Re, 250 °C state now uses its Table 3 selectivities (Gothe et al., ACS Catal. 2025: CH₃OH 97%, CO 1%,
+CH₄ 1%); the workbook previously carried CH₄ 3%. Under the workbook's closure convention the inputs are S_CH4 = 0.01 and
+S_CO-like = 0.02. Every model-written workbook value was recomputed from Candidate_Inputs with
+`data/meoh/meoh_d01_model.py` (a port of the original generator that reproduces all stored values to < 1e-10 EUR/t
+before the correction; `data/meoh/regenerate_d01_values.py --check`).
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| net production cost, 5%-200 / 1%-250 / 1%-200 / 5%-250 | 943.30 / 961.51 / 966.96 / 1258.17 EUR/t | CANONICAL | `data/meoh/meoh_candidate_ranking_D01v3.csv` |
+| STY-per-g-Re vs economic ranking | rho 0.40, tau 0.33, 2/6 inverted | CANONICAL | provenance JSON |
+| upstream winner economic rank | #2 | CANONICAL | same |
+| purge sweep 0.5-40% (396 levels) | max rho 0.80; >= 1/6 inverted; upstream winner never economic #1 | DERIVED-A | `meoh_purge_robustness_D01v3_summary.json` |
+| measurement MC, winner kept first | 4,559/5,000 (91.2%) | DERIVED-A | `analysis/meoh_measurement_mc_2026_10_05/mc_summary.json` |
+| measurement MC, #2 <-> #3 exchange | 1,054/5,000 (21.1%) | DERIVED-A | same |
+| measurement MC, 5%-250 last | 5,000/5,000 | DERIVED-A | same |
+| measurement MC, STY winner economic #1 | 413/5,000 (8.3%) | DERIVED-A | same |
+| measurement MC, full STY ranking recovered | 24/5,000 (0.5%) | DERIVED-A | same |
+| winner kept first at width x0.5 / x2 | 99.3% / 78.4% | SUPPORTING | same |
+
+**Semantic lock:** the source reports no error bars; the measurement uncertainty is built from the source data
+(reporting resolution, 5.2% relative conversion uncertainty from STY/conversion consistency over 21 runs, 0.85-pt
+MeOH-CH₄ exchange from 11 runs of one catalyst; `derive_uncertainty_basis.py`). The 2026-09-20 cost-parameter MeOH
+matrix (`analysis/supervisor_2026_09_20/meoh_rank_probability_matrix.csv`) was computed on the previous inputs and
+is superseded by the measurement Monte Carlo in Fig. 4d.
 
 ## Other active scientific families
 
