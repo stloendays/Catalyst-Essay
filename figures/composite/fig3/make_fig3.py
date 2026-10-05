@@ -75,8 +75,10 @@ pg = Page(183.0, 122.0)
 # --------------------------------------------------------------------------------------
 pg.letter("a", 2.0, 119.5)
 pg.title("Activity-only economic target", 12.0, 116.5)
-a = pg.ax(13.0, 70.0, 74.0, 39.0)
+a = pg.ax(13.0, 85.0, 74.0, 24.0)
 boxed(a)
+lit = pg.ax(13.0, 70.0, 74.0, 13.0, sharex=a)   # measured gains over a reference Ru catalyst
+boxed(lit)
 
 alpha = np.array([float(r["alpha"]) for r in sweep])
 ru_cost = np.array([float(r["Ru_cost"]) for r in sweep])
@@ -95,23 +97,56 @@ a.text(1.22, ru_cost[i1] + 0.25, "current Ru\n%.2f" % RU_COST,
        fontsize=5.8, color=DARK_B, va="bottom", ha="left")
 a.text(A_STAR * 1.08, FE_COST + 0.35, r"$\alpha^*$ = %.1f×" % A_STAR,
        fontsize=6.2, color=RED, fontweight="bold", va="bottom", ha="left")
-a.text(1.05, 15.72, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
+a.text(1.05, 15.6, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
        fontsize=5.3, color=DARK_G, fontweight="bold", va="bottom", ha="left")
-a.text(0.98, 0.94, "economic uncertainty\np05–p95: %.1f×–%.0f×" % (P05, P95),
-       transform=a.transAxes, fontsize=5.5, color=RED, ha="right", va="top")
-a.text(0.98, 0.08, "Fe %.3f USD t$^{-1}$" % FE_COST,
-       transform=a.transAxes, fontsize=5.6, color=DARK_G, ha="right", va="bottom")
+a.text(P05 / 1.12, 22.9, "economic uncertainty\np05–p95: %.1f×–%.0f×" % (P05, P95),
+       fontsize=5.5, color=RED, ha="right", va="top")
+a.text(4.0, FE_COST - 0.12, "Fe %.3f USD t$^{-1}$" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="top")
 
 a.set_xscale("log")
-a.set_xlim(0.8, 800)
+a.set_xlim(0.3, 800)
 a.set_ylim(14.4, 23.2)
 a.xaxis.set_major_locator(LogLocator(base=10, numticks=5))
 a.xaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10), numticks=20))
 a.xaxis.set_minor_formatter(NullFormatter())
-a.yaxis.set_major_locator(FixedLocator([15, 17, 19, 21, 23]))
-a.yaxis.set_minor_locator(MultipleLocator(0.5))
-a.set_xlabel(r"Direct Ru activity multiplier $\alpha$")
-a.set_ylabel(r"Reoptimized Ru cost (USD t$^{-1}$ NH$_3$)")
+a.yaxis.set_major_locator(FixedLocator([15, 19, 23]))
+a.yaxis.set_minor_locator(MultipleLocator(1.0))
+a.set_ylabel("Ru cost\n(USD t$^{-1}$ NH$_3$)")
+a.tick_params(axis="x", labelbottom=False)
+
+# literature: measured activity gains of promoted, support-modified and confined Ru over a reference Ru catalyst,
+# on the same multiplier axis (analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv)
+LIT = read_csv(os.path.join(REPO, "analysis", "promoted_ru_literature_2026_10_05", "fig3_literature_points.csv"))
+ROW = {"promoter": 2, "support": 1, "confinement": 0}
+lit.axvspan(1.0, GALL, color=TINT_G, lw=0, zorder=0)
+lit.axvspan(P05, P95, color="#F8DADA", lw=0, zorder=0)
+lit.axvline(1.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=1)
+for r in LIT:
+    y, lo, hi = ROW[r["row"]], float(r["factor_low"]), float(r["factor_high"])
+    if r["id"] == "P04":          # Cs-Ru/MgO: plot the 350 C lower bound (>134x) just below the promoter row
+        y, lo = y - 0.42, hi
+    tof = r["basis"] == "TOF"
+    col = RED if r["row"] == "promoter" else (DARK_B if r["row"] == "support" else MID)
+    if hi > lo:
+        lit.plot([lo, hi], [y, y], color=col, lw=1.6, solid_capstyle="round", zorder=3)
+    for v in {lo, hi}:
+        lit.plot(v, y, "o" if tof else "s", ms=3.0, mfc=col if tof else "white", mec=col, mew=0.8, zorder=4)
+    if r["lower_bound"] == "1":
+        lit.annotate("", (hi * 1.9, y), xytext=(hi * 1.05, y),
+                     arrowprops=dict(arrowstyle="-|>", lw=0.6, color=col, mutation_scale=4.5), zorder=4)
+LBL = [  # label, x, y, ha, va
+    ("Cs–Ru/YSZ", 10.0, 2.32, "center", "bottom"), ("Cs-, Ba–Ru/C", 57.0, 2.0, "right", "center"),
+    ("Ba–Ru/BN, 5 MPa", 112.0, 2.32, "left", "bottom"), ("Cs–Ru/MgO", 270.0, 1.58, "left", "center"),
+    ("electride, hydride", 7.4, 1.0, "right", "center"), ("Ba–Ca(NH$_2$)$_2$*", 33.5, 1.32, "center", "bottom"),
+    ("Ru inside CNT", 0.56, 0.0, "left", "center"),
+]
+for text, x, y, ha, va in LBL:
+    lit.text(x, y, text, fontsize=4.9, ha=ha, va=va, color=INK)
+lit.set_ylim(-0.6, 3.05)
+lit.set_yticks([2, 1, 0])
+lit.set_yticklabels(["promoters", "supports", "confinement"], fontsize=5.4)
+lit.tick_params(axis="y", length=0)
+lit.set_xlabel(r"Ru activity multiplier $\alpha$ (literature: measured gain over reference Ru)")
 
 # --------------------------------------------------------------------------------------
 # b — activity-only strict-scaling reachability

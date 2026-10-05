@@ -8,7 +8,7 @@ Render status: **rebuilt and committed on 2026-09-29 from the four-layer rendere
 
 | Panel | Content | Source |
 |---|---|---|
-| a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=201.22x`; cost-side uncertainty p05–p95 = 70.78–462.00x; strict-scaling headroom shown only as a reference band | FINAL-1.1 `breakeven_sweep.csv`, 5,000-draw cost MC |
+| a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=201.22x`; cost-side uncertainty p05–p95 = 70.78–462.00x; strict-scaling headroom shown only as a reference band. Bottom strip: measured activity gains of promoted, support-modified and confined Ru over a reference Ru catalyst on the same axis | FINAL-1.1 `breakeven_sweep.csv`, 5,000-draw cost MC, `analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv` |
 | b | Lowest feasible Ru cost along the strict `E_N` scaling line; minimum 21.397873 USD/t at `E_N=-1.215 eV`, still above Fe 15.291705 USD/t | FINAL-1.1 `scaling_reachability.csv` |
 | c | Conservative direct-activity / lifetime / recovery target curves. At 99% recovery: <=2.41794x (10 y), <=1.74213x (15 y), <=1.40129x (20 y) | `activity_lifecycle_certified_boundary.csv`, `activity_lifecycle_target_keypoints.csv` |
 | d | Exact strict-scaling lifecycle boundary over all 14,136 process states. Tested box `L<=20 y, recovery<=99%` misses parity by 0.07078 USD/t at its best corner; parity requires 99.1186% recovery at 20 y or 22.69 y at 99% recovery | `scaling_lifecycle_exact_global_boundary.csv`, `scaling_lifecycle_exact_summary.json` |
