@@ -615,6 +615,8 @@ FP, FV = fd["primary"], fd["variants"]
 fk = FP["mismatch_kinds"]
 fci = FP["bootstrap_papers"]["mismatch_fraction_ci95"]
 rate_ev = next(f for f in fev["fields"] if f["field"] == "rate")
+_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics.csv")
+             if r["mismatch_kind"] == "different metal" and r["plant_winner"].startswith("Fe"))
 tokens(
     "NH3 field statistic",
     s9,
@@ -625,7 +627,8 @@ tokens(
     f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%; 95% confidence interval "
     f"{fci[0] * 100:.0f}–{fci[1] * 100:.0f}% from resampling papers), in {FP['papers_with_mismatch']} of {FP['papers']} papers",
     f"median regret of {FP['regret_median_mismatched'] * 100:.0f}%",
-    f"in {fk['different metal']['groups']} comparisons an Fe catalyst",
+    f"in {fk['different metal']['groups']} comparisons a catalyst of another metal is the plant-cost leader, "
+    f"in {_fe_dm} of them an Fe catalyst on the same support",
     f"in {fk['fused-Fe reference vs supported catalyst']['groups']} a commercial fused-iron catalyst",
     f"With 90% Ru recovery the disagreement is {FV['Ru_recovery_90pct']['top1_mismatch_groups']} of {FP['groups']}",
     f"raises it to {FV['per_g_metal_leaderboard']['top1_mismatch_groups']}",
