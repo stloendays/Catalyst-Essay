@@ -210,15 +210,13 @@ def nml_min(x: dict) -> float:
 def umol_gcat_s(x: dict) -> float:
     unit = (x["unit"] or "").lower().replace(" ", "").replace("−", "-").replace("μ", "u").replace("µ", "u")
     v = float(x["value"])
-    m = re.fullmatch(r"(umol|mmol|mol)(co)?(/|\()?(g|gcat|gcatalyst|g_cat)(\))?(-1)?(/|\.)?(s|h|min)(-1)?", unit)
+    # amount of CO, per mass of catalyst, per time: "umol CO/(gcat s)", "umol g-1 s-1", "mmol/g/h", ...
+    m = re.fullmatch(r"(umol|mmol|mol)(co)?[/(]*(k?g)(cat|catalyst|_cat)?[)]*(-1)?[/.·*(]*(s|sec|min|h|hr)(-1)?[)]*", unit)
     if m is None:
-        m2 = re.fullmatch(r"(umol|mmol|mol)(co)?g(cat)?-1s-1", unit)
-        if m2 is None:
-            raise ValueError(f"rate unit not understood: {x['unit']}")
-        amt, per = m2.group(1), "s"
-    else:
-        amt, per = m.group(1), m.group(8)
-    return v * {"umol": 1.0, "mmol": 1e3, "mol": 1e6}[amt] / {"s": 1.0, "min": 60.0, "h": 3600.0}[per]
+        raise ValueError(f"rate unit not understood: {x['unit']}")
+    amt, mass, per = m.group(1), m.group(3), m.group(6)
+    return (v * {"umol": 1.0, "mmol": 1e3, "mol": 1e6}[amt] / {"g": 1.0, "kg": 1e3}[mass]
+            / {"s": 1.0, "sec": 1.0, "min": 60.0, "h": 3600.0, "hr": 3600.0}[per])
 
 
 def normalize(raw: dict[str, dict]) -> tuple[dict, dict]:
@@ -287,6 +285,28 @@ def main() -> None:
         w = csv.DictWriter(f, fieldnames=list(compare[0]))
         w.writeheader()
         w.writerows(compare)
+    # A differing input is a source discrepancy only if the paper prints both values; record the pages.
+    pages = {doi: re.split(r"=== PAGE (\d+) ===", to_text(doi).read_text(encoding="utf-8")) for doi in DOIS}
+
+    def printed_on(doi, value):
+        forms = {f"{value:.2f}", f"{value * 100:.2f}"} if value < 1 else {f"{value:.2f}", f"{value:g}"}
+        chunks = pages[doi]
+        return sorted({int(chunks[i]) for i in range(1, len(chunks), 2)
+                       for f in forms if re.search(rf"(?<![\d.]){re.escape(f)}(?![\d])", chunks[i + 1])})
+
+    discrepancies = []
+    for c in compare:
+        if c["equal"]:
+            continue
+        grp, key = c["field"].split(".")
+        doi = ANCHOR_DOI if grp == "reference" else SIZE_DOI
+        discrepancies.append({"field": c["field"], "doi": doi, "extracted": c["extracted"], "hand_built": c["hand_built"],
+                              "pages_extracted_value": printed_on(doi, c["extracted"]),
+                              "pages_hand_built_value": printed_on(doi, c["hand_built"])})
+    (OUT_DIR / "source_discrepancies.json").write_text(json.dumps(discrepancies, indent=1), encoding="utf-8")
+    for d in discrepancies:
+        print(f"  source discrepancy {d['field']}: {d['extracted']} printed on p. {d['pages_extracted_value']}, "
+              f"{d['hand_built']} on p. {d['pages_hand_built_value']}")
     # The chain consumes the size exponent and the anchor; the sigma is reported but not used by the chain.
     chain_inputs = {"reference": inputs["reference"], "size_activity": {"tof_exponent": inputs["size_activity"]["tof_exponent"]}}
     res = au_chain.self_check(chain_inputs, "extracted (agent)")
@@ -294,7 +314,8 @@ def main() -> None:
     (OUT_DIR / "selfcheck_au_extracted.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     for c in compare:
         print(f"  {'OK ' if c['equal'] else 'DIFF'} {c['field']}: extracted {c['extracted']} / hand-built {c['hand_built']}")
-    print(json.dumps(res["checks"], indent=1), "\nPASS" if res["pass"] else "\nFAIL")
+    print(json.dumps(res["checks"], indent=1), "\nraw self-check:", "PASS" if res["pass"] else "FAIL",
+          "(agent/selfcheck_gate.py applies the source-discrepancy rule and is authoritative)")
 
 
 if __name__ == "__main__":

@@ -19,5 +19,28 @@ TOF exponent to 0.92, the anchor rate to 8.9 µmol g⁻¹ s⁻¹ or the catalyst
 ## Gate
 
 `agent/selfcheck_gate.py` runs the three self-checks (ammonia pure metals, methanol Gothe Table 4, Au/TiO₂ hand-built
-and extracted) and writes `agent/selfcheck_report.json`. `run_alloy_chain.py` and `run_literature_inversion.py` call
+and extracted) and writes `agent/selfcheck_report.json`. `run_alloy_chain.py`, `run_alloy_backward.py`, `run_literature_inversion.py` and `run_meoh_pruning.py` call
 `require()` first, so no new candidate is scored unless all three pass.
+
+## Result (2026-10-06)
+
+gpt-5.5 through API-YES, one call per paper (Janssens: 3 samples, 20.0k tokens, 39 s; Overbury: 12 samples and 2
+size series, 36.1k tokens, 148 s). The selection rules pick the Au/TiO₂ sample of Janssens and the 4.5 wt% series of
+Overbury (TOF ∝ d^−0.9±0.2).
+
+| Input | Extracted | Hand-built |
+|---|---:|---:|
+| average Au diameter | 2.10 nm | 2.10 nm |
+| Au loading | **4.41 wt%** (p. 2, Experimental) | 4.40 wt% (p. 4, Table 1) |
+| dispersion | 38 % | 38 % |
+| stabilized rate | 8.8 µmol g⁻¹ s⁻¹ | 8.8 |
+| catalyst mass / flow | 21.4 mg / 214.4 Nml min⁻¹ | same |
+| CO fraction / temperature | 1 % / 273.15 K | same |
+| TOF size exponent ± | 0.9 ± 0.2 | 0.9 ± 0.2 |
+
+The paper prints the Au/TiO₂ loading twice with different values (and 4.08 vs 4.10 wt% for Au/MgAl₂O₄). The gate
+accepts a differing input only when `out/source_discrepancies.json` locates both printed values in the paper, and
+then accepts output differences only in the column that depends on that input alone: the required Au mass, 0.2 %
+higher, equal to the frozen catalyst mass × 4.41 wt%. Catalyst masses, burdens, order, ρ = τ = 1, the 10,000/10,000
+envelope and all six semi-open windows reproduce exactly. Gate: PASS for NH3, MeOH and Au/TiO₂
+(`agent/selfcheck_report.json`).

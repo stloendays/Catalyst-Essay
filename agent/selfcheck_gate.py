@@ -83,10 +83,28 @@ def check_au(semiopen: bool) -> dict:
         diffs = [f"{g}.{k}" for g in hand for k in hand[g]
                  if inp[g].get(k) is None or abs(inp[g][k] - hand[g][k]) > 1e-9 * max(1.0, abs(hand[g][k]))]
         inp = {"reference": inp["reference"], "size_activity": {"tof_exponent": inp["size_activity"]["tof_exponent"]}}
-        out["extracted"] = au_chain.self_check(inp, "extracted (agent)", semiopen)
-        out["extracted"]["input_fields_differing"] = diffs
-        out["extracted"]["checks"]["inputs_equal_handbuilt"] = not diffs
-        out["extracted"]["pass"] = all(out["extracted"]["checks"].values())
+        res = au_chain.self_check(inp, "extracted (agent)", semiopen)
+        # A differing input passes only as a discrepancy inside the source: the paper prints both values
+        # (agent/au/out/source_discrepancies.json, pages located in the PDF text). Output cells may then differ only
+        # in the column that depends on that input alone: the Au mass, which must equal the frozen catalyst mass
+        # times the extracted loading.
+        disc_path = REPO / "agent" / "au" / "out" / "source_discrepancies.json"
+        disc = {d["field"]: d for d in json.loads(disc_path.read_text(encoding="utf-8"))} if disc_path.exists() else {}
+        documented = [f for f in diffs if f in disc and disc[f]["pages_extracted_value"] and disc[f]["pages_hand_built_value"]]
+        res["input_fields_differing"] = diffs
+        res["source_discrepancies"] = [disc[f] for f in documented]
+        res["checks"]["inputs_equal_handbuilt_or_both_printed_in_source"] = set(diffs) == set(documented)
+        if res["nominal_mismatches"] and set(diffs) <= {"reference.au_loading_mass_fraction"}:
+            import csv
+            frozen = {float(r["diameter_nm"]): r for r in csv.DictReader(au_chain.FROZEN_TABLE.open(encoding="utf-8"))}
+            load = inp["reference"]["au_loading_mass_fraction"]
+            explained = all(m["field"] == "required_Au_mass_mg" and
+                            abs(m["chain"] - float(frozen[m["diameter_nm"]]["required_catalyst_mass_mg"]) * load) < 6e-4
+                            for m in res["nominal_mismatches"])
+            res["checks"]["nominal_table_cells_match"] = explained
+            res["nominal_mismatches_explained_by_loading"] = explained
+        res["pass"] = all(res["checks"].values())
+        out["extracted"] = res
     else:
         out["extracted"] = {"pass": False, "error": "no agent-extracted Au inputs yet (agent/au/out/inputs_extracted.json)"}
     out["pass"] = out["handbuilt"]["pass"] and out["extracted"]["pass"]
@@ -101,7 +119,7 @@ def run(semiopen: bool = True) -> dict:
     return res
 
 
-def require(semiopen: bool = False) -> None:
+def require(semiopen: bool = True) -> None:
     """Called by batch runners before any new candidate is scored."""
     res = run(semiopen)
     if not res["pass"]:

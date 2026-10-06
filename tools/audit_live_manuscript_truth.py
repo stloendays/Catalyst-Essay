@@ -448,6 +448,12 @@ tokens(
 ok("Agent self-check source", lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
    and sorted(round(v, 2) for v in canon.values()) == [943.3, 961.51, 966.96, 1258.17])
 ok("Agent: pure-metal self-check source", all(r["match"] for r in alloy["self_check"]))
+gate = json.loads((ROOT / "agent/selfcheck_report.json").read_text(encoding="utf-8"))
+au_gate = next(x for x in gate["systems"] if x["system"] == "Au/TiO2")
+ok("Agent self-check gate passes for all three systems", gate["pass"] and all(x["pass"] for x in gate["systems"]))
+ok("Agent Au/TiO2 extracted inputs reproduce the control", au_gate["extracted"]["pass"]
+   and au_gate["extracted"]["envelope"]["full_preservation"] == 1.0 and au_gate["extracted"]["semiopen_windows_compared"] == 6)
+tokens("Agent Au/TiO2 self-check", s6, "all three systems", "all 10,000 literature-envelope samples", "six operating-window stress tests")
 tokens(
     "Agent pruning",
     s6,
