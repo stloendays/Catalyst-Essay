@@ -101,7 +101,79 @@ def canon(name):
              T_C=float(r.T_C))
 
 
-def model_cases():
+CEPCI = {2014: 576.1, 2017: 567.5, 2018: 603.1, 2020: 596.2, 2021: 708.0}   # annual averages (Chem. Eng. magazine)
+
+
+def cepci(year):
+    """EUR-2020 equipment cost -> cost-year of a reference."""
+    return CEPCI[year] / CEPCI[2020]
+
+
+def fit_x_purge(c_sel, rr_target, ce_target, **kw):
+    """Per-pass conversion and purge at which the model loop has a reference's recycle ratio and carbon efficiency."""
+    from scipy.optimize import least_squares
+
+    def res(z):
+        X, p = 1 / (1 + np.exp(-z[0])), 1 / (1 + np.exp(-z[1]))
+        r = V.economics(X, c_sel["SMeOH"], c_sel["SCH4"], c_sel["SCO"], purge=p, **kw)
+        return [np.log(float(r["recycle_ratio"]) / rr_target), np.log(float(r["carbon_efficiency"]) / ce_target)]
+
+    z = least_squares(res, x0=[np.log(0.25 / 0.75), np.log(0.01 / 0.99)], xtol=1e-12, ftol=1e-12).x
+    return float(1 / (1 + np.exp(-z[0]))), float(1 / (1 + np.exp(-z[1])))
+
+
+# ------------------------------------------------------------------ reference operating points ------------------
+# Each entry: catalyst/loop inputs (c), loop keywords (kw: P, T, H2/CO2, purge, catalyst), and the study's own
+# economic assumptions (econ: prices, scale, hours, finance, CEPCI year; cat: catalyst price EUR/kg and life y).
+SEL_ANCHOR = dict(SMeOH=0.995, SCH4=0.0, SCO=0.005)
+
+
+def tea_points():
+    t = {}
+    # Perez-Fortes 2016 (primary). X 21.97 %, 0.4 % of reactor CO2 -> CO (S_CO 0.018); reactor-inlet H2/CO2 3.8
+    # (stream 13); outlet 288 C sets the RWGS window; ~1 % purge; 44.5 t catalyst for 55.1 t/h.
+    t["PF"] = dict(c=dict(X=0.2197, SMeOH=0.982, SCH4=0.0, SCO=0.018),
+                   kw=dict(P_bar=76.0, h2_co2=3.8, T_C=288.0, purge=0.01, STY_per_g_cat=55.1 / 44.5,
+                           x_co="recycled_central"),
+                   econ=dict(h2_price=3090.0, co2_price=0.0, elec_price=95.1, prod_tph=55.1, hours=8000.0, ir=0.08,
+                             life=20, capex_mult=cepci(2014)), cat=(95.24, 1.0))
+    # Van-Dal & Bouallou 2013: X 33 %, 75.7 bar, outlet 284 C, 1 % purge, 44.5 t for 59.3 t/h (no economics)
+    t["VD"] = dict(c=dict(X=0.33, SMeOH=0.996, SCH4=0.0, SCO=0.004),
+                   kw=dict(P_bar=75.7, h2_co2=3.0, T_C=284.0, purge=0.01, STY_per_g_cat=59.3 / 44.5,
+                           x_co="recycled_central"),
+                   econ=dict(prod_tph=59.3), cat=None)
+    # Szima & Cormos 2018: X 30.05 %, 80 bar, 220 C, 1 wt% purge; bed 71.8 m3 x 0.98 x 1.05 t/m3 ~ 74 t (derived)
+    szc = 71.8 * 0.98 * BULK
+    t["SZ"] = dict(c=dict(X=0.3005, **SEL_ANCHOR),
+                   kw=dict(P_bar=80.0, h2_co2=3.0, T_C=220.0, purge=0.01, STY_per_g_cat=12.5 / szc,
+                           x_co="recycled_central"),
+                   econ=dict(h2_price=53.4 * 60.0, co2_price=-10.0, elec_price=60.0, prod_tph=12.5, hours=8000.0,
+                             ir=0.08, life=25, capex_mult=cepci(2017)),
+                   cat=(75.0, szc * 75.0 / 3350.0))   # life set so the charge equals Szima's 3.35 M EUR/a
+    # Nieminen 2019 gas-phase case: X 20.3 %, S_MeOH 96.1 %, 50 bar, outlet 274.4 C, 1 % purge, 3.49 t
+    t["NI"] = dict(c=dict(X=0.203, SMeOH=0.961, SCH4=0.0, SCO=0.039),
+                   kw=dict(P_bar=50.0, h2_co2=3.0, T_C=274.4, purge=0.01, STY_per_g_cat=2.275 / 3.49,
+                           x_co="recycled_central"),
+                   econ=dict(h2_price=3000.0, co2_price=50.0, elec_price=60.0, prod_tph=2.275, hours=7250.0,
+                             ir=0.05, life=20, capex_mult=cepci(2018)), cat=(95.24, 4.0))
+    # Nyari 2022, three kinetic models: X and purge fitted to each model's recycle ratio and methanol yield
+    for key, rr, ce, out in (("NY_Kiss", 3.47, 0.9273, 7.41275), ("NY_VD", 7.67, 0.8956, 7.15967),
+                             ("NY_Slotboom", 2.89, 0.9367, 7.488)):
+        kw = dict(P_bar=69.7, h2_co2=3.0, T_C=236.0, STY_per_g_cat=out / 7.11, x_co="recycled_central")
+        X, p = fit_x_purge(SEL_ANCHOR, rr, ce, prod_tph=out, **kw)
+        t[key] = dict(c=dict(X=X, **SEL_ANCHOR), kw=dict(kw, purge=p),
+                      econ=dict(h2_price=3000.0, co2_price=50.0, elec_price=40.0, prod_tph=out, hours=8300.0, ir=0.07,
+                                life=20, capex_mult=cepci(2021)), cat=None)
+    # Schorn 2021: Gibbs reactor at 80 bar, 230-250 C, no purge -> equilibrium per-pass conversion, lowest grid purge
+    xeq = G.equilibrium_co2_conversion(dict(H2=75.0, CO2=25.0), 250.0, 80.0)[0]
+    t["SC"] = dict(c=dict(X=xeq, **SEL_ANCHOR),
+                   kw=dict(P_bar=80.0, h2_co2=3.0, T_C=250.0, purge=0.005, STY_per_g_cat=M.PROD_TPH / ANCHOR_CAT_T,
+                           x_co="recycled_central"),
+                   econ=dict(elec_price=97.6, prod_tph=434000 / 8000.0, hours=8000.0, ir=0.08, life=20), cat=None)
+    return t
+
+
+def model_cases(tp):
     cases = {}
     cases["M1 anchor one-step (calibration point)"] = (ANCHOR, dict(ANCHOR_KW))
     three = dict(X=ref("CAMPOS22_3S", "per_pass_CO2_conversion"), SMeOH=0.998, SCH4=0.0, SCO=0.002)
@@ -112,29 +184,28 @@ def model_cases():
     cases["M3 canonical economic optimum, 5 wt% Re 200 C, 2 % purge"] = (c, dict(kw, purge=0.02, x_co="inert"))
     c, kw = canon("1 wt% Re | 200 C")
     cases["M4 canonical optimum at own purge, 1 wt% Re 200 C, 0.5 % purge"] = (c, dict(kw, purge=0.005, x_co="inert"))
-    # Lurgi CO2 pilot operating point: X mid of 35-45 %, purge set to the mid carbon efficiency 95.25 %,
-    # catalyst from GHSV 10 500 1/h; selectivity as the anchor (by-products < 0.05 wt%)
     lc = dict(X=0.40, SMeOH=0.995, SCH4=0.0, SCO=0.005)
     lkw = dict(P_bar=80.0, h2_co2=3.0, T_C=250.0, x_co="recycled_central")
-    p = purge_for_ce(lc, 0.9525, STY_per_g_cat=1.0, **lkw)
-    lkw.update(purge=p)
-    lkw["STY_per_g_cat"] = sty_for_ghsv(lc, 10500.0, **{k: v for k, v in lkw.items()})
+    lkw["purge"] = purge_for_ce(lc, 0.9525, STY_per_g_cat=1.0, **lkw)
+    lkw["STY_per_g_cat"] = sty_for_ghsv(lc, 10500.0, **lkw)
     cases["M5 at Lurgi CO2-pilot conditions (80 bar, X 0.40, CE 95.25 %)"] = (lc, lkw)
-    # Gonzalez-Garay 2019 operating point: 50 bar, 225 C, X mid 14.1 %, S 0.99, carbon efficiency 91.5 %
     gc = dict(X=0.141, SMeOH=0.99, SCH4=0.0, SCO=0.01)
     gkw = dict(P_bar=50.0, h2_co2=3.0, T_C=224.5, x_co="recycled_central", STY_per_g_cat=M.PROD_TPH / ANCHOR_CAT_T)
     gkw["purge"] = purge_for_ce(gc, 0.915, **gkw)
     cases["M6 at Gonzalez-Garay conditions (50 bar, X 0.141, CE 91.5 %)"] = (gc, gkw)
-    # Perez-Fortes 2016 operating point (secondary values): 78 bar, 210 C, X 0.22, 2 % purge, 55 t/h
-    pc = dict(X=0.22, SMeOH=0.995, SCH4=0.0, SCO=0.005)
-    pkw = dict(P_bar=78.0, h2_co2=3.0, T_C=210.0, x_co="recycled_central", purge=0.02,
-               STY_per_g_cat=M.PROD_TPH / ANCHOR_CAT_T)
-    cases["M7 at Perez-Fortes 2016 conditions (78 bar, X 0.22; secondary)"] = (pc, pkw)
+    labels = {"PF": "M7 at Perez-Fortes 2016 point (76 bar, X 0.2197, 1 % purge, 44.5 t)",
+              "VD": "M8 at Van-Dal 2013 point (75.7 bar, X 0.33, 1 % purge, 44.5 t)",
+              "SZ": "M9 at Szima 2018 point (80 bar, X 0.30, 1 % purge)",
+              "NY_Slotboom": "M10 at Nyari 2022 Slotboom point (fitted to RR 2.89, CE 0.937)",
+              "NY_VD": "M11 at Nyari 2022 VD point (fitted to RR 7.67, CE 0.896)",
+              "NI": "M12 at Nieminen 2019 gas-phase point (50 bar, X 0.203, S 0.961)"}
+    for k, lab in labels.items():
+        prod = tp[k]["econ"].get("prod_tph", M.PROD_TPH)
+        cases[lab] = (tp[k]["c"], dict(tp[k]["kw"], prod_tph=prod))
     return cases
 
 
 PLANT_ROWS = [
-    # (label, model key, reference cells builder)
     ("Loop pressure (bar)", "P_bar"),
     ("Reactor / coolant T (C)", "T_C"),
     ("Reactor-inlet H2/CO2 (mol/mol)", "H2_CO2_inlet"),
@@ -142,12 +213,12 @@ PLANT_ROWS = [
     ("Per-pass CO2 conversion", "X"),
     ("Recycle ratio (recycle / fresh feed, mol)", "recycle_ratio"),
     ("Purge fraction of separator gas", "purge"),
-    ("Purge flow (kmol/h, at 145 t/h)", "purge_kmol_h"),
+    ("Purge flow (kmol/h, at the case's scale)", "purge_kmol_h"),
     ("H2 consumption (t/t MeOH)", "h2_t_per_t"),
     ("CO2 consumption (t/t MeOH)", "co2_t_per_t"),
     ("Carbon efficiency (MeOH C / fresh CO2)", "carbon_efficiency"),
     ("Electricity, compression (MWh/t)", "elec_MWh_t"),
-    ("Catalyst inventory (t, at 145 t/h)", "catalyst_t"),
+    ("Catalyst inventory (t, at the case's scale)", "catalyst_t"),
     ("GHSV (1/h, bed density 1.05 t/m3)", "GHSV_h"),
     ("STY (kg MeOH / L cat / h)", "STY_kg_L_h"),
     ("Catalyst lifetime (y)", None),
@@ -155,33 +226,49 @@ PLANT_ROWS = [
 ]
 
 REFERENCE_CELLS = {
-    "Loop pressure (bar)": "Campos 70 | 3-step 70 | Ott/Dieterich 50-100 | Lurgi pilot 80 | Mitsui 50 | CRI Olah 101 | "
-                           "Gonzalez-Garay 50 | Hank 40 | Bos 50 | Rihko 50 | Perez-Fortes* 78",
-    "Reactor / coolant T (C)": "Campos 247.5 | 3-step 258.5 | Ott/Dieterich 200-300 | Lurgi pilot 250 | CRI Olah 250 | "
-                               "Gonzalez-Garay 221-228 | Bos 240 | Rihko 220 | Perez-Fortes* 210",
-    "Reactor-inlet H2/CO2 (mol/mol)": "Campos 3.26 (reactor feed)",
-    "Fresh-feed H2/CO2 (mol/mol)": "Campos 3.0 | Rihko 3.0 | Gonzalez-Garay slightly < 3 | Dieterich optimum 3",
-    "Per-pass CO2 conversion": "Campos 0.285 | 3-step 0.539 | Lurgi pilot 0.35-0.45 | conventional SRC 0.36 (<0.40) | "
-                               "Gonzalez-Garay 0.124-0.158 | Perez-Fortes* 0.22 | Szima* 0.30",
-    "Recycle ratio (recycle / fresh feed, mol)": "Campos 2.81 | 3-step 1.21 | conventional loops 3-5 (Dieterich, Hansen) | "
-                                                 "Lurgi SRC 3-4 | MegaMethanol 2-2.7 | Lurgi CO2 pilot 4.5 | "
-                                                 "Mitsui pilot 2.6-3.2 | Rihko 3.2",
-    "Purge fraction of separator gas": "Campos 0.02 | Mitsui pilot 7-10 % of reactor inlet | LPMeOH 2-6 % of recycle",
-    "Purge flow (kmol/h, at 145 t/h)": "Campos 1100 | 3-step 455",
-    "H2 consumption (t/t MeOH)": "stoichiometric 0.189 | Campos 0.200 (Table 6) / 0.214 (Fig. 11b H2 bar) | "
-                                 "3-step 0.193 | Hank 0.189-0.193 | Rihko 0.197",
-    "CO2 consumption (t/t MeOH)": "stoichiometric 1.374 | Campos 1.457 | 3-step 1.406 | CRI Olah 1.375-1.40 | "
-                                  "CRI Shunli 1.455 | Hank 1.511-1.526 | Rihko 1.436 | Bos 1.385 | Dieterich 1.43 at 96 %",
-    "Carbon efficiency (MeOH C / fresh CO2)": "Campos 0.943 | 3-step 0.977 | conventional 0.93-0.98 | "
-                                              "Lurgi CO2 pilot 0.940-0.965 | Rihko 0.968 | Gonzalez-Garay > 0.915 | "
-                                              "Hank 0.90",
-    "Electricity, compression (MWh/t)": "Campos gross 0.327 / net 0.121 (whole plant) | 3-step 0.294 / 0.150 | "
-                                        "Bos feed compressors 0.22 | Rihko 1.33 (97 kg/h, feed from 1 bar)",
-    "Catalyst inventory (t, at 145 t/h)": "Campos 2868.8 | 3-step 1434.4",
-    "GHSV (1/h, bed density 1.05 t/m3)": "Campos 604 | SRC 6000-12000 | Lurgi CO2 pilot 10500 | Mitsui 10000",
-    "STY (kg MeOH / L cat / h)": "Campos 0.053 | CO2 feed 0.4-0.8 (Dieterich) | syngas 0.7-2.3",
-    "Catalyst lifetime (y)": "Campos 3 | Ott 2-5 | Dieterich 4-6 (up to 8)",
-    "Loop pressure drop (bar)": "Dieterich: Lurgi SRC loop 3.5-4, Toyo loop 3; Campos 0.75 per reactor module",
+    "Loop pressure (bar)": "Campos 70 | Ott/Dieterich 50-100 | Bozzano 50-100 atm | Perez-Fortes 76 | Van-Dal 75.7 | "
+                           "Szima 80 | Nyari 69.7 | Nieminen 50 | Schorn 80 | Zhang 78 | Sollai 65 | Battaglia 65 | "
+                           "Cordero-Lanzac 50 | Gonzalez-Garay 50 | Hank 40 | Bos 50 | Rihko 50 | Lurgi pilot* 80 | "
+                           "CRI Olah* 101",
+    "Reactor / coolant T (C)": "Campos 247.5 / 258.5 | 200-300 | Perez-Fortes 210 in / 288 out | Van-Dal 210 / 284 | "
+                               "Szima 220 | Nyari 236 | Nieminen 215 / 274 | Zhang 290 | Sollai 210 / 290 | "
+                               "Battaglia 250 | Cordero-Lanzac 300 (In2O3/Co) | Gonzalez-Garay 221-228",
+    "Reactor-inlet H2/CO2 (mol/mol)": "Campos 3.26 | Perez-Fortes ~3.8 (stream 13) | Cordero-Lanzac 4",
+    "Fresh-feed H2/CO2 (mol/mol)": "3.0 in Campos, Perez-Fortes (2.98), Van-Dal, Szima, Nyari, Nieminen, Schorn, Rihko; "
+                                   "Sollai 3.14",
+    "Per-pass CO2 conversion": "Campos 0.285 / 0.539 | Perez-Fortes 0.2197 | Van-Dal 0.33 | Szima 0.3005 | "
+                               "Nieminen 0.203 | Zhang 0.21 | Gonzalez-Garay 0.124-0.158 | SRC 0.36 | "
+                               "Lurgi pilot* 0.35-0.45",
+    "Recycle ratio (recycle / fresh feed, mol)": "Campos 2.81 (HP 2.67) / 1.21 | Perez-Fortes ~4.7 | Van-Dal 5.0 | "
+                                                 "Nieminen 5.3 | Zhang 5.2 | Nyari 3.47 / 7.67 / 2.89 | "
+                                                 "Rihko 3.2 | conventional 3-5 (Dieterich, Hansen) | Bozzano ~5 | "
+                                                 "Lurgi pilot* 4.5 | Mitsui* 2.6-3.2",
+    "Purge fraction of separator gas": "Campos 0.02 | Perez-Fortes ~0.01 | Van-Dal 0.01 | Szima 0.01 (mass) | "
+                                       "Nyari 0.005 (mass) | Nieminen 0.01 | Zhang 0.013 | Cordero-Lanzac 0.025",
+    "Purge flow (kmol/h, at the case's scale)": "Campos 1102 (SI) / 456",
+    "H2 consumption (t/t MeOH)": "stoich. 0.189 | Campos 0.200 pure (0.2145 stream incl. N2) / 0.193 | "
+                                 "Perez-Fortes 0.199 | Van-Dal 0.204 | Szima 0.194 | Nyari 0.204 / 0.211 / 0.202 | "
+                                 "Nieminen 0.234 | Schorn 0.189 | Zhang 0.209 | Sollai 0.208 | Battaglia 0.217 | "
+                                 "Hank 0.189-0.193 | Rihko 0.197",
+    "CO2 consumption (t/t MeOH)": "stoich. 1.374 | Campos 1.457 / 1.406 | Perez-Fortes 1.460 | Van-Dal 1.484 | "
+                                  "Szima 1.41 | Nyari 1.48 / 1.53 / 1.47 | Nieminen 1.706 | Schorn 1.373 | "
+                                  "Zhang 1.51 | Sollai 1.446 | Battaglia 1.581 | CRI Olah 1.375-1.40 | Shunli 1.455",
+    "Carbon efficiency (MeOH C / fresh CO2)": "Campos 0.943 / 0.977 | Perez-Fortes 0.9385 | Van-Dal 0.925 | "
+                                              "Szima 0.9725 | Nyari 0.927 / 0.896 / 0.937 | Nieminen 0.805 | "
+                                              "Sollai 0.950 | Battaglia 0.872 | conventional 0.93-0.98",
+    "Electricity, compression (MWh/t)": "Campos 0.325 compressors / 0.121 net | Perez-Fortes 0.305 compressors / "
+                                        "0.169 net | Van-Dal 0.297 net | Szima 0.229 | Nyari 0.151 / 0.474 / 0.140 | "
+                                        "Nieminen 0.624 | Schorn 0.154 | Sollai 0.207 | Bos 0.22",
+    "Catalyst inventory (t, at the case's scale)": "Campos 2869 / 1434 | Perez-Fortes 44.5 | Van-Dal 44.5 | "
+                                                   "Nyari 7.11 | Nieminen 3.49 | Sollai 0.29 | Cordero-Lanzac 105",
+    "GHSV (1/h, bed density 1.05 t/m3)": "Campos 604 | Perez-Fortes ~21000 | SRC 6000-12000 | Lurgi pilot* 10500",
+    "STY (kg MeOH / L cat / h)": "Campos 0.053 | Perez-Fortes 1.31 | Van-Dal 1.42 | CO2 feed 0.4-0.8 (Dieterich); "
+                                 "per kg: Nyari 1.04, Nieminen 0.65, Sollai 1.71, Cordero-Lanzac 0.31",
+    "Catalyst lifetime (y)": "Campos 3 | Perez-Fortes 1 | Nyari 3 | Nieminen 4 | Sollai 4 | Zhang 4 | Ott 2-5 | "
+                             "Dieterich 4-6 | Bozzano 3-4; price 95.24 EUR/kg (PF, Nieminen, Sollai, Battaglia), "
+                             "75 (Szima), 18.1 (Campos), 15 (Bos)",
+    "Loop pressure drop (bar)": "Perez-Fortes 4.2 | Van-Dal 4.6 | Zhang 4 | Schorn 1 | Lurgi SRC loop 3.5-4, "
+                                "Toyo loop 3 (Dieterich)",
 }
 
 
@@ -199,138 +286,194 @@ def table_a(cases):
                 row[k] = round(v, 4) if abs(v) < 10 else round(v, 1)
         row["references"] = REFERENCE_CELLS[label]
         rows.append(row)
-    rows.append({"metric": "Net production cost (EUR/t, anchor prices)",
+    rows.append({"metric": "Net production cost (EUR/t, anchor prices and scale conventions)",
                  **{k: round(r["cost_eur_t"], 2) for k, r in res.items()},
                  "references": "Campos 920 (Table 7: 1071.8 M EUR/a = 924.0) | 3-step 868 (871.2)"})
     return pd.DataFrame(rows), res
 
 
 # ------------------------------------------------------------------ Table B ------------------------------------
-def table_b():
+def lean(r):
+    """Model terms that every TEA boundary shares: feed + electricity + catalyst replacement + capital annuity."""
+    return r["h2_eur_t"] + r["co2_eur_t"] + r["elec_eur_t"] + r["cat_eur_t"] + r["acc_eur_t"]
+
+
+def B(case, term, model, reference, basis="", attribution=""):
+    return dict(case=case, term=term, model=model, reference=reference, ref_basis=basis, attribution=attribution)
+
+
+def table_b(tp):
     rows = []
+    t = ANCHOR_TPY / 1e6
     a, _ = run(ANCHOR, **ANCHOR_KW)
-    t = ANCHOR_TPY / 1e6  # Mt/a
-    fig = dict(h2=ref("CAMPOS22", "H2_cost_MEUR_y"), co2=ref("CAMPOS22", "CO2_cost_MEUR_y"),
-               cat=ref("CAMPOS22", "catalyst_cost_MEUR_y"), pw=ref("CAMPOS22", "power_cost_MEUR_y"))
-    anchor_cat_eur_t = V.ANCHOR_CAT_REPL_MEUR_Y / t
+    a_cat, _ = run(ANCHOR, cat_term=V.CAT_REF, **ANCHOR_KW)
+    h2_stream = (0.995 * H2_MW + 0.005 * M.MW["N2"]) / (0.995 * H2_MW)   # Campos prices the H2 stream incl. N2
+    c1 = "B1 Campos 2022 one-step (calibration point; SI Table S19)"
     rows += [
-        dict(case="B1 Campos 2022 one-step (calibration point; model prices = reference prices)", term="H2",
-             model=a["h2_eur_t"], reference=fig["h2"] / t, ref_basis="Fig. 11b bar reading (+/- 3 M EUR/a)",
-             attribution="model H2 0.1985 t/t vs 0.214 t/t implied by the bar; Table-6 feed excess gives 0.200 t/t "
-                         "(model -0.8 %). The gap is carried by the constant residual, so the level is reproduced"),
-        dict(case="B1", term="CO2", model=a["co2_eur_t"], reference=fig["co2"] / t, ref_basis="Fig. 11b",
-             attribution="CO2 1.449 vs 1.457 t/t (Table 6)"),
-        dict(case="B1", term="electricity", model=a["elec_eur_t"], reference=fig["pw"] / t,
-             ref_basis="Fig. 11b (net power after Rankine credit; 17.6 MW x 90 EUR/MWh = 10.9 EUR/t)",
-             attribution="model counts compressors only (28.9 MW) and no Rankine credit; difference sits in the residual"),
-        dict(case="B1", term="catalyst replacement", model=0.0, reference=fig["cat"] / t,
-             ref_basis=f"Fig. 11b; inputs give {anchor_cat_eur_t:.1f} EUR/t (2868.8 t x 18.1 EUR/kg / 3 y)",
-             attribution="model: inside the catalyst-independent residual (no inventory dependence)"),
-        dict(case="B1", term="other direct (residual)", model=a["residual_direct_eur_t"],
-             reference=ref("CAMPOS22", "direct_OPEX_MEUR_y") / t - (fig["h2"] + fig["co2"] + fig["cat"] + fig["pw"]) / t,
-             ref_basis="Table 7 direct OPEX minus Fig. 11b bars", attribution="constant by construction"),
-        dict(case="B1", term="ACC (CAPEX annuity)", model=a["acc_eur_t"], reference=ref("CAMPOS22", "ACC_MEUR_y") / t,
-             ref_basis="Table 7", attribution="same EC, Lang factor and annuity"),
-        dict(case="B1", term="indirect OPEX", model=a["cost_eur_t"] - a["acc_eur_t"] - a["direct_MEUR_Y"] * 1e6 / ANCHOR_TPY,
-             reference=ref("CAMPOS22", "indirect_OPEX_MEUR_y") / t, ref_basis="Table 7", attribution="same formula (Eq. 24)"),
-        dict(case="B1", term="TOTAL", model=a["cost_eur_t"], reference=ref("CAMPOS22", "NPC_MEUR_y") / t,
-             ref_basis="Table 7 (text: 920 EUR/t)", attribution="calibration identity; -0.03 % with CO recycled"),
+        B(c1, "H2", a["h2_eur_t"], ref("CAMPOS22", "H2_cost_MEUR_y") / t, "SI Table S19: 769.50 M EUR/a",
+          f"model prices pure H2 (0.1985 t/t). Campos prices the 31.1 t/h stream incl. 0.5 % N2 (2.0 t/h N2): "
+          f"model x {h2_stream:.4f} = {a['h2_eur_t'] * h2_stream:.1f}"),
+        B(c1, "CO2", a["co2_eur_t"], ref("CAMPOS22", "CO2_cost_MEUR_y") / t, "SI Table S19: 74.93", "1.449 vs 1.460 t/t"),
+        B(c1, "electricity", a["elec_eur_t"], ref("CAMPOS22", "power_cost_MEUR_y") / t,
+          "SI Table S19: 12.66 (17.6 MW net of 29.82 MW generator)",
+          "model: compressors only, isothermal/0.8 (28.9 MW vs Campos 47.18 MW), no Rankine credit"),
+        B(c1, "catalyst replacement", a["cat_eur_t"], ref("CAMPOS22", "catalyst_cost_MEUR_y") / t,
+          "SI Table S19: 17.31", "model: inside the constant residual"),
+        B(c1, "other direct (residual)", a["residual_direct_eur_t"], ref("CAMPOS22", "other_direct_MEUR_y") / t,
+          "SI Table S19: 0.52", "constant by construction; carries the N2, catalyst and power differences"),
+        B(c1, "ACC (CAPEX annuity)", a["acc_eur_t"], ref("CAMPOS22", "ACC_MEUR_y") / t, "Table 7", ""),
+        B(c1, "indirect OPEX", a["fixed_indirect_eur_t"] + a["revenue_linked_eur_t"],
+          ref("CAMPOS22", "indirect_OPEX_MEUR_y") / t, "Table 7 (SI Table S19: 142.08)", "same formula (Eq. 24)"),
+        B(c1, "TOTAL", a["cost_eur_t"], ref("CAMPOS22", "NPC_MEUR_y") / t, "Table 7 (text 920)", "calibration identity"),
+        B(c1 + ", with catalyst term (18.1 EUR/kg, 3 y)", "catalyst replacement", a_cat["cat_eur_t"],
+          ref("CAMPOS22", "catalyst_cost_MEUR_y") / t, "SI Table S19", "same 2869 t, 18.1 EUR/kg, 3 y"),
     ]
-    # B2: three-step design with the same prices (out of sample)
     c3 = dict(X=0.539, SMeOH=0.998, SCH4=0.0, SCO=0.002)
     kw3 = dict(STY_per_g_cat=M.PROD_TPH / ref("CAMPOS22_3S", "catalyst_t"), P_bar=70.0, h2_co2=3.0, purge=0.02,
                T_C=258.5, x_co="recycled_central")
     b, _ = run(c3, **kw3)
     b_cat, _ = run(c3, cat_term=V.CAT_REF, **kw3)
-    a_cat, _ = run(ANCHOR, cat_term=V.CAT_REF, **ANCHOR_KW)
+    c2 = "B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)"
     rows += [
-        dict(case="B2 Campos 2022 three-step (out-of-sample design, same price basis)", term="EC (M EUR)",
-             model=b["EC_MEUR"], reference=ref("CAMPOS22_3S", "EC_MEUR"), ref_basis="Table 7",
-             attribution="model topology has no intermediate condensers / flash drums"),
-        dict(case="B2", term="FCI (M EUR)", model=b["FCI_MEUR"], reference=ref("CAMPOS22_3S", "FCI_MEUR"),
-             ref_basis="Table 7", attribution=""),
-        dict(case="B2", term="ACC", model=b["acc_eur_t"], reference=ref("CAMPOS22_3S", "ACC_MEUR_y") / t,
-             ref_basis="Table 7", attribution=""),
-        dict(case="B2", term="direct OPEX", model=b["direct_MEUR_Y"] * 1e6 / ANCHOR_TPY,
-             reference=ref("CAMPOS22_3S", "direct_OPEX_MEUR_y") / t, ref_basis="Table 7",
-             attribution="feed saving from the higher carbon efficiency; catalyst halved (in residual in the model)"),
-        dict(case="B2", term="indirect OPEX", model=b["cost_eur_t"] - b["acc_eur_t"] - b["direct_MEUR_Y"] * 1e6 / ANCHOR_TPY,
-             reference=ref("CAMPOS22_3S", "indirect_OPEX_MEUR_y") / t, ref_basis="Table 7", attribution=""),
-        dict(case="B2", term="TOTAL", model=b["cost_eur_t"], reference=ref("CAMPOS22_3S", "NPC_MEUR_y") / t,
-             ref_basis="Table 7 (text: 868 EUR/t)", attribution=""),
-        dict(case="B2", term="saving vs one-step (EUR/t)", model=a["cost_eur_t"] - b["cost_eur_t"],
-             reference=(ref("CAMPOS22", "NPC_MEUR_y") - ref("CAMPOS22_3S", "NPC_MEUR_y")) / t, ref_basis="Table 7",
-             attribution="direction and size of the conversion benefit"),
-        dict(case="B2 with explicit catalyst term (18.1 EUR/kg, 3 y)", term="saving vs one-step (EUR/t)",
-             model=a_cat["cost_eur_t"] - b_cat["cost_eur_t"],
-             reference=(ref("CAMPOS22", "NPC_MEUR_y") - ref("CAMPOS22_3S", "NPC_MEUR_y")) / t, ref_basis="Table 7",
-             attribution="the halved catalyst charge (6 -> 3 modules) is a reference cost the canonical model keeps "
-                         "constant"),
-        dict(case="B2 with explicit catalyst term (18.1 EUR/kg, 3 y)", term="TOTAL", model=b_cat["cost_eur_t"],
-             reference=ref("CAMPOS22_3S", "NPC_MEUR_y") / t, ref_basis="Table 7", attribution=""),
-        dict(case="B2", term="recycle (kmol/h)", model=b["recycle_kmol_h"], reference=ref("CAMPOS22_3S", "recycle_kmol_h"),
-             ref_basis="Table 6", attribution=""),
-        dict(case="B2", term="purge (kmol/h)", model=b["purge_kmol_h"], reference=ref("CAMPOS22_3S", "purge_kmol_h"),
-             ref_basis="text p18", attribution=""),
+        B(c2, "H2", b["h2_eur_t"], ref("CAMPOS22_3S", "H2_cost_MEUR_y") / t, "SI: 742.51",
+          f"x {h2_stream:.4f} for N2 = {b['h2_eur_t'] * h2_stream:.1f}"),
+        B(c2, "CO2", b["co2_eur_t"], ref("CAMPOS22_3S", "CO2_cost_MEUR_y") / t, "SI: 72.30", ""),
+        B(c2, "catalyst replacement (with catalyst term)", b_cat["cat_eur_t"],
+          ref("CAMPOS22_3S", "catalyst_cost_MEUR_y") / t, "SI: 8.65", ""),
+        B(c2, "electricity", b["elec_eur_t"], ref("CAMPOS22_3S", "power_cost_MEUR_y") / t, "SI: 15.72 (net)", ""),
+        B(c2, "EC (M EUR)", b["EC_MEUR"], ref("CAMPOS22_3S", "EC_MEUR"), "Table 7",
+          "model topology has no intermediate condensers / flash drums"),
+        B(c2, "ACC", b["acc_eur_t"], ref("CAMPOS22_3S", "ACC_MEUR_y") / t, "Table 7", ""),
+        B(c2, "TOTAL", b["cost_eur_t"], ref("CAMPOS22_3S", "NPC_MEUR_y") / t, "Table 7 (text 868)", ""),
+        B(c2, "TOTAL with catalyst term", b_cat["cost_eur_t"], ref("CAMPOS22_3S", "NPC_MEUR_y") / t, "Table 7", ""),
+        B(c2, "saving vs one-step", a["cost_eur_t"] - b["cost_eur_t"],
+          (ref("CAMPOS22", "NPC_MEUR_y") - ref("CAMPOS22_3S", "NPC_MEUR_y")) / t, "Table 7",
+          "catalyst halved: 7.5 EUR/t in the reference, constant in the canonical model"),
+        B(c2, "saving vs one-step, with catalyst term", a_cat["cost_eur_t"] - b_cat["cost_eur_t"],
+          (ref("CAMPOS22", "NPC_MEUR_y") - ref("CAMPOS22_3S", "NPC_MEUR_y")) / t, "Table 7", ""),
+        B(c2, "recycle (kmol/h)", b["recycle_kmol_h"], ref("CAMPOS22_3S", "recycle_kmol_h"), "Table 6", ""),
+        B(c2, "purge (kmol/h)", b["purge_kmol_h"], ref("CAMPOS22_3S", "purge_kmol_h_SI"), "SI Table S11", ""),
     ]
-    # B3: Perez-Fortes 2016 price set (secondary values), at its scale and operating point
-    pc = dict(X=0.22, SMeOH=0.995, SCH4=0.0, SCO=0.005)
-    prod = 440000.0 / 8000.0
-    common = dict(P_bar=78.0, h2_co2=3.0, T_C=210.0, x_co="recycled_central", purge=0.02,
-                  STY_per_g_cat=M.PROD_TPH / ANCHOR_CAT_T)
-    p_own, _ = run(pc, h2_price=3090.0, co2_price=0.0, elec_price=95.1, prod_tph=prod, hours=8000.0, **common)
-    p_anchor, _ = run(pc, **common)
+    out = {"anchor": a, "three_step": b, "three_step_cat": b_cat}
+
+    def own(key, with_cat=True):
+        p = tp[key]
+        kw = dict(p["kw"], **p["econ"])
+        if with_cat and p["cat"]:
+            kw["cat_term"] = p["cat"]
+        return run(p["c"], **kw)[0]
+
+    # B3 Perez-Fortes 2016 (primary)
+    pf = own("PF")
+    pf_nocat = own("PF", with_cat=False)
+    out["perez_fortes"] = pf
+    c4 = "B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)"
+    pf_cap = ref("PEREZFORTES16", "breakeven_MeOH_price_eur_t") - ref("PEREZFORTES16", "production_cost_no_capital_eur_t")
     rows += [
-        dict(case="B3 Perez-Fortes 2016 prices, scale and operating point (secondary values; primary pending)",
-             term="TOTAL", model=p_own["cost_eur_t"], reference=ref("PEREZFORTES16", "cost_eur_t"),
-             ref_basis="Dieterich 2020 Table 12", attribution=""),
-        dict(case="B3", term="H2", model=p_own["h2_eur_t"], reference=np.nan,
-             ref_basis="H2 3090 EUR/t (Mbatha Table 15)", attribution="breakdown not available without the primary"),
-        dict(case="B3", term="CO2", model=p_own["co2_eur_t"], reference=0.0, ref_basis="0 EUR/t (Dieterich Table 12)",
-             attribution=""),
-        dict(case="B3", term="electricity", model=p_own["elec_eur_t"], reference=np.nan, ref_basis="95.1 EUR/MWh",
-             attribution=""),
-        dict(case="B3", term="FCI (M EUR)", model=p_own["FCI_MEUR"], reference=ref("PEREZFORTES16", "capex_per_tpd") * 1300 / 1e6,
-             ref_basis="181 kEUR/(t/d) x 1300 t/d (Dieterich Table 12)", attribution="see capex_scale.csv"),
-        dict(case="B3", term="ACC", model=p_own["acc_eur_t"], reference=np.nan, ref_basis="", attribution=""),
-        dict(case="B3", term="residual direct OPEX (anchor convention)", model=p_own["residual_direct_eur_t"],
-             reference=np.nan, ref_basis="", attribution="catalyst-independent constant"),
-        dict(case="B3", term="indirect OPEX: labour + 0.081 FCI", model=p_own["fixed_indirect_eur_t"], reference=np.nan,
-             ref_basis="", attribution="anchor (Peters/Albrecht) convention"),
-        dict(case="B3", term="indirect OPEX: 10 % of NPC", model=p_own["revenue_linked_eur_t"], reference=np.nan,
-             ref_basis="", attribution="anchor convention: distribution, selling, R&D"),
-        dict(case="B3", term="ACC + electricity (capital and power only)", model=p_own["acc_eur_t"] + p_own["elec_eur_t"],
-             reference=ref("PEREZFORTES16", "cost_eur_t") - p_own["h2_t_per_t"] * 3090.0,
-             ref_basis="724 minus model H2 tonnage x 3090", attribution="like-for-like with a lean TEA boundary"),
-        dict(case="B3", term="all non-feed terms", model=p_own["cost_eur_t"] - p_own["h2_eur_t"] - p_own["co2_eur_t"],
-             reference=ref("PEREZFORTES16", "cost_eur_t") - p_own["h2_t_per_t"] * 3090.0,
-             ref_basis="724 minus model H2 tonnage x 3090 (assumes the same H2 use)", attribution=""),
-        dict(case="B3 (memo) same operating point at anchor prices and scale", term="TOTAL",
-             model=p_anchor["cost_eur_t"], reference=np.nan, ref_basis="", attribution="price-basis effect"),
+        B(c4, "H2", pf["h2_eur_t"], 0.959 * 283e6 / 440.8e3, "raw materials 95.9 % of VCP 283 M EUR/a",
+          f"H2 use: model {pf['h2_t_per_t']:.4f} vs 0.199 t/t"),
+        B(c4, "electricity + utilities", pf["elec_eur_t"], 0.026 * 283e6 / 440.8e3, "utilities 2.6 % of VCP (net power)",
+          "model: compressors only, no turbine credit"),
+        B(c4, "catalyst replacement", pf["cat_eur_t"], 0.015 * 283e6 / 440.8e3, "consumables 1.5 % of VCP",
+          "44.5 t x 95.24 EUR/kg / 1 y in both"),
+        B(c4, "capital (annuity at 8 %, 20 y)", pf["acc_eur_t"], pf_cap,
+          "breakeven 723.6 minus VCP + FCP 666.05", "model FCI at 55.1 t/h vs TFCC 200 M EUR (see capex_scale.csv)"),
+        B(c4, "fixed O&M", pf["fixed_indirect_eur_t"], ref("PEREZFORTES16", "FCP_eur_t"), "FCP 24.57",
+          "model: anchor convention (labour + 0.081 FCI)"),
+        B(c4, "residual direct + 10 % of NPC (anchor convention)", pf["residual_direct_eur_t"] + pf["revenue_linked_eur_t"],
+          0.0, "no such terms in the reference", "common to every catalyst"),
+        B(c4, "TOTAL, anchor convention", pf["cost_eur_t"], ref("PEREZFORTES16", "breakeven_MeOH_price_eur_t"),
+          "NPV = 0 breakeven price (Table 5)", ""),
+        B(c4, "TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)", lean(pf) + 24.57,
+          ref("PEREZFORTES16", "breakeven_MeOH_price_eur_t"), "Table 5", ""),
+        B(c4, "TOTAL, like-for-like, catalyst in residual (canonical)", lean(pf_nocat) + 24.57,
+          ref("PEREZFORTES16", "breakeven_MeOH_price_eur_t"), "Table 5", ""),
     ]
+    # B4 Szima 2018 (primary)
+    sz = own("SZ")
+    out["szima"] = sz
+    c5 = "B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t)"
+    rows += [
+        B(c5, "H2 (electrolysis electricity)", sz["h2_eur_t"], 0.92 * 670.49, "92 % of VOC is electricity",
+          "Szima VOC electricity also nets the 0.79 MW surplus"),
+        B(c5, "CO2", sz["co2_eur_t"], -10 * 1.41, "ETS credit 0.01 EUR/kg x 1.41 t/t (revenue)", ""),
+        B(c5, "catalyst", sz["cat_eur_t"], 0.05 * 670.49, "5 % of VOC", "charge matched by construction"),
+        B(c5, "capital (annuity at 8 %, 25 y)", sz["acc_eur_t"], 0.0937 * (55.55 + 4.83) * 10, "CRF x (TFCC + WC)", ""),
+        B(c5, "TOTAL, like-for-like (feed + power + catalyst + capital + reference FOC and other VOC)",
+          lean(sz) + 115.03 + 0.03 * 670.49, ref("SZIMA18", "cost_eur_t"), "VOC + FOC + capital (derived 842)",
+          "model electricity = compression (no ORC / turbine credit)"),
+        B(c5, "TOTAL, anchor convention", sz["cost_eur_t"], ref("SZIMA18", "cost_eur_t"), "derived 842", ""),
+    ]
+    # B5 Nyari 2022: three kinetic models of one plant
+    c6 = "B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)"
+    lcom = {"NY_Kiss": 823.0, "NY_VD": 885.0, "NY_Slotboom": 801.0}
+    ny = {k: own(k) for k in lcom}
+    out["nyari"] = {k: dict(X=tp[k]["c"]["X"], purge=tp[k]["kw"]["purge"], **{m: v[m] for m in (
+        "cost_eur_t", "h2_t_per_t", "co2_t_per_t", "elec_MWh_t", "recycle_ratio", "carbon_efficiency")})
+                    for k, v in ny.items()}
+    for k, v in ny.items():
+        rows.append(B(c6, f"{k[3:]}: like-for-like (feed + power + capital + reference fixed ~26)", lean(v) + 26.0,
+                      lcom[k], "LCoM, Fig. 6", f"fitted X {tp[k]['c']['X']:.3f}, purge {tp[k]['kw']['purge']:.4f}; "
+                                               f"H2 {v['h2_t_per_t']:.4f} t/t"))
+    rows.append(B(c6, "VD minus Slotboom (kinetic-model spread)", lean(ny["NY_VD"]) - lean(ny["NY_Slotboom"]),
+                  lcom["NY_VD"] - lcom["NY_Slotboom"], "Fig. 6",
+                  "same plant and prices; only the catalyst kinetics differ"))
+    rows.append(B(c6, "Kiss minus Slotboom", lean(ny["NY_Kiss"]) - lean(ny["NY_Slotboom"]),
+                  lcom["NY_Kiss"] - lcom["NY_Slotboom"], "Fig. 6", ""))
+    # B6 Nieminen 2019 gas-phase case
+    ni = own("NI")
+    out["nieminen"] = ni
+    c7 = "B6 Nieminen 2019 gas-phase case at its own point and assumptions"
+    rows += [
+        B(c7, "H2", ni["h2_eur_t"], 703.0, "0.234 t/t x 3000 (derived)",
+          f"model H2 {ni['h2_t_per_t']:.4f} t/t: the reference loses 89 kg/h H2 and 560 kg/h CO2 in flash gases "
+          f"(carbon efficiency 0.805 vs model {ni['carbon_efficiency']:.3f})"),
+        B(c7, "CO2", ni["co2_eur_t"], 85.0, "1.706 x 50 (derived)", ""),
+        B(c7, "TOTAL, like-for-like (+ reference fixed 150, CW 43, steam credit -50)", lean(ni) + 150 + 43 - 50,
+          1028.0, "production cost without the O2 credit (p18)", ""),
+    ]
+    # B7 Schorn 2021 NPC grid
+    c8 = "B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh)"
+    for (h2, co2, val) in ((1000.0, 0.0, 254.0), (3000.0, 40.0, 691.0), (4500.0, 0.0, 921.0)):
+        sc = run(tp["SC"]["c"], **dict(tp["SC"]["kw"], **tp["SC"]["econ"], h2_price=h2, co2_price=co2))[0]
+        rows.append(B(c8, f"H2 {h2 / 1000:g} EUR/kg, CO2 {co2:g} EUR/t: like-for-like (feed + power + capital + "
+                          f"reference O&M 33.9)", lean(sc) + 33.9, val, "Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0",
+                      f"model H2 {sc['h2_t_per_t']:.4f} vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency)"))
     df = pd.DataFrame(rows)
     df["deviation"] = df.model - df.reference
     df["deviation_pct"] = 100 * df.deviation / df.reference
-    return df, dict(anchor=a, three_step=b, perez_fortes=p_own, perez_fortes_anchor_prices=p_anchor)
+    return df, out
 
 
-def capex_scale():
-    """Specific fixed capital of the model (anchor operating point) at each reference scale."""
-    pts = [("Campos 2022 one-step (anchor)", 145.0, 8000.0, ref("CAMPOS22", "FCI_MEUR") * 1e6 / ANCHOR_TPY, "EUR2020"),
-           ("Perez-Fortes 2016* (CO2 and H2 external)", 55.0, 8000.0, 181000.0 * 1300 / 440000.0, "EUR (year n.s.)"),
-           ("CRI Shunli 2022 (design + equipment only)", 110000 / 8000.0, 8000.0, 818.0 / 1.0530, "EUR2022 (USD/1.053)"),
-           ("Bos 2020 (methanol section; feed comp. + reactor + distillation)", 65000 / 8000.0, 8000.0, 169.0, "EUR"),
-           ("Hank 2018 (methanol synthesis, input assumption)", 4188 / 8000.0, 8000.0, 810.0, "EUR2018"),
-           ("CRI George Olah (no cost data)", 4000 / 8000.0, 8000.0, np.nan, "")]
+def capex_scale(tp):
+    """Specific fixed capital of the model (each reference's own operating point and cost year) vs reported."""
+    pts = [
+        ("Campos 2022 one-step (anchor; FCI)", ANCHOR, dict(ANCHOR_KW), ref("CAMPOS22", "FCI_MEUR") * 1e6 / ANCHOR_TPY,
+         "EUR2020"),
+        ("Campos 2022 three-step (FCI)", dict(X=0.539, SMeOH=0.998, SCH4=0.0, SCO=0.002),
+         dict(STY_per_g_cat=M.PROD_TPH / 1434.4, P_bar=70.0, h2_co2=3.0, purge=0.02, T_C=258.5,
+              x_co="recycled_central"), ref("CAMPOS22_3S", "FCI_MEUR") * 1e6 / ANCHOR_TPY, "EUR2020"),
+        ("Perez-Fortes 2016 (TFCC 200 M EUR)", tp["PF"]["c"], dict(tp["PF"]["kw"], **tp["PF"]["econ"]),
+         200e6 / 440.8e3, "EUR2014"),
+        ("Szima 2018 (TFCC 55.55 M EUR, electrolyser excluded)", tp["SZ"]["c"], dict(tp["SZ"]["kw"], **tp["SZ"]["econ"]),
+         55.55e6 / 100e3, "EUR2017"),
+        ("Schorn 2021 (FCI 60 M EUR, synthesis)", tp["SC"]["c"], dict(tp["SC"]["kw"], **tp["SC"]["econ"]),
+         60e6 / 434e3, "EUR (year n.s.)"),
+        ("Nieminen 2019 gas phase (TCI 10.5-17.9 M EUR)", tp["NI"]["c"], dict(tp["NI"]["kw"], **tp["NI"]["econ"]),
+         17.9e6 / (2.275 * 7250), "EUR2018 (17.9 M EUR caption value)"),
+        ("CRI Shunli 2022 (design + equipment, USD 90 M)", ANCHOR, dict(ANCHOR_KW, prod_tph=110000 / 8000.0),
+         818.0 / 1.0530, "EUR2022 (USD/1.053)"),
+        ("Bos 2020 methanol section (condensing reactor)", ANCHOR, dict(ANCHOR_KW, prod_tph=65000 / 8000.0), 169.0, "EUR"),
+        ("Hank 2018 (input assumption)", ANCHOR, dict(ANCHOR_KW, prod_tph=4188 / 8000.0), 810.0, "EUR2018"),
+    ]
     rows = []
-    for name, tph, hours, refv, basis in pts:
-        r, _ = run(ANCHOR, **dict(ANCHOR_KW, prod_tph=tph, hours=hours))
-        rows.append(dict(reference=name, capacity_t_a=tph * hours, model_FCI_MEUR=r["FCI_MEUR"],
-                         model_FCI_eur_per_tpa=r["FCI_MEUR"] * 1e6 / (tph * hours),
-                         model_EC_eur_per_tpa=r["EC_MEUR"] * 1e6 / (tph * hours),
+    for name, c, kw, refv, basis in pts:
+        r = run(c, **kw)[0]
+        tpa = kw.get("prod_tph", M.PROD_TPH) * kw.get("hours", M.HOURS_Y)
+        rows.append(dict(reference=name, capacity_t_a=tpa, model_FCI_MEUR=r["FCI_MEUR"],
+                         model_FCI_eur_per_tpa=r["FCI_MEUR"] * 1e6 / tpa, model_EC_eur_per_tpa=r["EC_MEUR"] * 1e6 / tpa,
                          reference_eur_per_tpa=refv, reference_basis=basis,
-                         ratio_model_FCI_to_reference=(r["FCI_MEUR"] * 1e6 / (tph * hours)) / refv if refv == refv else np.nan,
-                         ratio_model_EC_to_reference=(r["EC_MEUR"] * 1e6 / (tph * hours)) / refv if refv == refv else np.nan))
+                         ratio_model_FCI_to_reference=r["FCI_MEUR"] * 1e6 / tpa / refv))
     return pd.DataFrame(rows)
 
 
@@ -367,7 +510,9 @@ def driver_decomposition():
     rows = []
     for basis, kw in (("canonical", {}), ("with catalyst replacement 18.1 EUR/kg, 3 y", dict(cat_term=V.CAT_REF)),
                       ("industrial loop: catalyst 3 y + loop dP 3.75 bar + recycle x2.68",
-                       dict(cat_term=V.CAT_REF, loop_dp=3.75, recycle_mult=2.68))):
+                       dict(cat_term=V.CAT_REF, loop_dp=3.75, recycle_mult=2.68)),
+                      ("primary-source weights: catalyst 95.24 EUR/kg 1 y + loop dP 4.2 bar + recycle costs x10 "
+                       "(Nyari spread)", dict(cat_term=(95.24, 1.0), loop_dp=4.2, recycle_mult=10.0))):
         for g in mm.itertuples():
             sub = cand[cand.group == g.group]
             up = sub[sub.catalyst == g.upstream_winner].iloc[0]
@@ -391,12 +536,13 @@ def driver_decomposition():
 def main():
     gate = V.check_identity(300)
     assert gate < 1e-8, gate
-    cases = model_cases()
+    tp = tea_points()
+    cases = model_cases(tp)
     ta, res = table_a(cases)
     ta.to_csv(HERE / "reconciliation_plant.csv", index=False)
-    tb, bres = table_b()
+    tb, bres = table_b(tp)
     tb.to_csv(HERE / "reconciliation_cost.csv", index=False, float_format="%.4g")
-    cs = capex_scale()
+    cs = capex_scale(tp)
     cs.to_csv(HERE / "capex_scale.csv", index=False, float_format="%.4g")
     dd, dagg = driver_decomposition()
     dd.to_csv(HERE / "mismatch_driver_decomposition.csv", index=False, float_format="%.4g")
@@ -418,8 +564,16 @@ def main():
         three_step_out_of_sample={k: round(float(bres["three_step"][k]), 3) for k in
                                   ("cost_eur_t", "EC_MEUR", "FCI_MEUR", "acc_eur_t", "recycle_kmol_h", "purge_kmol_h",
                                    "carbon_efficiency", "h2_t_per_t", "co2_t_per_t")},
-        perez_fortes_secondary={k: round(float(bres["perez_fortes"][k]), 3) for k in
-                                ("cost_eur_t", "h2_eur_t", "co2_eur_t", "elec_eur_t", "acc_eur_t", "FCI_MEUR")},
+        perez_fortes_primary={k: round(float(bres["perez_fortes"][k]), 3) for k in
+                              ("cost_eur_t", "h2_eur_t", "co2_eur_t", "elec_eur_t", "acc_eur_t", "cat_eur_t",
+                               "FCI_MEUR", "h2_t_per_t", "co2_t_per_t", "carbon_efficiency", "recycle_ratio")},
+        perez_fortes_like_for_like_eur_t=round(float(lean(bres["perez_fortes"]) + 24.57), 2),
+        szima={k: round(float(bres["szima"][k]), 3) for k in ("cost_eur_t", "h2_eur_t", "acc_eur_t", "FCI_MEUR")},
+        szima_like_for_like_eur_t=round(float(lean(bres["szima"]) + 115.03 + 0.03 * 670.49), 2),
+        nyari=bres["nyari"],
+        nieminen={k: round(float(bres["nieminen"][k]), 4) for k in ("cost_eur_t", "h2_t_per_t", "co2_t_per_t",
+                                                                    "carbon_efficiency", "recycle_ratio")},
+        capex_scale=cs.to_dict(orient="records"),
         sensitivity={k: dict(top1=f"{v['top1_mismatch_groups']}/{v['groups']}", papers=v["papers_with_mismatch"],
                              inversions=v["pairwise_inversions"],
                              regret_median_mismatched=round(v["regret_median_mismatched"], 4),

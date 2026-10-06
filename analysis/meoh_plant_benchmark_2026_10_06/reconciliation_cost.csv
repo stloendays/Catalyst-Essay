@@ -1,32 +1,48 @@
 case,term,model,reference,ref_basis,attribution,deviation,deviation_pct
-B1 Campos 2022 one-step (calibration point; model prices = reference prices),H2,615,662.1,Fig. 11b bar reading (+/- 3 M EUR/a),"model H2 0.1985 t/t vs 0.214 t/t implied by the bar; Table-6 feed excess gives 0.200 t/t (model -0.8 %). The gap is carried by the constant residual, so the level is reproduced",-47.09,-7.112
-B1,CO2,64.19,63.79,Fig. 11b,CO2 1.449 vs 1.457 t/t (Table 6),0.3923,0.6149
-B1,electricity,17.93,9.483,Fig. 11b (net power after Rankine credit; 17.6 MW x 90 EUR/MWh = 10.9 EUR/t),model counts compressors only (28.9 MW) and no Rankine credit; difference sits in the residual,8.444,89.04
-B1,catalyst replacement,0,12.93,Fig. 11b; inputs give 14.9 EUR/t (2868.8 t x 18.1 EUR/kg / 3 y),model: inside the catalyst-independent residual (no inventory dependence),-12.93,-100
-B1,other direct (residual),56.96,5.948,Table 7 direct OPEX minus Fig. 11b bars,constant by construction,51.01,857.6
-B1,ACC (CAPEX annuity),46.04,46.12,Table 7,"same EC, Lang factor and annuity",-0.08194,-0.1777
-B1,indirect OPEX,123.6,123.6,Table 7,same formula (Eq. 24),-0.0688,-0.05565
-B1,TOTAL,923.6,924,Table 7 (text: 920 EUR/t),calibration identity; -0.03 % with CO recycled,-0.3207,-0.03471
-"B2 Campos 2022 three-step (out-of-sample design, same price basis)",EC (M EUR),68.75,66.1,Table 7,model topology has no intermediate condensers / flash drums,2.645,4.002
-B2,FCI (M EUR),334.1,321.4,Table 7,,12.7,3.952
-B2,ACC,37.03,35.6,Table 7,,1.427,4.009
-B2,direct OPEX,730.6,723.8,Table 7,feed saving from the higher carbon efficiency; catalyst halved (in residual in the model),6.789,0.9379
-B2,indirect OPEX,113.6,111.7,Table 7,,1.913,1.712
-B2,TOTAL,881.3,871.2,Table 7 (text: 868 EUR/t),,10.04,1.153
-B2,saving vs one-step (EUR/t),42.39,52.76,Table 7,direction and size of the conversion benefit,-10.36,-19.64
-"B2 with explicit catalyst term (18.1 EUR/kg, 3 y)",saving vs one-step (EUR/t),50.68,52.76,Table 7,the halved catalyst charge (6 -> 3 modules) is a reference cost the canonical model keeps constant,-2.074,-3.932
-"B2 with explicit catalyst term (18.1 EUR/kg, 3 y)",TOTAL,873,871.2,Table 7,,1.754,0.2013
-B2,recycle (kmol/h),2.059e+04,2.258e+04,Table 6,,-1993,-8.827
-B2,purge (kmol/h),420.2,455,text p18,,-34.84,-7.658
-"B3 Perez-Fortes 2016 prices, scale and operating point (secondary values; primary pending)",TOTAL,912.9,724,Dieterich 2020 Table 12,,188.9,26.09
-B3,H2,625.7,,H2 3090 EUR/t (Mbatha Table 15),breakdown not available without the primary,,
-B3,CO2,0,0,0 EUR/t (Dieterich Table 12),,0,
-B3,electricity,20.65,,95.1 EUR/MWh,,,
-B3,FCI (M EUR),236.4,235.3,181 kEUR/(t/d) x 1300 t/d (Dieterich Table 12),see capex_scale.csv,1.057,0.4494
-B3,ACC,69.07,,,,,
-B3,residual direct OPEX (anchor convention),56.96,,,catalyst-independent constant,,
-B3,indirect OPEX: labour + 0.081 FCI,49.27,,,anchor (Peters/Albrecht) convention,,
-B3,indirect OPEX: 10 % of NPC,91.29,,,"anchor convention: distribution, selling, R&D",,
-B3,ACC + electricity (capital and power only),89.71,98.34,724 minus model H2 tonnage x 3090,like-for-like with a lean TEA boundary,-8.63,-8.776
-B3,all non-feed terms,287.2,98.34,724 minus model H2 tonnage x 3090 (assumes the same H2 use),,188.9,192.1
-B3 (memo) same operating point at anchor prices and scale,TOTAL,944.4,,,price-basis effect,,
+B1 Campos 2022 one-step (calibration point; SI Table S19),H2,615,663.4,SI Table S19: 769.50 M EUR/a,model prices pure H2 (0.1985 t/t). Campos prices the 31.1 t/h stream incl. 0.5 % N2 (2.0 t/h N2): model x 1.0698 = 657.9,-48.38,-7.293
+B1 Campos 2022 one-step (calibration point; SI Table S19),CO2,64.19,64.59,SI Table S19: 74.93,1.449 vs 1.460 t/t,-0.4094,-0.6339
+B1 Campos 2022 one-step (calibration point; SI Table S19),electricity,17.93,10.91,SI Table S19: 12.66 (17.6 MW net of 29.82 MW generator),"model: compressors only, isothermal/0.8 (28.9 MW vs Campos 47.18 MW), no Rankine credit",7.013,64.26
+B1 Campos 2022 one-step (calibration point; SI Table S19),catalyst replacement,0,14.92,SI Table S19: 17.31,model: inside the constant residual,-14.92,-100
+B1 Campos 2022 one-step (calibration point; SI Table S19),other direct (residual),56.96,0.4483,SI Table S19: 0.52,"constant by construction; carries the N2, catalyst and power differences",56.51,1.261e+04
+B1 Campos 2022 one-step (calibration point; SI Table S19),ACC (CAPEX annuity),46.04,46.12,Table 7,,-0.08194,-0.1777
+B1 Campos 2022 one-step (calibration point; SI Table S19),indirect OPEX,123.6,123.6,Table 7 (SI Table S19: 142.08),same formula (Eq. 24),-0.0688,-0.05565
+B1 Campos 2022 one-step (calibration point; SI Table S19),TOTAL,923.6,924,Table 7 (text 920),calibration identity,-0.3207,-0.03471
+"B1 Campos 2022 one-step (calibration point; SI Table S19), with catalyst term (18.1 EUR/kg, 3 y)",catalyst replacement,14.92,14.92,SI Table S19,"same 2869 t, 18.1 EUR/kg, 3 y",-0.00146,-0.009786
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",H2,594.7,640.1,SI: 742.51,x 1.0698 for N2 = 636.3,-45.35,-7.084
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",CO2,61.93,62.33,SI: 72.30,,-0.4,-0.6418
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",catalyst replacement (with catalyst term),7.461,7.457,SI: 8.65,,0.003632,0.04871
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",electricity,16.94,13.55,SI: 15.72 (net),,3.393,25.04
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",EC (M EUR),68.75,66.1,Table 7,model topology has no intermediate condensers / flash drums,2.645,4.002
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",ACC,37.03,35.6,Table 7,,1.427,4.009
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",TOTAL,881.3,871.2,Table 7 (text 868),,10.04,1.153
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",TOTAL with catalyst term,873,871.2,Table 7,,1.754,0.2013
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",saving vs one-step,42.39,52.76,Table 7,"catalyst halved: 7.5 EUR/t in the reference, constant in the canonical model",-10.36,-19.64
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)","saving vs one-step, with catalyst term",50.68,52.76,Table 7,,-2.074,-3.932
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",recycle (kmol/h),2.059e+04,2.258e+04,Table 6,,-1993,-8.827
+"B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19)",purge (kmol/h),420.2,456,SI Table S11,,-35.84,-7.86
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)",H2,613.6,615.7,raw materials 95.9 % of VCP 283 M EUR/a,H2 use: model 0.1986 vs 0.199 t/t,-2.137,-0.3471
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)",electricity + utilities,20.23,16.69,utilities 2.6 % of VCP (net power),"model: compressors only, no turbine credit",3.54,21.21
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)",catalyst replacement,9.615,9.63,consumables 1.5 % of VCP,44.5 t x 95.24 EUR/kg / 1 y in both,-0.01547,-0.1607
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)","capital (annuity at 8 %, 20 y)",38.14,57.55,breakeven 723.6 minus VCP + FCP 666.05,model FCI at 55.1 t/h vs TFCC 200 M EUR (see capex_scale.csv),-19.41,-33.73
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)",fixed O&M,33.64,24.57,FCP 24.57,model: anchor convention (labour + 0.081 FCI),9.069,36.91
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)",residual direct + 10 % of NPC (anchor convention),126.2,0,no such terms in the reference,common to every catalyst,126.2,inf
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)","TOTAL, anchor convention",841.4,723.6,NPV = 0 breakeven price (Table 5),,117.8,16.27
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)","TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)",706.1,723.6,Table 5,,-17.49,-2.417
+"B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y)","TOTAL, like-for-like, catalyst in residual (canonical)",696.5,723.6,Table 5,,-27.11,-3.746
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),H2 (electrolysis electricity),619.1,616.9,92 % of VOC is electricity,Szima VOC electricity also nets the 0.79 MW surplus,2.217,0.3595
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),CO2,-14.07,-14.1,ETS credit 0.01 EUR/kg x 1.41 t/t (revenue),,0.02849,-0.202
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),catalyst,33.5,33.52,5 % of VOC,charge matched by construction,-0.0245,-0.07308
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),"capital (annuity at 8 %, 25 y)",66.62,56.58,CRF x (TFCC + WC),,10.04,17.75
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),"TOTAL, like-for-like (feed + power + catalyst + capital + reference FOC and other VOC)",852.7,842,VOC + FOC + capital (derived 842),model electricity = compression (no ORC / turbine credit),10.72,1.273
+B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t),"TOTAL, anchor convention",930.6,842,derived 842,,88.6,10.52
+"B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)",Kiss: like-for-like (feed + power + capital + reference fixed ~26),803.4,823,"LCoM, Fig. 6","fitted X 0.237, purge 0.0227; H2 0.2029 t/t",-19.64,-2.387
+"B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)",VD: like-for-like (feed + power + capital + reference fixed ~26),839.8,885,"LCoM, Fig. 6","fitted X 0.118, purge 0.0148; H2 0.2101 t/t",-45.22,-5.109
+"B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)",Slotboom: like-for-like (feed + power + capital + reference fixed ~26),793.8,801,"LCoM, Fig. 6","fitted X 0.275, purge 0.0237; H2 0.2009 t/t",-7.233,-0.903
+"B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)",VD minus Slotboom (kinetic-model spread),46.02,84,Fig. 6,same plant and prices; only the catalyst kinetics differ,-37.98,-45.22
+"B5 Nyari 2022, three kinetic models (X and purge fitted to each model's recycle ratio and yield)",Kiss minus Slotboom,9.592,22,Fig. 6,,-12.41,-56.4
+B6 Nieminen 2019 gas-phase case at its own point and assumptions,H2,590.2,703,0.234 t/t x 3000 (derived),model H2 0.1967 t/t: the reference loses 89 kg/h H2 and 560 kg/h CO2 in flash gases (carbon efficiency 0.805 vs model 0.954),-112.8,-16.04
+B6 Nieminen 2019 gas-phase case at its own point and assumptions,CO2,71.96,85,1.706 x 50 (derived),,-13.04,-15.34
+B6 Nieminen 2019 gas-phase case at its own point and assumptions,"TOTAL, like-for-like (+ reference fixed 150, CW 43, steam credit -50)",921.6,1028,production cost without the O2 credit (p18),,-106.4,-10.35
+"B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh)","H2 1 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9)",298.9,254,Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0,"model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency)",44.9,17.68
+"B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh)","H2 3 EUR/kg, CO2 40 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9)",735.3,691,Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0,"model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency)",44.32,6.414
+"B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh)","H2 4.5 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9)",965.6,921,Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0,"model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency)",44.57,4.84

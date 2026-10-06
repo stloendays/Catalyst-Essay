@@ -22,6 +22,8 @@ Exposed knobs (defaults = canonical engine values):
   recycle_mult                 multiplies the recycle flow used for recycle compression and for the gas-flow-sized
                                equipment (reactor-inlet flow = fresh + recycle_mult * recycle); purge, feed and
                                species balance unchanged (cost-term sensitivity for loops that circulate more gas)
+  ec_ref                       reference equipment-cost split (dict, M EUR at the anchor); default: the engine's split
+                               (EC_SI_TABLE_S17 below is the anchor SI's tabulated split)
 """
 from __future__ import annotations
 
@@ -35,6 +37,15 @@ sys.path.insert(0, str(REPO / "data" / "meoh"))
 import meoh_d01_model as M  # noqa: E402
 import meoh_general_model as G  # noqa: E402
 
+# Anchor equipment costs as tabulated in the Campos 2022 SI, Table S17 (one-step, M EUR 2020), mapped onto the engine's
+# eleven items. HE1-HE8 (5.56) are split between preheaters and other exchangers in the engine's own proportion;
+# the distillation item takes column 2.06 + condenser 0.43 + reboiler 0.50. Total 85.51 = engine total 85.5.
+_hx = 5.56
+EC_SI_TABLE_S17 = {"Reactor modules": 32.18, "Carbon dioxide compressor": 9.15 + 8.89 + 9.06,
+                   "Hydrogen compressor": 10.02, "Recycle/reflux compressor": 0.52,
+                   "Reactor preheaters": _hx * 27.0 / 50.0, "Heat exchangers": _hx * 23.0 / 50.0,
+                   "Flash drums": 0.18, "Distillation column": 2.06 + 0.43 + 0.50, "Pump": 0.11,
+                   "Furnace & blower": 3.54 + 0.56, "Turbine & generator": 1.04 + 1.71}
 CAT_REF = (18.1, 3.0)          # anchor Table 2: Cu/ZnO/Al2O3 18,100 EUR/t; Section 2.7: catalyst lifetime 3 years
 ANCHOR_CAT_REPL_MEUR_Y = M.SOURCE_CAT_T * 1000.0 * CAT_REF[0] / CAT_REF[1] / 1e6   # 17.31 M EUR/y
 
@@ -48,7 +59,7 @@ def economics(X, SMeOH, SCH4, SCO, *, STY_per_g_metal=None, metal_wt=None, STY_p
               h2_price=M.H2_PRICE_EUR_T, co2_price=M.CO2_PRICE_EUR_T, elec_price=M.ELEC_EUR_MWH,
               prod_tph=M.PROD_TPH, hours=M.HOURS_Y, ir=M.IR, life=M.PLANT_LIFE_Y, capex_mult=1.0, opex_mult=1.0,
               loop_dp=M.LOOP_DP_BAR, cat_term=None, lang=M.LF, h2_feed_bar=M.H2_FEED_PRESSURE_BAR,
-              co2_feed_bar=M.CO2_FEED_PRESSURE_BAR, recycle_mult=1.0):
+              co2_feed_bar=M.CO2_FEED_PRESSURE_BAR, recycle_mult=1.0, ec_ref=None):
     x = G.resolve_x_co(x_co, X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar)
     loop = G.loop_balance(X, SMeOH, SCH4, SCO, h2_co2, purge, x)
     P = np.asarray(P_bar, dtype=float)
@@ -80,7 +91,7 @@ def economics(X, SMeOH, SCH4, SCO, *, STY_per_g_metal=None, metal_wt=None, STY_p
     gas_r = reactor_in / M.REF_REACTOR_IN_KMOL_H
     liq_r = crude / M.REF_CRUDE_LIQ_KMOL_H
     pur_r = np.maximum(purge_flow, 1e-12) / M.REF_PURGE_KMOL_H
-    E, Gx, C = M.EC_REF, M.EXP_GENERAL, M.EXP_COMP
+    E, Gx, C = (ec_ref or M.EC_REF), M.EXP_GENERAL, M.EXP_COMP
     ec = {
         "Reactor modules": E["Reactor modules"] * (catalyst_t / M.SOURCE_CAT_T) ** Gx,
         "Carbon dioxide compressor": E["Carbon dioxide compressor"] * (p_co2 / M.REF_POWERS[0]) ** C,

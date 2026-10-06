@@ -136,6 +136,22 @@ VARIANTS = {
     # industrial loops circulate more gas than the model loop at the same per-pass conversion (Lurgi CO2 pilot:
     # recycle ratio 4.5 at 35-45 % per pass vs 1.7 in the model, Table A row M5) -> recycle flow x 2.68
     "recycle_flow_x2.68": dict(recycle_mult=2.68),
+    # primary-source values added 2026-10-06 (second pass)
+    # Perez-Fortes 2016: 44.5 t replaced yearly at 95.24 EUR/kg (AE p727; JRC EUR 27629 p37)
+    "catalyst_repl_95.24EURkg_1y": dict(cat_term=(95.24, 1.0)),
+    # Nieminen 2019 / Sollai 2023: 95.24 EUR/kg, 4 y
+    "catalyst_repl_95.24EURkg_4y": dict(cat_term=(95.24, 4.0)),
+    # 95.24 EUR/kg with the upper industrial lifetime 6 y (Dieterich 2020: 4-6 y)
+    "catalyst_repl_95.24EURkg_6y": dict(cat_term=(95.24, 6.0)),
+    # Perez-Fortes 2016 stream table: loop pressure drop 78.5 -> 74.3 bar
+    "loop_dp_4.2bar": dict(loop_dp=4.2),
+    # anchor equipment split as tabulated in the Campos SI (Table S17) instead of the engine's figure-pixel split
+    "ec_split_campos_SI": dict(ec_ref=V.EC_SI_TABLE_S17),
+    # recycle weight calibrated so the model reproduces Nyari 2022's kinetic-model cost spread (VD - Slotboom 84 EUR/t;
+    # model 83.4 with loop dP 4.2 bar and recycle-driven costs x10)
+    "recycle_weight_nyari": dict(loop_dp=4.2, recycle_mult=10.0),
+    "combined_primary_cat1y_dp4.2_recycle10": dict(cat_term=(95.24, 1.0), loop_dp=4.2, recycle_mult=10.0),
+    "combined_primary_cat4y_dp4.2_recycle10": dict(cat_term=(95.24, 4.0), loop_dp=4.2, recycle_mult=10.0),
     "combined_cat3y_dp3.75": dict(cat_term=(18.1, 3.0), loop_dp=3.75),
     "combined_cat3y_dp3.75_recycle2.68": dict(cat_term=(18.1, 3.0), loop_dp=3.75, recycle_mult=2.68),
     "combined_cat3y_dp3.75_h2half": dict(cat_term=(18.1, 3.0), loop_dp=3.75, h2_price=3097.4 / 2),

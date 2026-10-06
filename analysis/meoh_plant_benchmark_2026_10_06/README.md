@@ -1,270 +1,292 @@
 # Methanol plant model benchmarked against real plants and process TEAs — 2026-10-06
 
-Question: does the CO2-to-methanol recycle-economics model that decides the headline result (paper STY leader ≠
-plant-cost leader in 33 of 83 published comparison groups, `analysis/meoh_literature_inversion_2026_10_05/`) behave like
-a real plant, and could any disagreement change that result?
+Question: does the CO2-to-methanol recycle-economics model behave like a real plant? This is the model that decides the
+headline result: the paper's STY leader ≠ the plant-cost leader in 33 of 83 published comparison groups
+(`analysis/meoh_literature_inversion_2026_10_05/`). And could any disagreement change that result?
 
-**Answer.**
-- The model's loop sits inside the industrial and pilot-plant ranges for pressure, temperature, H2/CO2, H2 and CO2
-  consumption, carbon efficiency, compression electricity, recycle ratio (at conventional per-pass conversion) and
-  catalyst space velocity.
-- Out of sample, it reproduces the anchor TEA's three-step design:
-  - +1.2 % on net production cost;
-  - +0.2 % once the catalyst charge is costed per inventory;
-  - +4 % on equipment cost.
-- At the Pérez-Fortes (2016) scale it reproduces the fixed capital to −4 % (secondary values; primary pending).
-- Three terms differ from practice:
-  1. catalyst replacement is held constant instead of scaling with inventory;
-  2. the loop pressure drop is 1.5 bar against 3–4 bar in industrial loops;
-  3. at high per-pass conversion the model loop circulates less gas than the Lurgi CO2 pilot.
-- Setting each of these to the reference value, alone or together, gives **32–33 of 83** groups with a different winner
-  (headline 33/83) and 18–19 of 44 papers.
-- The disagreements do not change the ranking result. Methane and purge losses (H2 + CO2) are the largest cost-gap term
-  in 31 of the 33 mismatched groups, as they are the dominant cost in every reference TEA.
+This is the **second pass**. All values now come from primary full texts, except three pilot-plant rows that only
+Dieterich 2020 tabulates. The first pass used Pérez-Fortes 2016 and Szima 2018 only through review tables, and read the
+anchor's cost split off a figure. What changed is listed in §6.
 
-Scripts (interpreter `D:\Research\CatalystForge\.venv\Scripts\python.exe`, `PYTHONIOENCODING=utf-8`):
+**Answer**
+
+- **Plant metrics.** At each study's own operating point the model loop agrees with the Aspen/CHEMCAD loops of
+  Campos 2022, Pérez-Fortes 2016, Van-Dal 2013, Szima 2018, Nyári 2022 and Nieminen 2019, and with the industrial
+  ranges:
+  - H2 0.193–0.210 t/t against 0.189–0.234;
+  - CO2 1.40–1.53 t/t against 1.37–1.71;
+  - carbon efficiency 0.90–0.98 against 0.81–0.98;
+  - compression 0.17–0.25 MWh/t against 0.14–0.62;
+  - recycle ratio 2.6–7.7 against 2.7–7.7;
+  - GHSV of catalysts sized from measured STY 1.2–2.9 × 10⁴ h⁻¹ against 0.6–2.1 × 10⁴.
+- **Cost, at each study's own prices, scale and finance.** On the cost terms every TEA shares (feed, power, catalyst,
+  capital, plus the study's own fixed O&M), the model reproduces:
+  - Pérez-Fortes to −2.4 % (706 vs 723.6 €/t);
+  - Szima to +1.3 % (853 vs 842);
+  - Nyári's three kinetic models to −0.9 to −5.1 %;
+  - the anchor three-step design to +1.2 % (+0.2 % with the catalyst charge).
+- **Pérez-Fortes, 724 vs 913 €/t.** 723.6 €/t is Pérez-Fortes's NPV = 0 **breakeven price**: production cost 666 plus
+  58 of capital recovery. It is not the 724 "production cost" the secondary tables implied.
+  - Run at Pérez-Fortes's own point, the model's full NPC is 841 €/t, not 913.
+  - The +118 €/t that remains is the anchor's cost-accounting convention: 57 €/t of catalyst-independent direct OPEX
+    plus 10 % of NPC for distribution, selling and R&D, about 126 €/t together. It is common to every catalyst.
+- **Headline.**
+  - Every loop term set to a primary value leaves it at **32–34/83**: loop ΔP 4.2 bar; equipment split from the Campos
+    SI; recycle costs ×10, which reproduces Nyári's kinetic-model cost spread; prices.
+  - **The catalyst replacement charge is the one term that moves it.** The anchor's 18.1 €/kg every 3 y gives 32/83. At
+    the 95.24 €/kg used by Pérez-Fortes, Nieminen, Sollai and Battaglia the result depends on lifetime: 30/83 at 6 y,
+    27/83 at 4 y, and 18/83 at Pérez-Fortes's yearly replacement.
+  - An expensive, short-lived catalyst makes inventory, and so STY, count more, and paper and plant rankings converge.
+    Even then 22–36 % of groups keep a different winner.
 
 ```
-python analysis/meoh_plant_benchmark_2026_10_06/lit_sensitivity.py   # 10 variants of the 33/83 rerun, ~2.5 min on 10 cores
+python analysis/meoh_plant_benchmark_2026_10_06/lit_sensitivity.py   # 18 variants, ~2.7 min on 8 workers
 python analysis/meoh_plant_benchmark_2026_10_06/run_benchmark.py     # Tables A and B, CAPEX scale, driver decomposition
 ```
 
-The frozen models (`data/meoh/meoh_d01_model.py`, `data/meoh/meoh_general_model.py`) are not modified.
-`plant_variant.py` restates `meoh_general_model.economics` with the prices, scale, finance, loop pressure drop, catalyst
-replacement and recycle flow exposed as keywords. At default keywords it equals the frozen model to 1.8e-12 EUR/t on 300
-random states; `run_benchmark.py` asserts this. `lit_sensitivity.py` reproduces the frozen headline exactly before running
-any variant: 33/83 groups, 1019/8458 inversions, costs to 4.9e-6 relative (the CSV's 6-significant-digit STY).
+Interpreter: `D:\Research\CatalystForge\.venv\Scripts\python.exe`, with `PYTHONIOENCODING=utf-8`. Use at most 8 workers
+(`BENCH_WORKERS`): each takes about 0.8 GB.
 
-## 1. Sources
+- **Frozen models.** `data/meoh/meoh_d01_model.py` and `data/meoh/meoh_general_model.py` are unchanged.
+- **`plant_variant.py`.** Restates `meoh_general_model.economics` with the following exposed as keywords:
+  - prices, scale and hours;
+  - finance and CEPCI year;
+  - loop pressure drop;
+  - catalyst replacement;
+  - recycle-flow multiplier;
+  - equipment split.
 
-Every number with its locator, conversion and kind is in `reference_values.csv`. The `kind` column takes four values:
+  At default keywords it equals the frozen model to 1.8e-12 EUR/t; `run_benchmark.py` asserts this.
+- **`lit_sensitivity.py`.** Reproduces the frozen headline exactly (33/83, 1019/8458) before running any variant.
 
-- `source_fact`: printed in the source;
-- `derived`: arithmetic on printed numbers, shown in the row;
-- `figure_reading`: measured on a rendered figure;
-- `secondary`: a value tabulated by a review.
+## 1. Sources (`reference_values.csv`, 249 values)
 
-| ID | Source | Role | Obtained |
-|---|---|---|---|
-| CAMPOS22 | Lacerda de Oliveira Campos et al., *Processes* 10, 1535 (2022), doi 10.3390/pr10081535 | model anchor, one-step loop; **calibration point, not independent** | full text (KIT repository); SI blocked |
-| CAMPOS22_3S | same paper, three-step loop with intermediate condensation | **out-of-sample design** on the same price basis | full text |
-| DIETERICH20 | Dieterich et al., *Energy Environ. Sci.* 13, 3207 (2020), doi 10.1039/d0ee01187h | industrial loops: Table 8 licensor data; CO2 pilots: Table 11 (Lurgi, Mitsui, CRI); TEA compilation: Table 12 | full text |
-| OTT12 | Ott et al., *Methanol*, Ullmann's (2012), doi 10.1002/14356007.a16_465.pub3 | low-pressure loops, catalyst lifetime | full text |
-| HANSEN08 | Hansen & Højlund Nielsen, *Handbook of Heterogeneous Catalysis* (2008), doi 10.1002/9783527610044.hetcat0148 | recycle ratio, productivity | full text |
-| GONZALEZ19 | González-Garay et al., *Energy Environ. Sci.* 12, 3425 (2019), doi 10.1039/c9ee01673b | Aspen CO2 loop, cost shares | full text; ESI (prices) not obtained |
-| HANK18 | Hank et al., *Sustainable Energy Fuels* 2, 1244 (2018), doi 10.1039/c8se00032h | small PEM-coupled plants | full text |
-| BOS20 | Bos, Kersten, Brilman, *Appl. Energy* 264, 114672 (2020), doi 10.1016/j.apenergy.2020.114672 | once-through condensing reactor | accepted version (U. Twente) |
-| RIHKO10 | Rihko-Struckmann et al., *Ind. Eng. Chem. Res.* 49, 11073 (2010), doi 10.1021/ie100508w | Aspen loop, recycle ratio | full text |
-| MARLIN18 | Marlin et al., *Front. Chem.* 6, 446 (2018), doi 10.3389/fchem.2018.00446 | CRI process description (few numbers) | full text |
-| CRI_OLAH, CRI_SHUNLI | carbonrecycling.com project pages (George Olah; Shunli) and Dieterich 2020 p. 3221 | operating plants: capacity, CO2 use, investment | web pages, 2026-10-06 |
-| PEREZFORTES16, SZIMA18 | Pérez-Fortes et al. 2016 (manuscript ref. 14) and Szima & Cormos 2018 **as tabulated by** Dieterich 2020 Table 12 and Mbatha et al., *Sustainable Energy Fuels* 5, 3490 (2021), Tables 1 and 15 | rigorous CO2 TEAs | **secondary only**; primaries are Elsevier (manual download) |
+Each value has its locator (PDF page / printed page, table or figure) and the conversion applied. The `kind` column:
 
-Mbatha 2021 Table 15 prints two Pérez-Fortes cells whose meaning is unclear: 295 M€/yr and 496.5 €/t per year. They are
-not used. The 724 €/t production price and the 181 k€/(t/d) CAPEX come from Dieterich Table 12, which lists them under
-named columns.
+| Kind | Rows | What it means |
+|---|---:|---|
+| `source_fact` | 175 | printed number |
+| `derived` | 60 | arithmetic on printed numbers, shown in the row |
+| `secondary` | 13 | Lurgi and Mitsui CO2 pilots and the CRI George Olah operating conditions, as tabulated by Dieterich 2020. Their primaries were not downloaded. |
+| `figure_reading` | 1 | Nyári's Fig. 6 cost split, which the paper does not tabulate |
+
+When a value replaced an earlier secondary value or figure reading, the old value is kept in `note`.
+
+| ID | Source | Role |
+|---|---|---|
+| CAMPOS22 (+ SI) | Lacerda de Oliveira Campos et al., *Processes* 10, 1535 (2022), 10.3390/pr10081535, and its Supplementary Material (Tables S9–S19) | model anchor (calibration point) and its three-step design (out of sample) |
+| PEREZFORTES16 | Pérez-Fortes et al., *Appl. Energy* 161, 718 (2016), 10.1016/j.apenergy.2015.07.067; JRC report EUR 27629 (10.2790/981669) | rigorous CO2 TEA, H2 bought (manuscript ref. 14) |
+| SZIMA18 | Szima & Cormos, *J. CO2 Util.* 24, 555 (2018), 10.1016/j.jcou.2018.02.007 | rigorous TEA; electrolyser electricity inside, electrolyser CAPEX excluded |
+| NYARI22 | Nyári et al., *Energy Convers. Manag.* 271, 116200 (2022), 10.1016/j.enconman.2022.116200 | one plant, three CZA kinetic models: catalyst → cost |
+| NIEMINEN19 | Nieminen, Laari, Koiranen, *Processes* 7, 405 (2019), 10.3390/pr7070405 | gas-phase reference loop, H2 bought |
+| SCHORN21 | Schorn et al., *Adv. Appl. Energy* 3, 100050 (2021), 10.1016/j.adapen.2021.100050 | NPC grid over H2 and CO2 prices |
+| VANDAL13 | Van-Dal & Bouallou, *J. Clean. Prod.* 57, 38 (2013), 10.1016/j.jclepro.2013.06.008 | loop (no economics) |
+| SOLLAI23, BATTAGLIA21, ZHANG19 | *J. CO2 Util.* 68, 102345 (2023); 44, 101407 (2021); *Energies* 12, 3742 (2019) | loops with the electrolyser inside: Table A only |
+| CORDERO22 | Cordero-Lanzac et al., *J. Energy Chem.* 68, 255 (2022), 10.1016/j.jechem.2021.09.045 | In2O3/Co plant; origin of the anchor's prices (3.5 USD/kg and 50 USD/t ÷ 1.13) |
+| BOZZANO16, DIETERICH20, OTT12, HANSEN08, NESTLER18 | industrial-loop reviews (Prog. Energy Combust. Sci. 2016; EES 2020; Ullmann's 2012; Handbook Het. Catal. 2008; CIT 2018) | industrial ranges |
+| GONZALEZ19, HANK18, BOS20, RIHKO10, MARLIN18, CRI_OLAH, CRI_SHUNLI | first pass, unchanged | |
+
+Yusuf 2023 (Fuel 332, 126027) was read but is not used. It feeds H2/CO2 = 7, gives no CAPEX figure, and reports a
+yield above its own conversion. Nyári 2020 (J. CO2 Util.) is still missing and is left out.
 
 ## 2. Table A — plant metrics (`reconciliation_plant.csv`)
 
-Model columns:
-- **M1**: anchor inputs (calibration).
-- **M2**: three-step inputs (out of sample).
-- **M3**: canonical economic optimum, 5 wt% Re at 200 °C, 2 % purge, inert CO (943.30 €/t).
-- **M4**: canonical optimum at its own purge, 1 wt% Re at 200 °C, 0.5 % purge (895.25 €/t).
-- **M5–M7**: the model at the reference studies' own operating points:
-  - M5, Lurgi CO2 pilot: X 0.40, purge set so carbon efficiency is 95.25 %, catalyst from GHSV 10,500 h⁻¹;
-  - M6, González-Garay: X 0.141, carbon efficiency 91.5 %;
-  - M7, Pérez-Fortes: 78 bar, X 0.22, 2 % purge.
+Model columns, with recycled CO and the central RWGS rule unless noted:
 
-Plant-size flows are at 145 t/h. GHSV and STY use the anchor's bed density of 1.05 t/m³. "*" marks secondary values.
+| Column | Case |
+|---|---|
+| M1 | anchor one-step (calibration) |
+| M2 | anchor three-step inputs |
+| M3 | canonical optimum, 5 wt% Re 200 °C, 2 % purge, inert CO (943.30 €/t) |
+| M4 | 1 wt% Re 200 °C at 0.5 % purge (895.25) |
+| M5 | Lurgi CO2 pilot point\* |
+| M6 | González-Garay point |
+| M7 | Pérez-Fortes: X 0.2197, 76 bar, inlet H2/CO2 3.8, outlet 288 °C, 1 % purge, 44.5 t |
+| M8 | Van-Dal: X 0.33, 75.7 bar, 1 % purge, 44.5 t |
+| M9 | Szima: X 0.3005, 80 bar, 1 % purge |
+| M10, M11 | Nyári Slotboom and VD: X and purge fitted to each model's recycle ratio and yield |
+| M12 | Nieminen: X 0.203, S 0.961, 50 bar, 1 % purge, 3.49 t |
 
-| Metric | M1 | M2 | M3 | M4 | M5 | M6 | M7 | References |
-|---|---|---|---|---|---|---|---|---|
-| Loop P (bar) | 70 | 70 | 100 | 100 | 80 | 50 | 78 | LP loops 50–100 (Ott, Dieterich); Lurgi CO2 pilot 80; Mitsui 50; CRI Olah 101; G-G 50; Hank 40; Bos 50; Rihko 50 |
-| T (°C) | 247.5 | 258.5 | 200 | 200 | 250 | 224.5 | 210 | 200–300; Lurgi pilot and CRI Olah 250; G-G 221–228; Rihko 220 |
-| Fresh H2/CO2 | 2.99 | 3.00 | 3.09 | 3.01 | 3.00 | 2.98 | 2.99 | Campos 3.0; Rihko 3.0; G-G slightly <3 |
-| Per-pass CO2 conversion | 0.285 | 0.539 | 0.33 | 0.19 | 0.40 | 0.141 | 0.22 | Campos 0.285 / 0.539; Lurgi CO2 pilot 0.35–0.45; SRC 0.36; G-G 0.124–0.158; Pérez-Fortes* 0.22; Szima* 0.30 |
-| Recycle ratio (mol recycle / mol fresh) | 2.84 | 1.12 | 3.40 | 7.33 | **1.68** | 6.63 | 3.83 | Campos 2.81 / 1.21; conventional 3–5 (Dieterich, Hansen); Lurgi SRC 3–4; MegaMethanol 2–2.7; **Lurgi CO2 pilot 4.5**; Mitsui 2.6–3.2; Rihko 3.2 |
-| Purge (fraction of separator gas) | 0.02 | 0.02 | 0.02 | 0.005 | 0.031 | 0.013 | 0.02 | Campos 0.02; Mitsui 7–10 % of reactor inlet; LPMeOH 2–6 % of recycle |
-| Purge flow (kmol/h) | 1105 | 420 | 1377 | 689 | 1031 | 1780 | 1520 | Campos 1100 / 455 |
-| H2 (t/t MeOH) | 0.199 | 0.192 | 0.208 | 0.195 | 0.198 | 0.205 | 0.202 | stoich. 0.189; Campos 0.200 (Table 6) / 0.193; Hank 0.189–0.193; Rihko 0.197 |
-| CO2 (t/t MeOH) | 1.449 | 1.398 | 1.473 | 1.417 | 1.442 | 1.501 | 1.477 | stoich. 1.374; Campos 1.457 / 1.406; CRI Olah 1.375–1.40; CRI Shunli 1.455; Hank 1.511–1.526; Rihko 1.436; Bos 1.385 |
-| Carbon efficiency | 0.948 | 0.983 | 0.932 | 0.969 | 0.953 | 0.915 | 0.930 | Campos 0.943 / 0.977; conventional 0.93–0.98; Lurgi CO2 pilot 0.940–0.965; Rihko 0.968; G-G >0.915; Hank 0.90 |
-| Compression electricity (MWh/t) | 0.199 | 0.188 | 0.246 | 0.240 | 0.210 | 0.183 | 0.217 | Campos whole plant 0.327 gross / 0.121 net; Bos feed compressors 0.22; Rihko 1.33 (97 kg/h, feed from 1 bar) |
-| Catalyst inventory (t) | 2869 | 1434 | 161 | 264 | 118 | 2869 | 2869 | Campos 2869 / 1434 |
-| GHSV (h⁻¹) | **617** | 671 | 13,050 | 14,080 | 10,500 | 1,250 | 787 | SRC 6,000–12,000; Lurgi CO2 pilot 10,500; Mitsui 10,000; Campos (derived) 604 |
-| STY (kg/L/h) | 0.053 | 0.106 | 0.95 | 0.58 | 1.29 | 0.053 | 0.053 | CO2 feed 0.4–0.8; syngas 0.7–2.3 (Dieterich) |
-| Catalyst lifetime | 3 y, in the constant residual | | | | | | | Campos 3 y; Ott 2–5 y; Dieterich 4–6 y (up to 8) |
-| Loop ΔP (bar) | **1.5** | | | | | | | Lurgi SRC loop 3.5–4; Toyo loop 3 (Dieterich Table 8) |
-| NPC (€/t, anchor prices) | 923.64 | 881.25 | 943.30 | 895.25 | 894.81 | 948.78 | 944.40 | Campos 920 (Table 7: 924.0) / 868 (871.2) |
+Selected rows follow. All rows and every reference value are in the CSV.
 
-M6 and M7 inherit the anchor's low-STY CZA bed (2869 t), so their GHSV is the anchor's, not the reference's.
+| Metric | M1 | M3 | M7 PF | M8 VD | M9 Szima | M10 Ny-Sl | M11 Ny-VD | M12 Nieminen | References (primary) |
+|---|---|---|---|---|---|---|---|---|---|
+| Per-pass CO2 conversion | 0.285 | 0.33 | 0.2197 | 0.33 | 0.3005 | 0.275 (fit) | 0.118 (fit) | 0.203 | PF 0.2197; VD 0.33; Szima 0.3005; Nieminen 0.203; Zhang 0.21 |
+| Recycle ratio | 2.84 | 3.40 | 5.38 | 2.65 | 2.92 | 2.89 | 7.67 | 4.75 | Campos 2.81; PF ≈4.7; VD 5.0; Nieminen 5.3; Zhang 5.2; Nyári 2.89–7.67; Bozzano ≈5; industrial 3–5 |
+| H2 (t/t) | 0.199 | 0.208 | 0.199 | 0.193 | 0.193 | 0.201 | 0.210 | 0.197 | Campos 0.200 (pure); **PF 0.199**; VD 0.204; **Szima 0.194**; **Nyári 0.202 / 0.211**; Nieminen 0.234; Schorn 0.189 |
+| CO2 (t/t) | 1.449 | 1.473 | 1.438 | 1.405 | 1.407 | 1.466 | 1.534 | 1.439 | Campos 1.457; PF 1.460; VD 1.484; Szima 1.41; Nyári 1.47 / 1.53; Nieminen 1.706 |
+| Carbon efficiency | 0.948 | 0.932 | 0.955 | 0.978 | 0.976 | 0.937 | 0.896 | 0.954 | Campos 0.943; PF 0.9385; VD 0.925; Szima 0.9725; Nyári 0.937 / 0.896; Nieminen 0.805 |
+| Compression (MWh/t) | 0.199 | 0.246 | 0.213 | 0.201 | 0.208 | 0.201 | 0.223 | 0.169 | compressors only: Campos 0.325, PF 0.305, Szima 0.229, Sollai 0.207; whole plant: Nyári 0.140 / 0.474, Nieminen 0.624, Schorn 0.154 |
+| GHSV (h⁻¹) | 617 | 13,050 | 24,780 | 15,010 | 2,050 | 13,160 | 28,920 | 11,710 | PF ≈21,000; SRC 6,000–12,000 |
+| STY (kg/L/h) | 0.053 | 0.95 | 1.30 | 1.40 | 0.18 | 1.11 | 1.06 | 0.68 | PF 1.31; VD 1.42; CO2 feed 0.4–0.8 |
+| Catalyst lifetime | 3 y, in the constant residual | | | | | | | | PF 1 y (yearly replacement); Nyári 3; Campos 3; Nieminen, Sollai, Zhang 4; Bozzano 3–4; Dieterich 4–6 |
+| Loop ΔP (bar) | 1.5 | | | | | | | | **PF 4.2; VD 4.6; Zhang 4**; Schorn 1; Lurgi SRC 3.5–4 |
 
-## 3. Table B — cost (`reconciliation_cost.csv`, `capex_scale.csv`)
+\*M5 is unchanged from the first pass: X 0.40, carbon efficiency 95.25 %, GHSV 10,500. Its recycle ratio of 1.68 against
+the pilot's 4.5 remains a secondary-value comparison.
 
-Currency and year: the model is in EUR at CEPCI 2020, the anchor's basis (USD equipment converted at 1.13 USD/EUR,
-Campos p. 11).
-- **Campos rows:** same basis, so no conversion.
-- **Pérez-Fortes:** the secondary sources do not state the cost year. Model capital is left in EUR 2020; restating it
-  to 2014 with CEPCI 576.1/596.2 would lower ACC by 3 % (−2 €/t).
-- **Shunli:** USD 2022 converted at the 2022 ECB average of 1.053 USD/EUR.
+## 3. Table B — cost at each study's own assumptions (`reconciliation_cost.csv`)
+
+Each model run uses the study's own:
+- prices for H2, CO2 and electricity;
+- catalyst price and lifetime;
+- capacity and hours;
+- discount rate and plant life;
+- CEPCI year (2014, 2017, 2018 or 2021 vs 2020; CEPCI annual averages 576.1 / 567.5 / 603.1 / 708.0 / 596.2).
+
+"Like-for-like" adds up the terms every TEA shares: feed + compression electricity + catalyst replacement + capital
+annuity at the study's own rate, plus the study's own fixed O&M. "Anchor convention" is the model's full NPC, which
+also carries the anchor's catalyst-independent residual direct OPEX and the 10 % of NPC for selling and R&D.
 
 | Case | Term | Model | Reference | Deviation | Attribution |
 |---|---|---:|---:|---:|---|
-| **B1 Campos one-step** (calibration) | H2 | 615.0 | 662.1 (Fig. 11b, ±3) | −47 (−7 %) | Model uses 0.1985 t H2/t. The Fig. 11b bar implies 0.214 t/t, but the paper's own feed excess (Table 6) gives 0.200 t/t (model −0.8 %). The gap sits in the constant residual. |
-| | CO2 | 64.2 | 63.8 | +0.4 | 1.449 vs 1.457 t/t |
-| | electricity | 17.9 | 9.5 (net, after the Rankine credit) | +8.4 | Model counts compressors only (28.9 MW) and no Rankine credit |
-| | catalyst replacement | 0 (inside residual) | 12.9 (bar); 14.9 from inputs | — | not catalyst-dependent in the model |
-| | ACC | 46.0 | 46.1 | −0.1 | |
-| | indirect OPEX | 123.6 | 123.6 | −0.1 | |
-| | **total** | **923.6** | **924.0** (920 in text) | **−0.03 %** | calibration identity |
-| **B2 Campos three-step** (out of sample) | EC (M€) | 68.7 | 66.1 | +4.0 % | model topology lacks the intermediate condensers and flash drums |
-| | ACC | 37.0 | 35.6 | +4.0 % | |
-| | direct OPEX | 730.6 | 723.8 | +0.9 % | |
-| | **total** | **881.3** | **871.2** (868 in text) | **+1.2 %** | |
-| | saving vs one-step | 42.4 | 52.8 | −10.4 | catalyst halved (2869 → 1434 t), worth 7.5 €/t in the reference, constant in the model |
-| | same, with catalyst term (18.1 €/kg, 3 y) | 50.7 | 52.8 | −2.1 | |
-| | total, with catalyst term | 873.0 | 871.2 | **+0.2 %** | |
-| | recycle / purge (kmol/h) | 20,588 / 420 | 22,581 / 455 | −9 % / −8 % | |
-| **B3 Pérez-Fortes\*** (H2 3090 €/t, CO2 0, electricity 95.1 €/MWh, 440 kt/a, 78 bar, X 0.22) | FCI (M€) | 236.4 | 235.3 (181 k€ per t/d × 1300 t/d) | **+0.4 %** | |
-| | H2 | 625.7 | — | | |
-| | ACC + electricity | 89.7 | 98.3 (= 724 − H2) | −8.6 | like for like |
-| | residual direct + indirect OPEX | 197.5 | ≈ 0 | | Anchor (Peters/Albrecht) convention: 57.0 residual direct, 49.3 labour and 0.081·FCI, 91.3 for the 10 % of NPC. Catalyst-independent, so common-mode. |
-| | **total** | **912.9** | **724** | **+26 %** | the whole gap is the cost-accounting boundary, not plant behaviour |
+| **B1 Campos one-step** (calibration; SI Table S19) | H2 | 615.0 | 663.4 | −48 | Campos prices the 31.1 t/h H2 **stream**, which includes 0.5 % N2 (2.0 t/h). Pricing the model's pure H2 the same way gives ×1.0698 = 657.9. |
+| | CO2 / catalyst / power | 64.2 / 0 / 17.9 | 64.6 / 14.9 / 10.9 | | The model holds the catalyst in the constant residual. Model power is compressors only (28.9 vs 47.18 MW) with no Rankine credit (29.82 MW). |
+| | ACC / indirect / **total** | 46.0 / 123.6 / **923.6** | 46.1 / 123.6 / **924.0** | **−0.03 %** | calibration identity |
+| **B2 Campos three-step** (out of sample) | total | 881.3 | 871.2 | +1.2 % | |
+| | total with the catalyst term (18.1 €/kg, 3 y) | 873.0 | 871.2 | **+0.2 %** | |
+| | saving vs one-step | 42.4 | 52.8 | −10.4 | the halved catalyst charge, 7.5 €/t, is constant in the canonical model |
+| | saving with the catalyst term | 50.7 | 52.8 | −2.1 | |
+| | EC / recycle / purge | 68.7 M€ / 20,588 / 420 | 66.1 / 22,581 / 456 | +4 % / −9 % / −8 % | |
+| **B3 Pérez-Fortes 2016** (H2 3090, CO2 0, electricity 95.1, 55.1 t/h, 8 %, 20 y, CEPCI 2014, catalyst 95.24 €/kg every year) | H2 | 613.6 | 615.7 (95.9 % of VCP) | −0.3 % | model 0.1986 t/t vs 0.199 |
+| | power + utilities | 20.2 | 16.7 | +3.5 | no turbine credit in the model |
+| | catalyst | 9.6 | 9.6 | 0 | 44.5 t × 95.24 €/kg / 1 y in both |
+| | capital | 38.1 | 57.6 | −19.4 | Reference = breakeven 723.6 minus cost 666.05. It includes the 3-year build and ramp-up. Model FCI is 151.8 M€ against TFCC 200 M€; the difference is Pérez-Fortes's 304-SS material factor 1.3 × location 1.043 (151.8 × 1.356 = 206). |
+| | fixed O&M | 33.6 | 24.6 | +9.1 | |
+| | **like-for-like total** | **706.1** | **723.6** | **−2.4 %** | |
+| | anchor-convention total | 841.4 | 723.6 | +16 % | +126 €/t of residual direct + 10 % of NPC, common-mode |
+| **B4 Szima 2018** (H2 = 53.4 kWh/kg × 60 €/MWh = 3204 €/t; CO2 credit 10 €/t; 8 %, 25 y; CEPCI 2017) | H2 / CO2 / catalyst | 619.1 / −14.1 / 33.5 | 616.9 / −14.1 / 33.5 | 0.4 % / 0 / 0 | |
+| | capital | 66.6 | 56.6 | +10.0 | model FCI 65.0 vs TFCC 55.55 M€ |
+| | **like-for-like total** | **852.7** | **842** (VOC + FOC + capital) | **+1.3 %** | |
+| **B5 Nyári 2022** (H2 3000, CO2 50, electricity 40, 7.4 t/h, 7 %, 20 y; X and purge fitted) | Kiss / VD / Slotboom like-for-like | 803 / 840 / 794 | 823 / 885 / 801 | −2.4 / −5.1 / −0.9 % | |
+| | **VD − Slotboom** (only the kinetics differ) | **46** | **84** | | The H2 term matches: model +27.6, reference +27.7. The reference adds electricity (474 vs 140 kWh/t), steam, cooling and capital for the larger recycle. The model reproduces 84 only with loop ΔP 4.2 bar and recycle-driven costs ×10 (variant `recycle_weight_nyari`). |
+| **B6 Nieminen 2019** (H2 3000, CO2 50, electricity 60, 2.275 t/h, 5 %, 20 y; catalyst 95.24 €/kg, 4 y) | like-for-like | 922 | 1028 (no O2 credit) | −10 % | Nieminen loses 89 kg/h H2 and 560 kg/h CO2 in flash gases (carbon efficiency 0.805 against the model's 0.954). Separation losses are not in the model. |
+| **B7 Schorn 2021** Table 2 grid | (H2 1, CO2 0) / (3, 40) / (4.5, 0) | 299 / 735 / 966 | 254 / 691 / 921 | +45 in every cell | Constant offset: the slopes agree (model H2 0.199 vs 0.189 t/t) and the gap is capital (model FCI 3.6× Schorn's 60 M€). |
 
-Specific fixed capital of the model at each reference scale (`capex_scale.csv`; the model operates at the anchor point
-and is scaled with its own exponents):
+**Specific fixed capital** (`capex_scale.csv`; model at each study's own point and cost year):
 
-| Reference | Capacity (t/a) | Model FCI (€/(t/a)) | Reference (€/(t/a)) | Model / reference |
-|---|---:|---:|---:|---:|
-| Campos one-step | 1,160,000 | 358 | 359 | 1.00 |
-| Pérez-Fortes\* (CO2 and H2 supplied externally) | 440,000 | 512 | 535 | 0.96 |
-| CRI Shunli (design + equipment only, EUR 2022) | 110,000 | 857 | 777 | 1.10 |
-| Bos 2020 methanol section (condensing reactor, Lang 5) | 65,000 | 1,043 | 169 | 6.2 |
-| Hank 2018 (assumed 810 €/(t/a)) | 4,188 | 2,908 | 810 | 3.6 |
+| Reference | Model / reference |
+|---|---|
+| Campos one-step | 1.00 |
+| Campos three-step | 1.04 |
+| Pérez-Fortes | 0.76 (1.03 after the SS × location factor 1.356) |
+| Szima | 1.17 |
+| Nieminen (17.9 M€) | 1.09 |
+| Shunli (design + equipment) | 1.10 |
+| Schorn | 3.6 |
+| Bos | 6.2 |
+| Hank | 3.6 |
 
-**Cost shares.** At the anchor:
-- feed (H2 + CO2) is 73.5 % of model NPC (H2 66.6 %, CO2 6.9 %), against reactants 78–80 % in Campos and 78.6 % on the
-  Fig. 11b bars;
-- the reference ranges are H2 51.6–89.4 % and CO2 3.2–26.7 % (González-Garay), and H2 ≈ 83 % (Schemme, via Dieterich);
-- ACC is 5.0 % of NPC, against 4–5 % in Campos;
-- electricity is 1.9 %, against catalyst + electricity < 3 % in Campos.
+## 4. Where the model agrees, where it does not, and the weight of each term
 
-## 4. Where the model agrees and where it does not
+**Agrees.**
+- **Feed.** H2 and CO2 per tonne match every TEA that buys H2 to within 1 %: Pérez-Fortes, Szima, Nyári, Campos once the
+  N2 in the H2 stream is counted, and Schorn's slope. The term that carries the methane-loss penalty has the right size.
+- **Loop.** Carbon efficiency, recycle ratio and compression power fall inside the reference spread.
+- **Capital.** Within 0.76–1.17 of four rigorous TEAs, and 1.03 for Pérez-Fortes after its material factor.
 
-**Agrees, within the spread of the references:**
+**Disagrees, by term.**
 
-| Item | Model | References |
-|---|---|---|
-| Loop pressure and temperature | inside | 50–100 bar, 200–300 °C |
-| H2 consumption | 0.195–0.208 t/t | 0.189–0.214 |
-| CO2 consumption | 1.40–1.50 t/t | 1.375–1.526; operating plants: Olah 1.375–1.40, Shunli 1.455 |
-| Carbon efficiency | 0.915–0.983 | 0.90–0.98 |
-| Compression electricity | 0.18–0.25 MWh/t | Bos 0.22; Campos gross whole plant 0.33 |
-| Recycle ratio at per-pass conversion 0.22–0.33 | 2.8–3.8 | conventional 3–5; Mitsui 2.6–3.2; Rihko 3.2 |
+1. **Catalyst replacement.** It is not proportional to inventory. The reference charges range from 6 €/kg/a (Campos:
+   18.1 €/kg over 3 y) to 24 €/kg/a (95.24 €/kg over 4 y: Nieminen, Sollai) and 95 €/kg/a (Pérez-Fortes, replaced yearly).
+2. **Loop pressure drop.** 1.5 bar in the model against 4.2 (PF), 4.6 (VD) and 4 bar (Zhang).
+3. **Recycle-driven costs.** In Nyári's plant they rise much more steeply with recycle ratio than in the model. That
+   plant's VD − Slotboom spread is 84 €/t; the model gives 46, and only the H2 part matches.
+4. **Separation losses.** Nieminen loses about 15 % of the carbon in flash gases.
+5. **Cost-accounting convention.** The anchor convention adds about 120–130 €/t of catalyst-independent cost compared
+   with lean TEAs (PF, Szima).
 
-- **Catalyst space velocity.** For catalysts sized from measured STY (the Re states, and the literature candidates),
-  GHSV is 10,000–14,000 h⁻¹ and STY 0.6–1.3 kg/L/h. References: 6,000–12,000 h⁻¹ and 0.4–0.8 kg/L/h (CO2 feed).
-- **Cost structure.** The model has the references' cost structure: feed dominant (73.5 % vs 78–80 %), capital 4–5 %,
-  and power and catalyst a few percent.
-- **Out-of-sample and capital checks:**
-  - the three-step design is reproduced to +1.2 % on cost (+0.2 % with the catalyst term) and +4 % on equipment;
-  - fixed capital at 440 kt/a is reproduced to −4 % to +0.4 % (Pérez-Fortes, secondary);
-  - Shunli is +10 %, against a design + equipment figure, which is a narrower scope than FCI.
+**Weight of each term in the 33 mismatched groups** (`mismatch_driver_shares.csv`). The cost gap is the paper's STY
+winner minus the plant-cost winner, both at their optimal purges:
 
-**Disagrees:**
+| Basis | Median gap (€/t) | Feed (CH4 / purge loss) | Reactor-inventory capital | Catalyst replacement | Recycle compression (power) | Recycle-flow equipment | Groups where feed is the largest term |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| canonical | 17.5 | +16.9 | −3.3 | 0 | +1.3 | +1.9 | 31 / 33 |
+| catalyst 18.1 €/kg, 3 y | 15.2 | +16.9 | −3.3 | −2.0 | +1.3 | +1.9 | 31 / 33 |
+| catalyst 3 y + ΔP 3.75 + recycle ×2.68 | 24.0 | +16.9 | −3.3 | −2.0 | +8.6 | +3.8 | 23 / 33 |
+| primary weights: catalyst 95.24 €/kg 1 y + ΔP 4.2 + recycle ×10 | 15.3 | +16.9 | −3.3 | −32.3 | +36.3 | +8.9 | 7 / 33 (recycle compression largest in 26) |
 
-1. **Catalyst replacement is not proportional to inventory.** The anchor charges the catalyst every 3 years (18.1 €/kg,
-   12.9–14.9 €/t). The model keeps that charge in a constant residual. This is why the model under-predicts the
-   three-step saving by 10.4 €/t (20 %); adding the term closes the gap to 2.1 €/t.
-2. **Loop pressure drop.** The model uses 1.5 bar. Industrial loops run at 3–4 bar (Lurgi SRC loop 3.5–4, Toyo loop 3).
-   The model's recycle-compression power is therefore 2.5× too low; at the anchor point this is 1.0 → 2.6 MW, about
-   1 €/t.
-3. **Recycle at high per-pass conversion.** At the Lurgi CO2 pilot's 35–45 % per pass and 95 % carbon efficiency, the
-   model loop recirculates 1.7 mol per mol of fresh feed, against 4.5 reported. The pilot gas carries inerts that the
-   model's pure H2/CO2 make-up does not.
-4. **Anchor bed size.** The anchor's own CZA bed is about 10× industrial size (GHSV 604–617 h⁻¹ against 6,000–12,000).
-   This affects only the anchor point. Catalysts in the model are sized from their measured STY.
-5. **Cost-accounting convention.** The anchor's Peters/Albrecht convention carries 57 €/t of catalyst-independent
-   direct OPEX and 10 % of NPC for distribution, selling and R&D. A lean TEA (Pérez-Fortes) gives 724 against the model's
-   913 €/t at the same prices. The difference is common to every catalyst and multiplies all catalyst-dependent terms by
-   the same 1/0.9.
-6. **Scale.** At 4–65 kt/a the model's six-tenths scaling gives 3–6× the specific capital assumed by Hank and Bos. This
-   does not enter the ranking, because every candidate is costed at 145 t/h.
+The inventory terms favour the paper's STY winner. Recycle terms and feed losses favour the plant winner. With every
+term at its primary-source upper value they roughly cancel in the median group, and the plant ranking is then set by
+recycle compression rather than by feed.
 
-**Relative weight of the terms that decide the ranking** (`mismatch_driver_decomposition.csv`,
-`mismatch_driver_shares.csv`). For each of the 33 mismatched groups, the cost gap is split into terms: the paper's STY
-winner minus the plant-cost winner, at their optimal purges.
+## 5. Sensitivity: the headline rerun with primary-source values (`lit_sensitivity.py`, `sensitivity_summary.json`)
 
-| Basis | Median gap (€/t) | Median feed (CH4 / purge loss) term | Median reactor-inventory capital | Median recycle compression (power) | Median recycle-flow equipment | Groups where feed is the largest term |
-|---|---:|---:|---:|---:|---:|---:|
-| Canonical model | 17.5 | +16.9 | −3.3 | +1.3 | +1.9 | 31 / 33 |
-| + catalyst replacement (18.1 €/kg, 3 y) | 15.2 | +16.9 | −3.3, plus −2.0 replacement | +1.3 | +1.9 | 31 / 33 |
-| + loop ΔP 3.75 bar + recycle ×2.68 | 24.0 | +16.9 | −3.3, plus −2.0 replacement | +8.6 | +3.8 | 23 / 33 (recycle compression in the other 10) |
+Setup: 991 candidates in 83 groups, recycled CO with the central RWGS rule, entry-optimal purge. 8 workers, 160 s.
 
-- **Inventory term.** The paper's STY winner always has the smaller catalyst inventory, so the inventory term favours it.
-  Charging the reference catalyst replacement narrows the gap but does not close it.
-- **Industrial-loop recycle costs.** Raising recycle costs to industrial-loop levels widens the gap.
-- **Sign of the gap.** In both cases the sign is set by the methane and purge losses. This is the feed share that
-  dominates every reference TEA.
-
-## 5. Sensitivity: the headline rerun with reference values (`lit_sensitivity.py`, `sensitivity_summary.json`)
-
-All 991 candidates and 83 groups are rerun with the primary plant treatment (recycled CO, central RWGS rule,
-entry-optimal purge) and the term set to the reference value.
-
-| Variant (reference value) | Groups with a different winner | Papers | Pairwise inversions | Median regret, mismatched | Groups whose mismatch flag changes | Groups whose cost winner changes |
+| Variant (source of the value) | Groups with a different winner | Papers | Pairwise inversions | Median regret, mismatched | Flags changed | Cost winners changed |
 |---|---|---:|---|---:|---:|---:|
 | **baseline (frozen model)** | **33/83** | 19 | 1019/8458 | 2.0 % | 0 | 0 |
-| catalyst replacement 18.1 €/kg, 3 y (Campos Table 2, §2.7) | 32/83 | 18 | 920/8458 | 1.9 % | 1 | 6 |
-| catalyst replacement 18.1 €/kg, 5 y (Dieterich 4–6 y) | 32/83 | 18 | 950/8458 | 2.0 % | 1 | 6 |
-| loop ΔP 3.75 bar (Lurgi SRC loop 3.5–4 bar) | 33/83 | 19 | 1022/8458 | 2.3 % | 0 | 1 |
-| recycle flow ×2.68 (Lurgi CO2 pilot 4.5 vs model 1.68) | 33/83 | 19 | 1020/8458 | 2.5 % | 0 | 2 |
-| H2 price ½ (1548.7 €/t; H2 share at the low end of the references) | 32/83 | 19 | 949/8458 | 2.0 % | 1 | 4 |
-| Pérez-Fortes prices (H2 3090, CO2 0, electricity 95.1)\* | 33/83 | 19 | 1006/8458 | 2.0 % | 0 | 0 |
-| catalyst 3 y + ΔP 3.75 bar | 33/83 | 19 | 928/8458 | 2.2 % | 0 | 5 |
-| catalyst 3 y + ΔP 3.75 bar + recycle ×2.68 | 33/83 | 19 | 951/8458 | 2.8 % | 0 | 4 |
-| catalyst 3 y + ΔP 3.75 bar + H2 ½ | 32/83 | 19 | 874/8458 | 1.5 % | 1 | 6 |
+| loop ΔP 4.2 bar (PF stream table) | 33/83 | 19 | 1021/8458 | 2.3 % | 0 | 1 |
+| loop ΔP 3.75 bar (Lurgi SRC) | 33/83 | 19 | 1022/8458 | 2.3 % | 0 | 1 |
+| equipment split from the Campos SI Table S17 | 33/83 | 19 | 1019/8458 | 2.0 % | 0 | 0 |
+| recycle flow ×2.68 (Lurgi pilot\*) | 33/83 | 19 | 1020/8458 | 2.5 % | 0 | 2 |
+| **recycle costs ×10 + ΔP 4.2 (reproduces Nyári's spread)** | **34/83** | 20 | 1056/8458 | 5.1 % | 1 | 7 |
+| PF prices (H2 3090, CO2 0, electricity 95.1) | 33/83 | 19 | 1006/8458 | 2.0 % | 0 | 0 |
+| H2 price ½ | 32/83 | 19 | 949/8458 | 2.0 % | 1 | 4 |
+| catalyst 18.1 €/kg, 3 y (Campos) | 32/83 | 18 | 920/8458 | 1.9 % | 1 | 6 |
+| catalyst 18.1 €/kg, 5 y | 32/83 | 18 | 950/8458 | 2.0 % | 1 | 6 |
+| **catalyst 95.24 €/kg, 6 y** (Dieterich lifetime) | **30/83** | 18 | 837/8458 | 1.3 % | 3 | 9 |
+| **catalyst 95.24 €/kg, 4 y** (Nieminen, Sollai) | **27/83** | 17 | 782/8458 | 1.1 % | 6 | 13 |
+| **catalyst 95.24 €/kg, 1 y** (PF yearly replacement) | **18/83** | 14 | 513/8458 | 1.0 % | 15 | 20 |
+| catalyst 95.24/4 y + ΔP 4.2 + recycle ×10 | 33/83 | 19 | 905/8458 | 3.5 % | 0 | 7 |
+| catalyst 95.24/1 y + ΔP 4.2 + recycle ×10 | 25/83 | 18 | 743/8458 | 2.6 % | 8 | 13 |
+| catalyst 18.1/3 y + ΔP 3.75 | 33/83 | 19 | 928/8458 | 2.2 % | 0 | 5 |
+| catalyst 18.1/3 y + ΔP 3.75 + recycle ×2.68 | 33/83 | 19 | 951/8458 | 2.8 % | 0 | 4 |
+| catalyst 18.1/3 y + ΔP 3.75 + H2 ½ | 32/83 | 19 | 874/8458 | 1.5 % | 1 | 6 |
 
-- **Headline result.** It stands at 32–33/83 (39–40 %) in every variant.
-- **Where winners change.** The groups whose cost winner changes are mostly the Bansode 2013 (10.1039/c2cy20604h) Cu/Al2O3 series
-  (`sensitivity_winner_changes.csv`), where both candidates are low-conversion points. In every case but one the new
-  winner is still not the STY leader.
-- **The flag that moves.** The single mismatch flag that moves is CZ/CNTs-3 at 260 vs 280 °C (RSC Adv. 2015,
-  10.1039/c5ra04774a) under the catalyst term. Under H2 at half price it is 13 % ZnO–ZrO2 (Wang 2017, 10.1126/sciadv.1701290).
+**What moves 33/83:**
 
-## 6. Judgement calls
+- **Loop terms, prices and equipment split.** None of them does (32–34/83).
+- **Catalyst replacement charged per tonne of inventory.** This does. The canonical model has none:
+  - at a representative charge (95.24 €/kg over 4–6 y) the headline is 27–30/83 (33–36 %);
+  - at Pérez-Fortes's yearly replacement it is 18/83 (22 %).
+- **Combined primary loop weights.** Recycle costs scaled to Nyári's spread pull the other way: with the catalyst at
+  95.24/4 y the headline is back to 33/83 (25/83 at 1 y).
+- **Regret.** In every variant the median regret of the mismatched groups stays at 1.0–5.1 %.
+- **Data file.** The groups whose winner changes are listed in `sensitivity_winner_changes.csv`.
 
-- **Recycle ratio definition.** Recycle ratio = recycle / fresh make-up (molar), as in Dieterich Tables 8 and 11.
-  - Rihko-Struckmann's 4.2 is reactor inlet / fresh, so recycle / fresh = 3.2.
-  - Campos's ratios are derived from Table 6 recycle flows and the Section 2.4 feed (minimum feed × (1 + excess)).
-- **Campos H2 and CO2 consumption.** Taken from the stated feed excess on a pure-component basis. The Fig. 11b H2 bar
-  (≈768 M€/a) implies 0.214 t/t. Both are listed.
-- **Figure readings.** Fig. 11b bars were measured on a 3× render of p. 19:
-  - axis 0–100 at 1.506 px per M€;
-  - break segment 700–800 at 1.542 px per M€;
-  - uncertainty ±2–3 M€/a.
-- **Model at reference operating points.** These rows use the anchor's selectivity (99.5 % MeOH, 0.5 % CO), recycled
-  CO (central rule) and H2/CO2 = 3 at the reactor inlet. The purge is matched to the reference carbon efficiency where
-  one is given (Lurgi pilot 95.25 %, mid of 94.0–96.5; González-Garay 91.5 %). Otherwise it is 2 %. The Lurgi-pilot
-  catalyst mass is set from its GHSV of 10,500 h⁻¹.
-- **Canonical inputs.** The canonical Re states use the inputs of `data/meoh/meoh_candidate_ranking_D01v3.csv`.
-  - `meoh_d01_model.FROZEN["1wtRe_250C"]` lists S_CH4 = 0.03, S_CO = 0, whereas the ranking file and workbook have
-    0.01 and 0.02.
-  - Only its STY and Re wt% are read elsewhere (`meoh_measurement_mc.py`), so no published number is affected. The dict
-    entry should be corrected in a separate change; the frozen file was not touched here.
-- **Catalyst replacement term.** It replaces the anchor's own replacement charge (17.31 M€/a) in the residual, so the
-  anchor point is unchanged.
-- **Recycle ×2.68.** It enlarges the recycle used for compression and for gas-flow-sized equipment only. Species balance,
-  purge and feed are unchanged. It is a cost-term stress, not a new loop model.
-- **Pérez-Fortes and Szima.** Used only through the two reviews' tables, and marked secondary throughout. Szima's
-  785.52 €/t includes electrolysis, so it was not mapped to an H2 price and is not in Table B.
+## 6. Changes versus the first (secondary-value) pass
 
-## 7. Pending
+| Item | First pass | Now (primary) |
+|---|---|---|
+| Pérez-Fortes "724 €/t" | Read as a production cost (Dieterich Table 12). Model 913 against 724 (+26 %), at the anchor's selectivity and catalyst bed, 2 % purge, 10 %/20 y and EUR 2020. | It is the NPV = 0 breakeven selling price, 723.6 (AE Table 5). Production cost without capital is 666.05 (VCP 641.48 + FCP 24.57). Model at PF's own point, prices, catalyst and 8 % finance: **706 like-for-like (−2.4 %)**, 841 under the anchor convention (+16 %, all of it the 126 €/t common-mode convention). |
+| Pérez-Fortes plant | 78 bar, X 0.22, CAPEX 181 k€/(t/d) (Dieterich) | 76 bar reactor feed (78 is the compression pressure); X 0.2197; TFCC 200 M€ + WC 20 M€; 44.5 t catalyst replaced yearly at 95.24 €/kg; loop ΔP 4.2 bar; H2 0.199 and CO2 1.460 t/t |
+| Szima | 785.52 €/t (Mbatha) | 785.5 is VOC + FOC with no capital. With capital it is 842 (derived). Model like-for-like 853 (+1.3 %). |
+| Campos cost split | Fig. 11b readings: H2 768, CO2 74, catalyst 15, power 11 M€/a | SI Table S19: 769.50, 74.93, 17.31, 12.66 M€/a. The 7 % H2 gap is now explained: N2 in the priced H2 stream. |
+| Loop pressure drop | Dieterich licensor data only | PF 4.2, VD 4.6, Zhang 4 bar; the 4.2 bar variant gives 33/83 |
+| Catalyst charge | 18.1 €/kg, 3 y (Campos) | Primary range 6–95 €/kg/a; this is the term that moves the headline (above) |
+| Recycle weight | Lurgi pilot ×2.68 | Nyári's kinetic-model spread needs ×10; 34/83 |
+| New Table B rows | — | Szima, Nyári ×3, Nieminen, Schorn |
 
-`manual_download_dois.txt` lists the full texts nus-fetch could not retrieve. Elsevier is behind a bot check off the NUS
-network, and MDPI refused the automated browser. **Pérez-Fortes 2016** (manuscript ref. 14) is the indispensable one: its
-stream table, price year and cost breakdown would turn the B3 row from secondary into primary. Van-Dal 2013, Szima 2018,
-Nyári 2020, Sollai 2023 and Battaglia 2021 would add independent rows. The Campos SI (Section H) would replace the
-Fig. 11b readings.
+## 7. Judgement calls
 
-Downloaded PDFs are kept outside the repository in `D:\论文-AI4S\literature\meoh_plant_benchmark` (with `manifest.csv`).
+- **Pérez-Fortes model inputs.**
+  - Reactor-inlet H2/CO2 is 3.8, derived from the stream-13 wt% (Table B.7).
+  - The RWGS window is evaluated at the 288 °C outlet.
+  - S_CO is 0.018, from "0.4 % of the CO2 to CO" at 21.97 % conversion.
+  - The Pérez-Fortes capital term in Table B is the breakeven price minus the production cost, which includes the
+    3-year construction and the ramp-up.
+- **Szima.**
+  - The H2 price is the electrolysis electricity only (53.4 kWh/kg × 60 €/MWh), because Szima's CAPEX excludes the
+    electrolyser.
+  - The catalyst bed is taken as 71.8 m³ × 0.98 × 1.05 t/m³ ≈ 74 t, with the lifetime set so the charge equals Szima's
+    3.35 M€/a.
+  - The reference total of 842 €/t is VOC + FOC plus CRF(8 %, 25 y) on TFCC + WC (derived).
+- **Nyári.** Per-pass conversion and purge are fitted so the model loop has each kinetic model's recycle ratio and
+  yield; the selectivity is the anchor's. The fixed cost of about 26 €/t is read off Fig. 6.
+- **Nieminen.** The fixed cost (≈150), cooling water (43) and steam credit (−50) come from Fig. 5 / Fig. 6 and derived
+  values. Hours are 7250 (implied by Fig. 5).
+- **Schorn.** O&M = Table 2 intercept 63 €/t minus capital 14.1 minus power 15.0 = 33.9 €/t (derived). The model takes
+  equilibrium per-pass conversion at 80 bar, 250 °C and the lowest grid purge, since the reference has none.
+- **Model run at the reference points.**
+  - It uses each study's reported catalyst inventory where one is given. Otherwise it uses the anchor's productivity
+    (González-Garay, Schorn).
+  - In Table A the cost row is at anchor prices with the case's scale.
+- **Earlier choices still apply.** Recycle ratio = recycle / fresh make-up (molar). CEPCI annual averages as listed in §3.
+  - The canonical Re states use `data/meoh/meoh_candidate_ranking_D01v3.csv`.
+  - `meoh_d01_model.FROZEN["1wtRe_250C"]` lists S_CH4 = 0.03, S_CO = 0, whereas the ranking file and workbook have 0.01
+    and 0.02. No published number depends on it, and the frozen file is not touched.
+
+Downloaded full texts are kept outside the repository, in `D:\论文-AI4S\literature\meoh_plant_benchmark` (`manifest.csv`).
+The only reference still missing is in `manual_download_dois.txt`.
