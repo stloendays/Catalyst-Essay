@@ -7,7 +7,7 @@ also rendered to `text/img/<slug>_p<n>.jpg` so the extraction model can read
 tables whose cells pdfplumber misses and values plotted in figures.
 
 Usage:
-    python pdf_to_text.py            # all PDFs listed as ok in fetch_manifest.json
+    python pdf_to_text.py [--force]  # PDFs of paper_set.txt listed as ok in fetch_manifest.json (existing text kept)
 
 For each DOI writes `text/<slug>.json`:
     {"doi", "file", "pages": [{"page": n, "text": str, "tables": [[[cell]]]}]}
@@ -88,7 +88,10 @@ def convert_si() -> None:
     by_paper: dict[str, list[Path]] = {}
     for f in sorted(si_dir.glob("*__*.pdf")):
         by_paper.setdefault(f.name.split("__")[0], []).append(f)
+    import sys
     for s, files in by_paper.items():
+        if (out_dir / f"{s}.txt").exists() and "--force" not in sys.argv:
+            continue
         pages, n = [], 0
         for f in files:
             tmp = out_dir / "img" / f"_tmp_{s}"
@@ -116,10 +119,14 @@ def main() -> None:
     if "--si" in sys.argv:
         convert_si()
         return
+    from paper_set import load_paper_set
+    in_set = load_paper_set()
     TEXT_DIR.mkdir(exist_ok=True)
     manifest = json.loads((HERE / "fetch_manifest.json").read_text(encoding="utf-8"))
     for row in manifest:
-        if row["status"] not in ("ok", "skip") or not row["file"]:
+        if row["status"] not in ("ok", "skip") or not row["file"] or row["doi"].lower() not in in_set:
+            continue
+        if (TEXT_DIR / f"{slug(row['doi'])}.txt").exists() and "--force" not in sys.argv:
             continue
         pdf_path = PDF_DIR / row["file"]
         if not pdf_path.exists():

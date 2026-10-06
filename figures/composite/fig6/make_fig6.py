@@ -85,7 +85,10 @@ for k, (f, lab, col) in enumerate(fields):
 b.legend(loc="upper right", fontsize=5.2, ncol=3, handlelength=0.9, columnspacing=0.8, borderaxespad=0.1)
 boxed(b)
 pg.letter("b", 2, 91)
-pg.title("Extraction from 20 papers (recall 96%)", 13, 91)
+ent = read_csv("agent/extraction/eval/entry_metrics.csv")
+tot = next(r for r in ent if r["doi"] == "TOTAL")
+n_papers = sum(1 for r in ent if not r["doi"].startswith("TOTAL")) + 1   # + Gothe 2025 Table 4
+pg.title("Extraction from %d papers (recall %.0f%%)" % (n_papers, float(tot["recall"]) * 100), 13, 91)
 
 # ---- c: bimetallic surfaces -------------------------------------------------------------------------------
 c = pg.ax(74, 50, 52, 36)

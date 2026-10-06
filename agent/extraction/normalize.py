@@ -37,6 +37,8 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 RAW_DIR = HERE / "out" / "raw"
+from paper_set import load_paper_set  # noqa: E402
+IN_SET = load_paper_set()  # raw files of papers outside paper_set.txt (e.g. Shi 2020) are not merged
 M_MEOH = 32.042  # g/mol
 
 
@@ -481,6 +483,8 @@ def load_pass(pass_: str, slug_to_doi: dict) -> list[dict]:
     for f in sorted(PASS_DIRS[pass_].glob("*.json")):
         d = json.loads(f.read_text(encoding="utf-8"))
         doi = slug_to_doi.get(f.stem, (d.get("doi") or f.stem).lower())
+        if doi.lower() not in IN_SET:
+            continue
         for r in d["records"]:
             rows.append(normalize_record(doi.lower(), r))
     return rows

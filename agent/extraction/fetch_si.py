@@ -9,7 +9,8 @@ Routes, in order:
 2. Publisher landing page through the NUS EZproxy, using the nus-fetch module and its browser
    profile (imported, not modified; cookies are not written back). The script collects the
    page's SI links (ACS /doi/suppl/, Science /doi/suppl/, Wiley /action/downloadSupplement,
-   RSC suppdata) and downloads them with the same browser context.
+   RSC suppdata, Nature/Springer ESM files *_MOESM<k>_ESM.*) and downloads them with the same browser
+   context.
 A publisher bot check (Cloudflare, ScienceDirect challenge) is never automated: the paper is
 marked `manual` in si_manifest.json for the user to download by hand.
 """
@@ -31,7 +32,8 @@ NUS_FETCH_DIR = Path(r"D:\Tools\nus-fetch")
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                     "Chrome/129.0 Safari/537.36"}
 EXTS = ("pdf", "docx", "doc", "xlsx", "xls")
-SI_LINK = re.compile(r"(/doi/suppl/|downloadSupplement|/suppdata/|suppl_file|article-supplement/|_si_\d+|_sm\.pdf|_esi)", re.I)
+SI_LINK = re.compile(r"(/doi/suppl/|downloadSupplement|/suppdata/|suppl_file|article-supplement/|_si_\d+|_sm\.pdf|_esi|"
+                     r"static-content[.-]springer[.-]com/esm/|MOESM\d+_ESM)", re.I)
 
 
 def slug(doi: str) -> str:

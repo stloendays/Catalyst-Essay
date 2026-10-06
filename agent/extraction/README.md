@@ -6,6 +6,122 @@ model needs (`data/meoh/`, `analysis/meoh_measurement_mc_2026_10_05/`), and meas
 against TheMeCat v1 (Toldy et al., *Sci. Data* 2026, CC-BY-4.0) and a manual transcription of
 Gothe et al. 2025 Table 4.
 
+## 50-paper set (2026-10-06, current)
+
+The set is defined in `paper_set.txt` (DOI and the reference it is scored against); `extract_records.py`,
+`pdf_to_text.py`, `normalize.py` and `evaluate.py` use only these DOIs.
+
+| Reference | Papers | Curated entries |
+|---|---:|---:|
+| Gothe 2025 Table 4 (manual) | 1 | 21 |
+| TheMeCat v1 | 28 (18 of the earlier 19, Shi 2020 dropped, + 10 in batch 5) | 547 |
+| Suvarna, Araújo & Pérez-Ramírez 2022 curated set (*Appl. Catal. B* 315, 121530; Zenodo 10.5281/zenodo.6541445, CC-BY-4.0; STY, T, P, H2/CO2, GHSV, composition; no conversion or selectivity) | 20 | 194 |
+| None (scored by PDF review only): Lam et al. 2018 *JACS* 10.1021/jacs.8b05595 | 1 | – |
+| **Total** | **50** | **741** (+21 Gothe) |
+
+- Shi 2020 (10.1016/j.jscs.2019.09.002) is dropped: it has no Supporting Information (user, 2026-10-06). Its raw files stay in `out/` and are not merged.
+- Batch 4 (21 papers, `dois_batch4.txt`, `dois_batch4b.txt`). The 12 TheMeCat papers not used before that have SI
+  on the Elsevier CDN all ended `manual` at the ScienceDirect bot check, so batch 4 takes non-Elsevier papers from
+  the Suvarna set that nus-fetch retrieves and whose SI `fetch_si.py` finds (20), plus Lam 2018.
+  - Six Suvarna candidates have no SI on the publisher page and were not used: aic.16490, ente.201402091, er.7246,
+    acs.iecr.0c04688, acs.iecr.8b01246, c9ra00658c.
+  - Every PDF was checked against its Crossref title.
+- Batch 5 (10 papers, `manual_download_dois_batch5.txt`). The user downloaded the 12 Elsevier papers by hand, and
+  `nus_fetch.py collect` filed them on the DOI printed in each PDF. Two are not used:
+  - Dasireddy 2018 (jcou.2018.09.002) was not downloaded;
+  - Zhang 2024 (cej.2024.150334) is about Co-Co2C for higher alcohols, not methanol.
+
+  SI comes from the Elsevier CDN; the Word SI was exported to PDF with WPS.
+- `fetch_si.py` now also collects Nature/Springer ESM files (`*_MOESM<k>_ESM.*`). Files that are not SI (peer-review
+  files, Nature "description of additional files", RSC accepted manuscripts) were moved to `si/_not_si/`.
+- Same model, prompt, schema and four passes as before:
+
+  | Batch | Calls | Total tokens | Prompt | Output | Cost at USD 5 / 30 per M | Route |
+  |---|---:|---:|---:|---:|---:|---|
+  | Batch 4 | 76 | 3,198,197 | 2,000,247 | 1,197,950 | USD 45.9 | 30 on API-YES until its usage limit, 46 on the advisor's OpenAI key (`llm_route.py`); one figure call returned no response object and was rerun |
+  | Batch 5 | 35 | 1,263,787 | 824,669 | 439,118 | USD 17.3 | all on API-YES |
+
+  The log now holds 7.37 M tokens in total, about 0.15 M per paper. Caps for these batches:
+  `--token-cap 9000000 --pass-cap 3600000`.
+
+### Scoring against Suvarna
+
+The Suvarna rows have no catalyst names, so `match_doi_suvarna` pairs on conditions (|dT| <= 3 K, |dP|/P <= 5 %,
+H2/CO2 and mass GHSV within 10 %) and then minimises 3 x (element-set difference) + relative loading difference +
+|ln STY ratio| (tie-break). Bimetallic catalysts that Suvarna lists twice (once per family) are counted once.
+An extracted record with no pressure can pair; P then scores as missing (Ni-In-Al/SiO2 states "ambient pressure"
+once and the extraction left P empty).
+
+Suvarna errors found in the PDFs (`eval/suvarna_errata.csv`, 9 rules):
+
+| Paper | Suvarna | PDF |
+|---|---|---|
+| Karelovic 2015 (c4cy00848k) | 7 MPa | 7 bar (p1, p4) |
+| Karelovic 2015 | the 2000 L kg-1 h-1 rates one temperature step low (433/453/473 K) | Fig. 3a: the same rates at 180/200/225 C |
+| Sharma 2021 (acsami.1c05586) | rows at 533 and 573 K | tested at 190-290 C only; rows dropped |
+| Sharma 2021 | STY per g catalyst | Table 6 and Fig. 7D per g Cu, text per g catalyst, neither equals X x S x F; STY of these rows not scored |
+| Shen 2021 (acscatal.0c05628) | 0.326 g g-1 h-1 under Ir/In2O3-1 | pristine In2O3 (SI p2 table); Ir/In2O3-1 gives 0.512 |
+| Shen 2021 | 0.608 under Ir 10.8 wt% | Ir/In2O3-5 |
+| Hengne 2018 (acsomega.8b00211) | 10.7 mg g-1 h-1 for Sn-free 5Ni/10InZrO2 | 5Ni/10InZrO2 makes no methanol (99 % CH4); the value is 5Ni10Sn/10InZrO2 |
+
+Batch-5 TheMeCat errata (18 rules in `eval/themecat_errata.csv`). The STY of Lin 2021 (Table 1, 10 rows) and of
+Zhang 2017 (Table 4, 8 rows) is set to the printed value; TheMeCat recomputes it from X x S x F.
+Name aliases (checked in the PDFs):
+- Ma 2023: '5.0% Zn-CdZrOx' = '5% Zn-CdZrOx';
+- Daifeng 2022: '1.04 wt% K/CoIn-N' = 'CoIn-N, 1.04 wt% K'.
+
+Guo 2024 prints 14.8/17.7/15.8 % conversion and 0.607/0.725/0.558 g g-1 h-1 in SI Table S1 for the 300 C
+"this work" rows, while its main-text figure (and TheMeCat) give lower values. This internal inconsistency is left
+unchanged.
+
+### Results (50 papers)
+
+| | TheMeCat (28) | Suvarna (20) | All 48 scored |
+|---|---:|---:|---:|
+| Curated entries recovered | 526 / 547 = 0.962 | 192 / 194 = 0.990 | **718 / 741 = 0.969** |
+| Recovered with conversion and selectivity | 502 | 152 | 654 |
+
+Gothe Table 4: 21/21 on every field. The 10 batch-5 papers alone: 137/141.
+
+Field accuracy (adjudicated, strict / loose; all references):
+- T, P and H2/CO2: 1.000 (coverage 1.00 / 0.99 / 0.99).
+- GHSV: 0.961 / 0.995. The batch-5 misses are TheMeCat's inert-free basis (24 x 0.96 = 23.04 NL g-1 h-1) where the
+  paper does not state the inert fraction.
+- X_CO2: 0.903 / 0.989.
+- S_MeOH: 0.669 / 0.884.
+- STY: 0.559 / 0.699.
+
+By source:
+
+| Source | X_CO2 | S_MeOH | STY |
+|---|---|---|---|
+| Main-text tables | 74/74 | 74/74 | 66/67 |
+| SI printed | 131/132 | 126/131 | 119/124 |
+| Plots (main text) | 181/218 | 73/196 | 29/175 |
+
+Printed values stay exact. The SI misses are:
+- Guo 2024: internally inconsistent (above); in addition the extraction filed the SI "Pd-Pt/In2O3" row under the n(3:1) catalyst, a name confusion;
+- Song 2020: one selectivity;
+- Sharma 2023: 1.1 pp;
+- two Suvarna STY values within 2 %.
+
+STY plot readings are the weakest field.
+
+Suvarna alone, STY:
+- printed 28/31 (loose 31/31);
+- plot readings 43/103 (loose 76/103), mostly plot against plot (Suvarna digitised the same figures); 17 of the 63
+  strict misses differ by more than 10 %.
+
+Precision on the 31 new papers. Unmatched extracted entries were checked against the PDFs in random samples (seed 20261006).
+The unmatched entries are mostly entries the curated sets do not list, such as time-on-stream points and series the
+curators skipped.
+
+| Batch | Unmatched entries | Sample | Correct | Wrong |
+|---|---:|---:|---|---|
+| Batch 4 (`eval/batch4_unmatched_sample.csv`) | 423 | 60 | **52/60 (0.87)** | 3 with no temperature, 2 with the pressure left empty although the caption states ambient pressure, 2 plot misreads, 1 series confusion |
+| Batch 5 (`eval/batch5_unmatched_sample.csv`) | 144 | 30 | **27/30 (0.90)** | 1 with no temperature or pressure, 1 STY plot misread, 1 series confusion |
+| **Together** | 567 | 90 | **79/90 (0.88, 95 % CI 0.79–0.93)** | |
+
 ## Status (2026-10-05)
 
 | Step | Papers |

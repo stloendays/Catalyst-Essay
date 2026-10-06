@@ -1,7 +1,7 @@
 """LLM extraction of CO2-to-methanol catalyst performance entries into schema.json.
 
 Usage:
-    python extract_records.py                    # every ok paper in fetch_manifest.json
+    python extract_records.py                    # every ok paper of paper_set.txt in fetch_manifest.json
     python extract_records.py --doi 10.1021/cs500979c --force
     python extract_records.py --pass figures --api-yes   # figure-digitisation pass -> out/raw_figures/
     python extract_records.py --pass si --api-yes        # Supporting Information pass -> out/raw_si/
@@ -372,6 +372,7 @@ def extract_one_responses(client, doi, model, effort, messages, n_img, t0):
 
 
 from llm_route import Router  # noqa: E402  (API-YES first, then the advisor key)
+from paper_set import load_paper_set  # noqa: E402
 
 
 def main() -> None:
@@ -391,7 +392,8 @@ def main() -> None:
     args = ap.parse_args()
 
     manifest = json.loads((HERE / "fetch_manifest.json").read_text(encoding="utf-8"))
-    dois = [r["doi"] for r in manifest if r["status"] in ("ok", "skip") and r["file"]]
+    in_set = load_paper_set()
+    dois = [r["doi"] for r in manifest if r["status"] in ("ok", "skip") and r["file"] and r["doi"].lower() in in_set]
     if args.pass_ == "si":
         dois = [d for d in dois if (TEXT_SI_DIR / f"{slug(d)}.txt").exists()]
     if args.pass_ == "si_figures":

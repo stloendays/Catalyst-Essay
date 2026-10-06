@@ -40,7 +40,7 @@ sys.path.insert(0, str(REPO / "data" / "meoh"))
 import meoh_general_model as G  # noqa: E402
 
 from meoh_candidates import (GOTHE_DOI, RECORDS, REQUIRED, RHO_DEFAULT, RHO_RANGE, candidate_row,  # noqa: E402
-                             gothe_selfcheck)
+                             gothe_selfcheck, read_records)
 
 sys.path.insert(0, str(REPO / "agent"))
 from selfcheck_gate import require  # noqa: E402
@@ -49,7 +49,7 @@ require()          # ACSA scores new candidates only after reproducing all three
 
 
 # ---------------------------------------------------------------- candidates ----------------------------------
-d = pd.read_csv(RECORDS)
+d = read_records()
 d = d.dropna(subset=REQUIRED).copy()
 rows = [c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None]
 cand = pd.DataFrame(rows)
@@ -57,8 +57,16 @@ cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/C
                  + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
 
 
+PRINTED_SPREAD_MAX = 3.0   # printed STY / (F_CO2 X S) may vary by plot reading, not by more than this within a group
+
+
 def group_basis(g):
     if g.sty_print.notna().all():
+        ratio = g.sty_print / g.sty_mass
+        if g.sty_mass.notna().all() and (ratio.min() <= 0 or ratio.max() / ratio.min() > PRINTED_SPREAD_MAX):
+            # the paper's printed rates contradict its own conversion and selectivity (mixed per-g-metal and
+            # per-g-catalyst rates in Sharma 2021; a zero rate at non-zero conversion in Rui 2017)
+            return "STY from mass GHSV (printed STY inconsistent with X*S*F)", g.sty_mass
         return "printed STY", g.sty_print
     if g.sty_mass.notna().all():
         return "STY from mass GHSV", g.sty_mass
@@ -193,7 +201,7 @@ cand.sort_values(["group", "STY"], ascending=[True, False])[keep].to_csv(HERE / 
 primary_gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
 check.to_csv(HERE / "selfcheck_gothe_table4.csv", index=False, float_format="%.10g")
 summary = dict(
-    records_in=int(len(pd.read_csv(RECORDS))), candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),
+    records_in=int(len(read_records())), candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),
     primary=primary, variants=variants,
     selfcheck=dict(entries=int(len(got)), max_abs_diff_eur_t=selfcheck_max,
                    canonical_states={r.canonical_state: round(r.agent, 2) for r in canon.itertuples()}),
