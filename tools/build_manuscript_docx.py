@@ -209,11 +209,14 @@ for old, new in sorted(order.items(), key=lambda kv: kv[1]):
 caps = {int(m.group(1)): (m.group(2).strip(), m.group(3).strip())
         for m in re.finditer(r"^## Figure (\d) \| (.+?)\n\n(.+?)(?=\n## |\n---|\Z)", CAPS, re.M | re.S)}
 assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
+# manuscript figure number -> rendered composite (renumbered 2026-10-07: the field-level figure is Fig. 2)
+FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig2/Fig2.png", 4: "fig3/Fig3.png",
+                5: "fig4/Fig4.png", 6: "fig5/Fig5.png"}
 for n in range(1, 7):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()
     pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    pic.add_run().add_picture(str(ROOT / f"figures/composite/fig{n}/Fig{n}.png"), width=Cm(16.0))
+    pic.add_run().add_picture(str(ROOT / "figures/composite" / FIGURE_FILES[n]), width=Cm(16.0))
     title, legend = caps[n]
     p = doc.add_paragraph()
     runs(p, f"**Fig. {n} | {renumber(title)}**", 12)
