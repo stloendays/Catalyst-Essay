@@ -513,6 +513,32 @@ ok("NH3 alloy: leaders undercut Fe only at the Fe price",
 ok("NH3 alloy: Cu3Cr and Cu3Mo below Fe in both routes",
    all(abw[(m, r)]["beats_Fe"] == "True" for m in ("Cu3Cr", "Cu3Mo") for r in ("global", "anchored")))
 
+# ----- NH3 measured catalysts --------------------------------------------------------------------------------
+s9 = section("Measured ammonia catalysts rank differently by laboratory rate and by plant cost")
+sup = json.loads((ROOT / "analysis/nh3_supported_2026_10_06/summary.json").read_text(encoding="utf-8"))
+adj = json.loads((ROOT / "agent/nh3_supported/out/adjudication_summary.json").read_text(encoding="utf-8"))
+pm, ov = sup["per_metal"], sup["overall"]
+fa = sorted((v for _, v in sup["fused_fe_alpha"]), reverse=True)
+sgm = {r["ref"]: r for r in rows("analysis/nh3_supported_2026_10_06/group_metrics.csv")}
+tokens(
+    "NH3 measured catalysts",
+    s9,
+    f"the {adj['rows']} catalyst rows", f"agree on {adj['agree']} of {adj['numeric_fields']} numeric fields",
+    f"(α = {fa[0]:.2f} and {fa[1]:.2f})",
+    f"Of the {sup['primary']} catalysts in the primary set ({pm['Ru']['n']} Ru, {pm['Fe']['n']} Fe, {pm['Co']['n']} Co and {pm['Ni']['n']} Ni)",
+    f"costs {ov['rate_leader_cost']:.2f} US dollars per tonne, {ov['regret'] * 100:.0f}% above",
+    f"(Spearman ρ = {ov['spearman_rate_vs_cost']:.2f})",
+    f"({float(sgm['81']['regret']) * 100:.1f}% and {float(sgm['82']['regret']) * 100:.1f}% regret)",
+    f"(lowest {pm['Ru']['cost_min']:.2f} US dollars per tonne)",
+    f"with 90% Ru recovery {['zero', 'one', 'two', 'three', 'four'][len(sup['sensitivity']['Ru_recovery90']['below_Fe'])]} do",
+    f"({pm['Co']['cost_min']:.2f} US dollars per tonne)",
+)
+ok("NH3 measured: only the Co catalyst below Fe without recovery",
+   [m for m, v in pm.items() if v["below_Fe"]] == ["Co"] and pm["Co"]["below_Fe"] == 1)
+ok("NH3 measured: same-support Fe/Ru studies favour Fe on cost",
+   all(sgm[k]["same"] == "False" and "Fe" in sgm[k]["plant_leader"] and "Ru" in sgm[k]["rate_leader"] for k in ("81", "82")))
+ok("NH3 measured: fused-iron calibration within a factor 2.2", all(0.45 <= v <= 2.2 for v in fa))
+
 # ----- MeOH published leaderboards ------------------------------------------------------------------------------
 s8 = section("Published methanol leaderboards and plant-cost leaderboards often disagree")
 P0 = lit["primary"]
