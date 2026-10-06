@@ -94,7 +94,11 @@ def renumber(s):
 TOKEN = re.compile(r"(\*\*.+?\*\*|\^\^\{[^}]*\}|\*(?!\s)[^*]+?\*|_\{[^}]*\}|\^\{[^}]*\}|(?<=[A-Za-zεχΣ])_[A-Za-z0-9]+)")
 
 
+ESC_STAR = "\ue000"        # stands in for an escaped asterisk (\*) while emphasis is parsed
+
+
 def runs(par, text, size=12, bold=False, italic=False):
+    text = text.replace("\\*", ESC_STAR)
     for piece in TOKEN.split(text):
         if not piece:
             continue
@@ -118,7 +122,7 @@ def runs(par, text, size=12, bold=False, italic=False):
                 runs(par, m.group(2), size, bold, italic)
                 continue
             piece, sub = piece[1:], True
-        r = par.add_run(piece)
+        r = par.add_run(piece.replace(ESC_STAR, "*"))
         r.bold, r.italic = b, it
         r.font.size = Pt(size)
         r.font.name = FONT

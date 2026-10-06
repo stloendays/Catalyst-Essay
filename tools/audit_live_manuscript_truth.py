@@ -338,7 +338,7 @@ ok("Au regret source", float(regret["AuTiO2"]["normalized_decision_regret"]) == 
 
 # ----- Discussion / Methods semantic locks ------------------------------------
 discussion = raw_text[raw_text.index("## Discussion"):raw_text.index("## Methods")]
-methods = raw_text[raw_text.index("## Methods"):]
+methods = re.sub(r"\s+", " ", raw_text[raw_text.index("## Methods"):]).replace("−", "-")
 tokens(
     "pairwise transfer-index interpretation",
     discussion,
@@ -363,7 +363,7 @@ tokens(
     "NH3 draw-level cost-MC reconstruction lock",
     methods,
     "complete draw sequence has been reconstructed",
-    "(C_Ru-C_Fe)/C_Fe",
+    "(C_Ru - C_Fe)/C_Fe",
 )
 ok(
     "no stale pending joint-reachability language",
