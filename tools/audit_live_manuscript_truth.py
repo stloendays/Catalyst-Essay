@@ -424,8 +424,13 @@ def n_ok(source, field):
 
 
 ext = json.loads((ROOT / "agent/extraction/eval/summary.json").read_text(encoding="utf-8"))
-sample = rows("agent/extraction/eval/batch4_unmatched_sample.csv")
+sample = rows("agent/extraction/eval/batch4_unmatched_sample.csv") + rows("agent/extraction/eval/batch5_unmatched_sample.csv")
 sample_ok = sum(r["verdict"].startswith("correct") for r in sample)
+_b5 = (ROOT / "agent/extraction/paper_set.txt").read_text(encoding="utf-8").split("# Batch 5")[1]
+batch5 = {line.split()[0] for line in _b5.splitlines() if line.startswith("10.")}
+first18 = [r for r in ent.values() if r.get("ref") == "themecat" and r["doi"] not in batch5]
+prec18 = (sum(int(r["matched"]) + int(r["unmatched_verified_correct"]) for r in first18)
+          / sum(int(r["extracted"]) for r in first18))
 lit = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/summary.json").read_text(encoding="utf-8"))
 alloy = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/summary.json").read_text(encoding="utf-8"))
 ext_all = alloy["extended_with_usgs_prices"]
@@ -436,7 +441,7 @@ tokens(
     n_ok("table", "X_CO2"), n_ok("table", "S_MeOH"),
     n_ok("SI", "X_CO2"), n_ok("SI", "S_MeOH"), n_ok("SI", "STY"),
     n_ok("plot", "X_CO2"), n_ok("plot", "S_MeOH"),
-    f"{float(ent['TOTAL themecat']['precision_with_review']) * 100:.0f}% are correct in the first 18 papers",
+    f"{prec18 * 100:.0f}% are correct in the first {len(first18)} papers",
     f"{sample_ok} of a random {len(sample)} ({sample_ok / len(sample) * 100:.0f}%)",
     f"{ext['n_errata_cells']} curated cells",
 )

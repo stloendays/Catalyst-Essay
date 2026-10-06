@@ -1,10 +1,10 @@
-# Paper leaderboards versus plant-cost leaderboards (CO2-to-methanol) — 2026-10-05, 40-paper set 2026-10-06
+# Paper leaderboards versus plant-cost leaderboards (CO2-to-methanol) — 2026-10-05, 50-paper set 2026-10-06
 
 `run_literature_inversion.py` takes the literature-extraction Agent's output (`agent/extraction/out/records_normalized.csv`,
 used as extracted) through the generalized methanol recycle-economics model and compares, within each paper, the
 paper's own leaderboard with the plant-cost leaderboard.
 
-- **Candidates:** 750 operating points from 35 of the 40 extracted papers have conversion, methanol selectivity, T, P,
+- **Candidates:** 991 operating points from 45 of the 50 extracted papers have conversion, methanol selectivity, T, P,
   H2/CO2 and a productivity basis. They come from the main text, main-text figures and Supporting Information.
   The other five papers give no usable operating point:
   - Yang 2024: no methanol selectivity;
@@ -16,7 +16,7 @@ paper's own leaderboard with the plant-cost leaderboard.
   Jiang 2020, or a CO/(CO2+CO) ratio above zero) is not a candidate, because the plant model takes a dry CO2/H2
   make-up (`meoh_candidates.cofeed`).
 - **Comparison groups:** entries of one paper at the same P, H2/CO2 and space velocity, i.e. the comparison the paper
-  itself makes. 68 groups with at least two entries, 682 entries, 34 papers.
+  itself makes. 83 groups with at least two entries, 906 entries, 44 papers.
 - **Paper leaderboard:** methanol STY per g catalyst.
   - It is the printed STY when every entry in the group prints it, otherwise it is derived from the space velocity.
   - The printed STY is not used when, within the group, printed STY / (F_CO2 X S) varies by more than a factor of 3.
@@ -40,27 +40,28 @@ come out at 943.30, 961.51, 966.96 and 1258.17 EUR/t (`selfcheck_gothe_table4.cs
 
 | Leaderboard / plant treatment | Groups with a different winner | Papers affected | Regret if the paper's winner is built (median of mismatched / max) | Pairwise orderings inverted |
 |---|---|---|---|---|
-| **STY, recycled CO, optimal purge (primary)** | **27 / 68 (40 %)** | **14 / 34** | **2.1 % / 182 %** | **696/6006 (12 %)** |
-| STY, recycled CO, 2 % purge | 29 / 68 (43 %) | 16 / 34 | 5.6 % / 557 % | 633/6006 (11 %) |
-| STY, inert CO, optimal purge | 35 / 68 (51 %) | 27 / 34 | 7.1 % / 98 % | 1178/6006 (20 %) |
-| single-pass yield X·S_MeOH | 26 / 68 (38 %) | 14 / 34 | 2.0 % / 182 % | 678/6006 (11 %) |
-| conversion X | 12 / 68 (18 %) | 9 / 34 | 4.5 % / 96 % | 504/6006 (8 %) |
-| **methanol selectivity S_MeOH** | **51 / 68 (75 %)** | **30 / 34** | **18.4 % / 4360 %** | **3228/6006 (54 %)** |
+| **STY, recycled CO, optimal purge (primary)** | **33 / 83 (40 %)** | **19 / 44** | **2.0 % / 182 %** | **1019/8458 (12 %)** |
+| STY, recycled CO, 2 % purge | 35 / 83 (42 %) | 22 / 44 | 4.4 % / 557 % | 898/8458 (11 %) |
+| STY, inert CO, optimal purge | 46 / 83 (55 %) | 37 / 44 | 6.9 % / 98 % | 1740/8458 (21 %) |
+| single-pass yield X·S_MeOH | 31 / 83 (37 %) | 18 / 44 | 2.0 % / 182 % | 989/8458 (12 %) |
+| conversion X | 16 / 83 (19 %) | 13 / 44 | 2.2 % / 96 % | 849/8458 (10 %) |
+| **methanol selectivity S_MeOH** | **63 / 83 (76 %)** | **40 / 44** | **15.2 % / 4360 %** | **4358/8458 (52 %)** |
 
 Robustness of the primary result:
-- Assumed density 0.5 or 2.0 g/mL: unchanged, 27 / 68 groups.
-- Printed values only, no plot readings: 14 / 41 groups, 8 / 29 papers.
-- Only entries whose reported selectivities to MeOH, CO and CH4 sum to at least 95 %: 16 / 46 groups, 9 / 27 papers.
-- Without Bansode 2013, the paper contributing the most groups: 20 / 60 groups (33 %), 13 / 33 papers; regret median
-  1.5 %, max 9.0 %.
+- Assumed density 0.5 or 2.0 g/mL: unchanged, 33 / 83 groups.
+- Printed values only, no plot readings: 17 / 50 groups, 11 / 38 papers.
+- Only entries whose reported selectivities to MeOH, CO and CH4 sum to at least 95 %: 22 / 61 groups, 14 / 37 papers.
+- Without Bansode 2013, the paper contributing the most groups: 26 / 75 groups (35 %), 18 / 43 papers; regret median
+  1.3 %, max 9.9 %.
 
-Weighting each paper equally, 35 % of a paper's comparison groups pick a different winner.
+Weighting each paper equally, 37 % of a paper's comparison groups pick a different winner.
 
 Regrets above 10 % all come from Bansode 2013. There, the highest-STY entries of a group are low-temperature points
-with 1–3 % single-pass conversion, and building them needs a very large recycle. Outside Bansode the largest regret is
-9.0 % (Wang 2015, Cu/SiO2: the 380 °C entry against the 390 °C entry at 6 L g-1 h-1).
+with 1–3 % single-pass conversion, and building them needs a very large recycle. Outside Bansode the largest regrets are
+9.9 % (Ma 2023, Zn-CdZrOx series), 9.0 % (Wang 2015, Cu/SiO2: the 380 °C entry against the 390 °C entry at 6 L g-1 h-1)
+and 8.7 % (Wang 2020, CuO/Ce0.4Zr0.6O2 loading series).
 
-Mean top-3 overlap in the 46 groups of four or more entries: 2.33 of 3 (primary), 0.83 of 3 for selectivity leaderboards.
+Mean top-3 overlap in the 57 groups of four or more entries: 2.25 of 3 (primary), 0.72 of 3 for selectivity leaderboards.
 
 ### Development history
 
@@ -69,6 +70,7 @@ Mean top-3 overlap in the 46 groups of four or more entries: 2.33 of 3 (primary)
 | 20 papers, main pass only (2026-10-05, PR #16) | – | 22 | 4 / 22 | 14 / 22 |
 | 20 papers after the recall passes (PR #18) | 443 from 19 | 36 | 16 / 36 (44 %), 7 / 19 papers | 27 / 36 (75 %) |
 | 40 papers (Shi 2020 dropped; co-feed exclusion; printed-STY consistency rule) | 750 from 35 | 68 | 27 / 68 (40 %), 14 / 34 papers | 51 / 68 (75 %) |
+| 50 papers (+10 TheMeCat papers downloaded by hand) | 991 from 45 | 83 | 33 / 83 (40 %), 19 / 44 papers | 63 / 83 (76 %) |
 
 ## What decides the plant ranking
 
@@ -86,8 +88,8 @@ The two CO treatments bound the plant ranking:
 - Recycled CO assumes the catalyst converts recycled CO as far as reverse-water-gas-shift equilibrium requires.
 - Inert CO assumes it never converts it.
 
-The share of groups whose winner changes is 40 % under the first and 51 % under the second. How much the wrong choice
+The share of groups whose winner changes is 40 % under the first and 55 % under the second. How much the wrong choice
 costs depends on the treatment.
 
-The analysis reads the current extraction output; rerun it after the extraction is extended (about 33 min for 750
+The analysis reads the current extraction output; rerun it after the extraction is extended (about 44 min for 991
 candidates on one core).
