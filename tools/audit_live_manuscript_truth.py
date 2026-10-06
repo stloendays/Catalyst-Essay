@@ -455,6 +455,20 @@ tokens(
     f"excludes {ext_all['pruning']['pruned']:,} candidates ({ext_all['pruning']['fraction_saved'] * 100:.1f}%)",
 )
 ok("Agent pruning: no false exclusion", ext_all["pruning"]["false_prunes"] == [])
+mpr = json.loads((ROOT / "analysis/meoh_pruning_2026_10_06/summary.json").read_text(encoding="utf-8"))
+mp = mpr["pruning"]["recycled_opt"]
+tokens(
+    "Agent pruning, methanol",
+    s6,
+    f"needs the full optimization for {mp['evaluated']} of the {mp['full']} candidates "
+    f"({mp['excluded']} excluded, {mp['excluded_fraction'] * 100:.1f}%)",
+    f"plant-cost leader of all {mpr['groups']} groups",
+    f"at {mpr['compute_fraction_recycled_opt'] * 100:.0f}% of the compute",
+)
+ok("Agent pruning, methanol: bound valid and no leader missed", mpr["bound_valid_all"] and mp["leader_missed"] == 0)
+
+FE_COST_ALLOY = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/alloy_backward_summary.json")
+                           .read_text(encoding="utf-8"))["Fe_cost_USD_t"]
 
 # ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
 s7 = section("Bimetallic surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
@@ -476,6 +490,22 @@ tokens(
 )
 ok("NH3 alloy: below-Fe family is cheap 3d + group 6", tm["below_Fe_either_route_all_3d_plus_group6"])
 ok("NH3 alloy: counts in text match source", len(glob_below) == 5 and len(anch_below) == 6)
+abw = {(r["surface"], r["route"]): r for r in rows("analysis/nh3_alloy_extension_2026_10_05/alloy_backward.csv")}
+lead_g, lead_a = abw[(tm["route_global"]["upstream_winner"], "global")], abw[(tm["route_anchored"]["upstream_winner"], "anchored")]
+cu3cr = abw[("Cu3Cr", "global")]
+tokens(
+    "NH3 alloy counterfactual and backward design",
+    s7,
+    f"({float(lead_g['cost_at_Fe_price_USD_t']):.2f} and {float(lead_a['cost_at_Fe_price_USD_t']):.2f} US dollars per tonne)",
+    f"{float(lead_g['alpha_star']):.0f}-fold and {float(lead_a['alpha_star']):.0f}-fold",
+    f"below {float(lead_g['best_scaling_cost_USD_t']):.2f} and {float(lead_a['best_scaling_cost_USD_t']):.2f} US dollars per tonne",
+    f"with {float(cu3cr['alpha_star']) * 100:.0f}% of its activity",
+)
+ok("NH3 alloy: leaders undercut Fe only at the Fe price",
+   float(lead_g["cost_at_Fe_price_USD_t"]) < FE_COST_ALLOY < float(lead_g["cost_USD_t"])
+   and float(lead_a["cost_at_Fe_price_USD_t"]) < FE_COST_ALLOY < float(lead_a["cost_USD_t"]))
+ok("NH3 alloy: Cu3Cr and Cu3Mo below Fe in both routes",
+   all(abw[(m, r)]["beats_Fe"] == "True" for m in ("Cu3Cr", "Cu3Mo") for r in ("global", "anchored")))
 
 # ----- MeOH published leaderboards ------------------------------------------------------------------------------
 s8 = section("Published methanol leaderboards and plant-cost leaderboards often disagree")

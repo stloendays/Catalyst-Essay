@@ -31,7 +31,9 @@ read here; the prompt contains only the paper itself.
 
 The API key is resolved by the harness resolver, or with --api-yes taken from
 the local API-YES gateway (127.0.0.1:8788) proxy key that serves the requested
-model, and handed straight to the client; it is never printed, logged or stored.
+model; once API-YES is used up or unavailable the calls move to the advisor key
+(llm_route.py). Keys are handed straight to the client and never printed,
+logged or stored.
 """
 from __future__ import annotations
 
@@ -289,7 +291,7 @@ def extract_one(client, doi: str, model: str, effort: str, use_images: bool, max
     else:
         messages, n_img, _ = build_messages_pass(doi, pass_)
     t0 = time.time()
-    if getattr(client, "_api_yes", False):
+    if getattr(client, "_route", None):
         return extract_one_responses(client, doi, model, effort, messages, n_img, t0)
     resp = client.chat.completions.create(
         model=model,
@@ -323,9 +325,9 @@ def extract_one(client, doi: str, model: str, effort: str, use_images: bool, max
 
 
 def extract_one_responses(client, doi, model, effort, messages, n_img, t0):
-    """API-YES route: the gateway forwards only streamed Responses calls with store=false intact
-    (its chat-completions route drops images and the JSON schema), so the output is assembled
-    from the streamed text deltas."""
+    """Router routes (API-YES, then the advisor key): streamed Responses calls with store=false (the API-YES
+    chat-completions route drops images and the JSON schema), so the output is assembled from the streamed
+    text deltas."""
     system, user = messages[0]["content"], messages[1]["content"]
     content = []
     for part in user:
@@ -365,29 +367,11 @@ def extract_one_responses(client, doi, model, effort, messages, n_img, t0):
     }
     data["_meta"] = {k: usage[k] for k in ("model", "reasoning_effort", "images", "prompt_tokens", "completion_tokens",
                                             "reasoning_tokens", "total_tokens", "finish_reason", "seconds", "timestamp")}
-    data["_meta"]["route"] = "api-yes responses"
+    data["_meta"]["route"] = f"{client._route} responses"
     return data, usage
 
 
-API_YES_URL = "http://127.0.0.1:8788/v1"
-API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
-
-
-def api_yes_key(model: str) -> str:
-    """Return the enabled API-YES proxy key whose model list contains `model`."""
-    import urllib.request
-    proxies = json.loads(API_YES_CONFIG.read_text(encoding="utf-8"))["proxies"]
-    for p in proxies:
-        if not p.get("enabled"):
-            continue
-        req = urllib.request.Request(API_YES_URL + "/models", headers={"Authorization": "Bearer " + p["key"]})
-        try:
-            with urllib.request.urlopen(req, timeout=20) as r:
-                if model in {m["id"] for m in json.load(r).get("data", [])}:
-                    return p["key"]
-        except OSError:
-            continue
-    sys.exit(f"no enabled API-YES proxy serves {model}; is API-YES running?")
+from llm_route import Router  # noqa: E402  (API-YES first, then the advisor key)
 
 
 def main() -> None:
@@ -402,7 +386,8 @@ def main() -> None:
     ap.add_argument("--pass-cap", type=int, default=1_500_000, help="token limit for this pass (figures/si)")
     ap.add_argument("--max-out", type=int, default=100_000)
     ap.add_argument("--force", action="store_true")
-    ap.add_argument("--api-yes", action="store_true", help="route calls through the local API-YES gateway")
+    ap.add_argument("--api-yes", action="store_true",
+                    help="route calls through the local API-YES gateway, then the advisor key once API-YES is used up")
     args = ap.parse_args()
 
     manifest = json.loads((HERE / "fetch_manifest.json").read_text(encoding="utf-8"))
@@ -418,9 +403,9 @@ def main() -> None:
         sys.exit(f"{len(dois)} papers exceed --max-papers {args.max_papers}")
 
     import openai
+    router = None
     if args.api_yes:
-        client = openai.OpenAI(api_key=api_yes_key(args.model), base_url=API_YES_URL, timeout=1800)
-        client._api_yes = True
+        router = Router(args.model)
     else:
         sys.path.insert(0, HARNESS_AGENT)
         from llm_client import resolve_api_key
@@ -447,7 +432,12 @@ def main() -> None:
             break
         print(f"extract {doi}  (~{est:,} prompt tokens est., {n_img} images, spent so far {spent:,})", flush=True)
         try:
-            data, usage = extract_one(client, doi, args.model, args.effort, not args.no_images, args.max_out, args.pass_)
+            if router is not None:
+                data, usage = router.call(lambda c: extract_one(c, doi, args.model, args.effort, not args.no_images,
+                                                                 args.max_out, args.pass_))
+            else:
+                data, usage = extract_one(client, doi, args.model, args.effort, not args.no_images, args.max_out,
+                                          args.pass_)
         except Exception as e:  # log and continue with the next paper
             print(f"  ERROR {type(e).__name__}: {str(e)[:300]}")
             continue

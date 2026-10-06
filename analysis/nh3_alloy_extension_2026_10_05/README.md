@@ -67,3 +67,31 @@ Each surface carries a `domain` label, because the activity model is fitted on t
   very stable bulk nitrides, which a surface-descriptor screen does not represent. Both layers are reported, not ranked.
 - Descriptor-only pruning over all 1,695 costed surfaces rules out 1,397 (82.4 %) before full optimization, with no
   false prunes.
+
+## Counterfactual and backward design for the leading surfaces (2026-10-06)
+
+`run_alloy_backward.py` writes `alloy_backward.csv` and `alloy_backward_summary.json`. The expensive steps of the
+hand-built Ru analysis are run only on the candidates the forward screen puts at the top: the transition-metal
+surfaces below Fe in either route and the highest-activity surface of each route. Each step reoptimizes the full
+14,136-state library; the forward costs reproduce `alloy_chain_results.csv`.
+
+| Surface | Route | Cost (USD/t) | At Fe price | α* to Fe parity | Price at Fe parity (USD/kg) |
+|---|---|---:|---:|---:|---:|
+| Cu3Cr | global / anchored | 14.36 / 14.36 | 14.31 / 14.31 | 0.237 / 0.237 | 382 / 383 |
+| Cu3Mo | global / anchored | 14.83 / 14.60 | 14.69 / 14.37 | 0.522 / 0.305 | 168 / 361 |
+| Fe3Mo | global | 14.53 | 14.30 | 0.268 | 419 |
+| Fe3W | global | 14.90 | 14.63 | 0.572 | 218 |
+| Ni3W | global | 15.08 | 14.74 | 0.757 | 144 |
+| CuMo, MoNi | anchored | 14.70 | 14.45, 14.43 | 0.378 | 327, 333 |
+| CoMo | anchored | 15.07 | 14.76 | 0.753 | 136 |
+| CoW | anchored | 15.17 | 14.71 | 0.850 | 167 |
+| Os3Pt (highest activity) | global | 24.55 | 14.96 | 689 | 69.9 |
+| AuW (highest activity) | anchored | 23.39 | 14.99 | 405 | 61.6 |
+
+Fe: 15.29 USD/t. α* < 1 is the activity a surface below Fe can lose and still undercut Fe (Cu3Cr keeps the lead
+with 24 % of its activity). Counterfactual: at the Fe price both activity leaders undercut Fe, as Ru does; the
+reversal at the top is again set by metal price. Backward: they need 689-fold and 405-fold activity, and no
+descriptor on the strict scaling range brings them below 24.54 and 23.20 USD/t at their own prices (they already sit at
+the volcano top), so only a lower metal inventory cost can close the gap. Cu3Cr and Cu3Mo are below Fe in both routes;
+Fe3Mo, Fe3W and Ni3W only in the global route and CuMo, MoNi, CoMo and CoW only in the anchored route
+(α* 1.6–2.4 in the other route; CoW 193, its global-route descriptor lies far off the volcano top).
