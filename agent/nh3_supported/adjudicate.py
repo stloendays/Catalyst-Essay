@@ -7,6 +7,12 @@ text of that page (thin spaces and thousands separators removed). Fields where t
 found in the text are written to out/review.csv; out/manual_adjudication.csv (page, row, field, value, basis) holds
 the decision taken from the page image and overrides pass a.
 
+Primary-source errata: out/primary_errata.csv (page, row, field, review_value, paper_value, paper_locator, source)
+is applied after the manual adjudication. It holds the review misprints found by checking the cited papers (PR #27,
+agent/nh3_field/eval/humphreys_adjudication.csv); the paper value supersedes the review value, paper_value "none"
+empties the field, and records.csv names every correction in the column `erratum`. The review value in the errata
+file must equal the adjudicated value, so the layer cannot drift silently from the extraction.
+
 Normalization (recorded per row): metal content from the content column, or from a leading "x%" in the catalyst name
 for Table 1 (flagged); rate printed in umol g-1 h-1, or mL h-1 g-1 converted with 22,414 mL mol-1, or derived from
 the printed outlet NH3 fraction and WHSV (flagged); fused-iron rows (Fe3O4, Fe1-xO, wustite) take the benchmark
@@ -58,7 +64,13 @@ def main():
     if mpath.exists():
         for m in csv.DictReader(mpath.open(encoding="utf-8")):
             manual[(int(m["page"]), int(m["row"]), m["field"])] = m
-    review, records, stats = [], [], dict(rows=0, numeric_fields=0, agree=0, in_text=0, manual=0, count_mismatch_pages=[])
+    errata = {}
+    epath = OUT / "primary_errata.csv"
+    if epath.exists():
+        for e in csv.DictReader(epath.open(encoding="utf-8")):
+            errata.setdefault((int(e["page"]), int(e["row"])), []).append(e)
+    review, records, stats = [], [], dict(rows=0, numeric_fields=0, agree=0, in_text=0, manual=0, count_mismatch_pages=[],
+                                          errata_fields=0, errata_rows=0)
     for page in sorted(A):
         ra, rb = A[page], B.get(page, [])
         if len(ra) != len(rb):
@@ -88,7 +100,12 @@ def main():
                                        pass_b=b[f], a_in_text=""))
                 if (page, i, f) in manual:
                     row[f] = manual[(page, i, f)]["value"]
-            records.append(normalize(page, i, row))
+            notes = apply_errata(row, errata.get((page, i), []))
+            stats["errata_fields"] += len(notes)
+            stats["errata_rows"] += bool(notes)
+            rec = normalize(page, i, row)
+            rec["erratum"] = "; ".join(notes)
+            records.append(rec)
             stats["rows"] += 1
     with (OUT / "review.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["page", "row", "catalyst", "field", "pass_a", "pass_b", "a_in_text"])
@@ -101,6 +118,27 @@ def main():
     stats["review_items"] = len(review)
     (OUT / "adjudication_summary.json").write_text(json.dumps(stats, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(stats, indent=1))
+
+
+def apply_errata(row, items):
+    """Replace review values by the primary-paper values; returns one note per corrected field."""
+    notes = []
+    for e in items:
+        f, old, new = e["field"], row[e["field"]], e["paper_value"]
+        if f in FIELDS:
+            same = old is not None and float(old) == float(e["review_value"])
+        else:
+            same = (";".join(old) if isinstance(old, list) else old) == e["review_value"]
+        if not same:
+            raise SystemExit(f"erratum p{e['page']} r{e['row']} {f}: review_value {e['review_value']!r}, record {old!r}")
+        if f == "active_metals":
+            row[f] = [] if new == "none" else new.split(";")
+        elif f in FIELDS:
+            row[f] = None if new == "none" else float(new)
+        else:
+            row[f] = new
+        notes.append(f"{f} {e['review_value']} -> {new} ({e['source']}: {e['paper_locator']})")
+    return notes
 
 
 def normalize(page, i, r):
