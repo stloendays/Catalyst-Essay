@@ -54,7 +54,7 @@ def edfig1():
     ent = rcsv(EXTRACT_ENT)
     b = ent[ent.doi.isin(["TOTAL themecat", "TOTAL suvarna", "TOTAL"])][
         ["doi", "curated", "matched", "recall", "matched_with_X_and_S"]].rename(columns={"doi": "reference_set"})
-    b["reference_set"] = b.reference_set.map({"TOTAL themecat": "ThemeCat", "TOTAL suvarna": "Suvarna",
+    b["reference_set"] = b.reference_set.map({"TOTAL themecat": "TheMeCat", "TOTAL suvarna": "Suvarna",
                                               "TOTAL": "all"})
     b = b.reset_index(drop=True)
     return {"a": (a, EXTRACT_ACC), "b": (b, EXTRACT_ENT + " (rows TOTAL themecat, TOTAL suvarna, TOTAL)")}

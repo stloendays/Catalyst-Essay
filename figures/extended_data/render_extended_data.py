@@ -490,12 +490,12 @@ def write_captions():
             "space-time yield (STY) against the curated values, by where the value is printed (main-text tables, SI "
             "tables, main-text plots, SI plots); labels give correct / extracted values (n = %s per bar). Values printed "
             "in tables are reproduced at %s–%s %%; values read from plots at %s %% (X), %s %% (S$_{MeOH}$) and %s %% "
-            "(STY) in the main text. **b**, Recall of curated entries per reference set: ThemeCat %d / %d, Suvarna "
+            "(STY) in the main text. **b**, Recall of curated entries per reference set: TheMeCat %d / %d, Suvarna "
             "%d / %d, all %d / %d (%s %%). Source: `%s` and `%s` (rows TOTAL)." % (
                 rng(a.n_extracted), _p(a[a.source_type.isin(["table", "SI"])].acc_strict.min()),
                 _p(a[a.source_type.isin(["table", "SI"])].acc_strict.max()),
                 _p(pl.loc["X_CO2", "acc_strict"]), _p(pl.loc["S_MeOH", "acc_strict"]), _p(pl.loc["STY", "acc_strict"]),
-                tot.loc["ThemeCat", "matched"], tot.loc["ThemeCat", "curated"], tot.loc["Suvarna", "matched"],
+                tot.loc["TheMeCat", "matched"], tot.loc["TheMeCat", "curated"], tot.loc["Suvarna", "matched"],
                 tot.loc["Suvarna", "curated"], tot.loc["all", "matched"], tot.loc["all", "curated"],
                 _p(tot.loc["all", "recall"]), E.EXTRACT_ACC, E.EXTRACT_ENT), ""]
     del tb
