@@ -1,0 +1,55 @@
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\pool.py", line 48, in mapstar
+    return list(map(*args))
+           ^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\analysis\meoh_main_result_stats_2026_10_06\run_main_result_stats.py", line 82, in exact_cost
+    sweep = G.purge_sweep(c, STY_per_g_cat=sty, P_bar=e["P_bar"], h2_co2=e["h2_co2"], T_C=e["T_C"],
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 387, in purge_sweep
+    return cost(c, purge=PURGES, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 379, in cost
+    return economics(c["X"], c["SMeOH"], c["SCH4"], c["SCO"], **args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 313, in economics
+    x = resolve_x_co(x_co, X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 271, in resolve_x_co
+    lo, hi = x_co_window(X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 251, in x_co_window
+    q0, q1 = q(zero), q(one)
+                      ^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 247, in q
+    lb = loop_balance(X, smeoh, SCH4, sco, h2_co2, purge, x)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\data\meoh\meoh_general_model.py", line 188, in loop_balance
+    raise ValueError("H2 inlet ratio insufficient")
+ValueError: H2 inlet ratio insufficient
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\论文-AI4S\wt-stats\analysis\meoh_main_result_stats_2026_10_06\run_main_result_stats.py", line 367, in <module>
+    main()
+  File "D:\论文-AI4S\wt-stats\analysis\meoh_main_result_stats_2026_10_06\run_main_result_stats.py", line 240, in main
+    surf = Surface(c, ents, HERE / "grid_costs.csv")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\analysis\meoh_main_result_stats_2026_10_06\run_main_result_stats.py", line 142, in __init__
+    new["cost"] = run_exact(jobs)
+                  ^^^^^^^^^^^^^^^
+  File "D:\论文-AI4S\wt-stats\analysis\meoh_main_result_stats_2026_10_06\run_main_result_stats.py", line 89, in run_exact
+    return np.array(pool.map(exact_cost, jobs, chunksize=4))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\pool.py", line 367, in map
+    return self._map_async(func, iterable, mapstar, chunksize).get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\pool.py", line 774, in get
+    raise self._value
+ValueError: H2 inlet ratio insufficient
