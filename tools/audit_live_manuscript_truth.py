@@ -535,9 +535,19 @@ def _win(sel):
     return sum(float(r_["Ru_A_bed"]) < float(r_["Fe"]) for r_ in sub) / len(sub)
 
 
-import numpy as _np  # noqa: E402
-_U = _np.array([float(r_["u"]) for r_ in mcd_rows]); _R = _np.array([float(r_["r"]) for r_ in mcd_rows])
-_tu, _tr = _np.quantile(_U, [1 / 3, 2 / 3]), _np.quantile(_R, [1 / 3, 2 / 3])
+def _quantiles(values, qs):
+    """numpy.quantile's default (linear) interpolation; the audit runs without numpy."""
+    v = sorted(values)
+    out = []
+    for q in qs:
+        h_ = (len(v) - 1) * q
+        lo = int(h_)
+        out.append(v[lo] + (v[min(lo + 1, len(v) - 1)] - v[lo]) * (h_ - lo))
+    return out
+
+
+_tu = _quantiles([float(r_["u"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
+_tr = _quantiles([float(r_["r"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
 tokens(
     "NH3 actual-catalyst MC: where Ru wins",
     text,
