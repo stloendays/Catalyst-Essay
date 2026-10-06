@@ -223,6 +223,37 @@ for n in range(1, 7):
     p = doc.add_paragraph()
     runs(p, renumber(delatex(" ".join(legend.split()))), 12)
 
+# ---- Extended Data figures and legends (figures/extended_data, added 2026-10-07) ----------------------------
+ED_CAPS = ROOT / "figures/extended_data/ED_CAPTIONS.md"
+
+
+def ed_text(s):
+    """ED captions use $_{x}$ / $^{x}$ math and `code` paths; map them onto the run grammar."""
+    def inner(m):
+        t = m.group(1)
+        if re.fullmatch(r"[_^][^{].*", t):
+            t = t[0] + "{" + t[1:] + "}"
+        return t
+    s = re.sub(r"\$([^$\n]*?)\$", inner, s)
+    s = re.sub(r"\s*Source: .*$", "", s, flags=re.S)   # repository paths stay in ED_CAPTIONS.md and Source Data
+    return s.replace("`", "")
+
+
+if ED_CAPS.exists():
+    eds = [(int(m.group(1)), m.group(2).strip(), m.group(3).strip()) for m in
+           re.finditer(r"^## Extended Data Fig\. (\d+) \| (.+?)\n\n(.+?)(?=\n## |\Z)", ED_CAPS.read_text(encoding="utf-8"),
+                       re.M | re.S)]
+    for n, title, legend in eds:
+        png = sorted((ROOT / "figures/extended_data").glob(f"EDFig{n}_*.png"))
+        doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        pic = doc.add_paragraph()
+        pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pic.add_run().add_picture(str(png[0]), width=Cm(16.0))
+        p = doc.add_paragraph()
+        runs(p, f"**Extended Data Fig. {n} | {ed_text(title)}**", 12)
+        p = doc.add_paragraph()
+        runs(p, ed_text(" ".join(legend.split())), 12)
+
 doc.save(OUT)
 unused = sorted(set(REFS) - set(order))
 print(f"wrote {OUT}; {len(order)} references cited; uncited and left out: {unused}")
