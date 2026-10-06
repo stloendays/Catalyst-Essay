@@ -21,4 +21,13 @@ Tables 1–6 on PDF pages 6, 10, 11, 13, 16, 17 and 19.
   printed outlet NH₃ fraction and WHSV (flagged); fused-iron rows (Fe₃O₄, Fe₁₋ₓO, wüstite) take the benchmark metal
   content.
 
+## Primary-source errata (2026-10-06)
+
+The PR #27 field analysis (`agent/nh3_field/eval/humphreys_adjudication.csv`) checked these rows against the cited
+papers and found ten review errors in nine rows. `out/primary_errata.csv` lists them, one row per corrected field
+(14 fields: the two ref. 104 rows are Ru-free, so their name, active metal and metal content change). `adjudicate.py`
+applies them after the manual adjudication; the paper value supersedes the review value, the record's column
+`erratum` names each correction, and the script stops if an erratum's review value no longer matches the extraction.
+The pass outputs (`out/pass_a`, `out/pass_b`) and `out/manual_adjudication.csv` are unchanged.
+
 The chain that uses these records is `analysis/nh3_supported_2026_10_06/`.

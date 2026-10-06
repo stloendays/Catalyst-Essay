@@ -6,12 +6,44 @@ its own metal content, which also replaces the pure-metal benchmark formulation.
 `run_supported_chain.py` writes `supported_candidates.csv`, `group_metrics.csv` and `summary.json`. Input:
 `agent/nh3_supported/out/records.csv` (extraction and adjudication: `agent/nh3_supported/README.md`).
 
+**Primary-source errata (2026-10-06, branch `humphreys-errata`, builds on PR #27).** The PR #27 field analysis
+checked the review rows against the cited papers and found ten review errors in nine rows
+(`agent/nh3_field/eval/humphreys_adjudication.csv`). They are applied as a layer after the manual adjudication
+(`agent/nh3_supported/out/primary_errata.csv`; the column `erratum` of `records.csv` and of
+`supported_candidates.csv` names each correction); the paper value supersedes the review value:
+
+| Row | Review | Paper | Effect here |
+|---|---|---|---|
+| ref. 104 "Ru/TiH₂ 0.9 wt%" (T2 p11 r6) | Ru catalyst | Ru-free TiH₂ | leaves the Ru set (was 25.73 USD/t) |
+| ref. 104 "Ru/BaTiO₂.₅H₀.₅ 0.9 wt%" (p11 r7) | Ru catalyst | Ru-free BaTiO₂.₅H₀.₅ | leaves the Ru set (was 27.50) |
+| ref. 199 BaHₓ-promoted 5.2 wt% Co/CNT (T4 p16 r7) | WHSV 6,000 | 60,000 | 14.46 → 18.28 USD/t |
+| ref. 186 Ru/CeO₂–CS (p11 r0) | WHSV 70,000 | 24,000 | 23.43 → 22.66 |
+| ref. 100 Ru/CeO₂-r, 10 MPa (p11 r10) | WHSV 70,000 | 70 dm³ h⁻¹ / 0.30 g = 233,333 | 23.26 → 28.16 |
+| ref. 81 Ru/BaTiO₂.₅H₀.₅ (p11 r8) | 1.0 wt%, WHSV 36,000 | 0.86 wt%, 66,000 | 23.65 → 22.98 |
+| ref. 200 Co–N–C (p16 r8) | 3.4 wt% Co | 3.73 wt% | 22.60 → 22.54 |
+| ref. 159 FeOOH(-K)/Al₂O₃ (T1 p6 r20) | WHSV 26,400 | 12,000 | none (no metal content; outside) |
+| ref. 81 Co/BaTiO₃₋ₓHₓ (p16 r13) | 5,700 µmol g⁻¹ h⁻¹ | 5,500 | none (no metal content; outside) |
+
+All five costs PR #27 predicted for the corrected rows (Co/CNT 18.28, Ru/CeO₂–CS 22.66, Ru/BaTiO₂.₅H₀.₅ 22.98,
+Co–N–C 22.54, Ru/CeO₂-r 28.16 USD/t) are reproduced to the second decimal by this rerun.
+
+Judgement calls. (i) The Ru-free rows keep their printed rate but get no active metal and no metal content, and their
+name carries "(Ru-free)"; they stay in `records.csv` and fall outside the chain. (ii) The Ru/CeO₂-r WHSV is entered as
+70,000 mL h⁻¹ / 0.30 g = 233,333 mL g⁻¹ h⁻¹ (PR #27 rounds it to 233,000; the cost is 28.16 USD/t either way).
+(iii) Name-only discrepancies without a wrong number (the omitted K and BaH₂ promoters, which the promoter column
+already carries; the Fe/BaTiO₂.₃₅H₀.₆₅ and Ba₀.₈Co₁.₀/C identities) are not changed. (iv) The median outlet NH₃
+fraction used for the 20 primary catalysts without outlet or WHSV is recomputed from the corrected records:
+0.458 % → 0.427 %. This moves three 10 MPa, 400 °C Ru catalysts by 4.5–6.7 USD/t (Ba/Ru/BN 27.56 → 22.22,
+Ru–N–MC 29.52 → 22.80, Ru/MC 26.98 → 22.44): their E_eff moves from about −0.91 to −1.27 eV, so the inversion for
+these rows is sensitive to the assumed outlet. The other 14 catalysts on the median move by less than 0.25 USD/t. No
+leader, count or below-Fe set depends on these three rows; Spearman ρ does (see below).
+
 ## Data
 
 Humphreys, Lan & Tao, *Adv. Energy Sustain. Res.* **2**, 2000043 (2021), doi:10.1002/aesr.202000043, Tables 1–6:
-164 printed rows, 161 after removing rows the review prints twice (Tables 2 and 3). 85 enter the chain; 76 do not
-(66 without a metal content, 25 without a single model metal — bimetallic catalysts and nitrides —, 10 without a rate;
-a row can have several reasons).
+164 printed rows, 161 after removing rows the review prints twice (Tables 2 and 3). 83 enter the chain; 78 do not
+(68 without a metal content, 27 without a single model metal — bimetallic catalysts, nitrides and the two Ru-free
+ref. 104 rows —, 10 without a rate; a row can have several reasons). Before errata: 85 enter, 76 do not (66, 25, 10).
 
 ## Mapping
 
@@ -23,7 +55,7 @@ as that descriptor, with its metal's molar mass and price and its own metal cont
 Fe keeps the benchmark 71.51 wt% and 2,500 kg m⁻³). The model's NH₃ formation free energy lies 0.10 eV above
 experiment (673 K), so the laboratory NH₃ fraction is entered at the same approach to equilibrium as in the
 experiment (Gillespie–Beattie equilibrium). Primary set: 300–500 °C, steady thermal operation, outlet below 90 % of
-equilibrium (75 catalysts); 10 are flagged (chemical looping, applied field or microwave, outside 300–500 °C, or
+equilibrium (73 catalysts; 75 before errata); 10 are flagged (chemical looping, applied field or microwave, outside 300–500 °C, or
 outlet near equilibrium).
 
 Calibration check: the two fused-iron catalysts with a printed rate (Fe₁₋ₓO and Fe₃O₄, 430 °C, 3 MPa, ref. 157 of the
@@ -34,28 +66,38 @@ review) give α = 0.64 and 0.45 against the plant calibration, and the better on
 
 | Metal | Catalysts | Below Fe | Lowest cost (USD/t) | Catalyst |
 |---|---:|---:|---:|---|
-| Ru | 56 | 0 | 15.32 | Ru/Cs/Ba/CCHT |
+| Ru | 54 | 0 | 15.32 | Ru/Cs/Ba/CCHT |
 | Fe | 9 | 0 | 15.52 | Fe₁₋ₓO (fused) |
-| Co | 5 | 1 | 14.46 | 5.2 wt% Co/CNT, BaHₓ-promoted |
+| Co | 5 | 0 | 18.28 | 5.2 wt% Co/CNT, BaHₓ-promoted |
 | Ni | 5 | 0 | 20.42 | Ni/LaN NPs |
 
-- Highest laboratory rate: Ru/AC-G (312,500 µmol g⁻¹ h⁻¹, 400 °C, 10 MPa), 17.53 USD/t, 21 % above the plant
-  leader. Spearman ρ between rate and plant cost across the 75 catalysts: 0.11.
-- Within one source at one T and P (10 comparisons): the rate leader differs from the plant leader in 3. In both
-  studies that test Fe and Ru on the same support (BaTiO₃₋ₓHₓ and BaCeO₃₋ₓHᵧN_z), Ru has the higher rate and Fe the
-  lower plant cost (18.6 % and 13.0 % regret).
-- The only catalyst below Fe is BaHₓ-promoted Co/CNT, whose laboratory rate at 300 °C lies 31-fold above the
-  model's volcano top.
-- With 90 % Ru recovery, 3 of the 56 Ru catalysts undercut Fe (Ru/Cs/Ba/CCHT 14.41, Ru/Ba–Ca(NH₂)₂, Ru/Ca(NH₂)₂).
+Before errata: Ru 56 / 0 / 15.32; Co 5 / 1 / 14.46 (Co/CNT); Fe and Ni unchanged.
+
+- No primary catalyst undercuts the 15.29 USD/t Fe benchmark without metal recovery; the plant leader is
+  Ru/Cs/Ba/CCHT (15.32 USD/t). Before errata: BaHₓ-promoted Co/CNT, 14.46 USD/t, the only catalyst below Fe, with a
+  laboratory rate 31-fold above the model's volcano top at 300 °C. With the paper's WHSV its outlet is 0.18 % NH₃
+  instead of 1.79 % and its rate lies on the volcano (α_res = 1).
+- Highest laboratory rate: Ru/AC-G (312,500 µmol g⁻¹ h⁻¹, 400 °C, 10 MPa), 17.53 USD/t, 14.4 % above the plant
+  leader (before errata 21.2 %, against Co/CNT). Spearman ρ between rate and plant cost across the 73 catalysts:
+  0.16 (before errata 0.11 across 75; with the errata alone and the median outlet held at 0.458 %, 0.07 — the rise to
+  0.16 comes from the three 10 MPa Ru catalysts that move with the median, judgement call iv).
+- Within one source at one T and P (9 comparisons; 10 before errata, the ref. 104 Ru/TiH₂–Ru/BaTiO₂.₅H₀.₅ pair is
+  gone): the rate leader differs from the plant leader in 3 (unchanged). In both studies that test Fe and Ru on the
+  same support (BaTiO₃₋ₓHₓ and BaCeO₃₋ₓHᵧN_z), Ru has the higher rate and Fe the lower plant cost (15.2 % and 13.0 %
+  regret; before errata 18.6 % and 13.0 %).
+- With 90 % Ru recovery, 3 of the 54 Ru catalysts undercut Fe (Ru/Cs/Ba/CCHT 14.41, Ru/Ba–Ca(NH₂)₂, Ru/Ca(NH₂)₂);
+  before errata 3 of 56, the same three.
 
 ## Sensitivity
 
-| Variant | Below Fe |
-|---|---|
-| bed density 500 kg m⁻³ | Co/CNT |
-| bed density 2,500 kg m⁻³ | Co/CNT, 20 % Fe–BaH₂ |
-| catalysts measured at ≥ 5 MPa (17) | none (Fe 16.67, Ru 17.53, Co 23.68 USD/t) |
-| constant multiplier on the metal's own TOF instead of E_eff | 9 (adds four Ni, three Fe and one Ru catalyst) |
+| Variant | Below Fe | Before errata |
+|---|---|---|
+| bed density 500 kg m⁻³ | none | Co/CNT |
+| bed density 2,500 kg m⁻³ | 20 % Fe–BaH₂ | Co/CNT, 20 % Fe–BaH₂ |
+| catalysts measured at ≥ 5 MPa (15; 17 before) | none (Fe 16.67, Ru 17.53, Co 23.74 USD/t) | none (Fe 16.67, Ru 17.53, Co 23.68) |
+| constant multiplier on the metal's own TOF instead of E_eff | 9 (Co/CNT, four Ni, three Fe, one Ru) | the same 9 |
+| 90 % Ru recovery | 3 of 54 Ru | 3 of 56 Ru |
 
-20 primary catalysts have neither an outlet NH₃ value nor a WHSV; they use the median outlet fraction (0.43 %).
+20 primary catalysts have neither an outlet NH₃ value nor a WHSV; they use the median outlet fraction (0.427 %;
+0.458 % before errata).
 The script calls the ACSA self-check gate first.

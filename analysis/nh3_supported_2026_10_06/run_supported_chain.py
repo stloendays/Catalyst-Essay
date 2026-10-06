@@ -158,6 +158,7 @@ def main():
         metals = [m for m in r["active_metals"].split(";") if m]
         rec = {k: r[k] for k in ("id", "table", "page", "catalyst", "active_metals", "metal_wt_pct", "T_C", "P_MPa",
                                  "whsv_mL_g_h", "outlet_nh3_vol_pct", "rate_umol_g_h", "ref", "notes")}
+        rec["erratum"] = r.get("erratum", "")
         rec.update(status="", E_eff_eV="", log10_alpha_res="", alpha="", y_out="", y_source=r["_y_source"], y_eq_exp="",
                    cost_USD_t="", cost_alpha_transfer="", cost_bed500="", cost_bed2500="", cost_recovery90="",
                    T_opt_C="", P_opt_bar="", V_m3="")
