@@ -174,7 +174,8 @@ def candidate_economics(X, SMeOH, SCH4, SCO, STY, Re_wt, purge=SOURCE_PURGE, pre
 FROZEN = {
     "1wtRe_200C": dict(name="1 wt% Re | 200 C", Re_wt=1.0, T_C=200, STY=55.0, X=0.19, SMeOH=0.99, SCH4=0.00, SCO=0.01),
     "5wtRe_200C": dict(name="5 wt% Re | 200 C", Re_wt=5.0, T_C=200, STY=18.0, X=0.33, SMeOH=0.97, SCH4=0.03, SCO=0.00),
-    "1wtRe_250C": dict(name="1 wt% Re | 250 C", Re_wt=1.0, T_C=250, STY=65.0, X=0.23, SMeOH=0.97, SCH4=0.03, SCO=0.00),
+    # S_CH4 1 %, CO-like 2 % per Table 3 of the source (corrected 2026-10-05, PR #7); this dict kept 3 % / 0 until 2026-10-06
+    "1wtRe_250C": dict(name="1 wt% Re | 250 C", Re_wt=1.0, T_C=250, STY=65.0, X=0.23, SMeOH=0.97, SCH4=0.01, SCO=0.02),
     "5wtRe_250C": dict(name="5 wt% Re | 250 C", Re_wt=5.0, T_C=250, STY=16.0, X=0.40, SMeOH=0.74, SCH4=0.25, SCO=0.01),
 }
 
