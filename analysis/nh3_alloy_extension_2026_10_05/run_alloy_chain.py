@@ -41,6 +41,11 @@ HARNESS = Path(sys.argv[1] if len(sys.argv) > 1 else
 sys.path.insert(0, str(HARNESS))
 import harness_core as hc  # noqa: E402
 
+sys.path.insert(0, str(HERE.parents[1] / "agent"))
+from selfcheck_gate import require  # noqa: E402
+
+require()          # ACSA scores new candidates only after reproducing all three hand-built cases
+
 RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
 cfg = yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"))
 h = hc.NH3Harness(cfg, HARNESS)
