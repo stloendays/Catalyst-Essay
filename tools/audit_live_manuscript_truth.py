@@ -513,6 +513,40 @@ ok("NH3 alloy: leaders undercut Fe only at the Fe price",
 ok("NH3 alloy: Cu3Cr and Cu3Mo below Fe in both routes",
    all(abw[(m, r)]["beats_Fe"] == "True" for m in ("Cu3Cr", "Cu3Mo") for r in ("global", "anchored")))
 
+# ----- NH3 actual-catalyst Monte Carlo -------------------------------------------------------------------------
+mca = json.loads((ROOT / "analysis/nh3_mc_ru_actual_2026_10_06/summary.json").read_text(encoding="utf-8"))
+wa = mca["A_where_Ru_wins"]
+tokens(
+    "NH3 actual-catalyst Monte Carlo",
+    text,
+    f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when the supported catalyst occupies the benchmark bed volume",
+    f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when its own Ru content",
+    f"Fe is cheaper in {mca['B']['P_Fe_cheaper'] * 100:.1f}% of draws with recovery and {mca['B0']['P_Fe_cheaper'] * 100:.1f}% without",
+    f"five of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
+)
+ok("NH3 actual-catalyst MC: base reproduced", mca["base_reproduced"]["P_Fe_cheaper"] == 1.0
+   and abs(mca["base_reproduced"]["min_gap_USD_t"] - 2.382) < 1e-3)
+ok("NH3 actual-catalyst MC: five winning measured catalysts", len(mca["B_Ru_winning_catalysts"]) == 5)
+mcd_rows = rows("analysis/nh3_mc_ru_actual_2026_10_06/draws.csv")
+
+
+def _win(sel):
+    sub = [r_ for r_ in mcd_rows if sel(r_)]
+    return sum(float(r_["Ru_A_bed"]) < float(r_["Fe"]) for r_ in sub) / len(sub)
+
+
+import numpy as _np  # noqa: E402
+_U = _np.array([float(r_["u"]) for r_ in mcd_rows]); _R = _np.array([float(r_["r"]) for r_ in mcd_rows])
+_tu, _tr = _np.quantile(_U, [1 / 3, 2 / 3]), _np.quantile(_R, [1 / 3, 2 / 3])
+tokens(
+    "NH3 actual-catalyst MC: where Ru wins",
+    text,
+    f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.1f}% of draws with u in its lowest tercile",
+    f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r in their top terciles",
+    f"in {_win(lambda r_: float(r_['measured_wt_pct']) < 2.5) * 100:.1f}% of draws below 2.5 wt% Ru",
+    f"{_win(lambda r_: float(r_['measured_wt_pct']) >= 5.0) * 100:.0f}% at 5 wt% or more",
+)
+
 # ----- NH3 measured catalysts --------------------------------------------------------------------------------
 s9 = section("Measured ammonia catalysts rank differently by laboratory rate and by plant cost")
 sup = json.loads((ROOT / "analysis/nh3_supported_2026_10_06/summary.json").read_text(encoding="utf-8"))
