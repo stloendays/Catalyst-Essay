@@ -583,10 +583,42 @@ tokens(
     f"({float(sgm['81']['regret']) * 100:.1f}% and {float(sgm['82']['regret']) * 100:.1f}% regret)",
     f"(lowest {pm['Ru']['cost_min']:.2f} US dollars per tonne)",
     f"with 90% Ru recovery {['zero', 'one', 'two', 'three', 'four'][len(sup['sensitivity']['Ru_recovery90']['below_Fe'])]} do",
-    f"({pm['Co']['cost_min']:.2f} US dollars per tonne)",
 )
-ok("NH3 measured: only the Co catalyst below Fe without recovery",
-   [m for m, v in pm.items() if v["below_Fe"]] == ["Co"] and pm["Co"]["below_Fe"] == 1)
+ok("NH3 measured: no measured catalyst below Fe without recovery (after the primary-paper errata)",
+   all(v["below_Fe"] == 0 for v in pm.values()))
+errata = rows("agent/nh3_supported/out/primary_errata.csv")
+tokens("NH3 measured: errata and Methods row count", text,
+       "ten transcription errors in nine rows",
+       f"enter the chain: {sup['rows'] - sup['outside']} of {sup['rows']} rows")
+ok("NH3 measured: errata file covers nine review rows", len({(r["page"], r["row"]) for r in errata}) == 9,
+   f"{len({(r['page'], r['row']) for r in errata})} rows")
+
+# ----- NH3 field statistic (30 primary papers) ------------------------------------------------------------------
+fd = json.loads((ROOT / "analysis/nh3_field_2026_10_06/summary.json").read_text(encoding="utf-8"))
+fev = json.loads((ROOT / "agent/nh3_field/eval/summary.json").read_text(encoding="utf-8"))
+FP, FV = fd["primary"], fd["variants"]
+fk = FP["mismatch_kinds"]
+fci = FP["bootstrap_papers"]["mismatch_fraction_ci95"]
+rate_ev = next(f for f in fev["fields"] if f["field"] == "rate")
+tokens(
+    "NH3 field statistic",
+    s9,
+    f"extracted {fd['papers_in_set']} primary ammonia-synthesis papers",
+    f"For the {fev['matched']} entries that the review also tabulates",
+    f"the rate in {fev['matched'] - rate_ev['extraction_errors']} of {fev['matched']}",
+    f"form {FP['groups']} comparisons",
+    f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%; 95% confidence interval "
+    f"{fci[0] * 100:.0f}–{fci[1] * 100:.0f}% from resampling papers), in {FP['papers_with_mismatch']} of {FP['papers']} papers",
+    f"median regret of {FP['regret_median_mismatched'] * 100:.0f}%",
+    f"in {fk['different metal']['groups']} comparisons an Fe catalyst",
+    f"in {fk['fused-Fe reference vs supported catalyst']['groups']} a commercial fused-iron catalyst",
+    f"With 90% Ru recovery the disagreement is {FV['Ru_recovery_90pct']['top1_mismatch_groups']} of {FP['groups']}",
+    f"raises it to {FV['per_g_metal_leaderboard']['top1_mismatch_groups']}",
+)
+_fc = [r for r in rows("analysis/nh3_field_2026_10_06/candidates.csv")
+       if r["status"].startswith("primary") and r["cost_USD_t"] and float(r["cost_USD_t"]) < fd["Fe_benchmark_USD_t"]]
+ok("NH3 field: every primary catalyst below the Fe benchmark is an iron catalyst",
+   bool(_fc) and all(r["metal"] == "Fe" for r in _fc), f"{len(_fc)} below Fe")
 ok("NH3 measured: same-support Fe/Ru studies favour Fe on cost",
    all(sgm[k]["same"] == "False" and "Fe" in sgm[k]["plant_leader"] and "Ru" in sgm[k]["rate_leader"] for k in ("81", "82")))
 ok("NH3 measured: fused-iron calibration within a factor 2.2", all(0.45 <= v <= 2.2 for v in fa))
@@ -617,9 +649,46 @@ wo = V["without_paper_with_most_groups"]
 ok("MeOH literature: regret outside the largest paper below 10 %", wo["regret_max"] < 0.10
    and "c2cy20604h" in wo["variant"])
 tokens("MeOH literature: other papers", s8, f"in the other {wo['papers']} papers the regret stays below 10%")
+# ----- Firmness of the methanol headline ---------------------------------------------------------------------
+st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
+cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))
+pb = json.loads((ROOT / "analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json").read_text(encoding="utf-8"))
+k1, ke = st["noise"]["meas_k1"], st["noise"]["meas_k1_plus_extraction"]
+sci = st["cluster_bootstrap"]["fraction_ci95"]
+r1 = next(r for r in st["regret_threshold_curve"] if r["threshold"] == 0.01)
+c3 = cc["variants"]["composition_3y"]
+nf = k1["sty_leader_differs_from_reported_q025_q975"]
+tokens(
+    "MeOH literature: sampling, measurement and extraction firmness",
+    s8,
+    f"95% confidence interval of {sci[0] * 100:.0f}–{sci[1] * 100:.0f}%",
+    f"{r1['groups']} of the {st['point_estimate']['groups']} disagreements cost at least 1%",
+    f"keeps {k1['observed_mismatches_kept_in_ge_90pct']} of the {st['point_estimate']['groups']} disagreements",
+    f"in {k1['sty_leader_differs_from_reported_mean']:.0f} comparisons (95% range {nf[0]:.0f}–{nf[1]:.0f})",
+    f"leaves {ke['mismatch_groups_mean']:.1f} disagreeing comparisons on average (95% range "
+    f"{ke['mismatch_groups_q025_q975'][0]:.0f}–{ke['mismatch_groups_q025_q975'][1]:.0f})",
+    f"gives {c3['top1_mismatch_groups']} of {c3['groups']} ({c3['top1_mismatch_fraction'] * 100:.0f}%)",
+)
+_pg = [r for r in rows("analysis/meoh_main_result_stats_2026_10_06/group_noise_probabilities.csv")
+       if r["observed_mismatch"] == "True" and float(r["p_mismatch_meas_k1"]) >= 0.9]
+_rg = sorted(float(r["observed_regret"]) for r in _pg)
+ok("MeOH literature: robust disagreements all cost at least 1% (median quoted)",
+   len(_pg) == k1["observed_mismatches_kept_in_ge_90pct"] and min(_rg) >= 0.01
+   and f"(median {_quantiles(_rg, [0.5])[0] * 100:.1f}%)" in s8, f"{len(_pg)} groups")
+_v = st["validation"]
+tokens("MeOH literature: response-surface validation in Methods", text,
+       f"{_v['verdict_disagreements_total']} of {_v['verdicts_compared']:,} group verdicts")
+_pv = [v["top1_mismatch_groups"] for k, v in pb["variants"].items()
+       if not k.startswith(("catalyst", "combined", "baseline"))]
+tokens("MeOH plant benchmark: loop, recycle and price variants", text,
+       f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
+ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
+
 tokens("Abstract headline numbers", text, "1,695 bimetallic surfaces", f"{lit['candidates']} operating points from {lit['papers_with_candidates']} methanol studies",
-       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of cases",
-       f"in {V['leaderboard_S_MeOH']['top1_mismatch_fraction'] * 100:.0f}%")
+       f"and {fd['papers_in_set']} ammonia studies",
+       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
+tokens("Discussion: field-level shares", text,
+       f"{P0['top1_mismatch_fraction'] * 100:.0f}% in methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% in ammonia")
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)

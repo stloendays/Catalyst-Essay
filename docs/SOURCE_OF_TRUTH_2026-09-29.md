@@ -311,11 +311,39 @@ The paper leaderboard is STY per g catalyst; the plant leaderboard is the net pr
 | different winner, selectivity leaderboard | 63/83 groups (76 %), 40/44 papers; regret median 15 % (mismatched) | DERIVED-A | same |
 | robustness, STY leaderboard | printed values only 17/50; methanol products only 22/61; without Bansode 2013 26/75 groups, 18/43 papers, regret max 9.9 % | DERIVED-A | same |
 | compute saved (`analysis/meoh_pruning_2026_10_06/`) | 206 of 906 candidates need the full optimization (700 excluded, 77.3 %); 0/83 leaders missed; 22.8 % of the compute | DERIVED-A | `analysis/meoh_pruning_2026_10_06/summary.json` |
+| sampling uncertainty of 33/83 (2026-10-07) | paper-cluster bootstrap 95 % CI 23.7–55.1 % (paper-weighted 23.6–50.3 %) | DERIVED-A | `analysis/meoh_main_result_stats_2026_10_06/summary.json` |
+| size of the disagreements | regret ≥ 1 %: 23/83 groups (12 papers); ≥ 2 %: 16; ≥ 5 %: 9; ≥ 10 %: 4 (one paper) | DERIVED-A | same, `regret_threshold_curve.csv` |
+| measurement noise (Re/TiO2 error basis ×1, 2,000 re-measurements) | 37.3 mismatched groups (31–43); 15 of 33 kept in ≥ 90 % of draws, all regret ≥ 1 % (median 5.9 %); reported STY leader changes in 13.4 groups (8–19) under re-measurement alone (×2: 22.4; ×4: 34.1) | DERIVED-A | same, `group_noise_probabilities.csv` |
+| agent plot-reading errors resampled (+ noise ×1) | 38.5 mismatched groups (31–45); 10 kept in ≥ 90 % of draws | DERIVED-A | same |
+| response surface vs exact model | 6 of 1,660 group verdicts differ | DERIVED-A | same, `validation.csv` |
+| composition-priced catalyst replacement per inventory (3 y) | 31/83 (37 %), 18/44 papers, CI 22–53 %; 1 y 31, 4 y 32, 6 y 33; uniform 18.1 EUR/kg 32; base cost 95.24 EUR/kg 24 | DERIVED-B (robustness) | `analysis/meoh_catalyst_cost_2026_10_06/summary.json` |
+| plant model vs operating plants and TEAs | H2 0.195–0.208 t/t, CO2 1.40–1.50 t/t, carbon efficiency 0.915–0.983, recycle ratio 2.8–3.8 at 22–33 % per pass, all inside reference ranges; like-for-like cost vs Pérez-Fortes 2016 (ref. 14) 706.1 vs 723.6 EUR/t (−2.4 %); Szima +1.3 %; Nyári −0.9 to −5.1 %; loop ΔP, recycle and price variants 32–34/83 | DERIVED-A | `analysis/meoh_plant_benchmark_2026_10_06/` |
 
 **Semantic lock:** groups compare entries at equal pressure, so the model's simplified condensation at 20–40 bar does
 not enter within-group rankings. Recycled and inert CO bound the plant ranking; the winner-change counts hold under
 both, and regret magnitudes depend on the treatment. Regrets above 10 % all come from low-conversion entries of one
 paper (Bansode 2013).
+
+## NH3 — measured catalysts: review chain after primary-paper errata, and the 30-paper field statistic — 2026-10-07
+
+`analysis/nh3_supported_2026_10_06/` (Humphreys 2021 Tables 1–6) now applies `agent/nh3_supported/out/primary_errata.csv`:
+ten review errors in nine rows, checked in the primary papers (PR #27/#28). `analysis/nh3_field_2026_10_06/` extracts
+30 primary papers and scores within-paper comparisons (same paper, T, P, H2/N2 and space velocity).
+
+| Quantity | Current value | State | Authoritative source |
+|---|---:|---|---|
+| review chain, primary set | 73 catalysts (54 Ru, 9 Fe, 5 Co, 5 Ni); 83 of 161 rows enter the chain | DERIVED-A | `analysis/nh3_supported_2026_10_06/summary.json` |
+| review chain, rate leader | Ru/AC-G 17.53 USD/t, 14 % above the plant leader (Ru/Cs/Ba/CCHT 15.32); Spearman ρ 0.16 | DERIVED-A | same |
+| review chain, below Fe (15.29 USD/t) | none without recovery; 3 Ru catalysts with 90 % Ru recovery; same-support Fe/Ru regrets 15.2 % and 13.0 % | DERIVED-A | same |
+| retired by the errata | "BaHx-promoted Co/CNT, the one catalyst below Fe, 14.46 USD/t" (review WHSV 6,000; paper 60,000 → 18.28 USD/t); 75/56 Ru; 21 %; ρ 0.11; 18.6 % | RETIRED | `analysis/nh3_supported_2026_10_06/ERRATA_IMPACT_2026-10-06.md` |
+| field extraction accuracy | 38 review-overlap entries: T, P, metal content, WHSV correct after adjudication, rate 37/38; random PDF check 35/40 | DERIVED-A | `agent/nh3_field/eval/summary.json`, `pdf_check_sample.csv` |
+| field statistic (primary: rate per g catalyst, no recovery) | 45/124 groups (36 %), 13/28 papers, CI 19–53 %; regret median 11 % (mismatched), max 77 %; 262/1551 pairs inverted | DERIVED-A | `analysis/nh3_field_2026_10_06/summary.json` |
+| field mechanisms | Fe beats Ru/Co on the same support 14 groups; commercial fused-Fe reference is the plant leader 18; same metal and content 11 (median regret 2.3 %) | DERIVED-A | same |
+| field variants | 90 % Ru recovery 43/124; per-g-metal leaderboard 55/124; fused references removed 28/115; printed values only 7/35; ≥ 5 MPa 1/19 | DERIVED-A | same |
+| field, below the Fe benchmark | only iron catalysts (fused-iron references and one supported-Fe series) | DERIVED-A | `candidates.csv` |
+
+**Semantic lock:** the field statistic compares catalysts within one paper at one condition; it is not a cross-study
+ranking. The ≥ 5 MPa subset is small (19 groups) because most primary papers test at 0.1–1 MPa.
 
 ## Other active scientific families
 
