@@ -1,0 +1,32 @@
+case,term,model,reference,ref_basis,attribution,deviation,deviation_pct
+B1 Campos 2022 one-step (calibration point; model prices = reference prices),H2,615,662.1,Fig. 11b bar reading (+/- 3 M EUR/a),"model H2 0.1985 t/t vs 0.214 t/t implied by the bar; Table-6 feed excess gives 0.200 t/t (model -0.8 %). The gap is carried by the constant residual, so the level is reproduced",-47.09,-7.112
+B1,CO2,64.19,63.79,Fig. 11b,CO2 1.449 vs 1.457 t/t (Table 6),0.3923,0.6149
+B1,electricity,17.93,9.483,Fig. 11b (net power after Rankine credit; 17.6 MW x 90 EUR/MWh = 10.9 EUR/t),model counts compressors only (28.9 MW) and no Rankine credit; difference sits in the residual,8.444,89.04
+B1,catalyst replacement,0,12.93,Fig. 11b; inputs give 14.9 EUR/t (2868.8 t x 18.1 EUR/kg / 3 y),model: inside the catalyst-independent residual (no inventory dependence),-12.93,-100
+B1,other direct (residual),56.96,5.948,Table 7 direct OPEX minus Fig. 11b bars,constant by construction,51.01,857.6
+B1,ACC (CAPEX annuity),46.04,46.12,Table 7,"same EC, Lang factor and annuity",-0.08194,-0.1777
+B1,indirect OPEX,123.6,123.6,Table 7,same formula (Eq. 24),-0.0688,-0.05565
+B1,TOTAL,923.6,924,Table 7 (text: 920 EUR/t),calibration identity; -0.03 % with CO recycled,-0.3207,-0.03471
+"B2 Campos 2022 three-step (out-of-sample design, same price basis)",EC (M EUR),68.75,66.1,Table 7,model topology has no intermediate condensers / flash drums,2.645,4.002
+B2,FCI (M EUR),334.1,321.4,Table 7,,12.7,3.952
+B2,ACC,37.03,35.6,Table 7,,1.427,4.009
+B2,direct OPEX,730.6,723.8,Table 7,feed saving from the higher carbon efficiency; catalyst halved (in residual in the model),6.789,0.9379
+B2,indirect OPEX,113.6,111.7,Table 7,,1.913,1.712
+B2,TOTAL,881.3,871.2,Table 7 (text: 868 EUR/t),,10.04,1.153
+B2,saving vs one-step (EUR/t),42.39,52.76,Table 7,direction and size of the conversion benefit,-10.36,-19.64
+"B2 with explicit catalyst term (18.1 EUR/kg, 3 y)",saving vs one-step (EUR/t),50.68,52.76,Table 7,the halved catalyst charge (6 -> 3 modules) is a reference cost the canonical model keeps constant,-2.074,-3.932
+"B2 with explicit catalyst term (18.1 EUR/kg, 3 y)",TOTAL,873,871.2,Table 7,,1.754,0.2013
+B2,recycle (kmol/h),2.059e+04,2.258e+04,Table 6,,-1993,-8.827
+B2,purge (kmol/h),420.2,455,text p18,,-34.84,-7.658
+"B3 Perez-Fortes 2016 prices, scale and operating point (secondary values; primary pending)",TOTAL,912.9,724,Dieterich 2020 Table 12,,188.9,26.09
+B3,H2,625.7,,H2 3090 EUR/t (Mbatha Table 15),breakdown not available without the primary,,
+B3,CO2,0,0,0 EUR/t (Dieterich Table 12),,0,
+B3,electricity,20.65,,95.1 EUR/MWh,,,
+B3,FCI (M EUR),236.4,235.3,181 kEUR/(t/d) x 1300 t/d (Dieterich Table 12),see capex_scale.csv,1.057,0.4494
+B3,ACC,69.07,,,,,
+B3,residual direct OPEX (anchor convention),56.96,,,catalyst-independent constant,,
+B3,indirect OPEX: labour + 0.081 FCI,49.27,,,anchor (Peters/Albrecht) convention,,
+B3,indirect OPEX: 10 % of NPC,91.29,,,"anchor convention: distribution, selling, R&D",,
+B3,ACC + electricity (capital and power only),89.71,98.34,724 minus model H2 tonnage x 3090,like-for-like with a lean TEA boundary,-8.63,-8.776
+B3,all non-feed terms,287.2,98.34,724 minus model H2 tonnage x 3090 (assumes the same H2 use),,188.9,192.1
+B3 (memo) same operating point at anchor prices and scale,TOTAL,944.4,,,price-basis effect,,
