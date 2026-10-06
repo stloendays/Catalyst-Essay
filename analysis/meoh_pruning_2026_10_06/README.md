@@ -15,14 +15,16 @@ candidates in increasing bound order, stopping when the next bound exceeds the b
 
 | | Recycled CO (primary) | Inert CO |
 |---|---:|---:|
-| candidates in the 36 scored groups | 413 | 413 |
-| bound below the full cost | 413/413 | 413/413 |
-| full evaluations needed | 89 | 248 |
-| excluded before full optimization | 324 (78.5 %) | 165 (40.0 %) |
-| plant-cost leader missed | 0/36 | 0/36 |
-| median bound gap | 22.1 EUR/t | 247.8 EUR/t |
+| candidates in the 68 scored groups (40-paper set) | 682 | 682 |
+| bound below the full cost | 682/682 | 682/682 |
+| full evaluations needed | 156 | 423 |
+| excluded before full optimization | 526 (77.1 %) | 259 (38.0 %) |
+| plant-cost leader missed | 0/68 | 0/68 |
+| median bound gap | 22.2 EUR/t | 249.7 EUR/t |
 
-With the bound itself counted, the primary treatment needs 21.6 % of the compute of evaluating every candidate in full.
+With the bound itself counted, the primary treatment needs 22.9 % of the compute of evaluating every candidate in full.
+On the earlier 20-paper set (36 groups, 413 candidates) the numbers were 89 full evaluations, 324 excluded (78.5 %),
+0/36 leaders missed and 21.6 % of the compute.
 The inert treatment gains less because the bound is taken at the most favourable recycled-CO conversion (all
 recycled CO converted), whereas with inert CO the CO builds up in the loop and the CO2 feed per pass is higher.
 
