@@ -4,6 +4,7 @@ Shared by run_literature_inversion.py and the ACSA self-check gate (agent/selfch
 same code path.
 """
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -49,8 +50,29 @@ def vol_ghsv(raw):
         return None
 
 
+def cofeed(feed) -> bool:
+    """True when the stated feed adds water or CO to CO2/H2 (e.g. 'additional H2O = 0.8 mol%', 'R = CO/(CO2+CO) =
+    40%', 'CO2:CO:H2 = ...'). The plant model takes a dry CO2/H2 make-up, so these entries are not candidates."""
+    s = str(feed)
+    for m in re.finditer(r"(?:H2O|water)[^;|]*?=\s*([\d.]+)", s, re.I):
+        if float(m.group(1)) > 0:
+            return True
+    m = re.search(r"CO/\(CO2\s*\+\s*CO\)\s*=\s*([\d.]+)", s)
+    if m:
+        return float(m.group(1)) > 0
+    return bool(re.search(r"(?:^|[\s:/,(])CO(?=\s*[:/,=)])", s))
+
+
+def read_records(path=RECORDS) -> pd.DataFrame:
+    """records_normalized.csv with only empty cells as missing (a catalyst is named 'NA' in Richard et al. 2017)."""
+    return pd.read_csv(path, keep_default_na=False, na_values=[""])
+
+
 def candidate_row(r):
-    """One extracted record -> one candidate operating point, or None if it has no conversion or methanol."""
+    """One extracted record -> one candidate operating point, or None if it has no conversion or methanol, or if its
+    feed adds water or CO."""
+    if cofeed(r.feed):
+        return None
     X = float(r.X_CO2_pct) / 100.0
     sm, sco, sch4, rep = closure(r)
     if X <= 0 or sm <= 0:
@@ -91,6 +113,6 @@ def gothe_selfcheck(got: pd.DataFrame) -> pd.DataFrame:
 
 
 def gothe_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
-    d = pd.read_csv(RECORDS) if records is None else records
+    d = read_records() if records is None else records
     d = d[d.doi == GOTHE_DOI].dropna(subset=REQUIRED)
     return pd.DataFrame([c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None])

@@ -254,13 +254,13 @@ offline from the committed raw outputs and reproduce `eval/` byte for byte.
 
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
-| scored papers | 19 TheMeCat papers (413 curated entries) + Gothe 2025 Table 4 (21 rows); SI retrieved for 19 papers | SUPPORTING | `agent/extraction/eval/summary.json`, `agent/extraction/si_manifest.json` |
-| entry recall / precision | 396/413 = 0.96 (main pass alone 258/413 = 0.62); precision 0.69 on matched entries, 0.89 after PDF review of unmatched entries | SUPPORTING | `agent/extraction/eval/entry_metrics.csv` |
-| field accuracy, strict, adjudicated reference | T, P, H2/CO2 1.000; GHSV 0.990; X_CO2 0.914 (coverage 1.00); S_MeOH 0.739 (0.911 loose, coverage 1.00); STY 0.697 (0.754 loose) | SUPPORTING | `agent/extraction/eval/field_accuracy.csv` |
-| values printed in tables and SI | main-text tables X 58/58, S_MeOH 58/58; SI X 117/117, S_MeOH 113/114, STY 107/107; plot readings X 131/153, S_MeOH 59/131 strict | SUPPORTING | `agent/extraction/eval/field_accuracy_by_source.csv` |
+| scored papers (2026-10-06, `paper_set.txt`) | 50: 28 TheMeCat (547 curated entries; 10 downloaded by hand), 20 Suvarna et al. 2022 (194 entries; conditions and STY only), Gothe 2025 Table 4 (21 rows), Lam 2018 (PDF review only); SI for all 50. Shi 2020 dropped (no SI) | SUPPORTING | `agent/extraction/paper_set.txt`, `agent/extraction/eval/summary.json`, `agent/extraction/si_manifest.json` |
+| entry recall / precision | 718/741 = 0.969 (TheMeCat 526/547 = 0.962, Suvarna 192/194 = 0.990); precision 0.89 after PDF review of every unmatched entry in the first 18 TheMeCat papers; 79/90 (0.88, 95 % CI 0.79–0.93) in random samples of the 567 unmatched entries of the 31 papers added on 2026-10-06 | SUPPORTING | `agent/extraction/eval/entry_metrics.csv`, `agent/extraction/eval/batch4_unmatched_sample.csv` |
+| field accuracy, strict, adjudicated reference | T, P, H2/CO2 1.000; GHSV 0.961 (0.995 loose); X_CO2 0.903 (0.989 loose); S_MeOH 0.669 (0.884 loose); STY 0.559 (0.699 loose); X and S scored on TheMeCat only | SUPPORTING | `agent/extraction/eval/field_accuracy.csv`, `field_accuracy_by_reference.csv` |
+| values printed in tables and SI | main-text tables X 74/74, S_MeOH 74/74, STY 66/67; SI X 131/132, S_MeOH 126/131, STY 119/124; plot readings X 181/218, S_MeOH 73/196 strict | SUPPORTING | `agent/extraction/eval/field_accuracy_by_source.csv` |
 | Gothe Table 4 | 21/21 rows; X, S_MeOH, S_CO, S_CH4, STY per g Re each 21/21 | SUPPORTING | `agent/extraction/eval/gothe_table4_scores.csv` |
-| reference errata | 271 TheMeCat cells corrected against the PDFs and SI (179 rows); one mislabelled row renamed | SUPPORTING | `agent/extraction/eval/themecat_errata.csv` |
-| tokens | 2.90 M for the pilot (main 1.05 M; figures 1.05 M; SI 0.44 M; SI figures 0.36 M) | SUPPORTING | `agent/extraction/out/token_usage.csv` |
+| reference errata | 339 cells: TheMeCat cells corrected against the PDFs and SI (179 rules for the first 18 papers; 18 printed-STY rules for Lin 2021 and Zhang 2017); Suvarna 9 rules (Karelovic 2015 pressure and temperature shift; Sharma 2021 untested temperatures and per-g-Cu rates; Shen 2021 and Hengne 2018 mislabelled rows) | SUPPORTING | `agent/extraction/eval/themecat_errata.csv`, `suvarna_errata.csv` |
+| tokens | 2.90 M for the 20-paper pilot; 3.20 M for the 21 batch-4 papers; 1.26 M for the 10 batch-5 papers; 7.37 M in total | SUPPORTING | `agent/extraction/out/token_usage.csv` |
 
 **Semantic lock:** "adjudicated" means TheMeCat after the listed PDF- and SI-verified corrections; accuracy against the
 raw TheMeCat values is reported alongside in `field_accuracy.csv`.
@@ -305,15 +305,16 @@ The paper leaderboard is STY per g catalyst; the plant leaderboard is the net pr
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
 | Agent self-check: Gothe Table 4 from extracted inputs | 21/21 entries equal the frozen costs (max 2.3e-13 EUR/t); canonical states 943.30 / 961.51 / 966.96 / 1258.17 | DERIVED-A | `selfcheck_gothe_table4.csv` |
-| scored comparison | 36 groups, 413 entries, 19 papers (main text, figures and SI after the recall passes) | DERIVED-A | `summary.json` |
-| different winner, STY leaderboard (primary) | 16/36 groups (44 %), 7/19 papers; regret median 2.9 % (mismatched), max 182 %; 492/3801 pairs inverted | DERIVED-A | same |
-| different winner, STY leaderboard, inert CO | 19/36 groups (53 %), 14/19 papers | DERIVED-A | same |
-| different winner, selectivity leaderboard | 27/36 groups (75 %), 16/19 papers; regret median 69 % (mismatched) | DERIVED-A | same |
-| robustness, STY leaderboard | printed values only 10/26; methanol products only 13/30; without Bansode 2013 9/28 groups, 6/18 papers, regret max 3.9 % | DERIVED-A | same |
+| scored comparison (50-paper set, 2026-10-06) | 991 candidates from 45 papers; 83 groups, 906 entries, 44 papers. Co-feed (H2O or CO) entries excluded; printed STY replaced by the mass-GHSV STY where printed / (F X S) varies > 3x within a group (3 groups) | DERIVED-A | `summary.json` |
+| different winner, STY leaderboard (primary) | 33/83 groups (40 %), 19/44 papers; regret median 2.0 % (mismatched), max 182 %; 1019/8458 pairs inverted | DERIVED-A | same |
+| different winner, STY leaderboard, inert CO | 46/83 groups (55 %), 37/44 papers | DERIVED-A | same |
+| different winner, selectivity leaderboard | 63/83 groups (76 %), 40/44 papers; regret median 15 % (mismatched) | DERIVED-A | same |
+| robustness, STY leaderboard | printed values only 17/50; methanol products only 22/61; without Bansode 2013 26/75 groups, 18/43 papers, regret max 9.9 % | DERIVED-A | same |
+| compute saved (`analysis/meoh_pruning_2026_10_06/`) | 206 of 906 candidates need the full optimization (700 excluded, 77.3 %); 0/83 leaders missed; 22.8 % of the compute | DERIVED-A | `analysis/meoh_pruning_2026_10_06/summary.json` |
 
 **Semantic lock:** groups compare entries at equal pressure, so the model's simplified condensation at 20–40 bar does
 not enter within-group rankings. Recycled and inert CO bound the plant ranking; the winner-change counts hold under
-both, and regret magnitudes depend on the treatment. Regrets above 4 % all come from low-conversion entries of one
+both, and regret magnitudes depend on the treatment. Regrets above 10 % all come from low-conversion entries of one
 paper (Bansode 2013).
 
 ## Other active scientific families
