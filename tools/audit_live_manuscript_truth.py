@@ -29,17 +29,31 @@ def rows(path):
         return list(csv.DictReader(fh))
 
 
-def section(heading):
-    marker = "### " + heading
-    i = raw_text.index(marker)
-    j = raw_text.find("\n### ", i + len(marker))
-    d = raw_text.find("\n## Discussion", i + len(marker))
+SI_PATH = ROOT / "docs/SUPPLEMENTARY_INFORMATION.md"
+raw_si = SI_PATH.read_text(encoding="utf-8") if SI_PATH.exists() else ""
+
+
+def _block(raw, i, marker):
+    j = raw.find("\n### ", i + len(marker))
+    d = raw.find("\n## ", i + len(marker))
     ends = [x for x in (j, d) if x >= 0]
-    if not ends:
-        j = len(raw_text)
-    else:
-        j = min(ends)
-    return re.sub(r"\s+", " ", raw_text[i:j]).replace("−", "-")
+    j = min(ends) if ends else len(raw)
+    return re.sub(r"\s+", " ", raw[i:j]).replace("−", "-")
+
+
+def section(heading):
+    """The full results of a section: its Supplementary Note when one has that title (the main text keeps a shorter
+    version since the 2026-10-07 compression), otherwise the main-text subsection."""
+    m = re.search(r"^### Supplementary Note \d+ \| " + re.escape(heading) + r"[ \t]*$", raw_si, re.M)
+    if m:
+        return _block(raw_si, m.start(), m.group(0))
+    marker = "### " + heading
+    return _block(raw_text, raw_text.index(marker), marker)
+
+
+def main_section(heading):
+    marker = "### " + heading
+    return _block(raw_text, raw_text.index(marker), marker)
 
 
 checks = []
@@ -524,9 +538,10 @@ ok("NH3 alloy: Cu3Cr and Cu3Mo below Fe in both routes",
 # ----- NH3 actual-catalyst Monte Carlo -------------------------------------------------------------------------
 mca = json.loads((ROOT / "analysis/nh3_mc_ru_actual_2026_10_06/summary.json").read_text(encoding="utf-8"))
 wa = mca["A_where_Ru_wins"]
+s2_full = section("Metal price and process optimization jointly determine the Fe-Ru ranking")
 tokens(
     "NH3 actual-catalyst Monte Carlo",
-    text,
+    s2_full,
     f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when the supported catalyst occupies the benchmark bed volume",
     f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when its own Ru content",
     f"Fe is cheaper in {mca['B']['P_Fe_cheaper'] * 100:.1f}% of draws with recovery and {mca['B0']['P_Fe_cheaper'] * 100:.1f}% without",
@@ -558,7 +573,7 @@ _tu = _quantiles([float(r_["u"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
 _tr = _quantiles([float(r_["r"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
 tokens(
     "NH3 actual-catalyst MC: where Ru wins",
-    text,
+    s2_full,
     f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.1f}% of draws with u in its lowest tercile",
     f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r in their top terciles",
     f"in {_win(lambda r_: float(r_['measured_wt_pct']) < 2.5) * 100:.1f}% of draws below 2.5 wt% Ru",
@@ -600,6 +615,8 @@ FP, FV = fd["primary"], fd["variants"]
 fk = FP["mismatch_kinds"]
 fci = FP["bootstrap_papers"]["mismatch_fraction_ci95"]
 rate_ev = next(f for f in fev["fields"] if f["field"] == "rate")
+_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics.csv")
+             if r["mismatch_kind"] == "different metal" and r["plant_winner"].startswith("Fe"))
 tokens(
     "NH3 field statistic",
     s9,
@@ -610,7 +627,8 @@ tokens(
     f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%; 95% confidence interval "
     f"{fci[0] * 100:.0f}–{fci[1] * 100:.0f}% from resampling papers), in {FP['papers_with_mismatch']} of {FP['papers']} papers",
     f"median regret of {FP['regret_median_mismatched'] * 100:.0f}%",
-    f"in {fk['different metal']['groups']} comparisons an Fe catalyst",
+    f"in {fk['different metal']['groups']} comparisons a catalyst of another metal is the plant-cost leader, "
+    f"in {_fe_dm} of them an Fe catalyst on the same support",
     f"in {fk['fused-Fe reference vs supported catalyst']['groups']} a commercial fused-iron catalyst",
     f"With 90% Ru recovery the disagreement is {FV['Ru_recovery_90pct']['top1_mismatch_groups']} of {FP['groups']}",
     f"raises it to {FV['per_g_metal_leaderboard']['top1_mismatch_groups']}",
@@ -688,7 +706,19 @@ tokens("Abstract headline numbers", text, "1,695 bimetallic surfaces", f"{lit['c
        f"and {fd['papers_in_set']} ammonia studies",
        f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
 tokens("Discussion: field-level shares", text,
-       f"{P0['top1_mismatch_fraction'] * 100:.0f}% in methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% in ammonia")
+       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons")
+# main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
+m_back = main_section("Backward design separates the required catalyst-property region from physical reachability")
+tokens("Main text: actual-catalyst Monte Carlo summary", m_back,
+       f"Fe is cheaper in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% of draws",
+       f"in {mca['B']['P_Fe_cheaper'] * 100:.1f}% with the activities and Ru contents of the {mca['ranges']['measured_Ru_catalysts']} measured Ru catalysts")
+m_field = main_section("Published laboratory leaders are often not the plant-cost leaders")
+tokens("Main text: field-level methanol and ammonia results", m_field,
+       f"{lit['candidates']} operating points from {lit['papers_with_candidates']} studies",
+       f"in {P0['top1_mismatch_groups']} of {P0['groups']} comparisons ({P0['top1_mismatch_fraction'] * 100:.0f}%",
+       f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
+       f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%",
+       f"{tot['matched']} of the {tot['curated']} curated entries")
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)

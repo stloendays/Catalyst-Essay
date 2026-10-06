@@ -209,16 +209,50 @@ for old, new in sorted(order.items(), key=lambda kv: kv[1]):
 caps = {int(m.group(1)): (m.group(2).strip(), m.group(3).strip())
         for m in re.finditer(r"^## Figure (\d) \| (.+?)\n\n(.+?)(?=\n## |\n---|\Z)", CAPS, re.M | re.S)}
 assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
+# manuscript figure number -> rendered composite (renumbered 2026-10-07: the field-level figure is Fig. 2)
+FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig2/Fig2.png", 4: "fig3/Fig3.png",
+                5: "fig4/Fig4.png", 6: "fig5/Fig5.png"}
 for n in range(1, 7):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()
     pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    pic.add_run().add_picture(str(ROOT / f"figures/composite/fig{n}/Fig{n}.png"), width=Cm(16.0))
+    pic.add_run().add_picture(str(ROOT / "figures/composite" / FIGURE_FILES[n]), width=Cm(16.0))
     title, legend = caps[n]
     p = doc.add_paragraph()
     runs(p, f"**Fig. {n} | {renumber(title)}**", 12)
     p = doc.add_paragraph()
     runs(p, renumber(delatex(" ".join(legend.split()))), 12)
+
+# ---- Extended Data figures and legends (figures/extended_data, added 2026-10-07) ----------------------------
+ED_CAPS = ROOT / "figures/extended_data/ED_CAPTIONS.md"
+
+
+def ed_text(s):
+    """ED captions use $_{x}$ / $^{x}$ math and `code` paths; map them onto the run grammar."""
+    def inner(m):
+        t = m.group(1)
+        if re.fullmatch(r"[_^][^{].*", t):
+            t = t[0] + "{" + t[1:] + "}"
+        return t
+    s = re.sub(r"\$([^$\n]*?)\$", inner, s)
+    s = re.sub(r"\s*Source: .*$", "", s, flags=re.S)   # repository paths stay in ED_CAPTIONS.md and Source Data
+    return s.replace("`", "")
+
+
+if ED_CAPS.exists():
+    eds = [(int(m.group(1)), m.group(2).strip(), m.group(3).strip()) for m in
+           re.finditer(r"^## Extended Data Fig\. (\d+) \| (.+?)\n\n(.+?)(?=\n## |\Z)", ED_CAPS.read_text(encoding="utf-8"),
+                       re.M | re.S)]
+    for n, title, legend in eds:
+        png = sorted((ROOT / "figures/extended_data").glob(f"EDFig{n}_*.png"))
+        doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        pic = doc.add_paragraph()
+        pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pic.add_run().add_picture(str(png[0]), width=Cm(16.0))
+        p = doc.add_paragraph()
+        runs(p, f"**Extended Data Fig. {n} | {ed_text(title)}**", 12)
+        p = doc.add_paragraph()
+        runs(p, ed_text(" ".join(legend.split())), 12)
 
 doc.save(OUT)
 unused = sorted(set(REFS) - set(order))
