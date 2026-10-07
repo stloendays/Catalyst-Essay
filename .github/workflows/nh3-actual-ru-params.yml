@@ -1,0 +1,96 @@
+name: NH3 actual-Ru parameters (cloud run)
+
+on:
+  push:
+    branches: [nh3-ru-params-2026-10-07]
+    paths:
+      - "analysis/nh3_actual_ru_params_2026_10_07/*.py"
+      - "provenance/nh3_final_1_1/source_harness/inputs/**"
+      - ".github/workflows/nh3-actual-ru-params.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nh3-actual-ru-params-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      NH3_HARNESS: /tmp/nh3_harness
+      PYTHONIOENCODING: utf-8
+      OUT: analysis/nh3_actual_ru_params_2026_10_07
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scientific dependencies
+        run: pip install numpy scipy pandas openpyxl pyyaml
+
+      - name: Check the input workbook hash
+        run: |
+          echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+
+      - name: Build harness root and the needed response columns
+        run: python $OUT/build_harness_root.py "$NH3_HARNESS" --workers 4
+
+      - name: "Validate: self-check gate (NH3 15 metals to 1e-9 USD/t, MeOH, Au/TiO2)"
+        run: |
+          python agent/selfcheck_gate.py
+          python - <<'EOF'
+          import json
+          r = json.load(open("agent/selfcheck_report.json", encoding="utf-8"))
+          nh3 = next(s for s in r["systems"] if s["system"] == "NH3")
+          print("NH3 metals", nh3["metals"], "mismatches", len(nh3["mismatches"]), "pass", nh3["pass"])
+          assert nh3["pass"] and nh3["metals"] == 15 and not nh3["mismatches"]
+          json.dump(r, open("/tmp/selfcheck_report.json", "w"), indent=1)
+          EOF
+
+      - name: "Validate: committed baseline outputs reproduced"
+        run: |
+          python analysis/nh3_mc_ru_actual_2026_10_06/run_mc_ru_actual.py > /tmp/mc_baseline.log
+          python figures/composite/fig2/fig2_ru_actual_cost.py "$NH3_HARNESS" | tee /tmp/fig2_baseline.log
+          python $OUT/validate_baseline.py \
+            analysis/nh3_mc_ru_actual_2026_10_06/summary.json \
+            analysis/nh3_mc_ru_actual_2026_10_06/draws.csv \
+            figures/composite/fig2/fig2_ru_bed_sensitivity.csv \
+            figures/composite/fig2/fig2_ru_actual_cost_points.csv \
+            figures/composite/fig2/fig2_ru_alpha_sweep.csv | tee /tmp/validate_baseline.log
+          git checkout -- analysis/nh3_mc_ru_actual_2026_10_06 figures/composite/fig2 agent/selfcheck_report.json
+
+      - name: Run the literature-parameter variants
+        run: python $OUT/run_params.py
+
+      - name: Record the run
+        run: |
+          mkdir -p $OUT/ci_logs
+          cp /tmp/validate_baseline.log /tmp/fig2_baseline.log /tmp/selfcheck_report.json $OUT/ci_logs/
+          cp "$NH3_HARNESS/partial_response_columns.json" $OUT/ci_logs/
+          git checkout -- agent/selfcheck_report.json || true
+          git status --short
+
+      - name: Commit results back to the branch
+        if: github.ref == 'refs/heads/nh3-ru-params-2026-10-07'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $OUT
+          git commit -m "NH3 actual-Ru parameter variants: cloud results (run ${{ github.run_id }})" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" || exit 0
+          git pull --rebase origin nh3-ru-params-2026-10-07
+          git push origin HEAD:nh3-ru-params-2026-10-07
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-actual-ru-params-${{ github.run_id }}
+          path: |
+            analysis/nh3_actual_ru_params_2026_10_07/
+            /tmp/*.log
+          retention-days: 90
