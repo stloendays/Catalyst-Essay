@@ -63,7 +63,7 @@ jobs:
         run: |
           python analysis/meoh_literature_inversion_2026_10_05/run_literature_inversion.py \
             > analysis/meoh_literature_inversion_2026_10_05/run_stdout.txt
-          python analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.py
+          if [ -f analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.py ]; then python analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.py; fi
           python -c "import json; s=json.load(open('analysis/meoh_literature_inversion_2026_10_05/summary.json')); p=s['primary']; print('primary', p['top1_mismatch_groups'], '/', p['groups'], 'papers', p['papers_with_mismatch'], '/', p['papers'])"
       - name: Compare with the committed summary
         if: env.REGENERATE != 'true'
