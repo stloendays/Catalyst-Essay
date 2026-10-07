@@ -182,7 +182,7 @@ def edfig5():
     sm = rjson(MC + "summary.json")
     d = rcsv(MC + "draws.csv")
     rows = [("preregistered (pure-Ru benchmark bed)", "Ru_base", sm["base_reproduced"]["P_Fe_cheaper"]),
-            ("A: u and r, benchmark bed volume", "Ru_A", sm["A"]["P_Fe_cheaper"]),
+            ("A: u and r on the price, benchmark bed (Fig. 3d reading)", "Ru_A", sm["A"]["P_Fe_cheaper"]),
             ("A_bed: u and r, supported bed", "Ru_A_bed", sm["A_bed"]["P_Fe_cheaper"]),
             ("B: measured Ru catalysts, 90-94 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
             ("B0: measured Ru catalysts, no recovery", "Ru_B0", sm["B0"]["P_Fe_cheaper"])]

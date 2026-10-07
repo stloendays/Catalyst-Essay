@@ -559,8 +559,9 @@ def write_captions():
     out += ["## Extended Data Fig. 5 | Fe against the actual Ru catalyst", "",
             "**a**, Probability that Fe is cheaper than Ru over %s joint draws (price multipliers, CAPEX, electricity, "
             "catalyst life), with the median Ru − Fe cost: %s. A: dispersion ratio u = D$_{Ru}$/f$_{Fe}$ (log-uniform "
-            "%g–%g) and Ru recovery r (%g–%g) applied to the benchmark bed volume; A_bed: the same with the supported "
-            "bed's own Ru content (drawn from the measured catalysts) and bed density; B and B0: one measured Ru "
+            "%g–%g) and Ru recovery r (%g–%g) lower the Ru price to p(1 − r)/u in the benchmark bed (the Fig. 3d reading); "
+            "A_bed: the Ru inventory divided by u and charged at (1 − r), in a bed of its own Ru content (drawn from "
+            "the measured catalysts) and bed density; B and B0: one measured Ru "
             "catalyst per draw, with and without recovery. **b–d**, Probability that Ru is cheaper (A_bed, circles or "
             "dark bars; A, squares or light bars) by u (**b**), r (**c**) and the Ru content of the bed (**d**, n = "
             "draws per bin). Source: `%s`." % (
