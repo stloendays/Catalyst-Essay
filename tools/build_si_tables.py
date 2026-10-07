@@ -248,7 +248,7 @@ def table2(cr):
     return block(2, "The 30 primary ammonia-synthesis papers", cap, hdr, rows)
 
 
-# ---- Supplementary Table 3: methanol plant benchmark ---------------------------------------------------------
+# ---- Supplementary Table 5: methanol plant benchmark ---------------------------------------------------------
 KNOBS = {"cat_term": lambda v: f"catalyst {num(v[0])} €/kg replaced every {num(v[1])} y",
          "loop_dp": lambda v: f"loop ΔP {num(v)} bar", "h2_price": lambda v: f"H₂ {num(v)} €/t",
          "co2_price": lambda v: f"CO₂ {num(v)} €/t", "elec_price": lambda v: f"electricity {num(v)} €/MWh",
@@ -270,7 +270,7 @@ def table3():
         rows.append([rid, max(g.reference, key=len), g.doi.iloc[0], num(len(g))] + [num(k.get(x, 0)) for x in kinds])
     k = rv.kind.value_counts()
     rows.append(["**Total**", "", "", f"**{num(len(rv))}**"] + [f"**{num(k.get(x, 0))}**" for x in kinds])
-    out.append(block("3a", "Sources of the methanol plant benchmark",
+    out.append(block("5a", "Sources of the methanol plant benchmark",
                      f"One row per source of {rel(BENCH / 'reference_values.csv')}, which gives every value with its "
                      f"locator (page, table or figure) and the conversion applied. Printed: value printed in the "
                      f"source; derived: arithmetic on printed values; secondary: pilot-plant values tabulated by "
@@ -287,14 +287,14 @@ def table3():
             continue
         rows.append([r["metric"]] + [num(float(v)) for v in vals])
     legend = "; ".join(f"{a}, {c[len(a):].strip()}" for a, c in zip(short, cases))
-    out.append(block("3b", "Plant metrics of the model loop at each reference operating point",
+    out.append(block("5b", "Plant metrics of the model loop at each reference operating point",
                      f"Model values from {rel(BENCH / 'reconciliation_plant.csv')} (recycled CO, central RWGS rule). "
                      f"Columns: {legend}. " + "".join(x + ". " for x in same) +
-                     "Reference values for each metric are in Supplementary Table 3c.",
+                     "Reference values for each metric are in Supplementary Table 5c.",
                      ["Metric"] + short, rows))
 
     rows = [[r.metric, r.references.replace(" | ", "; ")] for r in rp.itertuples(index=False)]
-    out.append(block("3c", "Reference values for the plant metrics of Supplementary Table 3b",
+    out.append(block("5c", "Reference values for the plant metrics of Supplementary Table 5b",
                      f"From the `references` column of {rel(BENCH / 'reconciliation_plant.csv')}; each value is traced "
                      f"to its source locator in {rel(BENCH / 'reference_values.csv')}. An asterisk marks a pilot-plant "
                      f"value tabulated by Dieterich 2020.", ["Metric", "Reference values"], rows))
@@ -305,10 +305,12 @@ def table3():
         rows.append(["" if r.case == last else r.case, r.term, num(r.model), num(r.reference), dev, r.ref_basis,
                      r.attribution])
         last = r.case
-    out.append(block("3d", "Cost at each study's own prices, scale and finance",
+    out.append(block("5d", "Cost at each study's own prices, scale and finance",
                      f"From {rel(BENCH / 'reconciliation_cost.csv')} (€/t methanol unless stated). Like-for-like: "
                      f"feed, compression electricity, catalyst replacement and capital annuity at the study's own rate, "
-                     f"plus the study's own fixed O&M. Anchor convention: the model's full net production cost. "
+                     f"plus the study's own fixed O&M; for Pérez-Fortes 2016 the reference is its NPV = 0 break-even "
+                     f"methanol price (production cost plus capital recovery), not a production cost. Anchor "
+                     f"convention: the model's full net production cost. "
                      f"Like-for-like totals: Pérez-Fortes 2016 {num(s['perez_fortes_like_for_like_eur_t'], 1)} €/t, "
                      f"Szima 2018 {num(s['szima_like_for_like_eur_t'], 1)} €/t ({rel(BENCH / 'summary.json')}).",
                      ["Case", "Term", "Model", "Reference", "Deviation", "Reference basis", "Attribution"], rows))
@@ -318,7 +320,7 @@ def table3():
         rows.append([c["reference"], num(c["capacity_t_a"]), num(c["model_FCI_MEUR"], 1),
                      num(c["model_FCI_eur_per_tpa"], 0), num(c["reference_eur_per_tpa"], 0), c["reference_basis"],
                      num(c["ratio_model_FCI_to_reference"], 2)])
-    out.append(block("3e", "Specific fixed capital of the model against published plants",
+    out.append(block("5e", "Specific fixed capital of the model against published plants",
                      f"From `capex_scale` in {rel(BENCH / 'summary.json')}; the model is run at each study's own "
                      f"capacity and cost year.",
                      ["Reference", "Capacity (t/a)", "Model FCI (M€)", "Model FCI (€ per t/a)",
@@ -331,7 +333,7 @@ def table3():
                      num(100 * v["regret_median_mismatched"], 1) + " %", num(v["groups_flipped"]),
                      num(v["economic_winner_changed"])])
     chk = s["sensitivity_check"]
-    out.append(block("3f", "Headline comparison rerun with primary-source plant terms",
+    out.append(block("5f", "Headline comparison rerun with primary-source plant terms",
                      f"From `sensitivity` in {rel(BENCH / 'summary.json')}: groups whose STY leader is not the "
                      f"plant-cost leader, papers affected, pairwise orderings inverted, median regret of the "
                      f"mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner "
@@ -343,7 +345,7 @@ def table3():
     return "\n".join(out)
 
 
-# ---- Supplementary Table 4: bimetallic surface layers --------------------------------------------------------
+# ---- Supplementary Table 3: bimetallic surface layers --------------------------------------------------------
 def table4():
     s = json.loads((ALLOY / "summary.json").read_text(encoding="utf-8"))
     layers = [("Frozen 15-metal prices only", s),
@@ -377,10 +379,10 @@ def table4():
            f"optimization; false prunes: pruned candidates whose full optimization falls below Fe.")
     hdr = ["Layer", "Costed", "Feasible, global", "Feasible, anchored", "Below Fe, global bridge",
            "Below Fe, element-anchored bridge", "Pruned", "False prunes"]
-    return block(4, "Bimetallic surface layers of the ammonia screen", cap, hdr, rows)
+    return block(3, "Bimetallic surface layers of the ammonia screen", cap, hdr, rows)
 
 
-# ---- Supplementary Table 5: Fe terrace-to-step bridge ---------------------------------------------------------
+# ---- Supplementary Table 4: Fe terrace-to-step bridge ---------------------------------------------------------
 def s1_terrace():
     src = (ALLOY / "run_alloy_chain.py").read_text(encoding="utf-8")
     node = next(n for n in ast.parse(src).body
@@ -420,8 +422,8 @@ def table5():
     cap = (f"Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and "
            f"the step value predicted with that metal left out, from {rel(BRIDGE / 'fe_bridge_loo.csv')}; the Fe "
            f"terrace value is the Dataset S1 entry used by {rel(ALLOY / 'run_alloy_chain.py')}. Statistics in "
-           f"Supplementary Table 5b are recomputed from these rows.")
-    out = [block("5a", "Leave-one-out validation of the Fe terrace-to-step bridge", cap,
+           f"Supplementary Table 4b are recomputed from these rows.")
+    out = [block("4a", "Leave-one-out validation of the Fe terrace-to-step bridge", cap,
                  ["Metal", "Terrace *E*_{N} (eV)", "Step *E*_{N}, observed (eV)", "Step *E*_{N}, leave-one-out (eV)",
                   "Observed − predicted (eV)"], rows)]
     names = ", ".join(d.metal[strong])
@@ -433,11 +435,11 @@ def table5():
             (Raw("Fe step *E*_{N}, predicted (eV)"), lambda f: num(f["pred"], 4)),
             ("95 % prediction interval for Fe (eV)", lambda f: f"{num(f['lo'], 3)} to {num(f['hi'], 3)}")]
     rows = [[k, fn(g), fn(b)] for k, fn in stat]
-    cap = (f"Ordinary least squares on Supplementary Table 5a. The global 14-metal fit is the relation used for Fe in "
+    cap = (f"Ordinary least squares on Supplementary Table 4a. The global 14-metal fit is the relation used for Fe in "
            f"the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo "
            f"analysis. The strong-binding branch (terrace *E*_{{N}} ≤ −0.5 eV: {names}) is a sensitivity check and is "
            f"not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.")
-    out.append(block("5b", "Statistics of the Fe terrace-to-step bridge", cap,
+    out.append(block("4b", "Statistics of the Fe terrace-to-step bridge", cap,
                      ["Statistic", "Global fit (14 metals)", "Strong-binding branch"], rows))
     return "\n".join(out)
 
@@ -530,7 +532,7 @@ def main():
     parts = ["# Supplementary Tables", "",
              "<!-- Generated by tools/build_si_tables.py from the repository files named in each caption; do not edit "
              "by hand. -->", "",
-             table1(cr), table2(cr), table3(), table4(), table5(), table6(cr, (fm_ex, fm_nf))]
+             table1(cr), table2(cr), table4(), table5(), table3(), table6(cr, (fm_ex, fm_nf))]
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")
     for n in dict.fromkeys(NOTES):

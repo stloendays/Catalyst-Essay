@@ -702,16 +702,26 @@ tokens("MeOH plant benchmark: loop, recycle and price variants", text,
        f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
 ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
 
-tokens("Abstract headline numbers", text, "1,695 bimetallic surfaces", f"{lit['candidates']} operating points from {lit['papers_with_candidates']} methanol studies",
+tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces", f"{lit['candidates']} operating points from {lit['papers_with_candidates']} methanol studies",
        f"and {fd['papers_in_set']} ammonia studies",
        f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
 tokens("Discussion: field-level shares", text,
        f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons")
 # main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
-m_back = main_section("Backward design separates the required catalyst-property region from physical reachability")
-tokens("Main text: actual-catalyst Monte Carlo summary", m_back,
+m_feru = main_section("Metal price and process optimization decide the Fe–Ru ranking")
+tokens("Main text: actual-catalyst Monte Carlo summary", m_feru,
        f"Fe is cheaper in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% of draws",
        f"in {mca['B']['P_Fe_cheaper'] * 100:.1f}% with the activities and Ru contents of the {mca['ranges']['measured_Ru_catalysts']} measured Ru catalysts")
+_layer = {r["metal"]: r for r in rows("analysis/fe_bridge_backward_2026_09_29/inversion_layer_common_reference.csv")}
+_ru_win = sum(r["economic_winner"] == "Ru" for r in draws)
+tokens("Main text: layer-wise reversal, process narrowing and descriptor winners", m_feru,
+       f"annualized metal replacement of {float(_layer['Fe']['annualized_replacement_cost_USD_t_NH3']):.3f} US dollars "
+       f"per tonne for Fe against {float(_layer['Ru']['annualized_replacement_cost_USD_t_NH3']):.2f} for Ru",
+       "Process optimization then narrows the gap", f"The remaining {gap:.3f} US dollars per tonne",
+       f"Fe ranks first economically in {100 * fe_win / len(draws):.1f}% and Ru in {100 * _ru_win / len(draws):.1f}%")
+ok("Descriptor samples: most Ru wins are Fe-bed-infeasible draws",
+   2 * sum(r["economic_winner"] == "Ru" and str(r.get("Fe_feasible", "")).strip() in ("0", "False", "false")
+           for r in draws) > _ru_win)
 m_field = main_section("Published laboratory leaders are often not the plant-cost leaders")
 tokens("Main text: field-level methanol and ammonia results", m_field,
        f"{lit['candidates']} operating points from {lit['papers_with_candidates']} studies",

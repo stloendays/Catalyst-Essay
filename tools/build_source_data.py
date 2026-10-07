@@ -439,14 +439,15 @@ def fig6():
 
 
 # ============================================================================== Extended Data
-ED_TITLES = {1: "Extraction accuracy", 2: "Bimetallic surfaces", 3: "Robustness of the methanol result",
-             4: "Measured ammonia catalysts", 5: "Actual-Ru-catalyst Monte Carlo", 6: "Methanol plant benchmark",
-             7: "Compute saved by the lower bound"}
+# numbered in first-citation order (2026-10-07); E.edfigN keep the names of the first numbering
+ED_TITLES = {1: "Extraction accuracy", 2: "Compute saved by the lower bound", 3: "Robustness of the methanol result",
+             4: "Methanol plant benchmark", 5: "Measured ammonia catalysts", 6: "Bimetallic surfaces",
+             7: "Actual-Ru-catalyst Monte Carlo"}
 
 
 def ed():
-    tables = {1: E.edfig1(), 2: E.edfig2()[0], 3: E.edfig3(), 4: E.edfig4(), 5: E.edfig5(), 6: E.edfig6(),
-              7: E.edfig7()[0]}
+    tables = {1: E.edfig1(), 2: E.edfig7()[0], 3: E.edfig3(), 4: E.edfig6(), 5: E.edfig4(), 6: E.edfig2()[0],
+              7: E.edfig5()}
     _, fe2 = E.edfig2()
     for n, t in tables.items():
         b = Book("SourceData_EDFig%d.xlsx" % n, "Extended Data Fig. %d (%s; renderer "
@@ -462,7 +463,7 @@ def ed():
                 consts = {k: (", ".join("%.6g" % x for x in v) if isinstance(v, (list, tuple)) else v)
                           for k, v in consts.items()}
                 blocks.append(("constants drawn on panel " + p, kv(consts), src.split(" ")[0], ""))
-            if n == 2:
+            if n == 6:
                 blocks.append(("Fe benchmark line", kv({"Fe_cost_USD_t": fe2}), E.ALLOY_SUM, ""))
             b.panel(p, blocks)
         b.save()

@@ -16,8 +16,10 @@ sys.path.insert(0, os.path.join(HERE, "..", "composite"))
 import ed_data as E  # noqa: E402
 from style import DARK_B, DARK_G, FE, INK, OTHER, PALE_B, PALE_G, RED, RU, Page, boxed  # noqa: E402
 
-SLUGS = {1: "extraction_accuracy", 2: "bimetallic_surfaces", 3: "methanol_robustness", 4: "nh3_measured_catalysts",
-         5: "ru_actual_mc", 6: "meoh_plant_benchmark", 7: "bound_pruning"}
+# Numbered in the order the manuscript first cites them (2026-10-07 restructure); the panel functions keep the
+# names of the first numbering (ed2 = bimetallic, ed4 = measured NH3, ed5 = actual Ru, ed6 = benchmark, ed7 = pruning).
+SLUGS = {1: "extraction_accuracy", 2: "bound_pruning", 3: "methanol_robustness", 4: "meoh_plant_benchmark",
+         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc"}
 METAL_COL = {"Ru": RU, "Fe": FE, "Co": OTHER, "Ni": PALE_G}
 
 
@@ -465,7 +467,7 @@ def ed7():
     return pg
 
 
-FIGS = {1: ed1, 2: ed2, 3: ed3, 4: ed4, 5: ed5, 6: ed6, 7: ed7}
+FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5}
 
 
 # ---------------------------------------------------------------------------------------------- captions
@@ -504,7 +506,7 @@ def write_captions():
     n = {p: len(d[p][0]) for p in "abc"}
     nb = {p: int(d[p][0].below_Fe.sum()) for p in "abc"}
     fam = d["a"][0]
-    out += ["## Extended Data Fig. 2 | Bimetallic surfaces through the ammonia chain, by element layer", "",
+    out += ["## Extended Data Fig. 6 | Bimetallic surfaces through the ammonia chain, by element layer", "",
             "Plant cost (no metal recovery, cost optimum inside the 90 m$^3$ bed cap) against log$_{10}$ TOF at 673 K "
             "for the Mamun et al. (2019) bimetallic surfaces whose optimum fits the bed cap (global descriptor route). "
             "**a**, Transition metals only: %d surfaces, %d below the Fe benchmark (%.2f USD t$^{-1}$, dashed), all of "
@@ -543,7 +545,7 @@ def write_captions():
     d = E.edfig4()
     t, bm = d["a"][0], d["b"][0].set_index("metal")
     ov = t.attrs["overall"]
-    out += ["## Extended Data Fig. 4 | Measured ammonia catalysts through the plant chain", "",
+    out += ["## Extended Data Fig. 5 | Measured ammonia catalysts through the plant chain", "",
             "**a**, Plant cost (no metal recovery) against the laboratory rate per gram of metal for the %d primary "
             "catalysts of the Humphreys et al. (2021) review (%s); dashed, Fe benchmark %.2f USD t$^{-1}$. The highest "
             "rate (%s, %.2f USD t$^{-1}$, red) and the plant-cost leader (%s, %.2f USD t$^{-1}$) differ; regret %s %%. "
@@ -556,7 +558,7 @@ def write_captions():
 
     d = E.edfig5()
     a, b, c, dd = (d[k][0] for k in "abcd")
-    out += ["## Extended Data Fig. 5 | Fe against the actual Ru catalyst", "",
+    out += ["## Extended Data Fig. 7 | Fe against the actual Ru catalyst", "",
             "**a**, Probability that Fe is cheaper than Ru over %s joint draws (price multipliers, CAPEX, electricity, "
             "catalyst life), with the median Ru − Fe cost: %s. A: dispersion ratio u = D$_{Ru}$/f$_{Fe}$ (log-uniform "
             "%g–%g) and Ru recovery r (%g–%g) applied to the benchmark bed volume; A_bed: the same with the supported "
@@ -575,11 +577,11 @@ def write_captions():
     rest = b[~b.study.str.startswith("Campos")]
     base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
     cat = dd[dd.variant.str.startswith("catalyst_repl_95")].set_index("variant").mismatch_groups
-    out += ["## Extended Data Fig. 6 | The methanol plant model against published plants", "",
+    out += ["## Extended Data Fig. 4 | The methanol plant model against published plants", "",
             "**a**, Cost terms of the Pérez-Fortes et al. (2016) plant run at its own point, prices, catalyst charge "
-            "and finance (model / reference, EUR t$^{-1}$): like-for-like total %.0f / %.0f (%+.1f %%); the anchor "
+            "and finance (model / reference, EUR t$^{-1}$): break-even methanol price (production cost plus capital recovery) %.0f / %.0f (%+.1f %%); the anchor "
             "convention adds a catalyst-independent residual and 10 %% of the net production cost (%.0f EUR t$^{-1}$), "
-            "common to every catalyst. **b**, Like-for-like cost against each study's reported cost at that study's "
+            "common to every catalyst. **b**, Like-for-like cost against each study's reported production cost or break-even price at that study's "
             "own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases %+.1f to "
             "%+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s). **d**, Number "
             "of the 83 comparisons whose STY leader is not the plant-cost leader under %d plant-model variants (keys in "
@@ -595,7 +597,7 @@ def write_captions():
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
     cr = c.set_index("system")
-    out += ["## Extended Data Fig. 7 | Full optimizations saved by the closed-form lower bound", "",
+    out += ["## Extended Data Fig. 2 | Full optimizations saved by the closed-form lower bound", "",
             "**a**, Lower bound against the full plant cost (recycled CO) for the %d methanol literature candidates "
             "in %d comparison groups; every bound lies below its full cost. Agent rule per group: evaluate the paper's "
             "leader in full, then the others in increasing bound order until the next bound exceeds the best full "
@@ -610,7 +612,9 @@ def write_captions():
                           for s, r in cr.iterrows()), E.PRUNE + "candidate_bounds.csv", E.ALLOY), ""]
     assert int(cr.leader_missed.sum()) == 0
     assert (a.bound <= a.cost_recycled_opt * (1 + 5e-6)).all() and (a.bound <= a.cost_inert_opt * (1 + 5e-6)).all()
-    text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n".join(out))
+    head, *blocks = "\n".join(out).split("\n## Extended Data Fig. ")
+    blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
+    text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))
     open(os.path.join(HERE, "ED_CAPTIONS.md"), "w", encoding="utf-8").write(text)
     print("wrote ED_CAPTIONS.md")
 
