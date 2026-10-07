@@ -101,7 +101,11 @@ def pr_phi(y, T_K, P_bar):
     for _ in range(60):
         f = Z ** 3 - (1 - B) * Z ** 2 + (A - 3 * B ** 2 - 2 * B) * Z - (A * B - B ** 2 - B ** 3)
         df = 3 * Z ** 2 - 2 * (1 - B) * Z + (A - 3 * B ** 2 - 2 * B)
-        Z = Z - f / df
+        Z_new = Z - f / df
+        done = np.all(np.abs(Z_new - Z) <= 1e-15 * np.abs(Z))  # converged to a few ulp (further steps oscillate)
+        Z = Z_new
+        if done:
+            break
     s2 = np.sqrt(2.0)
     lg = np.log((Z + (1 + s2) * B) / (Z + (1 - s2) * B))
     return {k: np.exp(b[k] / bm * (Z - 1) - np.log(Z - B)
@@ -225,6 +229,8 @@ def _bisect(f, lo, hi, n=80):
     flo = f(lo)
     for _ in range(n):
         mid = 0.5 * (lo + hi)
+        if np.all((mid == lo) | (mid == hi)):  # interval at float resolution: lo and hi no longer change
+            break
         fm = f(mid)
         same = np.sign(fm) == np.sign(flo)
         lo = np.where(same, mid, lo)
