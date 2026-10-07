@@ -685,9 +685,38 @@ tokens(
     f"The largest regret, {P0['regret_max'] * 100:.0f}%",
     f"{sum(x >= 0.01 for x in _mm)} of the {len(_mm)} disagreements cost at least 1%, {sum(x >= 0.10 for x in _mm)} at least 10%",
 )
-tokens("Main text: methanol disagreement kinds", text,
-       f"in {_dc['groups']} it is a different catalyst, which is {_share:.0f}% of the "
-       f"{mk['groups_with_two_or_more_catalysts']} comparisons that test at least two catalysts")
+# isothermal catalyst comparisons, the inlet-limit sweep and the published loop inlets it is read against
+_iso = lit["isothermal"]["reference 6.86%"]
+_ici = _iso["bootstrap"]["ci95"]
+_sw = lit["limit_sweep"]
+_span = ("5%", "6%", "8%", "10%")
+_all = [_sw[k]["top1_mismatch_fraction"] for k in _span] + [P0["top1_mismatch_fraction"]]
+_isw = [lit["isothermal"][k]["top1_mismatch_fraction"] for k in _span] + [_iso["top1_mismatch_fraction"]]
+_lit = [r for r in rows("analysis/meoh_literature_inversion_2026_10_05/inlet_inert_literature.csv")
+        if r["loop_type"] == "CO2"]
+_litr = f"{min(float(r['non_h2co2_pct']) for r in _lit):.1f}–{max(float(r['non_h2co2_pct']) for r in _lit):.1f}%"
+_nr = lit["infeasible"]["nonreactive_at_unconstrained_optimum_quantiles"]["0.5"]
+tokens("Main text: methanol isothermal catalyst comparisons and inlet limit", text,
+       f"a different catalyst leads on plant cost in {_iso['top1_mismatch_groups']} of {_iso['groups']} isothermal "
+       f"comparisons ({_iso['top1_mismatch_fraction'] * 100:.0f}%; 95% confidence interval "
+       f"{_ici[0] * 100:.0f}–{_ici[1] * 100:.0f}%), in {_iso['papers_with_mismatch']} of {_iso['papers']} papers",
+       f"calibrated reference loop, {lit['infeasible']['nonreactive_limit'] * 100:.2f}%, inside the {_litr}",
+       f"{min(_all) * 100:.0f}–{max(_all) * 100:.0f}% of all comparisons and "
+       f"{min(_isw) * 100:.0f}–{max(_isw) * 100:.0f}% of isothermal catalyst comparisons disagree",
+       f"to a median {_nr * 100:.0f}% of the reactor inlet",
+       f"gives {_sw['none']['top1_mismatch_fraction'] * 100:.0f}% and "
+       f"{lit['isothermal']['none']['top1_mismatch_fraction'] * 100:.0f}%")
+tokens("Abstract: like-for-like methanol and ammonia shares",
+       _block(raw_text, raw_text.index("## Abstract"), "## Abstract"),
+       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of methanol and")
+tokens("SI: isothermal comparisons and absolute inlet limits", s8,
+       f"{_iso['groups']} isothermal catalyst comparisons",
+       f"in {_iso['top1_mismatch_groups']} of them ({_iso['top1_mismatch_fraction'] * 100:.0f}%; paper bootstrap "
+       f"{_ici[0] * 100:.0f}–{_ici[1] * 100:.0f}%)",
+       ", ".join(f"{_sw[k]['top1_mismatch_groups']} of {_sw[k]['groups']}" for k in _span[:3])
+       + f" and {_sw['10%']['top1_mismatch_groups']} of {_sw['10%']['groups']} comparisons disagree",
+       ", ".join(f"{lit['isothermal'][k]['top1_mismatch_groups']} of {lit['isothermal'][k]['groups']}" for k in _span[:3])
+       + f" and {lit['isothermal']['10%']['top1_mismatch_groups']} of {lit['isothermal']['10%']['groups']} isothermal")
 # ----- Firmness of the methanol headline ---------------------------------------------------------------------
 st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
 cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))
@@ -739,11 +768,13 @@ tokens("MeOH plant benchmark: plant-metric ranges in Methods", text,
        f"carbon efficiency ({_rng('Carbon efficiency (MeOH C / fresh CO2)', 2)})",
        f"recycle ratio ({_rng('Recycle ratio (recycle / fresh feed, mol)', 1)})")
 
-tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces", f"{lit['candidates']} operating points from {lit['papers_with_candidates']} methanol studies",
-       f"and {fd['papers_in_set']} ammonia studies",
-       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
+tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces",
+       f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",
+       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
 tokens("Discussion: field-level shares", text,
-       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons")
+       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of isothermal methanol comparisons and "
+       f"{FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons",
+       f"not the plant-cost leader in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol comparisons")
 # main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
 m_feru = main_section("Metal price and process optimization decide the Fe–Ru ranking")
 tokens("Main text: actual-catalyst Monte Carlo summary", m_feru,
