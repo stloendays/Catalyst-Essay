@@ -171,7 +171,13 @@ def build_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
         g["STY"] = sty
         parts.append(g)
     cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
-    return cand[cand.STY > 0].reset_index(drop=True)
+    cand = cand[cand.STY > 0]
+    # one measurement printed in several places (stability series, repeated panels, several SI tables) counts once:
+    # entries of a group with the same temperature, conversion, selectivities and STY, first in document order
+    dup = cand.duplicated(["group", "T_C", "X", "SMeOH", "SCH4", "SCO", "STY"], keep="first")
+    out = cand[~dup].reset_index(drop=True)
+    out.attrs["duplicates_removed"] = int(dup.sum())
+    return out
 
 
 # ---------------------------------------------------------------- plant costs ------------------------------------
@@ -251,8 +257,10 @@ def group_metrics(g, cost_col, up_col="STY"):
     c_up = g.loc[list(up_winners), cost_col].min()
     n = len(g)
     pairs = list(combinations(g.index, 2))
+    def _d(x, y):        # difference with floating-point ties set to zero
+        return 0.0 if abs(x - y) <= 1e-9 * max(abs(x), abs(y)) else x - y
     inv = sum(1 for a, b in pairs
-              if (g.at[a, up_col] - g.at[b, up_col]) * (g.at[b, cost_col] - g.at[a, cost_col]) < 0)
+              if _d(g.at[a, up_col], g.at[b, up_col]) * _d(g.at[b, cost_col], g.at[a, cost_col]) < 0)
     rho = (float(spearmanr(g[up_col], -g[cost_col]).statistic) if n >= 3 and g[up_col].nunique() > 1 else None)
     up3 = set(g.nlargest(min(3, n), up_col).index)
     ec3 = set(g.nsmallest(min(3, n), cost_col).index)

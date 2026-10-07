@@ -428,7 +428,7 @@ def purge_sweep(c, cap_conversion=True, **kw):
         mid = 0.5 * (lo + hi)
         below = f(mid) <= 0.0
         lo, hi = np.where(below, mid, lo), np.where(below, hi, mid)
-        if np.all(hi - lo <= 1e-9 * hi):
+        if np.all(hi - lo <= 1e-12 * hi):
             break
     x_eq = lo
     capped = cost(dict(c, X=x_eq), purge=purges, **kw)

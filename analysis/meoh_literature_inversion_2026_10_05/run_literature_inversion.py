@@ -61,6 +61,7 @@ def main():
     require()          # ACSA scores new candidates only after reproducing all three hand-built cases
     t0 = time.time()
     cand = build_candidates()
+    n_dup = cand.attrs["duplicates_removed"]
     rows = cand[ROW_KEYS].to_dict("records")
     with Pool(WORKERS) as pool:
         res = pool.map(plant_costs_star, [(r, RHO_SCALES) for r in rows], chunksize=4)
@@ -135,12 +136,13 @@ def main():
             "cost_inert_2pct", "cost_inert_2pct_unconstrained",
             "cost_recycled_opt_rho0.5", "cost_recycled_opt_rho2", "source", "location"]
     cand.sort_values(["group", "STY"], ascending=[True, False])[keep].to_csv(HERE / "literature_candidates.csv",
-                                                                           index=False, float_format="%.6g")
+                                                                           index=False, float_format="%.12g")  # full precision: downstream reruns rebuild costs from these inputs
     primary_gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
     unc_gm.to_csv(HERE / "group_metrics_unconstrained.csv", index=False, float_format="%.6g")
     check.to_csv(HERE / "selfcheck_gothe_table4.csv", index=False, float_format="%.10g")
     summary = dict(
         records_in=int(len(read_records())), candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),
+        duplicate_entries_counted_once=int(n_dup),
         primary=primary, infeasible=infeasible, variants=variants,
         selfcheck=dict(entries=int(len(got)), max_abs_diff_eur_t=selfcheck_max,
                        canonical_states={r.canonical_state: round(r.agent, 2) for r in canon.itertuples()}),
