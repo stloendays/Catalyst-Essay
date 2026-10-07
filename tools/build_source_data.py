@@ -255,6 +255,9 @@ def fig3():
                    + F2 + "/fig2_ru_alpha_sweep.csv", "last row of each file is the parity point, listed below"),
                   ("parity", sweep.iloc[[-1]][["price_USD_kg", "cost", "P_bar"]], F2 + "/fig2_ru_price_sweep.csv", ""),
                   ("actual Ru catalyst points", pts, F2 + "/fig2_ru_actual_cost_points.csv", ""),
+                  ("Ru/C catalyst's own bed (squares and bars; 3.2 wt% Ru, 1,000 and 500 kg m-3)",
+                   csv(F2 + "/fig2_ru_bed_sensitivity.csv"), F2 + "/fig2_ru_bed_sensitivity.csv",
+                   "lower panel: alpha_star_supported_bed"),
                   ("Fe optimum", kv({"Fe cost USD/t": o.loc["Fe", "cost"]}), F2 + "/fig2_pressure_envelopes.csv", "")])
     order = ["fresh_compression_electricity", "metal_inventory", "compressor_CAPEX", "refrigeration_electricity",
              "vessel_pressure_premium", "recycle_compression_electricity", "reactor_base"]

@@ -8,7 +8,10 @@ preregistered, so every draw keeps its values; the new inputs come from a second
 The base result (P(C_Fe < C_Ru) = 1.000, minimum gap 2.382 USD/t) is reproduced before anything is added.
 
 Variants (Fe is the benchmark fused-iron catalyst in every variant):
-  A  Ru/C with recovery, Fig. 2d mapping: metal inventory divided by u and charged at (1 - r); benchmark bed.
+  A  Ru/C with recovery, benchmark-formulation reading of Fig. 3d: only the metal price is lowered, to the effective
+       price p_Ru (1 - r) / u; the bed keeps the benchmark formulation and the benchmark (undivided) volume, exactly as
+       figures/composite/fig2/fig2_ru_actual_cost.py reads the price sweep. (Before 2026-10-07 this variant divided the
+       metal mass and the bed volume by u, a different convention from Fig. 3d.)
        u = D_Ru / f_Fe, log-uniform 11-50: D_Ru from 11 % (Ba-Cs-K promoted Ru/C, 3.2 wt% Ru; Rossetti et al. 2006)
        to 50 % (2 nm Ru particles in Ba-Ru/C; Nishi, Chen & Takagi, Catalysts 9, 480, 2019; D ~ 1/d[nm]), f_Fe = 1 % (exposed
        Fe atoms of reduced fused iron < 1 %; Liu et al. 2000). r uniform 0.90-0.94 (US 6,673,732 B2).
@@ -101,7 +104,7 @@ def main():
         p_ru = hc.PRICE["Ru"] * float(ru_pm[d])
         fe, _ = evaluate("Fe", vec["Fe"], price=hc.PRICE["Fe"] * float(fe_pm[d]), **kw)
         base, _ = evaluate("Ru", vec["Ru"], price=p_ru, **kw)
-        a, ia = evaluate("Ru", vec["Ru"], price=p_ru, alpha=float(u[d]), recovery=float(r[d]), **kw)
+        a, ia = evaluate("Ru", vec["Ru"], price=p_ru * (1.0 - float(r[d])) / float(u[d]), recovery=0.0, **kw)
         ab, _ = evaluate("Ru", vec["Ru"], price=p_ru, alpha=float(u[d]), recovery=float(r[d]), w=m_w[k[d]],
                          bed=float(bed[d]), **kw)
         b, _ = evaluate("Ru", mvec[k[d]], price=p_ru, alpha=m_ares[k[d]], recovery=float(r[d]), w=m_w[k[d]],
@@ -131,28 +134,39 @@ def main():
         out[name] = {"P_Fe_cheaper": float(np.mean(gap > 0)),
                      "gap_quantiles_USD_t": {q: float(np.quantile(gap, p)) for q, p in (("p05", .05), ("p50", .5), ("p95", .95))},
                      "regret_quantiles": {q: float(np.quantile(reg, p)) for q, p in (("p05", .05), ("p50", .5), ("p95", .95))}}
-    # where Ru wins in variant A
-    win = np.array([x["Ru_A"] < x["Fe"] for x in rows])
+    # where Ru wins, for the two u-and-r variants
     t_u, t_r = np.quantile(U, [1 / 3, 2 / 3]), np.quantile(R, [1 / 3, 2 / 3])
-    grid = {}
-    for iu, (ulo, uhi) in enumerate(((U.min(), t_u[0]), (t_u[0], t_u[1]), (t_u[1], U.max() + 1))):
-        for ir, (rlo, rhi) in enumerate(((R.min(), t_r[0]), (t_r[0], t_r[1]), (t_r[1], R.max() + 1))):
-            m = (U >= ulo) & (U < uhi) & (R >= rlo) & (R < rhi)
-            grid[f"u_tercile{iu + 1}_r_tercile{ir + 1}"] = {"n": int(m.sum()), "P_Ru_wins": float(win[m].mean())}
-    top_both = (U >= t_u[1]) & (R >= t_r[1])
+    W = np.array([x["measured_wt_pct"] for x in rows])
     order = np.argsort(PE)
-    out["A_where_Ru_wins"] = {
-        "P_Ru_wins": float(win.mean()),
-        "u_r_tercile_grid": grid,
-        "share_of_Ru_wins_with_u_and_r_in_top_tercile": float(top_both[win].mean()) if win.any() else None,
-        "P_Ru_wins_given_u_and_r_top_tercile": float(win[top_both].mean()),
-        "P_Ru_wins_given_u_or_r_bottom_tercile": float(win[(U < t_u[0]) | (R < t_r[0])].mean()),
-        "median_u_r_when_Ru_wins": [float(np.median(U[win])), float(np.median(R[win]))] if win.any() else None,
-        "median_u_r_when_Fe_wins": [float(np.median(U[~win])), float(np.median(R[~win]))],
-        "p_eff_quantiles_USD_kg": {q: float(np.quantile(PE, p)) for q, p in (("p05", .05), ("p50", .5), ("p95", .95))},
-        "P_Ru_wins_by_p_eff_quintile": [float(win[order[i * N // 5:(i + 1) * N // 5]].mean()) for i in range(5)],
-        "u_terciles": t_u.tolist(), "r_terciles": t_r.tolist(),
-    }
+    for name in ("A", "A_bed"):
+        win = np.array([x["Ru_" + name] < x["Fe"] for x in rows])
+        grid = {}
+        for iu, (ulo, uhi) in enumerate(((U.min(), t_u[0]), (t_u[0], t_u[1]), (t_u[1], U.max() + 1))):
+            for ir, (rlo, rhi) in enumerate(((R.min(), t_r[0]), (t_r[0], t_r[1]), (t_r[1], R.max() + 1))):
+                m = (U >= ulo) & (U < uhi) & (R >= rlo) & (R < rhi)
+                grid[f"u_tercile{iu + 1}_r_tercile{ir + 1}"] = {"n": int(m.sum()), "P_Ru_wins": float(win[m].mean())}
+        top_both = (U >= t_u[1]) & (R >= t_r[1])
+        out[name + "_where_Ru_wins"] = {
+            "P_Ru_wins": float(win.mean()),
+            "u_r_tercile_grid": grid,
+            "P_Ru_wins_given_u_lowest_tercile": float(win[U < t_u[0]].mean()),
+            "P_Ru_wins_given_u_top_tercile": float(win[U >= t_u[1]].mean()),
+            "P_Ru_wins_given_r_lowest_tercile": float(win[R < t_r[0]].mean()),
+            "P_Ru_wins_given_r_top_tercile": float(win[R >= t_r[1]].mean()),
+            "share_of_Ru_wins_with_u_and_r_in_top_tercile": float(top_both[win].mean()) if win.any() else None,
+            "P_Ru_wins_given_u_and_r_top_tercile": float(win[top_both].mean()),
+            "P_Ru_wins_given_u_or_r_bottom_tercile": float(win[(U < t_u[0]) | (R < t_r[0])].mean()),
+            "median_u_r_when_Ru_wins": [float(np.median(U[win])), float(np.median(R[win]))] if win.any() else None,
+            "median_u_r_when_Fe_wins": [float(np.median(U[~win])), float(np.median(R[~win]))],
+            "P_Ru_wins_by_p_eff_quintile": [float(win[order[i * N // 5:(i + 1) * N // 5]].mean()) for i in range(5)],
+            "u_terciles": t_u.tolist(), "r_terciles": t_r.tolist(),
+        }
+        if name == "A_bed":  # the Ru content only enters through the supported bed
+            out[name + "_where_Ru_wins"].update({
+                "P_Ru_wins_given_Ru_content_lt_2.5_wt_pct": float(win[W < 2.5].mean()),
+                "P_Ru_wins_given_Ru_content_ge_5_wt_pct": float(win[W >= 5.0].mean()),
+            })
+    out["p_eff_quantiles_USD_kg"] = {q: float(np.quantile(PE, p)) for q, p in (("p05", .05), ("p50", .5), ("p95", .95))}
     winB = np.array([x["Ru_B"] < x["Fe"] for x in rows])
     out["B_Ru_winning_catalysts"] = sorted({x["measured_catalyst"] for x, w_ in zip(rows, winB) if w_})
     with (HERE / "draws.csv").open("w", newline="", encoding="utf-8") as f:
