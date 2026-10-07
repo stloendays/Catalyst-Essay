@@ -123,9 +123,11 @@ def ed2():
 def ed3():
     d = E.edfig3()
     a, b, c, dd = (d[k][0] for k in "abcd")
-    pg = Page(183.0, 120.0)
+    ng = a.attrs["groups"]
+    pg = Page(183.0, 174.0)
+    up = 54.0                     # panels a-d sit above panel e
     # a bootstrap
-    ax = pg.ax(14, 70, 70, 40)
+    ax = pg.ax(14, 70 + up, 70, 40)
     ax.bar(a.bin_low_fraction, a.resamples, width=a.bin_high_fraction - a.bin_low_fraction, align="edge",
            color=PALE_B, ec=INK, lw=0.3)
     lo, hi = a.attrs["ci"]
@@ -134,20 +136,20 @@ def ed3():
     ax.axvline(a.attrs["point"], color=RED, lw=0.9)
     top = a.resamples.max() * 1.22
     ax.set_ylim(0, top)
-    ax.text(a.attrs["point"] - 0.008, top * 0.97, "observed %d/83\n(%.1f %%)" % (
-        round(a.attrs["point"] * 83), 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
+    ax.text(a.attrs["point"] - 0.008, top * 0.97, "observed %d/%d\n(%.1f %%)" % (
+        round(a.attrs["point"] * ng), ng, 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
     ax.text(hi + 0.008, top * 0.75, "95 %% CI\n%.1f–%.1f %%" % (100 * lo, 100 * hi), fontsize=5.4,
             va="top")
-    ax.set_xlim(0.05, 0.75)
-    ax.set_xticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
-    ax.set_xticklabels(["10", "20", "30", "40", "50", "60", "70"])
+    ax.set_xlim(0.05, 0.95)
+    ax.set_xticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    ax.set_xticklabels(["10", "20", "30", "40", "50", "60", "70", "80", "90"])
     ax.set_xlabel("comparisons whose STY leader is not the plant-cost leader (%)")
     ax.set_ylabel("bootstrap resamples")
     boxed(ax)
-    pg.letter("a", 2, 117)
-    pg.title("Paper-cluster bootstrap, %s resamples of 44 papers" % format(a.attrs["n"], ","), 14, 117)
+    pg.letter("a", 2, 117 + up)
+    pg.title("Paper-cluster bootstrap, %s resamples of the papers" % format(a.attrs["n"], ","), 14, 117 + up)
     # b regret threshold
-    bx = pg.ax(108, 70, 70, 40)
+    bx = pg.ax(108, 70 + up, 70, 40)
     th = b.threshold.to_numpy()
     xs = np.where(th == 0, 0.0003, th)
     bx.plot(xs * 100, b.groups, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3)
@@ -158,15 +160,15 @@ def ed3():
     bx.set_xticks([0.03, 0.1, 0.5, 1, 2, 5, 10])
     bx.set_xticklabels(["0", "0.1", "0.5", "1", "2", "5", "10"])
     bx.xaxis.set_minor_formatter(NullFormatter())
-    bx.set_ylim(0, 40)
+    bx.set_ylim(0, max(40, 1.25 * float(b.groups.max())))
     bx.set_xlabel("regret at least (%)")
     bx.set_ylabel("mismatched comparisons")
     bx.text(0.97, 0.95, "labels: comparisons (papers)", transform=bx.transAxes, fontsize=5.0, ha="right", va="top")
     boxed(bx)
-    pg.letter("b", 96, 117)
-    pg.title("Size of the disagreements", 108, 117)
+    pg.letter("b", 96, 117 + up)
+    pg.title("Size of the disagreements", 108, 117 + up)
     # c noise scenarios
-    cx = pg.ax(40, 12, 46, 40)
+    cx = pg.ax(40, 12 + up, 46, 40)
     y = np.arange(len(c))[::-1]
     cx.errorbar(c.mismatch_groups_mean, y + 0.13, xerr=[c.mismatch_groups_mean - c.mismatch_groups_q025,
                                                         c.mismatch_groups_q975 - c.mismatch_groups_mean],
@@ -181,14 +183,14 @@ def ed3():
     cx.set_yticks(y)
     cx.set_yticklabels(c.label, fontsize=5.6)
     cx.set_ylim(-1.05, len(c) + 0.75)
-    cx.set_xlim(0, 80)
-    cx.set_xlabel("comparisons (of 83), mean and\n95 %% range over %s draws" % format(c.attrs["draws"], ","))
+    cx.set_xlim(0, max(80, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
+    cx.set_xlabel("comparisons (of %d), mean and\n95 %% range over %s draws" % (ng, format(c.attrs["draws"], ",")))
     cx.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
     boxed(cx)
-    pg.letter("c", 2, 59)
-    pg.title("Measurement and plot-reading resampling", 14, 59)
+    pg.letter("c", 2, 59 + up)
+    pg.title("Measurement and plot-reading resampling", 14, 59 + up)
     # d per-group persistence
-    dx = pg.ax(108, 12, 70, 40)
+    dx = pg.ax(108, 12 + up, 70, 40)
     xg = np.arange(len(dd)) + 1
     dx.bar(xg, dd.p_mismatch_meas_k1, 0.75, color=[RU if p >= 0.9 else PALE_B for p in dd.p_mismatch_meas_k1],
            ec=INK, lw=0.25, label="error ×1")
@@ -204,8 +206,40 @@ def ed3():
     dx.set_ylabel("draws still mismatched (%)")
     dx.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3, ncol=2)
     boxed(dx)
-    pg.letter("d", 96, 59)
-    pg.title("Persistence of each observed disagreement", 108, 59)
+    pg.letter("d", 96, 59 + up)
+    pg.title("Persistence of each observed disagreement", 108, 59 + up)
+    # e limit on the reactor-inlet non-H2/CO2 fraction
+    e = d["e"][0]
+    ex = pg.ax(14, 12, 112, 40)
+    fin = e[np.isfinite(e.limit)]
+    xmax = 0.36
+    lit = e.attrs.get("literature")
+    if lit:
+        ex.axvspan(lit[0] * 100, lit[1] * 100, color=PALE_G, alpha=0.45, lw=0, zorder=0)
+        ex.text((lit[0] + lit[1]) * 50, 0.97, "published CO$_2$-to-methanol\nreactor inlets (%d designs)" % lit[2],
+                fontsize=5.0, ha="center", va="top", color=DARK_G)
+    ex.plot(fin.limit * 100, fin.share, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3,
+            label="all comparisons")
+    ex.plot(fin.limit * 100, fin.iso_share, color=FE, lw=0.9, marker="s", ms=2.4, mec=INK, mew=0.3,
+            label="isothermal catalyst comparisons")
+    nl = e[~np.isfinite(e.limit)].iloc[0]
+    ex.scatter([xmax * 100], [nl.share], s=10, c=RU, ec=INK, lw=0.3, zorder=3, clip_on=False)
+    ex.scatter([xmax * 100], [nl.iso_share], s=9, c=FE, marker="s", ec=INK, lw=0.3, zorder=3, clip_on=False)
+    ex.text(xmax * 100 - 0.6, nl.share + 0.05, "no limit", fontsize=5.0, ha="right")
+    ref = e.attrs["reference"]
+    r = e[np.isclose(e.limit, ref)].iloc[0]
+    ex.axvline(ref * 100, color=RED, lw=0.7, ls="--")
+    ex.text(ref * 100 + 0.4, 0.06, "reference loop %.2f %%: %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
+        100 * ref, r.mismatched, r.groups, 100 * r.share, r.iso_mismatched, r.iso_groups, 100 * r.iso_share),
+        color=RED, fontsize=5.2, va="bottom")
+    ex.set_xlim(0, xmax * 100 + 1)
+    pct_axis(ex, 1.0)
+    ex.set_xlabel("limit on the reactor-inlet content of species other than H$_2$ and CO$_2$ (mol%)")
+    ex.set_ylabel("STY leader \u2260 plant-cost leader (%)")
+    ex.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
+    boxed(ex)
+    pg.letter("e", 2, 59)
+    pg.title("Inlet-composition limit of the loop", 14, 59)
     return pg
 
 

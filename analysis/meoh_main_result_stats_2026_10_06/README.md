@@ -1,25 +1,41 @@
-# How firm is the headline methanol result? — 2026-10-06
+# How firm is the methanol field result? — 2026-10-06, updated 2026-10-07
 
-Headline result (`analysis/meoh_literature_inversion_2026_10_05/`, 50-paper set): within published CO2-to-methanol
-comparisons, the paper's space-time-yield (STY) leader is not the plant-cost leader in **33 of 83** comparison groups
-(40 %, 19 of 44 papers). This folder asks four questions of that number:
+Field result (`analysis/meoh_literature_inversion_2026_10_05/`, 50-paper set, primary treatment of 2026-10-07):
+within published CO2-to-methanol comparisons, the paper's space-time-yield (STY) leader is not the plant-cost leader
+in **54 of 82** comparison groups (37 of 44 papers). The primary caps the per-pass CO2 conversion at
+CO2-hydrogenation equilibrium, converts recycled CO only up to reverse-water-gas-shift and CO-hydrogenation
+equilibrium, and optimizes the purge only where the reactor inlet holds no more species other than H2 and CO2 than
+the calibrated reference loop (6.86 %). This folder asks four questions of that number:
 - its sampling uncertainty;
 - how large the disagreements are;
 - whether they survive measurement noise;
 - whether they survive the agent's extraction errors.
 
-The plant model, candidate construction and group definitions are those of the headline script and are not changed.
+The plant model, candidate construction and group definitions are those of the field-result script and are not
+changed.
 
-`run_main_result_stats.py` (interpreter `D:\Research\CatalystForge\.venv\Scripts\python.exe`):
-- It writes `summary.json`, `regret_threshold_curve.csv`, `group_noise_probabilities.csv`, `validation.csv`,
-  `grid_costs.csv` (exact model runs behind the response surface) and `scenario_*.json` (each finished noise scenario;
-  a restart reuses them).
-- About 6 h on 8 worker processes. Use no more than 8: each worker commits about 0.8 GB, and 24 workers exhausted the
-  15 GB machine (`run_aborted_24workers.log`).
-- `run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
-  Such states are now treated as missing, and the entry leaves both leaderboards of that draw.
+## Running it
 
-## Result
+`run_main_result_stats.py` writes `summary.json`, `regret_threshold_curve.csv`, `group_noise_probabilities.csv`,
+`validation.csv`, `grid_costs.csv` (the exact runs behind the response surface) and `scenario_*.json` (each finished
+noise scenario). Every exact plant-model run (about 1.5e5) is stored in `exact_cache.csv.gz` under a key made of the
+entry state and the perturbation, so no run is repeated and the work can be split:
+
+- **GitHub Actions** (`.github/workflows/methanol-stats.yml`): push a commit whose message contains `[ci stats]`
+  (add `[fresh]` to rebuild the cache from nothing), or dispatch the workflow. It lists the missing grid runs, runs
+  them on a 20-job matrix, lists every draw outside the grid and the validation replicates, runs those on a second
+  20-job matrix, then runs the full analysis from the cache and commits the outputs back to the branch. The result
+  is identical to one serial run: the draws come from the same per-scenario random streams and do not depend on
+  exact results, only on the completed grid.
+- **Locally**: `python run_main_result_stats.py` computes whatever the cache lacks with `STATS_WORKERS` processes
+  (default 4). Use no more than 8 on the 15 GB laptop: each worker commits about 0.8 GB, and 24 workers exhausted it
+  (`run_aborted_24workers.log`). The modes behind the workflow are `STATS_MODE=enumerate`, `compute JOBS SHARD N OUT`
+  and `merge PART...`.
+
+`run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
+Such states are treated as missing, and the entry leaves both leaderboards of that draw.
+
+## Result of the previous treatment (33 / 83; superseded by the CI run of the current primary)
 
 | Question | Result |
 |---|---|
