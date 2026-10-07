@@ -18,10 +18,11 @@ velocity with a bulk density of 1.0 g/mL (0.5 and 2.0 g/mL tested). Derived STY 
 Plant leaderboard. Net production cost (EUR/t MeOH) from the generalized recycle-economics model
 (data/meoh/meoh_general_model.py) at each entry's own pressure, H2/CO2 and temperature, with catalyst mass from the
 group's productivity basis. Primary: recycled CO (central rule, capped at CO-hydrogenation equilibrium), cost-optimal
-purge among the eligible purge levels: the reactor outlet within CO2-hydrogenation equilibrium and the reactor-inlet
-non-H2/CO2 fraction within the workbook's own limit (meoh_d01_model.SOURCE_NONREACTIVE_REFERENCE). A candidate with no
-eligible purge level is infeasible and leaves both leaderboards of its group. Variants: equilibrium check only,
-unconstrained purge (the earlier treatment), inert CO, 2 % purge. Selectivity closure follows the workbook: S_MeOH and
+purge among the eligible purge levels, those whose reactor-inlet non-H2/CO2 fraction is within the workbook's own
+limit (meoh_d01_model.SOURCE_NONREACTIVE_REFERENCE). The per-pass CO2 conversion is the laboratory value, capped where
+the loop outlet would pass CO2-hydrogenation equilibrium (meoh_general_model.purge_sweep). A candidate with no eligible
+purge level is infeasible and leaves both leaderboards of its group. Variants:
+no nonreactive limit, the uncapped laboratory conversion (the treatment before 2026-10-07), inert CO, 2 % purge. Selectivity closure follows the workbook: S_MeOH and
 S_CH4 as reported ("<1" -> 0), CO-like residual 1 - S_MeOH - S_CH4; when S_CH4 is not reported, S_CH4 = 1 - S_MeOH -
 S_CO if S_CO is reported, else 0.
 
@@ -74,11 +75,14 @@ def main():
 
     # ------------------------------------------------------------ group metrics -------------------------------
     primary_gm, primary = aggregate(cand, "cost_recycled_opt", label="primary: recycled CO, eligible optimal purge, STY leaderboard")
-    unc_gm, unc = aggregate(cand, "cost_recycled_opt_unconstrained", label="recycled CO, unconstrained optimal purge")
+    unc_gm, unc = aggregate(cand, "cost_recycled_opt_unconstrained", label="recycled CO, optimal purge without the nonreactive limit")
     variants = {"recycled_opt_unconstrained": unc,
-                "recycled_opt_equilibrium_only": aggregate(cand, "cost_recycled_opt_eqonly", label="equilibrium check only")[1],
+                "recycled_opt_uncapped": aggregate(cand, "cost_recycled_opt_uncapped",
+                                                   label="treatment before 2026-10-07: laboratory X uncapped, no limit")[1],
                 "recycled_opt_limit_ch4_n2_only": aggregate(cand, "cost_recycled_opt_limit_ch4n2",
                                                             label="diagnostic: limit on CH4 + N2 (CO not counted)")[1],
+                **{f"recycled_opt_limit_x{m:g}": aggregate(cand, f"cost_recycled_opt_limit_x{m:g}",
+                                                          label=f"nonreactive limit x {m:g}")[1] for m in (1.5, 2.0, 3.0)},
                 "recycled_2pct": aggregate(cand, "cost_recycled_2pct", label="2 % purge (eligible)")[1],
                 "recycled_2pct_unconstrained": aggregate(cand, "cost_recycled_2pct_unconstrained", label="2 % purge, unconstrained")[1],
                 "inert_opt": aggregate(cand, "cost_inert_opt", label="inert CO, eligible optimal purge")[1],
@@ -108,8 +112,9 @@ def main():
         groups_with_an_infeasible_candidate=int(in_groups.groupby("group").feasible.apply(lambda s: (~s).any()).sum()),
         groups_lost=primary["groups_lost_to_infeasibility"],
         papers=int(cand.loc[~cand.feasible, "doi"].nunique()),
-        above_equilibrium_at_every_purge=int((~np.isfinite(cand.cost_recycled_opt_eqonly)).sum()),
-        above_equilibrium_at_unconstrained_optimum=int((cand.co2_hyd_approach_at_unconstrained_recycled > 1 + G.EQ_TOL).sum()),
+        conversion_capped_at_some_purge=int((cand.n_capped_recycled > 0).sum()),
+        conversion_capped_at_primary_optimum=int((cand.X_eff_recycled_opt < cand.X * (1 - 1e-9)).sum()),
+        above_equilibrium_at_unconstrained_optimum=int((cand.co2_hyd_approach_at_unconstrained_recycled > 1 + 1e-4).sum()),
         nonreactive_at_unconstrained_optimum_quantiles={q: float(cand.nonreactive_at_unconstrained_recycled.quantile(q))
                                                         for q in (0.1, 0.5, 0.9, 1.0)},
         nonreactive_limit=float(G.NONREACTIVE_MAX),
@@ -119,7 +124,9 @@ def main():
     # ------------------------------------------------------------ outputs -------------------------------------
     keep = ["group", "doi", "entry", "catalyst", "T_C", "P_bar", "h2_co2", "ghsv_key", "X", "SMeOH", "SCO", "SCH4",
             "reported_S_sum", "other_products", "plot_read", "sty_basis", "STY", "feasible",
-            "cost_recycled_opt", "purge_recycled_opt", "n_eligible_recycled",
+            "cost_recycled_opt", "purge_recycled_opt", "n_eligible_recycled", "X_eff_recycled_opt", "n_capped_recycled",
+            "cost_recycled_opt_uncapped", "cost_recycled_opt_limit_x1.5", "cost_recycled_opt_limit_x2",
+            "cost_recycled_opt_limit_x3",
             "cost_recycled_opt_eqonly", "purge_recycled_opt_eqonly", "cost_recycled_opt_limit_ch4n2",
             "cost_recycled_opt_unconstrained", "purge_recycled_opt_unconstrained",
             "nonreactive_at_unconstrained_recycled", "co2_hyd_approach_at_unconstrained_recycled",

@@ -195,7 +195,9 @@ def plant_costs(row: dict, sty_scales: dict = None) -> dict:
                                      nonreactive fraction within the workbook limit); NaN when none is eligible
       cost_<co>_opt_eqonly           minimum over the equilibrium-feasible levels (no nonreactive limit)
       cost_<co>_opt_limit_ch4n2      diagnostic: equilibrium feasible and CH4 + N2 (not CO) within the limit
-      cost_<co>_opt_unconstrained    minimum over every level (the earlier treatment)
+      cost_<co>_opt_unconstrained    minimum over every level, conversion capped at equilibrium (no nonreactive limit)
+      cost_<co>_opt_uncapped         minimum over every level with the laboratory conversion uncapped (the treatment
+                                     before 2026-10-07)
       cost_<co>_2pct / _2pct_unconstrained   at 2 % purge: NaN when 2 % is not eligible / always evaluated
     plus the purges chosen, the number of eligible levels, and the nonreactive fraction and CO2-hydrogenation
     approach at the unconstrained optimum. sty_scales: {name: factor} for recycled-CO variants with STY x factor
@@ -213,7 +215,15 @@ def plant_costs(row: dict, sty_scales: dict = None) -> dict:
         # diagnostic: the limit applied to CH4 + N2 only (recycled CO counted as a reactant, not as an inert)
         ch4n2 = np.asarray(s["methane_fraction"]) + np.asarray(s["n2_inlet_fraction"])
         out[f"cost_{tag}_opt_limit_ch4n2"] = _pick(cost, eq & (ch4n2 <= G.NONREACTIVE_MAX))[0]
+        nonreactive = np.asarray(s["nonreactive_fraction"])
+        for m in (1.5, 2.0, 3.0):           # sensitivity of the primary to the nonreactive limit
+            out[f"cost_{tag}_opt_limit_x{m:g}"] = _pick(cost, eq & (nonreactive <= m * G.NONREACTIVE_MAX))[0]
         out[f"cost_{tag}_opt_unconstrained"], out[f"purge_{tag}_opt_unconstrained"] = _pick(cost, np.isfinite(cost))
+        su = G.purge_sweep(c, cap_conversion=False, STY_per_g_cat=row["STY"], x_co=rule, **kw)
+        out[f"cost_{tag}_opt_uncapped"] = _pick(np.asarray(su["cost_eur_t"], dtype=float),
+                                                np.isfinite(np.asarray(su["cost_eur_t"], dtype=float)))[0]
+        out[f"n_capped_{tag}"] = int(np.asarray(s["X_capped"]).sum())
+        out[f"X_eff_{tag}_opt"] = (float(np.asarray(s["X_eff"])[ok][np.argmin(cost[ok])]) if ok.any() else np.nan)
         out[f"cost_{tag}_2pct"] = float(cost[I_2PCT]) if ok[I_2PCT] else np.nan
         out[f"cost_{tag}_2pct_unconstrained"] = float(cost[I_2PCT])
         out[f"n_eligible_{tag}"] = int(ok.sum())
@@ -222,7 +232,7 @@ def plant_costs(row: dict, sty_scales: dict = None) -> dict:
         out[f"co2_hyd_approach_at_unconstrained_{tag}"] = float(s["co2_hyd_approach"][ju])
         if tag == "recycled":
             for name, f in (sty_scales or {}).items():
-                e = G.cost(c, purge=G.PURGES, x_co=s["x_co"], STY_per_g_cat=row["STY"] * f, **kw)
+                e = G.cost(dict(c, X=s["X_eff"]), purge=G.PURGES, x_co=s["x_co"], STY_per_g_cat=row["STY"] * f, **kw)
                 out[f"cost_recycled_opt_{name}"] = _pick(np.asarray(e["cost_eur_t"], dtype=float), ok)[0]
     return out
 

@@ -402,9 +402,43 @@ def cost(c, **kw):
 PURGES = M.PURGES  # 0.5-40 %, 0.1 % steps (396 levels), same grid as the canonical sweep
 
 
-def purge_sweep(c, **kw):
-    """Cost and loop state on the canonical purge grid (vectorized over purge)."""
-    return cost(c, purge=PURGES, **kw)
+def purge_sweep(c, cap_conversion=True, **kw):
+    """Cost and loop state on the canonical purge grid (vectorized over purge).
+
+    With the reaction temperature known and cap_conversion, the per-pass CO2 conversion at each purge level is
+    min(X, X_eq), X_eq being the conversion at which the loop outlet reaches CO2-hydrogenation equilibrium: a
+    catalyst that would pass equilibrium at the loop-inlet composition reaches it and stops there. X_eff and
+    X_capped record the conversion used."""
+    s = cost(c, purge=PURGES, **kw)
+    n = len(PURGES)
+    s["X_eff"] = np.full(n, float(c["X"]))
+    s["X_capped"] = np.zeros(n, dtype=bool)
+    if not cap_conversion or "equilibrium_feasible" not in s:
+        return s
+    bad = ~np.asarray(s["equilibrium_feasible"])
+    if not bad.any():
+        return s
+    purges, X0 = PURGES[bad], float(c["X"])
+
+    def f(X):
+        return np.log(cost(dict(c, X=X), purge=purges, **kw)["co2_hyd_approach"])
+
+    lo, hi = np.full(purges.shape, X0 * 1e-6), np.full(purges.shape, X0)   # f(lo) < 0 <= f(hi)
+    for _ in range(60):                       # bisection that keeps the feasible end, so the outlet stays <= K
+        mid = 0.5 * (lo + hi)
+        below = f(mid) <= 0.0
+        lo, hi = np.where(below, mid, lo), np.where(below, hi, mid)
+        if np.all(hi - lo <= 1e-9 * hi):
+            break
+    x_eq = lo
+    capped = cost(dict(c, X=x_eq), purge=purges, **kw)
+    for k, v in capped.items():
+        if isinstance(v, np.ndarray) and isinstance(s.get(k), np.ndarray) and s[k].shape == (n,) and v.shape == purges.shape:
+            s[k] = s[k].copy()
+            s[k][bad] = v
+    s["X_eff"][bad] = x_eq
+    s["X_capped"][bad] = True
+    return s
 
 
 def eligible_purges(sweep, nonreactive_max=NONREACTIVE_MAX):
