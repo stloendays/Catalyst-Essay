@@ -2,6 +2,38 @@
 
 `run_mc_ru_actual.py` writes `draws.csv` (5,000 rows) and `summary.json`.
 
+## Literature parameters (2026-10-07) — current outputs
+
+`draws.csv` and `summary.json` now use the literature-checked inputs (author decision 2026-10-07; primary-literature
+check in `analysis/nh3_actual_ru_params_2026_10_07`). Seeds and draw count are unchanged (20260920, 20261006, and
+20261007 for the new Ru-content column), so every difference below is attributable to the inputs:
+
+| Input | before | now | Source |
+|---|---|---|---|
+| Ru recovery r (A, A_bed, B) | uniform 0.90–0.94 | **uniform 0.90–0.97** | CN 1872418 A (89–97.6% from spent activated-carbon Ru ammonia catalyst) |
+| bed density (A_bed, B, B0) | uniform 500–1,000 kg m⁻³ | **uniform 430–550 kg m⁻³** | derived (no published value) |
+| Ru content of the A_bed bed | the measured catalysts' contents | **uniform 5–10 wt%** (column `A_bed_wt_pct`) | Brown *et al.*, Catal. Lett. 144, 545 (2014); US 4,600,571 |
+| u | log-uniform 11–50 | unchanged | |
+
+B and B0 keep the 54 measured catalysts (activity and Ru content). The pre-change script reproduces the previous
+outputs exactly on the cloud harness (`ci_logs/validate_baseline.log`, GitHub Actions run
+[37648545590](https://github.com/stloendays/Catalyst-Essay/actions/runs/37648545590)); the base reproduction still
+gives P(Fe cheaper) = 1.000, minimum gap 2.382 USD/t.
+
+| Variant | P(Fe cheaper) [95% Clopper–Pearson] | before | Ru − Fe median (USD/t) | before |
+|---|---:|---:|---:|---:|
+| A: benchmark bed, price p(1 − r)/u (Fig. 3d reading) | **0.356** [0.342, 0.369] | 0.480 | −0.09 | −0.01 |
+| A_bed: commercial Ru/C bed (5–10 wt%, 430–550 kg m⁻³) | **0.690** [0.677, 0.703] | 0.800 | +0.18 | +0.37 |
+| B: measured Ru catalysts, with recovery | **0.947** [0.940, 0.953] | 0.943 | +4.93 | +4.35 |
+| B0: measured Ru catalysts, no recovery | **0.990** [0.987, 0.993] | 0.989 | +7.77 | +7.41 |
+
+Where Ru wins (u terciles 18.2 and 30.4, r terciles 0.924 and 0.947): A_bed 31% of all draws; 0.24% with u in its
+lowest tercile, 75% in its top tercile; 87% with u and r both in their top terciles; 25% below 7.5 wt% Ru and 37% at
+7.5 wt% or more. A: 64% of all draws, 98% with u and r both in their top terciles. In B the Ru wins come from four of
+the 54 catalysts (Ru/AC-G, Ru/Ba–Ca(NH₂)₂, Ru/Ca(NH₂)₂, Ru/Cs/Ba/CCHT; Ru/BaO–CaH₂ no longer wins with the lighter
+bed). The tables below describe the outputs before this change.
+
+
 The preregistered cost Monte Carlo (5,000 draws, seed 20260920; Fe and Ru price multipliers, CAPEX multiplier,
 electricity price, catalyst lifetime; full reoptimization over 14,136 states) charges Ru as the benchmark bed of pure
 metal and gives P(C_Fe < C_Ru) = 1.000. It is reproduced first (minimum gap 2.382 USD/t). The actual Ru catalyst is

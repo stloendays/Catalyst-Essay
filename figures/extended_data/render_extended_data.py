@@ -278,7 +278,7 @@ def ed5():
     pg.title("Fe against the Ru catalyst", 14, 109)
     specs = [("b", b, "u", "dispersion ratio u = D$_{Ru}$ / f$_{Fe}$", True),
              ("c", c, "r", "Ru recovery r (%)", False),
-             ("d", dd, "Ru_wt_pct", "Ru content of the bed (wt%)", False)]
+             ("d", dd, "Ru_wt_pct", "Ru content of the Ru/C bed (wt%)", False)]
     for k, (p, t, key, xl, logx) in enumerate(specs):
         bx = pg.ax(14 + k * 58, 12, 46, 36)
         lo, hi = t[key + "_low"].to_numpy(), t[key + "_high"].to_numpy()
@@ -563,15 +563,17 @@ def write_captions():
             "**a**, Probability that Fe is cheaper than Ru over %s joint draws (price multipliers, CAPEX, electricity, "
             "catalyst life), with the median Ru − Fe cost: %s. A: dispersion ratio u = D$_{Ru}$/f$_{Fe}$ (log-uniform "
             "%g–%g) and Ru recovery r (%g–%g) lower the Ru price to p(1 − r)/u in the benchmark bed (the Fig. 3d reading); "
-            "A_bed: the Ru inventory divided by u and charged at (1 − r), in a bed of its own Ru content (drawn from "
-            "the measured catalysts) and bed density; B and B0: one measured Ru "
+            "A_bed: the Ru inventory divided by u and charged at (1 − r), in the commercial Ru/C bed (Ru content "
+            "%g–%g wt%%, bed density %g–%g kg m$^{-3}$); B and B0: one measured Ru "
             "catalyst per draw, with and without recovery. **b–d**, Probability that Ru is cheaper (A_bed, circles or "
             "dark bars; A, squares or light bars) by u (**b**), r (**c**) and the Ru content of the bed (**d**, n = "
             "draws per bin). Source: `%s`." % (
                 format(int(a.draws.iloc[0]), ","),
                 "; ".join("%s %.3f (%+.2f USD t$^{-1}$)" % (r.treatment.split(":")[0].split(" (")[0], r.P_Fe_cheaper,
                                                           r.median_Ru_minus_Fe_USD_t) for r in a.itertuples()),
-                b.u_low.min(), b.u_high.max(), c.r_low.min(), c.r_high.max(), E.MC + "draws.csv, summary.json"), ""]
+                b.u_low.min(), b.u_high.max(), c.r_low.min(), c.r_high.max(), dd.Ru_wt_pct_low.min(),
+                dd.Ru_wt_pct_high.max(), *E.rjson(E.MC + "summary.json")["ranges"]["bed_density_kg_m3"],
+                E.MC + "draws.csv, summary.json"), ""]
 
     d = E.edfig6()
     a, b, c, dd = (d[k][0] for k in "abcd")
