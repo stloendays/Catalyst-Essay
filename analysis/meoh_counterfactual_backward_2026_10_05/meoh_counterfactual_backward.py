@@ -10,6 +10,10 @@ property at a time, to become the economic optimum (cost <= 5 wt% Re, 200 C)? Pr
 single-pass CO2 conversion (absolute), CH4 selectivity (moved to methanol), CO-like selectivity (moved to methanol).
 Each target is compared with what the same study measured for that catalyst family (Table 3/4 of Gothe et al.).
 
+Space-time yield follows the change: STY is proportional to X * S_MeOH at a fixed feed (as in the measurement Monte
+Carlo, analysis/meoh_measurement_mc_2026_10_05), so every counterfactual and backward target that changes conversion
+or methanol selectivity scales STY (and hence the catalyst inventory) by X' S' / (X S).
+
 Inputs: workbook Candidate_Inputs (Table 3), engine data/meoh/meoh_d01_model.py; canonical cost parameters.
 Outputs: counterfactual_ranks.csv, backward_targets.csv, summary.json in this folder.
 """
@@ -42,6 +46,13 @@ def cost(c):
     return float(M.cost(c)["cost_eur_t"])
 
 
+def changed(c, **kw):
+    """State c with conversion/selectivities changed; STY scaled by X' S_MeOH' / (X S_MeOH)."""
+    n = dict(c, **kw)
+    n["STY"] = c["STY"] * (n["X"] * n["SMeOH"]) / (c["X"] * c["SMeOH"])
+    return n
+
+
 def ranking(cands):
     cs = {n: cost(c) for n, c in cands.items()}
     up = [cands[n]["STY"] for n in names]
@@ -57,18 +68,18 @@ rows.append(dict(case="canonical (Table 3)", order=" > ".join(base_o), rho=base_
                  **{"NPC_" + n: base_c[n] for n in names}))
 
 # counterfactual 1: no CH4 anywhere (moved to methanol)
-cf1 = {n: dict(c, SMeOH=c["SMeOH"] + c["SCH4"], SCH4=0.0) for n, c in C.items()}
+cf1 = {n: changed(c, SMeOH=c["SMeOH"] + c["SCH4"], SCH4=0.0) for n, c in C.items()}
 c1, o1, r1, t1 = ranking(cf1)
 rows.append(dict(case="CH4 selectivity removed (moved to MeOH)", order=" > ".join(o1), rho=r1, tau=t1,
                  **{"NPC_" + n: c1[n] for n in names}))
 # counterfactual 2: equal conversion
 xm = float(np.mean([c["X"] for c in C.values()]))
-cf2 = {n: dict(c, X=xm) for n, c in C.items()}
+cf2 = {n: changed(c, X=xm) for n, c in C.items()}
 c2, o2, r2, t2 = ranking(cf2)
 rows.append(dict(case="conversion equalized (X = %.4f)" % xm, order=" > ".join(o2), rho=r2, tau=t2,
                  **{"NPC_" + n: c2[n] for n in names}))
 # counterfactual 3: both
-cf3 = {n: dict(c, X=xm, SMeOH=c["SMeOH"] + c["SCH4"], SCH4=0.0) for n, c in C.items()}
+cf3 = {n: changed(c, X=xm, SMeOH=c["SMeOH"] + c["SCH4"], SCH4=0.0) for n, c in C.items()}
 c3, o3, r3, t3 = ranking(cf3)
 rows.append(dict(case="CH4 removed and conversion equalized", order=" > ".join(o3), rho=r3, tau=t3,
                  **{"NPC_" + n: c3[n] for n in names}))
@@ -87,7 +98,7 @@ def gap_sty(m):
 
 
 def gap_x(x):
-    return cost(dict(u, X=x)) - target
+    return cost(changed(u, X=x)) - target
 
 
 bw = []
@@ -101,9 +112,9 @@ bw.append(dict(property="STY per g Re (multiplier)", current=u["STY"], required=
 x_star = brentq(gap_x, u["X"], 0.95)
 bw.append(dict(property="single-pass CO2 conversion", current=u["X"], required=x_star,
                note="absolute; Table 3 range for the same catalysts 0.19-0.40"))
-c_noch4 = cost(dict(u, SMeOH=u["SMeOH"] + u["SCH4"], SCH4=0.0))
-c_noco = cost(dict(u, SMeOH=u["SMeOH"] + u["SCO"], SCO=0.0))
-c_pure = cost(dict(u, SMeOH=1.0, SCH4=0.0, SCO=0.0))
+c_noch4 = cost(changed(u, SMeOH=u["SMeOH"] + u["SCH4"], SCH4=0.0))
+c_noco = cost(changed(u, SMeOH=u["SMeOH"] + u["SCO"], SCO=0.0))
+c_pure = cost(changed(u, SMeOH=1.0, SCH4=0.0, SCO=0.0))
 bw.append(dict(property="CH4 selectivity -> 0 (to MeOH)", current=u["SCH4"], required="insufficient alone" if c_noch4 > target else 0.0,
                note="cost %.2f EUR/t" % c_noch4))
 bw.append(dict(property="CO-like selectivity -> 0 (to MeOH)", current=u["SCO"], required="insufficient alone" if c_noco > target else 0.0,
@@ -113,7 +124,7 @@ bw.append(dict(property="100% MeOH selectivity", current=u["SMeOH"], required="i
 
 
 def gap_xs(x):
-    return cost(dict(u, X=x, SMeOH=1.0, SCH4=0.0, SCO=0.0)) - target
+    return cost(changed(u, X=x, SMeOH=1.0, SCH4=0.0, SCO=0.0)) - target
 
 
 if gap_xs(u["X"]) > 0:
@@ -123,7 +134,7 @@ if gap_xs(u["X"]) > 0:
 
 def gap_sch4_to_co(f):
     """Fraction f of the CO-like selectivity moved to methanol, CH4 removed."""
-    return cost(dict(u, SMeOH=u["SMeOH"] + u["SCH4"] + f * u["SCO"], SCH4=0.0, SCO=(1 - f) * u["SCO"])) - target
+    return cost(changed(u, SMeOH=u["SMeOH"] + u["SCH4"] + f * u["SCO"], SCH4=0.0, SCO=(1 - f) * u["SCO"])) - target
 
 
 if gap_sch4_to_co(0.0) > 0 > gap_sch4_to_co(1.0):

@@ -1,14 +1,18 @@
-"""Candidate construction from extracted methanol records, and the Gothe Table 4 self-check.
+"""Candidate construction from extracted methanol records, plant costs, group metrics, and the Gothe Table 4
+self-check.
 
-Shared by run_literature_inversion.py and the ACSA self-check gate (agent/selfcheck_gate.py), so both run the
-same code path.
+Shared by run_literature_inversion.py, the catalyst-cost and plant-benchmark variants and the ACSA self-check gate
+(agent/selfcheck_gate.py), so all of them run the same code path.
 """
 import math
 import re
 import sys
+from itertools import combinations
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -30,12 +34,15 @@ def pct(v, q):
 
 
 def closure(r):
+    """Closed selectivities (workbook convention) and the sum of the selectivities the paper reports (an S_CH4 imputed
+    from the residual is not a reported value and does not enter the sum)."""
     sm = pct(r.S_MeOH_pct, r.S_MeOH_q)
     sco = pct(r.S_CO_pct, r.S_CO_q)
-    sch4 = pct(r.S_CH4_pct, r.S_CH4_q)
+    sch4_rep = pct(r.S_CH4_pct, r.S_CH4_q)
+    sch4 = sch4_rep
     if sch4 is None:
         sch4 = max(0.0, 1.0 - sm - sco) if sco is not None else 0.0
-    reported_sum = sm + (sco or 0.0) + sch4
+    reported_sum = sm + (sco or 0.0) + (sch4_rep or 0.0)
     sm, sco_c, sch4 = G.close_selectivity(sm, None, min(sch4, 1.0 - sm))
     return sm, sco_c, sch4, reported_sum
 
@@ -116,3 +123,198 @@ def gothe_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
     d = read_records() if records is None else records
     d = d[d.doi == GOTHE_DOI].dropna(subset=REQUIRED)
     return pd.DataFrame([c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None])
+
+
+# ---------------------------------------------------------------- candidate set ----------------------------------
+PRINTED_SPREAD_MAX = 3.0   # printed STY / (F_CO2 X S) may vary by plot reading, not by more than this within a group
+
+
+def group_basis(g):
+    """One productivity basis per comparison group. The printed STY when every entry prints it, unless printed STY /
+    conversion-derived productivity varies by more than PRINTED_SPREAD_MAX within the group (the paper's printed
+    rates then contradict its own conversion and selectivity); the reference productivity is the mass-GHSV STY or,
+    where the group states only a volumetric GHSV, the density-assumed volumetric-GHSV STY (the density is one
+    factor for the whole group and cancels in the spread). Otherwise STY from the mass GHSV, then from the
+    volumetric GHSV."""
+    if g.sty_mass.notna().all():
+        ref, ref_label = g.sty_mass, "STY from mass GHSV"
+    elif g.sty_vol.notna().all():
+        ref, ref_label = g.sty_vol, "STY from volumetric GHSV (assumed density)"
+    else:
+        ref, ref_label = None, None
+    if g.sty_print.notna().all():
+        if ref is not None:
+            ratio = g.sty_print / ref
+            if ratio.min() <= 0 or ratio.max() / ratio.min() > PRINTED_SPREAD_MAX:
+                return ref_label + " (printed STY inconsistent with X*S*F)", ref
+        return "printed STY", g.sty_print
+    if ref is not None:
+        return ref_label, ref
+    if g.sty_print.notna().any():
+        return "printed STY (partial)", g.sty_print
+    return None, None
+
+
+def build_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
+    """Every extracted record with conversion, methanol selectivity, T, P and H2/CO2 (and a dry CO2/H2 feed) -> one
+    candidate operating point; comparison groups (paper, P, H2/CO2, space velocity) and the group STY basis."""
+    d = read_records() if records is None else records
+    d = d.dropna(subset=REQUIRED).copy()
+    cand = pd.DataFrame([c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None])
+    cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/CO2 "
+                     + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
+    parts = []
+    for key, g in cand.groupby("group"):
+        basis, sty = group_basis(g)
+        g = g.copy()
+        g["sty_basis"] = basis
+        g["STY"] = sty
+        parts.append(g)
+    cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
+    cand = cand[cand.STY > 0]
+    # one measurement printed in several places (stability series, repeated panels, several SI tables) counts once:
+    # entries of a group with the same temperature, conversion, selectivities and STY, first in document order
+    dup = cand.duplicated(["group", "T_C", "X", "SMeOH", "SCH4", "SCO", "STY"], keep="first")
+    out = cand[~dup].reset_index(drop=True)
+    out.attrs["duplicates_removed"] = int(dup.sum())
+    return out
+
+
+# ---------------------------------------------------------------- plant costs ------------------------------------
+I_2PCT = int(np.argmin(np.abs(G.PURGES - 0.02)))
+RHO_SCALES = {f"rho{rho:g}": RHO_DEFAULT / rho for rho in RHO_RANGE}   # STY per g scales with 1/density
+ROW_KEYS = ["X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"]
+
+
+def _pick(cost, mask):
+    if not mask.any():
+        return np.nan, np.nan
+    j = int(np.argmin(np.where(mask, cost, np.inf)))
+    return float(cost[j]), float(G.PURGES[j])
+
+
+def plant_costs(row: dict, sty_scales: dict = None) -> dict:
+    """All plant-cost treatments of one candidate (dict with ROW_KEYS).
+
+    For recycled CO (central rule) and inert CO, on the canonical purge grid:
+      cost_<co>_opt                  primary: minimum over the eligible purge levels (equilibrium feasible and
+                                     nonreactive fraction within the workbook limit); NaN when none is eligible
+      cost_<co>_opt_eqonly           minimum over the equilibrium-feasible levels (no nonreactive limit)
+      cost_<co>_opt_limit_ch4n2      diagnostic: equilibrium feasible and CH4 + N2 (not CO) within the limit
+      cost_<co>_opt_unconstrained    minimum over every level, conversion capped at equilibrium (no nonreactive limit)
+      cost_<co>_opt_uncapped         minimum over every level with the laboratory conversion uncapped (the treatment
+                                     before 2026-10-07)
+      cost_<co>_2pct / _2pct_unconstrained   at 2 % purge: NaN when 2 % is not eligible / always evaluated
+    plus the purges chosen, the number of eligible levels, and the nonreactive fraction and CO2-hydrogenation
+    approach at the unconstrained optimum. sty_scales: {name: factor} for recycled-CO variants with STY x factor
+    (eligibility does not depend on STY)."""
+    c = dict(X=row["X"], SMeOH=row["SMeOH"], SCH4=row["SCH4"], SCO=row["SCO"])
+    kw = dict(P_bar=row["P_bar"], h2_co2=row["h2_co2"], T_C=row["T_C"])
+    out = {}
+    for tag, rule in (("recycled", "recycled_central"), ("inert", "inert")):
+        s = G.purge_sweep(c, STY_per_g_cat=row["STY"], x_co=rule, **kw)
+        cost = np.asarray(s["cost_eur_t"], dtype=float)
+        ok = G.eligible_purges(s)
+        eq = np.asarray(s["equilibrium_feasible"])
+        out[f"cost_{tag}_opt"], out[f"purge_{tag}_opt"] = _pick(cost, ok)
+        out[f"cost_{tag}_opt_eqonly"], out[f"purge_{tag}_opt_eqonly"] = _pick(cost, eq)
+        # diagnostic: the limit applied to CH4 + N2 only (recycled CO counted as a reactant, not as an inert)
+        ch4n2 = np.asarray(s["methane_fraction"]) + np.asarray(s["n2_inlet_fraction"])
+        out[f"cost_{tag}_opt_limit_ch4n2"] = _pick(cost, eq & (ch4n2 <= G.NONREACTIVE_MAX))[0]
+        nonreactive = np.asarray(s["nonreactive_fraction"])
+        for m in (1.5, 2.0, 3.0):           # sensitivity of the primary to the nonreactive limit
+            out[f"cost_{tag}_opt_limit_x{m:g}"] = _pick(cost, eq & (nonreactive <= m * G.NONREACTIVE_MAX))[0]
+        out[f"cost_{tag}_opt_unconstrained"], out[f"purge_{tag}_opt_unconstrained"] = _pick(cost, np.isfinite(cost))
+        su = G.purge_sweep(c, cap_conversion=False, STY_per_g_cat=row["STY"], x_co=rule, **kw)
+        out[f"cost_{tag}_opt_uncapped"] = _pick(np.asarray(su["cost_eur_t"], dtype=float),
+                                                np.isfinite(np.asarray(su["cost_eur_t"], dtype=float)))[0]
+        out[f"n_capped_{tag}"] = int(np.asarray(s["X_capped"]).sum())
+        out[f"X_eff_{tag}_opt"] = (float(np.asarray(s["X_eff"])[ok][np.argmin(cost[ok])]) if ok.any() else np.nan)
+        out[f"cost_{tag}_2pct"] = float(cost[I_2PCT]) if ok[I_2PCT] else np.nan
+        out[f"cost_{tag}_2pct_unconstrained"] = float(cost[I_2PCT])
+        out[f"n_eligible_{tag}"] = int(ok.sum())
+        ju = int(np.nanargmin(cost))
+        out[f"nonreactive_at_unconstrained_{tag}"] = float(s["nonreactive_fraction"][ju])
+        out[f"co2_hyd_approach_at_unconstrained_{tag}"] = float(s["co2_hyd_approach"][ju])
+        if tag == "recycled":
+            for name, f in (sty_scales or {}).items():
+                e = G.cost(dict(c, X=s["X_eff"]), purge=G.PURGES, x_co=s["x_co"], STY_per_g_cat=row["STY"] * f, **kw)
+                out[f"cost_recycled_opt_{name}"] = _pick(np.asarray(e["cost_eur_t"], dtype=float), ok)[0]
+    return out
+
+
+def plant_costs_star(args):
+    return plant_costs(*args)
+
+
+# ---------------------------------------------------------------- group metrics ----------------------------------
+def group_metrics(g, cost_col, up_col="STY"):
+    g = g.sort_values(up_col, ascending=False)
+    up_best = g[up_col].max()
+    up_winners = set(g.index[g[up_col] >= up_best - 1e-12])
+    econ_idx = g[cost_col].idxmin()
+    c_best = g[cost_col].min()
+    c_up = g.loc[list(up_winners), cost_col].min()
+    n = len(g)
+    pairs = list(combinations(g.index, 2))
+    def _d(x, y):        # difference with floating-point ties set to zero
+        return 0.0 if abs(x - y) <= 1e-9 * max(abs(x), abs(y)) else x - y
+    inv = sum(1 for a, b in pairs
+              if _d(g.at[a, up_col], g.at[b, up_col]) * _d(g.at[b, cost_col], g.at[a, cost_col]) < 0)
+    rho = (float(spearmanr(g[up_col], -g[cost_col]).statistic) if n >= 3 and g[up_col].nunique() > 1 else None)
+    up3 = set(g.nlargest(min(3, n), up_col).index)
+    ec3 = set(g.nsmallest(min(3, n), cost_col).index)
+    return dict(n=n, top1_mismatch=econ_idx not in up_winners,
+                regret=(c_up - c_best) / c_best,
+                upstream_winner=g.loc[sorted(up_winners)[0], "catalyst"], economic_winner=g.at[econ_idx, "catalyst"],
+                upstream_winner_cost=c_up, economic_winner_cost=c_best,
+                economic_rank_of_upstream_winner=int((g[cost_col] < c_up - 1e-9).sum()) + 1,
+                pairs=len(pairs), inversions=inv, spearman=rho,
+                top3_overlap=len(up3 & ec3) if n >= 4 else None)
+
+
+def aggregate(frame, cost_col, up_col="STY", label=""):
+    """Group metrics over the candidates with a finite cost in cost_col: an infeasible candidate (NaN cost) leaves
+    both leaderboards of its group; groups with fewer than two remaining entries are not scored."""
+    f = frame[np.isfinite(frame[cost_col].astype(float))]
+    out = []
+    for key, g in f.groupby("group"):
+        if len(g) < 2:
+            continue
+        m = group_metrics(g, cost_col, up_col)
+        m.update(group=key, doi=g.doi.iloc[0], basis=g.sty_basis.iloc[0])
+        out.append(m)
+    gm = pd.DataFrame(out)
+    if gm.empty:
+        return gm, {}
+    papers = gm.groupby("doi").top1_mismatch.any()
+    n_all = frame.groupby("group").size()
+    s = dict(variant=label, groups=len(gm), papers=int(gm.doi.nunique()), entries=int(gm.n.sum()),
+             candidates_infeasible=int((~np.isfinite(frame[cost_col].astype(float))).sum()),
+             groups_lost_to_infeasibility=int(((n_all >= 2) & ~n_all.index.isin(gm.group)).sum()),
+             top1_mismatch_groups=int(gm.top1_mismatch.sum()),
+             top1_mismatch_fraction=float(gm.top1_mismatch.mean()),
+             papers_with_mismatch=int(papers.sum()),
+             paper_weighted_mismatch_fraction=float(gm.groupby("doi").top1_mismatch.mean().mean()),
+             regret_median_all=float(gm.regret.median()),
+             regret_median_mismatched=float(gm.loc[gm.top1_mismatch, "regret"].median()) if gm.top1_mismatch.any() else 0.0,
+             regret_max=float(gm.regret.max()),
+             regret_mean_all=float(gm.regret.mean()),
+             pairwise_inversions=f"{int(gm.inversions.sum())}/{int(gm.pairs.sum())}",
+             pairwise_inversion_fraction=float(gm.inversions.sum() / gm.pairs.sum()),
+             groups_n_ge_4=int((gm.n >= 4).sum()),
+             top3_overlap_mean_n_ge_4=float(gm.loc[gm.n >= 4, "top3_overlap"].mean()) if (gm.n >= 4).any() else None)
+    return gm, s
+
+
+def bootstrap(gm, n=10_000, seed=20261006):
+    """Paper-cluster bootstrap of the fraction of groups with a different winner (resample papers with
+    replacement; every group of a drawn paper enters)."""
+    per = gm.groupby("doi").top1_mismatch.agg(["sum", "count"])
+    s, c = per["sum"].to_numpy(float), per["count"].to_numpy(float)
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(per), size=(n, len(per)))
+    frac = s[idx].sum(1) / c[idx].sum(1)
+    lo, hi = np.percentile(frac, [2.5, 97.5])
+    return dict(resamples=n, papers=len(per), fraction=float(s.sum() / c.sum()), ci95=[float(lo), float(hi)],
+                ci95_of_groups=[float(lo * len(gm)), float(hi * len(gm))], seed=seed)
