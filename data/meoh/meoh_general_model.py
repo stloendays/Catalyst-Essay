@@ -420,16 +420,41 @@ def purge_sweep(c, cap_conversion=True, **kw):
         return s
     purges, X0 = PURGES[bad], float(c["X"])
 
-    def f(X):
-        return np.log(cost(dict(c, X=X), purge=purges, **kw)["co2_hyd_approach"])
+    def f(X, idx):
+        return np.log(cost(dict(c, X=X[idx]), purge=purges[idx], **kw)["co2_hyd_approach"])
 
-    lo, hi = np.full(purges.shape, X0 * 1e-6), np.full(purges.shape, X0)   # f(lo) < 0 <= f(hi)
-    for _ in range(60):                       # bisection that keeps the feasible end, so the outlet stays <= K
-        mid = 0.5 * (lo + hi)
-        below = f(mid) <= 0.0
-        lo, hi = np.where(below, mid, lo), np.where(below, hi, mid)
-        if np.all(hi - lo <= 1e-12 * hi):
+    # bracketed false position with the Illinois correction, iterated only on the levels not yet converged; the
+    # feasible end lo is kept, so the outlet stays <= K
+    every = np.arange(len(purges))
+    hi = np.full(purges.shape, X0)
+    fhi = f(hi, every)                            # > 0: these levels are above equilibrium at the laboratory X
+    lo = np.full(purges.shape, 0.5 * X0)          # the cap usually sits close to X; widen the bracket where needed
+    flo = f(lo, every)
+    for _ in range(6):
+        wide = np.where(flo >= 0.0)[0]
+        if not len(wide):
             break
+        lo[wide] *= 0.1
+        flo[wide] = f(lo, wide)
+    flo_true = flo.copy()                         # f at lo itself (flo may be halved by the Illinois step)
+    side = np.zeros(purges.shape)
+    for _ in range(200):
+        act = np.where(~((hi - lo <= 1e-12 * hi) | (np.abs(flo_true) <= 1e-10)))[0]
+        if not len(act):
+            break
+        x = (lo[act] * fhi[act] - hi[act] * flo[act]) / (fhi[act] - flo[act])
+        ok = (x > lo[act]) & (x < hi[act]) & np.isfinite(x)
+        x = np.where(ok, x, 0.5 * (lo[act] + hi[act]))
+        X = lo.copy()
+        X[act] = x
+        fx = f(X, act)
+        b, a = act[fx <= 0.0], act[fx > 0.0]
+        fb, fa = fx[fx <= 0.0], fx[fx > 0.0]
+        lo[b], flo[b], flo_true[b] = X[b], fb, fb
+        hi[a], fhi[a] = X[a], fa
+        fhi[b[side[b] == 1]] *= 0.5               # Illinois: the end that stayed twice moves slower
+        flo[a[side[a] == -1]] *= 0.5
+        side[b], side[a] = 1, -1
     x_eq = lo
     capped = cost(dict(c, X=x_eq), purge=purges, **kw)
     for k, v in capped.items():
