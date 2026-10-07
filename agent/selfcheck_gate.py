@@ -128,8 +128,12 @@ def run(semiopen: bool = True) -> dict:
     res = {"timestamp": datetime.now().isoformat(timespec="seconds"),
            "systems": [nh3, check_meoh(), check_au(semiopen)]}
     res["pass"] = all(s["pass"] for s in res["systems"])
-    if not use_record:          # a run that did not recheck NH3 does not overwrite the record it relied on
-        REPORT.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
+    # a run that did not recheck NH3 does not overwrite the record it relied on; it writes its own report
+    out = REPORT.with_name("selfcheck_report_ci.json") if use_record else REPORT
+    out.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
+    for s in res["systems"]:
+        print(s["system"], "PASS" if s["pass"] else "FAIL",
+              {k: v for k, v in s.items() if k.startswith("max_abs_diff")}, flush=True)
     return res
 
 
