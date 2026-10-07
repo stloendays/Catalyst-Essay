@@ -52,8 +52,10 @@ def excluded_from_historical_proof(path: str) -> bool:
 
 
 def sh(*args: str, check: bool = False) -> subprocess.CompletedProcess[str]:
+    # history holds text-suffixed files that are not valid UTF-8 (e.g. a Windows-1252 export); decode them
+    # with replacement characters instead of aborting the probe
     return subprocess.run(
-        list(args), cwd=ROOT, text=True, stdout=subprocess.PIPE,
+        list(args), cwd=ROOT, text=True, encoding="utf-8", errors="replace", stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, check=check
     )
 

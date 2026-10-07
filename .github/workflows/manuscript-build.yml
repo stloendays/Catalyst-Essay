@@ -1,0 +1,90 @@
+name: Manuscript build
+
+# Builds the Springer Nature-style Word manuscript and the Supplementary Information from the live markdown
+# (tools/build_manuscript_docx.py, tools/build_si_docx.py), converts both to PDF with LibreOffice for a page count
+# and a render check, and uploads the four files as the run artifact "manuscript". Runs on every pull request and
+# push that touches the text, the figures or the builders, and on demand.
+
+on:
+  push:
+    paths:
+      - ".github/workflows/manuscript-build.yml"
+      - "docs/MANUSCRIPT_MAIN_TEXT.md"
+      - "docs/MAIN_FIGURE_CAPTIONS.md"
+      - "docs/SUPPLEMENTARY_INFORMATION.md"
+      - "docs/SI_TABLES.md"
+      - "figures/composite/**"
+      - "figures/extended_data/**"
+      - "tools/build_manuscript_docx.py"
+      - "tools/build_si_docx.py"
+  pull_request:
+    paths:
+      - "docs/MANUSCRIPT_MAIN_TEXT.md"
+      - "docs/MAIN_FIGURE_CAPTIONS.md"
+      - "docs/SUPPLEMENTARY_INFORMATION.md"
+      - "docs/SI_TABLES.md"
+      - "figures/composite/**"
+      - "figures/extended_data/**"
+      - "tools/build_manuscript_docx.py"
+      - "tools/build_si_docx.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manuscript-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          pip install python-docx
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libreoffice-writer fonts-liberation fonts-dejavu poppler-utils > /dev/null
+      - name: Build Word files
+        run: |
+          mkdir -p out
+          python tools/build_manuscript_docx.py out/Manuscript.docx
+          python tools/build_si_docx.py out/Supplementary_Information.docx
+      - name: Convert to PDF and count pages
+        run: |
+          cd out
+          soffice --headless --convert-to pdf Manuscript.docx > /dev/null
+          soffice --headless --convert-to pdf Supplementary_Information.docx > /dev/null
+          for f in Manuscript.pdf Supplementary_Information.pdf; do
+            echo "$f: $(pdfinfo "$f" | awk '/^Pages/ {print $2}') pages"
+          done | tee pages.txt
+          {
+            echo "### Manuscript build"
+            echo
+            echo '```'
+            cat pages.txt
+            echo '```'
+            echo
+            echo "LibreOffice renders differ slightly from Word/WPS in line breaks; the artifact is for reading and"
+            echo "checking, the page count is indicative."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Unresolved placeholders
+        run: |
+          if grep -n -o '{[A-Z][A-Z0-9_]*}' docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md; then
+            echo "::warning::unresolved {PLACEHOLDER} tokens in the text"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manuscript
+          path: |
+            out/*.docx
+            out/*.pdf
+            out/pages.txt
