@@ -1,0 +1,139 @@
+name: NH3 literature Ru parameters (canonical outputs, cloud run)
+
+# Regenerates the canonical actual-Ru ammonia outputs (Fig. 3d inputs and the actual-Ru Monte Carlo) with the
+# literature-checked Ru loading (8 wt%, 5-10 wt%), bed density (430-550 kg m-3) and recovery (0.90-0.97).
+# The scripts as they stood before the change (commit OLD_REF) are rerun first and must reproduce the committed outputs.
+
+on:
+  push:
+    branches: [nh3-literature-params-2026-10-07]
+    paths:
+      - "analysis/nh3_mc_ru_actual_2026_10_06/run_mc_ru_actual.py"
+      - "figures/composite/fig2/fig2_ru_actual_cost.py"
+      - ".github/workflows/nh3-literature-params.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nh3-literature-params-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 120
+    env:
+      NH3_HARNESS: /tmp/nh3_harness
+      PYTHONIOENCODING: utf-8
+      PARAMS: analysis/nh3_actual_ru_params_2026_10_07
+      MC: analysis/nh3_mc_ru_actual_2026_10_06
+      F2: figures/composite/fig2
+      OLD_REF: 107a75d
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scientific dependencies
+        run: pip install numpy scipy pandas openpyxl pyyaml
+
+      - name: Check the input workbook hash
+        run: |
+          echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+
+      - name: Build harness root and the needed response columns
+        run: python $PARAMS/build_harness_root.py "$NH3_HARNESS" --workers 4
+
+      - name: "Validate: self-check gate"
+        run: |
+          python agent/selfcheck_gate.py
+          git checkout -- agent/selfcheck_report.json
+
+      - name: "Validate: the pre-change scripts reproduce the committed outputs"
+        run: |
+          mkdir -p /tmp/new
+          cp $MC/run_mc_ru_actual.py $F2/fig2_ru_actual_cost.py /tmp/new/
+          git show $OLD_REF:$MC/run_mc_ru_actual.py > $MC/run_mc_ru_actual.py
+          git show $OLD_REF:$F2/fig2_ru_actual_cost.py > $F2/fig2_ru_actual_cost.py
+          python $MC/run_mc_ru_actual.py > /tmp/mc_baseline.log
+          python $F2/fig2_ru_actual_cost.py "$NH3_HARNESS" > /tmp/fig2_baseline.log
+          python $PARAMS/validate_baseline.py \
+            $MC/summary.json $MC/draws.csv \
+            $F2/fig2_ru_bed_sensitivity.csv $F2/fig2_ru_actual_cost_points.csv $F2/fig2_ru_alpha_sweep.csv \
+            | tee /tmp/validate_baseline.log
+          cp /tmp/new/run_mc_ru_actual.py $MC/
+          cp /tmp/new/fig2_ru_actual_cost.py $F2/
+          git checkout -- $MC/summary.json $MC/draws.csv $F2 agent/selfcheck_report.json
+          git status --short
+
+      - name: Regenerate with the literature parameters
+        run: |
+          python $MC/run_mc_ru_actual.py | tee /tmp/mc_literature.log
+          python $F2/fig2_ru_actual_cost.py "$NH3_HARNESS" | tee /tmp/fig2_literature.log
+          git checkout -- agent/selfcheck_report.json || true
+
+      - name: "Check: no NaN in the reported numbers"
+        run: |
+          python - <<'EOF'
+          import csv, json, math
+          def walk(x, p="$"):
+              if isinstance(x, dict):
+                  for k, v in x.items(): walk(v, f"{p}.{k}")
+              elif isinstance(x, list):
+                  for i, v in enumerate(x): walk(v, f"{p}[{i}]")
+              elif isinstance(x, float):
+                  assert math.isfinite(x), p
+          walk(json.load(open("analysis/nh3_mc_ru_actual_2026_10_06/summary.json")))
+          rows = list(csv.DictReader(open("analysis/nh3_mc_ru_actual_2026_10_06/draws.csv")))
+          assert len(rows) == 5000
+          for r in rows:
+              for k, v in r.items():
+                  if k != "measured_catalyst":
+                      assert math.isfinite(float(v)), (k, v)
+          for r in csv.DictReader(open("figures/composite/fig2/fig2_ru_bed_sensitivity.csv")):
+              for k, v in r.items():
+                  if k not in ("key", "Fe_reference"):
+                      assert math.isfinite(float(v)), (r["key"], k, v)
+          # nan / inf only where by construction: fe_kaap and the strict-scaling row carry no alpha*, KAAP rows at
+          # the benchmark bed cannot reach the Fe optimum (inf)
+          for r in csv.DictReader(open("figures/composite/fig2/fig2_ru_actual_cost_points.csv")):
+              for k in ("p_eff_USD_kg", "cost", "gap_to_Fe", "T_C", "P_bar", "Tsep_C", "V_m3_benchmark"):
+                  assert math.isfinite(float(r[k])), (r["key"], k)
+          for r in csv.DictReader(open("figures/composite/fig2/fig2_ru_alpha_sweep.csv")):
+              assert all(math.isfinite(float(v)) for v in r.values()), r
+          print("no NaN in the reported numbers")
+          EOF
+
+      - name: Record the run
+        run: |
+          mkdir -p $MC/ci_logs
+          cp /tmp/validate_baseline.log /tmp/mc_literature.log /tmp/fig2_literature.log $MC/ci_logs/
+          echo "run ${{ github.run_id }} commit ${{ github.sha }}" > $MC/ci_logs/RUN.txt
+          git status --short
+
+      - name: Commit results back to the branch
+        if: github.ref == 'refs/heads/nh3-literature-params-2026-10-07'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $MC $F2/fig2_ru_bed_sensitivity.csv $F2/fig2_ru_actual_cost_points.csv $F2/fig2_ru_alpha_sweep.csv
+          git commit -m "NH3 actual Ru: canonical outputs with the literature loading, bed density and recovery (run ${{ github.run_id }})" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" || exit 0
+          git pull --rebase origin nh3-literature-params-2026-10-07
+          git push origin HEAD:nh3-literature-params-2026-10-07
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-literature-params-${{ github.run_id }}
+          path: |
+            analysis/nh3_mc_ru_actual_2026_10_06/
+            figures/composite/fig2/*.csv
+            /tmp/*.log
+          retention-days: 90
