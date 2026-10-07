@@ -14,9 +14,11 @@ at an effective price
 
     p_eff = p_Ru * (1 - r) / u.
 
-The Fig. 2d price sweep is therefore read on p_eff. The supported bed itself is larger than the
-benchmark bed (Ru is 3.2 wt% of the catalyst, not 71.5 wt%); that only enters the reactor term
-and is reported here as a bed-formulation sensitivity.
+The Fig. 3d price sweep is therefore read on p_eff (benchmark-formulation reading: the bed keeps the
+benchmark formulation and the volume of the undivided metal mass). The supported bed itself is larger
+(Ru is 3.2 wt% of the catalyst, not 71.5 wt%); it enters the reactor term and is computed here for the
+actual Ru/C catalyst (fig2_ru_bed_sensitivity.csv: cost, Fe reference of the same loop, activity
+multiple for parity), and shown in Fig. 3d next to the benchmark reading.
 
 Literature values
   u    >= 11      Ru dispersion 11% (O2 chemisorption) for a Ba-Cs-K promoted Ru/C ammonia
@@ -93,12 +95,13 @@ def optimum(price, alpha=1.0, bed_factor=1.0, mask=None):
                 Tsep_C=float(h.state_Tsep[i]), V_m3=float(V[i]), metal_cost=float(metal_cost[i]))
 
 
-def alpha_star(price, mask=None):
-    """Ru intrinsic-activity multiplier at which the reoptimized Ru cost equals the Fe optimum
-    (inf when even an unlimited activity leaves the restricted process above Fe)."""
-    if optimum(price, 1e12, mask=mask)["cost"] > FE_COST:
+def alpha_star(price, mask=None, bed_factor=1.0, target=None):
+    """Ru intrinsic-activity multiplier at which the reoptimized Ru cost equals the Fe optimum (or `target`)
+    (inf when even an unlimited activity leaves the restricted process above it)."""
+    target = FE_COST if target is None else target
+    if optimum(price, 1e12, bed_factor=bed_factor, mask=mask)["cost"] > target:
         return math.inf
-    return 10.0 ** brentq(lambda la: optimum(price, 10.0 ** la, mask=mask)["cost"] - FE_COST,
+    return 10.0 ** brentq(lambda la: optimum(price, 10.0 ** la, bed_factor=bed_factor, mask=mask)["cost"] - target,
                           -6.0, 12.0, xtol=1e-11)
 
 
@@ -181,19 +184,28 @@ with open(HERE / "fig2_ru_actual_cost_points.csv", "w", newline="", encoding="ut
     w.writeheader()
     w.writerows(pts)
 
-# ---- bed-formulation sensitivity -----------------------------------------------------
-# supported bed: m_Ru / (w rho) instead of m_active / 1,787.75 kg m-3, i.e. bed_factor = 1,787.75 / (u w rho)
+# ---- the supported Ru/C bed ------------------------------------------------------------
+# The price reading above keeps the benchmark formulation (71.51 wt% metal at 2,500 kg m-3, bed of the undivided metal
+# mass). The real Ru/C catalyst carries its m_Ru / u of Ru at 3.2 wt% in a 500-1,000 kg m-3 bed, i.e. the benchmark
+# bed volume times bed_factor = 1,787.75 / (u w rho); this enters the reactor term. Each row also gives the Fe
+# reference of its loop (the Fe optimum, or Fe in the same KAAP loop), the gap and the Ru activity multiple needed for
+# parity with that reference on the supported-bed basis.
+fe_ref = {False: (FE_COST, "Fe optimum"), True: (float(t_fe[i_fe]), "Fe in the KAAP loop")}
 sens = []
 for key, label, u, r, mask in SCEN[1:]:
     pe = P_RU * (1.0 - r) / u
     base = optimum(pe, mask=mask)
+    ref, ref_label = fe_ref[mask is not None]
     for rho in RHO_SUPPORTED:
         k = BENCH_METAL_PER_M3 / (u * W_RU * rho)
         o = optimum(pe, bed_factor=k, mask=mask)
+        a_s = alpha_star(pe, mask=mask, bed_factor=k, target=ref)
         sens.append(dict(key=key, rho_bed_kg_m3=rho, bed_factor=k, cost=o["cost"], delta_vs_benchmark_bed=o["cost"] - base["cost"],
-                         T_C=o["T_C"], P_bar=o["P_bar"], Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
-        print("  bed x%.2f (rho %4.0f): %-11s cost %.4f (%+.4f)  %4.0f bar  V %.2f m3"
-              % (k, rho, key, o["cost"], o["cost"] - base["cost"], o["P_bar"], o["V_m3"]))
+                         T_C=o["T_C"], P_bar=o["P_bar"], Tsep_C=o["Tsep_C"], V_m3=o["V_m3"], Fe_reference=ref_label,
+                         Fe_reference_cost=ref, gap_to_Fe_reference=o["cost"] - ref, alpha_star_supported_bed=a_s))
+        print("  bed x%.2f (rho %4.0f): %-11s cost %.4f (%+.4f)  %4.0f bar  V %.2f m3  vs %s %.4f: %+.4f  alpha* %.3f"
+              % (k, rho, key, o["cost"], o["cost"] - base["cost"], o["P_bar"], o["V_m3"], ref_label, ref,
+                 o["cost"] - ref, a_s))
 with open(HERE / "fig2_ru_bed_sensitivity.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(sens[0]), lineterminator="\n")
     w.writeheader()
