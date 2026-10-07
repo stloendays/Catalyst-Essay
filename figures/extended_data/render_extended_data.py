@@ -319,7 +319,7 @@ def ed6():
     # a: Perez-Fortes terms
     ax = pg.ax(48, 74, 50, 44)
     short = ["H$_2$", "power + utilities", "catalyst replacement", "capital (8 %, 20 y)", "fixed O&M",
-             "residual + 10 % of NPC", "total, like-for-like", "total, anchor convention"]
+             "residual + 10 % of NPC", "break-even price, like-for-like", "total, anchor convention"]
     y = np.arange(len(a))[::-1]
     ax.barh(y + 0.19, a.model, 0.36, color=RU, ec=INK, lw=0.35, label="model")
     ax.barh(y - 0.19, a.reference, 0.36, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
@@ -381,11 +381,12 @@ def ed6():
     dx.axhline(base, color=RED, lw=0.5, ls="--")
     dx.set_xticks(xs)
     dx.set_xticklabels([str(k) for k in dd.key], fontsize=5.0)
-    dx.set_ylim(0, 40)
-    dx.set_ylabel("comparisons with a different winner (of 83)")
+    ngr = int(dd.groups.max())
+    dx.set_ylim(0, ngr)
+    dx.set_ylabel("comparisons with a different winner (of %d)" % ngr)
     dx.set_xlabel("plant-model variant (key in Source Data)")
-    dx.text(0.03, 0.97, "red: frozen model (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y" % base,
-            transform=dx.transAxes, fontsize=5.0, va="top")
+    dx.text(0.03, 0.97, "red: model as used (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y" % base,
+            transform=dx.transAxes, fontsize=5.0, va="top", bbox=dict(fc="white", ec="none", pad=1.0))
     for x, v in zip(xs, dd.mismatch_groups):
         dx.text(x, v + 0.5, str(v), ha="center", va="bottom", fontsize=5.0, rotation=90)
     boxed(dx)
@@ -586,7 +587,7 @@ def write_captions():
             "own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases %+.1f to "
             "%+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s). **d**, Number "
             "of the 83 comparisons whose STY leader is not the plant-cost leader under %d plant-model variants (keys in "
-            "Source Data): frozen model %d; catalyst replacement at 95.24 EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, "
+            "Source Data): model as used %d; catalyst replacement at 95.24 EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, "
             "%d and %d. Source: `%s`." % (
                 pf.model_eur_t, pf.reference_eur_t, pf.deviation_pct,
                 a.set_index("term").loc["residual direct + 10 % of NPC (anchor convention)", "model"], len(b),

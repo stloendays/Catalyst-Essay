@@ -11,13 +11,13 @@ First author, year and journal from `agent/extraction/fetch_manifest.json` and C
 | Gothe | 2025 | ACS Catal. | 10.1021/acscatal.5c05984 | Gothe (Table 4) | 21 | 21 | 21 | yes (1) | 21 |
 | Wu | 2017 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | TheMeCat | 22 | 26 | 22 | yes (1) | 21 |
 | Bansode | 2013 | Catal. Sci. Technol. | 10.1039/c2cy20604h | TheMeCat | 60 | 60 | 60 | yes (1) | 60 |
-| Samson | 2014 | ACS Catal. | 10.1021/cs500979c | TheMeCat | 20 | 19 | 18 | yes (2) | 19 |
+| Samson | 2014 | ACS Catal. | 10.1021/cs500979c | TheMeCat | 20 | 19 | 18 | yes (2) | 18 |
 | Chen | 2019 | ACS Catal. | 10.1021/acscatal.9b01869 | TheMeCat | 17 | 47 | 16 | yes (1) | 19 |
 | Yang | 2024 | ChemPhysChem | 10.1002/cphc.202300530 | TheMeCat | 24 | 24 | 24 | yes (1) | – |
 | Chen | 2019 | Energy Technol. | 10.1002/ente.201800747 | TheMeCat | 30 | 32 | 30 | yes (1) | 32 |
 | Wang | 2017 | Sci. Adv. | 10.1126/sciadv.1701290 | TheMeCat | 49 | 71 | 43 | yes (1) | 53 |
-| Chen | 2024 | Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | TheMeCat | 26 | 51 | 26 | yes (1) | 48 |
-| Bahruji | 2016 | J. Catal. | 10.1016/j.jcat.2016.03.017 | TheMeCat | 19 | 31 | 19 | yes (1) | 28 |
+| Chen | 2024 | Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | TheMeCat | 26 | 51 | 26 | yes (1) | 47 |
+| Bahruji | 2016 | J. Catal. | 10.1016/j.jcat.2016.03.017 | TheMeCat | 19 | 31 | 19 | yes (1) | 26 |
 | Hou | 2024 | J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | TheMeCat | 30 | 30 | 29 | yes (1) | 30 |
 | Rui | 2017 | Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | TheMeCat | 15 | 39 | 15 | yes (1) | 15 |
 | Wang | 2017 | RSC Adv. | 10.1039/c6ra28305e | TheMeCat | 4 | 12 | 4 | yes (1) | 4 |
@@ -28,7 +28,7 @@ First author, year and journal from `agent/extraction/fetch_manifest.json` and C
 | Jiang | 2020 | J. Catal. | 10.1016/j.jcat.2020.01.014 | TheMeCat | 2 | 10 | 2 | yes (1) | 2 |
 | Chou | 2019 | Appl. Catal. A | 10.1016/j.apcata.2019.117144 | TheMeCat | 20 | 20 | 20 | yes (1) | 20 |
 | Martin | 2016 | Angew. Chem. Int. Ed. | 10.1002/anie.201600943 | Suvarna | 6 | 44 | 6 | yes (1) | 2 |
-| Ruiz Esquius | 2020 | ChemCatChem | 10.1002/cctc.202000974 | Suvarna | 19 | 47 | 19 | yes (1) | 31 |
+| Ruiz Esquius | 2020 | ChemCatChem | 10.1002/cctc.202000974 | Suvarna | 19 | 47 | 19 | yes (1) | 29 |
 | Ma | 2019 | ChemistrySelect | 10.1002/slct.201803186 | Suvarna | 5 | 8 | 5 | yes (1) | – |
 | Huang | 2021 | ACS Appl. Energy Mater. | 10.1021/acsaem.1c01502 | Suvarna | 9 | 22 | 9 | yes (1) | 15 |
 | Sharma | 2021 | ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | Suvarna | 4 | 44 | 4 | yes (1) | 36 |
@@ -41,24 +41,24 @@ First author, year and journal from `agent/extraction/fetch_manifest.json` and C
 | Hengne | 2018 | ACS Omega | 10.1021/acsomega.8b00211 | Suvarna | 5 | 27 | 5 | yes (1) | – |
 | Karelovic | 2015 | Catal. Sci. Technol. | 10.1039/c4cy00848k | Suvarna | 20 | 42 | 20 | yes (1) | 12 |
 | Gao | 2015 | Catal. Sci. Technol. | 10.1039/c5cy00372e | Suvarna | 15 | 23 | 14 | yes (2) | 20 |
-| Wang | 2015 | RSC Adv. | 10.1039/c5ra04774a | Suvarna | 8 | 24 | 8 | yes (2) | 18 |
+| Wang | 2015 | RSC Adv. | 10.1039/c5ra04774a | Suvarna | 8 | 24 | 8 | yes (2) | 24 |
 | Sun | 2020 | Green Chem. | 10.1039/d0gc01597k | Suvarna | 8 | 32 | 8 | yes (1) | 10 |
-| Dang | 2020 | Sci. Adv. | 10.1126/sciadv.aaz2060 | Suvarna | 11 | 33 | 11 | yes (1) | 31 |
+| Dang | 2020 | Sci. Adv. | 10.1126/sciadv.aaz2060 | Suvarna | 11 | 33 | 11 | yes (1) | 30 |
 | Meng | 2021 | Sci. Adv. | 10.1126/sciadv.abi6012 | Suvarna | 23 | 55 | 22 | yes (1) | 54 |
-| Frei | 2019 | Nat. Commun. | 10.1038/s41467-019-11349-9 | Suvarna | 12 | 32 | 12 | yes (2) | 4 |
-| Frei | 2021 | Nat. Commun. | 10.1038/s41467-021-22224-x | Suvarna | 6 | 21 | 6 | yes (3) | 4 |
+| Frei | 2019 | Nat. Commun. | 10.1038/s41467-019-11349-9 | Suvarna | 12 | 34 | 11 | yes (2) | 6 |
+| Frei | 2021 | Nat. Commun. | 10.1038/s41467-021-22224-x | Suvarna | 6 | 21 | 6 | yes (3) | 11 |
 | Lam | 2018 | J. Am. Chem. Soc. | 10.1021/jacs.8b05595 | PDF review | – | 6 | – | yes (1) | – |
-| Meng | 2024 | Fuel | 10.1016/j.fuel.2024.131111 | TheMeCat | 41 | 44 | 38 | yes (1) | 42 |
+| Meng | 2024 | Fuel | 10.1016/j.fuel.2024.131111 | TheMeCat | 41 | 45 | 40 | yes (1) | 38 |
 | Guo | 2024 | Chem. Eng. J. | 10.1016/j.cej.2024.149370 | TheMeCat | 25 | 25 | 25 | yes (1) | 25 |
 | Ma | 2023 | Fuel | 10.1016/j.fuel.2023.128376 | TheMeCat | 15 | 35 | 15 | yes (1) | 35 |
-| Malik | 2020 | Catal. Today | 10.1016/j.cattod.2019.05.040 | TheMeCat | 14 | 18 | 13 | yes (1) | 18 |
+| Malik | 2020 | Catal. Today | 10.1016/j.cattod.2019.05.040 | TheMeCat | 14 | 18 | 13 | yes (1) | 17 |
 | Lin | 2021 | Catal. Today | 10.1016/j.cattod.2020.05.049 | TheMeCat | 10 | 12 | 10 | yes (1) | 12 |
 | Daifeng | 2022 | J. CO2 Util. | 10.1016/j.jcou.2022.102209 | TheMeCat | 10 | 61 | 10 | yes (1) | 35 |
 | Zhang | 2017 | J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | TheMeCat | 8 | 10 | 8 | yes (1) | 10 |
-| Malik | 2018 | Appl. Catal. A | 10.1016/j.apcata.2018.04.036 | TheMeCat | 6 | 30 | 6 | yes (1) | 19 |
+| Malik | 2018 | Appl. Catal. A | 10.1016/j.apcata.2018.04.036 | TheMeCat | 6 | 30 | 6 | yes (1) | 16 |
 | Song | 2020 | Appl. Catal. B | 10.1016/j.apcatb.2019.118367 | TheMeCat | 6 | 10 | 6 | yes (1) | 9 |
 | Wang | 2020 | Mol. Catal. | 10.1016/j.mcat.2020.111105 | TheMeCat | 6 | 36 | 6 | yes (1) | 36 |
-| **Total** |  |  | **50 papers** |  | **762** | **1,485** | **739** | **50** | **991** |
+| **Total** |  |  | **50 papers** |  | **762** | **1,488** | **740** | **50** | **991** |
 
 ### Supplementary Table 2 | The 30 primary ammonia-synthesis papers
 
@@ -67,25 +67,25 @@ First author and year from `agent/nh3_field/fetch_manifest.json`, journal from C
 | First author | Year | Journal | DOI | Humphreys 2021 | SI obtained | Catalyst entries | Primary entries | Metals (primary) | Comparison groups | Groups with a different winner |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Kitano | 2012 | Nat. Chem. | 10.1038/nchem.1476 | – | yes (1) | 31 | 19 | Ru | 3 | 1 |
-| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 12 | Ru | 1 | 0 |
+| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 11 | Ru | 1 | 0 |
 | Kitano | 2016 | Chem. Sci. | 10.1039/c6sc00767h | ref. 115 | yes (1) | 35 | 15 | Ru | 3 | 1 |
 | Inoue | 2016 | ACS Catal. | 10.1021/acscatal.6b01940 | ref. 116 | yes (1) | 38 | 16 | Ru | 4 | 2 |
 | Wu | 2017 | Adv. Mater. | 10.1002/adma.201700924 | ref. 119 | yes (1) | 27 | 13 | Ru | 1 | 0 |
-| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 58 | Co, Fe, Ru | 12 | 12 |
+| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 55 | Co, Fe, Ru | 12 | 12 |
 | Hattori | 2018 | ACS Catal. | 10.1021/acscatal.8b02839 | ref. 105 | yes (1) | 41 | 22 | Ru | 4 | 0 |
 | Kobayashi | 2017 | J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | ref. 104 | yes (1) | 23 | 2 | Ru | 1 | 0 |
-| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 35 | Co, Fe, Ru | 6 | 6 |
+| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 34 | Co, Fe, Ru | 6 | 6 |
 | Kitano | 2019 | J. Am. Chem. Soc. | 10.1021/jacs.9b10726 | ref. 82 | yes (1) | 56 | 21 | Co, Fe, Ru | 6 | 6 |
 | Sato | 2017 | Chem. Sci. | 10.1039/c6sc02382g | ref. 171 | yes (2) | 18 | 16 | Ru | 5 | 2 |
-| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 38 | Ru | 7 | 3 |
+| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 36 | Ru | 7 | 3 |
 | Lin | 2018 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | ref. 100 | yes (1) | 10 | 10 | Ru | 5 | 0 |
 | Wang | 2019 | Inorg. Chem. Front. | 10.1039/c8qi01244j | ref. 101 | yes (1) | 28 | 20 | Ru | 5 | 1 |
 | Lin | 2019 | ACS Catal. | 10.1021/acscatal.8b03554 | ref. 175 | yes (1) | 24 | 24 | Ru | 6 | 0 |
 | Lin | 2019 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.9b01610 | ref. 174 | yes (1) | 6 | 4 | Ru | 1 | 0 |
-| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 53 | Ru | 7 | 3 |
-| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 23 | Ru | 4 | 0 |
-| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 8 | Ru | 2 | 0 |
-| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 48 | Ru | 4 | 0 |
+| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 50 | Ru | 7 | 3 |
+| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 20 | Ru | 4 | 0 |
+| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 6 | Ru | 2 | 0 |
+| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 43 | Ru | 4 | 0 |
 | Inoue | 2019 | ACS Catal. | 10.1021/acscatal.8b03650 | ref. 197 | yes (1) | 57 | 24 | Co, Ru | 6 | 2 |
 | Gao | 2017 | ACS Catal. | 10.1021/acscatal.7b00284 | ref. 199 | yes (1) | 62 | 4 | Co | 1 | 0 |
 | Wang | 2020 | Nat. Commun. | 10.1038/s41467-020-14287-z | ref. 200 | yes (2) | 34 | 13 | Co | 4 | 0 |
@@ -94,11 +94,60 @@ First author and year from `agent/nh3_field/fetch_manifest.json`, journal from C
 | Hagen | 2002 | Chem. Commun. | 10.1039/b202781j | ref. 122 | no | 62 | 5 | Co | 1 | 0 |
 | Sato | 2021 | ACS Catal. | 10.1021/acscatal.1c02887 | – | yes (1) | 41 | 26 | Co, Fe | 8 | 4 |
 | Ye | 2020 | Nature | 10.1038/s41586-020-2464-9 | ref. 134 | no | 43 | 23 | Ni | 3 | 0 |
-| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 64 | Fe | 8 | 2 |
+| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 58 | Fe | 8 | 1 |
 | Fan | 2017 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | ref. 159 | yes (1) | 40 | 28 | Fe | 6 | 0 |
-| **Total** |  |  | **30 papers** |  |  | **1,176** | **649** |  | **124** | **45** |
+| **Total** |  |  | **30 papers** |  |  | **1,176** | **623** |  | **124** | **44** |
 
-### Supplementary Table 3a | Sources of the methanol plant benchmark
+### Supplementary Table 3 | Bimetallic surface layers of the ammonia screen
+
+From `analysis/nh3_alloy_extension_2026_10_05/summary.json`. 1,796 surfaces (5,696 N* sites) were fetched; 101 contain Tc, which has no market price, and are not costed; the 1,695 costed surfaces are 372 transition-metal, 540 with a group 3–5 element and 783 with an sp metal. Layers are cumulative. Feasible: inside the 90 m³ bed limit. Surfaces below Fe (15.29 USD/t NH₃) are listed in order of cost for the global bridge (slope 0.845, R² 0.973, RMS 0.22 eV over 14 pure metals) and with their cost (USD/t) for the element-anchored bridge. Pruned: candidates ruled out by the descriptor-only lower bound before the full 14,136-state optimization; false prunes: pruned candidates whose full optimization falls below Fe.
+
+| Layer | Costed | Feasible, global | Feasible, anchored | Below Fe, global bridge | Below Fe, element-anchored bridge | Pruned | False prunes |
+|---|---|---|---|---|---|---|---|
+| Frozen 15-metal prices only | 309 | 114 | 121 | 4: Fe3Mo, Cu3Mo, Fe3W, Ni3W | 5: Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 | 243 (78.6 %) | 0 |
+| Transition metals (no sp metal, no group 3–5 element) | 372 | 138 | 144 | 5: Cu3Cr, Fe3Mo, Cu3Mo, Fe3W, Ni3W | 6: Cu3Cr 14.36, Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 | 289 (77.7 %) | 0 |
+| + group 3–5 elements | 912 | 222 | 232 | 13: Fe3V, Cu3Cr, Fe3Ti, Fe3Mo, Cu3V, Fe3Nb, Cu3Nb, Fe3La, Cu3Mo, Fe3W, Cu3Ta, Fe3Zr, Ni3W | 16: Cu3Cr 14.36, Fe3Y 14.38, Fe3Zr 14.52, Fe3Ti 14.52, Cu3V 14.54, Fe3V 14.58, Fe3La 14.60, Cu3Mo 14.60, Fe3Nb 14.63, CuMo 14.70, MoNi 14.70, Cu3Nb 14.70, Cu3Ta 14.92, Fe3Ta 14.94, CoMo 15.07, CoW 15.16 | 772 (84.6 %) | 0 |
+| + sp metals (all priced surfaces) | 1,695 | 406 | 421 | 52: Al3Ti, Al, Al3Cu, Al3Zr, Al3Y, Al3La, AlCr, CrZn, Fe3V, Zn3V, Cu3Cr, Fe3Ti, Zn3Nb, Al3Cd, Fe3Mo, Cu3V, Al3Pb, Cd3V, Cr3Pb, SnTi, Fe3Nb, AlMo, Al3Ni, Cu3Nb, Cd3Mo, Al3Sn, SnZr, Fe3La, Al3Bi, LaSn, Cd3Nb, SnY, CdMo, Al3In, Cu3Mo, Zn3Mo, PbY, MoZn, BiV, Fe3W, Cu3Ta, HgY, Fe3Zr, Cd3Cr, BiZr, CrPb, Ni3W, NbSn, CrSn, Zn3Cr, BiTi, LaPb | 56: Al3Ti 13.85, Al 13.89, Al3Cu 13.92, Al3Zr 14.11, Al3Y 14.13, Al3La 14.13, AlCr 14.15, CrZn 14.22, Zn3V 14.33, Cu3Cr 14.36, Fe3Y 14.38, Zn3Nb 14.46, Al3Cd 14.46, Fe3Zr 14.52, Fe3Ti 14.52, Cu3V 14.54, Al3Pb 14.58, Fe3V 14.58, Fe3La 14.60, Cu3Mo 14.60, Cd3V 14.61, Cr3Pb 14.62, SnTi 14.63, Fe3Nb 14.63, Al3Ni 14.68, CuMo 14.70, MoNi 14.70, Cu3Nb 14.70, Al3Sn 14.71, SnZr 14.74, Al3Bi 14.75, Cd3Mo 14.76, LaSn 14.76, Cd3Nb 14.77, SnY 14.78, Al3In 14.79, Mo3Sn 14.86, PbY 14.86, BiV 14.89, Zn3W 14.91, Cu3Ta 14.92, Mo3Pb 14.93, Fe3Ta 14.94, HgY 14.96, Cd3Cr 15.03, BiZr 15.04, CrPb 15.04, CoMo 15.07, NbSn 15.08, AlW 15.10, CrSn 15.12, Zn3Cr 15.15, CoW 15.16, WZn 15.19, BiTi 15.24, LaPb 15.25 | 1,397 (82.4 %) | 0 |
+
+### Supplementary Table 4a | Leave-one-out validation of the Fe terrace-to-step bridge
+
+Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and the step value predicted with that metal left out, from `analysis/fe_bridge_backward_2026_09_29/fe_bridge_loo.csv`; the Fe terrace value is the Dataset S1 entry used by `analysis/nh3_alloy_extension_2026_10_05/run_alloy_chain.py`. Statistics in Supplementary Table 4b are recomputed from these rows.
+
+| Metal | Terrace *E*_{N} (eV) | Step *E*_{N}, observed (eV) | Step *E*_{N}, leave-one-out (eV) | Observed − predicted (eV) |
+|---|---|---|---|---|
+| Ag | 2.9765 | 2.9110 | 3.5096 | −0.5986 |
+| Au | 2.3914 | 3.0029 | 2.4283 | 0.5746 |
+| Co | −0.0986 | −0.2701 | −0.2850 | 0.0149 |
+| Cu | 1.0619 | 1.2491 | 1.0324 | 0.2167 |
+| Ir | −0.0913 | −0.4407 | −0.2625 | −0.1782 |
+| Mo | −1.5343 | −1.8417 | −1.9632 | 0.1215 |
+| Ni | 0.0996 | −0.0928 | −0.0521 | −0.0407 |
+| Os | −0.7404 | −1.1095 | −1.0158 | −0.0937 |
+| Pd | 0.8054 | 0.5637 | 0.7799 | −0.2162 |
+| Pt | 0.3340 | 0.5895 | 0.1858 | 0.4037 |
+| Re | −1.4205 | −1.8252 | −1.8075 | −0.0177 |
+| Rh | −0.0431 | −0.4580 | −0.2013 | −0.2567 |
+| Ru | −0.7938 | −1.1333 | −1.0814 | −0.0519 |
+| W | −1.7650 | −2.1610 | −2.2206 | 0.0596 |
+| Fe | −1.0583 | not in S1 | −1.3921 (full fit) | – |
+
+### Supplementary Table 4b | Statistics of the Fe terrace-to-step bridge
+
+Ordinary least squares on Supplementary Table 4a. The global 14-metal fit is the relation used for Fe in the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo analysis. The strong-binding branch (terrace *E*_{N} ≤ −0.5 eV: Mo, Os, Re, Ru, W) is a sensitivity check and is not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.
+
+| Statistic | Global fit (14 metals) | Strong-binding branch |
+|---|---|---|
+| Metals in the fit | 14 | 5 |
+| Slope | 1.1547 | 1.0189 |
+| Intercept (eV) | −0.1701 | −0.3397 |
+| R² | 0.9818 | 0.9930 |
+| Residual standard error (eV) | 0.2271 | 0.0455 |
+| Leave-one-out MAE (eV) | 0.2032 | 0.0486 |
+| Leave-one-out RMSE (eV) | 0.2771 | 0.0529 |
+| Fe step *E*_{N}, predicted (eV) | −1.3921 | −1.4180 |
+| 95 % prediction interval for Fe (eV) | −1.917 to −0.868 | −1.579 to −1.257 |
+
+### Supplementary Table 5a | Sources of the methanol plant benchmark
 
 One row per source of `analysis/meoh_plant_benchmark_2026_10_06/reference_values.csv`, which gives every value with its locator (page, table or figure) and the conversion applied. Printed: value printed in the source; derived: arithmetic on printed values; secondary: pilot-plant values tabulated by Dieterich 2020; figure: read off a figure.
 
@@ -131,31 +180,31 @@ One row per source of `analysis/meoh_plant_benchmark_2026_10_06/reference_values
 | ZHANG19 | Zhang et al., Energies 12, 3742 (2019) [SOE inside] | 10.3390/en12193742 | 5 | 2 | 3 | 0 | 0 |
 | **Total** |  |  | **249** | **175** | **60** | **13** | **1** |
 
-### Supplementary Table 3b | Plant metrics of the model loop at each reference operating point
+### Supplementary Table 5b | Plant metrics of the model loop at each reference operating point
 
-Model values from `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv` (recycled CO, central RWGS rule). Columns: M1, anchor one-step (calibration point); M2, anchor three-step inputs (out-of-sample design); M3, canonical economic optimum, 5 wt% Re 200 C, 2 % purge; M4, canonical optimum at own purge, 1 wt% Re 200 C, 0.5 % purge; M5, at Lurgi CO2-pilot conditions (80 bar, X 0.40, CE 95.25 %); M6, at Gonzalez-Garay conditions (50 bar, X 0.141, CE 91.5 %); M7, at Perez-Fortes 2016 point (76 bar, X 0.2197, 1 % purge, 44.5 t); M8, at Van-Dal 2013 point (75.7 bar, X 0.33, 1 % purge, 44.5 t); M9, at Szima 2018 point (80 bar, X 0.30, 1 % purge); M10, at Nyari 2022 Slotboom point (fitted to RR 2.89, CE 0.937); M11, at Nyari 2022 VD point (fitted to RR 7.67, CE 0.896); M12, at Nieminen 2019 gas-phase point (50 bar, X 0.203, S 0.961). Catalyst lifetime (y): 3 (in constant residual; no inventory term) in every case. Reference values for each metric are in Supplementary Table 3c.
+Model values from `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv` (recycled CO, central RWGS rule). Columns: M1, anchor one-step (calibration point); M2, anchor three-step inputs (out-of-sample design); M3, canonical economic optimum, 5 wt% Re 200 C, 2 % purge; M4, canonical optimum at own purge, 1 wt% Re 200 C, 0.5 % purge; M5, at Lurgi CO2-pilot conditions (80 bar, X 0.40, CE 95.25 %); M6, at Gonzalez-Garay conditions (50 bar, X 0.141, CE 91.5 %); M7, at Perez-Fortes 2016 point (76 bar, X 0.2197, 1 % purge, 44.5 t); M8, at Van-Dal 2013 point (75.7 bar, X 0.33, 1 % purge, 44.5 t); M9, at Szima 2018 point (80 bar, X 0.30, 1 % purge); M10, at Nyari 2022 Slotboom point (fitted to RR 2.89, CE 0.937); M11, at Nyari 2022 VD point (fitted to RR 7.67, CE 0.896); M12, at Nieminen 2019 gas-phase point (50 bar, X 0.203, S 0.961). Catalyst lifetime (y): 3 (in constant residual; no inventory term) in every case. Reference values for each metric are in Supplementary Table 5c.
 
 | Metric | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Loop pressure (bar) | 70 | 70 | 100 | 100 | 80 | 50 | 76 | 75.7 | 80 | 69.7 | 69.7 | 50 |
 | Reactor / coolant T (C) | 247.5 | 258.5 | 200 | 200 | 250 | 224.5 | 288 | 284 | 220 | 236 | 236 | 274.4 |
 | Reactor-inlet H2/CO2 (mol/mol) | 3 | 3 | 4 | 4 | 3 | 3 | 3.8 | 3 | 3 | 3 | 3 | 3 |
-| Fresh-feed H2/CO2 (mol/mol) | 2.992 | 2.999 | 3.087 | 3.006 | 2.995 | 2.982 | 3.014 | 2.995 | 2.998 | 2.991 | 2.991 | 2.985 |
+| Fresh-feed H2/CO2 (mol/mol) | 2.992 | 2.996 | 3.087 | 3.006 | 2.991 | 2.982 | 3.014 | 2.992 | 2.998 | 2.991 | 2.991 | 2.975 |
 | Per-pass CO2 conversion | 0.285 | 0.539 | 0.33 | 0.19 | 0.4 | 0.141 | 0.2197 | 0.33 | 0.3005 | 0.2751 | 0.1179 | 0.203 |
-| Recycle ratio (recycle / fresh feed, mol) | 2.841 | 1.118 | 3.401 | 7.328 | 1.678 | 6.628 | 5.38 | 2.649 | 2.919 | 2.89 | 7.67 | 4.754 |
-| Purge fraction of separator gas | 0.02 | 0.02 | 0.02 | 0.005 | 0.0313 | 0.0135 | 0.01 | 0.01 | 0.01 | 0.0237 | 0.0148 | 0.01 |
-| Purge flow (kmol/h, at the case's scale) | 1,105 | 420.2 | 1,377 | 688.7 | 1,031 | 1,780 | 392.8 | 202.4 | 47.1 | 69.9 | 115 | 14.2 |
-| H2 consumption (t/t MeOH) | 0.1985 | 0.192 | 0.2083 | 0.1951 | 0.1978 | 0.205 | 0.1986 | 0.1928 | 0.1932 | 0.2009 | 0.2101 | 0.1967 |
-| CO2 consumption (t/t MeOH) | 1.449 | 1.398 | 1.474 | 1.417 | 1.442 | 1.501 | 1.438 | 1.405 | 1.407 | 1.466 | 1.534 | 1.439 |
-| Carbon efficiency (MeOH C / fresh CO2) | 0.948 | 0.9825 | 0.9321 | 0.9693 | 0.9525 | 0.915 | 0.9549 | 0.9775 | 0.9761 | 0.9367 | 0.8956 | 0.9544 |
-| Electricity, compression (MWh/t) | 0.1992 | 0.1883 | 0.2459 | 0.2402 | 0.21 | 0.1832 | 0.2127 | 0.2009 | 0.2076 | 0.2012 | 0.2229 | 0.1693 |
-| Catalyst inventory (t, at the case's scale) | 2,869 | 1,434 | 161.1 | 263.6 | 118.3 | 2,869 | 44.5 | 44.5 | 73.9 | 7.11 | 7.11 | 3.49 |
-| GHSV (1/h, bed density 1.05 t/m3) | 616.5 | 671.1 | 13,052 | 14,076 | 10,500 | 1,249 | 24,782 | 15,010 | 2,047 | 13,161 | 28,917 | 11,707 |
-| STY (kg MeOH / L cat / h) | 0.0531 | 0.1061 | 0.945 | 0.5775 | 1.287 | 0.0531 | 1.3 | 1.399 | 0.1776 | 1.106 | 1.057 | 0.6845 |
+| Recycle ratio (recycle / fresh feed, mol) | 2.841 | 1.137 | 3.401 | 7.328 | 1.715 | 6.628 | 5.38 | 2.688 | 2.919 | 2.89 | 7.67 | 4.895 |
+| Purge fraction of separator gas | 0.02 | 0.02 | 0.02 | 0.005 | 0.0297 | 0.0135 | 0.01 | 0.01 | 0.01 | 0.0237 | 0.0148 | 0.01 |
+| Purge flow (kmol/h, at the case's scale) | 1,105 | 427.6 | 1,377 | 688.7 | 997 | 1,780 | 392.8 | 205.5 | 47.1 | 69.9 | 115 | 14.7 |
+| H2 consumption (t/t MeOH) | 0.1985 | 0.1921 | 0.2083 | 0.1951 | 0.1975 | 0.205 | 0.1986 | 0.1928 | 0.1932 | 0.2009 | 0.2101 | 0.1971 |
+| CO2 consumption (t/t MeOH) | 1.449 | 1.4 | 1.474 | 1.417 | 1.442 | 1.501 | 1.438 | 1.407 | 1.407 | 1.466 | 1.534 | 1.446 |
+| Carbon efficiency (MeOH C / fresh CO2) | 0.948 | 0.9812 | 0.9321 | 0.9693 | 0.9525 | 0.915 | 0.9549 | 0.9762 | 0.9761 | 0.9367 | 0.8956 | 0.9497 |
+| Electricity, compression (MWh/t) | 0.1992 | 0.1885 | 0.2459 | 0.2402 | 0.21 | 0.1832 | 0.2127 | 0.2012 | 0.2076 | 0.2012 | 0.2229 | 0.1704 |
+| Catalyst inventory (t, at the case's scale) | 2,869 | 1,434 | 161.1 | 263.6 | 119.8 | 2,869 | 44.5 | 44.5 | 73.9 | 7.11 | 7.11 | 3.49 |
+| GHSV (1/h, bed density 1.05 t/m3) | 616.5 | 677.3 | 13,052 | 14,076 | 10,500 | 1,249 | 24,782 | 15,174 | 2,047 | 13,161 | 28,917 | 12,022 |
+| STY (kg MeOH / L cat / h) | 0.0531 | 0.1061 | 0.945 | 0.5775 | 1.271 | 0.0531 | 1.3 | 1.399 | 0.1776 | 1.106 | 1.057 | 0.6845 |
 | Loop pressure drop (bar) | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 |
-| Net production cost (EUR/t, anchor prices and scale conventions) | 923.6 | 881.2 | 943.3 | 895.2 | 894.8 | 948.8 | 928.1 | 895.1 | 1,005 | 1,061 | 1,128 | 1,229 |
+| Net production cost (EUR/t, anchor prices and scale conventions) | 923.6 | 881.8 | 943.3 | 895.2 | 893.8 | 948.8 | 928.1 | 895.6 | 1,005 | 1,061 | 1,128 | 1,232 |
 
-### Supplementary Table 3c | Reference values for the plant metrics of Supplementary Table 3b
+### Supplementary Table 5c | Reference values for the plant metrics of Supplementary Table 5b
 
 From the `references` column of `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv`; each value is traced to its source locator in `analysis/meoh_plant_benchmark_2026_10_06/reference_values.csv`. An asterisk marks a pilot-plant value tabulated by Dieterich 2020.
 
@@ -180,9 +229,9 @@ From the `references` column of `analysis/meoh_plant_benchmark_2026_10_06/reconc
 | Loop pressure drop (bar) | Perez-Fortes 4.2; Van-Dal 4.6; Zhang 4; Schorn 1; Lurgi SRC loop 3.5-4, Toyo loop 3 (Dieterich) |
 | Net production cost (EUR/t, anchor prices and scale conventions) | Campos 920 (Table 7: 1071.8 M EUR/a = 924.0); 3-step 868 (871.2) |
 
-### Supplementary Table 3d | Cost at each study's own prices, scale and finance
+### Supplementary Table 5d | Cost at each study's own prices, scale and finance
 
-From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t methanol unless stated). Like-for-like: feed, compression electricity, catalyst replacement and capital annuity at the study's own rate, plus the study's own fixed O&M. Anchor convention: the model's full net production cost. Like-for-like totals: Pérez-Fortes 2016 706.1 €/t, Szima 2018 852.7 €/t (`analysis/meoh_plant_benchmark_2026_10_06/summary.json`).
+From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t methanol unless stated). Like-for-like: feed, compression electricity, catalyst replacement and capital annuity at the study's own rate, plus the study's own fixed O&M; for Pérez-Fortes 2016 the reference is its NPV = 0 break-even methanol price (production cost plus capital recovery), not a production cost. Anchor convention: the model's full net production cost. Like-for-like totals: Pérez-Fortes 2016 706.1 €/t, Szima 2018 852.7 €/t (`analysis/meoh_plant_benchmark_2026_10_06/summary.json`).
 
 | Case | Term | Model | Reference | Deviation | Reference basis | Attribution |
 |---|---|---|---|---|---|---|
@@ -195,18 +244,18 @@ From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t m
 |  | indirect OPEX | 123.6 | 123.6 | −0.1 % | Table 7 (SI Table S19: 142.08) | same formula (Eq. 24) |
 |  | TOTAL | 923.6 | 924 | −0.0 % | Table 7 (text 920) | calibration identity |
 | B1 Campos 2022 one-step (calibration point; SI Table S19), with catalyst term (18.1 EUR/kg, 3 y) | catalyst replacement | 14.92 | 14.92 | −0.0 % | SI Table S19 | same 2869 t, 18.1 EUR/kg, 3 y |
-| B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19) | H2 | 594.7 | 640.1 | −7.1 % | SI: 742.51 | x 1.0698 for N2 = 636.3 |
-|  | CO2 | 61.93 | 62.33 | −0.6 % | SI: 72.30 | – |
+| B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19) | H2 | 595 | 640.1 | −7.0 % | SI: 742.51 | x 1.0698 for N2 = 636.6 |
+|  | CO2 | 62.01 | 62.33 | −0.5 % | SI: 72.30 | – |
 |  | catalyst replacement (with catalyst term) | 7.461 | 7.457 | 0.0 % | SI: 8.65 | – |
-|  | electricity | 16.94 | 13.55 | 25.0 % | SI: 15.72 (net) | – |
-|  | EC (M EUR) | 68.75 | 66.1 | 4.0 % | Table 7 | model topology has no intermediate condensers / flash drums |
-|  | ACC | 37.03 | 35.6 | 4.0 % | Table 7 | – |
-|  | TOTAL | 881.3 | 871.2 | 1.2 % | Table 7 (text 868) | – |
-|  | TOTAL with catalyst term | 873 | 871.2 | 0.2 % | Table 7 | – |
-|  | saving vs one-step | 42.39 | 52.76 | −19.6 % | Table 7 | catalyst halved: 7.5 EUR/t in the reference, constant in the canonical model |
-|  | saving vs one-step, with catalyst term | 50.68 | 52.76 | −3.9 % | Table 7 | – |
-|  | recycle (kmol/h) | 20,590 | 22,580 | −8.8 % | Table 6 | – |
-|  | purge (kmol/h) | 420.2 | 456 | −7.9 % | SI Table S11 | – |
+|  | electricity | 16.97 | 13.55 | 25.2 % | SI: 15.72 (net) | – |
+|  | EC (M EUR) | 68.84 | 66.1 | 4.1 % | Table 7 | model topology has no intermediate condensers / flash drums |
+|  | ACC | 37.08 | 35.6 | 4.1 % | Table 7 | – |
+|  | TOTAL | 881.8 | 871.2 | 1.2 % | Table 7 (text 868) | – |
+|  | TOTAL with catalyst term | 873.5 | 871.2 | 0.3 % | Table 7 | – |
+|  | saving vs one-step | 41.87 | 52.76 | −20.6 % | Table 7 | catalyst halved: 7.5 EUR/t in the reference, constant in the canonical model |
+|  | saving vs one-step, with catalyst term | 50.16 | 52.76 | −4.9 % | Table 7 | – |
+|  | recycle (kmol/h) | 20,950 | 22,580 | −7.2 % | Table 6 | – |
+|  | purge (kmol/h) | 427.6 | 456 | −6.2 % | SI Table S11 | – |
 | B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y) | H2 | 613.6 | 615.7 | −0.3 % | raw materials 95.9 % of VCP 283 M EUR/a | H2 use: model 0.1986 vs 0.199 t/t |
 |  | electricity + utilities | 20.23 | 16.69 | 21.2 % | utilities 2.6 % of VCP (net power) | model: compressors only, no turbine credit |
 |  | catalyst replacement | 9.615 | 9.63 | −0.2 % | consumables 1.5 % of VCP | 44.5 t x 95.24 EUR/kg / 1 y in both |
@@ -227,102 +276,53 @@ From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t m
 |  | Slotboom: like-for-like (feed + power + capital + reference fixed ~26) | 793.8 | 801 | −0.9 % | LCoM, Fig. 6 | fitted X 0.275, purge 0.0237; H2 0.2009 t/t |
 |  | VD minus Slotboom (kinetic-model spread) | 46.02 | 84 | −45.2 % | Fig. 6 | same plant and prices; only the catalyst kinetics differ |
 |  | Kiss minus Slotboom | 9.592 | 22 | −56.4 % | Fig. 6 | – |
-| B6 Nieminen 2019 gas-phase case at its own point and assumptions | H2 | 590.2 | 703 | −16.0 % | 0.234 t/t x 3000 (derived) | model H2 0.1967 t/t: the reference loses 89 kg/h H2 and 560 kg/h CO2 in flash gases (carbon efficiency 0.805 vs model 0.954) |
-|  | CO2 | 71.96 | 85 | −15.3 % | 1.706 x 50 (derived) | – |
-|  | TOTAL, like-for-like (+ reference fixed 150, CW 43, steam credit -50) | 921.6 | 1,028 | −10.3 % | production cost without the O2 credit (p18) | – |
-| B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh) | H2 1 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 298.9 | 254 | 17.7 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
-|  | H2 3 EUR/kg, CO2 40 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 735.3 | 691 | 6.4 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
-|  | H2 4.5 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 965.6 | 921 | 4.8 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+| B6 Nieminen 2019 gas-phase case at its own point and assumptions | H2 | 591.3 | 703 | −15.9 % | 0.234 t/t x 3000 (derived) | model H2 0.1971 t/t: the reference loses 89 kg/h H2 and 560 kg/h CO2 in flash gases (carbon efficiency 0.805 vs model 0.950) |
+|  | CO2 | 72.32 | 85 | −14.9 % | 1.706 x 50 (derived) | – |
+|  | TOTAL, like-for-like (+ reference fixed 150, CW 43, steam credit -50) | 923.8 | 1,028 | −10.1 % | production cost without the O2 credit (p18) | – |
+| B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh) | H2 1 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 299 | 254 | 17.7 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+|  | H2 3 EUR/kg, CO2 40 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 735.6 | 691 | 6.5 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+|  | H2 4.5 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 965.9 | 921 | 4.9 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
 
-### Supplementary Table 3e | Specific fixed capital of the model against published plants
+### Supplementary Table 5e | Specific fixed capital of the model against published plants
 
 From `capex_scale` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`; the model is run at each study's own capacity and cost year.
 
 | Reference | Capacity (t/a) | Model FCI (M€) | Model FCI (€ per t/a) | Reference (€ per t/a) | Reference basis | Model / reference |
 |---|---|---|---|---|---|---|
 | Campos 2022 one-step (anchor; FCI) | 1,160,000 | 415.4 | 358 | 359 | EUR2020 | 1.00 |
-| Campos 2022 three-step (FCI) | 1,160,000 | 334.1 | 288 | 277 | EUR2020 | 1.04 |
+| Campos 2022 three-step (FCI) | 1,160,000 | 334.5 | 288 | 277 | EUR2020 | 1.04 |
 | Perez-Fortes 2016 (TFCC 200 M EUR) | 440,800 | 151.8 | 344 | 454 | EUR2014 | 0.76 |
 | Szima 2018 (TFCC 55.55 M EUR, electrolyser excluded) | 100,000 | 65.0 | 650 | 556 | EUR2017 | 1.17 |
-| Schorn 2021 (FCI 60 M EUR, synthesis) | 434,000 | 213.9 | 493 | 138 | EUR (year n.s.) | 3.56 |
-| Nieminen 2019 gas phase (TCI 10.5-17.9 M EUR) | 16,494 | 19.5 | 1,180 | 1,085 | EUR2018 (17.9 M EUR caption value) | 1.09 |
+| Schorn 2021 (FCI 60 M EUR, synthesis) | 434,000 | 214.1 | 493 | 138 | EUR (year n.s.) | 3.57 |
+| Nieminen 2019 gas phase (TCI 10.5-17.9 M EUR) | 16,494 | 19.6 | 1,188 | 1,085 | EUR2018 (17.9 M EUR caption value) | 1.09 |
 | CRI Shunli 2022 (design + equipment, USD 90 M) | 110,000 | 94.3 | 857 | 777 | EUR2022 (USD/1.053) | 1.10 |
 | Bos 2020 methanol section (condensing reactor) | 65,000 | 67.8 | 1,043 | 169 | EUR | 6.17 |
 | Hank 2018 (input assumption) | 4,188 | 12.2 | 2,908 | 810 | EUR2018 | 3.59 |
 
-### Supplementary Table 3f | Headline comparison rerun with primary-source plant terms
+### Supplementary Table 5f | Headline comparison rerun with primary-source plant terms
 
-From `sensitivity` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`: groups whose STY leader is not the plant-cost leader, papers affected, pairwise orderings inverted, median regret of the mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner changes. The baseline reproduces the frozen headline (33/83, 1019/8458 inversions; maximum relative cost difference 4.90e−06).
+From `sensitivity` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`: groups whose STY leader is not the plant-cost leader, papers affected, pairwise orderings inverted, median regret of the mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner changes. The baseline reproduces the frozen headline (54/82, 2989/8285 inversions; maximum relative cost difference 4.92e−12).
 
 | Plant terms changed | Different winner | Papers | Inversions | Median regret | Flags changed | Winners changed |
 |---|---|---|---|---|---|---|
-| frozen model | 33/83 | 19 | 1019/8458 | 2.0 % | 0 | 0 |
-| catalyst 18.1 €/kg replaced every 3 y | 32/83 | 18 | 920/8458 | 1.9 % | 1 | 6 |
-| catalyst 18.1 €/kg replaced every 5 y | 32/83 | 18 | 950/8458 | 2.0 % | 1 | 6 |
-| loop ΔP 3.75 bar | 33/83 | 19 | 1022/8458 | 2.3 % | 0 | 1 |
-| H₂ 1,549 €/t | 32/83 | 19 | 949/8458 | 2.0 % | 1 | 4 |
-| H₂ 3,090 €/t; CO₂ 0 €/t; electricity 95.1 €/MWh | 33/83 | 19 | 1006/8458 | 2.0 % | 0 | 0 |
-| recycle-driven costs ×2.68 | 33/83 | 19 | 1020/8458 | 2.5 % | 0 | 2 |
-| catalyst 95.24 €/kg replaced every 1 y | 18/83 | 14 | 513/8458 | 1.0 % | 15 | 20 |
-| catalyst 95.24 €/kg replaced every 4 y | 27/83 | 17 | 782/8458 | 1.1 % | 6 | 13 |
-| catalyst 95.24 €/kg replaced every 6 y | 30/83 | 18 | 837/8458 | 1.3 % | 3 | 9 |
-| loop ΔP 4.2 bar | 33/83 | 19 | 1021/8458 | 2.3 % | 0 | 1 |
-| equipment split from Campos 2022 SI (11 items) | 33/83 | 19 | 1019/8458 | 2.0 % | 0 | 0 |
-| loop ΔP 4.2 bar; recycle-driven costs ×10 | 34/83 | 20 | 1056/8458 | 5.1 % | 1 | 7 |
-| catalyst 95.24 €/kg replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 25/83 | 18 | 743/8458 | 2.6 % | 8 | 13 |
-| catalyst 95.24 €/kg replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 33/83 | 19 | 905/8458 | 3.5 % | 0 | 7 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar | 33/83 | 19 | 928/8458 | 2.2 % | 0 | 5 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 33/83 | 19 | 951/8458 | 2.8 % | 0 | 4 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 €/t | 32/83 | 19 | 874/8458 | 1.5 % | 1 | 6 |
-
-### Supplementary Table 4 | Bimetallic surface layers of the ammonia screen
-
-From `analysis/nh3_alloy_extension_2026_10_05/summary.json`. 1,796 surfaces (5,696 N* sites) were fetched; 101 contain Tc, which has no market price, and are not costed; the 1,695 costed surfaces are 372 transition-metal, 540 with a group 3–5 element and 783 with an sp metal. Layers are cumulative. Feasible: inside the 90 m³ bed limit. Surfaces below Fe (15.29 USD/t NH₃) are listed in order of cost for the global bridge (slope 0.845, R² 0.973, RMS 0.22 eV over 14 pure metals) and with their cost (USD/t) for the element-anchored bridge. Pruned: candidates ruled out by the descriptor-only lower bound before the full 14,136-state optimization; false prunes: pruned candidates whose full optimization falls below Fe.
-
-| Layer | Costed | Feasible, global | Feasible, anchored | Below Fe, global bridge | Below Fe, element-anchored bridge | Pruned | False prunes |
-|---|---|---|---|---|---|---|---|
-| Frozen 15-metal prices only | 309 | 114 | 121 | 4: Fe3Mo, Cu3Mo, Fe3W, Ni3W | 5: Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 | 243 (78.6 %) | 0 |
-| Transition metals (no sp metal, no group 3–5 element) | 372 | 138 | 144 | 5: Cu3Cr, Fe3Mo, Cu3Mo, Fe3W, Ni3W | 6: Cu3Cr 14.36, Cu3Mo 14.60, CuMo 14.70, MoNi 14.70, CoMo 15.07, CoW 15.16 | 289 (77.7 %) | 0 |
-| + group 3–5 elements | 912 | 222 | 232 | 13: Fe3V, Cu3Cr, Fe3Ti, Fe3Mo, Cu3V, Fe3Nb, Cu3Nb, Fe3La, Cu3Mo, Fe3W, Cu3Ta, Fe3Zr, Ni3W | 16: Cu3Cr 14.36, Fe3Y 14.38, Fe3Zr 14.52, Fe3Ti 14.52, Cu3V 14.54, Fe3V 14.58, Fe3La 14.60, Cu3Mo 14.60, Fe3Nb 14.63, CuMo 14.70, MoNi 14.70, Cu3Nb 14.70, Cu3Ta 14.92, Fe3Ta 14.94, CoMo 15.07, CoW 15.16 | 772 (84.6 %) | 0 |
-| + sp metals (all priced surfaces) | 1,695 | 406 | 421 | 52: Al3Ti, Al, Al3Cu, Al3Zr, Al3Y, Al3La, AlCr, CrZn, Fe3V, Zn3V, Cu3Cr, Fe3Ti, Zn3Nb, Al3Cd, Fe3Mo, Cu3V, Al3Pb, Cd3V, Cr3Pb, SnTi, Fe3Nb, AlMo, Al3Ni, Cu3Nb, Cd3Mo, Al3Sn, SnZr, Fe3La, Al3Bi, LaSn, Cd3Nb, SnY, CdMo, Al3In, Cu3Mo, Zn3Mo, PbY, MoZn, BiV, Fe3W, Cu3Ta, HgY, Fe3Zr, Cd3Cr, BiZr, CrPb, Ni3W, NbSn, CrSn, Zn3Cr, BiTi, LaPb | 56: Al3Ti 13.85, Al 13.89, Al3Cu 13.92, Al3Zr 14.11, Al3Y 14.13, Al3La 14.13, AlCr 14.15, CrZn 14.22, Zn3V 14.33, Cu3Cr 14.36, Fe3Y 14.38, Zn3Nb 14.46, Al3Cd 14.46, Fe3Zr 14.52, Fe3Ti 14.52, Cu3V 14.54, Al3Pb 14.58, Fe3V 14.58, Fe3La 14.60, Cu3Mo 14.60, Cd3V 14.61, Cr3Pb 14.62, SnTi 14.63, Fe3Nb 14.63, Al3Ni 14.68, CuMo 14.70, MoNi 14.70, Cu3Nb 14.70, Al3Sn 14.71, SnZr 14.74, Al3Bi 14.75, Cd3Mo 14.76, LaSn 14.76, Cd3Nb 14.77, SnY 14.78, Al3In 14.79, Mo3Sn 14.86, PbY 14.86, BiV 14.89, Zn3W 14.91, Cu3Ta 14.92, Mo3Pb 14.93, Fe3Ta 14.94, HgY 14.96, Cd3Cr 15.03, BiZr 15.04, CrPb 15.04, CoMo 15.07, NbSn 15.08, AlW 15.10, CrSn 15.12, Zn3Cr 15.15, CoW 15.16, WZn 15.19, BiTi 15.24, LaPb 15.25 | 1,397 (82.4 %) | 0 |
-
-### Supplementary Table 5a | Leave-one-out validation of the Fe terrace-to-step bridge
-
-Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and the step value predicted with that metal left out, from `analysis/fe_bridge_backward_2026_09_29/fe_bridge_loo.csv`; the Fe terrace value is the Dataset S1 entry used by `analysis/nh3_alloy_extension_2026_10_05/run_alloy_chain.py`. Statistics in Supplementary Table 5b are recomputed from these rows.
-
-| Metal | Terrace *E*_{N} (eV) | Step *E*_{N}, observed (eV) | Step *E*_{N}, leave-one-out (eV) | Observed − predicted (eV) |
-|---|---|---|---|---|
-| Ag | 2.9765 | 2.9110 | 3.5096 | −0.5986 |
-| Au | 2.3914 | 3.0029 | 2.4283 | 0.5746 |
-| Co | −0.0986 | −0.2701 | −0.2850 | 0.0149 |
-| Cu | 1.0619 | 1.2491 | 1.0324 | 0.2167 |
-| Ir | −0.0913 | −0.4407 | −0.2625 | −0.1782 |
-| Mo | −1.5343 | −1.8417 | −1.9632 | 0.1215 |
-| Ni | 0.0996 | −0.0928 | −0.0521 | −0.0407 |
-| Os | −0.7404 | −1.1095 | −1.0158 | −0.0937 |
-| Pd | 0.8054 | 0.5637 | 0.7799 | −0.2162 |
-| Pt | 0.3340 | 0.5895 | 0.1858 | 0.4037 |
-| Re | −1.4205 | −1.8252 | −1.8075 | −0.0177 |
-| Rh | −0.0431 | −0.4580 | −0.2013 | −0.2567 |
-| Ru | −0.7938 | −1.1333 | −1.0814 | −0.0519 |
-| W | −1.7650 | −2.1610 | −2.2206 | 0.0596 |
-| Fe | −1.0583 | not in S1 | −1.3921 (full fit) | – |
-
-### Supplementary Table 5b | Statistics of the Fe terrace-to-step bridge
-
-Ordinary least squares on Supplementary Table 5a. The global 14-metal fit is the relation used for Fe in the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo analysis. The strong-binding branch (terrace *E*_{N} ≤ −0.5 eV: Mo, Os, Re, Ru, W) is a sensitivity check and is not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.
-
-| Statistic | Global fit (14 metals) | Strong-binding branch |
-|---|---|---|
-| Metals in the fit | 14 | 5 |
-| Slope | 1.1547 | 1.0189 |
-| Intercept (eV) | −0.1701 | −0.3397 |
-| R² | 0.9818 | 0.9930 |
-| Residual standard error (eV) | 0.2271 | 0.0455 |
-| Leave-one-out MAE (eV) | 0.2032 | 0.0486 |
-| Leave-one-out RMSE (eV) | 0.2771 | 0.0529 |
-| Fe step *E*_{N}, predicted (eV) | −1.3921 | −1.4180 |
-| 95 % prediction interval for Fe (eV) | −1.917 to −0.868 | −1.579 to −1.257 |
+| frozen model | 54/82 | 37 | 2989/8285 | 35.8 % | 0 | 0 |
+| catalyst 18.1 €/kg replaced every 3 y | 53/82 | 37 | 2947/8285 | 35.6 % | 1 | 1 |
+| catalyst 18.1 €/kg replaced every 5 y | 53/82 | 37 | 2958/8285 | 35.7 % | 1 | 1 |
+| loop ΔP 3.75 bar | 54/82 | 37 | 2912/8285 | 32.8 % | 0 | 0 |
+| H₂ 1,549 €/t | 53/82 | 37 | 2908/8285 | 33.1 % | 1 | 2 |
+| H₂ 3,090 €/t; CO₂ 0 €/t; electricity 95.1 €/MWh | 53/82 | 37 | 2966/8285 | 35.0 % | 1 | 1 |
+| recycle-driven costs ×2.68 | 53/82 | 37 | 2890/8285 | 32.7 % | 1 | 4 |
+| catalyst 95.24 €/kg replaced every 1 y | 49/82 | 34 | 2582/8285 | 33.8 % | 5 | 15 |
+| catalyst 95.24 €/kg replaced every 4 y | 53/82 | 37 | 2844/8285 | 35.0 % | 1 | 4 |
+| catalyst 95.24 €/kg replaced every 6 y | 53/82 | 37 | 2881/8285 | 35.4 % | 1 | 4 |
+| loop ΔP 4.2 bar | 53/82 | 37 | 2899/8285 | 33.0 % | 1 | 2 |
+| equipment split from Campos 2022 SI (11 items) | 54/82 | 37 | 2987/8285 | 35.7 % | 0 | 0 |
+| loop ΔP 4.2 bar; recycle-driven costs ×10 | 46/82 | 35 | 2141/8285 | 22.3 % | 8 | 31 |
+| catalyst 95.24 €/kg replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 43/82 | 32 | 1917/8285 | 23.3 % | 11 | 38 |
+| catalyst 95.24 €/kg replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 45/82 | 34 | 2057/8285 | 19.7 % | 9 | 33 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar | 53/82 | 37 | 2871/8285 | 33.3 % | 1 | 3 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 52/82 | 36 | 2682/8285 | 28.7 % | 2 | 10 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 €/t | 52/82 | 36 | 2728/8285 | 30.5 % | 2 | 8 |
 
 ### Supplementary Table 6 | Corrections to the curated reference data found against the papers
 
