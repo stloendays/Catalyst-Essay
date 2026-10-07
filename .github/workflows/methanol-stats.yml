@@ -2,7 +2,7 @@ name: Methanol statistics (sharded)
 
 # Statistical firmness of the methanol field result (analysis/meoh_main_result_stats_2026_10_06): paper-cluster
 # bootstrap, regret curve, measurement re-draws (x1, x2, x4), plot-reading re-draws and exact validation replicates.
-# About 1.5e5 exact plant-model runs; they are split over a 20-job matrix and stored in a content-addressed cache
+# About 1.8e5 exact plant-model runs; they are split over a 20-job matrix and stored in a content-addressed cache
 # (exact_cache.csv.gz), so the result is the same as one serial run.
 #
 #   plan-grid   list the response-surface grid runs missing from the cache
@@ -13,6 +13,11 @@ name: Methanol statistics (sharded)
 #
 # Triggers: a push whose head commit message contains "[ci stats]" (add "[fresh]" to rebuild the cache from
 # nothing), or workflow_dispatch.
+#
+# Verify ("[verify]" in the head commit message, or the verify input): recompute everything from nothing with the
+# inputs of the commit that produced the committed outputs (the oldest commit holding the committed summary.json),
+# compare the regenerated outputs with the committed ones (JSON: tools/compare_json_numbers.py; CSV:
+# tools/compare_csv_numbers.py, 1e-9 relative) and fail on any difference. Nothing is committed.
 
 on:
   push:
@@ -25,6 +30,10 @@ on:
     inputs:
       fresh:
         description: "Discard the committed cache, grid and scenario files and recompute everything"
+        type: boolean
+        default: false
+      verify:
+        description: "Recompute from nothing with the reference inputs and compare with the committed outputs (no commit)"
         type: boolean
         default: false
 
@@ -40,7 +49,12 @@ env:
   STATS_WORKERS: "4"
   D: analysis/meoh_main_result_stats_2026_10_06
   SHARDS: "20"
-  FRESH: ${{ (github.event_name == 'workflow_dispatch' && inputs.fresh) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[fresh]')) }}
+  VERIFY: ${{ (github.event_name == 'workflow_dispatch' && inputs.verify) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[verify]')) }}
+  FRESH: ${{ (github.event_name == 'workflow_dispatch' && (inputs.fresh || inputs.verify)) || (github.event_name == 'push' && (contains(github.event.head_commit.message, '[fresh]') || contains(github.event.head_commit.message, '[verify]'))) }}
+  # inputs of the statistics; in verify mode they are taken from the commit that produced the committed outputs
+  INPUTS: >-
+    data/meoh analysis/meoh_literature_inversion_2026_10_05
+    analysis/meoh_measurement_mc_2026_10_05/uncertainty_basis.json agent/extraction/eval/field_scores.csv
 
 jobs:
   plan-grid:
@@ -51,6 +65,13 @@ jobs:
       pending: ${{ steps.plan.outputs.pending }}
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Reference inputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          # the oldest commit holding the committed summary.json is the run that produced it
+          REF=$(git log --format=%H --find-object=$(git rev-parse HEAD:$D/summary.json) -- $D/summary.json | tail -n 1)
+          echo "reference commit $REF"; git checkout $REF -- $INPUTS; git status --short
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -r requirements.txt
@@ -83,6 +104,13 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Reference inputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          # the oldest commit holding the committed summary.json is the run that produced it
+          REF=$(git log --format=%H --find-object=$(git rev-parse HEAD:$D/summary.json) -- $D/summary.json | tail -n 1)
+          echo "reference commit $REF"; git checkout $REF -- $INPUTS; git status --short
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -r requirements.txt
@@ -101,6 +129,13 @@ jobs:
       pending: ${{ steps.plan.outputs.pending }}
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Reference inputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          # the oldest commit holding the committed summary.json is the run that produced it
+          REF=$(git log --format=%H --find-object=$(git rev-parse HEAD:$D/summary.json) -- $D/summary.json | tail -n 1)
+          echo "reference commit $REF"; git checkout $REF -- $INPUTS; git status --short
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -r requirements.txt
@@ -144,6 +179,13 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Reference inputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          # the oldest commit holding the committed summary.json is the run that produced it
+          REF=$(git log --format=%H --find-object=$(git rev-parse HEAD:$D/summary.json) -- $D/summary.json | tail -n 1)
+          echo "reference commit $REF"; git checkout $REF -- $INPUTS; git status --short
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -r requirements.txt
@@ -160,6 +202,13 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Reference inputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          # the oldest commit holding the committed summary.json is the run that produced it
+          REF=$(git log --format=%H --find-object=$(git rev-parse HEAD:$D/summary.json) -- $D/summary.json | tail -n 1)
+          echo "reference commit $REF"; git checkout $REF -- $INPUTS; git status --short
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -r requirements.txt
@@ -169,6 +218,13 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { pattern: "part-draws-*", path: parts, merge-multiple: true }
         continue-on-error: true
+      - name: Keep the committed outputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          mkdir -p committed
+          for f in summary.json validation.csv group_noise_probabilities.csv regret_threshold_curve.csv grid_costs.csv                    scenario_meas_k1.json scenario_meas_k2.json scenario_meas_k4.json scenario_meas_k1_plus_extraction.json; do
+            git show HEAD:$D/$f > committed/$f
+          done
       - name: Restore, merge and run the full analysis from the cache
         run: |
           rm -f $D/exact_cache.csv.gz $D/grid_costs.csv $D/scenario_*.json
@@ -176,8 +232,20 @@ jobs:
           if ls parts/*.csv >/dev/null 2>&1; then python $D/run_main_result_stats.py merge parts/*.csv; fi
           STATS_WORKERS=4 python $D/run_main_result_stats.py > $D/run.log
           tail -n 60 $D/run.log
+      - name: Compare with the committed outputs (verify)
+        if: env.VERIFY == 'true'
+        run: |
+          fail=0
+          for f in summary.json scenario_meas_k1.json scenario_meas_k2.json scenario_meas_k4.json scenario_meas_k1_plus_extraction.json; do
+            python tools/compare_json_numbers.py committed/$f $D/$f || fail=1
+          done
+          for f in validation.csv group_noise_probabilities.csv regret_threshold_curve.csv; do
+            python tools/compare_csv_numbers.py committed/$f $D/$f --rtol 1e-9 || fail=1
+          done
+          python tools/compare_csv_numbers.py committed/grid_costs.csv $D/grid_costs.csv --rtol 1e-9 --sort entry dim x || fail=1
+          exit $fail
       - name: Commit outputs
-        if: github.ref != 'refs/heads/main'
+        if: github.ref != 'refs/heads/main' && env.VERIFY != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
@@ -196,4 +264,6 @@ jobs:
             ${{ env.D }}/group_noise_probabilities.csv
             ${{ env.D }}/regret_threshold_curve.csv
             ${{ env.D }}/scenario_*.json
+            ${{ env.D }}/grid_costs.csv
+            ${{ env.D }}/exact_cache.csv.gz
             ${{ env.D }}/run.log

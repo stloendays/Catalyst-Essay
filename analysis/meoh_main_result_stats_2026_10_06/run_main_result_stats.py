@@ -30,9 +30,19 @@ exactly. The surface is validated against exact runs of complete replicates (val
 
 Outputs (this folder): grid_costs.csv, validation.csv, group_noise_probabilities.csv, regret_threshold_curve.csv,
 summary.json.
+
+Every exact model run is stored in exact_cache.csv.gz under a key built from the entry state and the perturbation, so
+a run is never repeated and the work can be split across machines (.github/workflows/methanol-stats.yml):
+  STATS_MODE=enumerate      list the runs still missing from the cache into STATS_JOBS_OUT and stop; first the
+                            response-surface grid, then (once the grid is cached) every draw outside the grid and the
+                            validation replicates. The draws do not depend on exact results, only on the completed grid.
+  compute JOBS SHARD N OUT  run jobs[SHARD::N] and write key,cost to OUT
+  merge PART...             add part files to the cache
+  (no mode)                 the full analysis; runs still missing are computed locally.
 """
 import json
 import os
+import pickle
 import sys
 from multiprocessing import Pool
 from pathlib import Path
@@ -87,9 +97,85 @@ def exact_cost(args):
     return float(np.nanmin(sweep))
 
 
-def run_exact(jobs):
+CACHE_FILE = HERE / "exact_cache.csv.gz"
+MODE = os.environ.get("STATS_MODE", "run")
+_CACHE = None
+_PENDING = {}
+
+
+class NeedJobs(Exception):
+    """Raised in enumerate mode when the response-surface grid is incomplete."""
+
+
+def job_key(job):
+    """Entry state and perturbation, each float written exactly (17 significant digits)."""
+    e, pert = job
+    state = "|".join("%.17g" % e[k] for k in ("X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"))
+    return state + "#" + "|".join("%s=%.17g" % (k, pert[k]) for k in DIMS if pert.get(k, 0.0) != 0.0)
+
+
+def exact_cache():
+    global _CACHE
+    if _CACHE is None:
+        _CACHE = {}
+        if CACHE_FILE.exists():
+            t = pd.read_csv(CACHE_FILE, dtype={"key": str, "cost": float})
+            _CACHE = dict(zip(t.key, t.cost))
+    return _CACHE
+
+
+def save_cache():
+    t = pd.DataFrame(sorted(exact_cache().items()), columns=["key", "cost"])
+    t.to_csv(CACHE_FILE, index=False, float_format="%.17g", compression={"method": "gzip", "mtime": 0})
+
+
+def _compute(jobs):
+    if not jobs:
+        return np.array([])
     with Pool(WORKERS) as pool:
         return np.array(pool.map(exact_cost, jobs, chunksize=4))
+
+
+def run_exact(jobs):
+    cache = exact_cache()
+    keys = [job_key(j) for j in jobs]
+    miss = {}
+    for k, j in zip(keys, jobs):
+        if k not in cache and k not in miss:
+            miss[k] = j
+    if miss:
+        if MODE == "enumerate":
+            _PENDING.update(miss)
+        else:
+            ks = list(miss)
+            cache.update(zip(ks, _compute([miss[k] for k in ks])))
+            save_cache()
+    return np.array([cache.get(k, np.nan) for k in keys], dtype=float)
+
+
+def write_pending(stage):
+    out = Path(os.environ.get("STATS_JOBS_OUT", str(HERE / "pending_jobs.pkl")))
+    with open(out, "wb") as f:
+        pickle.dump(dict(stage=stage, jobs=list(_PENDING.items())), f)
+    print(json.dumps(dict(stage=stage, pending=len(_PENDING), jobs_file=str(out))), flush=True)
+
+
+def cmd_compute(jobs_file, shard, nshards, out):
+    with open(jobs_file, "rb") as f:
+        jobs = pickle.load(f)["jobs"][int(shard)::int(nshards)]
+    costs = _compute([j for _, j in jobs])
+    pd.DataFrame(dict(key=[k for k, _ in jobs], cost=costs)).to_csv(out, index=False, float_format="%.17g")
+    print(json.dumps(dict(shard=int(shard), nshards=int(nshards), jobs=len(jobs))), flush=True)
+
+
+def cmd_merge(parts):
+    cache = exact_cache()
+    n0 = len(cache)
+    for p in parts:
+        t = pd.read_csv(p, dtype={"key": str, "cost": float})
+        cache.update(zip(t.key, t.cost))
+    save_cache()
+    print(json.dumps(dict(cache_before=n0, cache_after=len(cache), parts=len(parts))), flush=True)
 
 
 # ---------------------------------------------------------------- data ---------------------------------------
@@ -143,6 +229,8 @@ class Surface:
         if jobs:
             new = pd.DataFrame(meta, columns=["entry", "dim", "x"])
             new["cost"] = run_exact(jobs)
+            if MODE == "enumerate" and _PENDING:
+                raise NeedJobs("grid")
             g = pd.concat([g, new], ignore_index=True)
             g.to_csv(grid_csv, index=False, float_format="%.10g")
         self.f0 = g[g.dim == "f0"].set_index("entry").cost.reindex(range(len(ents))).to_numpy()
@@ -242,7 +330,11 @@ def main():
     groups = pd.Series(pd.factorize(c.group)[1])
     doi_of_group = c.groupby(gid).doi.first().to_numpy()
 
-    surf = Surface(c, ents, HERE / "grid_costs.csv")
+    try:
+        surf = Surface(c, ents, HERE / "grid_costs.csv")
+    except NeedJobs:
+        write_pending("grid")
+        return
     base_diff = np.nanmax(np.abs(surf.f0 - c.cost_recycled_opt.to_numpy()) / c.cost_recycled_opt.to_numpy())
 
     # point estimate, reproduced from the frozen candidate costs
@@ -294,6 +386,10 @@ def main():
         if len(rr):
             jobs = [(ents[e], {k: float(P[k][r, e]) for k in DIMS}) for r, e in zip(rr, ee)]
             cost[rr, ee] = run_exact(jobs)
+        if MODE == "enumerate":                 # list the validation replicates too; the statistics wait for the runs
+            for r in range(N_VALID):
+                run_exact([(ents[e], {k: float(P[k][r, e]) for k in DIMS}) for e in range(len(ents))])
+            continue
         ws, wc, mm, reg = mismatch_stats(sty, cost, gid, ng)
         # re-measurement null: a second independent re-measurement of the same entries
         P2, sty2 = draws(c, srng, N_MC, pools=(lx, ds, ls), **kw)
@@ -336,6 +432,10 @@ def main():
                          encoding="utf-8")
         print(name, json.dumps(results[name]), flush=True)
 
+    if MODE == "enumerate":
+        write_pending("draws")
+        return
+
     valid = pd.DataFrame(valid_rows)
     valid.to_csv(HERE / "validation.csv", index=False, float_format="%.6g")
     curve.to_csv(HERE / "regret_threshold_curve.csv", index=False, float_format="%.6g")
@@ -369,4 +469,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "compute":
+        cmd_compute(*sys.argv[2:6])
+    elif len(sys.argv) > 1 and sys.argv[1] == "merge":
+        cmd_merge(sys.argv[2:])
+    else:
+        main()
