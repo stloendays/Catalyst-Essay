@@ -63,6 +63,6 @@ jobs:
               git tag -a "$tag" "origin/$ref" -m "Archived branch $ref ($head), merged into main; removed $today"
               git push origin "refs/tags/$tag"
             fi
-            git push origin --delete "$ref"
+            git push origin --delete "refs/heads/$ref"     # full ref: a branch may share its name with its tag
             echo "| $ref | $head | $tag | archived and deleted |" >> "$GITHUB_STEP_SUMMARY"
           done
