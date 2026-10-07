@@ -1,55 +1,25 @@
-# How firm is the methanol field result? — 2026-10-06, updated 2026-10-07
+# How firm is the headline methanol result? — 2026-10-06
 
-Field result (`analysis/meoh_literature_inversion_2026_10_05/`, 50-paper set, primary treatment of 2026-10-07):
-within published CO2-to-methanol comparisons, the paper's space-time-yield (STY) leader is not the plant-cost leader
-in **54 of 82** comparison groups (37 of 44 papers). The primary caps the per-pass CO2 conversion at
-CO2-hydrogenation equilibrium, converts recycled CO only up to reverse-water-gas-shift and CO-hydrogenation
-equilibrium, and optimizes the purge only where the reactor inlet holds no more species other than H2 and CO2 than
-the calibrated reference loop (6.86 %). This folder asks four questions of that number:
+Headline result (`analysis/meoh_literature_inversion_2026_10_05/`, 50-paper set): within published CO2-to-methanol
+comparisons, the paper's space-time-yield (STY) leader is not the plant-cost leader in **33 of 83** comparison groups
+(40 %, 19 of 44 papers). This folder asks four questions of that number:
 - its sampling uncertainty;
 - how large the disagreements are;
 - whether they survive measurement noise;
 - whether they survive the agent's extraction errors.
 
-The plant model, candidate construction and group definitions are those of the field-result script and are not
-changed.
+The plant model, candidate construction and group definitions are those of the headline script and are not changed.
 
-## Running it
+`run_main_result_stats.py` (interpreter `D:\Research\CatalystForge\.venv\Scripts\python.exe`):
+- It writes `summary.json`, `regret_threshold_curve.csv`, `group_noise_probabilities.csv`, `validation.csv`,
+  `grid_costs.csv` (exact model runs behind the response surface) and `scenario_*.json` (each finished noise scenario;
+  a restart reuses them).
+- About 6 h on 8 worker processes. Use no more than 8: each worker commits about 0.8 GB, and 24 workers exhausted the
+  15 GB machine (`run_aborted_24workers.log`).
+- `run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
+  Such states are now treated as missing, and the entry leaves both leaderboards of that draw.
 
-`run_main_result_stats.py` writes `summary.json`, `regret_threshold_curve.csv`, `group_noise_probabilities.csv`,
-`validation.csv`, `grid_costs.csv` (the exact runs behind the response surface) and `scenario_*.json` (each finished
-noise scenario). Every exact plant-model run (about 1.5e5) is stored in `exact_cache.csv.gz` under a key made of the
-entry state and the perturbation, so no run is repeated and the work can be split:
-
-- **GitHub Actions** (`.github/workflows/methanol-stats.yml`): push a commit whose message contains `[ci stats]`
-  (add `[fresh]` to rebuild the cache from nothing), or dispatch the workflow. It lists the missing grid runs, runs
-  them on a 20-job matrix, lists every draw outside the grid and the validation replicates, runs those on a second
-  20-job matrix, then runs the full analysis from the cache and commits the outputs back to the branch. The result
-  is identical to one serial run: the draws come from the same per-scenario random streams and do not depend on
-  exact results, only on the completed grid.
-- **Locally**: `python run_main_result_stats.py` computes whatever the cache lacks with `STATS_WORKERS` processes
-  (default 4). Use no more than 8 on the 15 GB laptop: each worker commits about 0.8 GB, and 24 workers exhausted it
-  (`run_aborted_24workers.log`). The modes behind the workflow are `STATS_MODE=enumerate`, `compute JOBS SHARD N OUT`
-  and `merge PART...`.
-
-`run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
-Such states are treated as missing, and the entry leaves both leaderboards of that draw.
-
-## Result (current primary; GitHub Actions run 37598533207)
-
-| Question | Result |
-|---|---|
-| Point estimate | 54 / 82 groups (65.9 %), 37 / 44 papers; paper-weighted 74.6 % |
-| **Sampling uncertainty** (paper-cluster bootstrap, 10,000 resamples) | **95 % CI 51.5–80.0 %** (paper-weighted 62.7–85.7 %) |
-| **Size**: mismatches whose regret is at least | 1 %: 51 (36 papers) · 2 %: 50 · 5 %: 46 · **10 %: 42 (31 papers)** |
-| **Measurement noise** (each entry re-measured, measured error ×1) | 54.0 mismatched groups on average (95 % range 50–58); **47 of the 54 stay mismatched in ≥ 90 % of re-measurements**, all with regret ≥ 1 % (median 45 %) |
-| Noise floor (re-measurement alone changes the reported STY leader) | 12.1 groups (7–17) at ×1 · 21.2 (15–28) at ×2 · 33.6 (26–41) at ×4 |
-| **Extraction error** (plot readings resampled from the agent's measured errors, plus noise ×1) | 55.6 mismatched groups (50–61); 40 stay mismatched in ≥ 90 % of draws |
-| Response surface against exact runs | 18 of 1,640 group verdicts differ (5 exact replicates per scenario) |
-
-Even at four times the measured error, the noise floor (33.6) stays below the observed 54.
-
-## Result of the previous treatment (33 / 83; superseded by the CI run of the current primary)
+## Result
 
 | Question | Result |
 |---|---|

@@ -19,26 +19,16 @@ x_CO rules (`x_co=` accepts a number or one of these names):
 
 * "inert"             x_CO = 0: the engine behaviour (CO leaves only with the purge); lower limit of the range,
                       a catalyst with no water-gas-shift or CO-hydrogenation activity;
-* "recycled_central"  x_CO = min(x_RWGS, x_MeOH). x_RWGS is the smallest per-pass CO conversion for which the
-                      reactor outlet does not exceed reverse-water-gas-shift equilibrium (Q_RWGS <= K_RWGS); 0 when
-                      the inert loop already satisfies it. CO above that level is shifted back by any catalyst with
-                      WGS activity. This is how CO behaves in the anchor's own loop: its kinetic model forms and
-                      consumes CO only through (R)WGS, its reactor outlet sits at RWGS equilibrium (Q/K = 1.02 from
-                      the published outlet composition) and the rule reproduces its loop CO level. x_MeOH is the
-                      largest per-pass CO conversion permitted by CO + 2 H2 <-> CH3OH equilibrium at the outlet
-                      (capped at 1); recycled CO is never converted to methanol beyond it. When x_RWGS > x_MeOH no
-                      CO conversion satisfies both equilibria: x_CO = x_MeOH and the outlet is above
-                      CO2-hydrogenation equilibrium (`equilibrium_feasible` False);
-* "recycled_high"     x_CO = x_MeOH: upper limit of the range;
-* "recycled_equal_X"  x_CO = X clipped into [x_central, x_MeOH]: recycled CO converted by the same fraction per pass
+* "recycled_central"  x_CO = x_RWGS: the smallest per-pass CO conversion for which the reactor outlet does not
+                      exceed reverse-water-gas-shift equilibrium (Q_RWGS <= K_RWGS); 0 when the inert loop already
+                      satisfies it. CO above that level is shifted back by any catalyst with WGS activity. This is
+                      how CO behaves in the anchor's own loop: its kinetic model forms and consumes CO only through
+                      (R)WGS, its reactor outlet sits at RWGS equilibrium (Q/K = 1.02 from the published outlet
+                      composition) and the rule reproduces its loop CO level;
+* "recycled_high"     x_CO = max(x_RWGS, x_MeOH), where x_MeOH is the largest per-pass CO conversion permitted by
+                      CO + 2 H2 <-> CH3OH equilibrium at the outlet (capped at 1): upper limit of the range;
+* "recycled_equal_X"  x_CO = X clipped into [x_RWGS, x_high]: recycled CO converted by the same fraction per pass
                       as CO2 (sensitivity).
-
-Feasibility. `economics` (with T_C) returns `equilibrium_feasible`: the reactor outlet does not exceed
-CO2-hydrogenation (methanol) equilibrium, Q_CO2hyd / K_CO2hyd <= 1 + EQ_TOL. A loop state above it would make
-methanol beyond equilibrium and cannot be built. `optimal_purge` minimises the cost over the purge levels that are
-equilibrium feasible and whose non-H2/CO2 (nonreactive) fraction at the reactor inlet is within the workbook's own
-limit (`meoh_d01_model.SOURCE_NONREACTIVE_REFERENCE`, the `purge_diagnostic` of the generator); a candidate with no
-such level is infeasible.
 
 Equilibrium constants are those of the process anchor's kinetic model (Processes 2022, 10, 1535, Table 1;
 K_CO2hyd in bar^-2, K_RWGS dimensionless, K_COhyd = K_CO2hyd / K_RWGS). Activities are fugacities of the
@@ -59,8 +49,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import meoh_d01_model as M  # noqa: E402
 
 X_CO_RULES = ("inert", "recycled_central", "recycled_high", "recycled_equal_X")
-EQ_TOL = 1e-6            # relative tolerance on Q/K for the CO2-hydrogenation equilibrium check
-NONREACTIVE_MAX = M.SOURCE_NONREACTIVE_REFERENCE   # workbook purge_diagnostic limit on the inlet non-H2/CO2 share
 REF_T_C = 247.5          # optimized cooling-fluid temperature of the anchor's one-step loop (Processes 2022, 3.1.2)
 REF_FEED_MOLPCT = dict(H2=71.3, CO=1.5, CO2=21.9, CH3OH=0.3, H2O=0.0, N2=5.0)   # anchor reactor feed, Figure 6
 REF_CO_OUT_MOLPCT = 1.76                                                          # anchor reactor outlet CO
@@ -113,11 +101,7 @@ def pr_phi(y, T_K, P_bar):
     for _ in range(60):
         f = Z ** 3 - (1 - B) * Z ** 2 + (A - 3 * B ** 2 - 2 * B) * Z - (A * B - B ** 2 - B ** 3)
         df = 3 * Z ** 2 - 2 * (1 - B) * Z + (A - 3 * B ** 2 - 2 * B)
-        Z_new = Z - f / df
-        done = np.all(np.abs(Z_new - Z) <= 1e-15 * np.abs(Z))  # converged to a few ulp (further steps oscillate)
-        Z = Z_new
-        if done:
-            break
+        Z = Z - f / df
     s2 = np.sqrt(2.0)
     lg = np.log((Z + (1 + s2) * B) / (Z + (1 - s2) * B))
     return {k: np.exp(b[k] / bm * (Z - 1) - np.log(Z - B)
@@ -241,8 +225,6 @@ def _bisect(f, lo, hi, n=80):
     flo = f(lo)
     for _ in range(n):
         mid = 0.5 * (lo + hi)
-        if np.all((mid == lo) | (mid == hi)):  # interval at float resolution: lo and hi no longer change
-            break
         fm = f(mid)
         same = np.sign(fm) == np.sign(flo)
         lo = np.where(same, mid, lo)
@@ -252,8 +234,7 @@ def _bisect(f, lo, hi, n=80):
 
 
 def x_co_window(X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar):
-    """Thermodynamic window (min(x_RWGS, x_MeOH), x_MeOH) for the per-pass CO conversion; see module docstring.
-    The window is a single point x_MeOH where x_RWGS > x_MeOH (no conversion satisfies both equilibria)."""
+    """Thermodynamic window (x_RWGS, x_high) for the per-pass CO conversion; see module docstring."""
     X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar = np.broadcast_arrays(
         *(np.asarray(v, dtype=float) for v in (X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar)))
     T_K = T_C + 273.15
@@ -274,9 +255,9 @@ def x_co_window(X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar):
     # CO hydrogenation: Q_co_hyd increases with x. Allowed while Q_co_hyd <= K_co_hyd.
     h = lambda x: np.log(q(x)["Q_co_hyd"]) - np.log(k1)  # noqa: E731
     x_meoh = np.where(q0["Q_co_hyd"] >= k1, 0.0, np.where(q1["Q_co_hyd"] <= k1, 1.0, _bisect(h, zero, one)))
-    x_meoh = np.where(has_co, x_meoh, 0.0)
-    x_low = np.where(has_co, np.minimum(x_rwgs, x_meoh), 0.0)
-    return x_low, x_meoh
+    x_rwgs = np.where(has_co, x_rwgs, 0.0)
+    x_high = np.where(has_co, np.maximum(x_rwgs, x_meoh), 0.0)
+    return x_rwgs, x_high
 
 
 def resolve_x_co(rule, X, SMeOH, SCH4, SCO, h2_co2, purge, T_C, P_bar):
@@ -386,7 +367,6 @@ def economics(X, SMeOH, SCH4, SCO, *, STY_per_g_metal=None, metal_wt=None, STY_p
         T_K = np.asarray(T_C, dtype=float) + 273.15
         out.update(rwgs_approach=q["Q_rwgs"] / K_rwgs(T_K), co_hyd_approach=q["Q_co_hyd"] / K_co_hyd(T_K),
                    co2_hyd_approach=q["Q_co2_hyd"] / K_co2_hyd(T_K), y_out=q["y_out"])
-        out["equilibrium_feasible"] = out["co2_hyd_approach"] <= 1.0 + EQ_TOL
     return out
 
 
@@ -402,93 +382,9 @@ def cost(c, **kw):
 PURGES = M.PURGES  # 0.5-40 %, 0.1 % steps (396 levels), same grid as the canonical sweep
 
 
-def purge_sweep(c, cap_conversion=True, **kw):
-    """Cost and loop state on the canonical purge grid (vectorized over purge).
-
-    With the reaction temperature known and cap_conversion, the per-pass CO2 conversion at each purge level is
-    min(X, X_eq), X_eq being the conversion at which the loop outlet reaches CO2-hydrogenation equilibrium: a
-    catalyst that would pass equilibrium at the loop-inlet composition reaches it and stops there. X_eff and
-    X_capped record the conversion used."""
-    s = cost(c, purge=PURGES, **kw)
-    n = len(PURGES)
-    s["X_eff"] = np.full(n, float(c["X"]))
-    s["X_capped"] = np.zeros(n, dtype=bool)
-    if not cap_conversion or "equilibrium_feasible" not in s:
-        return s
-    bad = ~np.asarray(s["equilibrium_feasible"])
-    if not bad.any():
-        return s
-    purges, X0 = PURGES[bad], float(c["X"])
-
-    def f(X, idx):
-        return np.log(cost(dict(c, X=X[idx]), purge=purges[idx], **kw)["co2_hyd_approach"])
-
-    # bracketed false position with the Illinois correction, iterated only on the levels not yet converged; the
-    # feasible end lo is kept, so the outlet stays <= K
-    every = np.arange(len(purges))
-    hi = np.full(purges.shape, X0)
-    fhi = f(hi, every)                            # > 0: these levels are above equilibrium at the laboratory X
-    lo = np.full(purges.shape, 0.5 * X0)          # the cap usually sits close to X; widen the bracket where needed
-    flo = f(lo, every)
-    for _ in range(6):
-        wide = np.where(flo >= 0.0)[0]
-        if not len(wide):
-            break
-        lo[wide] *= 0.1
-        flo[wide] = f(lo, wide)
-    flo_true = flo.copy()                         # f at lo itself (flo may be halved by the Illinois step)
-    side = np.zeros(purges.shape)
-    for _ in range(200):
-        act = np.where(~((hi - lo <= 1e-12 * hi) | (np.abs(flo_true) <= 1e-10)))[0]
-        if not len(act):
-            break
-        x = (lo[act] * fhi[act] - hi[act] * flo[act]) / (fhi[act] - flo[act])
-        ok = (x > lo[act]) & (x < hi[act]) & np.isfinite(x)
-        x = np.where(ok, x, 0.5 * (lo[act] + hi[act]))
-        X = lo.copy()
-        X[act] = x
-        fx = f(X, act)
-        b, a = act[fx <= 0.0], act[fx > 0.0]
-        fb, fa = fx[fx <= 0.0], fx[fx > 0.0]
-        lo[b], flo[b], flo_true[b] = X[b], fb, fb
-        hi[a], fhi[a] = X[a], fa
-        fhi[b[side[b] == 1]] *= 0.5               # Illinois: the end that stayed twice moves slower
-        flo[a[side[a] == -1]] *= 0.5
-        side[b], side[a] = 1, -1
-    x_eq = lo
-    capped = cost(dict(c, X=x_eq), purge=purges, **kw)
-    for k, v in capped.items():
-        if isinstance(v, np.ndarray) and isinstance(s.get(k), np.ndarray) and s[k].shape == (n,) and v.shape == purges.shape:
-            s[k] = s[k].copy()
-            s[k][bad] = v
-    s["X_eff"][bad] = x_eq
-    s["X_capped"][bad] = True
-    return s
-
-
-def eligible_purges(sweep, nonreactive_max=NONREACTIVE_MAX):
-    """Purge levels of a sweep that are equilibrium feasible and within the nonreactive-fraction limit."""
-    return np.asarray(sweep["equilibrium_feasible"]) & (np.asarray(sweep["nonreactive_fraction"]) <= nonreactive_max)
-
-
-def optimal_purge(c, constrained=True, sweep=None, **kw):
-    """Cost-optimal purge level of one candidate on the canonical grid (needs T_C).
-
-    constrained=True: minimum over the eligible levels (`eligible_purges`); cost and purge are NaN when no level is
-    eligible (the candidate is infeasible). constrained=False: minimum over every level (the earlier treatment).
-    Returns dict(cost_eur_t, purge, feasible, n_eligible, at_opt) where at_opt holds the sweep entries at the
-    chosen level."""
-    s = purge_sweep(c, **kw) if sweep is None else sweep
-    cost_ = np.asarray(s["cost_eur_t"], dtype=float)
-    ok = eligible_purges(s)
-    pick = ok if constrained else np.isfinite(cost_)
-    if not pick.any():
-        return dict(cost_eur_t=np.nan, purge=np.nan, feasible=False, n_eligible=0, at_opt={})
-    j = int(np.argmin(np.where(pick, cost_, np.inf)))
-    at = {k: float(np.asarray(v).ravel()[j]) for k, v in s.items()
-          if isinstance(v, np.ndarray) and v.shape == cost_.shape}
-    return dict(cost_eur_t=float(cost_[j]), purge=float(PURGES[j]), feasible=bool(ok[j]), n_eligible=int(ok.sum()),
-                at_opt=at)
+def purge_sweep(c, **kw):
+    """Cost and loop state on the canonical purge grid (vectorized over purge)."""
+    return cost(c, purge=PURGES, **kw)
 
 
 def reference_economics(x_co="inert", S_CO=M.SOURCE_S_CO, S_MeOH=M.SOURCE_S_MEOH):

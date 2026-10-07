@@ -299,34 +299,30 @@ relations) or group 3–5 elements (stable bulk nitrides) are reported as separa
 
 `analysis/meoh_literature_inversion_2026_10_05/` runs the extraction Agent's records (used as extracted) through the
 generalized methanol model. Comparison groups are the entries of one paper at the same P, H2/CO2 and space velocity.
-The paper leaderboard is STY per g catalyst. The plant leaderboard (primary of 2026-10-07, branch
-`meoh-physical-lock-2026-10-07`) is the net production cost with the per-pass CO2 conversion capped at
-CO2-hydrogenation equilibrium, recycled CO converted up to RWGS and CO-hydrogenation equilibrium, and the purge optimized
-where the reactor inlet holds <= 6.86 % species other than H2 and CO2 (the calibrated reference loop). Reproduced on
-ubuntu-latest by `methanol-main-result.yml`; statistics by `methanol-stats.yml` (run 37598533207).
+The paper leaderboard is STY per g catalyst; the plant leaderboard is the net production cost with CO recycled
+(central rule) and entry-optimal purge.
 
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
 | Agent self-check: Gothe Table 4 from extracted inputs | 21/21 entries equal the frozen costs (max 2.3e-13 EUR/t); canonical states 943.30 / 961.51 / 966.96 / 1258.17 | DERIVED-A | `selfcheck_gothe_table4.csv` |
-| scored comparison (50-paper set) | 991 candidates from 45 papers; a measurement printed in several places counted once (16); 82 groups, 900 entries, 44 papers; conversion capped at equilibrium for 127 entries; 3 entries without an eligible purge leave both leaderboards (1 group lost) | DERIVED-A | `analysis/meoh_literature_inversion_2026_10_05/summary.json` |
-| published loop inlets (non-H2/CO2 share) | 4.9–10.2 % in four CO2-to-methanol loop designs (Pérez-Fortes 2016 4.95, Nieminen 2019 4.9, Campos 2022 one-step 6.78 and three-step 10.25) | SOURCE | `inlet_inert_literature.csv` |
-| different winner, STY leaderboard (primary) | 54/82 groups (66 %), 37/44 papers; regret median 36 % (mismatched), max 373 %; 2,989/8,285 pairs inverted; 30 same catalyst at another temperature, 24 a different catalyst (37 % of 65 multi-catalyst groups) | DERIVED-A | same, `mismatch_kinds.json` |
-| isothermal catalyst comparisons | 60/170 (35 %), 26/42 papers, paper bootstrap 25–46 % | DERIVED-A | same (isothermal), `group_metrics_isothermal.csv` |
-| inlet-limit sweep | limits 5–10 %: 58–68 % of all comparisons, 32–37 % isothermal; 15/20/30 %: 47/49/45 % and 28/24/21 %; no limit 35/83 (42 %) and 35/170 (21 %); uncapped and unlimited (earlier treatment) 36/83 and 45/170 | DERIVED-A | same (limit_sweep, isothermal, variants) |
-| other leaderboards and treatments | inert CO 55/82; conversion 57/82; methanol selectivity 32/82; printed values only 35/50; reported products >= 95 % 38/60; without the paper with most groups 47/74 | DERIVED-A | same (variants) |
-| compute saved (`analysis/meoh_pruning_2026_10_06/`) | 687 of 902 candidates need the full optimization (215 excluded, 23.8 %); 0/82 leaders missed | DERIVED-A | `analysis/meoh_pruning_2026_10_06/summary.json` |
-| sampling uncertainty | paper-cluster bootstrap 95 % CI 51.5–80.0 % (paper-weighted 62.7–85.7 %) | DERIVED-A | `analysis/meoh_main_result_stats_2026_10_06/summary.json` |
-| size of the disagreements | regret >= 1 %: 51/82 (36 papers); >= 2 %: 50; >= 5 %: 46; >= 10 %: 42 (31 papers) | DERIVED-A | same, `regret_threshold_curve.csv` |
-| measurement noise (Re/TiO2 error basis x1, 2,000 re-measurements) | 54.0 mismatched groups (50–58); 47 of 54 kept in >= 90 % of draws, all regret >= 1 % (median 45 %); reported STY leader changes in 12.1 groups (7–17); x2 54.8 (50–59), floor 21.2 (15–28); x4 55.1 (49–61), floor 33.6 (26–41) | DERIVED-A | same |
-| agent plot-reading errors resampled (+ noise x1) | 55.6 mismatched groups (50–61); 40 kept in >= 90 % of draws | DERIVED-A | same |
-| response surface vs exact model | 18 of 1,640 group verdicts differ (20 exact replicates) | DERIVED-A | same, `validation.csv` |
-| composition-priced catalyst replacement per inventory (3 y) | 49/82; 1 y 51, 4 y 49, 6 y 50; 95 % recovery 51; uniform 18.1 EUR/kg 53; base cost 95.24 EUR/kg 51 | DERIVED-B (robustness) | `analysis/meoh_catalyst_cost_2026_10_06/summary.json` |
-| plant model vs operating plants and TEAs | at 22–33 % per pass: H2 0.193–0.208 t/t, CO2 1.41–1.47 t/t, carbon efficiency 0.93–0.98, recycle ratio 2.7–5.4, inside the reported ranges | DERIVED-A | `analysis/meoh_plant_benchmark_2026_10_06/` |
+| scored comparison (50-paper set, 2026-10-06) | 991 candidates from 45 papers; 83 groups, 906 entries, 44 papers. Co-feed (H2O or CO) entries excluded; printed STY replaced by the mass-GHSV STY where printed / (F X S) varies > 3x within a group (3 groups) | DERIVED-A | `summary.json` |
+| different winner, STY leaderboard (primary) | 33/83 groups (40 %), 19/44 papers; regret median 2.0 % (mismatched), max 182 %; 1019/8458 pairs inverted | DERIVED-A | same |
+| different winner, STY leaderboard, inert CO | 46/83 groups (55 %), 37/44 papers | DERIVED-A | same |
+| different winner, selectivity leaderboard | 63/83 groups (76 %), 40/44 papers; regret median 15 % (mismatched) | DERIVED-A | same |
+| robustness, STY leaderboard | printed values only 17/50; methanol products only 22/61; without Bansode 2013 26/75 groups, 18/43 papers, regret max 9.9 % | DERIVED-A | same |
+| compute saved (`analysis/meoh_pruning_2026_10_06/`) | 206 of 906 candidates need the full optimization (700 excluded, 77.3 %); 0/83 leaders missed; 22.8 % of the compute | DERIVED-A | `analysis/meoh_pruning_2026_10_06/summary.json` |
+| sampling uncertainty of 33/83 (2026-10-07) | paper-cluster bootstrap 95 % CI 23.7–55.1 % (paper-weighted 23.6–50.3 %) | DERIVED-A | `analysis/meoh_main_result_stats_2026_10_06/summary.json` |
+| size of the disagreements | regret ≥ 1 %: 23/83 groups (12 papers); ≥ 2 %: 16; ≥ 5 %: 9; ≥ 10 %: 4 (one paper) | DERIVED-A | same, `regret_threshold_curve.csv` |
+| measurement noise (Re/TiO2 error basis ×1, 2,000 re-measurements) | 37.3 mismatched groups (31–43); 15 of 33 kept in ≥ 90 % of draws, all regret ≥ 1 % (median 5.9 %); reported STY leader changes in 13.4 groups (8–19) under re-measurement alone (×2: 22.4; ×4: 34.1) | DERIVED-A | same, `group_noise_probabilities.csv` |
+| agent plot-reading errors resampled (+ noise ×1) | 38.5 mismatched groups (31–45); 10 kept in ≥ 90 % of draws | DERIVED-A | same |
+| response surface vs exact model | 6 of 1,660 group verdicts differ | DERIVED-A | same, `validation.csv` |
+| composition-priced catalyst replacement per inventory (3 y) | 31/83 (37 %), 18/44 papers, CI 22–53 %; 1 y 31, 4 y 32, 6 y 33; uniform 18.1 EUR/kg 32; base cost 95.24 EUR/kg 24 | DERIVED-B (robustness) | `analysis/meoh_catalyst_cost_2026_10_06/summary.json` |
+| plant model vs operating plants and TEAs | H2 0.195–0.208 t/t, CO2 1.40–1.50 t/t, carbon efficiency 0.915–0.983, recycle ratio 2.8–3.8 at 22–33 % per pass, all inside reference ranges; like-for-like cost vs Pérez-Fortes 2016 (ref. 14) 706.1 vs 723.6 EUR/t (−2.4 %); Szima +1.3 %; Nyári −0.9 to −5.1 %; loop ΔP, recycle and price variants 32–34/83 | DERIVED-A | `analysis/meoh_plant_benchmark_2026_10_06/` |
 
 **Semantic lock:** groups compare entries at equal pressure, so the model's simplified condensation at 20–40 bar does
-not enter within-group rankings. The like-for-like statistic with ammonia is the isothermal catalyst comparison
-(35 % in both); the all-comparison share (66 %) includes the papers' own temperature series. The inlet limit sets
-the size of the all-comparison share; across the span of published loop inlets it stays at 58–68 %.
+not enter within-group rankings. Recycled and inert CO bound the plant ranking; the winner-change counts hold under
+both, and regret magnitudes depend on the treatment. Regrets above 10 % all come from low-conversion entries of one
+paper (Bansode 2013).
 
 ## NH3 — measured catalysts: review chain after primary-paper errata, and the 30-paper field statistic — 2026-10-07
 

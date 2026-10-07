@@ -1,16 +1,14 @@
 """Paper STY leader vs plant-cost leader with catalyst replacement charged per tonne of inventory at each candidate's
 own composition-based price.
 
-Candidate construction, group STY basis, group metrics and bootstrap are those of the main result
-(analysis/meoh_literature_inversion_2026_10_05/meoh_candidates.py, imported). The plant cost is
+Copy of the logic of analysis/meoh_literature_inversion_2026_10_05/run_literature_inversion.py (candidate
+construction, group STY basis, group_metrics, aggregate), with the plant cost taken from the frozen
 meoh_general_model.economics(..., cat_price_eur_kg=, cat_life_y=) on the canonical purge grid (recycled CO, central
-rule), minimised over the eligible purge levels of the main result (within CO2-hydrogenation equilibrium and the
-workbook nonreactive limit; eligibility depends on the loop only, not on the catalyst charge). A candidate with no
-eligible level is infeasible in every variant and leaves both leaderboards.
+RWGS rule, entry-optimal purge). The frozen model and the original script are not edited.
 
 Order of work:
-  1. rebuild the candidates and check them against literature_candidates.csv of the main result;
-  2. catalyst term off: must reproduce the main result (groups with a different winner, pairwise inversions);
+  1. rebuild the 991 candidates and check them against the frozen literature_candidates.csv;
+  2. catalyst term off: must reproduce 33/83 and 1019/8458 (the frozen headline);
   3. variants (VARIANTS); primary = composition price (catalyst_prices.py), 3-year life;
   4. paper-cluster bootstrap (10,000 resamples of papers) of the primary and of the term-off headline;
   5. Gothe et al. 2025 Table 4 self-check with the term off, and the Re/TiO2 prices and canonical states with it on.
@@ -25,11 +23,13 @@ import json
 import os
 import sys
 import time
+from itertools import combinations
 from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -38,12 +38,12 @@ sys.path.insert(0, str(REPO / "data" / "meoh"))
 sys.path.insert(0, str(INV))
 sys.path.insert(0, str(HERE))
 import meoh_general_model as G  # noqa: E402
-from meoh_candidates import (GOTHE_DOI, ROW_KEYS, aggregate, bootstrap, build_candidates,  # noqa: E402
-                             gothe_selfcheck)
+from meoh_candidates import GOTHE_DOI, REQUIRED, candidate_row, gothe_selfcheck, read_records  # noqa: E402
 
 import catalyst_prices as CP  # noqa: E402
 
 WORKERS = int(os.environ.get("CATCOST_WORKERS", "4"))
+N_BOOT = 10_000
 RECOVERY = 0.95
 
 # name -> (price column or uniform EUR/kg, life in years, precious-metal recovery fraction)
@@ -62,24 +62,56 @@ VARIANTS = {
 PRIMARY = "composition_3y"
 
 
+# ---------------------------------------------------------------- candidates (copied logic) -------------------
+def build_candidates():
+    d = read_records()
+    d = d.dropna(subset=REQUIRED).copy()
+    rows = [c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None]
+    cand = pd.DataFrame(rows)
+    cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/CO2 "
+                     + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
+    parts = []
+    for key, g in cand.groupby("group"):
+        basis, sty = group_basis(g)
+        g = g.copy()
+        g["sty_basis"] = basis
+        g["STY"] = sty
+        parts.append(g)
+    cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
+    return cand[cand.STY > 0].reset_index(drop=True)
+
+
+PRINTED_SPREAD_MAX = 3.0
+
+
+def group_basis(g):
+    if g.sty_print.notna().all():
+        ratio = g.sty_print / g.sty_mass
+        if g.sty_mass.notna().all() and (ratio.min() <= 0 or ratio.max() / ratio.min() > PRINTED_SPREAD_MAX):
+            return "STY from mass GHSV (printed STY inconsistent with X*S*F)", g.sty_mass
+        return "printed STY", g.sty_print
+    if g.sty_mass.notna().all():
+        return "STY from mass GHSV", g.sty_mass
+    if g.sty_vol.notna().all():
+        return "STY from volumetric GHSV (assumed density)", g.sty_vol
+    if g.sty_print.notna().any():
+        return "printed STY (partial)", g.sty_print
+    return None, None
+
+
 # ---------------------------------------------------------------- plant cost -----------------------------------
 def _one(args):
-    """Primary plant cost (recycled CO, central rule, eligible optimal purge) for every variant of one candidate. The
-    CO-recycle conversion and the eligible purge levels depend only on the loop, so they are solved once."""
+    """Primary plant cost (recycled CO, central rule, entry-optimal purge) for every variant of one candidate. The
+    CO-recycle window depends only on the loop, so it is solved once and passed as numbers."""
     row, charges = args
     c = (row["X"], row["SMeOH"], row["SCH4"], row["SCO"])
     kw = dict(STY_per_g_cat=row["STY"], P_bar=row["P_bar"], h2_co2=row["h2_co2"], T_C=row["T_C"])
-    base = G.purge_sweep(dict(X=c[0], SMeOH=c[1], SCH4=c[2], SCO=c[3]), x_co="recycled_central", **kw)
-    ok = G.eligible_purges(base)
-    c = (base["X_eff"],) + c[1:]          # per-pass conversion capped at CO2-hydrogenation equilibrium
+    x = G.resolve_x_co("recycled_central", *c, row["h2_co2"], G.PURGES, row["T_C"], row["P_bar"])
     out = {}
     for name, (price, life) in charges.items():
         extra = {} if price is None else dict(cat_price_eur_kg=price, cat_life_y=life)
-        e = G.economics(*c, purge=G.PURGES, x_co=base["x_co"], **kw, **extra)
-        if not ok.any():
-            out[name] = (np.nan, np.nan, np.nan, float(e["catalyst_t"]))
-            continue
-        j = int(np.argmin(np.where(ok, e["cost_eur_t"], np.inf)))
+        e = G.economics(*c, purge=G.PURGES, x_co=x, **kw, **extra)
+        j = int(np.nanargmin(e["cost_eur_t"]))
         out[name] = (float(e["cost_eur_t"][j]), float(G.PURGES[j]), float(e["cat_repl_eur_t"]),
                      float(e["catalyst_t"]))
     return out
@@ -98,6 +130,67 @@ def charges_for(prices: pd.DataFrame):
             ch[name] = (price, life)
         out.append(ch)
     return out
+
+
+# ---------------------------------------------------------------- group metrics (copied verbatim) --------------
+def group_metrics(g, cost_col, up_col="STY"):
+    g = g.sort_values(up_col, ascending=False)
+    up_best = g[up_col].max()
+    up_winners = set(g.index[g[up_col] >= up_best - 1e-12])
+    econ_idx = g[cost_col].idxmin()
+    c_best = g[cost_col].min()
+    c_up = g.loc[list(up_winners), cost_col].min()
+    n = len(g)
+    pairs = list(combinations(g.index, 2))
+    inv = sum(1 for a, b in pairs
+              if (g.at[a, up_col] - g.at[b, up_col]) * (g.at[b, cost_col] - g.at[a, cost_col]) < 0)
+    rho = (float(spearmanr(g[up_col], -g[cost_col]).statistic) if n >= 3 and g[up_col].nunique() > 1 else None)
+    up3 = set(g.nlargest(min(3, n), up_col).index)
+    ec3 = set(g.nsmallest(min(3, n), cost_col).index)
+    return dict(n=n, top1_mismatch=econ_idx not in up_winners,
+                regret=(c_up - c_best) / c_best,
+                upstream_winner=g.loc[sorted(up_winners)[0], "catalyst"], economic_winner=g.at[econ_idx, "catalyst"],
+                upstream_winner_cost=c_up, economic_winner_cost=c_best,
+                economic_rank_of_upstream_winner=int((g[cost_col] < c_up - 1e-9).sum()) + 1,
+                pairs=len(pairs), inversions=inv, spearman=rho,
+                top3_overlap=len(up3 & ec3) if n >= 4 else None)
+
+
+def aggregate(frame, cost_col, up_col="STY", label=""):
+    out = []
+    for key, g in frame.groupby("group"):
+        if len(g) < 2:
+            continue
+        m = group_metrics(g, cost_col, up_col)
+        m.update(group=key, doi=g.doi.iloc[0], basis=g.sty_basis.iloc[0])
+        out.append(m)
+    gm = pd.DataFrame(out)
+    papers = gm.groupby("doi").top1_mismatch.any()
+    s = dict(variant=label, groups=len(gm), papers=int(gm.doi.nunique()), entries=int(gm.n.sum()),
+             top1_mismatch_groups=int(gm.top1_mismatch.sum()),
+             top1_mismatch_fraction=float(gm.top1_mismatch.mean()),
+             papers_with_mismatch=int(papers.sum()),
+             paper_weighted_mismatch_fraction=float(gm.groupby("doi").top1_mismatch.mean().mean()),
+             regret_median_all=float(gm.regret.median()),
+             regret_median_mismatched=float(gm.loc[gm.top1_mismatch, "regret"].median()) if gm.top1_mismatch.any() else 0.0,
+             regret_max=float(gm.regret.max()),
+             regret_mean_all=float(gm.regret.mean()),
+             pairwise_inversions=f"{int(gm.inversions.sum())}/{int(gm.pairs.sum())}",
+             pairwise_inversion_fraction=float(gm.inversions.sum() / gm.pairs.sum()))
+    return gm, s
+
+
+def bootstrap(gm, n=N_BOOT, seed=20261006):
+    """Paper-cluster bootstrap of the fraction of groups with a different winner (resample papers with
+    replacement; every group of a drawn paper enters)."""
+    per = gm.groupby("doi").top1_mismatch.agg(["sum", "count"])
+    s, c = per["sum"].to_numpy(float), per["count"].to_numpy(float)
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(per), size=(n, len(per)))
+    frac = s[idx].sum(1) / c[idx].sum(1)
+    lo, hi = np.percentile(frac, [2.5, 97.5])
+    return dict(resamples=n, papers=len(per), fraction=float(s.sum() / c.sum()), ci95=[float(lo), float(hi)],
+                ci95_of_83=[float(lo * len(gm)), float(hi * len(gm))], seed=seed)
 
 
 # ---------------------------------------------------------------- self-check ------------------------------------
@@ -130,14 +223,14 @@ def main():
     key = ["group", "entry"]
     a = cand.set_index(key).sort_index()
     b = frozen.set_index(key).sort_index()
-    assert len(a) == len(b) and (a.index == b.index).all(), "candidate set differs from the main result's CSV"
+    assert len(a) == len(b) == 991 and (a.index == b.index).all(), "candidate set differs from the frozen CSV"
     assert np.allclose(a.loc[b.index, "STY"], b.STY, rtol=1e-5), "STY basis differs from the frozen CSV"
 
     prices = CP.build(cand)
     CP.element_table().to_csv(HERE / "element_prices.csv", index=False, float_format="%.6g")
     prices.to_csv(HERE / "catalyst_prices.csv", index=False, float_format="%.6g")
 
-    rows = cand[ROW_KEYS].to_dict("records")
+    rows = cand[["X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"]].to_dict("records")
     with Pool(WORKERS) as pool:
         res = pool.map(_one, list(zip(rows, charges_for(prices))), chunksize=4)
     for name in VARIANTS:
@@ -153,14 +246,12 @@ def main():
         gms[name], summ[name] = aggregate(cand, f"cost_{name}", label=name)
     froz = json.loads((INV / "summary.json").read_text(encoding="utf-8"))["primary"]
     rel = np.abs(cand.set_index(key).sort_index().cost_off / b.cost_recycled_opt - 1)
-    check = dict(max_rel_diff_off_vs_frozen_costs=float(np.nanmax(rel)),
-                 infeasible_same_as_main=bool((np.isnan(cand.set_index(key).sort_index().cost_off)
-                                               == np.isnan(b.cost_recycled_opt)).all()),
+    check = dict(max_rel_diff_off_vs_frozen_costs=float(rel.max()),
                  off_top1=f"{summ['off']['top1_mismatch_groups']}/{summ['off']['groups']}",
                  frozen_top1=f"{froz['top1_mismatch_groups']}/{froz['groups']}",
                  off_inversions=summ["off"]["pairwise_inversions"], frozen_inversions=froz["pairwise_inversions"])
-    assert check["off_top1"] == check["frozen_top1"] and check["infeasible_same_as_main"], check
-    assert check["off_inversions"] == check["frozen_inversions"], check
+    assert check["off_top1"] == check["frozen_top1"] == "33/83", check
+    assert check["off_inversions"] == check["frozen_inversions"] == "1019/8458", check
 
     base = gms["off"].set_index("group")
     for name, gm in gms.items():

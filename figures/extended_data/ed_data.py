@@ -139,44 +139,11 @@ def edfig3():
     d = d[["group", "doi", "observed_regret", "p_mismatch_meas_k1", "p_mismatch_meas_k2", "p_mismatch_meas_k4",
            "p_mismatch_meas_k1_plus_extraction"]]
     assert int((d.p_mismatch_meas_k1 >= 0.9).sum()) == st["noise"]["meas_k1"]["observed_mismatches_kept_in_ge_90pct"]
-    c.attrs["groups"] = st["groups"]
-    a.attrs["groups"] = st["groups"]
-    e = limit_sweep_table()
     return {"a": (a, STATS + "group_noise_probabilities.csv (observed_mismatch, doi) re-drawn with the seed and "
                   "resample count of " + STATS + "summary.json; 95 % CI checked against summary.json"),
             "b": (b, STATS + "regret_threshold_curve.csv"),
             "c": (c, STATS + "summary.json (noise.*)"),
-            "d": (d, STATS + "group_noise_probabilities.csv (observed_mismatch == True)"),
-            "e": (e, INV + "summary.json (limit_sweep, isothermal); published reactor-inlet compositions in "
-                  + INV + "inlet_inert_literature.csv")}
-
-
-def limit_sweep_table():
-    """Share of comparisons whose STY leader is not the plant-cost leader against the limit on the reactor-inlet
-    non-H2/CO2 fraction, for all comparisons and for isothermal catalyst comparisons. Rows: the absolute limits of
-    the sweep, the reference loop value used by the primary, and no limit (plotted at the right edge)."""
-    sm = rjson(INV + "summary.json")
-    ref = float(sm["infeasible"]["nonreactive_limit"])
-    rows = []
-    for key, v in sm["limit_sweep"].items():
-        lim = np.inf if key == "none" else float(key.rstrip("%")) / 100.0
-        iso = sm["isothermal"][key]
-        rows.append(dict(limit=lim, label=key, groups=v["groups"], mismatched=v["top1_mismatch_groups"],
-                         share=v["top1_mismatch_fraction"], iso_groups=iso["groups"],
-                         iso_mismatched=iso["top1_mismatch_groups"], iso_share=iso["top1_mismatch_fraction"]))
-    p, iso = sm["primary"], sm["isothermal"]["reference 6.86%"]
-    rows.append(dict(limit=ref, label="reference loop %.2f%%" % (100 * ref), groups=p["groups"],
-                     mismatched=p["top1_mismatch_groups"], share=p["top1_mismatch_fraction"],
-                     iso_groups=iso["groups"], iso_mismatched=iso["top1_mismatch_groups"],
-                     iso_share=iso["top1_mismatch_fraction"]))
-    t = pd.DataFrame(rows).sort_values("limit").reset_index(drop=True)
-    t.attrs["reference"] = ref
-    lit = path(INV + "inlet_inert_literature.csv")
-    if os.path.exists(lit):
-        L = pd.read_csv(lit)
-        L = L[L.loop_type.str.upper().str.startswith("CO2") & L.non_h2co2_pct.notna()]
-        t.attrs["literature"] = (float(L.non_h2co2_pct.min()) / 100.0, float(L.non_h2co2_pct.max()) / 100.0, len(L))
-    return t
+            "d": (d, STATS + "group_noise_probabilities.csv (observed_mismatch == True)")}
 
 
 # ------------------------------------------------------------------ ED Fig. 4: measured ammonia catalysts -------

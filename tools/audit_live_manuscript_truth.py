@@ -491,7 +491,7 @@ tokens(
     f"needs the full optimization for {mp['evaluated']} of the {mp['full']} candidates "
     f"({mp['excluded']} excluded, {mp['excluded_fraction'] * 100:.1f}%)",
     f"plant-cost leader of all {mpr['groups']} groups",
-    f"median gap {mpr['median_bound_gap_eur_t']['recycled_opt']:.0f} euros per tonne",
+    f"at {mpr['compute_fraction_recycled_opt'] * 100:.0f}% of the compute",
 )
 ok("Agent pruning, methanol: bound valid and no leader missed", mpr["bound_valid_all"] and mp["leader_missed"] == 0)
 
@@ -645,136 +645,68 @@ ok("NH3 measured: fused-iron calibration within a factor 2.2", all(0.45 <= v <= 
 s8 = section("Published methanol leaderboards and plant-cost leaderboards often disagree")
 P0 = lit["primary"]
 V = lit["variants"]
-mk = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.json").read_text(encoding="utf-8"))
-_inv = [int(x) for x in P0["pairwise_inversions"].split("/")]
-_gm = rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv")
-_mm = [float(r["regret"]) for r in _gm if r["top1_mismatch"] == "True"]
-_dc = mk["different catalyst"]
-_sc = mk["same catalyst"]
-_share = _dc["groups"] / mk["groups_with_two_or_more_catalysts"] * 100
 tokens(
     "MeOH literature leaderboards",
     s8,
     f"{lit['candidates']} operating points", f"from {lit['papers_with_candidates']} studies",
     f"{P0['groups']} comparisons with {P0['entries']} entries",
-    f"caps it for {lit['infeasible']['conversion_capped_at_primary_optimum']} entries",
     f"in {P0['top1_mismatch_groups']} of {P0['groups']} comparisons ({P0['top1_mismatch_fraction'] * 100:.0f}%)",
-    f"in {P0['papers_with_mismatch']} of the {P0['papers']} papers",
-    f"{_inv[0]:,} of {_inv[1]:,} pairwise orderings ({P0['pairwise_inversion_fraction'] * 100:.0f}%)",
-    f"In {_sc['groups']} of the {mk['disagreements']} the plant-cost leader is the same catalyst",
-    f"({_sc['papers']} papers, median regret {_sc['regret_median'] * 100:.0f}%)",
-    f"in {_dc['groups']} it is a different catalyst ({_dc['papers']} papers, median regret {_dc['regret_median'] * 100:.0f}%)",
-    f"{_share:.0f}% of the {mk['groups_with_two_or_more_catalysts']} comparisons",
-    f"by conversion disagrees in {V['leaderboard_X']['top1_mismatch_groups']} of {V['leaderboard_X']['groups']} comparisons",
-    f"by single-pass methanol yield in {V['leaderboard_X_times_S']['top1_mismatch_groups']}",
-    f"by methanol selectivity in {V['leaderboard_S_MeOH']['top1_mismatch_groups']}",
-    f"Treating recycled CO as inert gives {V['inert_opt']['top1_mismatch_groups']} of {V['inert_opt']['groups']}",
-    f"{V['recycled_opt_limit_x1.5']['top1_mismatch_groups']}, {V['recycled_opt_limit_x2']['top1_mismatch_groups']} and "
-    f"{V['recycled_opt_limit_x3']['top1_mismatch_groups']} of {V['recycled_opt_limit_x3']['groups']} comparisons",
-    f"it is {V['recycled_opt_unconstrained']['top1_mismatch_groups']} of {V['recycled_opt_unconstrained']['groups']}",
-    f"gave {V['recycled_opt_uncapped']['top1_mismatch_groups']} of {V['recycled_opt_uncapped']['groups']}",
+    f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
+    f"{int(P0['pairwise_inversions'].split('/')[0]):,} of {int(P0['pairwise_inversions'].split('/')[1]):,} pairwise orderings "
+    f"({P0['pairwise_inversion_fraction'] * 100:.0f}%)",
+    f"in {V['leaderboard_S_MeOH']['top1_mismatch_groups']} of {V['leaderboard_S_MeOH']['groups']} comparisons "
+    f"({V['leaderboard_S_MeOH']['top1_mismatch_fraction'] * 100:.0f}%) across {V['leaderboard_S_MeOH']['papers_with_mismatch']} papers",
+    f"median regret of {V['leaderboard_S_MeOH']['regret_median_mismatched'] * 100:.0f}%",
+    f"in {V['leaderboard_X']['top1_mismatch_groups']} of {V['leaderboard_X']['groups']}",
+    f"to {V['inert_opt']['top1_mismatch_groups']} of {V['inert_opt']['groups']} comparisons across {V['inert_opt']['papers_with_mismatch']} papers",
     f"({V['printed_values_only']['top1_mismatch_groups']} of {V['printed_values_only']['groups']} comparisons)",
     f"({V['methanol_products_only']['top1_mismatch_groups']} of {V['methanol_products_only']['groups']})",
-    f"({V['without_paper_with_most_groups']['top1_mismatch_groups']} of {V['without_paper_with_most_groups']['groups']})",
-    f"more selective to methanol in {mk['plant_leader_more_selective']} of the {mk['disagreements']} comparisons "
-    f"(median {mk['median']['S_ec'] * 100:.0f}% against {mk['median']['S_up'] * 100:.0f}%)",
-    f"makes less CO in {mk['plant_leader_less_CO']}",
-    f"has the higher conversion in only {mk['plant_leader_higher_conversion']}",
-    f"runs cooler in {mk['plant_leader_cooler']}, by a median of {-mk['median']['dT']:.0f} °C",
-    f"median purge of {mk['median']['purge_up'] * 100:.1f}%, the plant-cost leaders {mk['median']['purge_ec'] * 100:.1f}%",
-    f"The largest regret, {P0['regret_max'] * 100:.0f}%",
-    f"{sum(x >= 0.01 for x in _mm)} of the {len(_mm)} disagreements cost at least 1%, {sum(x >= 0.10 for x in _mm)} at least 10%",
+    f"up to {P0['regret_max'] * 100:.0f}%",
 )
-# isothermal catalyst comparisons, the inlet-limit sweep and the published loop inlets it is read against
-_iso = lit["isothermal"]["reference 6.86%"]
-_ici = _iso["bootstrap"]["ci95"]
-_sw = lit["limit_sweep"]
-_span = ("5%", "6%", "8%", "10%")
-_all = [_sw[k]["top1_mismatch_fraction"] for k in _span] + [P0["top1_mismatch_fraction"]]
-_isw = [lit["isothermal"][k]["top1_mismatch_fraction"] for k in _span] + [_iso["top1_mismatch_fraction"]]
-_lit = [r for r in rows("analysis/meoh_literature_inversion_2026_10_05/inlet_inert_literature.csv")
-        if r["loop_type"] == "CO2"]
-_litr = f"{min(float(r['non_h2co2_pct']) for r in _lit):.1f}–{max(float(r['non_h2co2_pct']) for r in _lit):.1f}%"
-_nr = lit["infeasible"]["nonreactive_at_unconstrained_optimum_quantiles"]["0.5"]
-tokens("Main text: methanol isothermal catalyst comparisons and inlet limit", text,
-       f"a different catalyst leads on plant cost in {_iso['top1_mismatch_groups']} of {_iso['groups']} isothermal "
-       f"comparisons ({_iso['top1_mismatch_fraction'] * 100:.0f}%; 95% confidence interval "
-       f"{_ici[0] * 100:.0f}–{_ici[1] * 100:.0f}%), in {_iso['papers_with_mismatch']} of {_iso['papers']} papers",
-       f"calibrated reference loop, {lit['infeasible']['nonreactive_limit'] * 100:.2f}%, inside the {_litr}",
-       f"{min(_all) * 100:.0f}–{max(_all) * 100:.0f}% of all comparisons and "
-       f"{min(_isw) * 100:.0f}–{max(_isw) * 100:.0f}% of isothermal catalyst comparisons disagree",
-       f"to a median {_nr * 100:.0f}% of the reactor inlet",
-       f"gives {_sw['none']['top1_mismatch_fraction'] * 100:.0f}% and "
-       f"{lit['isothermal']['none']['top1_mismatch_fraction'] * 100:.0f}%")
-tokens("Abstract: like-for-like methanol and ammonia shares",
-       _block(raw_text, raw_text.index("## Abstract"), "## Abstract"),
-       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of methanol and")
-tokens("SI: isothermal comparisons and absolute inlet limits", s8,
-       f"{_iso['groups']} isothermal catalyst comparisons",
-       f"in {_iso['top1_mismatch_groups']} of them ({_iso['top1_mismatch_fraction'] * 100:.0f}%; paper bootstrap "
-       f"{_ici[0] * 100:.0f}–{_ici[1] * 100:.0f}%)",
-       ", ".join(f"{_sw[k]['top1_mismatch_groups']} of {_sw[k]['groups']}" for k in _span[:3])
-       + f" and {_sw['10%']['top1_mismatch_groups']} of {_sw['10%']['groups']} comparisons disagree",
-       ", ".join(f"{lit['isothermal'][k]['top1_mismatch_groups']} of {lit['isothermal'][k]['groups']}" for k in _span[:3])
-       + f" and {lit['isothermal']['10%']['top1_mismatch_groups']} of {lit['isothermal']['10%']['groups']} isothermal")
+wo = V["without_paper_with_most_groups"]
+ok("MeOH literature: regret outside the largest paper below 10 %", wo["regret_max"] < 0.10
+   and "c2cy20604h" in wo["variant"])
+tokens("MeOH literature: other papers", s8, f"in the other {wo['papers']} papers the regret stays below 10%")
 # ----- Firmness of the methanol headline ---------------------------------------------------------------------
 st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
 cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))
 pb = json.loads((ROOT / "analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json").read_text(encoding="utf-8"))
 k1, ke = st["noise"]["meas_k1"], st["noise"]["meas_k1_plus_extraction"]
-sci = P0["bootstrap"]["ci95"]
+sci = st["cluster_bootstrap"]["fraction_ci95"]
+r1 = next(r for r in st["regret_threshold_curve"] if r["threshold"] == 0.01)
 c3 = cc["variants"]["composition_3y"]
 nf = k1["sty_leader_differs_from_reported_q025_q975"]
-ok("MeOH statistics run on the current main result", st["point_estimate"]["groups"] == P0["top1_mismatch_groups"],
-   str(st["point_estimate"]))
 tokens(
     "MeOH literature: sampling, measurement and extraction firmness",
     s8,
     f"95% confidence interval of {sci[0] * 100:.0f}–{sci[1] * 100:.0f}%",
-    f"keeps {k1['observed_mismatches_kept_in_ge_90pct']} of the {P0['top1_mismatch_groups']} disagreements",
+    f"{r1['groups']} of the {st['point_estimate']['groups']} disagreements cost at least 1%",
+    f"keeps {k1['observed_mismatches_kept_in_ge_90pct']} of the {st['point_estimate']['groups']} disagreements",
     f"in {k1['sty_leader_differs_from_reported_mean']:.0f} comparisons (95% range {nf[0]:.0f}–{nf[1]:.0f})",
     f"leaves {ke['mismatch_groups_mean']:.1f} disagreeing comparisons on average (95% range "
     f"{ke['mismatch_groups_q025_q975'][0]:.0f}–{ke['mismatch_groups_q025_q975'][1]:.0f})",
-    f"gives {c3['top1_mismatch_groups']} of {c3['groups']}.",
+    f"gives {c3['top1_mismatch_groups']} of {c3['groups']} ({c3['top1_mismatch_fraction'] * 100:.0f}%)",
 )
 _pg = [r for r in rows("analysis/meoh_main_result_stats_2026_10_06/group_noise_probabilities.csv")
        if r["observed_mismatch"] == "True" and float(r["p_mismatch_meas_k1"]) >= 0.9]
-ok("MeOH literature: robust disagreements all cost at least 1%",
-   len(_pg) == k1["observed_mismatches_kept_in_ge_90pct"] and min(float(r["observed_regret"]) for r in _pg) >= 0.01,
-   f"{len(_pg)} groups")
+_rg = sorted(float(r["observed_regret"]) for r in _pg)
+ok("MeOH literature: robust disagreements all cost at least 1% (median quoted)",
+   len(_pg) == k1["observed_mismatches_kept_in_ge_90pct"] and min(_rg) >= 0.01
+   and f"(median {_quantiles(_rg, [0.5])[0] * 100:.1f}%)" in s8, f"{len(_pg)} groups")
 _v = st["validation"]
 tokens("MeOH literature: response-surface validation in Methods", text,
        f"{_v['verdict_disagreements_total']} of {_v['verdicts_compared']:,} group verdicts")
-_pvs = pb["variants"]
-_pv = [v["top1_mismatch_groups"] for k, v in _pvs.items()
-       if not k.startswith(("catalyst", "combined", "baseline", "recycle_weight"))]
+_pv = [v["top1_mismatch_groups"] for k, v in pb["variants"].items()
+       if not k.startswith(("catalyst", "combined", "baseline"))]
 tokens("MeOH plant benchmark: loop, recycle and price variants", text,
-       f"disagreement at {min(_pv)}–{max(_pv)} of {P0['groups']} comparisons",
-       f"fitted to one kinetic-model study, gives {_pvs['recycle_weight_nyari']['top1_mismatch_groups']}",
-       f"every year at 95.24 euros per kilogram {_pvs['catalyst_repl_95.24EURkg_1y']['top1_mismatch_groups']}")
-ok("MeOH plant benchmark: baseline reproduces the headline",
-   pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/{P0['groups']}"
-   and pb["check"]["baseline_inversions"] == P0["pairwise_inversions"])
-_pm = {(r["metric"], r["cases"]): r for r in rows("analysis/meoh_plant_benchmark_2026_10_06/plant_metric_ranges.csv")}
-
-
-def _rng(m, d):
-    r = _pm[(m, "per-pass conversion 0.22-0.33")]
-    return f"{float(r['min']):.{d}f}–{float(r['max']):.{d}f}"
-
-
-tokens("MeOH plant benchmark: plant-metric ranges in Methods", text,
-       f"({_rng('H2 consumption (t/t MeOH)', 3)} and {_rng('CO2 consumption (t/t MeOH)', 2)} tonnes per tonne of methanol)",
-       f"carbon efficiency ({_rng('Carbon efficiency (MeOH C / fresh CO2)', 2)})",
-       f"recycle ratio ({_rng('Recycle ratio (recycle / fresh feed, mol)', 1)})")
+       f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
+ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
 
 tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces",
        f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",
-       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
+       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
 tokens("Discussion: field-level shares", text,
-       f"in {_iso['top1_mismatch_fraction'] * 100:.0f}% of isothermal methanol comparisons and "
-       f"{FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons",
-       f"not the plant-cost leader in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol comparisons")
+       f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons")
 # main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
 m_feru = main_section("Metal price and process optimization decide the Fe–Ru ranking")
 tokens("Main text: actual-catalyst Monte Carlo summary", m_feru,
@@ -794,7 +726,7 @@ m_field = main_section("Published laboratory leaders are often not the plant-cos
 tokens("Main text: field-level methanol and ammonia results", m_field,
        f"{lit['candidates']} operating points from {lit['papers_with_candidates']} studies",
        f"in {P0['top1_mismatch_groups']} of {P0['groups']} comparisons ({P0['top1_mismatch_fraction'] * 100:.0f}%",
-       f"in {P0['papers_with_mismatch']} of the {P0['papers']} papers",
+       f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
        f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%",
        f"{tot['matched']} of the {tot['curated']} curated entries")
 ok("no compute-budget Agent section in the manuscript",
