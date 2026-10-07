@@ -126,14 +126,35 @@ FAMILY_ELEMENTS = {"Cu": {"Cu"}, "In2O3": {"In"}, "Pd": {"Pd"}, "ZnO-ZrO2": {"Zn
 
 
 def elements_in(*texts) -> frozenset:
+    """Element symbols named in the texts. A symbol must not run on into a lowercase letter ('Carbon' is not Ca,
+    'Nickel' is not Ni), and a symbol followed by a zero amount in a catalyst code ('CHT-Y0': Y fraction 0) is
+    absent."""
     found = set()
     for t in texts:
         if not isinstance(t, str):
             continue
-        for sym in re.findall(r"[A-Z][a-z]?", t):
-            if sym in ELEMENTS:
-                found.add(sym)
+        for m in re.finditer(r"([A-Z][a-z]?)(?![a-z])(0(?:\.0*)?(?![\d.]))?", t):
+            if m.group(1) in ELEMENTS and not m.group(2):
+                found.add(m.group(1))
     return frozenset(found)
+
+
+SUVARNA_COMP = ("elements", "loading", "active_elements", "element_loading")
+
+
+def suvarna_composition(name: str):
+    """Composition of a Suvarna row from its constructed name '<family> <wt> wt% /<support> ... +<promoter> <wt> wt%':
+    all elements, the family metal loading, the active elements (family metal(s) and promoters with a loading > 0;
+    a promoter at 0 wt% is absent) and the wt% of each active element."""
+    fam, load = re.match(r"(\S+)\s+([\d.eE+-]+) wt%", name).groups()
+    fam_el = set(FAMILY_ELEMENTS.get(fam, elements_in(fam)))
+    loads = {el: float(load) for el in fam_el}
+    for p, pl in re.findall(r"\+(\S+)\s+([\d.eE+-]+) wt%", name):
+        if float(pl) > 0:
+            for el in elements_in(p):
+                loads[el] = float(pl)
+    supports = elements_in(*re.findall(r"/(\S+)", name))
+    return frozenset(set(loads) | supports), float(load), frozenset(loads), loads
 
 
 def load_suvarna(dois: set[str]) -> pd.DataFrame:
@@ -161,14 +182,10 @@ def load_suvarna(dois: set[str]) -> pd.DataFrame:
         for k, lk in (("Promoter 1", "Promoter 1 loading [wt.%]"), ("Promoter 2", "Promoter 2 loading [wt.%]")):
             if str(r[k]) not in ("0", "nan"):
                 parts.append(f"+{r[k]} {r[lk]:g} wt%")
-        name = " ".join(parts)
-        els = set(FAMILY_ELEMENTS.get(fam, elements_in(fam)))
-        els |= elements_in(*(str(r[k]) for k in ("Support 1", "Name of Support2", "Name of Support 3",
-                                                 "Promoter 1", "Promoter 2")))
-        comp.append((name, frozenset(els), float(r["Metal Loading [wt.%]"])))
-    out["catalyst_name"] = [c[0] for c in comp]
-    out["elements"] = [c[1] for c in comp]
-    out["loading"] = [c[2] for c in comp]
+        comp.append(" ".join(parts))
+    out["catalyst_name"] = comp
+    for col, vals in zip(SUVARNA_COMP, zip(*(suvarna_composition(n) for n in comp))):
+        out[col] = list(vals)
     # The Suvarna set lists some bimetallic catalysts twice, once under each family (e.g. Cu-In/CeO2 as a Cu row
     # and as an In2O3 row with the same conditions and STY); one copy is kept.
     out["_key"] = [(r.doi, r.temperature_k, r.pressure_bar, r.pH2_pCO2_ratio, r.GHSV_nlph_gcat, round(r.STY_g_per_gcath, 9),
@@ -179,43 +196,104 @@ def load_suvarna(dois: set[str]) -> pd.DataFrame:
     return out
 
 
-def match_doi_suvarna(ex: pd.DataFrame, cur: pd.DataFrame) -> list[tuple[int, str]]:
-    """Conditions as hard gates (|dT| <= 3 K, |dP|/P <= 5 %, H2/CO2 and mass GHSV within 10 % when both present);
-    among the pairs that pass, a one-to-one assignment minimising 3 x (element-set difference) + the relative
-    loading difference (capped at 1, only when the extracted record states it) + |ln STY ratio| (tie-break,
-    capped at 2). Composition dominates; STY only separates entries of identical composition and conditions."""
+# ---------------------------------------------------------------- matching ------------------------------------------
+# Pairs are formed on the paper, the catalyst identity (name rules; for Suvarna the composition) and the test
+# conditions only. No value that is scored afterwards (X, S, STY) and no presence or absence of such a value enters a
+# pairing. Among the admissible pairs a one-to-one assignment minimises the condition (and composition) cost; ties are
+# broken by the extraction pass (main text before SI before plots) and then by document order, never by a scored
+# value. A pair is ambiguous when its curated row has another admissible extracted partner, or its extracted entry
+# another admissible curated row, at the same cost (identical name and conditions within AMB_EPS): the matcher has no
+# information to choose. Ambiguous pairs count for recall and are excluded from field accuracy.
+BIG = 1e6
+AMB_EPS = 0.1          # cost units: 0.3 K, 0.5 % in P, 1 % in H2/CO2 or GHSV
+PASS_RANK = {"main": 0, "si": 1, "figures": 2, "si_figures": 3}
+
+
+def condition_cost(e, c, p_missing_ok=False):
+    """Gate and cost on the test conditions: |dT| <= 3 K, |dP|/P <= 5 %, H2/CO2 and mass GHSV within 10 % when both
+    present (GHSV on the total-feed or the inert-free basis). Returns None when a gate fails."""
+    if pd.isna(e.T_K) or pd.isna(c.temperature_k) or abs(e.T_K - c.temperature_k) > 3:
+        return None
+    if pd.isna(e.P_bar):
+        if not p_missing_ok:
+            return None
+        cost = 1.0
+    elif pd.isna(c.pressure_bar) or abs(e.P_bar - c.pressure_bar) > 0.05 * c.pressure_bar:
+        return None
+    else:
+        cost = abs(e.P_bar - c.pressure_bar) / c.pressure_bar / 0.05
+    cost += abs(e.T_K - c.temperature_k) / 3
+    if pd.notna(e.H2_CO2) and pd.notna(c.pH2_pCO2_ratio):
+        d = abs(e.H2_CO2 - c.pH2_pCO2_ratio) / c.pH2_pCO2_ratio
+        if d > 0.10:
+            return None
+        cost += d / 0.10
+    if pd.notna(e.GHSV_NL_gcat_h) and pd.notna(c.GHSV_nlph_gcat):
+        d = min(abs(g - c.GHSV_nlph_gcat) / c.GHSV_nlph_gcat
+                for g in (e.GHSV_NL_gcat_h, e.get("GHSV_inert_free_NL_gcat_h")) if pd.notna(g))
+        if d > 0.10:
+            return None
+        cost += d / 0.10
+    return cost
+
+
+def assign(ex: pd.DataFrame, cur: pd.DataFrame, pair_cost) -> list[tuple]:
+    """One-to-one assignment on pair_cost(e, c) (None = not admissible). Returns (ex_id, cur_id, ambiguous)."""
     if ex.empty or cur.empty:
         return []
-    BIG = 1e6
     C = np.full((len(ex), len(cur)), BIG)
     for i, (_, e) in enumerate(ex.iterrows()):
-        e_el = elements_in(e.catalyst_name, e.composition, e.support, e.promoters, e.active_metals)
         for j, (_, c) in enumerate(cur.iterrows()):
-            if pd.isna(e.T_K) or abs(e.T_K - c.temperature_k) > 3:
-                continue
-            # an extracted record without a pressure can still pair (Ni-In-Al/SiO2 states 'ambient pressure' once
-            # and the extraction left P empty); P then scores as missing
-            if pd.notna(e.P_bar) and abs(e.P_bar - c.pressure_bar) > 0.05 * c.pressure_bar:
-                continue
-            if pd.notna(e.H2_CO2) and pd.notna(c.pH2_pCO2_ratio) and abs(e.H2_CO2 - c.pH2_pCO2_ratio) > 0.10 * c.pH2_pCO2_ratio:
-                continue
-            if pd.notna(e.GHSV_NL_gcat_h) and pd.notna(c.GHSV_nlph_gcat) and not any(
-                    pd.notna(g) and abs(g - c.GHSV_nlph_gcat) <= 0.10 * c.GHSV_nlph_gcat
-                    for g in (e.GHSV_NL_gcat_h, e.get("GHSV_inert_free_NL_gcat_h"))):
-                continue
-            cost = abs(e.T_K - c.temperature_k) / 3
-            cost += abs(e.P_bar - c.pressure_bar) / c.pressure_bar / 0.05 if pd.notna(e.P_bar) else 1
-            cost += 3 * len(e_el ^ c.elements)
-            if pd.notna(e.metal_wt_pct) and c.loading > 0:
-                cost += min(1.0, abs(e.metal_wt_pct - c.loading) / c.loading)
-            if pd.notna(e.STY_g_gcat_h) and e.STY_g_gcat_h > 0 and c.STY_g_per_gcath > 0:
-                cost += min(2.0, abs(np.log(e.STY_g_gcat_h / c.STY_g_per_gcath)))
-            else:
-                cost += 2
-            cost += 0.05 * {"main": 0, "si": 1, "figures": 2, "si_figures": 3}.get(e.get("pass", "main"), 0)
-            C[i, j] = cost
-    rows, cols = linear_sum_assignment(C)
-    return [(ex.index[r], cur.index[c]) for r, c in zip(rows, cols) if C[r, c] < BIG]
+            v = pair_cost(e, c)
+            if v is not None:
+                C[i, j] = v
+    # tie-breaks: extraction pass (0.05 per rank) and document order (1e-6 x distance of the relative positions)
+    rank = np.array([PASS_RANK.get(p, 0) for p in (ex["pass"] if "pass" in ex else ["main"] * len(ex))], dtype=float)
+    pos_e = np.arange(len(ex)) / max(len(ex) - 1, 1)
+    pos_c = np.arange(len(cur)) / max(len(cur) - 1, 1)
+    T = 0.05 * rank[:, None] + 1e-6 * np.abs(pos_e[:, None] - pos_c[None, :])
+    rows, cols = linear_sum_assignment(np.where(C < BIG, C + T, BIG))
+    out = []
+    for r, c in zip(rows, cols):
+        if C[r, c] >= BIG:
+            continue
+        col_riv = (C[:, c] < BIG) & (np.abs(C[:, c] - C[r, c]) <= AMB_EPS)
+        row_riv = (C[r, :] < BIG) & (np.abs(C[r, :] - C[r, c]) <= AMB_EPS)
+        out.append((ex.index[r], cur.index[c], bool(col_riv.sum() > 1 or row_riv.sum() > 1)))
+    return out
+
+
+def extracted_active_elements(e) -> frozenset:
+    """Active metals and promoters as the extraction states them (empty when it states neither)."""
+    return elements_in(e.active_metals, e.promoters)
+
+
+def match_doi_suvarna(ex: pd.DataFrame, cur: pd.DataFrame) -> list[tuple]:
+    """Suvarna rows have no names. Gates: the conditions (an extracted record without a pressure can still pair:
+    Ni-In-Al/SiO2 states 'ambient pressure' once and the extraction left P empty; P then scores as missing), and the
+    active/promoter elements when both sides state them: every active or promoter element of one side must appear
+    in the other side's composition (no Pt row for a Pd catalyst, no promoted row for the bare oxide). Cost: the
+    condition cost + 3 x (element-set difference) + the relative loading difference when both sides give the
+    loading of the same single active element (otherwise no loading term)."""
+    els = {i: elements_in(e.catalyst_name, e.composition, e.support, e.promoters, e.active_metals)
+           for i, e in ex.iterrows()}
+    act = {i: extracted_active_elements(e) for i, e in ex.iterrows()}
+
+    def cost(e, c):
+        v = condition_cost(e, c, p_missing_ok=True)
+        if v is None:
+            return None
+        e_el, e_act = els[e.name], act[e.name]
+        if e_act and not (e_act <= c.elements and c.active_elements <= e_el):
+            return None
+        v += 3 * len(e_el ^ c.elements)
+        if pd.notna(e.metal_wt_pct) and len(e_act) == 1 and next(iter(e_act)) in c.element_loading:
+            ref = c.element_loading[next(iter(e_act))]
+            if ref > 0:
+                v += min(1.0, abs(e.metal_wt_pct - ref) / ref)
+        return v
+
+    return assign(ex, cur, cost)
 
 
 def apply_errata(t: pd.DataFrame, errata: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -243,8 +321,8 @@ def apply_errata(t: pd.DataFrame, errata: str | None = None) -> tuple[pd.DataFra
                             "evidence": e.evidence})
                 adj.at[idx, "catalyst_name"] = e.value
                 if "elements" in adj.columns:  # Suvarna rows: the composition the matcher uses follows the new name
-                    adj.at[idx, "elements"] = elements_in(e.value)
-                    adj.at[idx, "loading"] = float(re.search(r"([\d.]+) wt%", e.value).group(1))
+                    for col, v in zip(SUVARNA_COMP, suvarna_composition(e.value)):
+                        adj.at[idx, col] = v
             continue
         for idx in adj[m].index:
             old = adj.at[idx, e.field]
@@ -255,43 +333,88 @@ def apply_errata(t: pd.DataFrame, errata: str | None = None) -> tuple[pd.DataFra
     return adj, pd.DataFrame(log)
 
 
-def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple[int, int]]:
-    if ex.empty or cur.empty:
-        return []
-    BIG = 1e6
-    C = np.full((len(ex), len(cur)), BIG)
+def match_doi(ex: pd.DataFrame, cur: pd.DataFrame, aliases: dict) -> list[tuple]:
+    """TheMeCat: name rules and the condition gates; cost = condition cost (see assign for ties and ambiguity)."""
     # The prefix and one-edit rules are used only for names that have no exact or alias partner in the
     # other set, so 'Ir1Pd1-In2O3(PM)' is never paired with 'Ir1Pd1-In2O3(GM)', nor 'In2O3' with
     # 'In2O3/HZSM-5', when the exact partners exist.
     ex_names, cur_names = set(ex.catalyst_name), set(cur.catalyst_name)
     ex_strong = {a for a in ex_names if any(names_match(a, b, aliases, False) for b in cur_names)}
     cur_strong = {b for b in cur_names if any(names_match(a, b, aliases, False) for a in ex_names)}
-    for i, (_, e) in enumerate(ex.iterrows()):
-        for j, (_, c) in enumerate(cur.iterrows()):
-            fuzzy_ok = e.catalyst_name not in ex_strong and c.catalyst_name not in cur_strong
-            if not names_match(e.catalyst_name, c.catalyst_name, aliases, fuzzy_ok):
-                continue
-            if pd.isna(e.T_K) or pd.isna(c.temperature_k) or abs(e.T_K - c.temperature_k) > 3:
-                continue
-            if pd.isna(e.P_bar) or pd.isna(c.pressure_bar) or abs(e.P_bar - c.pressure_bar) > 0.05 * c.pressure_bar:
-                continue
-            if pd.notna(e.H2_CO2) and pd.notna(c.pH2_pCO2_ratio) and abs(e.H2_CO2 - c.pH2_pCO2_ratio) > 0.10 * c.pH2_pCO2_ratio:
-                continue
-            if pd.notna(e.GHSV_NL_gcat_h) and pd.notna(c.GHSV_nlph_gcat) and not any(
-                    pd.notna(g) and abs(g - c.GHSV_nlph_gcat) <= 0.10 * c.GHSV_nlph_gcat
-                    for g in (e.GHSV_NL_gcat_h, e.get("GHSV_inert_free_NL_gcat_h"))):
-                continue
-            cost = abs(e.T_K - c.temperature_k) / 3 + abs(e.P_bar - c.pressure_bar) / c.pressure_bar / 0.05
-            # tie-break only: prefer the main extraction, then SI, then plot passes (0.05 per rank)
-            cost += 0.05 * {"main": 0, "si": 1, "figures": 2, "si_figures": 3}.get(e.get("pass", "main"), 0)
-            for a, b in (("X_CO2_pct", "CO2_conversion"), ("S_MeOH_pct", "selectivity_CH3OH")):
-                if pd.notna(e[a]) and pd.notna(c[b]):
-                    cost += abs(e[a] - c[b])
-                else:
-                    cost += 5  # unknown performance: weaker evidence for this pairing
-            C[i, j] = cost
-    rows, cols = linear_sum_assignment(C)
-    return [(ex.index[r], cur.index[c]) for r, c in zip(rows, cols) if C[r, c] < BIG]
+
+    def cost(e, c):
+        fuzzy_ok = e.catalyst_name not in ex_strong and c.catalyst_name not in cur_strong
+        if not names_match(e.catalyst_name, c.catalyst_name, aliases, fuzzy_ok):
+            return None
+        return condition_cost(e, c)
+
+    return assign(ex, cur, cost)
+
+
+def _batch_of() -> dict:
+    """DOI -> first18 (the TheMeCat papers of the first rounds), batch4 (Suvarna + Lam 2018), batch5 (TheMeCat
+    papers downloaded by hand)."""
+    b5 = {l.split("#")[0].strip().lower() for l in (HERE / "manual_download_dois_batch5.txt").read_text(encoding="utf-8").splitlines()}
+    out = {}
+    for doi, ref in REF.items():
+        if ref == "themecat":
+            out[doi] = "batch5" if doi in b5 else "first18"
+        elif ref in ("suvarna", "review"):
+            out[doi] = "batch4"
+    return out
+
+
+BATCH = _batch_of()
+SAMPLES = {"batch4": EVAL / "batch4_unmatched_sample.csv", "batch5": EVAL / "batch5_unmatched_sample.csv"}
+
+
+def precision_report(ex, matched_ex, ent, verdict_of) -> dict:
+    """Precision over all extracted entries, and the share of unmatched entries that are correct."""
+    tot = ent.set_index("doi")
+    out = {}
+    r = tot.loc["TOTAL first 18 TheMeCat papers"]
+    out["first18"] = dict(
+        extracted=int(r.extracted), matched=int(r.matched), unmatched=int(r.unmatched_extracted),
+        unmatched_correct=int(r.unmatched_reviewed_correct), unmatched_duplicate=int(r.unmatched_reviewed_duplicate),
+        unmatched_wrong=int(r.unmatched_reviewed_wrong), unmatched_unreviewed=int(r.unmatched_unreviewed),
+        share_of_unmatched_correct=round(r.unmatched_reviewed_correct / r.unmatched_extracted, 4),
+        share_of_reviewed_unmatched_correct=round(r.unmatched_reviewed_correct / max(
+            r.unmatched_extracted - r.unmatched_unreviewed, 1), 4),
+        precision_all_extracted=round((r.matched + r.unmatched_reviewed_correct) / r.extracted, 4))
+    # sampled batches: re-check each sampled entry's status under the current matching
+    key_ex = {(d, l): i for i, d, l in zip(ex.index, ex.doi, ex.entry_label)}
+    strata, changed = {}, []
+    for b, path in SAMPLES.items():
+        s = pd.read_csv(path)
+        s["doi"] = s.doi.str.lower()
+        s["ok"] = s.verdict.astype(str).str.lower().str.startswith("correct")
+        s["now_matched"] = [key_ex.get((d, l)) in matched_ex for d, l in zip(s.doi, s.entry_label)]
+        s["found"] = [(d, l) in key_ex for d, l in zip(s.doi, s.entry_label)]
+        changed += [dict(batch=b, doi=x.doi, entry_label=x.entry_label, verdict=x.verdict,
+                         status="matched now" if x.now_matched else "not in extraction") for x in s.itertuples()
+                    if x.now_matched or not x.found]
+        keep = s[~s.now_matched & s.found]
+        rb = tot.loc["TOTAL batch 4 (Suvarna + Lam 2018)" if b == "batch4" else "TOTAL batch 5 (TheMeCat by hand)"]
+        p = float(keep.ok.mean())
+        strata[b] = dict(extracted=int(rb.extracted), matched=int(rb.matched), unmatched=int(rb.unmatched_extracted),
+                         sample=int(len(s)), sample_still_unmatched=int(len(keep)), sample_correct=int(keep.ok.sum()),
+                         share_correct=round(p, 4),
+                         precision_all_extracted=round((rb.matched + rb.unmatched_extracted * p) / rb.extracted, 4))
+    U = sum(v["unmatched"] for v in strata.values())
+    w = {b: v["unmatched"] / U for b, v in strata.items()}
+    pw = sum(w[b] * v["share_correct"] for b, v in strata.items())
+    se = np.sqrt(sum(w[b] ** 2 * v["share_correct"] * (1 - v["share_correct"]) / v["sample_still_unmatched"]
+                     for b, v in strata.items()))
+    E = sum(v["extracted"] for v in strata.values())
+    M_ = sum(v["matched"] for v in strata.values())
+    out["added31"] = dict(
+        strata=strata, pooled_sample=f"{sum(v['sample_correct'] for v in strata.values())}/"
+                                    f"{sum(v['sample_still_unmatched'] for v in strata.values())}",
+        share_of_unmatched_correct_weighted=round(pw, 4), share_ci95_weighted=[round(pw - 1.96 * se, 4),
+                                                                               round(pw + 1.96 * se, 4)],
+        extracted=E, matched=M_, unmatched=U, precision_all_extracted=round((M_ + U * pw) / E, 4),
+        sampled_entries_changed_status=changed)
+    return out
 
 
 QUAL = {"X_CO2": "X_CO2_q", "S_MeOH": "S_MeOH_q", "STY": "STY_q"}
@@ -314,7 +437,7 @@ def field_source(e, f) -> str:
 
 def field_scores(pairs, ex, cur_raw, cur_adj):
     out = []
-    for ei, ci in pairs:
+    for ei, ci, amb in pairs:
         e = ex.loc[ei]
         for f, (ecol, ccol, kind, st, lo) in FIELDS.items():
             for truth_name, cur in (("raw", cur_raw), ("adjudicated", cur_adj)):
@@ -341,25 +464,32 @@ def field_scores(pairs, ex, cur_raw, cur_adj):
                         status_s = "correct" if within(ev, tv, kind, st) else "wrong"
                         status_l = "correct" if within(ev, tv, kind, lo) else "wrong"
                 out.append({"doi": e.doi, "ex_id": ei, "cur_id": ci, "catalyst": e.catalyst_name, "field": f,
-                            "truth": truth_name, "extracted": ev, "curated": tv,
+                            "truth": truth_name, "extracted": ev, "curated": tv, "ambiguous": amb,
                             "source_type": field_source(e, f), "strict": status_s, "loose": status_l})
     return pd.DataFrame(out)
 
 
 def summarize_fields(fs: pd.DataFrame, by=("truth", "field")) -> pd.DataFrame:
+    """Field accuracy on the unambiguous pairs (n_curated ... n_not_comparable); n_ambiguous counts the curated
+    values of ambiguous pairs, which are not scored."""
     rows = []
     for key, g in fs.groupby(list(by)):
+        amb = g[g.ambiguous]
+        g = g[~g.ambiguous]
         n = len(g)
         rec = dict(zip(by, key if isinstance(key, tuple) else (key,)))
         cmp_s = g[g.strict.isin(["correct", "wrong"])]
         rec.update({
             "n_curated": n,
             "n_extracted": len(cmp_s),
+            "n_correct_strict": int((cmp_s.strict == "correct").sum()),
             "coverage": round(len(cmp_s) / n, 3) if n else None,
             "acc_strict": round((cmp_s.strict == "correct").mean(), 3) if len(cmp_s) else None,
             "acc_loose": round((cmp_s.loose == "correct").mean(), 3) if len(cmp_s) else None,
             "n_missing": int((g.strict == "missing").sum()),
             "n_not_comparable": int((g.strict == "not_comparable_basis").sum()),
+            "n_ambiguous": len(amb),
+            "n_ambiguous_compared": int(amb.strict.isin(["correct", "wrong"]).sum()),
         })
         rows.append(rec)
     return pd.DataFrame(rows)
@@ -438,6 +568,7 @@ def main() -> None:
             pairs += match_doi(ex[ex.doi == doi], cur_adj[cur_adj.doi == doi], aliases_all.get(doi, []))
     matched_ex = {p[0] for p in pairs}
     matched_cur = {p[1] for p in pairs}
+    ambiguous_pairs = sum(1 for p in pairs if p[2])
 
     fs = field_scores(pairs, ex, cur_raw, cur_adj)
     fs["ref"] = fs.doi.map(REF)
@@ -446,34 +577,49 @@ def main() -> None:
     fsum_ref = summarize_fields(fs[fs.truth == "adjudicated"], by=("ref", "field"))
 
     # entry-level recall / precision
+    # First 18 TheMeCat papers: every unmatched extracted entry has a hand verdict in unmatched_review.csv (entries
+    # that became unmatched after the review count as unreviewed). The 31 papers added later (batch 4: Suvarna and
+    # Lam 2018; batch 5: TheMeCat by hand) were checked in random samples of their unmatched entries; precision there
+    # is estimated stratum by stratum. A duplicate of a matched entry is not a correct additional entry.
     review = pd.read_csv(EVAL / "unmatched_review.csv") if (EVAL / "unmatched_review.csv").exists() else pd.DataFrame(columns=["doi", "entry_label", "verdict"])
+    review["doi"] = review.doi.str.lower()
+    verdict_of = {(r.doi, r.entry_label): str(r.verdict) for r in review.itertuples()}
     ent = []
     for doi in sorted(dois):
         e = ex[ex.doi == doi]
         c = cur_adj[cur_adj.doi == doi]
         um = e[~e.index.isin(matched_ex)]
-        rv = review[review.doi.str.lower() == doi]
-        verified = sum(1 for lbl in um.entry_label if (rv[rv.entry_label == lbl].verdict.astype(str).str.startswith("correct")).any())
-        ent.append({"doi": doi, "ref": REF[doi], "curated": len(c), "extracted": len(e),
+        v = [verdict_of.get((doi, lbl)) for lbl in um.entry_label]
+        correct = sum(1 for x in v if x and x.startswith("correct") and x != "correct_duplicate")
+        dup = sum(1 for x in v if x == "correct_duplicate")
+        wrong = sum(1 for x in v if x and x.startswith("wrong"))
+        ent.append({"doi": doi, "ref": REF[doi], "batch": BATCH.get(doi, ""), "curated": len(c), "extracted": len(e),
                     "matched": int(e.index.isin(matched_ex).sum()),
+                    "matched_ambiguous": sum(1 for p in pairs if p[2] and p[0] in e.index),
                     "matched_with_X_and_S": int((e.index.isin(matched_ex) & e.X_CO2_pct.notna() & e.S_MeOH_pct.notna()).sum()),
                     "recall": round(e.index.isin(matched_ex).sum() / len(c), 3) if len(c) else None,
-                    "unmatched_extracted": len(um), "unmatched_verified_correct": verified,
-                    "precision_matched_only": round(e.index.isin(matched_ex).sum() / len(e), 3) if len(e) else None,
-                    "precision_with_review": round((e.index.isin(matched_ex).sum() + verified) / len(e), 3) if len(e) else None})
+                    "unmatched_extracted": len(um), "unmatched_reviewed_correct": correct,
+                    "unmatched_reviewed_duplicate": dup, "unmatched_reviewed_wrong": wrong,
+                    "unmatched_unreviewed": len(um) - correct - dup - wrong,
+                    "precision_matched_only": round(e.index.isin(matched_ex).sum() / len(e), 3) if len(e) else None})
     ent = pd.DataFrame(ent)
-    num = ["curated", "extracted", "matched", "matched_with_X_and_S", "unmatched_extracted", "unmatched_verified_correct"]
+    num = ["curated", "extracted", "matched", "matched_ambiguous", "matched_with_X_and_S", "unmatched_extracted",
+           "unmatched_reviewed_correct", "unmatched_reviewed_duplicate", "unmatched_reviewed_wrong", "unmatched_unreviewed"]
     totals = []
     for label, part in (("TOTAL themecat", ent[ent.ref == "themecat"]), ("TOTAL suvarna", ent[ent.ref == "suvarna"]),
-                        ("TOTAL review", ent[ent.ref == "review"]), ("TOTAL", ent)):
+                        ("TOTAL review", ent[ent.ref == "review"]),
+                        ("TOTAL first 18 TheMeCat papers", ent[ent.batch == "first18"]),
+                        ("TOTAL batch 4 (Suvarna + Lam 2018)", ent[ent.batch == "batch4"]),
+                        ("TOTAL batch 5 (TheMeCat by hand)", ent[ent.batch == "batch5"]),
+                        ("TOTAL 31 added papers", ent[ent.batch.isin(["batch4", "batch5"])]), ("TOTAL", ent)):
         if part.empty:
             continue
         tot = part[num].sum()
         totals.append({"doi": label, **tot.to_dict(),
                        "recall": round(tot.matched / tot.curated, 3) if tot.curated else None,
-                       "precision_matched_only": round(tot.matched / tot.extracted, 3),
-                       "precision_with_review": round((tot.matched + tot.unmatched_verified_correct) / tot.extracted, 3)})
+                       "precision_matched_only": round(tot.matched / tot.extracted, 3)})
     ent = pd.concat([ent, pd.DataFrame(totals)])
+    precision = precision_report(ex, matched_ex, ent, verdict_of)
 
     # unmatched lists for the hand review
     um_all = ex[(~ex.index.isin(matched_ex)) & (ex.doi != GOTHE_DOI)][
@@ -485,7 +631,8 @@ def main() -> None:
     EVAL.mkdir(exist_ok=True)
     pd.DataFrame([{"ex_id": a, "cur_id": b, "doi": ex.at[a, "doi"], "ex_catalyst": ex.at[a, "catalyst_name"],
                    "cur_catalyst": cur_adj.at[b, "catalyst_name"], "T_ex": ex.at[a, "T_K"], "T_cur": cur_adj.at[b, "temperature_k"],
-                   "P_ex": ex.at[a, "P_bar"], "P_cur_adj": cur_adj.at[b, "pressure_bar"]} for a, b in pairs]).to_csv(EVAL / "matches.csv", index=False)
+                   "P_ex": ex.at[a, "P_bar"], "P_cur_adj": cur_adj.at[b, "pressure_bar"], "ambiguous": amb}
+                  for a, b, amb in pairs]).to_csv(EVAL / "matches.csv", index=False)
     fs.to_csv(EVAL / "field_scores.csv", index=False)
     fsum.to_csv(EVAL / "field_accuracy.csv", index=False)
     fsum_src.to_csv(EVAL / "field_accuracy_by_source.csv", index=False)
@@ -495,8 +642,17 @@ def main() -> None:
     um_cur.to_csv(EVAL / "unmatched_curated.csv", index=False)
     errata_log.to_csv(EVAL / "errata_applied.csv", index=False)
     gres.to_csv(EVAL / "gothe_table4_scores.csv", index=False)
-    summary = {"field_accuracy": fsum.to_dict("records"), "entry_metrics": ent.to_dict("records"), "gothe": gsum,
-               "n_errata_cells": len(errata_log)}
+    f = errata_log.field.astype(str)
+    errata = {"log_rows": len(errata_log), "rows_dropped": int((f == "(row dropped)").sum()),
+              "rows_renamed": int((f == "catalyst_name").sum()),
+              "cells_set_to_missing": int(((f != "(row dropped)") & (f != "catalyst_name") & errata_log.pdf.isna()).sum()),
+              "cells_corrected": int(((f != "(row dropped)") & (f != "catalyst_name") & errata_log.pdf.notna()).sum()),
+              "by_reference": {k: {"cells": int((g.field != "(row dropped)").sum()),
+                                   "rows_dropped": int((g.field == "(row dropped)").sum())}
+                               for k, g in errata_log.groupby("ref")}}
+    summary = {"matching": {"pairs": len(pairs), "ambiguous_pairs": ambiguous_pairs, "amb_eps": AMB_EPS},
+               "field_accuracy": fsum.to_dict("records"), "entry_metrics": ent.to_dict("records"),
+               "precision": precision, "gothe": gsum, "errata": errata}
     (EVAL / "summary.json").write_text(json.dumps(summary, indent=1, default=str), encoding="utf-8")
 
     pd.set_option("display.width", 220)
@@ -505,7 +661,9 @@ def main() -> None:
     print("\nBY REFERENCE SET (adjudicated)\n", fsum_ref.to_string(index=False))
     print("\nENTRIES\n", ent.to_string(index=False))
     print("\nGOTHE", gsum)
-    print(f"\nerrata cells applied: {len(errata_log)}")
+    print("\nMATCHING", summary["matching"])
+    print("\nPRECISION", json.dumps(precision, indent=1, default=str))
+    print("\nERRATA", errata)
 
 
 if __name__ == "__main__":
