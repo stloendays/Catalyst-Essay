@@ -119,3 +119,7 @@ gap is 2–4% of a 160–300 USD/t ammonia cost.
 | Exposed Fe atoms in reduced fused iron | < 1% | 0.2–0.76% measured | Consistent. |
 | Fe converter catalyst, 1,000 t/d | reference 40–90 m³; model optimum 17.1 m³ | 30–90 m³ for high-pressure converters; Topsøe S-200 at 12.6 MPa 65.3 m³ (the model's 65 m³ calibration) | Reference consistent. |
 | Fe loop separator / recycle NH₃ | model optimum 30 °C / 6.4 mol% | −5 to 0 °C (Topsøe, Uhde), −23 °C (Kellogg); 2.2–4.2 mol% NH₃ at the converter inlet (Dybkjær 1995, Table 6.1; Appl 1999, Fig. 99) | Rouwenhorst 2021 (p. 51) gives −20 to 30 °C; the 0 to −10 °C quoted in section 4 is the Topsøe/Uhde range of Dybkjær 1995. |
+
+**Adopted 2026-10-08.** The manuscript now uses the literature values of the table above: Ru/C at 8 wt% Ru (5–10 wt%),
+bed density 430–550 kg m⁻³, recovery 90–97%. Outputs regenerated on GitHub Actions (run 37648545590); numbers in
+`docs/SOURCE_OF_TRUTH_2026-09-29.md` and `analysis/nh3_actual_ru_params_2026_10_07/TEXT_NUMBERS.md`.

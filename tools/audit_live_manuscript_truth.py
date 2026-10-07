@@ -391,15 +391,15 @@ tokens(
     "NH3 actual-catalyst cost (Fig. 2d)",
     s2,
     "11%",
-    f"{float(ac['supp_rec94']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
-    f"{float(ac['supp_rec94']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
-    f"{float(ac['supp_rec94']['gap_to_Fe']):.2f}–{float(ac['supp_rec90']['gap_to_Fe']):.2f}",
-    f"{float(ac['supp_rec94']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
-    f"{float(ac['kaap94']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
+    f"{float(ac['supp_rec97']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
+    f"{float(ac['supp_rec97']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
+    f"from {abs(float(ac['supp_rec97']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe",
+    f"{float(ac['supp_rec97']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
+    f"{float(ac['kaap97']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
     f"{float(ac['fe_kaap']['cost']):.2f}",
 )
 ok("NH3 actual-catalyst: Ru/C with recovery below Fe in the KAAP loop",
-   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap94"]["cost"]) < float(ac["fe_kaap"]["cost"]))
+   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap97"]["cost"]) < float(ac["fe_kaap"]["cost"]))
 lit = {r["id"]: r for r in rows("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")}
 tokens(
     "NH3 literature activity gains (Fig. 3a)",
@@ -543,13 +543,15 @@ tokens(
     "NH3 actual-catalyst Monte Carlo",
     s2_full,
     f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when Ru is read at the effective price p(1 - r)/u in the benchmark bed",
-    f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when its own Ru content",
+    f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when a commercial Ru/C bed "
+    f"({mca['ranges']['A_bed_Ru_wt_pct'][0]:g}–{mca['ranges']['A_bed_Ru_wt_pct'][1]:g} wt% Ru, "
+    f"{mca['ranges']['bed_density_kg_m3'][0]:.0f}–{mca['ranges']['bed_density_kg_m3'][1]:.0f} kg m⁻³)",
     f"Fe is cheaper in {mca['B']['P_Fe_cheaper'] * 100:.1f}% of draws with recovery and {mca['B0']['P_Fe_cheaper'] * 100:.1f}% without",
-    f"five of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
+    f"four of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
 )
 ok("NH3 actual-catalyst MC: base reproduced", mca["base_reproduced"]["P_Fe_cheaper"] == 1.0
    and abs(mca["base_reproduced"]["min_gap_USD_t"] - 2.382) < 1e-3)
-ok("NH3 actual-catalyst MC: five winning measured catalysts", len(mca["B_Ru_winning_catalysts"]) == 5)
+ok("NH3 actual-catalyst MC: four winning measured catalysts", len(mca["B_Ru_winning_catalysts"]) == 4)
 mcd_rows = rows("analysis/nh3_mc_ru_actual_2026_10_06/draws.csv")
 
 
@@ -574,10 +576,13 @@ _tr = _quantiles([float(r_["r"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
 tokens(
     "NH3 actual-catalyst MC: where Ru wins",
     s2_full,
-    f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.1f}% of draws with u in its lowest tercile",
-    f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r in their top terciles",
-    f"in {_win(lambda r_: float(r_['measured_wt_pct']) < 2.5) * 100:.1f}% of draws below 2.5 wt% Ru",
-    f"{_win(lambda r_: float(r_['measured_wt_pct']) >= 5.0) * 100:.0f}% at 5 wt% or more",
+    f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.2f}% of draws with u in its lowest tercile",
+    f"{_win(lambda r_: float(r_['u']) >= _tu[1]) * 100:.0f}% with u in its top tercile",
+    f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r both in their top terciles",
+    f"from {_win(lambda r_: float(r_['r']) < _tr[0]) * 100:.0f}% to {_win(lambda r_: float(r_['r']) >= _tr[1]) * 100:.0f}% "
+    "between its lowest and top terciles",
+    f"from {_win(lambda r_: float(r_['A_bed_wt_pct']) < 7.5) * 100:.0f}% below 7.5 wt% to "
+    f"{_win(lambda r_: float(r_['A_bed_wt_pct']) >= 7.5) * 100:.0f}% above",
 )
 
 # ----- NH3 measured catalysts --------------------------------------------------------------------------------
