@@ -542,7 +542,7 @@ s2_full = section("Metal price and process optimization jointly determine the Fe
 tokens(
     "NH3 actual-catalyst Monte Carlo",
     s2_full,
-    f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when the supported catalyst occupies the benchmark bed volume",
+    f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when Ru is read at the effective price p(1 - r)/u in the benchmark bed",
     f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when its own Ru content",
     f"Fe is cheaper in {mca['B']['P_Fe_cheaper'] * 100:.1f}% of draws with recovery and {mca['B0']['P_Fe_cheaper'] * 100:.1f}% without",
     f"five of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
