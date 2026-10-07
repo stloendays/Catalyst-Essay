@@ -502,8 +502,11 @@ def main():
             "P_opt_bar", "V_m3", "status", "location"]
     keep.insert(keep.index("SV_raw"), "WHSV_filled")
     keep.insert(keep.index("metal_wt_pct") + 1, "support")
-    allc = cand[keep].merge(grouped[["doi", "entry", "group", "duplicate_in_group"]], on=["doi", "entry"], how="left")
-    allc = allc.merge(prim[["doi", "entry", "paper_basis", "paper_rate", "SV_filled"]], on=["doi", "entry"], how="left")
+    # `group` names the comparison an entry is counted in; a removed duplicate carries its group in `duplicate_of_group`
+    dups = grouped[grouped.duplicate_in_group != ""].rename(columns={"group": "duplicate_of_group"})
+    allc = cand[keep].merge(prim[["doi", "entry", "group", "paper_basis", "paper_rate", "SV_filled"]],
+                            on=["doi", "entry"], how="left")
+    allc = allc.merge(dups[["doi", "entry", "duplicate_of_group", "duplicate_in_group"]], on=["doi", "entry"], how="left")
     allc.to_csv(HERE / "candidates.csv", index=False, float_format="%.6g")
     gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
     st = cand.status.fillna("")
