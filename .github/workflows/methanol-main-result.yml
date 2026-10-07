@@ -1,0 +1,90 @@
+name: Methanol main result
+
+# Reruns the methanol field result (paper leaderboards vs plant-cost leaderboards over the agent-extracted
+# literature) on a GitHub runner.
+#
+#   push / pull_request   rerun and compare with the committed summary (counts exactly, costs to 1e-6)
+#   head commit message contains "[ci regenerate]" (non-main branch)
+#                         rerun and commit the regenerated outputs back to that branch
+#
+# The ammonia part of the ACSA self-check gate needs the frozen harness's cached response surface, which the
+# repository excludes by size; on the runner the gate takes the NH3 result from the committed
+# agent/selfcheck_report.json (ACSA_GATE_NH3_FROM_RECORD=1) and reruns the methanol and Au/TiO2 checks.
+
+on:
+  push:
+    paths:
+      - ".github/workflows/methanol-main-result.yml"
+      - "data/meoh/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/**"
+      - "agent/extraction/out/records_normalized.csv"
+      - "agent/selfcheck_gate.py"
+  pull_request:
+    paths:
+      - ".github/workflows/methanol-main-result.yml"
+      - "data/meoh/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/**"
+      - "agent/extraction/out/records_normalized.csv"
+      - "agent/selfcheck_gate.py"
+  workflow_dispatch:
+    inputs:
+      regenerate:
+        description: "Commit regenerated outputs back to the branch (not main)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-main-result-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONIOENCODING: utf-8
+      INV_WORKERS: "4"
+      ACSA_GATE_NH3_FROM_RECORD: "1"
+      REGENERATE: ${{ (github.event_name == 'workflow_dispatch' && inputs.regenerate) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[ci regenerate]')) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Keep the committed summary for comparison
+        run: cp analysis/meoh_literature_inversion_2026_10_05/summary.json /tmp/summary_committed.json
+      - name: Rerun the main result
+        run: |
+          python analysis/meoh_literature_inversion_2026_10_05/run_literature_inversion.py \
+            > analysis/meoh_literature_inversion_2026_10_05/run_stdout.txt
+          python analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.py
+          python -c "import json; s=json.load(open('analysis/meoh_literature_inversion_2026_10_05/summary.json')); p=s['primary']; print('primary', p['top1_mismatch_groups'], '/', p['groups'], 'papers', p['papers_with_mismatch'], '/', p['papers'])"
+      - name: Compare with the committed summary
+        if: env.REGENERATE != 'true'
+        run: python tools/compare_json_numbers.py /tmp/summary_committed.json analysis/meoh_literature_inversion_2026_10_05/summary.json
+      - name: Commit regenerated outputs
+        if: env.REGENERATE == 'true' && github.ref != 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_literature_inversion_2026_10_05
+          if git diff --cached --quiet; then echo "outputs unchanged"; exit 0; fi
+          git commit -m "CI: regenerate the methanol main result on ubuntu-latest (run ${{ github.run_id }})"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0; sleep 5; done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: methanol-main-result
+          path: |
+            analysis/meoh_literature_inversion_2026_10_05/summary.json
+            analysis/meoh_literature_inversion_2026_10_05/group_metrics*.csv
+            analysis/meoh_literature_inversion_2026_10_05/mismatch_kinds.json
+            analysis/meoh_literature_inversion_2026_10_05/run_stdout.txt
+            agent/selfcheck_report.json

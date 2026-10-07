@@ -111,11 +111,25 @@ def check_au(semiopen: bool) -> dict:
     return out
 
 
+def nh3_from_record() -> dict:
+    """NH3 entry of the committed report, for machines without the local harness (GitHub Actions).
+
+    The NH3 check reruns the frozen harness on its cached response surface, which the repository excludes by size
+    (bundle manifest `excluded_files`). Where the harness is absent and ACSA_GATE_NH3_FROM_RECORD=1, the gate uses
+    the last committed NH3 result instead of rerunning it, and says so in the report."""
+    rec = json.loads(REPORT.read_text(encoding="utf-8"))
+    nh3 = next(s for s in rec["systems"] if s["system"] == "NH3")
+    return dict(nh3, source=f"committed agent/selfcheck_report.json ({rec['timestamp']}); harness not on this machine")
+
+
 def run(semiopen: bool = True) -> dict:
+    use_record = os.environ.get("ACSA_GATE_NH3_FROM_RECORD") == "1" and not HARNESS.exists()
+    nh3 = nh3_from_record() if use_record else check_nh3()
     res = {"timestamp": datetime.now().isoformat(timespec="seconds"),
-           "systems": [check_nh3(), check_meoh(), check_au(semiopen)]}
+           "systems": [nh3, check_meoh(), check_au(semiopen)]}
     res["pass"] = all(s["pass"] for s in res["systems"])
-    REPORT.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
+    if not use_record:          # a run that did not recheck NH3 does not overwrite the record it relied on
+        REPORT.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
     return res
 
 

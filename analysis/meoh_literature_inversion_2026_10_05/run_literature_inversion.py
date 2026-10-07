@@ -30,7 +30,12 @@ Self-check (Agent consistency with the hand-built case): the extracted Gothe et 
 through the same code path; their costs must equal the frozen Table 4 results, including the four canonical states.
 
 Parallel over candidates, INV_WORKERS processes (default 4).
-Outputs (this folder): literature_candidates.csv, group_metrics.csv, group_metrics_unconstrained.csv, summary.json.
+Limit sweep: the primary at absolute limits of 4-30 % on the reactor-inlet non-H2/CO2 fraction (summary limit_sweep).
+Isothermal catalyst comparisons: the entries of a group at one temperature that name at least two catalysts, the
+paper's catalyst ranking at fixed conditions (summary isothermal, group_metrics_isothermal.csv).
+
+Outputs (this folder): literature_candidates.csv, group_metrics.csv, group_metrics_unconstrained.csv,
+group_metrics_isothermal.csv, summary.json.
 """
 import json
 import os
@@ -48,8 +53,9 @@ sys.path.insert(0, str(REPO / "data" / "meoh"))
 sys.path.insert(0, str(HERE))
 import meoh_general_model as G  # noqa: E402
 
-from meoh_candidates import (GOTHE_DOI, RHO_SCALES, ROW_KEYS, aggregate, bootstrap, build_candidates,  # noqa: E402
-                             gothe_selfcheck, plant_costs_star, read_records)
+from meoh_candidates import (GOTHE_DOI, LIMIT_SWEEP, RHO_SCALES, ROW_KEYS, aggregate, bootstrap,  # noqa: E402
+                             build_candidates, gothe_selfcheck, plant_costs_star, read_records)
+from mismatch_kinds import base as catalyst_base  # noqa: E402
 
 sys.path.insert(0, str(REPO / "agent"))
 from selfcheck_gate import require  # noqa: E402
@@ -101,6 +107,30 @@ def main():
                                                            label=f"without {biggest}")[1]
     variants["methanol_products_only"] = aggregate(cand[~cand.other_products], "cost_recycled_opt",
                                                    label="reported S_MeOH+S_CO+S_CH4 >= 95 %")[1]
+    # limit sweep: the primary at absolute limits on the reactor-inlet non-H2/CO2 fraction
+    limit_sweep = {}
+    for lim in LIMIT_SWEEP:
+        col = f"cost_recycled_opt_lim{lim * 100:g}"
+        limit_sweep[f"{lim * 100:g}%"] = aggregate(cand, col, label=f"nonreactive limit {lim * 100:g} %")[1]
+    limit_sweep["none"] = variants["recycled_opt_unconstrained"]
+
+    # isothermal catalyst comparisons: within a group, the entries at one temperature that name at least two
+    # different catalysts (the paper's catalyst ranking at fixed T, P, H2/CO2 and space velocity, as in ammonia)
+    iso = cand.copy()
+    iso["group"] = iso.group + " | T " + iso.T_C.round(1).map("{:g}".format)
+    ncat = iso.groupby("group").catalyst.agg(lambda s: s.map(catalyst_base).nunique())
+    iso = iso[iso.group.isin(ncat[ncat >= 2].index)]
+    iso_gm, isothermal = aggregate(iso, "cost_recycled_opt", label="isothermal catalyst comparisons, primary")
+    isothermal["bootstrap"] = bootstrap(iso_gm)
+    isothermal_sweep = {f"{lim * 100:g}%": aggregate(iso, f"cost_recycled_opt_lim{lim * 100:g}",
+                                                     label=f"isothermal, limit {lim * 100:g} %")[1]
+                        for lim in LIMIT_SWEEP}
+    isothermal_sweep["reference 6.86%"] = isothermal
+    isothermal_sweep["none"] = aggregate(iso, "cost_recycled_opt_unconstrained", label="isothermal, no limit")[1]
+    isothermal_sweep["uncapped, no limit (earlier treatment)"] = aggregate(
+        iso, "cost_recycled_opt_uncapped", label="isothermal, uncapped, no limit")[1]
+    iso_gm.to_csv(HERE / "group_metrics_isothermal.csv", index=False, float_format="%.6g")
+
     primary["bootstrap"] = bootstrap(primary_gm)
     unc["bootstrap"] = bootstrap(unc_gm)
 
@@ -127,7 +157,7 @@ def main():
             "reported_S_sum", "other_products", "plot_read", "sty_basis", "STY", "feasible",
             "cost_recycled_opt", "purge_recycled_opt", "n_eligible_recycled", "X_eff_recycled_opt", "n_capped_recycled",
             "cost_recycled_opt_uncapped", "cost_recycled_opt_limit_x1.5", "cost_recycled_opt_limit_x2",
-            "cost_recycled_opt_limit_x3",
+            "cost_recycled_opt_limit_x3", *[f"cost_recycled_opt_lim{lim * 100:g}" for lim in LIMIT_SWEEP],
             "cost_recycled_opt_eqonly", "purge_recycled_opt_eqonly", "cost_recycled_opt_limit_ch4n2",
             "cost_recycled_opt_unconstrained", "purge_recycled_opt_unconstrained",
             "nonreactive_at_unconstrained_recycled", "co2_hyd_approach_at_unconstrained_recycled",
@@ -143,7 +173,8 @@ def main():
     summary = dict(
         records_in=int(len(read_records())), candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),
         duplicate_entries_counted_once=int(n_dup),
-        primary=primary, infeasible=infeasible, variants=variants,
+        primary=primary, infeasible=infeasible, variants=variants, limit_sweep=limit_sweep,
+        isothermal=isothermal_sweep,
         selfcheck=dict(entries=int(len(got)), max_abs_diff_eur_t=selfcheck_max,
                        canonical_states={r.canonical_state: round(r.agent, 2) for r in canon.itertuples()}),
         runtime_s=round(time.time() - t0, 1), workers=WORKERS,

@@ -184,6 +184,9 @@ def build_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
 I_2PCT = int(np.argmin(np.abs(G.PURGES - 0.02)))
 RHO_SCALES = {f"rho{rho:g}": RHO_DEFAULT / rho for rho in RHO_RANGE}   # STY per g scales with 1/density
 ROW_KEYS = ["X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"]
+# absolute limits on the reactor-inlet non-H2/CO2 fraction for the limit sweep (the primary uses the reference loop's
+# own value, G.NONREACTIVE_MAX = 6.86 %)
+LIMIT_SWEEP = (0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30)
 
 
 def _pick(cost, mask):
@@ -224,6 +227,9 @@ def plant_costs(row: dict, sty_scales: dict = None) -> dict:
         nonreactive = np.asarray(s["nonreactive_fraction"])
         for m in (1.5, 2.0, 3.0):           # sensitivity of the primary to the nonreactive limit
             out[f"cost_{tag}_opt_limit_x{m:g}"] = _pick(cost, eq & (nonreactive <= m * G.NONREACTIVE_MAX))[0]
+        if tag == "recycled":
+            for lim in LIMIT_SWEEP:          # absolute limits, for the limit sweep
+                out[f"cost_recycled_opt_lim{lim * 100:g}"] = _pick(cost, eq & (nonreactive <= lim))[0]
         out[f"cost_{tag}_opt_unconstrained"], out[f"purge_{tag}_opt_unconstrained"] = _pick(cost, np.isfinite(cost))
         su = G.purge_sweep(c, cap_conversion=False, STY_per_g_cat=row["STY"], x_co=rule, **kw)
         out[f"cost_{tag}_opt_uncapped"] = _pick(np.asarray(su["cost_eur_t"], dtype=float),
