@@ -35,6 +35,20 @@ entry state and the perturbation, so no run is repeated and the work can be spli
 `run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
 Such states are treated as missing, and the entry leaves both leaderboards of that draw.
 
+## Result (current primary; GitHub Actions run 37598533207)
+
+| Question | Result |
+|---|---|
+| Point estimate | 54 / 82 groups (65.9 %), 37 / 44 papers; paper-weighted 74.6 % |
+| **Sampling uncertainty** (paper-cluster bootstrap, 10,000 resamples) | **95 % CI 51.5–80.0 %** (paper-weighted 62.7–85.7 %) |
+| **Size**: mismatches whose regret is at least | 1 %: 51 (36 papers) · 2 %: 50 · 5 %: 46 · **10 %: 42 (31 papers)** |
+| **Measurement noise** (each entry re-measured, measured error ×1) | 54.0 mismatched groups on average (95 % range 50–58); **47 of the 54 stay mismatched in ≥ 90 % of re-measurements**, all with regret ≥ 1 % (median 45 %) |
+| Noise floor (re-measurement alone changes the reported STY leader) | 12.1 groups (7–17) at ×1 · 21.2 (15–28) at ×2 · 33.6 (26–41) at ×4 |
+| **Extraction error** (plot readings resampled from the agent's measured errors, plus noise ×1) | 55.6 mismatched groups (50–61); 40 stay mismatched in ≥ 90 % of draws |
+| Response surface against exact runs | 18 of 1,640 group verdicts differ (5 exact replicates per scenario) |
+
+Even at four times the measured error, the noise floor (33.6) stays below the observed 54.
+
 ## Result of the previous treatment (33 / 83; superseded by the CI run of the current primary)
 
 | Question | Result |

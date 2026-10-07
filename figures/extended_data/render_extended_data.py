@@ -124,8 +124,8 @@ def ed3():
     d = E.edfig3()
     a, b, c, dd = (d[k][0] for k in "abcd")
     ng = a.attrs["groups"]
-    pg = Page(183.0, 174.0)
-    up = 54.0                     # panels a-d sit above panel e
+    pg = Page(183.0, 182.0)
+    up = 62.0                     # panels a-d sit above panel e
     # a bootstrap
     ax = pg.ax(14, 70 + up, 70, 40)
     ax.bar(a.bin_low_fraction, a.resamples, width=a.bin_high_fraction - a.bin_low_fraction, align="edge",
@@ -225,14 +225,15 @@ def ed3():
     nl = e[~np.isfinite(e.limit)].iloc[0]
     ex.scatter([xmax * 100], [nl.share], s=10, c=RU, ec=INK, lw=0.3, zorder=3, clip_on=False)
     ex.scatter([xmax * 100], [nl.iso_share], s=9, c=FE, marker="s", ec=INK, lw=0.3, zorder=3, clip_on=False)
-    ex.text(xmax * 100 - 0.6, nl.share + 0.05, "no limit", fontsize=5.0, ha="right")
     ref = e.attrs["reference"]
     r = e[np.isclose(e.limit, ref)].iloc[0]
     ex.axvline(ref * 100, color=RED, lw=0.7, ls="--")
     ex.text(ref * 100 + 0.4, 0.06, "reference loop %.2f %%: %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
         100 * ref, r.mismatched, r.groups, 100 * r.share, r.iso_mismatched, r.iso_groups, 100 * r.iso_share),
         color=RED, fontsize=5.2, va="bottom")
-    ex.set_xlim(0, xmax * 100 + 1)
+    ex.set_xlim(0, xmax * 100 + 1.5)
+    ex.set_xticks([0, 5, 10, 15, 20, 25, 30, xmax * 100])
+    ex.set_xticklabels(["0", "5", "10", "15", "20", "25", "30", "no limit"])
     pct_axis(ex, 1.0)
     ex.set_xlabel("limit on the reactor-inlet content of species other than H$_2$ and CO$_2$ (mol%)")
     ex.set_ylabel("STY leader \u2260 plant-cost leader (%)")
@@ -555,11 +556,14 @@ def write_captions():
 
     d = E.edfig3()
     a, b, c, dd = (d[k][0] for k in "abcd")
+    e = d["e"][0]
     cc = c.set_index("scenario")
     bc = b.set_index("threshold")
+    st = E.rjson(E.STATS + "summary.json")
     out += ["## Extended Data Fig. 3 | Robustness of the methanol leader changes", "",
-            "**a**, Share of the 83 published comparisons whose STY leader is not the plant-cost leader, over %s "
-            "paper-cluster bootstrap resamples of the 44 papers: observed %s %%, 95 %% CI %s–%s %%. **b**, Mismatched "
+            "**a**, Share of the %d published comparisons whose STY leader is not the "
+            "plant-cost leader, over %s paper-cluster bootstrap resamples of the %d papers: "
+            "observed %s %%, 95 %% CI %s–%s %%. **b**, Mismatched "
             "comparisons whose regret (cost penalty of building the STY leader) is at least the threshold: %d at 0, "
             "%d at 1 %% (%d papers), %d at 5 %%, %d at 10 %%. **c**, Mean and 95 %% range over %s draws of the number "
             "of mismatched comparisons when every entry is re-measured with the error the papers' own data imply (×1, "
@@ -568,14 +572,32 @@ def write_captions():
             "(%d–%d) against a floor of %.1f (%d–%d); dashed, observed %d. **d**, Share of draws in which each observed "
             "mismatch persists (bars, ×1; ticks, ×1 plus plot-reading errors); %d of %d persist in at least 90 %% of "
             "draws at ×1 and %d with plot-reading errors added. Source: `%s`." % (
-                format(a.attrs["n"], ","), _p(a.attrs["point"]), _p(a.attrs["ci"][0]), _p(a.attrs["ci"][1]),
-                bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
+                st["groups"], format(a.attrs["n"], ","), st["papers"], _p(a.attrs["point"]), _p(a.attrs["ci"][0]),
+                _p(a.attrs["ci"][1]), bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
                 bc.loc[0.1, "groups"], format(c.attrs["draws"], ","),
                 cc.loc["meas_k1", "mismatch_groups_mean"], cc.loc["meas_k1", "mismatch_groups_q025"],
                 cc.loc["meas_k1", "mismatch_groups_q975"], cc.loc["meas_k1", "noise_floor_mean"],
                 cc.loc["meas_k1", "noise_floor_q025"], cc.loc["meas_k1", "noise_floor_q975"], c.attrs["observed"],
                 int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd),
-                int((dd.p_mismatch_meas_k1_plus_extraction >= 0.9).sum()), E.STATS), ""]
+                int((dd.p_mismatch_meas_k1_plus_extraction >= 0.9).sum()), E.STATS)]
+    fin = e[np.isfinite(e.limit)]
+    span = fin[(fin.limit >= 0.05 - 1e-9) & (fin.limit <= 0.10 + 1e-9)]
+    nl = e[~np.isfinite(e.limit)].iloc[0]
+    ref = e[np.isclose(e.limit, e.attrs["reference"])].iloc[0]
+    lit = e.attrs.get("literature")
+    out[-1] = out[-1].replace(" Source: `%s`." % E.STATS, "")
+    out[-1] += (" **e**, Share of comparisons whose STY leader is not the plant-cost leader against the limit on the "
+                "reactor-inlet content of species other than H$_2$ and CO$_2$ (all comparisons, circles; isothermal "
+                "comparisons of at least two catalysts, squares; right edge, no limit). Dashed, the calibrated reference "
+                "loop (%s %%): %d / %d (%s %%) and %d / %d (%s %%). Shaded, the reactor inlets of %d published "
+                "CO$_2$-to-methanol loop designs (%.1f–%.1f %%). Between 5 %% and 10 %%: %s–%s %% and %s–%s %%; no limit: "
+                "%s %% and %s %%. Source: `%s`; `%s` (summary.json limit_sweep, isothermal; inlet_inert_literature.csv)."
+                % (_p(e.attrs["reference"], 2), ref.mismatched, ref.groups, _p(ref.share), ref.iso_mismatched,
+                   ref.iso_groups, _p(ref.iso_share), lit[2], 100 * lit[0], 100 * lit[1],
+                   _p(min(span.share.min(), ref.share)), _p(max(span.share.max(), ref.share)),
+                   _p(min(span.iso_share.min(), ref.iso_share)), _p(max(span.iso_share.max(), ref.iso_share)),
+                   _p(nl.share), _p(nl.iso_share), E.STATS, E.INV))
+    out += [""]
 
     d = E.edfig4()
     t, bm = d["a"][0], d["b"][0].set_index("metal")
@@ -647,7 +669,10 @@ def write_captions():
                                                           _p(r.excluded_by_bound / r.candidates))
                           for s, r in cr.iterrows()), E.PRUNE + "candidate_bounds.csv", E.ALLOY), ""]
     assert int(cr.leader_missed.sum()) == 0
-    assert (a.bound <= a.cost_recycled_opt * (1 + 5e-6)).all() and (a.bound <= a.cost_inert_opt * (1 + 5e-6)).all()
+    # infeasible candidates (NaN cost) are in no leaderboard; the bound must hold for every feasible one
+    for col in ("cost_recycled_opt", "cost_inert_opt"):
+        fin = np.isfinite(a[col])
+        assert (a.bound[fin] <= a[col][fin] * (1 + 5e-6)).all(), col
     head, *blocks = "\n".join(out).split("\n## Extended Data Fig. ")
     blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
     text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))

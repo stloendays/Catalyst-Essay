@@ -20,6 +20,7 @@ from collections import Counter
 
 import numpy as np
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
@@ -115,8 +116,8 @@ if __name__ == "__main__":
                                                           [hi - P0["top1_mismatch_fraction"]]],
                fmt="none", ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
     b.scatter([0], [V["inert_opt"]["top1_mismatch_fraction"]], marker="_", s=60, c=INK, lw=0.9, zorder=4)
-    b.text(0.36, V["inert_opt"]["top1_mismatch_fraction"] - 0.015, "inert CO", fontsize=5.0, va="top", color=INK)
-    b.text(0.97, 0.97, "bar on STY: 95 % CI\n(paper-cluster bootstrap)", transform=b.transAxes, fontsize=5.0,
+    b.text(0.97, 0.97, "bar on STY: 95 % CI\n(paper-cluster bootstrap);\ntick: recycled CO taken as inert",
+           transform=b.transAxes, fontsize=5.0,
            ha="right", va="top", color=INK)
     b.set_xticks(range(len(cases)))
     b.set_xticklabels([l for l, _ in cases], fontsize=5.6)
@@ -198,8 +199,12 @@ if __name__ == "__main__":
                    textcoords="offset points", fontsize=5.0, color=DARK_G, ha="left" if left else "right")
         e.set_xlabel("STY (g$_{MeOH}$ g$_{cat}^{-1}$ h$^{-1}$)")
         e.set_ylabel("net cost (EUR t$^{-1}$)")
-        lo_c, hi_c = cost.min(), np.percentile(cost, 90)
-        e.set_ylim(lo_c - 0.08 * (hi_c - lo_c), hi_c + 0.32 * (hi_c - lo_c))
+        # log axis: a few entries cost tens of times the leaders and would flatten them on a linear axis
+        e.set_yscale("log")
+        e.set_ylim(cost.min() / 1.25, cost.max() * 1.9)
+        plain = FuncFormatter(lambda v, _: "{:,.0f}".format(v))
+        e.yaxis.set_major_formatter(plain)
+        e.yaxis.set_minor_formatter(FuncFormatter(lambda v, _: "{:,.0f}".format(v) if str(int(round(v)))[0] in "25" else ""))
         xr = sty.max() - sty.min()
         e.set_xlim(sty.min() - 0.08 * xr, sty.max() + 0.08 * xr)
         e.text(0.03, 0.96, title, transform=e.transAxes, fontsize=5.6, va="top", fontweight="bold")
