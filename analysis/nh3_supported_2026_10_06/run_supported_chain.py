@@ -12,8 +12,9 @@ E_eff (and alpha_res), molar mass and price of M: a catalyst as active as a give
 like it under plant conditions. A constant multiplier on M's own TOF vector, alpha = R / (w F_CAL TOF_M / MW_M), is
 reported as a sensitivity. Fused-Fe rows test the calibration (alpha near 1).
 
-Laboratory condition: H2/N2 = 3; outlet NH3 from the printed value or rate / WHSV. The frozen model's NH3 formation
-free energy lies about 0.1 eV above experiment, so the laboratory NH3 fraction is entered at the same approach to
+Laboratory condition: H2/N2 = 3; outlet NH3 from the printed value or from rate and WHSV, y = n / (F0 - n) (n NH3 made,
+F0 inlet flow; the reaction removes one mole of gas per mole of NH3). The frozen model's NH3 formation free energy lies
+0.064-0.065 eV per NH3 above experiment (573-773 K), so the laboratory NH3 fraction is entered at the same approach to
 equilibrium: y_model = (y_out / 2) x y_eq,model / y_eq,exp, with y_eq,exp from the Gillespie-Beattie equilibrium
 constant. Rows with y_out >= 0.9 y_eq,exp are flagged: their rate is limited by equilibrium.
 
@@ -131,6 +132,13 @@ def fnum(x):
     return None if x in ("", None) else float(x)
 
 
+def y_out_from_rate(R, whsv):
+    """Outlet NH3 mole fraction from the rate (umol g-1 h-1) and the inlet space velocity (mL g-1 h-1, STP):
+    n / (F0 - n), since N2 + 3 H2 -> 2 NH3 removes one mole of gas per mole of NH3 formed."""
+    n = R * 1e-6 * VM_ML
+    return n / (whsv - n)
+
+
 def main():
     require()          # ACSA scores new candidates only after reproducing all three hand-built cases
     h, response = load_harness()
@@ -147,7 +155,7 @@ def main():
     y_known = []
     for r in rows:
         R, whsv, out = fnum(r["rate_umol_g_h"]), fnum(r["whsv_mL_g_h"]), fnum(r["outlet_nh3_vol_pct"])
-        r["_y_out"] = out / 100.0 if out is not None else (R * 1e-6 * VM_ML / whsv if R and whsv else None)
+        r["_y_out"] = out / 100.0 if out is not None else (y_out_from_rate(R, whsv) if R and whsv else None)
         r["_y_source"] = "printed outlet" if out is not None else ("rate / WHSV" if r["_y_out"] is not None else "")
         if r["_y_out"] is not None:
             y_known.append(r["_y_out"])
