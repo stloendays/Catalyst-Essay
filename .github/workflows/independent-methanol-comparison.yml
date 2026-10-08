@@ -22,6 +22,11 @@ jobs:
           python-version: "3.12"
       - name: Synthetic classification regression tests
         run: python -m unittest discover -s analysis/review_2026_10_09/tests -v
+      - name: Audit paired leader transitions (lab vs adjusted inventory)
+        run: |
+          python analysis/review_2026_10_09/paired_transition_audit.py \
+            --out-dir /tmp/meoh_paired_transitions --strict > /tmp/meoh_paired_log.txt
+          cat /tmp/meoh_paired_log.txt
       - name: Audit committed printed-only comparison outputs
         run: |
           python analysis/review_2026_10_09/field_comparison_audit.py \
@@ -38,3 +43,12 @@ jobs:
               assert stats["temperature_series_groups_strict"] <= stats["temperature_series_groups_row_count"]
           print("Independent comparison QA passed; data are provisional and not frozen.")
           PY
+
+      - name: Save independent review tables
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisional-methanol-comparison-qa
+          path: |
+            /tmp/meoh_comparison_qa/*
+            /tmp/meoh_paired_transitions/*
+          retention-days: 7
