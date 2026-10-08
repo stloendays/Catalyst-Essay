@@ -1,0 +1,96 @@
+name: Verify 2026-10-08
+
+# Reruns every script of analysis/verify_2026_10_08 on a clean GitHub runner and compares the outputs with the
+# committed ones (counts and labels exactly, floating-point values to a relative tolerance). It shows that the
+# verification can be continued from the repository alone, without the local machine.
+#
+#   methanol    treatment decomposition (S0-S6, all entries and printed values), errata classification,
+#               gold-standard sample
+#   conversion  conversion raised with catalyst inventory, then the split into other catalyst / other temperature
+#   ammonia     ammonia field result on printed values (the harness root is built from provenance/ as in the
+#               nh3-literature-params workflow; no response surface is read)
+
+on:
+  push:
+    branches: [verify-2026-10-08]
+    paths:
+      - ".github/workflows/verify-2026-10-08.yml"
+      - "analysis/verify_2026_10_08/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-2026-10-08-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  V: analysis/verify_2026_10_08
+
+jobs:
+  methanol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # meoh_decomposition.py reads commit 86dcd76 (2026-10-07 treatment) with git show
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pyyaml
+      - name: Treatment decomposition
+        run: python $V/meoh_decomposition.py
+      - name: Errata classification and gold-standard sample
+        run: |
+          python $V/errata_classification.py > /dev/null
+          python $V/gold_standard_sample.py /tmp/gold_standard_sample.xlsx
+      - name: Compare with the committed outputs
+        run: >
+          python $V/compare_outputs.py
+          $V/decomposition_steps.csv $V/decomposition_groups.csv $V/decomposition.json $V/cost_cache.csv
+          $V/errata_classification.csv $V/errata_rules.csv $V/errata_summary.json $V/gold_standard_sample.csv
+
+  conversion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pyyaml
+      - name: Conversion raised with catalyst inventory
+        run: python $V/meoh_conversion_sensitivity.py
+      - name: Disagreements by kind
+        run: python $V/reversal_kinds.py
+      - name: Compare with the committed outputs
+        run: >
+          python $V/compare_outputs.py --rtol 1e-5
+          $V/conversion_sensitivity_summary.json $V/conversion_sensitivity_groups.csv
+          $V/conversion_sensitivity_points.csv $V/reversal_kinds.csv $V/reversal_kinds_groups.csv
+
+  ammonia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      NH3_HARNESS: /tmp/nh3_harness
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pyyaml
+      - name: Build the harness root from provenance
+        run: python analysis/nh3_actual_ru_params_2026_10_07/build_harness_root.py "$NH3_HARNESS" --workers 4
+      - name: Ammonia field result on printed values
+        run: python $V/nh3_printed.py
+      - name: Compare with the committed outputs
+        run: python $V/compare_outputs.py $V/nh3_printed_summary.json $V/nh3_printed_groups.csv

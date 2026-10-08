@@ -33,7 +33,7 @@ import meoh_decomposition as D  # noqa: E402
 
 SEED = 20261008
 N_PAPERS, PER_PAPER = 10, 10
-MANIFESTS = [Path(r"D:\论文-AI4S\wt-extraction40\agent\extraction"), Path(r"D:\论文-AI4S\Catalyst-Essay\agent\extraction")]
+EXTRACTION = D.REPO / "agent" / "extraction"   # tracked download manifests; the PDFs themselves are not in git
 
 
 def population():
@@ -87,20 +87,17 @@ def population():
 
 
 def pdf_index():
+    """DOI -> PDF file name and DOI#si -> SI file names, from the tracked download manifests (the files live in
+    agent/extraction/pdf and agent/extraction/si of a checkout that has the downloads; they are not in git)."""
     import json
     idx = {}
-    for base in MANIFESTS:
-        for m in json.loads((base / "fetch_manifest.json").read_text(encoding="utf-8")):
-            p = base / "pdf" / str(m.get("file") or "")
-            if m.get("file") and p.exists():
-                idx.setdefault(m["doi"], str(p))
-        si = base / "si_manifest.json"
-        if si.exists():
-            for m in json.loads(si.read_text(encoding="utf-8")):
-                names = [f["file"] if isinstance(f, dict) else f for f in (m.get("files") or [])]
-                files = [str(base / "si" / f) for f in names if (base / "si" / f).exists()]
-                if files:
-                    idx.setdefault(m["doi"] + "#si", "; ".join(files))
+    for m in json.loads((EXTRACTION / "fetch_manifest.json").read_text(encoding="utf-8")):
+        if m.get("status") == "ok" and m.get("file"):
+            idx.setdefault(m["doi"], "pdf/" + m["file"])
+    for m in json.loads((EXTRACTION / "si_manifest.json").read_text(encoding="utf-8")):
+        names = [f["file"] if isinstance(f, dict) else f for f in (m.get("files") or [])]
+        if names:
+            idx.setdefault(m["doi"] + "#si", "; ".join("si/" + n for n in names))
     return idx
 
 
@@ -149,7 +146,7 @@ def write_xlsx(s, meta, path):
         f"随机种子 {meta['seed']}：先随机抽 10 篇论文，每篇随机抽 10 个数，共 100 个数。",
         "",
         "核对方法（必须本人对照原文或 SI 完成，不用任何程序或模型判断）：",
-        "1. 打开 pdf / si 列给出的文件，按 entry、record_location、record_page 找到该条目。",
+        "1. 打开 pdf / si 列给出的文件（位于 agent/extraction/ 下，已下载的工作目录中），按 entry、record_location、record_page 找到该条目。",
         "2. found_where：写出这个数在原文印刷的位置（如 'Table 2, p.5' 或 'SI Table S3'）。",
         "3. value_in_paper：抄下原文印刷的数（原单位）。",
         "4. printed_number：原文是印刷的数字填 Y；只能从图上读填 N。",
