@@ -1,0 +1,34 @@
+name: Ru same-loop Fe cost-reference QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "analysis/review_ru_cost_2026_10_09/**"
+      - ".github/workflows/ru-fe-reference-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ru-gap-denominator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Synthetic Fe-reference regression tests
+        run: python -m unittest discover -s analysis/review_ru_cost_2026_10_09/tests -v
+      - name: Cross-check canonical Ru costs and both Fe comparators
+        run: |
+          python analysis/review_ru_cost_2026_10_09/ru_cost_reference_audit.py \
+            --out-dir /tmp/ru_cost_qa --strict
+      - name: Upload provisional referee tables
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisional-ru-fe-cost-reference-audit
+          path: /tmp/ru_cost_qa/*
+          retention-days: 7
