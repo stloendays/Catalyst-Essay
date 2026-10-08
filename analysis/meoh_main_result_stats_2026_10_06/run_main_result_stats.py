@@ -1,7 +1,7 @@
-"""How firm is the headline methanol result (paper STY leader != plant-cost leader in 33 of 83 comparisons)?
+"""How firm is the headline methanol result (paper STY leader != plant-cost leader)?
 
-Input: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (the 906 entries in the 83 comparison
-groups with at least two entries) and group_metrics.csv. The plant model, candidate construction and group
+Input: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (the feasible entries of the comparison
+groups with at least two feasible entries) and group_metrics.csv. The plant model, candidate construction and group
 definitions are those of run_literature_inversion.py and are not changed.
 
 A. Sampling uncertainty. The 83 groups come from 44 papers, and groups of one paper are not independent. A
@@ -14,17 +14,20 @@ C. Measurement noise. Every entry is re-measured with the error model derived fr
    relative CO2-conversion error r_X = 5.21 % (log-normal), sum-conserving MeOH -> CH4 selectivity transfer
    sigma = 0.847 percentage points, and, where the paper prints its STY, an independent relative STY error r_X
    (cross-detector scatter). Where STY is derived from the space velocity it follows the perturbed X * S_MeOH.
-   Both leaderboards are rebuilt from the same perturbed entry, so a noisy STY moves cost and STY together. Noise
-   scales k = 1, 2, 4 are run.
-   Re-measurement null: the same noise applied twice; the share of groups whose STY leader changes between two
-   independent re-measurements is the disagreement that measurement reproducibility alone produces.
+   The MeOH -> CH4 transfer is clipped symmetrically at +-min(S_CH4, 0.9 S_MeOH), so it has zero mean for every
+   entry (an entry with S_CH4 = 0 gets no transfer). Both leaderboards are rebuilt from the same perturbed entry, so
+   a noisy STY moves cost and STY together. Noise scales k = 1, 2, 4 are run.
+   Noise floor (reported): the number of groups whose re-measured STY leader differs from the reported STY leader
+   (sty_leader_differs_from_reported_*). Also recorded: the number whose STY leader differs between two independent
+   re-measurements (null_sty_leader_changes_*).
 D. Extraction error. For entries whose conversion or selectivity was read from a plot, the agent's measured plot
    reading errors (agent/extraction/eval/field_scores.csv, adjudicated truth, plot and SI-plot values) are
    resampled and removed: ln(X) error, methanol-selectivity error as a MeOH <-> CO transfer (the closure residual),
    and the STY error where the group prints STY. Combined with measurement noise k = 1.
 
-Plant cost of a perturbed entry: recycled CO (central RWGS rule), entry-optimal purge, at the entry's own T, P and
-H2/CO2 -- the primary treatment. Each entry gets an additive per-dimension response surface from exact model runs
+Plant cost of a perturbed entry: recycled CO (central rule), cost-optimal purge among the eligible levels (within
+CO2-hydrogenation equilibrium and the workbook nonreactive limit), at the entry's own T, P and H2/CO2 -- the primary
+treatment. A perturbed entry with no eligible purge level is infeasible and leaves both leaderboards of that draw. Each entry gets an additive per-dimension response surface from exact model runs
 on a grid in each perturbation coordinate (ln X, MeOH->CH4, MeOH->CO, ln STY); draws outside the grid are run
 exactly. The surface is validated against exact runs of complete replicates (validation.csv).
 
@@ -56,13 +59,17 @@ SEED = 20261006
 N_BOOT = 10_000
 N_MC = 2_000
 N_VALID = 5                                           # exact replicates per validated scenario
-WORKERS = int(os.environ.get("STATS_WORKERS", "8"))   # each worker commits ~0.8 GB; 24 exhausted the 15 GB machine
+WORKERS = int(os.environ.get("STATS_WORKERS", "4"))   # each worker commits ~0.8 GB; 24 exhausted the 15 GB machine
 SMOKE = os.environ.get("STATS_SMOKE") == "1"          # 4 groups, few draws, separate output folder
 if SMOKE:
     N_BOOT, N_MC, N_VALID = 200, 50, 1
 
-GRID_LN = np.array([-2.5, -1.5, -1.0, -0.7, -0.35, -0.15, -0.05, 0.05, 0.15, 0.35, 0.7, 1.0, 1.5])
-GRID_D = np.array([-0.15, -0.1, -0.06, -0.025, -0.008, 0.008, 0.025, 0.06, 0.1, 0.15])
+# ln X: dense near zero, where the eligible-purge optimum makes the cost steep and non-monotone in conversion
+_LN_HALF = [0.01, 0.02, 0.03, 0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.35, 0.5, 0.7, 1.0, 1.5]
+GRID_LN = np.array(sorted([-2.5] + [-x for x in _LN_HALF] + _LN_HALF))
+GRID_V = np.array([-2.5, -1.5, -1.0, -0.7, -0.35, -0.15, -0.05, 0.05, 0.15, 0.35, 0.7, 1.0, 1.5])   # ln STY: smooth
+_D_HALF = [0.004, 0.008, 0.012, 0.017, 0.025, 0.04, 0.06, 0.1, 0.15]
+GRID_D = np.array(sorted([-x for x in _D_HALF] + _D_HALF))
 DIMS = ("u", "d4", "dc", "v")                         # ln X, MeOH->CH4, MeOH->CO, ln STY
 
 
@@ -80,11 +87,11 @@ def exact_cost(args):
         return np.nan
     c["SCH4"], c["SCO"] = max(c["SCH4"], 0.0), max(c["SCO"], 0.0)
     try:
-        sweep = G.purge_sweep(c, STY_per_g_cat=sty, P_bar=e["P_bar"], h2_co2=e["h2_co2"], T_C=e["T_C"],
-                              x_co="recycled_central")["cost_eur_t"]
+        opt = G.optimal_purge(c, STY_per_g_cat=sty, P_bar=e["P_bar"], h2_co2=e["h2_co2"], T_C=e["T_C"],
+                              x_co="recycled_central")
     except ValueError:      # perturbed state outside the model's feasible loop (e.g. H2 inlet ratio insufficient)
         return np.nan
-    return float(np.nanmin(sweep))
+    return opt["cost_eur_t"]    # NaN when no purge level is eligible
 
 
 def run_exact(jobs):
@@ -95,6 +102,7 @@ def run_exact(jobs):
 # ---------------------------------------------------------------- data ---------------------------------------
 def load():
     c = pd.read_csv(INV / "literature_candidates.csv")
+    c = c[np.isfinite(c.cost_recycled_opt)]          # infeasible candidates are in no leaderboard
     n = c.groupby("group").size()
     c = c[c.group.isin(n[n >= 2].index)].reset_index(drop=True)
     if SMOKE:
@@ -111,7 +119,7 @@ def entry_dicts(c):
 
 def grid_points(e):
     """Per-entry grid in each coordinate, inside the physically allowed range."""
-    pts = {"u": list(GRID_LN), "v": list(GRID_LN)}
+    pts = {"u": list(GRID_LN), "v": list(GRID_V)}
     pts["d4"] = [d for d in GRID_D if -e["SCH4"] - 1e-12 <= d <= e["SMeOH"] * 0.9]
     pts["dc"] = [d for d in GRID_D if -e["SCO"] - 1e-12 <= d <= e["SMeOH"] * 0.9]
     if e["SCH4"] > 1e-9 and e["SCH4"] < 0.06:
@@ -128,7 +136,10 @@ class Surface:
     def __init__(self, c, ents, grid_csv):
         self.c, self.ents = c, ents
         # grid points already computed are reused; only missing ones are run
-        g = pd.read_csv(grid_csv) if grid_csv.exists() else pd.DataFrame(columns=["entry", "dim", "x", "cost"])
+        g = pd.read_csv(grid_csv) if grid_csv.exists() else pd.DataFrame(columns=["entry", "dim", "x", "cost", "key"])
+        # a grid point is reused only for the entry state it was computed for
+        keys = [self.key(e) for e in ents]
+        g = g[[int(i) < len(ents) and k == keys[int(i)] for i, k in zip(g.entry, g.get("key", [""] * len(g)))]]
         have = {(int(r.entry), r.dim, round(float(r.x), 12)) for r in g.itertuples()}
         jobs, meta = [], []
         for i, e in enumerate(ents):
@@ -143,16 +154,25 @@ class Surface:
         if jobs:
             new = pd.DataFrame(meta, columns=["entry", "dim", "x"])
             new["cost"] = run_exact(jobs)
+            new["key"] = [keys[int(i)] for i in new.entry]
             g = pd.concat([g, new], ignore_index=True)
             g.to_csv(grid_csv, index=False, float_format="%.10g")
+        g = g.astype({"entry": int, "x": float, "cost": float})
         self.f0 = g[g.dim == "f0"].set_index("entry").cost.reindex(range(len(ents))).to_numpy()
         self.tab = {}
         for (i, k), s in g[g.dim != "f0"].groupby(["entry", "dim"]):
-            s = s.dropna(subset=["cost"])
             xs = np.r_[s.x.to_numpy(), 0.0]
             ys = np.r_[s.cost.to_numpy(), self.f0[i]]
             o = np.argsort(xs)
-            self.tab[(i, k)] = (xs[o], ys[o])
+            xs, ys = xs[o], ys[o]
+            ok = np.isfinite(ys)
+            # (finite grid, finite values, every grid x, infeasible indicator): a draw in an interval that touches an
+            # infeasible grid point is run exactly
+            self.tab[(i, k)] = (xs[ok], ys[ok], xs, (~ok).astype(float))
+
+    @staticmethod
+    def key(e):
+        return "|".join("%.10g" % e[k] for k in ("X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"))
 
     def cost(self, P):
         """P: dict dim -> array (n_rep, n_entry). Returns surface costs and a mask of draws outside the grid."""
@@ -160,10 +180,11 @@ class Surface:
         outside = np.zeros_like(out, dtype=bool)
         for k, arr in P.items():
             for i in range(arr.shape[1]):
-                xs, ys = self.tab.get((i, k), (np.array([0.0]), np.array([self.f0[i]])))
+                one = np.array([0.0])
+                xs, ys, xa, bad = self.tab.get((i, k), (one, np.array([self.f0[i]]), one, np.zeros(1)))
                 x = arr[:, i]
                 out[:, i] += np.interp(x, xs, ys) - self.f0[i]
-                outside[:, i] |= (x < xs[0] - 1e-12) | (x > xs[-1] + 1e-12)
+                outside[:, i] |= (x < xa[0] - 1e-12) | (x > xa[-1] + 1e-12) | (np.interp(x, xa, bad) > 0)
         return out, outside
 
 
@@ -182,7 +203,8 @@ def draws(c, rng, n, k_meas=1.0, extraction=False, pools=None):
         u += np.where(pr, -rng.choice(lx, (n, m)), 0.0)
         dc += np.where(pr, rng.choice(ds, (n, m)), 0.0)
         v_print += np.where(pr & printed, -rng.choice(ls, (n, m)), 0.0)
-    d4 = np.clip(d4, -SCH4, 0.9 * S)
+    b4 = np.minimum(SCH4, 0.9 * S)                     # symmetric bound: zero-mean transfer for every entry
+    d4 = np.clip(d4, -b4, b4)
     dc = np.clip(dc, -SCO, 0.9 * S - d4)
     s_new = S - d4 - dc
     v_der = u + np.log(s_new / S)
@@ -193,7 +215,9 @@ def draws(c, rng, n, k_meas=1.0, extraction=False, pools=None):
 
 def extraction_pools():
     f = pd.read_csv(REPO / "agent" / "extraction" / "eval" / "field_scores.csv")
-    f = f[(f.truth == "adjudicated") & f.source_type.isin(["plot", "SI-plot"])].dropna(subset=["extracted", "curated"])
+    # unambiguous pairs only: an ambiguous pair's partner is not identified, so its difference is not an error
+    f = f[(f.truth == "adjudicated") & f.source_type.isin(["plot", "SI-plot"]) & ~f.ambiguous.astype(bool)]
+    f = f.dropna(subset=["extracted", "curated"])
     x = f[(f.field == "X_CO2") & (f.curated > 0) & (f.extracted > 0)]
     s = f[f.field == "S_MeOH"]
     t = f[(f.field == "STY") & (f.curated > 0) & (f.extracted > 0)]
@@ -210,14 +234,16 @@ def group_index(c):
 
 
 def winners(values, gid, ng, highest):
-    """Index of the leader of every group for each replicate row (ties: first entry)."""
+    """Index of the leader of every group for each replicate row (ties: first entry); -1 where the whole group is
+    infeasible in that row."""
     n = values.shape[0]
     out = np.empty((n, ng), dtype=int)
     for g in range(ng):
         idx = np.where(gid == g)[0]
         sub = values[:, idx]
-        j = np.nanargmax(sub, axis=1) if highest else np.nanargmin(sub, axis=1)
-        out[:, g] = idx[j]
+        s2 = np.where(np.isnan(sub), -np.inf if highest else np.inf, sub)
+        j = np.argmax(s2, axis=1) if highest else np.argmin(s2, axis=1)
+        out[:, g] = np.where(np.isnan(sub).all(axis=1), -1, idx[j])
     return out
 
 
@@ -227,10 +253,11 @@ def mismatch_stats(sty, cost, gid, ng):
     ws = winners(sty, gid, ng, True)
     wc = winners(cost, gid, ng, False)
     rows = np.arange(sty.shape[0])[:, None]
-    c_up = cost[rows, ws]
-    c_best = cost[rows, wc]
+    gone = (ws < 0) | (wc < 0)          # every entry of the group infeasible in this draw: not a disagreement
+    c_up = np.where(gone, np.nan, cost[rows, np.maximum(ws, 0)])
+    c_best = np.where(gone, np.nan, cost[rows, np.maximum(wc, 0)])
     regret = (c_up - c_best) / c_best
-    return ws, wc, ws != wc, regret
+    return ws, wc, (ws != wc) & ~gone, regret
 
 
 # ---------------------------------------------------------------- main ---------------------------------------
@@ -275,8 +302,10 @@ def main():
 
     # C/D. noise scenarios with the response surface
     lx, ds, ls, pool_n = extraction_pools()
-    scenarios = {"meas_k1": dict(k_meas=1.0), "meas_k2": dict(k_meas=2.0), "meas_k4": dict(k_meas=4.0),
-                 "meas_k1_plus_extraction": dict(k_meas=1.0, extraction=True)}
+    # run order: the scenarios the text quotes first; each keeps its own random stream (STREAM)
+    scenarios = {"meas_k1": dict(k_meas=1.0), "meas_k2": dict(k_meas=2.0),
+                 "meas_k1_plus_extraction": dict(k_meas=1.0, extraction=True), "meas_k4": dict(k_meas=4.0)}
+    STREAM = {"meas_k1": 0, "meas_k2": 1, "meas_k4": 2, "meas_k1_plus_extraction": 3}
     results, per_group, valid_rows = {}, {}, []
     for si, (name, kw) in enumerate(scenarios.items()):
         cache = HERE / f"scenario_{name}.json"
@@ -286,7 +315,7 @@ def main():
             valid_rows += saved["validation"]
             print(name, "(cached)", flush=True)
             continue
-        srng = np.random.default_rng([SEED, si])  # per-scenario stream, reproducible on restart
+        srng = np.random.default_rng([SEED, STREAM[name]])  # per-scenario stream, reproducible on restart
         P, sty = draws(c, srng, N_MC, pools=(lx, ds, ls), **kw)
         cost, outside = surf.cost(P)
         # draws outside the grid are run exactly
