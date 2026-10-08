@@ -2,7 +2,7 @@
 
 Status: **PROVENANCE_VALIDATED_READY_FOR_LOCK**
 
-Checked at: `2026-10-07T09:06:15.998751+00:00`
+Checked at: `2026-10-08T03:58:29.263429+00:00`
 
 This validation is provenance-only; no scientific model was executed.
 
@@ -45,7 +45,7 @@ This validation is provenance-only; no scientific model was executed.
 - F2_rolling_rank: 5 candidate data file(s)
 - F3_uncertainty_MC: 9 candidate data file(s)
 - F4_operating_envelope: 5 candidate data file(s)
-- F5_backward_break_even: 5 candidate data file(s)
+- F5_backward_break_even: 6 candidate data file(s)
 - F6_scaling_reachability: 5 candidate data file(s)
 
 ## F1-F6 figure map
