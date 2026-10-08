@@ -49,3 +49,28 @@ This audit verifies classification of *existing observations*. It **cannot**
 demonstrate that the cost model, catalyst-label normalization or earlier
 candidate de-duplication is physically correct. Its role is to expose those
 unknowns for an independent author/Claude review before results are frozen.
+
+
+## Paired stage-transition audit
+
+Use the complementary \`paired_transition_audit.py\` to join the *same
+comparison group* before and after allowing catalyst inventory to change:
+
+~~~bash
+python analysis/review_2026_10_09/paired_transition_audit.py \
+  --out-dir /tmp/meoh_paired_audit --strict
+~~~
+
+The paired audit records:
+- retained, newly appearing, and disappearing ranking disagreements;
+- material-to-temperature and temperature-to-material type switches;
+- winner changes combining material **and** temperature, separately from
+  strictly isothermal material changes;
+- >5% cost-regret counts before and after, plus concentration by DOI;
+- unchanged laboratory STY leader and fixed candidate-group eligibility.
+
+It uses existing output tables only. Group-by-group transitions must be
+interpreted as model sensitivity outcomes, not as causal evidence that any
+single catalyst property caused a particular inversion. GitHub Actions uploads
+both audit reports as temporary reviewer artifacts; no headline or manuscript
+results are overwritten.
