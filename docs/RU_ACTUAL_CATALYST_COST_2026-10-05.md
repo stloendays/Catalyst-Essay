@@ -107,3 +107,19 @@ gap is 2–4% of a 160–300 USD/t ammonia cost.
 > catalyst undercuts fused iron, 18.53–18.91 against 19.07 US dollars per tonne. The route that closes
 > the Ru–Fe gap is metal economy — dispersion and recovery — rather than intrinsic activity, which is the
 > route industry took with the Kellogg Advanced Ammonia Process.
+
+## 6. Sources rechecked against primary literature (2026-10-07)
+
+| Input | Value used | Primary-literature range | Change |
+|---|---|---|---|
+| Ru recovered from spent catalyst | 90–94% | 89–97.6% (as Ru salts) and 83–85% (as metal) from spent activated-carbon-supported Ru ammonia catalyst, CN 1872418 A (2006) examples 1–8; CN 101638727 B | Citation: US 6,673,732 B2 concerns a Ru/MgO catalyst (claim 1; "more than 94% Ru can be recovered", example 4) and is replaced by CN 1872418 A in the text. |
+| KAAP loop | 90 bar, −20 °C separator | about 90 bar, four radial beds, the first magnetite and the other three Ru on graphite; refrigerated loop (Ullmann "Ammonia, 3", 2011, p. 242, Fig. 10; "Ammonia, 2", Figs 52–53); 91.4 kg cm⁻² (Liu 2013, p. 747, citing Strait 1999) | Citation: Humphreys 2021 traces its −20 °C to a 7 MPa wüstite-catalyst loop (Liu 2013, p. 752), not to KAAP; the text now cites Ullmann for the loop and keeps −20 °C as the model's separator setting, inside the −25 °C limit of ammonia refrigeration (Appl 1999, p. 164). At 90 bar it leaves 2.9–3.6% NH₃ in the recycle. |
+| Ru loading of the supported catalyst | 3.2 wt% (Rossetti 2006, laboratory catalyst) | about 8 wt% for the commercial BP/Kellogg catalyst, 5–10 wt% overall (Brown et al., Catal. Lett. 144, 545 (2014); US 4,600,571) | Affects only the supported-bed reactor term: a higher loading shrinks the bed. |
+| Ru dispersion | 11% | 8–15% at 8–10 wt%; 19.8% at 4.7 wt% | Consistent. |
+| Exposed Fe atoms in reduced fused iron | < 1% | 0.2–0.76% measured | Consistent. |
+| Fe converter catalyst, 1,000 t/d | reference 40–90 m³; model optimum 17.1 m³ | 30–90 m³ for high-pressure converters; Topsøe S-200 at 12.6 MPa 65.3 m³ (the model's 65 m³ calibration) | Reference consistent. |
+| Fe loop separator / recycle NH₃ | model optimum 30 °C / 6.4 mol% | −5 to 0 °C (Topsøe, Uhde), −23 °C (Kellogg); 2.2–4.2 mol% NH₃ at the converter inlet (Dybkjær 1995, Table 6.1; Appl 1999, Fig. 99) | Rouwenhorst 2021 (p. 51) gives −20 to 30 °C; the 0 to −10 °C quoted in section 4 is the Topsøe/Uhde range of Dybkjær 1995. |
+
+**Adopted 2026-10-08.** The manuscript now uses the literature values of the table above: Ru/C at 8 wt% Ru (5–10 wt%),
+bed density 430–550 kg m⁻³, recovery 90–97%. Outputs regenerated on GitHub Actions (run 37648545590); numbers in
+`docs/SOURCE_OF_TRUTH_2026-09-29.md` and `analysis/nh3_actual_ru_params_2026_10_07/TEXT_NUMBERS.md`.

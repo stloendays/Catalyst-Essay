@@ -182,9 +182,9 @@ def edfig5():
     sm = rjson(MC + "summary.json")
     d = rcsv(MC + "draws.csv")
     rows = [("preregistered (pure-Ru benchmark bed)", "Ru_base", sm["base_reproduced"]["P_Fe_cheaper"]),
-            ("A: u and r, benchmark bed volume", "Ru_A", sm["A"]["P_Fe_cheaper"]),
-            ("A_bed: u and r, supported bed", "Ru_A_bed", sm["A_bed"]["P_Fe_cheaper"]),
-            ("B: measured Ru catalysts, 90-94 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
+            ("A: u and r on the price, benchmark bed (Fig. 3d reading)", "Ru_A", sm["A"]["P_Fe_cheaper"]),
+            ("A_bed: u and r, commercial Ru/C bed", "Ru_A_bed", sm["A_bed"]["P_Fe_cheaper"]),
+            ("B: measured Ru catalysts, 90-97 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
             ("B0: measured Ru catalysts, no recovery", "Ru_B0", sm["B0"]["P_Fe_cheaper"])]
     a = []
     for lab, col, p in rows:
@@ -207,15 +207,15 @@ def edfig5():
 
     u_edges = np.geomspace(sm["ranges"]["u"][0], sm["ranges"]["u"][1], 9)
     r_edges = np.linspace(sm["ranges"]["r"][0], sm["ranges"]["r"][1], 9)
-    w_edges = np.array([0.0, 1.0, 2.5, 5.0, 10.0, 15.0])
+    w_edges = np.linspace(sm["ranges"]["A_bed_Ru_wt_pct"][0], sm["ranges"]["A_bed_Ru_wt_pct"][1], 6)
     b = binned(d.u.to_numpy(), u_edges, "u")
     c = binned(d.r.to_numpy(), r_edges, "r")
-    e = binned(d.measured_wt_pct.to_numpy(), w_edges, "Ru_wt_pct")
+    e = binned(d.A_bed_wt_pct.to_numpy(), w_edges, "Ru_wt_pct")
     src = MC + "draws.csv (Ru wins: Ru_A_bed < Fe, or Ru_A < Fe)"
     return {"a": (a, MC + "summary.json (P_Fe_cheaper), checked against " + MC + "draws.csv"),
             "b": (b, src + "; 8 log-spaced bins of u over the drawn range"),
             "c": (c, src + "; 8 bins of r over the drawn range"),
-            "d": (e, src + "; bins of the drawn Ru content")}
+            "d": (e, src + "; 5 bins of the drawn A_bed Ru content (A_bed_wt_pct)")}
 
 
 # ------------------------------------------------------------------ ED Fig. 6: methanol plant benchmark ---------

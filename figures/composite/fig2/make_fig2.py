@@ -247,18 +247,41 @@ def pt(key):
 x0, y0_ = pt("pure")
 x1, y1 = pt("supported")
 x9, y9 = pt("supp_rec90")
-x4, y4 = pt("supp_rec94")
+x4, y4 = pt("supp_rec97")
 d1.plot([x4, x9], [y4, y9], color=INK, lw=2.2, solid_capstyle="butt", zorder=5)
 for x_, y_ in ((x0, y0_), (x1, y1), (x4, y4), (x9, y9)):
     d1.plot(x_, y_, "o", ms=3.4, mfc=RU, mec=INK, mew=0.5, zorder=6)
+# the commercial Ru/C catalyst's own bed instead of the benchmark formulation: at 97% and 90% recovery a square at
+# 8 wt% Ru and 490 kg m-3 (centre of 430-550) and a bar over 5-10 wt% and 430-550 kg m-3 (fig2_ru_bed_sensitivity.csv)
+BEDROWS = read_csv(os.path.join(HERE, "fig2_ru_bed_sensitivity.csv"))
+
+
+def bed_bars(ax, k97, k90, field="cost"):
+    mid, lo, hi = [], [], []
+    for k in (k97, k90):
+        rr = [r for r in BEDROWS if r["key"] == k]
+        assert len(rr) == 9
+        mid.append(float(next(r for r in rr if float(r["w_Ru"]) == 0.08 and float(r["rho_bed_kg_m3"]) == 490.0)[field]))
+        lo.append(min(float(r[field]) for r in rr))
+        hi.append(max(float(r[field]) for r in rr))
+    for x_, m_, l_, h_ in zip((x4, x9), mid, lo, hi):
+        ax.plot([x_, x_], [l_, h_], color=DARK_B, lw=1.4, solid_capstyle="butt", zorder=6)
+        ax.plot(x_, m_, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
+    return mid, lo, hi
+
+
+bed_bars(d1, "supp_rec97", "supp_rec90")
+bed_bars(d1, "kaap97", "kaap90")
 d1.plot(p_star, fe_cost, "o", ms=3.6, mfc=RED, mec=INK, mew=0.5, zorder=7)
-d1.text(p_star / 1.15, fe_cost + 0.45, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
+d1.text(p_star / 1.6, fe_cost + 0.45, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
         ha="right", va="bottom")
 d1.text(x0 * 1.25, y0_ - 0.5, "pure Ru", fontsize=5.6, ha="left", va="top")
 d1.text(x1 * 1.35, y1 - 0.15, "Ru/C", fontsize=5.6, ha="left", va="top")
-d1.text(x9 * 1.3, fe_cost - 0.45, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
+d1.text(x9 * 1.3, fe_cost - 0.25, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
+d1.plot(x9 * 1.45, 13.0, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
+d1.text(x9 * 1.95, 13.0, "own Ru/C bed", fontsize=5.4, ha="left", va="center", color=DARK_B)
 # KAAP loop: Ru/C with recovery against fused iron at the same 90 bar, -20 C separator
-k9, k4, kf = (float(PTS[k]["cost"]) for k in ("kaap90", "kaap94", "fe_kaap"))
+k9, k4, kf = (float(PTS[k]["cost"]) for k in ("kaap90", "kaap97", "fe_kaap"))
 d1.plot([x4 / 1.6, x9 * 1.6], [kf, kf], color=FE, lw=1.0, zorder=5)
 d1.plot([x4, x9], [k4, k9], "D", ms=2.8, mfc="white", mec=RU, mew=0.8, zorder=6)
 d1.text(x4 / 1.8, (k4 + kf) / 2, "KAAP loop\n90 bar", fontsize=5.4, ha="right", va="center", color=DARK_B,
@@ -266,7 +289,7 @@ d1.text(x4 / 1.8, (k4 + kf) / 2, "KAAP loop\n90 bar", fontsize=5.4, ha="right", 
 d1.text(x9 * 1.75, kf, "Fe", fontsize=5.4, ha="left", va="center", color=DARK_G)
 d1.set_xscale("log")
 d1.set_xlim(1.0, 3e5)
-d1.set_ylim(13.0, 26.6)
+d1.set_ylim(12.4, 26.6)
 d1.yaxis.set_major_locator(FixedLocator([15, 20, 25]))
 d1.yaxis.set_minor_locator(MultipleLocator(1))
 d1.set_ylabel(r"Ru cost (USD t$^{-1}$)")
@@ -276,15 +299,18 @@ ap = np.array([float(r["alpha_star"]) for r in alpha_sweep])
 d2.axhline(1.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=2)
 d2.text(1.4, 40, "parity within\nstrict scaling", fontsize=5.2, color=DARK_G, va="bottom", linespacing=1.05)
 d2.plot(pr, ap, color=INK, lw=0.9, zorder=3)
-for key in ("pure", "supported", "supp_rec90", "supp_rec94"):
+for key in ("pure", "supported", "supp_rec90", "supp_rec97"):
     d2.plot(float(PTS[key]["p_eff_USD_kg"]), float(PTS[key]["alpha_star"]), "o", ms=3.0, mfc=RU, mec=INK,
             mew=0.5, zorder=5)
 d2.text(x0 / 1.3, float(PTS["pure"]["alpha_star"]), "%d×" % round(float(PTS["pure"]["alpha_star"])),
         fontsize=5.5, ha="right", va="center")
 d2.text(x1 / 1.3, float(PTS["supported"]["alpha_star"]), "%d×" % round(float(PTS["supported"]["alpha_star"])),
         fontsize=5.5, ha="right", va="center")
-d2.text(x9 * 1.5, 0.26, "%.1f–%.1f×" % (float(PTS["supp_rec94"]["alpha_star"]), float(PTS["supp_rec90"]["alpha_star"])),
+d2.text(x9 * 1.5, 0.26, "%.1f–%.1f×" % (float(PTS["supp_rec97"]["alpha_star"]), float(PTS["supp_rec90"]["alpha_star"])),
         fontsize=5.5, ha="left", va="bottom", fontweight="bold")
+amid, alo, ahi = bed_bars(d2, "supp_rec97", "supp_rec90", field="alpha_star_supported_bed")
+d2.text(x4 / 1.3, 8.0, "own bed\n%.1f–%.1f×" % (min(amid), max(amid)), fontsize=5.5, ha="right", va="center",
+        color=DARK_B, linespacing=1.0)
 d2.set_yscale("log")
 d2.set_ylim(0.2, 3000)
 d2.yaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))

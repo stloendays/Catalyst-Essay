@@ -391,15 +391,15 @@ tokens(
     "NH3 actual-catalyst cost (Fig. 2d)",
     s2,
     "11%",
-    f"{float(ac['supp_rec94']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
-    f"{float(ac['supp_rec94']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
-    f"{float(ac['supp_rec94']['gap_to_Fe']):.2f}–{float(ac['supp_rec90']['gap_to_Fe']):.2f}",
-    f"{float(ac['supp_rec94']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
-    f"{float(ac['kaap94']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
+    f"{float(ac['supp_rec97']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
+    f"{float(ac['supp_rec97']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
+    f"from {abs(float(ac['supp_rec97']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe",
+    f"{float(ac['supp_rec97']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
+    f"{float(ac['kaap97']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
     f"{float(ac['fe_kaap']['cost']):.2f}",
 )
 ok("NH3 actual-catalyst: Ru/C with recovery below Fe in the KAAP loop",
-   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap94"]["cost"]) < float(ac["fe_kaap"]["cost"]))
+   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap97"]["cost"]) < float(ac["fe_kaap"]["cost"]))
 lit = {r["id"]: r for r in rows("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")}
 tokens(
     "NH3 literature activity gains (Fig. 3a)",
@@ -434,30 +434,30 @@ src = {(r["source_type"], r["field"]): r for r in rows("agent/extraction/eval/fi
 
 def n_ok(source, field):
     r = src[(source, field)]
-    return f"{round(float(r['acc_strict']) * int(r['n_extracted']))} of {r['n_extracted']}"
+    return f"{r['n_correct_strict']} of {r['n_extracted']}"
 
 
 ext = json.loads((ROOT / "agent/extraction/eval/summary.json").read_text(encoding="utf-8"))
-sample = rows("agent/extraction/eval/batch4_unmatched_sample.csv") + rows("agent/extraction/eval/batch5_unmatched_sample.csv")
-sample_ok = sum(r["verdict"].startswith("correct") for r in sample)
-_b5 = (ROOT / "agent/extraction/paper_set.txt").read_text(encoding="utf-8").split("# Batch 5")[1]
-batch5 = {line.split()[0] for line in _b5.splitlines() if line.startswith("10.")}
-first18 = [r for r in ent.values() if r.get("ref") == "themecat" and r["doi"] not in batch5]
-prec18 = (sum(int(r["matched"]) + int(r["unmatched_verified_correct"]) for r in first18)
-          / sum(int(r["extracted"]) for r in first18))
+p18, p31 = ext["precision"]["first18"], ext["precision"]["added31"]
+err = ext["errata"]
 lit = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/summary.json").read_text(encoding="utf-8"))
 alloy = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/summary.json").read_text(encoding="utf-8"))
 ext_all = alloy["extended_with_usgs_prices"]
 tokens(
     "Agent extraction accuracy",
     s6,
+    f"{ext['matching']['ambiguous_pairs']} of the {ext['matching']['pairs']} pairs",
     f"{tot['matched']} of the {tot['curated']} curated entries ({float(tot['recall']) * 100:.0f}%)",
     n_ok("table", "X_CO2"), n_ok("table", "S_MeOH"),
     n_ok("SI", "X_CO2"), n_ok("SI", "S_MeOH"), n_ok("SI", "STY"),
     n_ok("plot", "X_CO2"), n_ok("plot", "S_MeOH"),
-    f"{prec18 * 100:.0f}% are correct in the first {len(first18)} papers",
-    f"{sample_ok} of a random {len(sample)} ({sample_ok / len(sample) * 100:.0f}%)",
-    f"{ext['n_errata_cells']} curated cells",
+    f"{p18['precision_all_extracted'] * 100:.0f}% are correct in the first 18 papers",
+    f"({p18['unmatched_correct']} of the "
+    f"{p18['unmatched_correct'] + p18['unmatched_duplicate'] + p18['unmatched_wrong']} reviewed are correct, "
+    f"{p18['unmatched_unreviewed']} are not yet reviewed)",
+    f"an estimated {p31['precision_all_extracted'] * 100:.0f}% in the 31 papers added later",
+    f"{p31['pooled_sample'].split('/')[0]} of a random {p31['pooled_sample'].split('/')[1]} such entries",
+    f"{sum(v['cells'] for v in err['by_reference'].values())} curated cells and {err['rows_dropped']} curated rows",
 )
 ok("Agent: Gothe Table 4 extracted exactly", ext["gothe"]["matched"] == 21 and ext["gothe"]["X_CO2"] == "21/21")
 canon = lit["selfcheck"]["canonical_states"]
@@ -542,14 +542,16 @@ s2_full = section("Metal price and process optimization jointly determine the Fe
 tokens(
     "NH3 actual-catalyst Monte Carlo",
     s2_full,
-    f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when the supported catalyst occupies the benchmark bed volume",
-    f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when its own Ru content",
+    f"Fe is cheaper in {mca['A']['P_Fe_cheaper'] * 100:.1f}% of draws when Ru is read at the effective price p(1 - r)/u in the benchmark bed",
+    f"and in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% when a commercial Ru/C bed "
+    f"({mca['ranges']['A_bed_Ru_wt_pct'][0]:g}–{mca['ranges']['A_bed_Ru_wt_pct'][1]:g} wt% Ru, "
+    f"{mca['ranges']['bed_density_kg_m3'][0]:.0f}–{mca['ranges']['bed_density_kg_m3'][1]:.0f} kg m⁻³)",
     f"Fe is cheaper in {mca['B']['P_Fe_cheaper'] * 100:.1f}% of draws with recovery and {mca['B0']['P_Fe_cheaper'] * 100:.1f}% without",
-    f"five of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
+    f"four of the {mca['ranges']['measured_Ru_catalysts']} catalysts",
 )
 ok("NH3 actual-catalyst MC: base reproduced", mca["base_reproduced"]["P_Fe_cheaper"] == 1.0
    and abs(mca["base_reproduced"]["min_gap_USD_t"] - 2.382) < 1e-3)
-ok("NH3 actual-catalyst MC: five winning measured catalysts", len(mca["B_Ru_winning_catalysts"]) == 5)
+ok("NH3 actual-catalyst MC: four winning measured catalysts", len(mca["B_Ru_winning_catalysts"]) == 4)
 mcd_rows = rows("analysis/nh3_mc_ru_actual_2026_10_06/draws.csv")
 
 
@@ -574,10 +576,13 @@ _tr = _quantiles([float(r_["r"]) for r_ in mcd_rows], [1 / 3, 2 / 3])
 tokens(
     "NH3 actual-catalyst MC: where Ru wins",
     s2_full,
-    f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.1f}% of draws with u in its lowest tercile",
-    f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r in their top terciles",
-    f"in {_win(lambda r_: float(r_['measured_wt_pct']) < 2.5) * 100:.1f}% of draws below 2.5 wt% Ru",
-    f"{_win(lambda r_: float(r_['measured_wt_pct']) >= 5.0) * 100:.0f}% at 5 wt% or more",
+    f"in {_win(lambda r_: float(r_['u']) < _tu[0]) * 100:.2f}% of draws with u in its lowest tercile",
+    f"{_win(lambda r_: float(r_['u']) >= _tu[1]) * 100:.0f}% with u in its top tercile",
+    f"{_win(lambda r_: float(r_['u']) >= _tu[1] and float(r_['r']) >= _tr[1]) * 100:.0f}% with u and r both in their top terciles",
+    f"from {_win(lambda r_: float(r_['r']) < _tr[0]) * 100:.0f}% to {_win(lambda r_: float(r_['r']) >= _tr[1]) * 100:.0f}% "
+    "between its lowest and top terciles",
+    f"from {_win(lambda r_: float(r_['A_bed_wt_pct']) < 7.5) * 100:.0f}% below 7.5 wt% to "
+    f"{_win(lambda r_: float(r_['A_bed_wt_pct']) >= 7.5) * 100:.0f}% above",
 )
 
 # ----- NH3 measured catalysts --------------------------------------------------------------------------------
@@ -702,16 +707,26 @@ tokens("MeOH plant benchmark: loop, recycle and price variants", text,
        f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
 ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
 
-tokens("Abstract headline numbers", text, "1,695 bimetallic surfaces", f"{lit['candidates']} operating points from {lit['papers_with_candidates']} methanol studies",
-       f"and {fd['papers_in_set']} ammonia studies",
+tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces",
+       f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",
        f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia cases")
 tokens("Discussion: field-level shares", text,
        f"in {P0['top1_mismatch_fraction'] * 100:.0f}% of methanol and {FP['top1_mismatch_fraction'] * 100:.0f}% of ammonia comparisons")
 # main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
-m_back = main_section("Backward design separates the required catalyst-property region from physical reachability")
-tokens("Main text: actual-catalyst Monte Carlo summary", m_back,
+m_feru = main_section("Metal price and process optimization decide the Fe–Ru ranking")
+tokens("Main text: actual-catalyst Monte Carlo summary", m_feru,
        f"Fe is cheaper in {mca['A_bed']['P_Fe_cheaper'] * 100:.1f}% of draws",
        f"in {mca['B']['P_Fe_cheaper'] * 100:.1f}% with the activities and Ru contents of the {mca['ranges']['measured_Ru_catalysts']} measured Ru catalysts")
+_layer = {r["metal"]: r for r in rows("analysis/fe_bridge_backward_2026_09_29/inversion_layer_common_reference.csv")}
+_ru_win = sum(r["economic_winner"] == "Ru" for r in draws)
+tokens("Main text: layer-wise reversal, process narrowing and descriptor winners", m_feru,
+       f"annualized metal replacement of {float(_layer['Fe']['annualized_replacement_cost_USD_t_NH3']):.3f} US dollars "
+       f"per tonne for Fe against {float(_layer['Ru']['annualized_replacement_cost_USD_t_NH3']):.2f} for Ru",
+       "Process optimization then narrows the gap", f"The remaining {gap:.3f} US dollars per tonne",
+       f"Fe ranks first economically in {100 * fe_win / len(draws):.1f}% and Ru in {100 * _ru_win / len(draws):.1f}%")
+ok("Descriptor samples: most Ru wins are Fe-bed-infeasible draws",
+   2 * sum(r["economic_winner"] == "Ru" and str(r.get("Fe_feasible", "")).strip() in ("0", "False", "false")
+           for r in draws) > _ru_win)
 m_field = main_section("Published laboratory leaders are often not the plant-cost leaders")
 tokens("Main text: field-level methanol and ammonia results", m_field,
        f"{lit['candidates']} operating points from {lit['papers_with_candidates']} studies",

@@ -1,0 +1,199 @@
+name: Methanol statistics (sharded)
+
+# Statistical firmness of the methanol field result (analysis/meoh_main_result_stats_2026_10_06): paper-cluster
+# bootstrap, regret curve, measurement re-draws (x1, x2, x4), plot-reading re-draws and exact validation replicates.
+# About 1.5e5 exact plant-model runs; they are split over a 20-job matrix and stored in a content-addressed cache
+# (exact_cache.csv.gz), so the result is the same as one serial run.
+#
+#   plan-grid   list the response-surface grid runs missing from the cache
+#   grid        run them, 20 shards
+#   plan-draws  merge, then list every draw outside the grid and the validation replicates
+#   draws       run them, 20 shards
+#   final       merge, run the full analysis from the cache, commit outputs back (non-main branches)
+#
+# Triggers: a push whose head commit message contains "[ci stats]" (add "[fresh]" to rebuild the cache from
+# nothing), or workflow_dispatch.
+
+on:
+  push:
+    paths:
+      - "analysis/meoh_main_result_stats_2026_10_06/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/**"
+      - "data/meoh/**"
+      - ".github/workflows/methanol-stats.yml"
+  workflow_dispatch:
+    inputs:
+      fresh:
+        description: "Discard the committed cache, grid and scenario files and recompute everything"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-stats-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONIOENCODING: utf-8
+  STATS_WORKERS: "4"
+  D: analysis/meoh_main_result_stats_2026_10_06
+  SHARDS: "20"
+  FRESH: ${{ (github.event_name == 'workflow_dispatch' && inputs.fresh) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[fresh]')) }}
+
+jobs:
+  plan-grid:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ci stats]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      pending: ${{ steps.plan.outputs.pending }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - name: Start state
+        run: |
+          mkdir -p state
+          if [ "$FRESH" = "true" ]; then rm -f $D/exact_cache.csv.gz $D/grid_costs.csv $D/scenario_*.json; fi
+          cp $D/exact_cache.csv.gz $D/grid_costs.csv state/ 2>/dev/null || true
+          cp $D/scenario_*.json state/ 2>/dev/null || true
+          echo "fresh=$FRESH"; ls -la state
+      - id: plan
+        run: |
+          STATS_MODE=enumerate STATS_JOBS_OUT=jobs_grid.pkl python $D/run_main_result_stats.py | tee plan.log
+          python -c "import pickle; d=pickle.load(open('jobs_grid.pkl','rb')); print(d['stage'], len(d['jobs']))" | tee -a plan.log
+          n=$(python -c "import pickle; d=pickle.load(open('jobs_grid.pkl','rb')); print(len(d['jobs']) if d['stage']=='grid' else 0)")
+          echo "pending=$n" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with: { name: state-0, path: state/, include-hidden-files: true, if-no-files-found: ignore }
+      - uses: actions/upload-artifact@v4
+        with: { name: jobs-grid, path: jobs_grid.pkl }
+
+  grid:
+    needs: plan-grid
+    if: needs.plan-grid.outputs.pending != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: { name: jobs-grid }
+      - run: python $D/run_main_result_stats.py compute jobs_grid.pkl ${{ matrix.shard }} $SHARDS part_grid_${{ matrix.shard }}.csv
+      - uses: actions/upload-artifact@v4
+        with: { name: "part-grid-${{ matrix.shard }}", path: "part_grid_${{ matrix.shard }}.csv" }
+
+  plan-draws:
+    needs: [plan-grid, grid]
+    if: always() && needs.plan-grid.result == 'success' && (needs.grid.result == 'success' || needs.grid.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      pending: ${{ steps.plan.outputs.pending }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: { name: state-0, path: state }
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with: { pattern: "part-grid-*", path: parts, merge-multiple: true }
+        continue-on-error: true
+      - name: Restore state and merge the grid
+        run: |
+          rm -f $D/exact_cache.csv.gz $D/grid_costs.csv $D/scenario_*.json
+          cp state/* $D/ 2>/dev/null || true
+          if ls parts/*.csv >/dev/null 2>&1; then python $D/run_main_result_stats.py merge parts/*.csv; fi
+      - id: plan
+        run: |
+          STATS_MODE=enumerate STATS_JOBS_OUT=jobs_draws.pkl python $D/run_main_result_stats.py | tee plan.log
+          python - <<'EOF'
+          import os, pickle
+          d = pickle.load(open("jobs_draws.pkl", "rb"))
+          assert d["stage"] == "draws", d["stage"]      # the grid must be complete by now
+          print("draw jobs", len(d["jobs"]))
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"pending={len(d['jobs'])}\n")
+          EOF
+          mkdir -p state1
+          cp $D/exact_cache.csv.gz $D/grid_costs.csv state1/ 2>/dev/null || true
+          cp $D/scenario_*.json state1/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with: { name: state-1, path: state1/, if-no-files-found: ignore }
+      - uses: actions/upload-artifact@v4
+        with: { name: jobs-draws, path: jobs_draws.pkl }
+
+  draws:
+    needs: plan-draws
+    if: always() && needs.plan-draws.result == 'success' && needs.plan-draws.outputs.pending != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: { name: jobs-draws }
+      - run: python $D/run_main_result_stats.py compute jobs_draws.pkl ${{ matrix.shard }} $SHARDS part_draws_${{ matrix.shard }}.csv
+      - uses: actions/upload-artifact@v4
+        with: { name: "part-draws-${{ matrix.shard }}", path: "part_draws_${{ matrix.shard }}.csv" }
+
+  final:
+    needs: [plan-draws, draws]
+    if: always() && needs.plan-draws.result == 'success' && (needs.draws.result == 'success' || needs.draws.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with: { name: state-1, path: state }
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with: { pattern: "part-draws-*", path: parts, merge-multiple: true }
+        continue-on-error: true
+      - name: Restore, merge and run the full analysis from the cache
+        run: |
+          rm -f $D/exact_cache.csv.gz $D/grid_costs.csv $D/scenario_*.json
+          cp state/* $D/ 2>/dev/null || true
+          if ls parts/*.csv >/dev/null 2>&1; then python $D/run_main_result_stats.py merge parts/*.csv; fi
+          STATS_WORKERS=4 python $D/run_main_result_stats.py > $D/run.log
+          tail -n 60 $D/run.log
+      - name: Commit outputs
+        if: github.ref != 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add $D
+          if git diff --cached --quiet; then echo "outputs unchanged"; exit 0; fi
+          git commit -m "CI: methanol statistics on ubuntu-latest, 20-shard matrix (run ${{ github.run_id }})"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0; sleep 5; done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: methanol-stats-outputs
+          path: |
+            ${{ env.D }}/summary.json
+            ${{ env.D }}/validation.csv
+            ${{ env.D }}/group_noise_probabilities.csv
+            ${{ env.D }}/regret_threshold_curve.csv
+            ${{ env.D }}/scenario_*.json
+            ${{ env.D }}/run.log

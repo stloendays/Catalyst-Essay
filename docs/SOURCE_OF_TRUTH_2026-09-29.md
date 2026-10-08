@@ -49,24 +49,28 @@ The direct activity/lifecycle values are **backward targets**, not physical-reac
 ## NH3 — actual-catalyst cost of Ru (Fig. 2d) — 2026-10-05
 
 A supported catalyst that exposes *u* times more metal than fused iron and recovers a fraction *r* carries the metal
-charge of the common formulation at p_eff = p (1 − r) / u. Literature inputs: Ru dispersion 11% for a promoted Ru/C
-ammonia catalyst with 3.2 wt% Ru (Rossetti *et al.*, *Ind. Eng. Chem. Res.* 2006) against fewer than 1% of Fe atoms
-exposed in reduced fused iron (Liu *et al.*, *CIESC J.* 2000), so u ≥ 11; Ru recovery from spent promoted Ru catalyst
-above 94% (US 6,673,732 B2); KAAP loop 9.1 MPa with a −20 °C condenser (Humphreys *et al.*, *Adv. Energy Sustain. Res.* 2021).
+charge of the common formulation at p_eff = p (1 − r) / u. Literature inputs (adopted 2026-10-08 after a
+primary-literature check, `docs/RU_ACTUAL_CATALYST_COST_2026-10-05.md` §6): Ru dispersion 11% for a promoted Ru/C
+ammonia catalyst (Rossetti *et al.*, *Ind. Eng. Chem. Res.* 2006) against fewer than 1% of Fe atoms exposed in reduced
+fused iron (Liu *et al.*, *CIESC J.* 2000), so u ≥ 11; commercial Ru/C at about 8 wt% Ru, 5–10 wt% (Brown *et al.*,
+*Catal. Lett.* 2014); Ru recovery 90–97% (CN 1872418 A, spent activated-carbon Ru ammonia catalyst, 89–97.6%);
+supported-bed density 430–550 kg m⁻³ (derived from a promoted Ru/C laboratory bed, Kowalczyk *et al.*, *Catal. Lett.*
+1997); KAAP loop about 90 bar (Ullmann "Ammonia, 3", 2011) with a −20 °C separator (model setting). Canonical outputs
+regenerated on GitHub Actions (run 37648545590) after the old parameters reproduced the committed outputs exactly.
 
 | Quantity | Current value | State | Authoritative source |
 |---|---:|---|---|
 | Ru/C, no recovery (u = 11) | 17.950 USD/t; alpha* 18.48x | DERIVED-A | `figures/composite/fig2/fig2_ru_actual_cost_points.csv` |
-| Ru/C, 90% recovery | 15.671 USD/t (+0.379 vs Fe); alpha* 2.234x; 450 C / 200 bar | DERIVED-A | same |
-| Ru/C, 94% recovery | 15.485 USD/t (+0.193 vs Fe); alpha* 1.494x; 450 C / 195 bar | DERIVED-A | same |
-| KAAP loop (90 bar, Tsep -20 C): Ru/C 94% / 90% recovery vs fused Fe | 18.529 / 18.910 vs 19.069 USD/t | DERIVED-A | same |
-| u required for parity at 94% / 90% recovery | 19.7 / 32.9 | DERIVED-A | same |
-| u required for strict-scaling reach (p_eff <= 237.3 USD/kg) at 94% / 90% | 13.6 / 22.7 | DERIVED-A | same + strict-scaling lifecycle audit |
-| supported-bed reactor-term sensitivity (bed 5-10x benchmark volume) | +0.15 to +0.83 USD/t | SUPPORTING | `fig2_ru_bed_sensitivity.csv` |
+| Ru/C, 90% recovery (benchmark bed) | 15.671 USD/t (+0.379 vs Fe); alpha* 2.234x; 450 C / 200 bar | DERIVED-A | same |
+| Ru/C, 97% recovery (benchmark bed) | 15.237 USD/t (−0.054 vs Fe); alpha* 0.936x; 425 C / 185 bar | DERIVED-A | same |
+| KAAP loop (90 bar, Tsep -20 C), benchmark bed: Ru/C 97% / 90% vs fused Fe | 18.157 / 18.910 vs 19.069 USD/t | DERIVED-A | same |
+| own supported bed, 8 wt% Ru, 430–550 kg m⁻³, 90–97% recovery | main loop 15.63–16.01 (+0.33 to +0.72 vs Fe); KAAP 18.49–19.08 vs 19.07 (below Fe at 97% in every bed, at 90% in the 550 kg m⁻³ bed); over 5–10 wt%: 15.55–16.24 and 18.40–19.20 | DERIVED-A | `fig2_ru_bed_sensitivity.csv` |
+| actual-Ru MC, P(Fe cheaper) | A (benchmark bed) 35.6%; A_bed (commercial Ru/C, 5–10 wt%) 69.0%; B (54 measured Ru catalysts) 94.7%, without recovery 99.0% | DERIVED-A | `analysis/nh3_mc_ru_actual_2026_10_06/summary.json` |
+| u required for parity at 97% / 90% recovery | 9.9 / 32.9 | DERIVED-A | `analysis/nh3_actual_ru_params_2026_10_07/TEXT_NUMBERS.md` |
 
 **Semantic lock:** u = 11 is a literature lower bound (Fe exposure is bounded above by 1%), not a fitted value. The Ru/C
-points use the common bed formulation for the reactor term; the supported-bed reactor correction is reported as a
-sensitivity. The KAAP comparison holds the loop at 90 bar and -20 C for both catalysts; the global optimum of the model
+benchmark points use the common bed formulation for the reactor term; the own-bed series carries the supported bed's
+reactor term. The KAAP comparison holds the loop at 90 bar and -20 C for both catalysts; the global optimum of the model
 remains the 180-bar Fe loop.
 
 Reproduction: `figures/composite/fig2/fig2_ru_actual_cost.py` (asserts the canonical Fe and Ru costs, the 201.22x

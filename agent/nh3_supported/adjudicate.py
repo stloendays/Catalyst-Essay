@@ -158,7 +158,9 @@ def normalize(page, i, r):
         elif unit.startswith("mLh-1g-1") or unit.startswith("mlh-1g-1"):
             rate, src = r["rate_value"] / VM_ML * 1e6, "printed (mL h-1 g-1), converted"
     if rate is None and r["outlet_nh3_vol_pct"] is not None and r["whsv_mL_g_h"] is not None:
-        rate, src = r["outlet_nh3_vol_pct"] / 100.0 * r["whsv_mL_g_h"] / VM_ML * 1e6, "derived from outlet NH3 and WHSV"
+        # outlet fraction y = n / (F0 - n) (one mole of gas lost per mole of NH3), so n = F0 y / (1 + y)
+        y = r["outlet_nh3_vol_pct"] / 100.0
+        rate, src = y / (1.0 + y) * r["whsv_mL_g_h"] / VM_ML * 1e6, "derived from outlet NH3 and WHSV"
     if r["rate_value_max"] is not None or r["temperature_C_max"] is not None or r["pressure_MPa_max"] is not None:
         flags.append("range in table, lower value used")
     return dict(id=f"T{r['table'].split()[-1] if r['table'] else '?'}-p{page}-r{i}", table=r["table"], page=page,

@@ -18,8 +18,14 @@ The Mamun values are put on the S1 terrace scale with a linear fit over the 14 p
 
 - **Global:** the two linear maps above.
 - **Element-anchored:** each element's offset between its frozen step E_N and its chain value is added in
-  proportion to atomic fraction, so every pure metal sits exactly at its frozen descriptor. Ni has no pure Mamun
-  surface and keeps a zero offset.
+  proportion to atomic fraction, so every anchored pure metal sits exactly at its frozen descriptor. Offsets exist
+  only for the 14 frozen metals with a pure Mamun surface: Ag, Au, Co, Cu, Fe, Ir, Mo, Os, Pd, Pt, Re, Rh, Ru, W
+  (`calibration.json`, `anchored_elements`). Ni (frozen, but no pure Mamun surface) and every USGS-priced element
+  (Cr, V, Ti, Mn, …) enter with zero offset, i.e. on the global bridge. `fully_anchored` in
+  `alloy_chain_results.csv` is true only when every element of the surface carries an offset (before 2026-10-07 it
+  was false only for surfaces containing Ni, so Cr-, V- or Ti-containing surfaces were marked anchored). Of the six
+  surfaces below Fe in the anchored route of the transition-metal layer, Cu₃Mo, CuMo, CoMo and CoW are fully anchored;
+  Cu₃Cr (Cr) and MoNi (Ni) carry only the offset of their other element. The flag enters no metric.
 
 ## Results with frozen prices (309 surfaces whose elements all carry a frozen price)
 
@@ -45,11 +51,12 @@ surfaces below Fe.
 
 ## Extension to all priced elements (USGS Mineral Commodity Summaries 2026)
 
-The 22 elements without a frozen price take the 2025 annual-average prices of the USGS Mineral Commodity Summaries 2026
-(https://pubs.usgs.gov/publication/mcs2026, per-commodity PDFs `mcs2026-<commodity>.pdf`), expressed per kg of contained
-metal: oxide, ore and ferroalloy quotations are divided by the metal mass fraction (`element_prices_usgs_mcs2026.csv`
-lists the quotation, unit, conversion and basis for each element; Hg uses 2024, the latest year reported). Tc has no
-market price; its 101 surfaces stay uncosted. The frozen 15-metal prices are unchanged and the frozen-price results
+Of the 22 elements without a frozen price, 21 take the prices of the USGS Mineral Commodity Summaries 2026
+(https://pubs.usgs.gov/publication/mcs2026, per-commodity PDFs `mcs2026-<commodity>.pdf`): Al, Bi, Cd, Cr, Ga, Hf, In,
+La, Mn, Nb, Pb, Sc, Sn, Ta, Ti, Tl, V, Y, Zn, Zr at their 2025 annual average (estimated) and Hg at its 2024 value
+(average unit value of imports; 2025 not reported). They are expressed per kg of contained metal: oxide, ore and
+ferroalloy quotations are divided by the metal mass fraction (`element_prices_usgs_mcs2026.csv` lists the quotation,
+unit, conversion and basis for each element). The 22nd, Tc, has no market price; its 101 surfaces stay uncosted. The frozen 15-metal prices are unchanged and the frozen-price results
 above are reproduced exactly.
 
 Each surface carries a `domain` label, because the activity model is fitted on transition metals:

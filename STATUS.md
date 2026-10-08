@@ -1,7 +1,7 @@
 # Current project status
 
-Snapshot date: **2026-10-07** (main at `ee76c2f`, PR #33). The previous snapshot (2026-09-30) is in the git history
-of this file.
+Snapshot date: **2026-10-08** (PR #37: the 2026-10-07 review corrections, the original methanol treatment and the
+literature Ru catalyst parameters). Earlier snapshots are in the git history of this file.
 
 ## Manuscript
 
@@ -23,22 +23,25 @@ surfaces → methanol mechanism → Au/TiO₂ control → backward design.
 | Result | Value | Evidence |
 |---|---|---|
 | Ammonia, 15 metals | intrinsic Ru > Os > Fe becomes Fe > Ru > Os (15.292 / 22.031 / 25.832 USD/t); Ru needs a 201.22-fold activity gain against 2.525-fold scaling headroom | `provenance/nh3_final_1_1/`, `analysis/fe_bridge_backward_2026_09_29/` |
-| Ammonia, actual Ru catalyst | dispersion and recovery bring supported Ru to 0.19–0.38 USD/t above Fe on the benchmark bed; P(Fe cheaper) 0.80 (own bed) and 0.946 (measured Ru catalysts) | `analysis/nh3_mc_ru_actual_2026_10_06/` |
+| Ammonia, actual Ru catalyst (literature parameters: 8 wt% Ru, 430–550 kg m⁻³, 90–97% recovery) | own bed 15.63–16.01 USD/t, 0.33–0.72 above Fe in the main loop; KAAP loop 18.49–19.08 vs 19.07; P(Fe cheaper) 69.0% (commercial Ru/C bed) and 94.7% (54 measured Ru catalysts) | `figures/composite/fig2/fig2_ru_*.csv`, `analysis/nh3_mc_ru_actual_2026_10_06/`, `analysis/nh3_actual_ru_params_2026_10_07/` |
 | Methanol, published comparisons (45 papers, 83 comparisons) | space-time-yield leader ≠ plant-cost leader in 33/83 (40%; paper bootstrap 24–55%) | `analysis/meoh_literature_inversion_2026_10_05/`, `analysis/meoh_main_result_stats_2026_10_06/` |
-| Ammonia, published comparisons (30 papers, 124 comparisons) | rate leader ≠ plant-cost leader in 45/124 (36%) | `analysis/nh3_field_2026_10_06/` |
+| Ammonia, published comparisons (30 papers, 124 comparisons) | rate leader ≠ plant-cost leader in 44/124 (35%; paper bootstrap 18–52%) | `analysis/nh3_field_2026_10_06/` |
 | Bimetallic surfaces | 1,695 priced surfaces; among transition-metal alloys only cheap 3d + group-6 pairs undercut Fe | `analysis/nh3_alloy_extension_2026_10_05/` |
 | Agent (ACSA) | extraction recall 0.97 on 50 methanol papers; self-check reproduces all three hand-built cases; lower bounds spare 77% of methanol and 82% of alloy full optimizations without losing a leader | `agent/`, `analysis/meoh_pruning_2026_10_06/` |
 | Au/TiO₂ control | ranking preserved (Spearman 1.0, 10,000/10,000 draws) | `data/rank_preservation_*`, `agent/au/` |
 
-## In review (not on main)
+## Changes in this snapshot (PR #37)
 
-- **Corrections from the 2026-10-07 four-part review** (methanol model, extraction evaluation, ammonia, text):
-  methanol per-pass conversion capped at CO₂-hydrogenation equilibrium and recycled CO at CO-hydrogenation
-  equilibrium; reactor-inlet non-H₂/CO₂ content limited to that of the calibrated reference loop; extraction
-  evaluation matched without the scored values; ammonia fused-iron references and outlet-derived rates; KAAP
-  comparison on the supported catalyst's own bed. Branches `fix-meoh-2026-10-07`, `fix-nh3-2026-10-07` and
-  `meoh-physical-lock-2026-10-07` (methanol inert-limit sweep, isothermal catalyst comparisons, statistics on
-  GitHub Actions). The methanol headline on main changes when these are merged.
+- **2026-10-07 four-part review** (extraction evaluation, ammonia, text): extraction evaluation matched without the
+  scored values (recall 717/741); commercial fused-iron references only and repeated measurements counted once in the
+  ammonia field statistic; outlet-derived rates n = F0·y/(1+y); supported Ru/C on its own bed; methanol hand-built
+  counterfactual with STY scaled by X·S; text corrections; Results ordered by figure citation.
+- **Methanol field result: original treatment** (author decision 2026-10-07). The physically constrained variant
+  (equilibrium cap, reactor-inlet limit; 54/82) is kept for reference on branch `meoh-physical-lock-2026-10-07`
+  (closed PR #36).
+- **Literature Ru catalyst parameters** (author decision 2026-10-08), checked against primary sources
+  (`docs/RU_ACTUAL_CATALYST_COST_2026-10-05.md` §6); recovery cited to CN 1872418 A and the KAAP loop to Ullmann
+  "Ammonia, 3". Outputs regenerated on GitHub Actions from the frozen harness (PR #38, #39).
 
 ## Frozen scientific families
 
@@ -59,6 +62,7 @@ Reader-facing names follow [`docs/SCIENTIFIC_NAMING.md`](docs/SCIENTIFIC_NAMING.
 | `manuscript-number-audit.yml` | push / PR touching the text or evidence | every number in the live text against the committed evidence (`tools/audit_live_manuscript_truth.py`) |
 | `manuscript-build.yml` | push / PR touching the text, figures or builders; dispatch | Word + PDF of the manuscript and the SI (artifact `manuscript`), page count, unresolved placeholders |
 | `methanol-main-result.yml` | push / PR touching the methanol model, analysis or extraction output | reruns the methanol field result on a clean runner and compares with the committed summary; regenerates on `[ci regenerate]` |
+| `nh3-actual-ru-params.yml`, `nh3-literature-params.yml` | push to their branches, dispatch | rebuild the needed columns of the NH3 response surface from the frozen harness, reproduce the committed actual-Ru outputs, then the literature-parameter outputs |
 | `methanol-stats.yml` | `[ci stats]` in the head commit, or dispatch | bootstrap, measurement and plot-reading re-draws, exact validation; ~1.5e5 plant-model runs over a 20-job matrix |
 | `render-manifests.yml` | push to main / PR touching figures, data or analysis | every figure render manifest against the bytes of a clean checkout |
 | `agent-endpoint-consistency.yml`, `discover-v1-provenance.yml`, `discover-v1-scorer-replay.yml` | push / PR | DISCOVER V1 frozen hashes, scorer replay, endpoint definitions in the text |

@@ -62,7 +62,11 @@ hc = SC.hc
 
 T_PRIMARY = SC.T_PRIMARY
 FUSED = re.compile(r"fused|w[uü]stite|magnetite|industrial|commercial (?:fe|iron)|\bKM[- ]?\d|\bA301\b|\bZA-?5\b", re.I)
-NONSTEADY_MODES = {"chemical_looping", "plasma", "electric_field", "microwave", "photo"}
+# A name that states a composition (a percentage, a support after "/", an added component) is a new catalyst made from
+# or with the industrial one, e.g. "80% magnetite based industrial Fe catalyst-20% Ce0.8Sm0.2O2-d": it keeps its own
+# metal content and the supported-bed density instead of the fused-iron formulation.
+COMPOSITE = re.compile(r"\d\s*(?:wt\.?\s*)?%|/|\+")
+NONSTEADY_MODES ={"chemical_looping", "plasma", "electric_field", "microwave", "photo"}
 N_BOOT = 10_000
 
 # ------------------------------------------------------------------ the mapping (one catalyst) ----------------------
@@ -132,7 +136,7 @@ def supported_jobs():
     y_known = []
     for r in rows:
         R, whsv, out = fnum(r["rate_umol_g_h"]), fnum(r["whsv_mL_g_h"]), fnum(r["outlet_nh3_vol_pct"])
-        r["_y_out"] = out / 100.0 if out is not None else (R * 1e-6 * SC.VM_ML / whsv if R and whsv else None)
+        r["_y_out"] = out / 100.0 if out is not None else (SC.y_out_from_rate(R, whsv) if R and whsv else None)
         if r["_y_out"] is not None:
             y_known.append(r["_y_out"])
     y_default = float(np.median(y_known))
@@ -173,6 +177,10 @@ def _f(x):
     return None if x is None or (isinstance(x, float) and math.isnan(x)) else float(x)
 
 
+def _has(x):
+    return not (x is None or (isinstance(x, float) and math.isnan(x)) or not str(x).strip())
+
+
 def _name_key(s):
     return re.sub(r"[\s.\-_(),/:;%–—\[\]]+", "", str(s).lower())
 
@@ -204,13 +212,15 @@ def build_candidates(d: pd.DataFrame):
         w = _f(r.get("metal_wt_pct"))
         whsv = _f(r.get("WHSV_mL_g_h"))
         outlet = _f(r.get("outlet_nh3_vol_pct"))
-        y = outlet / 100.0 if outlet is not None else (R * 1e-6 * SC.VM_ML / whsv if R and whsv else None)
+        y = outlet / 100.0 if outlet is not None else (SC.y_out_from_rate(R, whsv) if R and whsv else None)
         name = str(r["catalyst_name"])
-        fused = bool(FUSED.search(name + " " + str(r.get("composition") or ""))) and metals == ["Fe"]
+        # the commercial fused or wustite iron catalyst used as a reference, not a composite that contains it
+        fused = (metals == ["Fe"] and bool(FUSED.search(name + " " + str(r.get("composition") or "")))
+                 and not COMPOSITE.search(name) and not _has(r.get("support")))
         prep = r.get("preparation")
         prep = "" if prep is None or (isinstance(prep, float) and math.isnan(prep)) else str(prep)
         rec = dict(doi=r["doi"], entry=r["entry_label"], catalyst=name, preparation=prep, metal=";".join(metals),
-                   metal_wt_pct=w,
+                   metal_wt_pct=w, support=str(r.get("support")) if _has(r.get("support")) else "",
                    fused=fused, T_C=_f(r.get("T_C")), P_MPa=_f(r.get("P_MPa")), H2_N2=_f(r.get("H2_N2")), WHSV=whsv,
                    SV_raw=r.get("SV_raw"), outlet_pct=outlet, rate_umol_gcat_h=R,
                    rate_umol_gmetal_h=_f(r.get("rate_umol_gmetal_h")),
@@ -247,7 +257,7 @@ def build_candidates(d: pd.DataFrame):
             rec = out[i]
             rec["WHSV"], rec["WHSV_filled"] = float(svs[0]), True
             if rec["y_out"] is None and rec["rate_umol_gcat_h"]:
-                rec["y_out"] = rec["rate_umol_gcat_h"] * 1e-6 * SC.VM_ML / rec["WHSV"]
+                rec["y_out"] = SC.y_out_from_rate(rec["rate_umol_gcat_h"], rec["WHSV"])
                 rec["y_source"] = "rate / WHSV (WHSV of the paper's comparison)"
     y_known = [r["y_out"] for r in out if not r["status"] and r["y_out"] is not None]
     y_default = float(np.median(y_known)) if y_known else 0.0043
@@ -301,7 +311,16 @@ def assign_groups(c: pd.DataFrame) -> pd.DataFrame:
     c["_rank"] = c.apply(lambda r: _rank(r), axis=1)
     c["_tos"] = c.TOS.map(_tos)
     c = c.sort_values(["group", "_nk", "_rank", "_tos"], ascending=[True, True, False, False])
-    c["duplicate_in_group"] = c.duplicated(["group", "_nk"])
+    dup_name = c.duplicated(["group", "_nk"])
+    # one entry per measurement and group: the same metal, metal content and rate (3 significant figures) in one group
+    # is one measurement printed twice (text and SI figure, or a catalyst named two ways), whatever the name
+    c["_mk"] = (c.metal + "|" + c.fused.map(str) + "|"
+                + c.metal_wt_pct.map(lambda w: "" if pd.isna(w) else f"{w:g}") + "|"
+                + c.rate_umol_gcat_h.map(lambda x: _sig(x, 3)))
+    kept = c[~dup_name].sort_values(["group", "_mk", "_rank", "_tos"], ascending=[True, True, False, False])
+    dup_meas = kept.index[kept.duplicated(["group", "_mk"])]
+    c["duplicate_in_group"] = np.where(dup_name, "same catalyst", "")
+    c.loc[dup_meas, "duplicate_in_group"] = "same measurement"
     return c
 
 
@@ -328,7 +347,15 @@ def group_metrics(g, cost_col, up_col):
         kind = "same metal, different metal content"
     else:
         kind = "same metal and metal content"
+    # the same support: the same host cations, anions (O, N, H) and stoichiometry ignored, so BaTiO2.5H0.5 and
+    # BaTiO2.35H0.65, or BaCeO3-xNy and BaCeO3-xNyHz, are one support
+    # (x, y, z after a symbol are stoichiometry variables, as in NyHz)
+    fam = lambda x: (frozenset(re.findall(r"[A-Z][a-z]?", re.sub(r"(?<=[A-Z])[xyz]", "", str(x)))) - {"O", "N", "H"}  # noqa: E731
+                     if _has(x) else frozenset())
+    same_support = bool(fam(pw.support)) and fam(pw.support) == fam(ew.support)
     return dict(n=n, top1_mismatch=econ_idx not in up_winners, mismatch_kind=kind, regret=(c_up - c_best) / c_best,
+                paper_winner_metal=pw.metal, plant_winner_metal=ew.metal, paper_winner_support=pw.support,
+                plant_winner_support=ew.support, same_support_family=same_support,
                 paper_winner=g.loc[sorted(up_winners)[0], "catalyst"], plant_winner=g.at[econ_idx, "catalyst"],
                 paper_winner_cost=c_up, plant_winner_cost=c_best,
                 plant_rank_of_paper_winner=int((g[cost_col] < c_up - 1e-9).sum()) + 1,
@@ -361,6 +388,16 @@ def aggregate(frame, cost_col="cost_USD_t", up_col="paper_rate", label="", boot=
              mismatch_kinds={k: dict(groups=int(len(x)), papers=int(x.doi.nunique()),
                                      regret_median=float(x.regret.median()), regret_max=float(x.regret.max()))
                              for k, x in mm.groupby("mismatch_kind")})
+    dm = mm[mm.mismatch_kind == "different metal"]
+    if len(dm):
+        s["different_metal_split"] = {
+            lab: dict(groups=int(len(x)), papers=int(x.doi.nunique()),
+                      regret_median=float(x.regret.median()) if len(x) else None,
+                      regret_max=float(x.regret.max()) if len(x) else None)
+            for lab, x in (("Fe plant winner, same support family", dm[(dm.plant_winner_metal == "Fe") & dm.same_support_family]),
+                           ("Fe plant winner, other support", dm[(dm.plant_winner_metal == "Fe") & ~dm.same_support_family]),
+                           ("plant winner not Fe", dm[dm.plant_winner_metal != "Fe"]))}
+    s["paper_basis_groups"] = {k: int(v) for k, v in gm.paper_basis.value_counts().items()}
     if boot:
         rng = np.random.default_rng(seed)
         per = gm.groupby("doi").top1_mismatch.agg(["sum", "count"])
@@ -421,8 +458,9 @@ def main():
                     ["feasible"]["total_cost"])
 
     prim = cand[cand.status.str.startswith("primary") & cand.cost_USD_t.notna()].copy()
-    prim = assign_groups(prim)
-    prim = prim[~prim.duplicate_in_group].copy()
+    grouped = assign_groups(prim)
+    dedup = grouped.duplicate_in_group.value_counts().to_dict()
+    prim = grouped[grouped.duplicate_in_group == ""].copy()
     # the paper's own basis per group: per g metal when every rate of the group is printed per g metal
     basis = prim.groupby("group").rate_printed_per_metal.transform("all")
     prim["paper_basis"] = np.where(basis, "per g metal", "per g catalyst")
@@ -463,8 +501,12 @@ def main():
             "cost_USD_t", "cost_recovery90", "cost_bed500", "cost_bed2500", "cost_alpha_transfer", "T_opt_C",
             "P_opt_bar", "V_m3", "status", "location"]
     keep.insert(keep.index("SV_raw"), "WHSV_filled")
+    keep.insert(keep.index("metal_wt_pct") + 1, "support")
+    # `group` names the comparison an entry is counted in; a removed duplicate carries its group in `duplicate_of_group`
+    dups = grouped[grouped.duplicate_in_group != ""].rename(columns={"group": "duplicate_of_group"})
     allc = cand[keep].merge(prim[["doi", "entry", "group", "paper_basis", "paper_rate", "SV_filled"]],
                             on=["doi", "entry"], how="left")
+    allc = allc.merge(dups[["doi", "entry", "duplicate_of_group", "duplicate_in_group"]], on=["doi", "entry"], how="left")
     allc.to_csv(HERE / "candidates.csv", index=False, float_format="%.6g")
     gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
     st = cand.status.fillna("")
@@ -480,6 +522,11 @@ def main():
         flagged=int(st.str.startswith("flagged").sum()), outside=int(st.str.startswith("outside").sum()),
         outside_reasons=reasons, y_default_median=y_default, Fe_benchmark_USD_t=fe_cost,
         primary_entries_after_dedup=int(len(prim)), papers_with_primary=int(prim.doi.nunique()),
+        removed_as_duplicate={"same catalyst (name, preparation, metal content)": int(dedup.get("same catalyst", 0)),
+                              "same measurement (metal, metal content, rate to 3 s.f.)": int(dedup.get("same measurement", 0)),
+                              "groups_with_same_measurement": int(grouped[grouped.duplicate_in_group == "same measurement"]
+                                                                  .group.nunique())},
+        fused_reference_entries_primary=int(prim.fused.sum()),
         primary_below_Fe=int((prim.cost_USD_t < fe_cost).sum()),
         primary=primary, variants=variants)
     (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")

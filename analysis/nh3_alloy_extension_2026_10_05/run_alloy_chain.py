@@ -8,7 +8,9 @@ Chain per candidate (no step is specific to alloys):
      uses to place Fe on the step-site volcano (sheet Terrace_Step_N, 14 metals, R^2 = 0.982).
   3b. Element-anchored bridge (second route): each element's offset between the frozen-screen step E_N and
      its pure-metal chain value is added in proportion to its atomic fraction, so every pure metal sits
-     exactly at its frozen descriptor. Candidates are reported as robust when both routes place them below Fe.
+     exactly at its frozen descriptor. Only the 14 frozen metals with a pure Mamun surface carry an offset (Ni has
+     none); every other element enters with zero offset, and `fully_anchored` marks the surfaces whose elements all
+     carry one. Candidates are reported as robust when both routes place them below Fe.
   4. Activity: per-state log10 TOF read from the cached frozen response surface (14,136 process states).
   5. Cost: frozen cost model with the alloy's mole-weighted molar mass and mass-weighted metal price,
      minimized over all states with V <= V_CAP. The 15 model metals keep their frozen prices; the other
@@ -149,6 +151,9 @@ def anchored_EN(e_mamun, els):
 
 UNANCHORED = sorted(el for el in FROZEN_PRICE if el not in OFFSET)   # frozen metals with no Mamun pure surface
 calib["unanchored_elements"] = UNANCHORED
+# Only the frozen metals with a pure Mamun surface carry an offset; every other element (Ni among the frozen
+# metals, and all USGS-priced elements: Cr, V, Ti, Mn, ...) enters the anchored route with zero offset.
+calib["anchored_elements"] = sorted(OFFSET)
 
 
 # ----- lower bound for pruning -------------------------------------------------------------------
@@ -201,7 +206,7 @@ for surf, r in sorted(best.items()):
     row["E_N_step_anchored_eV"] = round(ena, 4)
     row["logTOF_673K_anchored"] = round(float(h.base_condition.logtof(ena)), 4)
     row["cost_anchored_USD_t"] = "" if oa is None else round(oa["total_cost"], 6)
-    row["fully_anchored"] = not any(el in UNANCHORED for el in els)
+    row["fully_anchored"] = all(el in OFFSET for el in els)   # every element carries a frozen descriptor offset
     for shift, tag in ((-calib["propagated_rms_eV"], "minus"), (calib["propagated_rms_eV"], "plus")):
         o = optimum(surf, h.interp_state_vector(response, step_EN(e_m, shift)), mw, price)
         row[f"cost_shift_{tag}"] = "" if o is None else round(o["total_cost"], 6)

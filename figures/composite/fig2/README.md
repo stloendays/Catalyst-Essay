@@ -1,4 +1,4 @@
-# Figure 2 — composite
+# Figure 2 — composite (manuscript Fig. 3)
 
 Metal cost and process reoptimization jointly define the ammonia decision boundary.
 183 × 170 mm, eight panels: `Fig2.{svg,pdf,png}`.
@@ -8,7 +8,7 @@ Metal cost and process reoptimization jointly define the ammonia decision bounda
 | a | NH3 synthesis loop: fresh-feed compressor, converter, chiller, separator, recycle compressor; the cost pools each unit carries and the decision variables T, P, T_sep | schematic |
 | b | catalyst bed at the Fe, Ru and Ru-priced-as-Fe optima, to scale (L/D = 3), with operating state and metal-inventory cost | `renders/bed_*.png`, `fig2_pressure_envelopes.csv` |
 | c | lowest feasible cost against synthesis pressure, T and T_sep reoptimized, for Fe, Ru, Os and Ru priced as Fe | `fig2_pressure_envelopes.csv` |
-| d | Ru at its actual catalyst cost: Ru reoptimized over all 14,136 states against the effective metal price p(1−r)/u, with pure Ru, supported Ru/C, Ru/C with 90–94% recovery and the KAAP loop marked; below, the Ru activity multiple needed for parity at each effective price | `fig2_ru_price_sweep.csv`, `fig2_ru_actual_cost_points.csv`, `fig2_ru_alpha_sweep.csv` |
+| d | Ru at its actual catalyst cost: Ru reoptimized over all 14,136 states against the effective metal price p(1−r)/u, with pure Ru, supported Ru/C, Ru/C with 90–97% recovery and the KAAP loop marked (circles and diamonds: benchmark formulation; squares: the commercial Ru/C catalyst's own bed at 8 wt% Ru and 490 kg m⁻³, bars over 5–10 wt% and 430–550 kg m⁻³); below, the Ru activity multiple needed for parity at each effective price, with the own-bed range | `fig2_ru_price_sweep.csv`, `fig2_ru_actual_cost_points.csv`, `fig2_ru_alpha_sweep.csv`, `fig2_ru_bed_sensitivity.csv` |
 | e | where the canonical 6.739 USD/t Ru − Fe gap sits, and the equal-price intervention | `analysis/supervisor_2026_09_20/nh3_cost_decomposition.csv` |
 | f | the 1,000 frozen descriptor draws in (Fe E_N, Ru E_N), coloured by economic winner, with the Fe bed-feasibility interval | `closure/mc_draws.csv` |
 | g | decision endpoints across those draws | `analysis/supervisor_2026_09_20/f3_panel_summary.csv` |
@@ -51,24 +51,55 @@ effective price p_eff = p (1 − r) / u.
 | Ru dispersion, promoted Ru/C (3.2 wt% Ru) | 11% (O₂ chemisorption) | Rossetti *et al.*, *Ind. Eng. Chem. Res.* **45**, 4150 (2006) |
 | exposed Fe atoms, reduced fused-iron catalyst | < 1% | Liu *et al.*, *CIESC J.* **51**, 462 (2000) |
 | u (lower bound) | 0.11 / 0.01 = 11 | — |
-| Ru recovered from spent promoted Ru catalyst | > 94% | US 6,673,732 B2 (Haldor Topsoe, 2004) |
+| Ru recovered from spent activated-carbon-supported Ru ammonia catalyst | 89–97.6% → r = 0.90–0.97 | CN 1872418 A |
+| Ru content of the commercial Ru/C ammonia catalyst | ~8 wt% (5–10 wt%) | Brown *et al.*, *Catal. Lett.* **144**, 545 (2014); US 4,600,571 |
+| bed (bulk) density of the supported Ru/C bed | 430–550 kg m⁻³ (centre 490) | derived; no published value |
 | KAAP loop | 9.1 MPa, condenser −20 °C (grid 90 bar, −20 °C) | Humphreys *et al.*, *Adv. Energy Sustain. Res.* **2**, 2000043 (2021) |
+
+Until 2026-10-07 the recovery was 0.90–0.94 (US 6,673,732 B2), the own bed 3.2 wt% Ru (Rossetti 2006 laboratory
+catalyst) at 500–1,000 kg m⁻³; those outputs are reproduced exactly by the pre-change script in GitHub Actions run
+[37648545590](https://github.com/stloendays/Catalyst-Essay/actions/runs/37648545590) before the literature values
+are applied (`analysis/nh3_mc_ru_actual_2026_10_06/ci_logs/validate_baseline.log`).
 
 | Case | p_eff (USD/kg) | Cost (USD/t) | vs Fe | α* for parity | Optimum |
 |---|---|---|---|---|---|
 | pure Ru, benchmark | 53,852.5 | 22.031 | +6.739 | 201.2 | 450 °C, 425 bar, T_sep 25 °C |
 | Ru/C, no recovery | 4,895.7 | 17.950 | +2.658 | 18.48 | 450 °C, 220 bar, 20 °C |
 | Ru/C, 90% recovery | 489.6 | 15.671 | +0.379 | 2.234 | 450 °C, 200 bar, 30 °C |
-| Ru/C, 94% recovery | 293.7 | 15.485 | +0.193 | 1.494 | 450 °C, 195 bar, 30 °C |
+| Ru/C, 97% recovery | 146.9 | 15.237 | −0.054 | 0.936 | 425 °C, 185 bar, 30 °C |
 | KAAP loop, Ru/C, 90% recovery | 489.6 | 18.910 | Fe in loop 19.069 | — | 425 °C, 90 bar, −20 °C |
-| KAAP loop, Ru/C, 94% recovery | 293.7 | 18.529 | Fe in loop 19.069 | — | 400 °C, 90 bar, −20 °C |
+| KAAP loop, Ru/C, 97% recovery | 146.9 | 18.157 | Fe in loop 19.069 | — | 400 °C, 90 bar, −20 °C |
 
-Parity (164 USD/kg) needs u = 19.7 at 94% recovery and u = 32.9 at 90%. The audited strict-scaling lifecycle boundary (`analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json`) places scaling-consistent parity at p_eff ≤ 237.3 USD/kg; Ru/C reaches it at u ≥ 13.6 (94% recovery) or u ≥ 22.7 (90%). Panel d shades that range. In the KAAP loop the Ru/C catalyst
-with recovery is 0.16–0.54 USD/t cheaper than fused iron in the same loop. α* is recomputed with full
-reoptimization at every price (`fig2_ru_alpha_sweep.csv`) and reproduces the canonical 201.22 at the frozen
-price. The supported bed is larger than the benchmark bed; `fig2_ru_bed_sensitivity.csv` recomputes the
-reactor term with the bed of a 3.2 wt% Ru catalyst at 500–1,000 kg m⁻³ (5–10 times the benchmark volume),
-which adds 0.15–0.83 USD/t.
+Parity (164 USD/kg) needs u = 9.9 at 97% recovery and u = 32.9 at 90%. The audited strict-scaling lifecycle boundary (`analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json`) places scaling-consistent parity at p_eff ≤ 237.3 USD/kg; Ru/C reaches it at u ≥ 6.8 (97% recovery) or u ≥ 22.7 (90%). Panel d shades that range. In the KAAP loop the Ru/C catalyst
+with recovery, read on the benchmark formulation, is 0.16–0.91 USD/t cheaper than fused iron in the same loop. α* is
+recomputed with full reoptimization at every price (`fig2_ru_alpha_sweep.csv`) and reproduces the canonical 201.22 at
+the frozen price.
+
+### The Ru/C catalyst's own bed (2026-10-07, literature loading and bed density)
+
+The rows above read the price sweep on the benchmark formulation: the Ru/C catalyst is charged at p_eff, but its bed
+keeps the fused-iron formulation (71.51 wt% metal at 2,500 kg m⁻³) and the volume of the undivided metal mass. The
+commercial catalyst carries m_Ru / u of Ru at 5–10 wt% (8 wt% central) in a 430–550 kg m⁻³ bed.
+`fig2_ru_bed_sensitivity.csv` evaluates that bed with full reoptimization for w ∈ {5, 8, 10} wt% × ρ ∈ {430, 490, 550}
+kg m⁻³ and gives, for each row, the Fe reference of the same loop and the Ru activity multiple α* for parity with it.
+Panel d shows a square at 8 wt% and 490 kg m⁻³ and a bar over the 5–10 wt%, 430–550 kg m⁻³ corners (the cost falls
+monotonically in w and ρ).
+
+| Ru/C (u = 11) | Benchmark formulation | Own bed, 8 wt%, 490 kg m⁻³ | 8 wt%, 430–550 | 5–10 wt%, 430–550 | Fe in the same loop | α* own bed, 8 wt% (430–550) |
+|---|---:|---:|---:|---:|---:|---:|
+| no recovery | 17.950 | 18.064 | 18.049–18.084 | 18.023–18.178 | 15.292 | 19.8–20.2 |
+| 90% recovery | 15.671 | 15.962 | 15.922–16.012 | 15.856–16.242 | 15.292 | 3.26–3.64 |
+| 97% recovery | 15.237 | 15.671 | 15.627–15.727 | 15.547–15.994 | 15.292 | 1.96–2.35 |
+| KAAP loop, 90% recovery | 18.910 | 19.054 | 19.034–19.079 | 19.001–19.204 | 19.069 | 0.95–1.02 |
+| KAAP loop, 97% recovery | 18.157 | 18.549 | 18.492–18.624 | 18.399–18.895 | 19.069 | 0.46–0.53 |
+
+At 8 wt% the recovered Ru/C catalyst costs 15.63–16.01 USD/t on its own bed in the full process space, 0.33–0.72 above
+Fe (benchmark reading 15.24–15.67, −0.05 to +0.38), and needs 1.96–3.64 times the activity of the frozen Ru descriptor
+for parity (benchmark reading 0.94–2.23); over 5–10 wt% it costs 15.55–16.24. In the KAAP loop it costs 18.49–19.08
+against 19.07 for Fe in the same loop (−0.58 to +0.01; below Fe at 3 of the 4 corners, at every corner with 97%
+recovery), α* 0.46–1.02; over 5–10 wt% 18.40–19.20. The own bed adds 0.10–0.13 USD/t without recovery and 0.25–0.49
+with 90–97% recovery (0.12–0.47 in the KAAP loop) to the benchmark reading at 8 wt% (0.07–0.23, 0.19–0.76 and
+0.09–0.74 over 5–10 wt%).
 
 ## Beds
 
