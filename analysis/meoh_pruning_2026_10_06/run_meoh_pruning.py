@@ -3,8 +3,7 @@ need the full plant optimization.
 
 Full evaluation (what run_literature_inversion.py does per candidate): the recycle-loop cost on the 396-level purge
 grid, with the recycled-CO conversion resolved at every purge level by bisection against the RWGS and CO-hydrogenation
-equilibria (central rule), then the minimum over the eligible purge levels (within CO2-hydrogenation equilibrium and
-the workbook nonreactive limit).
+equilibria (central rule), then the minimum over purge.
 
 Lower bound (no equilibrium solve). At each purge level p of the same grid, for 1 mol net methanol and any
 recycled-CO per-pass conversion x in [0, 1] (so it covers the inert and every recycled-CO rule):
@@ -19,13 +18,10 @@ recycled-CO per-pass conversion x in [0, 1] (so it covers the inert and every re
   reactor inlet       >= (1 + H2/CO2) co2_in_lb + (1-p)/p ch4 + N2;    crude liquid >= 2 + 2 ch4
 Every equipment-cost term rises with its flow or power, every cost coefficient is positive, and the catalyst inventory
 (from the space-time yield) enters exactly, so the plant model evaluated on these flows is a lower bound on the cost
-at that purge level under both CO treatments; the bound is the minimum over the whole grid, so it is also below
-the minimum over the eligible levels.
+at that purge level under both CO treatments; the bound is the minimum over the grid.
 
-Agent rule per comparison group (the scored groups of the main result, group_metrics.csv): fully evaluate the paper's
-leader (needed for the regret) and then candidates in increasing bound order, stopping when the next bound exceeds the
-best full cost found. Candidates that are infeasible under a treatment are in no leaderboard of that treatment (as in
-the main result); the groups and their STY leaders are those of each treatment's feasible candidates.
+Agent rule per comparison group (the 36 groups of the main result): fully evaluate the paper's leader (needed for the
+regret) and then candidates in increasing bound order, stopping when the next bound exceeds the best full cost found.
 The full costs come from literature_candidates.csv of the main result (the frozen full evaluation of every candidate),
 so the pruned leader can be checked against the exhaustive one. Timing of one full and one bound evaluation is
 measured on this machine.
@@ -95,63 +91,50 @@ def lower_bound(X, SMeOH, SCH4, SCO, STY_per_g_cat, P_bar, h2_co2):
 
 
 def prune_group(g, cost_col):
-    """Branch and bound in bound order; returns the evaluated index set and the chosen leader. Feasibility is known
-    only after a full evaluation: the paper's leader is the highest-STY candidate that evaluates feasible (higher-STY
-    infeasible ones are evaluated on the way), and an infeasible candidate reached in bound order is evaluated too."""
-    full = g[cost_col].fillna(np.inf)
-    evaluated = set()
-    best = np.inf
-    for i in g.sort_values("STY", ascending=False).index:
-        evaluated.add(i)
-        best = full[i]
-        if np.isfinite(best):
-            break
+    """Branch and bound in bound order; returns the evaluated index set and the chosen leader."""
+    up_leader = g.STY.idxmax()
+    evaluated = {up_leader}
+    best = g.loc[up_leader, cost_col]
     for i in g.sort_values("bound").index:
         if g.loc[i, "bound"] > best * (1 + CSV_REL):
             break
         evaluated.add(i)
-        best = min(best, full[i])
-    leader = min(evaluated, key=lambda i: full[i])
+        best = min(best, g.loc[i, cost_col])
+    leader = min(evaluated, key=lambda i: g.loc[i, cost_col])
     return evaluated, leader
 
 
 def main():
     require()            # ACSA scores new candidates only after reproducing all three hand-built cases
     c = pd.read_csv(MAIN / "literature_candidates.csv")
+    gm = pd.read_csv(MAIN / "group_metrics.csv")
+    scored = set(gm.group)
+    c = c[c.group.isin(scored)].reset_index(drop=True)
     c["bound"] = [lower_bound(r.X, r.SMeOH, r.SCH4, r.SCO, r.STY, r.P_bar, r.h2_co2) for r in c.itertuples()]
     for t, col in TREATMENTS.items():
-        f = np.isfinite(c[col])
-        slack = c.loc[f, col] * (1 + CSV_REL) - c.loc[f, "bound"]
-        assert (slack >= 0).all(), c.loc[f][slack < 0][["group", "entry", col, "bound"]]
-    gsize = {t: c[np.isfinite(c[col])].groupby("group").size() for t, col in TREATMENTS.items()}
-    scored_all = set().union(*(set(s[s >= 2].index) for s in gsize.values()))
-    rows, totals = [], {t: dict(groups=0, full=0, evaluated=0, leader_missed=0) for t in TREATMENTS}
-    for key, g_all in c[c.group.isin(scored_all)].groupby("group"):
-        row = dict(group=key, candidates=len(g_all))
+        slack = c[col] * (1 + CSV_REL) - c.bound
+        assert (slack >= 0).all(), c.loc[slack < 0, ["group", "entry", col, "bound"]]
+    rows, totals = [], {t: dict(full=0, evaluated=0, leader_missed=0) for t in TREATMENTS}
+    for key, g in c.groupby("group"):
+        row = dict(group=key, candidates=len(g))
         for t, col in TREATMENTS.items():
-            g = g_all
-            if np.isfinite(g[col]).sum() < 2:
-                continue
             ev, leader = prune_group(g, col)
             exact = g[col].idxmin()
             ok = np.isclose(g.loc[leader, col], g.loc[exact, col], rtol=0, atol=1e-9)
-            row.update({f"candidates_{t}": len(g), f"evaluated_{t}": len(ev), f"leader_found_{t}": bool(ok)})
-            totals[t]["groups"] += 1
+            row.update({f"evaluated_{t}": len(ev), f"leader_found_{t}": bool(ok)})
             totals[t]["full"] += len(g)
             totals[t]["evaluated"] += len(ev)
             totals[t]["leader_missed"] += int(not ok)
         rows.append(row)
     gp = pd.DataFrame(rows)
 
-    # timing: one full evaluation (central recycled-CO rule, 396 purge levels, eligible optimum) vs one bound,
-    # median of 5 candidates
-    c = c[c.group.isin(scored_all)].reset_index(drop=True)
+    # timing: one full evaluation (central recycled-CO rule, 396 purge levels) vs one bound, median of 5 candidates
     sample = c.sample(5, random_state=20261006)
     t_full, t_bound = [], []
     for r in sample.itertuples():
         cd = dict(X=r.X, SMeOH=r.SMeOH, SCH4=r.SCH4, SCO=r.SCO)
         t0 = time.perf_counter()
-        G.optimal_purge(cd, STY_per_g_cat=r.STY, P_bar=r.P_bar, h2_co2=r.h2_co2, T_C=r.T_C, x_co="recycled_central")
+        G.purge_sweep(cd, STY_per_g_cat=r.STY, P_bar=r.P_bar, h2_co2=r.h2_co2, T_C=r.T_C, x_co="recycled_central")
         t_full.append(time.perf_counter() - t0)
         t0 = time.perf_counter()
         for _ in range(100):
@@ -162,14 +145,13 @@ def main():
         bound_valid_all=True,
         median_bound_gap_eur_t={t: float((c[col] - c.bound).median()) for t, col in TREATMENTS.items()},
         bound_exact_candidates={t: int((abs(c[col] - c.bound) <= c[col] * CSV_REL).sum()) for t, col in TREATMENTS.items()},
-        infeasible_candidates={t: int((~np.isfinite(c[col])).sum()) for t, col in TREATMENTS.items()},
         pruning={t: dict(v, excluded=v["full"] - v["evaluated"],
                          excluded_fraction=round(1 - v["evaluated"] / v["full"], 4)) for t, v in totals.items()},
         timing_s=dict(full_median=float(np.median(t_full)), bound_median=float(np.median(t_bound))),
     )
     tf, tb = summary["timing_s"]["full_median"], summary["timing_s"]["bound_median"]
     v = totals["recycled_opt"]
-    summary["compute_fraction_recycled_opt"] = round((v["evaluated"] * tf + v["full"] * tb) / (v["full"] * tf), 4)
+    summary["compute_fraction_recycled_opt"] = round((v["evaluated"] * tf + len(c) * tb) / (len(c) * tf), 4)
     c[["group", "doi", "entry", "STY", "bound", "cost_recycled_opt", "cost_inert_opt"]].to_csv(
         HERE / "candidate_bounds.csv", index=False, float_format="%.6g")
     gp.to_csv(HERE / "group_pruning.csv", index=False)
