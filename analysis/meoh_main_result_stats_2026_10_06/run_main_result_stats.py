@@ -233,6 +233,8 @@ class Surface:
                 raise NeedJobs("grid")
             g = pd.concat([g, new], ignore_index=True)
             g.to_csv(grid_csv, index=False, float_format="%.10g")
+        # a fresh run starts from an empty frame, whose columns are object-typed; interpolation needs floats
+        g = g.astype({"entry": int, "x": float, "cost": float})
         self.f0 = g[g.dim == "f0"].set_index("entry").cost.reindex(range(len(ents))).to_numpy()
         self.tab = {}
         for (i, k), s in g[g.dim != "f0"].groupby(["entry", "dim"]):
