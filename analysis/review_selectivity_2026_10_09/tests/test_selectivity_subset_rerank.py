@@ -54,6 +54,9 @@ class SubsetTests(unittest.TestCase):
         fully_printed = summary["cohorts"]["CO_CH4_both_printed|lab"]
         self.assertEqual(fully_printed["groups"], 1)
         self.assertEqual(fully_printed["mismatches"], 0)
+        self.assertEqual(fully_printed["full_mismatches_in_retained_groups"], 1)
+        self.assertEqual(fully_printed["lost_mismatches_in_retained_groups"], 1)
+        self.assertEqual(fully_printed["new_mismatches_in_retained_groups"], 0)
         strict = summary["cohorts"]["CO_CH4_exact_and_closed_within_1pp|lab"]
         self.assertEqual(strict["groups"], 1)
         self.assertEqual(strict["candidates_in_eligible_groups"], 2)
