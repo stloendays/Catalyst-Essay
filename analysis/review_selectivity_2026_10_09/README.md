@@ -57,3 +57,34 @@ provenance, not economic truth or whether any closure assumption is reasonable.
 The human gold-standard and all claimed errata remain an author's manual
 validation task. Nothing generated here should automatically become a
 published correction or a new abstract statistic.
+
+
+## Candidate-completeness reranking without new plant solves
+
+The companion \`selectivity_subset_rerank.py\` filters the existing
+S5+printed candidate states and compares three distinct evidence cohorts:
+
+1. **Printed X and MeOH selectivity:** the author's intended primary set.
+2. **Both CO and CH4 printed:** permits numeric upper bounds ("<", "<=").
+3. **Both CO and CH4 explicitly numeric and consistent:** requires equality
+   ("=") reporting and modeled-versus-reported component differences within
+   one percentage point, allowing ordinary rounding.
+
+Within each cohort, a comparison group is retained only if it has at least
+two eligible existing points. The STY and cost winners are recomputed with
+the same upstream tie rule as the original analysis. *Only already computed
+costs are used*:
+
+~~~bash
+python analysis/review_selectivity_2026_10_09/selectivity_subset_rerank.py \
+  --out-dir /tmp/selectivity_source_qa --strict
+~~~
+
+The tool first checks that its **full-cohort recomputation agrees with the
+existing leaderboard** before interpreting either restricted cohort. It
+reports denominators and individual cases; an apparent change in disagreement
+fraction may reflect cohort attrition. The strict cohort is an **evidence
+quality sensitivity**, not a replacement of the author's selected S5 cohort.
+More rigorous tests of assumptions for unreported products require
+recalculating the plant costs under alternative product distributions and
+are not performed here.
