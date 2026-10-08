@@ -1,0 +1,34 @@
+name: Methanol PF independent benchmark QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "analysis/review_pf_benchmark_2026_10_09/**"
+      - ".github/workflows/methanol-pf-independent-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  accounting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Five synthetic accounting and molecular-weight tests
+        run: python -m unittest discover -s analysis/review_pf_benchmark_2026_10_09/tests -v
+      - name: Audit actual Pérez-Fortes source tables and accounting conventions
+        run: |
+          python analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py \
+            --out-dir /tmp/pf_benchmark_review --strict
+      - name: Upload referee diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisional-pf-stoichiometric-benchmark-audit
+          path: /tmp/pf_benchmark_review/*
+          retention-days: 7
