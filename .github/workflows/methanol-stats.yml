@@ -239,9 +239,12 @@ jobs:
           for f in summary.json scenario_meas_k1.json scenario_meas_k2.json scenario_meas_k4.json scenario_meas_k1_plus_extraction.json; do
             python tools/compare_json_numbers.py committed/$f $D/$f || fail=1
           done
-          for f in validation.csv group_noise_probabilities.csv regret_threshold_curve.csv; do
+          for f in group_noise_probabilities.csv regret_threshold_curve.csv; do
             python tools/compare_csv_numbers.py committed/$f $D/$f --rtol 1e-9 || fail=1
           done
+          # validation.csv: verdict counts exact; its surface-error statistics are medians and quantiles of 1e-5-level
+          # differences written to 6 significant digits, whose last digit differs between platforms
+          python tools/compare_csv_numbers.py committed/validation.csv $D/validation.csv --rtol 1e-4 || fail=1
           python tools/compare_csv_numbers.py committed/grid_costs.csv $D/grid_costs.csv --rtol 1e-9 --sort entry dim x || fail=1
           exit $fail
       - name: Commit outputs
