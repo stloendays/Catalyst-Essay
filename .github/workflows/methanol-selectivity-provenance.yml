@@ -43,6 +43,10 @@ jobs:
               assert v["gt5pct_winner_either_closure"] <= v["mismatches_gt5pct"]
           print("Source-provenance audit completed; NOT a frozen paper statistic.")
           PY
+      - name: Re-evaluate leaderboards in selectivity-complete subcohorts
+        run: |
+          python analysis/review_selectivity_2026_10_09/selectivity_subset_rerank.py \
+            --out-dir /tmp/meoh_sources --strict
       - name: Upload audit tables for researcher/Claude review
         uses: actions/upload-artifact@v4
         with:
