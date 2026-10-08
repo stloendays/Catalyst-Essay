@@ -126,18 +126,28 @@ def compare(points: list[dict], groups: list[dict], originals: list[dict],
                 valid_dois.add(r["doi"])
                 if r["mismatch"]:
                     retained_mismatch_dois.add(r["doi"])
-                if cohort == cohorts[0]:
-                    prior = main_group_lookup.get((group, cost_col))
-                    if prior is None:
-                        summary["errors"].append(f"Missing full leaderboard {group} {cost_col}")
-                    else:
-                        baseline_mismatch = prior["mismatch"].lower() == "true"
+                prior = main_group_lookup.get((group, cost_col))
+                if prior is None:
+                    summary["errors"].append(f"Missing full leaderboard {group} {cost_col}")
+                else:
+                    baseline_mismatch = prior["mismatch"].lower() == "true"
+                    if cohort == cohorts[0]:
                         if baseline_mismatch != r["mismatch"]:
                             summary["errors"].append(
                                 f"Recomputed full mismatch disagrees {group} {cost_col}")
                         if abs(float(prior["regret"]) - r["regret"]) > 1e-5:
                             summary["errors"].append(
                                 f"Recomputed full regret disagrees {group} {cost_col}")
+                    else:
+                        # Separate the effect of filtering states within retained
+                        # groups from the loss of entire groups (cohort attrition).
+                        tallies["full_mismatches_in_retained_groups"] += int(baseline_mismatch)
+                        tallies["full_gt5pct_in_retained_groups"] += int(
+                            baseline_mismatch and float(prior["regret"]) > 0.05)
+                        tallies["new_mismatches_in_retained_groups"] += int(
+                            not baseline_mismatch and r["mismatch"])
+                        tallies["lost_mismatches_in_retained_groups"] += int(
+                            baseline_mismatch and not r["mismatch"])
                 per_group.append(dict(
                     cohort=cohort, cost_col=cost_col, **r,
                 ))
