@@ -18,6 +18,19 @@ literature Ru catalyst parameters). Earlier snapshots are in the git history of 
 Results order: ammonia ranking reversal → field-level result over published comparisons (Fig. 2) → bimetallic
 surfaces → methanol mechanism → Au/TiO₂ control → backward design.
 
+## Verification in progress (2026-10-08)
+
+After the advisor review of 2026-10-08 the headline numbers on main are **under verification and not frozen**; see
+[`analysis/verify_2026_10_08/`](analysis/verify_2026_10_08/README.md) (branch `verify-2026-10-08`).
+
+- The methanol field result moved from 40 % (original treatment) to 66 % (2026-10-07) almost entirely through the
+  6.86 % reactor-inlet limit on the purge; the step-by-step decomposition reproduces both ends.
+- Decisions: methanol frozen on the thermodynamically consistent treatment (step S5); field results on printed values
+  only; methanol disagreements reported separately as other catalyst / other temperature.
+- Open: freeze and tag; human-checked gold standard of 100 extracted values; plant benchmark (Extended Data Fig. 4)
+  split into catalyst-independent and catalyst-sensitive terms; row-by-row confirmation of the reference-data errata;
+  15 text and table issues (Supplementary Table 5f still carries the 2026-10-07 numbers).
+
 ## Headline results on main
 
 | Result | Value | Evidence |
