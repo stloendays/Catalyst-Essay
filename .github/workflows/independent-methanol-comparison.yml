@@ -1,0 +1,40 @@
+name: Independent methanol comparison QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "analysis/review_2026_10_09/**"
+      - ".github/workflows/independent-methanol-comparison.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Synthetic classification regression tests
+        run: python -m unittest discover -s analysis/review_2026_10_09/tests -v
+      - name: Audit committed printed-only comparison outputs
+        run: |
+          python analysis/review_2026_10_09/field_comparison_audit.py \
+            --out-dir /tmp/meoh_comparison_qa --strict > /tmp/meoh_qa_log.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("/tmp/meoh_comparison_qa/audit_summary.json").read_text())
+          for name, stats in data["scenarios"].items():
+              assert not stats["errors"], (name, stats["errors"])
+              assert sum(stats["categories"].values()) == stats["groups"]
+              assert stats["catalyst_changes_gt5pct"] <= stats["catalyst_changes"]
+              assert stats["temperature_changes_gt5pct"] <= stats["same_catalyst_temperature_changes"]
+              assert stats["temperature_series_groups_strict"] <= stats["temperature_series_groups_row_count"]
+          print("Independent comparison QA passed; data are provisional and not frozen.")
+          PY
