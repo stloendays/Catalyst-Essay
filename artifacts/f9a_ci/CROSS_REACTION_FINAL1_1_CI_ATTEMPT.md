@@ -2,7 +2,7 @@
 
 Classification: **METRIC_EQUIVALENCE_NOT_ESTABLISHED**
 
-Git HEAD: `4d488d4655bef6478a59723277275d0a30732eab`
+Git HEAD: `c31dab6c68729de3302dccd2135aa84f7507c88e`
 
 ## CI availability
 
@@ -13,7 +13,7 @@ Git HEAD: `4d488d4655bef6478a59723277275d0a30732eab`
 
 No pre-audit code-level historical source was recovered that simultaneously establishes the TOF/activity perturbation, finite-difference definition, economic reoptimization and raw reduced-cost leverage required by the frozen task.
 
-Pre-audit code-level implementation candidates: **0**; conservatively verified candidates: **0**.
+Pre-audit code-level implementation candidates: **1**; conservatively verified candidates: **0**.
 
 Rounded manuscript values, audit scripts and prose summaries do not establish metric equivalence by themselves.
 

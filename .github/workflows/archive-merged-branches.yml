@@ -1,0 +1,68 @@
+name: Archive merged branches
+
+# Tags the head of every remote branch already merged into main as archive/<branch> (or keeps the name when the
+# branch is already called archive/...), pushes the tags, then deletes the branches. Every commit stays reachable
+# from its tag, so a branch can be restored with
+#     git push origin archive/<branch>:refs/heads/<branch>
+# Dry run by default: it lists what it would do.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List only; do not tag or delete"
+        type: boolean
+        default: true
+      keep:
+        description: "Space-separated branch names to keep even if merged"
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Archive
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          KEEP: ${{ inputs.keep }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git fetch --prune --tags origin
+          today=$(date -u +%Y-%m-%d)
+          echo "| branch | head | tag | action |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          for ref in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
+            case "$ref" in HEAD|main) continue ;; esac
+            if printf ' %s ' $KEEP | grep -q " $ref "; then
+              echo "| $ref | | | kept (input) |" >> "$GITHUB_STEP_SUMMARY"; continue
+            fi
+            if ! git merge-base --is-ancestor "origin/$ref" origin/main; then
+              echo "| $ref | | | not merged, kept |" >> "$GITHUB_STEP_SUMMARY"; continue
+            fi
+            head=$(git rev-parse --short "origin/$ref")
+            case "$ref" in archive/*) tag="$ref" ;; *) tag="archive/$ref" ;; esac
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              if [ "$(git rev-parse "refs/tags/$tag^{commit}")" != "$(git rev-parse "origin/$ref")" ]; then
+                tag="$tag-$today"
+              fi
+            fi
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "| $ref | $head | $tag | would archive |" >> "$GITHUB_STEP_SUMMARY"; continue
+            fi
+            if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              git tag -a "$tag" "origin/$ref" -m "Archived branch $ref ($head), merged into main; removed $today"
+              git push origin "refs/tags/$tag"
+            fi
+            git push origin --delete "refs/heads/$ref"     # full ref: a branch may share its name with its tag
+            echo "| $ref | $head | $tag | archived and deleted |" >> "$GITHUB_STEP_SUMMARY"
+          done
