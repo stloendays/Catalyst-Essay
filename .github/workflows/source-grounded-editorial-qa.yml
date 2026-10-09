@@ -1,0 +1,32 @@
+name: Source-grounded scientific editorial QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "docs/MANUSCRIPT_MAIN_TEXT.md"
+      - "docs/MAIN_FIGURE_CAPTIONS.md"
+      - "docs/SUPPLEMENTARY_INFORMATION.md"
+      - "figures/extended_data/ED_CAPTIONS.md"
+      - "analysis/review_editorial_2026_10_09/**"
+      - ".github/workflows/source-grounded-editorial-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-matched-prose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Eight independent source-to-prose regression tests
+        run: python -m unittest discover -s analysis/review_editorial_2026_10_09/tests -v
+      - name: Editorial QA status (not publication clearance)
+        run: |
+          echo "Evidence matching tested. S5 source freeze and manuscript figure regeneration are out of scope."
+          echo "Do not merge to main solely because this QA passed."
