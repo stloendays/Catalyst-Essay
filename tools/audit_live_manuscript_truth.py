@@ -57,7 +57,7 @@ def main_section(heading):
 
 def supplementary_note(number):
     """Locate an SI note by stable note number, independently of its heading wording."""
-    m = re.search(r"^### Supplementary Note " + str(number) + r" \\| [^\\n]+$", raw_si, re.M)
+    m = re.search(r"^### Supplementary Note " + str(number) + r" \| [^\n]+$", raw_si, re.M)
     if not m:
         raise ValueError(f"Supplementary Note {number} is missing")
     return _block(raw_si, m.start(), m.group(0))
