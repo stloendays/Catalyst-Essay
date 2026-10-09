@@ -31,8 +31,9 @@ jobs:
           from pathlib import Path
           d=json.loads(Path("/tmp/science_lineage/claim_lineage.json").read_text())
           assert d["source_invariants"]=="PASS",d["source_errors"]
-          assert d["blocking_claims"]>0, "The draft was unexpectedly marked ready: human validation is required"
-          print("Source invariants PASS; publication gate remains BLOCKED, as intended.")
+          assert d["status"] in ("BLOCKED", "REVIEW_READY")
+          print("Source invariants PASS. Publication status:", d["status"], "blockers:", d["blocking_claims"])
+          print("CI does NOT certify publication readiness; use --publication-gate after human review.")
           PY
       - name: Recompute matched DOI-cluster confidence intervals for chosen S5 cohort
         run: |
