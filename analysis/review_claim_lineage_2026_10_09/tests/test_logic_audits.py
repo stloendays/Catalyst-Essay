@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from check_claim_lineage import catalyst, has_temperature_series, inspect_docs
+from check_claim_lineage import catalyst, has_temperature_series, inspect_docs, classify_leader_change_temperatures
 from paired_paper_bootstrap import paired_ci, percentile
 
 
@@ -49,6 +49,26 @@ class LogicTests(unittest.TestCase):
                          "EXTRACTION_OVERCLAIM", "ALLOY_DOMAIN"):
                 self.assertIn(kind, labels)
             self.assertTrue(all(x["severity"] == "BLOCKER" for x in issues))
+
+    def test_joint_material_temperature_winner_is_not_pure_material_evidence(self):
+        points = []
+        group_rows = []
+        for group, a_label, a_temp, b_label, b_temp in (
+            ("same_temp", "A [a]", 250, "B [b]", 250),
+            ("joint", "A [a]", 250, "B [b]", 275),
+            ("temp_only", "A [a]", 250, "A [b]", 275),
+        ):
+            for cat, t in ((a_label,a_temp),(b_label,b_temp)):
+                points.append(dict(group=group,catalyst=cat,T_C=str(t)))
+            for condition in ("lab","cost_f0.95"):
+                group_rows.append(dict(group=group,sty_leader=a_label,
+                                       cost_leader=b_label,mismatch="True",
+                                       base="thermo",mode="printed",cost_col=condition))
+        res = classify_leader_change_temperatures(points,group_rows)
+        for r in res.values():
+            self.assertEqual(r["different_material_same_winner_T"], 1)
+            self.assertEqual(r["different_material_and_winner_T"], 1)
+            self.assertEqual(r["same_material_different_T"], 1)
 
     def test_percentile_linear_and_case_sensitivity(self):
         self.assertAlmostEqual(percentile([1,3,5],0.5), 3)
