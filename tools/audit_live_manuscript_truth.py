@@ -55,6 +55,13 @@ def main_section(heading):
     marker = "### " + heading
     return _block(raw_text, raw_text.index(marker), marker)
 
+def supplementary_note(number):
+    """Locate an SI note by stable note number, independently of its heading wording."""
+    m = re.search(r"^### Supplementary Note " + str(number) + r" \\| [^\\n]+$", raw_si, re.M)
+    if not m:
+        raise ValueError(f"Supplementary Note {number} is missing")
+    return _block(raw_si, m.start(), m.group(0))
+
 
 checks = []
 
@@ -499,7 +506,7 @@ FE_COST_ALLOY = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/allo
                            .read_text(encoding="utf-8"))["Fe_cost_USD_t"]
 
 # ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
-s7 = section("Bimetallic surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
+s7 = supplementary_note(7)  # Stable scientific section ID; alloy domain is specified in prose.
 tm = alloy["extended_excluding_sp_and_group3to5"]
 glob_below = tm["below_Fe_surfaces"]
 anch_below = [x[0] for x in tm["below_Fe_anchored_surfaces"]]
