@@ -49,11 +49,12 @@ def compute_evidence(root=ROOT):
     for p in pts:
         if p["base"] == "thermo" and p["mode"] == "printed":
             groups[p["group"]].append(p)
-    n_mat = n_temp = n_groups = 0
+    n_mat = n_temp = n_groups = n_eligible_candidates = 0
     for ps in groups.values():
         if len(ps) < 2:
             continue
         n_groups += 1
+        n_eligible_candidates += len(ps)
         cs = defaultdict(list)
         for p in ps:
             cs[catalyst(p["catalyst"])].append(float(p["T_C"]))
@@ -69,6 +70,7 @@ def compute_evidence(root=ROOT):
             "groups": int(s5["groups"]), "papers": int(lab["papers"]),
             "mismatches": int(s5["mismatch"]), "gt5pct": int(s5["gt5pct"]),
             "candidate_corpus": int(s5["candidates"]),
+            "eligible_candidates": n_eligible_candidates,
             "crosscheck_lab": int(lab["mismatch"]),
             "adjustable_mismatches": int(adjusted["mismatch"]),
             "adjustable_gt5pct": int(adjusted["gt5pct"]),
@@ -108,6 +110,7 @@ def compute_evidence(root=ROOT):
             errors.append(why)
     check(n_groups == m["groups"], "S5 selected comparison-group population mismatch")
     check(int(lab["groups"]) == m["groups"], "Main methanol denominator mismatch")
+    check(m["eligible_candidates"] <= m["candidate_corpus"], "Eligible comparisons exceed candidate corpus")
     check(m["mismatches"] == m["crosscheck_lab"], "S5 and conversion-fixed leaderboard counts differ")
     check(int(lab["gt5pct"]) == m["gt5pct"], "S5 and conversion-fixed cost-regret counts differ")
     check(m["multi_catalyst_groups"] == int(kind_lab["multi_catalyst_groups"]),
@@ -208,7 +211,7 @@ def markdown(e, issues):
         "",
         "This is a PROVISIONAL evidence review, not permission to publish or merge.",
         "",
-        f"- S5 printed MeOH fixed: {m['mismatches']}/{m['groups']} (>5%: {m['gt5pct']}).",
+        f"- S5 printed MeOH fixed: {m['mismatches']}/{m['groups']} (>5%: {m['gt5pct']}; {m['eligible_candidates']} eligible candidate entries).",
         f"- S5 printed MeOH adjustable: {m['adjustable_mismatches']}/{m['groups']} (>5%: {m['adjustable_gt5pct']}).",
         f"- Material changes: {m['different_catalyst_lab']}/{m['multi_catalyst_groups']} fixed; "
         f"{m['different_catalyst_adjustable']}/{m['multi_catalyst_groups']} adjustable.",
