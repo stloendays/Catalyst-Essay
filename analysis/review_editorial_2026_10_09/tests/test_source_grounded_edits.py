@@ -59,13 +59,18 @@ class EditorialSourceGrounding(unittest.TestCase):
         self.assertNotIn("random sample of 90",self.main)
         self.assertIn("29 are not yet reviewed",self.supp)
 
-    def test_04_agent_pruning_bounds_are_reaction_specific(self):
+    def test_04_material_and_temperature_are_distinct(self):
+        self.assertIn("they do not require identical test temperatures",self.main)
+        self.assertIn("a different economic winner need not imply a different catalyst material",self.main)
+        self.assertIn("the comparison unit is a measured catalyst",self.supp.lower())
+
+    def test_05_agent_pruning_bounds_are_reaction_specific(self):
         self.assertIn("descriptor-based lower bound restricts full optimization for ammonia",self.maincap)
         self.assertIn("purge-wise process-cost lower bound does so for methanol",self.maincap)
         self.assertIn("descriptor-only lower bound decides which ammonia candidates",self.main)
         self.assertIn("purge-wise plant bound decides which methanol candidates",self.main)
 
-    def test_05_backward_design_panel_map_and_lower_bounds(self):
+    def test_06_backward_design_panel_map_and_lower_bounds(self):
         self.assertNotIn("Fig. 4d,e",self.supp)
         self.assertIn("201.22-fold activity increase (Fig. 4a)",self.supp)
         self.assertIn("which remains above the Fe cost (Fig. 4b)",self.supp)
@@ -74,7 +79,7 @@ class EditorialSourceGrounding(unittest.TestCase):
         self.assertIn("the **>30×** lower bound",self.maincap)
         self.assertIn("does not by itself establish entry",self.maincap)
 
-    def test_06_ed_ammonia_corpus_has_pure_metals(self):
+    def test_07_ed_ammonia_corpus_has_pure_metals(self):
         data = json.loads(read("analysis/nh3_alloy_extension_2026_10_05/summary.json"))
         v = data["extended_with_usgs_prices"]
         self.assertEqual(v["feasible"],406)
@@ -82,7 +87,7 @@ class EditorialSourceGrounding(unittest.TestCase):
         self.assertIn("401 bimetallic and 5 pure-metal",self.extcap)
         self.assertNotIn("406 ammonia bimetallic surfaces",self.extcap)
 
-    def test_07_perez_fortes_reference_substitution_is_named(self):
+    def test_08_perez_fortes_reference_substitution_is_named(self):
         costs = [x for x in csv_rows(
             "analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv")
             if x["case"].startswith("B3 Perez-Fortes") and x["term"]=="fixed O&M"]
