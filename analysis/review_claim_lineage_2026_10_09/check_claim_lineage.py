@@ -32,6 +32,47 @@ def has_temperature_series(values, tol=0.05):
     return len(values) >= 2 and max(values) - min(values) > tol
 
 
+
+def classify_leader_change_temperatures(points, leaderboard, tol=0.05):
+    """Partition material changes at same T vs joint material+temperature changes.
+
+    The winner labels must identify unique temperature states in their group.
+    This describes the *observed winner pair*, not causality of an independent
+    catalyst substitution experiment. Same T winners alone do not make a
+    complete group isothermal.
+    """
+    index = defaultdict(list)
+    for p in points:
+        index[(p["group"], p["catalyst"])].append(float(p["T_C"]))
+    result = {}
+    for condition in ("lab", "cost_f0.95"):
+        counts = defaultdict(int)
+        for row in leaderboard:
+            if row["base"] != "thermo" or row["mode"] != "printed" or row["cost_col"] != condition:
+                continue
+            if row["mismatch"].lower() == "false":
+                continue
+            if row["mismatch"].lower() != "true":
+                raise ValueError("Invalid mismatch marker: " + row["mismatch"])
+            a = index.get((row["group"],row["sty_leader"]),[])
+            b = index.get((row["group"],row["cost_leader"]),[])
+            if not a or not b or max(a)-min(a)>tol or max(b)-min(b)>tol:
+                raise ValueError("Unresolved winner temperature in " + row["group"])
+            same_material = catalyst(row["sty_leader"])==catalyst(row["cost_leader"])
+            same_temperature = abs(a[0]-b[0])<=tol
+            if same_material and same_temperature:
+                cat = "same_material_same_T_different_record"
+            elif same_material:
+                cat = "same_material_different_T"
+            elif same_temperature:
+                cat = "different_material_same_winner_T"
+            else:
+                cat = "different_material_and_winner_T"
+            counts[cat] += 1
+        result[condition] = dict(counts)
+    return result
+
+
 def compute_evidence(root=ROOT):
     base = root / "analysis/verify_2026_10_08"
     steps = csv_rows(base / "decomposition_steps.csv")
@@ -60,6 +101,8 @@ def compute_evidence(root=ROOT):
             cs[catalyst(p["catalyst"])].append(float(p["T_C"]))
         n_mat += int(len(cs) >= 2)
         n_temp += int(any(has_temperature_series(ts) for ts in cs.values()))
+    by_case = [x for x in pts if x["base"] == "thermo" and x["mode"] == "printed"]
+    change_types = classify_leader_change_temperatures(by_case, csv_rows(base / "conversion_sensitivity_groups.csv"))
     accuracies = {(r["source_type"], r["field"]): r for r in csv_rows(
         root / "agent/extraction/eval/field_accuracy_by_source.csv")}
     alloy = json_file(root / "analysis/nh3_alloy_extension_2026_10_05/summary.json")
@@ -77,6 +120,7 @@ def compute_evidence(root=ROOT):
             "multi_catalyst_groups": n_mat, "temperature_series_groups_strict": n_temp,
             "temperature_series_groups_legacy": int(kind_lab["temperature_series_groups"]),
             "different_catalyst_lab": int(kind_lab["other_catalyst"]),
+            "winner_pair_material_vs_temperature": change_types,
             "different_catalyst_adjustable": int(kind_adj["other_catalyst"]),
             "same_catalyst_temperature_lab": int(kind_lab["other_temperature"]),
             "same_catalyst_temperature_adjustable": int(kind_adj["other_temperature"]),
@@ -120,6 +164,13 @@ def compute_evidence(root=ROOT):
     check(m["different_catalyst_adjustable"] +
           m["same_catalyst_temperature_adjustable"] == m["adjustable_mismatches"],
           "Adjustable mismatch classification count does not close")
+    for source_col, reported in (("lab", kind_lab), ("cost_f0.95", kind_adj)):
+        types = change_types[source_col]
+        check(types.get("different_material_same_winner_T", 0) +
+              types.get("different_material_and_winner_T", 0) == int(reported["other_catalyst"]),
+              "Observed material+temperature split does not close for " + source_col)
+        check(types.get("same_material_different_T", 0) == int(reported["other_temperature"]),
+              "Same-catalyst temperature split does not close for " + source_col)
     check(m["temperature_series_groups_strict"] <= m["temperature_series_groups_legacy"],
           "Temperature unique series exceeds legacy row-based series")
     return evidence, errors
@@ -215,6 +266,13 @@ def markdown(e, issues):
         f"- S5 printed MeOH adjustable: {m['adjustable_mismatches']}/{m['groups']} (>5%: {m['adjustable_gt5pct']}).",
         f"- Material changes: {m['different_catalyst_lab']}/{m['multi_catalyst_groups']} fixed; "
         f"{m['different_catalyst_adjustable']}/{m['multi_catalyst_groups']} adjustable.",
+        "- Of the different-material winner pairs, same-temperature / jointly different-T: "
+        + str(m["winner_pair_material_vs_temperature"]["lab"].get("different_material_same_winner_T",0))
+        + " / " + str(m["winner_pair_material_vs_temperature"]["lab"].get("different_material_and_winner_T",0))
+        + " at laboratory X; "
+        + str(m["winner_pair_material_vs_temperature"]["cost_f0.95"].get("different_material_same_winner_T",0))
+        + " / " + str(m["winner_pair_material_vs_temperature"]["cost_f0.95"].get("different_material_and_winner_T",0))
+        + " with adjustable inventory. These are descriptive pairs, not causal attribution.",
         f"- True same-material temperature series: {m['temperature_series_groups_strict']} "
         f"(legacy row-based: {m['temperature_series_groups_legacy']}).",
         f"- Same-material temperature mismatch: {m['same_catalyst_temperature_lab']} fixed, "
