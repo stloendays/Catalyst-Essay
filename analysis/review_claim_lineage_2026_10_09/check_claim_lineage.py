@@ -28,6 +28,10 @@ def catalyst(s):
     return re.sub(r"\s+", "", s.split(" [", 1)[0]).lower().replace("–", "-").replace("−", "-")
 
 
+def has_temperature_series(values, tol=0.05):
+    return len(values) >= 2 and max(values) - min(values) > tol
+
+
 def compute_evidence(root=ROOT):
     base = root / "analysis/verify_2026_10_08"
     steps = csv_rows(base / "decomposition_steps.csv")
@@ -54,7 +58,7 @@ def compute_evidence(root=ROOT):
         for p in ps:
             cs[catalyst(p["catalyst"])].append(float(p["T_C"]))
         n_mat += int(len(cs) >= 2)
-        n_temp += int(any(max(ts)-min(ts) > 0.05 for ts in cs.values() if len(ts) > 1))
+        n_temp += int(any(has_temperature_series(ts) for ts in cs.values()))
     accuracies = {(r["source_type"], r["field"]): r for r in csv_rows(
         root / "agent/extraction/eval/field_accuracy_by_source.csv")}
     alloy = json_file(root / "analysis/nh3_alloy_extension_2026_10_05/summary.json")
