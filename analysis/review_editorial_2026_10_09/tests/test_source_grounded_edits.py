@@ -39,6 +39,8 @@ class EditorialSourceGrounding(unittest.TestCase):
         self.assertEqual(data["extended_transition_metals_only"]["below_Fe"], 13)
         self.assertIn("Within the 372-surface subset containing only transition metals outside groups 3–5",self.main)
         self.assertNotIn("Among transition-metal alloys, only cheap 3d–group-6 pairs undercut Fe.",self.main)
+        self.assertIn("restricted transition-metal set combine 3d and group-6 metals",self.main)
+        self.assertIn("Supplementary Note 7 | Alloy selection within the restricted transition-metal set",self.supp)
 
     def test_02_accuracy_and_recall_not_equated(self):
         s = {(x["source_type"],x["field"]):x for x in
