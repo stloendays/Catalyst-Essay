@@ -1,0 +1,53 @@
+name: Methanol survivor source consistency
+
+# Deliberately lightweight and independent of the 310-entry engineering optimizer.
+on:
+  push:
+    branches: [analysis/meoh-engineering-envelope-20261012]
+    paths:
+      - ".github/workflows/meoh-survivor-source-qa.yml"
+      - "analysis/meoh_survivor_source_2026_10_12/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-engineering-envelope-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Source CSV consistency, units, lab conditions, and unresolved evidence flags
+        run: |
+          python -m py_compile analysis/meoh_survivor_source_2026_10_12/audit_survivor_sources.py
+          python analysis/meoh_survivor_source_2026_10_12/audit_survivor_sources.py
+          python - <<'PY'
+          import json
+          p='analysis/meoh_survivor_source_2026_10_12/results/source_verification.json'
+          q=json.load(open(p))
+          assert len(q['paper_dois']) == 3
+          assert not q['in2o3']['independently_verified_against_original_si']
+          assert q['re']['converted_per_catalyst_sty']['5_wt_pct'] > q['re']['converted_per_catalyst_sty']['1_wt_pct']
+          print('PASS: lab STY normalized and original SI flagged correctly')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: methanol-survivor-source-audit
+          path: analysis/meoh_survivor_source_2026_10_12/results/source_verification.json
+          retention-days: 60
+      - name: Commit only the provenance report on the independent analysis branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_survivor_source_2026_10_12/results/source_verification.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "CI: record survivor source consistency with unresolved evidence flags (${{ github.run_id }})"
+          git pull --rebase origin analysis/meoh-engineering-envelope-20261012
+          git push origin HEAD:analysis/meoh-engineering-envelope-20261012
