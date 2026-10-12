@@ -43,3 +43,12 @@ cache is then recomputed.
 - Extended Data figures and references must be cited in numerical order; the reference list is renumbered by order of
   first citation (main text, then captions).
 - Gold-standard validation: **the author confirmed completion of manual review of the 100 sampled methanol values on 2026-10-12**. The reviewed source-evidence workbook, machine-readable CSV, historical AI audits and explicit author-attestation provenance are under `analysis/verify_2026_10_08/gold_standard_human_review_2026_10_12/`. The original manual cells are left unmodified; full-dataset accuracy is not inferred.
+
+## Public release and open follow-ups
+
+- The code and data published with the paper are in the clean public repository
+  [stloendays/catalyst-rankings-process-economics](https://github.com/stloendays/catalyst-rankings-process-economics)
+  (tag `v1.0`, exported from main at c6d9256 with the frozen results). This repository stays the working repository;
+  when a frozen result, script or figure changes here, export it again to the public repository as a new tag.
+- PRs #55 (joint catalyst-inventory x purge optimization) and #56 (equipment-envelope caps) are unfrozen model
+  sensitivities. They do not change the frozen results or the text; do not merge them into main without a decision.
