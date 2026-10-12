@@ -73,6 +73,22 @@ class HouArgonFeedTests(unittest.TestCase):
         self.assertAlmostEqual(float(bare.loc[bare.entry.str.endswith("NS"),"X"].iloc[0]),.0915)
         self.assertAlmostEqual(float(bare.loc[bare.entry.str.endswith("HM"),"X"].iloc[0]),.0543)
 
+    def test_source_measured_STY_closes_under_documented_4_1_1_flow(self):
+        # Original main article: 200 mg catalyst, 60 mL/min gas, 4:1:1.
+        # Thus 18 standard liters per gcat per h, yCO2=1/6.
+        # Approximation: 22.414 standard L/mol, without uncertainty in
+        # the reference T/P of the reported volume-flow meter.
+        gas_L_per_gcat_h = 60.0 * 60.0 / (1000.0 * .2)
+        self.assertAlmostEqual(gas_L_per_gcat_h,18.0)
+        bare=self.hou[self.hou.entry.map(R.is_bare)]
+        for row in bare.itertuples(index=False):
+            corrected_sty=(gas_L_per_gcat_h / 22.414 * (1/6) *
+                           row.X * row.SMeOH * 32.042)
+            legacy_sty=(gas_L_per_gcat_h / 22.414 * .20 *
+                        row.X * row.SMeOH * 32.042)
+            self.assertLess(abs(corrected_sty/row.STY-1),.04,row.entry)
+            self.assertGreater(abs(legacy_sty/row.STY-1),.20,row.entry)
+
     def test_prior_original_champion_leaderboard_is_unchanged(self):
         bare=self.hou[self.hou.entry.map(R.is_bare)]
         lab=bare.loc[bare.STY.idxmax()]
