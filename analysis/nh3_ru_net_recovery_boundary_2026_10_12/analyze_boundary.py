@@ -145,7 +145,6 @@ def main():
     axes[1].grid(alpha=0.2)
     fig.suptitle("KAAP-type loop, Ru/C 8 wt%, bed density 490 kg/m3, u=11", fontsize=12)
     fig.savefig(HERE / "ru_fe_net_recovery_decision.png", dpi=200)
-    fig.savefig(HERE / "ru_fe_net_recovery_decision.pdf")
     plt.close(fig)
     print(json.dumps(report, indent=2))
 
