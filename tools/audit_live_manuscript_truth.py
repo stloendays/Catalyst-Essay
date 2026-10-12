@@ -751,6 +751,16 @@ tokens("Methods: curated-data errors counted by root cause (errata adjudication)
        f"{_ec['root_causes']} root causes", f"{_ec['value_cells_error_rules']} cells")
 ok("Methods: no first-pass errata count (331 cells / 148 / 280)",
    not re.search(r"\b331 cells\b|\b280 cells\b|\b148 (?:errors|rules)\b", text))
+_dcf = json.loads((ROOT / "analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_dcf_report.json")
+                  .read_text(encoding="utf-8"))
+_f12 = _dcf["flagship_results"]["project_12pct_ideal"]
+tokens("Fe-Ru: Ru inventory financing qualifies the KAAP parity (lifecycle cash-flow audit)", text,
+       f"raises Ru to {_f12['Ru_USD_t']:.2f} US dollars per tonne against {_f12['Fe_same_loop_USD_t']:.2f} for Fe",
+       f"financing rate below {_dcf['financing_hurdle_rate'] * 100:.2f}% per year")
+_mb = json.loads((ROOT / "analysis/verify_2026_10_12_metal_basis/metal_basis_summary.json").read_text(encoding="utf-8"))
+tokens("MeOH literature: one paper ranked per gram of Re", text,
+       f"become {_mb['S5']['paper_basis']['other_catalyst']['groups']} of {_mb['S5']['paper_basis']['other_catalyst']['of']} "
+       f"and {_mb['S5']['paper_basis']['other_temperature']['groups']} of {_mb['S5']['paper_basis']['other_temperature']['of']}")
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)
