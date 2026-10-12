@@ -59,8 +59,8 @@ jobs:
           bad = 0
           for f, cols in (("cases.csv", ["case_id", "actual_inverted", "pred_L", "pred_F", "pred_D", "carrying_property"]),
                           ("meoh_pairwise.csv", ["scenario", "group", "i", "j", "actual_inverted", "pred_L"])):
-              a = pd.read_csv(f"/tmp/committed/{f}")[cols].astype(str)
-              b = pd.read_csv(f"{D}/{f}")[cols].astype(str)
+              a = pd.read_csv(f"/tmp/committed/{f}", keep_default_na=False, dtype=str)[cols]   # empty cells stay ""
+              b = pd.read_csv(f"{D}/{f}", keep_default_na=False, dtype=str)[cols]
               if len(a) != len(b):
                   print(f, "row count", len(a), "vs", len(b)); bad += 1; continue
               diff = (a.values != b.values).any(axis=1)
