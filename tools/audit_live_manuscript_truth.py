@@ -761,6 +761,16 @@ _mb = json.loads((ROOT / "analysis/verify_2026_10_12_metal_basis/metal_basis_sum
 tokens("MeOH literature: one paper ranked per gram of Re", text,
        f"become {_mb['S5']['paper_basis']['other_catalyst']['groups']} of {_mb['S5']['paper_basis']['other_catalyst']['of']} "
        f"and {_mb['S5']['paper_basis']['other_temperature']['groups']} of {_mb['S5']['paper_basis']['other_temperature']['of']}")
+_gm = [r for r in rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv") if r["top1_mismatch"] == "True"]
+_same = [r for r in _gm if r["kind"] == "other catalyst, same temperature"]
+_both = [r for r in _gm if r["kind"] == "other catalyst and temperature"]
+tokens("MeOH literature: other-catalyst disagreements split by temperature", text,
+       f"in {len(_same)}, from {len({r['doi'] for r in _same})} papers, it runs at the paper leader's temperature",
+       f"at most {max(float(r['regret']) for r in _same) * 100:.1f}% more",
+       f"in {len(_both)}, all from one study",
+       f"costs {min(float(r['regret']) for r in _both) * 100:.0f}–{max(float(r['regret']) for r in _both) * 100:.0f}% more")
+ok("MeOH literature: the other-catalyst-and-temperature disagreements come from one paper",
+   len({r["doi"] for r in _both}) == 1)
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)
