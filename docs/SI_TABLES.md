@@ -328,38 +328,51 @@ From `analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json`: groups
 | capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 | recycle-driven costs ×0.8736; electricity 129.1 €/MWh; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 
-### Supplementary Table 6 | Corrections to the curated reference data found against the papers
+### Supplementary Table 6a | Errors in the curated reference data confirmed against the papers
 
-One row per paper. TheMeCat and Suvarna: correction rules in `agent/extraction/eval/themecat_errata.csv` and `agent/extraction/eval/suvarna_errata.csv` (page, table or figure locator in the `evidence` column), cells changed in `agent/extraction/eval/errata_applied.csv`. Humphreys 2021: one row per corrected field in `agent/nh3_supported/out/primary_errata.csv` (14 fields in 9 rows of the review tables), reference number resolved with `agent/nh3_field/humphreys_refs.csv`. Cells corrected: TheMeCat v1 289; Suvarna 2022 42; Humphreys 2021 14.
+One row per source paper with a confirmed error. A root cause is one mechanism in one source paper; error rules group the cells of one paper, field and cause; rows are records of conditions the paper did not test. TheMeCat stores STY as yield × GHSV × CO₂ fraction × 32.04/24.05 rather than the printed value, so a derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed value, dataset row and locator: `analysis/verify_2026_10_08/errata_cells_audit.csv`; rules and classes: `analysis/verify_2026_10_08/errata_adjudication.csv`. Total: 26 root causes, 45 error rules, 169 value cells and 8 rows; 24 further STY cells derived from them.
 
-| Reference set | Paper | DOI | Correction rules | Cells corrected | Nature of the correction |
-|---|---|---|---|---|---|
-| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 55 | 114 | pressures in MPa stored as bar; STY set to the yields printed in the text |
-| TheMeCat v1 | Wu 2017, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | 1 | 1 | CO selectivity stored as CO₂ conversion (Table 1) |
-| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 3 | 6 | STY set to the printed productivities; H₂/CO₂ ratio set to the printed feed |
-| TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 17 | 35 | GHSV off by a factor of ten; STY set to the printed rates (Tables 4–6) |
-| TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 11 | 11 | conversion curves of two catalysts swapped (Fig. 9a) |
-| TheMeCat v1 | Chen 2024, Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | 4 | 4 | conversion and selectivity set to the values printed in the text |
-| TheMeCat v1 | Hou 2024, J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | 4 | 4 | STY set to the printed text and Fig. 6b values |
-| TheMeCat v1 | Ghosh 2022, Chem. Eng. J. | 10.1016/j.cej.2022.135090 | 2 | 14 | methanol selectivity read on the wrong axis segment (Fig. 2b); STY derived from it |
-| TheMeCat v1 | Rui 2017, Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | 7 | 7 | STY set to the printed formation rates (Table 2) |
-| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 11 | 11 | conversion and selectivity set to the values printed in Section 3.3 |
-| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 10 | 10 | STY and conversion set to the printed Table 1 values |
-| TheMeCat v1 | Jiang 2020, J. Catal. | 10.1016/j.jcat.2020.01.014 | 1 | 1 | STY set to the printed value in the text |
-| TheMeCat v1 | Ota 2012, J. Catal. | 10.1016/j.jcat.2012.05.020 | 1 | 1 | STY set to the printed rate (Table 2) |
-| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 17 | 17 | bulk In₂O₃ row listed as In/ZrO₂; STY set to SI Table S5 values |
-| TheMeCat v1 | Chen 2019, Energy Technol. | 10.1002/ente.201800747 | 30 | 30 | STY set to the printed SI Table S1 values |
-| TheMeCat v1 | Wang 2017, Sci. Adv. | 10.1126/sciadv.1701290 | 5 | 5 | STY set to the printed SI Table S2 values |
-| TheMeCat v1 | Lin 2021, Catal. Today | 10.1016/j.cattod.2020.05.049 | 10 | 10 | STY recomputed from X × S × F replaced by the printed rates (Table 1) |
-| TheMeCat v1 | Zhang 2017, J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | 8 | 8 | STY recomputed from X × S × F replaced by the printed yields (Table 4) |
-| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 4 | 35 | pressure in bar stored as MPa; rates of one series shifted one temperature step |
-| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 5 | 4 (+ 8 rows dropped) | rows at temperatures not tested dropped; STY on an inconsistent basis not scored |
-| Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 2 | 2 | two STY values assigned to the wrong catalysts |
-| Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | rate assigned to the Sn-free catalyst instead of the Sn-promoted one |
-| Humphreys 2021 (ref. 104, 2 rows) | Kobayashi 2017, J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | 6 | 6 | Ru-free supports listed as Ru catalysts (name, active metal, metal content) |
-| Humphreys 2021 (ref. 81, 2 rows) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | Ru loading, space velocity and rate set to the printed values |
-| Humphreys 2021 (ref. 159, 1 row) | Fan 2017, ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | 1 | 1 | reduction flow taken as the reaction space velocity |
-| Humphreys 2021 (ref. 186, 1 row) | Liu 2019, Catal. Lett. | 10.1007/s10562-019-02674-1 | 1 | 1 | space velocity set to the printed WHSV |
-| Humphreys 2021 (ref. 199, 1 row) | Gao 2017, ACS Catal. | 10.1021/acscatal.7b00284 | 1 | 1 | space velocity off by a factor of ten |
-| Humphreys 2021 (ref. 200, 1 row) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | Co loading set to the ICP-AES value |
-| Humphreys 2021 (ref. 100, 1 row) | Lin 2018, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | 1 | 1 | volumetric flow printed as a space velocity |
+| Reference set | Paper | DOI | Root causes | Error rules | Cells | Derived STY cells | Nature of the error |
+|---|---|---|---|---|---|---|---|
+| Humphreys 2021 (ref. 159) | Fan 2017, ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | 1 | 1 | 1 | – | reduction flow (440 NmL min⁻¹) taken as the reaction space velocity. |
+| Humphreys 2021 (ref. 199) | Gao 2017, ACS Catal. | 10.1021/acscatal.7b00284 | 1 | 1 | 1 | – | space velocity 6,000 instead of 60,000 (×0.1). |
+| Humphreys 2021 (ref. 104) | Kobayashi 2017, J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | 1 | 2 | 6 | – | Ru-free TiH₂ and BaTiO2.5H0.5 listed as Ru catalysts. |
+| Humphreys 2021 (ref. 100) | Lin 2018, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | 1 | 1 | 1 | – | volumetric flow 70 dm³ h⁻¹ printed as a space velocity. |
+| Humphreys 2021 (ref. 186) | Liu 2019, Catal. Lett. | 10.1007/s10562-019-02674-1 | 1 | 1 | 1 | – | space velocity 70,000 instead of the printed 24,000 mL g⁻¹ h⁻¹. |
+| Humphreys 2021 (ref. 81) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | 3 | – | nominal Ru loading 1 wt% instead of the measured 0.86 wt%; Co rate 5.7 instead of the printed 5.5 mmol g⁻¹ h⁻¹; space velocity of the Ru row 36,000 (66,000 for the paper's Fe and Co rows). |
+| Humphreys 2021 (ref. 200) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | 1 | – | Co loading 3.4 instead of the ICP-AES 3.73 wt%. |
+| Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | 1 | – | rate of 5Ni10Sn/10InZrO₂ assigned to the Sn-free catalyst. |
+| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 3a series assigned one temperature step low. |
+| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 1 | 1 | 0 (+ 8 rows) | – | rows at 533 and 573 K, which the paper did not test. |
+| Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 1 | 2 | 2 | – | two 300 °C STY values assigned to the wrong samples (Ir/In₂O₃-5, pristine In₂O₃). |
+| TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 1 | 1 | 19 | 16 | GHSV 3.6 stored as 36.2 NL g⁻¹ h⁻¹ (×10); STY derived from it. |
+| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 2 | 3 | 62 | – | pressures of 0.4–36 MPa stored as bar; yields of two Cu–Ba/Al₂O₃ rows at 553 K stored at ten times X × S. |
+| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 1 | 1 | 1 | – | bulk In₂O₃ data listed as a second In0.1/ZrO₂ row. |
+| TheMeCat v1 | Ghosh 2022, Chem. Eng. J. | 10.1016/j.cej.2022.135090 | 1 | 1 | 7 | 7 | methanol selectivity below 1 % read as 0–90 % (×100, Fig. 2b); STY derived from it. |
+| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 2 | 8 | 8 | – | In13/ZrO₂ conversion differs from the printed values; Fig. 10b series read on the left axis instead of the right. |
+| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 1 | 1 | 4 | – | H₂/CO₂ = 3 stored as 3.1. |
+| TheMeCat v1 | Wu 2017, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | 1 | 1 | 1 | – | CO selectivity of CZA200 stored as CO₂ conversion (Table 1). |
+| TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 2 | 7 | 11 | – | conversion curves of In0.25 and In0.12 swapped (Fig. 9a); In₂O₃ yields rotated between 260 and 300 °C (Fig. 9b). |
+| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 1 | 4 | 4 | 1 | conversions at 5–50 bar misread (Fig. 7b); STY at 5 bar derived from it. |
+
+### Supplementary Table 6b | Differences of definition and minor differences, not counted as errors
+
+Differences between curated and printed values that are not errors of the curated data. Definition: the paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit of the last printed digit. Total: definition 139 cells, minor 13 cells. The printed values are used for scoring in both cases.
+
+| Reference set | Paper | DOI | Definition (cells) | Minor (cells) |
+|---|---|---|---|---|
+| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 4 | – |
+| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 47 | 5 |
+| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 16 | – |
+| TheMeCat v1 | Chen 2019, Energy Technol. | 10.1002/ente.201800747 | 30 | – |
+| TheMeCat v1 | Chen 2024, Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | – | 4 |
+| TheMeCat v1 | Hou 2024, J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | 4 | – |
+| TheMeCat v1 | Jiang 2020, J. Catal. | 10.1016/j.jcat.2020.01.014 | 1 | – |
+| TheMeCat v1 | Lin 2021, Catal. Today | 10.1016/j.cattod.2020.05.049 | 10 | – |
+| TheMeCat v1 | Ota 2012, J. Catal. | 10.1016/j.jcat.2012.05.020 | 1 | – |
+| TheMeCat v1 | Rui 2017, Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | 7 | – |
+| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 2 | 1 |
+| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 2 | – |
+| TheMeCat v1 | Wang 2017, Sci. Adv. | 10.1126/sciadv.1701290 | 5 | – |
+| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 2 | 3 |
+| TheMeCat v1 | Zhang 2017, J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | 8 | – |

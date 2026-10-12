@@ -740,6 +740,12 @@ tokens("Main text: field-level methanol and ammonia results", m_field,
        f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
        f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%",
        f"{tot['matched']} of the {tot['curated']} curated entries")
+_ea = json.loads((ROOT / "analysis/verify_2026_10_08/errata_adjudication_summary.json").read_text(encoding="utf-8"))
+_ec = _ea["confirmed"]
+tokens("Methods: curated-data errors counted by root cause (errata adjudication)", text,
+       f"{_ec['root_causes']} root causes", f"{_ec['value_cells_error_rules']} cells")
+ok("Methods: no first-pass errata count (331 cells / 148 / 280)",
+   not re.search(r"\b331 cells\b|\b280 cells\b|\b148 (?:errors|rules)\b", text))
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)

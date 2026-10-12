@@ -449,50 +449,16 @@ def table5():
 
 
 # ---- Supplementary Table 6: errata of the curated reference data ---------------------------------------------
-# Nature of each correction, summarised from the `evidence` column of the errata files (text only; the counts
-# are read from the files).
-NATURE = {
-    "10.1039/c2cy20604h": "pressures in MPa stored as bar; STY set to the yields printed in the text",
-    "10.1021/acs.iecr.7b01464": "CO selectivity stored as CO₂ conversion (Table 1)",
-    "10.1002/anie.202401168": "conversion and selectivity set to the values printed in the text",
-    "10.1002/cphc.202300530": "conversion curves of two catalysts swapped (Fig. 9a)",
-    "10.1002/ente.201800747": "STY set to the printed SI Table S1 values",
-    "10.1016/j.apcatb.2017.06.069": "STY set to the printed formation rates (Table 2)",
-    "10.1016/j.cattod.2020.05.049": "STY recomputed from X × S × F replaced by the printed rates (Table 1)",
-    "10.1016/j.cej.2022.135090": "methanol selectivity read on the wrong axis segment (Fig. 2b); STY derived from it",
-    "10.1016/j.fuel.2022.125878": "conversion and selectivity set to the values printed in Section 3.3",
-    "10.1016/j.fuel.2023.127927": "STY and conversion set to the printed Table 1 values",
-    "10.1016/j.jcat.2012.05.020": "STY set to the printed rate (Table 2)",
-    "10.1016/j.jcat.2016.03.017": "GHSV off by a factor of ten; STY set to the printed rates (Tables 4–6)",
-    "10.1016/j.jcat.2020.01.014": "STY set to the printed value in the text",
-    "10.1016/j.jcou.2016.11.015": "STY recomputed from X × S × F replaced by the printed yields (Table 4)",
-    "10.1016/j.jes.2023.05.010": "STY set to the printed text and Fig. 6b values",
-    "10.1021/acscatal.9b01869": "bulk In₂O₃ row listed as In/ZrO₂; STY set to SI Table S5 values",
-    "10.1039/c6ra28305e": "STY set to the printed productivities; H₂/CO₂ ratio set to the printed feed",
-    "10.1126/sciadv.1701290": "STY set to the printed SI Table S2 values",
-    "10.1039/c4cy00848k": "pressure in bar stored as MPa; rates of one series shifted one temperature step",
-    "10.1021/acsami.1c05586": "rows at temperatures not tested dropped; STY on an inconsistent basis not scored",
-    "10.1021/acscatal.0c05628": "two STY values assigned to the wrong catalysts",
-    "10.1021/acsomega.8b00211": "rate assigned to the Sn-free catalyst instead of the Sn-promoted one",
-    "10.1021/jacs.7b08891": "Ru-free supports listed as Ru catalysts (name, active metal, metal content)",
-    "10.1002/aenm.201801772": "Ru loading, space velocity and rate set to the printed values",
-    "10.1021/acssuschemeng.7b02812": "reduction flow taken as the reaction space velocity",
-    "10.1007/s10562-019-02674-1": "space velocity set to the printed WHSV",
-    "10.1021/acscatal.7b00284": "space velocity off by a factor of ten",
-    "10.1038/s41467-020-14287-z": "Co loading set to the ICP-AES value",
-    "10.1021/acs.iecr.8b02126": "volumetric flow printed as a space velocity",
-}
+# Read from the final adjudication (analysis/verify_2026_10_08/errata_adjudication.py): one root cause = one
+# mechanism in one source paper; STY values a dataset derives from a confirmed input error count with that root.
+ADJ = ROOT / "analysis/verify_2026_10_08/errata_adjudication.csv"
+SET_NAME = {"TheMeCat": "TheMeCat v1", "Suvarna 2022": "Suvarna 2022", "Humphreys 2021 review": "Humphreys 2021"}
 
 
 def table6(cr, fms):
-    ap = pd.read_csv(EX / "eval/errata_applied.csv")
-    rules = pd.concat([pd.read_csv(EX / "eval/themecat_errata.csv").assign(ref="themecat"),
-                       pd.read_csv(EX / "eval/suvarna_errata.csv").assign(ref="suvarna")])
-    hum = pd.read_csv(SUPP / "out/primary_errata.csv")
-    hum["refno"] = hum.paper_locator.str.extract(r"ref\. (\d+)")[0].astype(int)
-    refs = pd.read_csv(NF / "humphreys_refs.csv", comment="#").dropna().set_index("ref").doi
-    hum["doi"] = hum.refno.map(refs)
-    assert hum.doi.notna().all()
+    r = pd.read_csv(ADJ)
+    r["paper_doi"] = r.source_doi.fillna(r.doi)
+    hum_ref = r.evidence.str.extract(r"^(ref\. \d+)")[0]
 
     def paper(doi):
         for fm in fms:
@@ -501,30 +467,48 @@ def table6(cr, fms):
                 return f"{a} {y}, {j}"
         raise KeyError(doi)
 
-    rows, tot = [], {}
-    for ref, name in (("themecat", "TheMeCat v1"), ("suvarna", "Suvarna 2022")):
-        a = ap[ap.ref == ref]
-        for doi in rules[rules.ref == ref].doi.drop_duplicates():
-            g = a[a.doi == doi]
-            dropped = int((g.field == "(row dropped)").sum())
-            cells = len(g) - dropped
-            n = f"{cells}" + (f" (+ {dropped} rows dropped)" if dropped else "")
-            rows.append([name, paper(doi), doi, num(int((rules.doi == doi).sum())), n, NATURE[doi]])
-            tot[name] = tot.get(name, 0) + cells
-    for doi, g in hum.groupby("doi", sort=False):
-        nrow = len(g[["page", "row"]].drop_duplicates())
-        rows.append([f"Humphreys 2021 (ref. {g.refno.iloc[0]}, {nrow} row{'s' * (nrow > 1)})", paper(doi), doi,
-                     num(len(g)), num(len(g)), NATURE[doi]])
-    tot["Humphreys 2021"] = len(hum)
-    nrows = len(hum[["page", "row"]].drop_duplicates())
-    cap = (f"One row per paper. TheMeCat and Suvarna: correction rules in {rel(EX / 'eval/themecat_errata.csv')} and "
-           f"{rel(EX / 'eval/suvarna_errata.csv')} (page, table or figure locator in the `evidence` column), cells "
-           f"changed in {rel(EX / 'eval/errata_applied.csv')}. Humphreys 2021: one row per corrected field in "
-           f"{rel(SUPP / 'out/primary_errata.csv')} ({len(hum)} fields in {nrows} rows of the review tables), reference "
-           f"number resolved with {rel(NF / 'humphreys_refs.csv')}. "
-           f"Cells corrected: " + "; ".join(f"{k} {num(v)}" for k, v in tot.items()) + ".")
-    return block(6, "Corrections to the curated reference data found against the papers", cap,
-                 ["Reference set", "Paper", "DOI", "Correction rules", "Cells corrected", "Nature of the correction"], rows)
+    counted = r[r.final_class.isin(["ERR", "DER"])]
+    rows = []
+    for (ds, doi), g in counted.groupby(["dataset", "paper_doi"], sort=False):
+        err, der = g[g.final_class == "ERR"], g[g.final_class == "DER"]
+        cells = int(err[err.unit_of_count == "value cells"].cells.sum())
+        recs = int(err[err.unit_of_count == "records"].cells.sum())
+        name = SET_NAME[ds] + (f" ({hum_ref[g.index[0]]})" if ds.startswith("Humphreys") else "")
+        rows.append([name, paper(doi), doi, num(g.root_id.nunique()), num(len(err)),
+                     f"{cells}" + (f" (+ {recs} rows)" if recs else ""), num(int(der.cells.sum())) if len(der) else "–",
+                     "; ".join(dict.fromkeys(g.drop_duplicates("root_id").root_cause_en)) + "."])
+    rows.sort(key=lambda x: (x[0].split(" (")[0], x[1]))
+    e = counted[counted.final_class == "ERR"]
+    tot = (f"{counted.root_id.nunique()} root causes, {len(e)} error rules, "
+           f"{int(e[e.unit_of_count == 'value cells'].cells.sum())} value cells and "
+           f"{int(e[e.unit_of_count == 'records'].cells.sum())} rows; "
+           f"{int(counted[counted.final_class == 'DER'].cells.sum())} further STY cells derived from them")
+    cap = (f"One row per source paper with a confirmed error. A root cause is one mechanism in one source paper; "
+           f"error rules group the cells of one paper, field and cause; rows are records of conditions the paper did not "
+           f"test. TheMeCat stores STY as yield × GHSV × CO₂ fraction × 32.04/24.05 rather than the printed value, so a "
+           f"derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed "
+           f"value, dataset row and locator: {rel(ROOT / 'analysis/verify_2026_10_08/errata_cells_audit.csv')}; rules "
+           f"and classes: {rel(ADJ)}. Total: {tot}.")
+    out = [block("6a", "Errors in the curated reference data confirmed against the papers", cap,
+                 ["Reference set", "Paper", "DOI", "Root causes", "Error rules", "Cells", "Derived STY cells",
+                  "Nature of the error"], rows)]
+
+    rest = r[r.final_class.isin(["CONV", "MINOR"])]
+    rows = []
+    for (ds, doi), g in rest.groupby(["dataset", "paper_doi"], sort=False):
+        conv, minor = g[g.final_class == "CONV"], g[g.final_class == "MINOR"]
+        rows.append([SET_NAME[ds], paper(doi), doi, num(int(conv.cells.sum())) if len(conv) else "–",
+                     num(int(minor.cells.sum())) if len(minor) else "–"])
+    rows.sort(key=lambda x: (x[0], x[1]))
+    cap = (f"Differences between curated and printed values that are not errors of the curated data. Definition: the "
+           f"paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY "
+           f"on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit "
+           f"of the last printed digit. Total: definition {int(rest[rest.final_class == 'CONV'].cells.sum())} cells, "
+           f"minor {int(rest[rest.final_class == 'MINOR'].cells.sum())} cells. The printed values are used for scoring "
+           f"in both cases.")
+    out.append(block("6b", "Differences of definition and minor differences, not counted as errors", cap,
+                     ["Reference set", "Paper", "DOI", "Definition (cells)", "Minor (cells)"], rows))
+    return "\n".join(out)
 
 
 # ---- main ---------------------------------------------------------------------------------------------------
