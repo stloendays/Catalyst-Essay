@@ -1,0 +1,64 @@
+name: NH3 Ru net-recovery parity audit
+on:
+  pull_request:
+    paths:
+      - "analysis/nh3_ru_net_recovery_boundary_2026_10_12/**"
+      - ".github/workflows/nh3-ru-net-recovery-boundary.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NH3_HARNESS: /tmp/nh3_harness
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scientific dependencies
+        run: pip install numpy scipy pandas openpyxl pyyaml matplotlib
+      - name: Validate recovery boundary pure helpers
+        run: python -m unittest discover -s analysis/nh3_ru_net_recovery_boundary_2026_10_12 -p 'test_*.py' -v
+      - name: Check frozen NH3 workbook
+        run: |
+          echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+      - name: Build the unchanged partial response columns
+        run: python analysis/nh3_actual_ru_params_2026_10_07/build_harness_root.py "$NH3_HARNESS" --workers 4
+      - name: Solve Ru/C parity boundary and compare against committed checks
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_boundary.py
+      - name: Verify outputs are deterministic and keep tracked inputs unchanged
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{cost_surface.csv,parity_boundary.csv,summary.json} > /tmp/expected_sha.txt
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_boundary.py
+          sha256sum -c /tmp/expected_sha.txt
+          git diff --exit-code -- provenance/ analysis/nh3_actual_ru_params_2026_10_07/ figures/composite/fig2/
+      - name: Analyze threshold and render the economic decision figure
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/analyze_boundary.py
+      - name: Check numerical follow-up reproducibility
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{decision_thresholds.csv,decision_report.json} > /tmp/expected_analysis_sha.txt
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/analyze_boundary.py > /tmp/decision_report_stdout.json
+          sha256sum -c /tmp/expected_analysis_sha.txt
+      - name: Finite-horizon Ru/Fe cash-flow audit (25 years)
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py
+      - name: Confirm lifecycle discounted-cash-flow result stability
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{lifecycle_cost_scenarios.csv,lifecycle_finance_sensitivity.csv,lifecycle_legacy_regression.csv,lifecycle_dcf_report.json} > /tmp/lifecycle_expected.sha
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py > /tmp/lifecycle_summary.json
+          sha256sum -c /tmp/lifecycle_expected.sha
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nh3-ru-net-recovery-boundary
+          path: |
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/summary.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/decision_report.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/ru_fe_net_recovery_decision.png
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.png
+          retention-days: 90
