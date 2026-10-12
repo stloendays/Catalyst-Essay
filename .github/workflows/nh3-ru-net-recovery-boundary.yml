@@ -50,6 +50,14 @@ jobs:
           sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{lifecycle_cost_scenarios.csv,lifecycle_finance_sensitivity.csv,lifecycle_legacy_regression.csv,lifecycle_dcf_report.json} > /tmp/lifecycle_expected.sha
           python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py > /tmp/lifecycle_summary.json
           sha256sum -c /tmp/lifecycle_expected.sha
+      - name: Contract structures (owned, lease, consignment, buyback)
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_contract_structures.py
+      - name: Verify contract-model arithmetic and output determinism
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{contract_cost_surface.csv,contract_parity_thresholds.csv,contract_terms_report.json} > /tmp/contract_expected.sha
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_contract_structures.py > /tmp/contract_report_second.json
+          sha256sum -c /tmp/contract_expected.sha
+          git diff --exit-code -- provenance/ figures/composite/fig2/ docs/MANUSCRIPT_MAIN_TEXT.md
       - uses: actions/upload-artifact@v4
         with:
           name: nh3-ru-net-recovery-boundary
@@ -61,4 +69,7 @@ jobs:
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.csv
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.json
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.png
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.png
           retention-days: 90

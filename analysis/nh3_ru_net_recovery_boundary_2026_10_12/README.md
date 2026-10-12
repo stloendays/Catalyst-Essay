@@ -64,3 +64,25 @@ Run from a clean CI checkout after the frozen response cache is constructed:
     NH3_HARNESS=/tmp/nh3_harness python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py
 
 **Editorial gate:** Do not replace the canonical ranking or same-loop Figure 3 values until a domain expert validates the Ru metal inventory financing contract, final recovery yield, and genuine feasibility of Fe in the KAAP loop.
+
+
+## Supplier-owned Ru/C metal, leasing, consignment and buyback (new PR, 2026-10-12)
+
+The project rate is FIXED at 12% for all operator cash flows and unchanged Fe/Ru process optimization. Operator-owned Ru metal and Fe metal follow their dated 25-year purchase-and-salvage DCF. In hypothetical supplier-owned leasing/consignment, the customer does NOT pay the Ru metal principal upfront; instead it pays annual rent or per-loading service fees, optional refundable collateral, fine-Ru metal loss make-up at collection, and separate processing costs. **Metal principal cannot appear as both purchase and lease cost.** Customer-owned metal in a refinery **pool account is NOT treated as supplier-owned** merely because it is recorded in the provider's ledger.
+
+- Annual lease rates: 0, 0.5, 1, 2, 4, 8, 12% of frozen Ru spot value.
+- Consignment service fee per loading: 0, 0.5, 1, 2, 4% of Ru value.
+- Security deposit: either 0 or 25% of Ru value, refunded at year 25 (hypothetical).
+- Physical recovery: 90, 93.05, 95.55%; Ru/C loading 5/8/10 wt%, bed density 430/490/550 kg/m³; nominal metal life 10 years, fixed project life 25.
+- Refining stress: either perfect refining or an assumed 95% metallization yield, $500/kg gross collected Ru processing fee and a half-year metal-loss bill settlement delay. Delayed loss billing benefits the operator under DCF, and is therefore only a scenario, not an assumption about actual supplier practice.
+- Owned/guaranteed buyback: modeled as the original owner DCF with future sale payout fractions of 80, 90, 95 or 100% of certified fine Ru, not a confirmed commercial repurchase agreement.
+- All fee percentages, collateral provisions, fine-metal make-up liability, payment timing and buyback guarantees are **model inputs, not verified contract quotes**. Public documents establish available PGM trading mechanisms, not their Ru-ammonia process applicability or rates. See the source audit in docs/NH3_RU_COMMERCIAL_TERMS_SOURCE_AUDIT_2026-10-12.md.
+
+New workflow calls run_contract_structures.py after 25-year owned DCF, checks baseline identity, solves critical lease-rate thresholds and regenerates all 1,890 contract case rows and 162 thresholds with byte-for-byte repeatability. Figures and machine-readable outputs are available as Actions artifacts:
+
+- contract_terms_report.json
+- contract_cost_surface.csv
+- contract_parity_thresholds.csv
+- contract_structure_parity.png
+
+**Use this to test the importance of contractual metal ownership; never claim a market-available KAAP Ru metal lease at any of the modeled rates.**
