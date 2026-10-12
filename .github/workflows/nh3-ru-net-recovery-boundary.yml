@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install scientific dependencies
-        run: pip install numpy scipy pandas openpyxl pyyaml
+        run: pip install numpy scipy pandas openpyxl pyyaml matplotlib
       - name: Validate recovery boundary pure helpers
         run: python -m unittest discover -s analysis/nh3_ru_net_recovery_boundary_2026_10_12 -p 'test_*.py' -v
       - name: Check frozen NH3 workbook
@@ -36,10 +36,19 @@ jobs:
           python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_boundary.py
           sha256sum -c /tmp/expected_sha.txt
           git diff --exit-code -- provenance/ analysis/nh3_actual_ru_params_2026_10_07/ figures/composite/fig2/
+      - name: Analyze threshold and render the economic decision figure
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/analyze_boundary.py
+      - name: Check numerical follow-up reproducibility
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{decision_thresholds.csv,decision_report.json} > /tmp/expected_analysis_sha.txt
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/analyze_boundary.py > /tmp/decision_report_stdout.json
+          sha256sum -c /tmp/expected_analysis_sha.txt
       - uses: actions/upload-artifact@v4
         with:
           name: nh3-ru-net-recovery-boundary
           path: |
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/*.csv
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/summary.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/decision_report.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/ru_fe_net_recovery_decision.png
           retention-days: 90
