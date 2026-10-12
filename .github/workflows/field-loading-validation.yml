@@ -1,0 +1,99 @@
+name: MeOH loading holdouts and kinetic/selectivity stress
+on:
+  push:
+    branches: [analysis/joint-meoh-robustness-20261012]
+    paths:
+      - "analysis/field_loading_validation_2026_10_12/**"
+      - ".github/workflows/field-loading-validation.yml"
+  pull_request:
+    paths:
+      - "analysis/field_loading_validation_2026_10_12/**"
+      - ".github/workflows/field-loading-validation.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONIOENCODING: "utf-8"
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+jobs:
+  source-holdout:
+    name: Measured GHSV one-point prediction audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m unittest discover -s analysis/field_loading_validation_2026_10_12 -p 'test_*.py' -v
+      - name: Independent GHSV holdout
+        run: |
+          python analysis/field_loading_validation_2026_10_12/experimental_holdout.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("analysis/field_loading_validation_2026_10_12/holdout_report.json").read_text())
+          assert (x["eligible_cohorts"],x["heldout_measurements"],x["unique_papers"]) == (6,9,2)
+          assert x["ACS_prereduction_confusion_caught"] is True
+          PY
+      - name: Check holdout determinism
+        run: |
+          sha256sum analysis/field_loading_validation_2026_10_12/{measured_ghsv_holdouts.csv,holdout_report.json} > /tmp/holdout.sha
+          python analysis/field_loading_validation_2026_10_12/experimental_holdout.py > /tmp/holdout-second.json
+          sha256sum -c /tmp/holdout.sha
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meoh-independent-loading-holdout
+          path: |
+            analysis/field_loading_validation_2026_10_12/measured_ghsv_holdouts.csv
+            analysis/field_loading_validation_2026_10_12/holdout_report.json
+          retention-days: 90
+  structural-stress:
+    name: Original four-group alternative kinetic/selectivity/cap rescores
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    needs: source-holdout
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Ten sensitivity scenario rescores
+        run: python analysis/field_loading_validation_2026_10_12/conditional_stress.py
+      - name: Publication gate and exact baseline regression
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path("analysis/field_loading_validation_2026_10_12/conditional_stress_report.json").read_text())
+          assert x["number_of_scenarios"]==10
+          assert len(x["original_survivor_groups"])==4
+          assert x["original_joint_results_unmodified"] is True
+          assert x["engineering_gate"]["pressure_drop_checked"] is False
+          assert x["publication_ready"] is False
+          assert x["scenarios"]["reference"]["cross_three_envelopes_robust_groups"]==4
+          PY
+      - name: Check stress determinism
+        run: |
+          sha256sum analysis/field_loading_validation_2026_10_12/{conditional_candidates.csv,conditional_group_verdicts.csv,conditional_stress_report.json} > /tmp/stress.sha
+          python analysis/field_loading_validation_2026_10_12/conditional_stress.py > /tmp/stress-second.json
+          sha256sum -c /tmp/stress.sha
+      - name: Frozen data unchanged
+        run: git diff --exit-code -- analysis/meoh_literature_inversion_2026_10_05/ analysis/field_robustness_2026_10_12/ data/meoh/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meoh-unfrozen-conditional-stress
+          path: |
+            analysis/field_loading_validation_2026_10_12/conditional_candidates.csv
+            analysis/field_loading_validation_2026_10_12/conditional_group_verdicts.csv
+            analysis/field_loading_validation_2026_10_12/conditional_stress_report.json
+          retention-days: 90
