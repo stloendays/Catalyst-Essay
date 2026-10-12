@@ -201,21 +201,14 @@ def main():
     ok = tm.STY_g_per_gcath.notna() & tm.yield_CH3OH.notna() & f_all.notna()
     reproduced = np.isclose(tm.STY_g_per_gcath[ok], (tm.yield_CH3OH / 100 * f_all)[ok], rtol=0.03, atol=6e-5)
 
-    # ---- cell level: row id and the dataset value read back from the raw TheMeCat rows
-    a = applied.copy()
-    a["dataset"] = a.ref.map({"themecat": "TheMeCat", "suvarna": "Suvarna 2022"})
-    a["key"] = a.dataset + "|" + a.doi + "|" + a.field + "|" + a.themecat.astype(str) + "|" + a.pdf.astype(str)
-    cells["key"] = (cells.dataset + "|" + cells.doi.fillna("") + "|" + cells.field + "|"
-                    + cells.dataset_value.astype(str) + "|" + cells.paper_value.astype(str))
-    ids = a.groupby("key").cur_id.apply(lambda s: list(s))
-    taken = {}
-    row_ids = []
-    for k in cells.key:
-        lst = ids.get(k, [])
-        i = taken.get(k, 0)
-        row_ids.append(lst[i] if i < len(lst) else "")
-        taken[k] = i + 1
-    cells["row_id"] = row_ids
+    # ---- cell level: row id and the dataset value read back from the raw TheMeCat rows. errata_classification.py
+    # writes the TheMeCat / Suvarna cells in the row order of errata_applied.csv, then the Humphreys cells.
+    n = len(applied)
+    head = cells.iloc[:n]
+    same = (head.doi.fillna("").values == applied.doi.fillna("").values) & (head.field.values == applied.field.values)
+    if not same.all():
+        raise SystemExit("errata_classification.csv is not in the row order of errata_applied.csv")
+    cells["row_id"] = list(applied.cur_id.astype(str)) + [""] * (len(cells) - n)
     raw_check = []
     for _, c in cells.iterrows():
         if c.dataset == "TheMeCat" and c.field in tm.columns and str(c.row_id) != "":
