@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Source-data consistency and independence audit of the four MeOH survivors.
 
-Only numerical quantities verified in accessible paper main text are marked as
-'external_crosscheck'. Internal CSV checks verify transcription consistency,
-NOT independent manual validation of paywalled original supplementary tables.
+The public main text of the Re and InNi3C0.5 papers is available for
+independent spot-checks. CSV tests themselves check curated transcriptions and
+unit conversions only, NOT independent validation of original supplementary
+tables. They intentionally do not certify the In2O3 SI controls.
 No frozen data is overwritten.
 """
 from __future__ import annotations
@@ -170,6 +171,30 @@ def audit():
             "independently_verified_against_original_si": False,
             "missing_CO_CH4": True,
             "feed_uncertainty": "The public main article includes H2:CO2:Ar (or caption N2) = 4:1:1. The extracted bare-catalyst SI Table S5 records only H2:CO2=4, so lab inert dilution for those specific controls requires checking original SI.",
+        },
+        "comparison_scope": {
+            "Re_TiO2": {
+                "level": "same active metal and support, different Re metal weight fraction",
+                "formulation_type": "metal_loading_variant",
+                "same_active_metal_and_support": True,
+                "per_metal_sty_winner": "1 wt% Re/TiO2",
+                "per_total_catalyst_sty_winner": "5 wt% Re/TiO2",
+                "interpretation": "A denominator-sensitive formulation comparison; cannot be presented as an inversion across chemically unrelated active metals.",
+                "economic_scope": "Canonical TEA models productivity, feed, loop and reactor module scale; catalyst metal replacement cost is optional and off by default.",
+            },
+            "InNi3C0p5": {
+                "level": "same InNi3C0.5 active phase, different supports: monoclinic ZrO2 versus SiO2",
+                "formulation_type": "support_variant",
+                "same_active_metal_and_support": False,
+                "independent_papers_for_12_and_24_space_velocity": 1,
+            },
+            "In2O3": {
+                "level": "same In2O3 chemistry, nanosheet versus hierarchical morphology",
+                "formulation_type": "morphology_variant",
+                "same_active_metal_and_support": True,
+                "independently_verified_SI": False,
+            },
+            "warning": "All three evidence families compare formulations within related catalyst chemistry, not three independent cross-metal experiments.",
         },
         "engineering_context": physical,
         "outstanding_human_work": [
