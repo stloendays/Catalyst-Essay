@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import base64
 import csv
+import os
 import json
 import sys
 import time
@@ -56,7 +57,7 @@ RAW_DIRS = {"main": OUT_DIR / "raw", "figures": OUT_DIR / "raw_figures", "si": O
 TEXT_SI_DIR = HERE / "text_si"
 USAGE_CSV = OUT_DIR / "token_usage.csv"
 SCHEMA = json.loads((HERE / "schema.json").read_text(encoding="utf-8"))
-HARNESS_AGENT = r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1\agent"
+HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1"), "agent")
 
 USAGE_FIELDS = ["timestamp", "doi", "model", "reasoning_effort", "images", "prompt_tokens", "cached_tokens",
                 "completion_tokens", "reasoning_tokens", "total_tokens", "cumulative_total_tokens",

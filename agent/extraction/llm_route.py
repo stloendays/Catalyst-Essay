@@ -7,13 +7,14 @@ handed straight to the client and never printed, logged or stored.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import urllib.request
 from pathlib import Path
 
 API_YES_URL = "http://127.0.0.1:8788/v1"
 API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
-HARNESS_AGENT = r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1\agent"
+HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1"), "agent")
 ROUTES = ("api-yes", "advisor-openai")
 EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "余额", "额度", "用完")
 

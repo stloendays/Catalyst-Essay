@@ -15,6 +15,7 @@ Run as a script: writes element_prices.csv and catalyst_prices.csv (one row per 
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -32,7 +33,7 @@ CZA_ANCHOR_EUR_KG = 18.1             # anchor (Campos 2022) Cu/ZnO/Al2O3 price, 
 PEREZ_FORTES_EUR_KG = 95.24          # Perez-Fortes 2016, AE p727; JRC EUR 27629 p37
 CZA_COMMERCIAL = {"CuO": 0.60, "ZnO": 0.30, "Al2O3": 0.10}
 PRECIOUS = {"Pd", "Pt", "Ir", "Au", "Ag", "Re", "Ru", "Rh", "Os"}
-HARNESS_CORE = Path(r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1/harness_core.py")
+HARNESS_CORE = Path(os.environ.get("NH3_HARNESS", r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1")) / "harness_core.py"
 
 # ------------------------------------------------------------------------------------------- element prices ------
 # (USD per kg contained element, basis, source, locator). "frozen" = the frozen NH3 model price set

@@ -26,6 +26,7 @@ Field accuracy is reported against both the raw and the adjudicated TheMeCat val
 from __future__ import annotations
 
 import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -36,10 +37,15 @@ from scipy.optimize import linear_sum_assignment
 
 HERE = Path(__file__).resolve().parent
 EVAL = HERE / "eval"
-THEMECAT = Path(r"D:\论文-AI4S\work\advisor_2026-10-05\task3\data\TheMeCat_v1.csv")
-GOTHE = Path(r"D:\论文-AI4S\work\advisor_2026-10-05\task4\table4_gothe2025.csv")
+# Curated reference data (not in git; release asset curated_reference_datasets.zip of the private
+# stloendays/Catalyst-Essay-sources, unzipped at the checkout root). CE_ADVISOR_DATA overrides the folder.
+ADVISOR = Path(os.environ.get("CE_ADVISOR_DATA", HERE.parents[1] / "work" / "advisor_2026-10-05"))
+if not ADVISOR.exists():
+    ADVISOR = Path(r"D:\论文-AI4S\work\advisor_2026-10-05")
+THEMECAT = ADVISOR / "task3" / "data" / "TheMeCat_v1.csv"
+GOTHE = ADVISOR / "task4" / "table4_gothe2025.csv"
 GOTHE_DOI = "10.1021/acscatal.5c05984"
-SUVARNA = Path(r"D:\论文-AI4S\work\advisor_2026-10-05\task3\data\Suvarna2022_curated_1234.xlsx")
+SUVARNA = ADVISOR / "task3" / "data" / "Suvarna2022_curated_1234.xlsx"
 from paper_set import load_paper_set  # noqa: E402
 REF = load_paper_set()  # DOI -> reference set (gothe, themecat, suvarna, review)
 

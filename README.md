@@ -2,6 +2,9 @@
 
 **From atomic catalyst ranking to industrial decision-making.**
 
+> Working on the paper from a cloud session: start with [`docs/CLOUD_WORKING_GUIDE.md`](docs/CLOUD_WORKING_GUIDE.md)
+> (frozen version `freeze/field-2026-10-12`, manuscript sources, the private source archives and the rules for edits).
+
 Catalyst discovery is usually optimized with atomic-scale or intrinsic-performance proxies, while deployment is decided by reactor, process and economic constraints. This project studies how catalyst rankings propagate across those scales, where the ranking changes, and how an industrial target can be mapped backward into a required catalyst-property region.
 
 ```text
