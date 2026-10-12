@@ -138,9 +138,7 @@ def optimize(row):
                  for inlet in INLETS
                  for case in CAPS]
     best = {s: empty(row, *s, xeq, roots) for s in scenarios}
-    for m, x, mode in J.states(x0, xeq):
-        # J.states uses M_GRID; include higher loadings in a separate, consistent extension.
-        pass
+    # J.states stops at m=10; extend with the same calibrated surrogate to m=25.
     if x0 >= xeq * (1. - 1e-10):
         states = [(1., x0, "above_feed_eq_only_measured")]
     else:
