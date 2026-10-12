@@ -1,4 +1,4 @@
-"""Cholewa et al. (2024) Fe/Ru-CeO2 + NIST thermo in two plug-flow beds.
+"""Cholewa et al. (2024) Fe/Ru-CeO2 published final fitted Eqs 11/12 + NIST thermo.
 
 ISOLATED and UNFROZEN: no Ru/C industrial fit, no NH3-FINAL-1.1 modification.
 Paper: doi:10.1039/D4SE00254G; NIST WebBook Shomate; comparison:
@@ -57,17 +57,26 @@ def activities(T, P_bar, flow, eos="ideal", kij=0.):
     return tuple(flow[i]/sum(flow)*P_bar*phi[i] for i in range(3))
 
 def rate(cat, T, P_bar, flow, gain=1., eos="ideal", kij=0.):
-    """mol NH3/kg_cat/s. Cholewa eqs 3,11,12, with full Kp and zero rate at Q=Kp."""
+    """Cholewa et al. (2024) *fitted* Eqs 11/12, mol NH3/(kg_cat s).
+
+    Uses half-reaction K_eq=sqrt(K_full), aN2**0.5, H2**(1.5 alpha),
+    and Ru hydrogen adsorption aH2**(1.5 f2). The old branch used
+    Eq.3's full-reaction powers, which IS NOT Eq.11/12, and that
+    version's 17.23x break-even must NOT be cited.
+    The source Ru catalyst is Ru/CeO2; NOT commercial KAAP Ru/C.
+    """
     if min(flow) <= 0 or P_bar <= 0 or gain <= 0:
         raise ValueError("Positive flows, P and gain required")
     n2,h2,nh3 = activities(T,P_bar,flow,eos,kij)
-    z = nh3**2/h2**3
-    num = kp_full(T)*n2*z**(-cat.alpha) - z**(1-cat.alpha)
+    z = nh3 / h2**1.5
+    num = math.sqrt(kp_full(T))*math.sqrt(n2)*z**(-cat.alpha) - z**(1-cat.alpha)
     denominator = 1.
-    for params,p in ((cat.adsorption_h2,h2),(cat.adsorption_nh3,nh3)):
-        if params:
-            dh, ds, exponent = params
-            denominator += math.exp(-dh/(R*T)+ds/R)*p**exponent
+    if cat.adsorption_h2:
+        dh, ds, exponent = cat.adsorption_h2
+        denominator += math.exp(-dh/(R*T)+ds/R)*h2**(1.5*exponent)
+    if cat.adsorption_nh3:
+        dh, ds, exponent = cat.adsorption_nh3
+        denominator += math.exp(-dh/(R*T)+ds/R)*nh3**exponent
     return gain*cat.k0*math.exp(-cat.ea/(R*T))*num/denominator
 
 def equilibrium_extent(T, P_bar, inlet, eos="ideal", kij=0.):
