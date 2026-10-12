@@ -212,7 +212,7 @@ def main():
             "source":"ACS Catalysis DOI 10.1021/acscatal.5c05984, published Table 3/4",
         },
         "limitations":[
-            "Only two source papers contain strictly comparable repeated-GHSV series in this preselected catalog; measurements are clustered by paper and catalyst",
+            "Only two source papers contain repeated-GHSV series in this catalog (including three extra Fe3O4 T/P/feed tracks). Some original Fe3O4 GHSV values were rounded to NL/g/h after unit harmonization; measurements are clustered by paper and catalyst",
             "GHSV scaling is equivalent to inverse inventory only at fixed feed/conditions/packing and comparable mass-normalized flow; this is a local kinetic holdout, not industrial pressure-drop validation",
             "Some published STY is mass-GHSV-derived and other STY is printed; this audit validates conversion and methanol selectivity from reported source values, not mixed STY bases",
             "Pretreatment affects Re catalyst identity and original PR55 inventory optimization; no global reclassification of original 4 inversions is made here",

@@ -16,23 +16,23 @@ class SourceAlignedTests(unittest.TestCase):
 
     def test_source_pretreat_explicitly_prevents_acs_collapsing_states(self):
         cohorts,_=comparable_tracks()
-        assert len(cohorts)==6,(len(cohorts),[(r["doi"],r["catalyst"]) for r in cohorts])
+        assert len(cohorts)==9,(len(cohorts),[(r["doi"],r["catalyst"]) for r in cohorts])
         acs=[c for c in cohorts if c["doi"]==ACS]
         sa=[c for c in cohorts if c["doi"]==SA]
         self.assertEqual(len(acs),2)
-        self.assertEqual(len(sa),4)
+        self.assertEqual(len(sa),7)
         self.assertEqual({c["pretreatment"] for c in acs},
                          {"reduction_250C_paper_table","reduction_500C_paper_table"})
         self.assertEqual(len([r for c in acs for r in c["holdouts"]]),5)
-        self.assertEqual(len([r for c in sa for r in c["holdouts"]]),4)
+        self.assertEqual(len([r for c in sa for r in c["holdouts"]]),7)
         for c in cohorts:
             self.assertGreater(min(g for g,_ in c["holdouts"]),c["ghsv_anchor"])
 
     def test_source_holdout_anchor_and_measured_selectivity_not_synthetic(self):
         rows,tracks,_=evaluate_holdouts()
-        self.assertEqual(len(rows),9)
+        self.assertEqual(len(rows),12)
         self.assertEqual(len({r["doi"] for r in rows}),2)
-        pairs={r["catalyst"]:r for r in rows if r["doi"]==SA}
+        pairs={r["catalyst"]:r for r in rows if r["doi"]==SA and r["T_C"]==300 and r["P_bar"]==40 and r["H2_CO2"]==3}
         self.assertEqual(len(pairs),4)
         x=pairs["inni3c0.5/m-zro2"]
         self.assertAlmostEqual(x["measured_X_anchor"],0.112)
