@@ -5,13 +5,15 @@ A primary-literature check (2026-10-07) found three inputs of the actual-Ru anal
   input                                   used            literature
   Ru loading of the supported Ru/C        3.2 wt%         ~8 wt% (commercial BP/Kellogg catalyst), 5-10 wt% overall
   bed (bulk) density of the Ru/C bed      500-1,000       no published value; ~430-520 derived -> 430-550 kg m-3
-  Ru recovery from spent catalyst         0.90-0.94       0.89-0.976 (CN 1872418 A, Ru/C ammonia catalyst)
+  Ru recovery from spent catalyst         0.90-0.94       0.911-0.9555 for promoted spent Ru/C (CN 1872418 A
+                                                          Ex. 1-3, CN 101638727 B Ex. 1-3) -> 0.90-0.9555
+                                                          (2026-10-12; was 0.90-0.97 with the unpromoted Ex. 4)
 
 Each set below changes only those inputs; the dispersion ratio u (11 in the Fig. 3d reading, log-uniform 11-50 in the
 Monte Carlo) and everything else stay as in the baseline.
 
   baseline  r 0.90-0.94, rho 500-1,000, w 3.2 wt%
-  R1        r 0.90-0.97
+  R1        r 0.90-0.9555
   R2        rho 430-550
   R3        w 8 wt% (also 5 and 10 wt%); in the Monte Carlo the extra variant A_comm draws w uniform 5-10 wt%
   R_all     R1 + R2 + R3
@@ -65,12 +67,21 @@ N = 5000
 U_RANGE = (11.0, 50.0)
 W_COMM = (0.05, 0.10)
 
+R_HI = 0.9555             # upper Ru recovery: promoted spent Ru/C (CN 1872418 A Ex. 3)
+BENCH_R = (0.90, 0.94, R_HI)
+OLD_REF = "107a75d"       # the commit whose fig2_ru_bed_sensitivity.csv holds the baseline (pre-literature) readings
+
+
+def rkey(r):
+    return "r%g" % (100 * r)
+
+
 SETS = {  # recovery corners, bed-density corners, Ru mass fractions for the Fig. 3d reading; headline w
     "baseline": dict(r=(0.90, 0.94), rho=(500.0, 1000.0), w=(0.032,), w_head=0.032),
-    "R1": dict(r=(0.90, 0.97), rho=(500.0, 1000.0), w=(0.032,), w_head=0.032),
+    "R1": dict(r=(0.90, R_HI), rho=(500.0, 1000.0), w=(0.032,), w_head=0.032),
     "R2": dict(r=(0.90, 0.94), rho=(430.0, 550.0), w=(0.032,), w_head=0.032),
     "R3": dict(r=(0.90, 0.94), rho=(500.0, 1000.0), w=(0.05, 0.08, 0.10), w_head=0.08),
-    "R_all": dict(r=(0.90, 0.97), rho=(430.0, 550.0), w=(0.05, 0.08, 0.10), w_head=0.08),
+    "R_all": dict(r=(0.90, R_HI), rho=(430.0, 550.0), w=(0.05, 0.08, 0.10), w_head=0.08),
 }
 
 
@@ -137,7 +148,7 @@ def main():
                                              gap_to_Fe=o["cost"] - ref, alpha_star=alpha_star(pe, mask, k, ref),
                                              T_C=o["T_C"], P_bar=o["P_bar"], Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
     # benchmark-bed reading: bed keeps the benchmark formulation, so only r (and u) enter
-    for r in (0.90, 0.94, 0.97):
+    for r in BENCH_R:
         pe = P_RU * (1.0 - r) / U_MIN
         for loop, (mask, ref) in loops.items():
             o = optimum(pe, mask=mask)
@@ -148,7 +159,12 @@ def main():
                                  Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
 
     # baseline own-bed reading reproduces the committed Fig. 3d series
-    committed = list(csv.DictReader(open(FIG2 / "fig2_ru_bed_sensitivity.csv", encoding="utf-8")))
+    # (the committed file now holds the literature readings; the baseline ones are those of OLD_REF)
+    import subprocess
+    from io import StringIO
+    committed = list(csv.DictReader(StringIO(subprocess.run(
+        ["git", "-C", str(REPO), "show", f"{OLD_REF}:figures/composite/fig2/fig2_ru_bed_sensitivity.csv"],
+        capture_output=True, check=True, text=True, encoding="utf-8").stdout)))
     key_of = {("main", 0.90): "supp_rec90", ("main", 0.94): "supp_rec94", ("KAAP", 0.90): "kaap90", ("KAAP", 0.94): "kaap94"}
     n_cmp = 0
     for x in readings:
@@ -177,10 +193,10 @@ def main():
             if len(cfg["w"]) > 1:
                 fig3d[s][loop]["by_w"] = {f"{w * 100:g}wt%": span([x for x in rows if x["w_Ru"] == w]) for w in cfg["w"]}
                 fig3d[s][loop]["envelope_all_w"] = span(rows)
-    bench = {f"r{r:.2f}": {loop: {k: x[k] for k in ("p_eff_USD_kg", "cost", "gap_to_Fe", "alpha_star")}
-                           for loop in loops for x in readings
-                           if x["set"] == "benchmark_bed" and x["loop"] == loop and x["recovery"] == r}
-             for r in (0.90, 0.94, 0.97)}
+    bench = {rkey(r): {loop: {k: x[k] for k in ("p_eff_USD_kg", "cost", "gap_to_Fe", "alpha_star")}
+                       for loop in loops for x in readings
+                       if x["set"] == "benchmark_bed" and x["loop"] == loop and x["recovery"] == r}
+             for r in BENCH_R}
     bench["parity_price_USD_kg"] = p_parity
 
     # ---------------------------------------------------------------- Monte Carlo
@@ -225,7 +241,12 @@ def main():
         fe[d] = evaluate("Fe", vec["Fe"], price=hc.PRICE["Fe"] * float(fe_pm[d]), **kw)
         base[d] = evaluate("Ru", vec["Ru"], price=P_RU * float(ru_pm[d]), **kw)
 
-    ref = json.loads(MC_BASE.read_text(encoding="utf-8"))
+    # the baseline set must reproduce the actual-Ru Monte Carlo as it stood with the baseline ranges (OLD_REF); the
+    # committed summary now holds the literature ranges
+    import subprocess
+    ref = json.loads(subprocess.run(
+        ["git", "-C", str(REPO), "show", f"{OLD_REF}:{MC_BASE.relative_to(REPO).as_posix()}"],
+        capture_output=True, check=True, text=True, encoding="utf-8").stdout)
     assert float(np.mean(base - fe > 0)) == ref["base_reproduced"]["P_Fe_cheaper"] == 1.0
     assert abs(float((base - fe).min()) - ref["base_reproduced"]["min_gap_USD_t"]) < 1e-9
 
@@ -314,8 +335,8 @@ def table(o):
     b = o["benchmark_bed"]
     L += ["", f"Benchmark-bed reading (independent of w and rho), parity price {b['parity_price_USD_kg']:.2f} USD/kg:", "",
           "| r | p_eff (USD/kg) | main-loop cost (gap to Fe) | KAAP cost (gap to Fe in KAAP) |", "|---|---|---|---|"]
-    for r in ("r0.90", "r0.94", "r0.97"):
-        L.append(f"| {r[1:]} | {b[r]['main']['p_eff_USD_kg']:.1f} | {b[r]['main']['cost']:.3f} ({b[r]['main']['gap_to_Fe']:+.3f})"
+    for r in (rkey(x) for x in BENCH_R):
+        L.append(f"| {r[1:]} % | {b[r]['main']['p_eff_USD_kg']:.1f} | {b[r]['main']['cost']:.3f} ({b[r]['main']['gap_to_Fe']:+.3f})"
                  f" | {b[r]['KAAP']['cost']:.3f} ({b[r]['KAAP']['gap_to_Fe']:+.3f}) |")
     return "\n".join(L) + "\n"
 

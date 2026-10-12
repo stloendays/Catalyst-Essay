@@ -4,99 +4,99 @@
 
 ### Supplementary Table 1 | The 50 CO₂-to-methanol papers of the extraction set
 
-First author, year and journal from `agent/extraction/fetch_manifest.json` and Crossref; reference set from `agent/extraction/paper_set.txt`; curated, extracted and matched entries from `agent/extraction/eval/entry_metrics.csv` (Gothe 2025 Table 4: `agent/extraction/eval/gothe_table4_scores.csv` and `agent/extraction/out/records_normalized.csv`); SI files from `agent/extraction/si_manifest.json`; candidate operating points from `analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv`. Lam 2018 has no curated reference and was scored by PDF review only. SI column: number of SI files retrieved.
+First author, year and journal from `agent/extraction/fetch_manifest.json` and Crossref; reference set from `agent/extraction/paper_set.txt`; curated, extracted and matched entries from `agent/extraction/eval/entry_metrics.csv` (Gothe 2025 Table 4: `agent/extraction/eval/gothe_table4_scores.csv` and `agent/extraction/out/records_normalized.csv`); SI files from `agent/extraction/si_manifest.json`; candidate operating points of the printed-value primary from `analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv`. Lam 2018 has no curated reference and was scored by PDF review only. SI column: number of SI files retrieved.
 
-| First author | Year | Journal | DOI | Reference set | Curated entries | Extracted entries | Matched entries | SI obtained | Candidate operating points |
+| First author | Year | Journal | DOI | Reference set | Curated entries | Extracted entries | Matched entries | SI obtained | Candidate operating points (printed values) |
 |---|---|---|---|---|---|---|---|---|---|
 | Gothe | 2025 | ACS Catal. | 10.1021/acscatal.5c05984 | Gothe (Table 4) | 21 | 21 | 21 | yes (1) | 21 |
-| Wu | 2017 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | TheMeCat | 22 | 26 | 22 | yes (1) | 21 |
+| Wu | 2017 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | TheMeCat | 22 | 26 | 22 | yes (1) | 6 |
 | Bansode | 2013 | Catal. Sci. Technol. | 10.1039/c2cy20604h | TheMeCat | 60 | 60 | 60 | yes (1) | 60 |
-| Samson | 2014 | ACS Catal. | 10.1021/cs500979c | TheMeCat | 20 | 19 | 18 | yes (2) | 18 |
-| Chen | 2019 | ACS Catal. | 10.1021/acscatal.9b01869 | TheMeCat | 17 | 47 | 16 | yes (1) | 19 |
+| Samson | 2014 | ACS Catal. | 10.1021/cs500979c | TheMeCat | 20 | 19 | 18 | yes (2) | 19 |
+| Chen | 2019 | ACS Catal. | 10.1021/acscatal.9b01869 | TheMeCat | 17 | 47 | 16 | yes (1) | 16 |
 | Yang | 2024 | ChemPhysChem | 10.1002/cphc.202300530 | TheMeCat | 24 | 24 | 24 | yes (1) | – |
-| Chen | 2019 | Energy Technol. | 10.1002/ente.201800747 | TheMeCat | 30 | 32 | 30 | yes (1) | 32 |
-| Wang | 2017 | Sci. Adv. | 10.1126/sciadv.1701290 | TheMeCat | 49 | 71 | 43 | yes (1) | 53 |
-| Chen | 2024 | Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | TheMeCat | 26 | 51 | 26 | yes (1) | 47 |
-| Bahruji | 2016 | J. Catal. | 10.1016/j.jcat.2016.03.017 | TheMeCat | 19 | 31 | 19 | yes (1) | 26 |
-| Hou | 2024 | J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | TheMeCat | 30 | 30 | 29 | yes (1) | 30 |
-| Rui | 2017 | Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | TheMeCat | 15 | 39 | 15 | yes (1) | 15 |
+| Chen | 2019 | Energy Technol. | 10.1002/ente.201800747 | TheMeCat | 30 | 32 | 30 | yes (1) | 30 |
+| Wang | 2017 | Sci. Adv. | 10.1126/sciadv.1701290 | TheMeCat | 49 | 71 | 43 | yes (1) | 3 |
+| Chen | 2024 | Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | TheMeCat | 26 | 51 | 26 | yes (1) | 1 |
+| Bahruji | 2016 | J. Catal. | 10.1016/j.jcat.2016.03.017 | TheMeCat | 19 | 31 | 19 | yes (1) | 17 |
+| Hou | 2024 | J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | TheMeCat | 30 | 30 | 29 | yes (1) | 6 |
+| Rui | 2017 | Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | TheMeCat | 15 | 39 | 15 | yes (1) | 2 |
 | Wang | 2017 | RSC Adv. | 10.1039/c6ra28305e | TheMeCat | 4 | 12 | 4 | yes (1) | 4 |
-| Zaman | 2023 | Fuel | 10.1016/j.fuel.2023.127927 | TheMeCat | 28 | 46 | 28 | yes (1) | 28 |
-| Ghosh | 2022 | Chem. Eng. J. | 10.1016/j.cej.2022.135090 | TheMeCat | 14 | 14 | 7 | yes (1) | 7 |
-| Sharma | 2023 | Fuel | 10.1016/j.fuel.2022.125878 | TheMeCat | 23 | 23 | 23 | yes (1) | 17 |
+| Zaman | 2023 | Fuel | 10.1016/j.fuel.2023.127927 | TheMeCat | 28 | 46 | 28 | yes (1) | 6 |
+| Ghosh | 2022 | Chem. Eng. J. | 10.1016/j.cej.2022.135090 | TheMeCat | 14 | 14 | 7 | yes (1) | – |
+| Sharma | 2023 | Fuel | 10.1016/j.fuel.2022.125878 | TheMeCat | 23 | 23 | 23 | yes (1) | 2 |
 | Ota | 2012 | J. Catal. | 10.1016/j.jcat.2012.05.020 | TheMeCat | 3 | 13 | 3 | yes (1) | 4 |
-| Jiang | 2020 | J. Catal. | 10.1016/j.jcat.2020.01.014 | TheMeCat | 2 | 10 | 2 | yes (1) | 2 |
-| Chou | 2019 | Appl. Catal. A | 10.1016/j.apcata.2019.117144 | TheMeCat | 20 | 20 | 20 | yes (1) | 20 |
+| Jiang | 2020 | J. Catal. | 10.1016/j.jcat.2020.01.014 | TheMeCat | 2 | 10 | 2 | yes (1) | – |
+| Chou | 2019 | Appl. Catal. A | 10.1016/j.apcata.2019.117144 | TheMeCat | 20 | 20 | 20 | yes (1) | – |
 | Martin | 2016 | Angew. Chem. Int. Ed. | 10.1002/anie.201600943 | Suvarna | 6 | 44 | 6 | yes (1) | 2 |
-| Ruiz Esquius | 2020 | ChemCatChem | 10.1002/cctc.202000974 | Suvarna | 19 | 47 | 19 | yes (1) | 29 |
+| Ruiz Esquius | 2020 | ChemCatChem | 10.1002/cctc.202000974 | Suvarna | 19 | 47 | 19 | yes (1) | 31 |
 | Ma | 2019 | ChemistrySelect | 10.1002/slct.201803186 | Suvarna | 5 | 8 | 5 | yes (1) | – |
-| Huang | 2021 | ACS Appl. Energy Mater. | 10.1021/acsaem.1c01502 | Suvarna | 9 | 22 | 9 | yes (1) | 15 |
-| Sharma | 2021 | ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | Suvarna | 4 | 44 | 4 | yes (1) | 36 |
-| Jiang | 2020 | ACS Catal. | 10.1021/acscatal.0c03324 | Suvarna | 12 | 24 | 12 | yes (1) | 21 |
-| Shen | 2021 | ACS Catal. | 10.1021/acscatal.0c05628 | Suvarna | 11 | 20 | 11 | yes (1) | 20 |
-| Zhu | 2021 | ACS Catal. | 10.1021/acscatal.1c03170 | Suvarna | 3 | 16 | 3 | yes (1) | 14 |
-| Wang | 2015 | ACS Catal. | 10.1021/acscatal.5b00682 | Suvarna | 6 | 34 | 6 | yes (1) | 18 |
+| Huang | 2021 | ACS Appl. Energy Mater. | 10.1021/acsaem.1c01502 | Suvarna | 9 | 22 | 9 | yes (1) | – |
+| Sharma | 2021 | ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | Suvarna | 4 | 44 | 4 | yes (1) | – |
+| Jiang | 2020 | ACS Catal. | 10.1021/acscatal.0c03324 | Suvarna | 12 | 24 | 12 | yes (1) | – |
+| Shen | 2021 | ACS Catal. | 10.1021/acscatal.0c05628 | Suvarna | 11 | 20 | 11 | yes (1) | 8 |
+| Zhu | 2021 | ACS Catal. | 10.1021/acscatal.1c03170 | Suvarna | 3 | 16 | 3 | yes (1) | 4 |
+| Wang | 2015 | ACS Catal. | 10.1021/acscatal.5b00682 | Suvarna | 6 | 34 | 6 | yes (1) | – |
 | Richard | 2017 | ACS Catal. | 10.1021/acscatal.7b00848 | Suvarna | 9 | 47 | 9 | yes (1) | – |
 | Frei | 2020 | ACS Catal. | 10.1021/acscatal.9b03305 | Suvarna | 2 | 14 | 2 | yes (1) | 12 |
 | Hengne | 2018 | ACS Omega | 10.1021/acsomega.8b00211 | Suvarna | 5 | 27 | 5 | yes (1) | – |
-| Karelovic | 2015 | Catal. Sci. Technol. | 10.1039/c4cy00848k | Suvarna | 20 | 42 | 20 | yes (1) | 12 |
-| Gao | 2015 | Catal. Sci. Technol. | 10.1039/c5cy00372e | Suvarna | 15 | 23 | 14 | yes (2) | 20 |
-| Wang | 2015 | RSC Adv. | 10.1039/c5ra04774a | Suvarna | 8 | 24 | 8 | yes (2) | 24 |
-| Sun | 2020 | Green Chem. | 10.1039/d0gc01597k | Suvarna | 8 | 32 | 8 | yes (1) | 10 |
-| Dang | 2020 | Sci. Adv. | 10.1126/sciadv.aaz2060 | Suvarna | 11 | 33 | 11 | yes (1) | 30 |
-| Meng | 2021 | Sci. Adv. | 10.1126/sciadv.abi6012 | Suvarna | 23 | 55 | 22 | yes (1) | 54 |
+| Karelovic | 2015 | Catal. Sci. Technol. | 10.1039/c4cy00848k | Suvarna | 20 | 42 | 20 | yes (1) | – |
+| Gao | 2015 | Catal. Sci. Technol. | 10.1039/c5cy00372e | Suvarna | 15 | 23 | 14 | yes (2) | 7 |
+| Wang | 2015 | RSC Adv. | 10.1039/c5ra04774a | Suvarna | 8 | 24 | 8 | yes (2) | – |
+| Sun | 2020 | Green Chem. | 10.1039/d0gc01597k | Suvarna | 8 | 32 | 8 | yes (1) | 4 |
+| Dang | 2020 | Sci. Adv. | 10.1126/sciadv.aaz2060 | Suvarna | 11 | 33 | 11 | yes (1) | 8 |
+| Meng | 2021 | Sci. Adv. | 10.1126/sciadv.abi6012 | Suvarna | 23 | 55 | 22 | yes (1) | 32 |
 | Frei | 2019 | Nat. Commun. | 10.1038/s41467-019-11349-9 | Suvarna | 12 | 34 | 11 | yes (2) | 6 |
-| Frei | 2021 | Nat. Commun. | 10.1038/s41467-021-22224-x | Suvarna | 6 | 21 | 6 | yes (3) | 11 |
+| Frei | 2021 | Nat. Commun. | 10.1038/s41467-021-22224-x | Suvarna | 6 | 21 | 6 | yes (3) | – |
 | Lam | 2018 | J. Am. Chem. Soc. | 10.1021/jacs.8b05595 | PDF review | – | 6 | – | yes (1) | – |
-| Meng | 2024 | Fuel | 10.1016/j.fuel.2024.131111 | TheMeCat | 41 | 45 | 40 | yes (1) | 38 |
-| Guo | 2024 | Chem. Eng. J. | 10.1016/j.cej.2024.149370 | TheMeCat | 25 | 25 | 25 | yes (1) | 25 |
-| Ma | 2023 | Fuel | 10.1016/j.fuel.2023.128376 | TheMeCat | 15 | 35 | 15 | yes (1) | 35 |
-| Malik | 2020 | Catal. Today | 10.1016/j.cattod.2019.05.040 | TheMeCat | 14 | 18 | 13 | yes (1) | 17 |
-| Lin | 2021 | Catal. Today | 10.1016/j.cattod.2020.05.049 | TheMeCat | 10 | 12 | 10 | yes (1) | 12 |
-| Daifeng | 2022 | J. CO2 Util. | 10.1016/j.jcou.2022.102209 | TheMeCat | 10 | 61 | 10 | yes (1) | 35 |
+| Meng | 2024 | Fuel | 10.1016/j.fuel.2024.131111 | TheMeCat | 41 | 45 | 40 | yes (1) | 11 |
+| Guo | 2024 | Chem. Eng. J. | 10.1016/j.cej.2024.149370 | TheMeCat | 25 | 25 | 25 | yes (1) | – |
+| Ma | 2023 | Fuel | 10.1016/j.fuel.2023.128376 | TheMeCat | 15 | 35 | 15 | yes (1) | 1 |
+| Malik | 2020 | Catal. Today | 10.1016/j.cattod.2019.05.040 | TheMeCat | 14 | 18 | 13 | yes (1) | 2 |
+| Lin | 2021 | Catal. Today | 10.1016/j.cattod.2020.05.049 | TheMeCat | 10 | 12 | 10 | yes (1) | 10 |
+| Daifeng | 2022 | J. CO2 Util. | 10.1016/j.jcou.2022.102209 | TheMeCat | 10 | 61 | 10 | yes (1) | – |
 | Zhang | 2017 | J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | TheMeCat | 8 | 10 | 8 | yes (1) | 10 |
-| Malik | 2018 | Appl. Catal. A | 10.1016/j.apcata.2018.04.036 | TheMeCat | 6 | 30 | 6 | yes (1) | 16 |
-| Song | 2020 | Appl. Catal. B | 10.1016/j.apcatb.2019.118367 | TheMeCat | 6 | 10 | 6 | yes (1) | 9 |
-| Wang | 2020 | Mol. Catal. | 10.1016/j.mcat.2020.111105 | TheMeCat | 6 | 36 | 6 | yes (1) | 36 |
-| **Total** |  |  | **50 papers** |  | **762** | **1,488** | **740** | **50** | **991** |
+| Malik | 2018 | Appl. Catal. A | 10.1016/j.apcata.2018.04.036 | TheMeCat | 6 | 30 | 6 | yes (1) | 4 |
+| Song | 2020 | Appl. Catal. B | 10.1016/j.apcatb.2019.118367 | TheMeCat | 6 | 10 | 6 | yes (1) | 1 |
+| Wang | 2020 | Mol. Catal. | 10.1016/j.mcat.2020.111105 | TheMeCat | 6 | 36 | 6 | yes (1) | 1 |
+| **Total** |  |  | **50 papers** |  | **762** | **1,488** | **740** | **50** | **351** |
 
 ### Supplementary Table 2 | The 30 primary ammonia-synthesis papers
 
-First author and year from `agent/nh3_field/fetch_manifest.json`, journal from Crossref; Humphreys 2021 reference number from `agent/nh3_field/paper_set.txt`; SI files from `agent/nh3_field/si_manifest.json`; extracted catalyst entries, primary entries (one per catalyst and comparison) and their metals from `analysis/nh3_field_2026_10_06/candidates.csv`; comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from `analysis/nh3_field_2026_10_06/group_metrics.csv`; totals checked against `analysis/nh3_field_2026_10_06/summary.json`.
+First author and year from `agent/nh3_field/fetch_manifest.json`, journal from Crossref; Humphreys 2021 reference number from `agent/nh3_field/paper_set.txt`; SI files from `agent/nh3_field/si_manifest.json`; extracted catalyst entries from `analysis/nh3_field_2026_10_06/candidates.csv`; printed-value primary entries (one per catalyst and comparison) and their metals from `analysis/nh3_field_2026_10_06/candidates_printed.csv`; comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from `analysis/nh3_field_2026_10_06/group_metrics_printed.csv`; totals checked against `analysis/nh3_field_2026_10_06/summary.json` and `analysis/nh3_field_2026_10_06/summary_printed.json`.
 
-| First author | Year | Journal | DOI | Humphreys 2021 | SI obtained | Catalyst entries | Primary entries | Metals (primary) | Comparison groups | Groups with a different winner |
+| First author | Year | Journal | DOI | Humphreys 2021 | SI obtained | Catalyst entries | Printed-value entries | Metals (printed) | Comparison groups | Groups with a different winner |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Kitano | 2012 | Nat. Chem. | 10.1038/nchem.1476 | – | yes (1) | 31 | 19 | Ru | 3 | 1 |
-| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 11 | Ru | 1 | 0 |
-| Kitano | 2016 | Chem. Sci. | 10.1039/c6sc00767h | ref. 115 | yes (1) | 35 | 15 | Ru | 3 | 1 |
-| Inoue | 2016 | ACS Catal. | 10.1021/acscatal.6b01940 | ref. 116 | yes (1) | 38 | 16 | Ru | 4 | 2 |
-| Wu | 2017 | Adv. Mater. | 10.1002/adma.201700924 | ref. 119 | yes (1) | 27 | 13 | Ru | 1 | 0 |
-| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 55 | Co, Fe, Ru | 12 | 12 |
-| Hattori | 2018 | ACS Catal. | 10.1021/acscatal.8b02839 | ref. 105 | yes (1) | 41 | 22 | Ru | 4 | 0 |
+| Kitano | 2012 | Nat. Chem. | 10.1038/nchem.1476 | – | yes (1) | 31 | 18 | Ru | 3 | 1 |
+| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 2 | Ru | 1 | 0 |
+| Kitano | 2016 | Chem. Sci. | 10.1039/c6sc00767h | ref. 115 | yes (1) | 35 | 10 | Ru | 2 | 0 |
+| Inoue | 2016 | ACS Catal. | 10.1021/acscatal.6b01940 | ref. 116 | yes (1) | 38 | 2 | Ru | 0 | 0 |
+| Wu | 2017 | Adv. Mater. | 10.1002/adma.201700924 | ref. 119 | yes (1) | 27 | 9 | Ru | 0 | 0 |
+| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 8 | Co, Fe, Ru | 1 | 1 |
+| Hattori | 2018 | ACS Catal. | 10.1021/acscatal.8b02839 | ref. 105 | yes (1) | 41 | 5 | Ru | 1 | 0 |
 | Kobayashi | 2017 | J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | ref. 104 | yes (1) | 23 | 2 | Ru | 1 | 0 |
-| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 34 | Co, Fe, Ru | 6 | 6 |
-| Kitano | 2019 | J. Am. Chem. Soc. | 10.1021/jacs.9b10726 | ref. 82 | yes (1) | 56 | 21 | Co, Fe, Ru | 6 | 6 |
-| Sato | 2017 | Chem. Sci. | 10.1039/c6sc02382g | ref. 171 | yes (2) | 18 | 16 | Ru | 5 | 2 |
-| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 36 | Ru | 7 | 3 |
-| Lin | 2018 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | ref. 100 | yes (1) | 10 | 10 | Ru | 5 | 0 |
-| Wang | 2019 | Inorg. Chem. Front. | 10.1039/c8qi01244j | ref. 101 | yes (1) | 28 | 20 | Ru | 5 | 1 |
-| Lin | 2019 | ACS Catal. | 10.1021/acscatal.8b03554 | ref. 175 | yes (1) | 24 | 24 | Ru | 6 | 0 |
+| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 15 | Co, Fe, Ru | 2 | 2 |
+| Kitano | 2019 | J. Am. Chem. Soc. | 10.1021/jacs.9b10726 | ref. 82 | yes (1) | 56 | 3 | Co, Fe | 1 | 1 |
+| Sato | 2017 | Chem. Sci. | 10.1039/c6sc02382g | ref. 171 | yes (2) | 18 | 3 | Ru | 1 | 0 |
+| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 17 | Ru | 1 | 0 |
+| Lin | 2018 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | ref. 100 | yes (1) | 10 | 2 | Ru | 1 | 0 |
+| Wang | 2019 | Inorg. Chem. Front. | 10.1039/c8qi01244j | ref. 101 | yes (1) | 28 | 4 | Ru | 1 | 0 |
+| Lin | 2019 | ACS Catal. | 10.1021/acscatal.8b03554 | ref. 175 | yes (1) | 24 | 8 | Ru | 2 | 0 |
 | Lin | 2019 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.9b01610 | ref. 174 | yes (1) | 6 | 4 | Ru | 1 | 0 |
-| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 50 | Ru | 7 | 3 |
-| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 20 | Ru | 4 | 0 |
-| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 6 | Ru | 2 | 0 |
-| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 43 | Ru | 4 | 0 |
-| Inoue | 2019 | ACS Catal. | 10.1021/acscatal.8b03650 | ref. 197 | yes (1) | 57 | 24 | Co, Ru | 6 | 2 |
-| Gao | 2017 | ACS Catal. | 10.1021/acscatal.7b00284 | ref. 199 | yes (1) | 62 | 4 | Co | 1 | 0 |
-| Wang | 2020 | Nat. Commun. | 10.1038/s41467-020-14287-z | ref. 200 | yes (2) | 34 | 13 | Co | 4 | 0 |
-| Wang | 2019 | Chem. Commun. | 10.1039/c8cc07130f | ref. 201 | yes (1) | 20 | 5 | Co | 0 | 0 |
+| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 19 | Ru | 4 | 1 |
+| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 5 | Ru | 1 | 0 |
+| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 3 | Ru | 1 | 0 |
+| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 11 | Ru | 2 | 0 |
+| Inoue | 2019 | ACS Catal. | 10.1021/acscatal.8b03650 | ref. 197 | yes (1) | 57 | 4 | Co | 1 | 0 |
+| Gao | 2017 | ACS Catal. | 10.1021/acscatal.7b00284 | ref. 199 | yes (1) | 62 | 2 | Co | 1 | 0 |
+| Wang | 2020 | Nat. Commun. | 10.1038/s41467-020-14287-z | ref. 200 | yes (2) | 34 | 3 | Co | 0 | 0 |
+| Wang | 2019 | Chem. Commun. | 10.1039/c8cc07130f | ref. 201 | yes (1) | 20 | 0 | – | 0 | 0 |
 | Lin | 2014 | RSC Adv. | 10.1039/c4ra06175f | ref. 129 | yes (1) | 12 | 0 | – | 0 | 0 |
-| Hagen | 2002 | Chem. Commun. | 10.1039/b202781j | ref. 122 | no | 62 | 5 | Co | 1 | 0 |
-| Sato | 2021 | ACS Catal. | 10.1021/acscatal.1c02887 | – | yes (1) | 41 | 26 | Co, Fe | 8 | 4 |
-| Ye | 2020 | Nature | 10.1038/s41586-020-2464-9 | ref. 134 | no | 43 | 23 | Ni | 3 | 0 |
-| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 58 | Fe | 8 | 1 |
-| Fan | 2017 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | ref. 159 | yes (1) | 40 | 28 | Fe | 6 | 0 |
-| **Total** |  |  | **30 papers** |  |  | **1,176** | **623** |  | **124** | **44** |
+| Hagen | 2002 | Chem. Commun. | 10.1039/b202781j | ref. 122 | no | 62 | 1 | Co | 0 | 0 |
+| Sato | 2021 | ACS Catal. | 10.1021/acscatal.1c02887 | – | yes (1) | 41 | 12 | Co | 2 | 0 |
+| Ye | 2020 | Nature | 10.1038/s41586-020-2464-9 | ref. 134 | no | 43 | 3 | Ni | 1 | 0 |
+| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 7 | Fe | 1 | 1 |
+| Fan | 2017 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | ref. 159 | yes (1) | 40 | 0 | – | 0 | 0 |
+| **Total** |  |  | **30 papers** |  |  | **1,176** | **182** |  | **33** | **7** |
 
 ### Supplementary Table 3 | Bimetallic surface layers of the ammonia screen
 
@@ -301,61 +301,78 @@ From `capex_scale` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`; t
 
 ### Supplementary Table 5f | Headline comparison rerun with primary-source plant terms
 
-From `sensitivity` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`: groups whose STY leader is not the plant-cost leader, papers affected, pairwise orderings inverted, median regret of the mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner changes. The baseline reproduces the frozen headline (54/82, 2989/8285 inversions; maximum relative cost difference 4.92e−12).
+From `analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json`: groups whose STY leader is not the plant-cost leader, papers affected, pairwise orderings inverted, median regret of the mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner changes. The baseline reproduces the frozen headline (15/40, 304/1997 inversions; maximum relative cost difference 4.42e−12).
 
 | Plant terms changed | Different winner | Papers | Inversions | Median regret | Flags changed | Winners changed |
 |---|---|---|---|---|---|---|
-| frozen model | 54/82 | 37 | 2989/8285 | 35.8 % | 0 | 0 |
-| catalyst 18.1 €/kg replaced every 3 y | 53/82 | 37 | 2947/8285 | 35.6 % | 1 | 1 |
-| catalyst 18.1 €/kg replaced every 5 y | 53/82 | 37 | 2958/8285 | 35.7 % | 1 | 1 |
-| loop ΔP 3.75 bar | 54/82 | 37 | 2912/8285 | 32.8 % | 0 | 0 |
-| H₂ 1,549 €/t | 53/82 | 37 | 2908/8285 | 33.1 % | 1 | 2 |
-| H₂ 3,090 €/t; CO₂ 0 €/t; electricity 95.1 €/MWh | 53/82 | 37 | 2966/8285 | 35.0 % | 1 | 1 |
-| recycle-driven costs ×2.68 | 53/82 | 37 | 2890/8285 | 32.7 % | 1 | 4 |
-| catalyst 95.24 €/kg replaced every 1 y | 49/82 | 34 | 2582/8285 | 33.8 % | 5 | 15 |
-| catalyst 95.24 €/kg replaced every 4 y | 53/82 | 37 | 2844/8285 | 35.0 % | 1 | 4 |
-| catalyst 95.24 €/kg replaced every 6 y | 53/82 | 37 | 2881/8285 | 35.4 % | 1 | 4 |
-| loop ΔP 4.2 bar | 53/82 | 37 | 2899/8285 | 33.0 % | 1 | 2 |
-| equipment split from Campos 2022 SI (11 items) | 54/82 | 37 | 2987/8285 | 35.7 % | 0 | 0 |
-| loop ΔP 4.2 bar; recycle-driven costs ×10 | 46/82 | 35 | 2141/8285 | 22.3 % | 8 | 31 |
-| catalyst 95.24 €/kg replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 43/82 | 32 | 1917/8285 | 23.3 % | 11 | 38 |
-| catalyst 95.24 €/kg replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 45/82 | 34 | 2057/8285 | 19.7 % | 9 | 33 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar | 53/82 | 37 | 2871/8285 | 33.3 % | 1 | 3 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 52/82 | 36 | 2682/8285 | 28.7 % | 2 | 10 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 €/t | 52/82 | 36 | 2728/8285 | 30.5 % | 2 | 8 |
+| frozen model | 15/40 | 9 | 304/1997 | 3.5 % | 0 | 0 |
+| catalyst 18.1 €/kg replaced every 3 y | 14/40 | 8 | 252/1997 | 3.0 % | 1 | 5 |
+| catalyst 18.1 €/kg replaced every 5 y | 14/40 | 8 | 272/1997 | 3.3 % | 1 | 3 |
+| loop ΔP 3.75 bar | 15/40 | 9 | 304/1997 | 3.6 % | 0 | 0 |
+| H₂ 1,549 €/t | 14/40 | 8 | 280/1997 | 3.2 % | 1 | 3 |
+| H₂ 3,090 €/t; CO₂ 0 €/t; electricity 95.1 €/MWh | 15/40 | 9 | 294/1997 | 3.5 % | 0 | 0 |
+| recycle-driven costs ×2.68 | 15/40 | 9 | 305/1997 | 4.0 % | 0 | 0 |
+| catalyst 95.24 €/kg replaced every 1 y | 7/40 | 4 | 120/1997 | 3.6 % | 8 | 11 |
+| catalyst 95.24 €/kg replaced every 4 y | 13/40 | 7 | 196/1997 | 1.5 % | 2 | 7 |
+| catalyst 95.24 €/kg replaced every 6 y | 14/40 | 8 | 215/1997 | 1.9 % | 1 | 6 |
+| loop ΔP 4.2 bar | 15/40 | 9 | 305/1997 | 3.6 % | 0 | 0 |
+| equipment split from Campos 2022 SI (11 items) | 15/40 | 9 | 305/1997 | 3.6 % | 0 | 0 |
+| loop ΔP 4.2 bar; recycle-driven costs ×10 | 16/40 | 10 | 299/1997 | 6.9 % | 3 | 4 |
+| catalyst 95.24 €/kg replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 10/40 | 6 | 165/1997 | 21.4 % | 5 | 9 |
+| catalyst 95.24 €/kg replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 14/40 | 8 | 220/1997 | 5.0 % | 1 | 6 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar | 14/40 | 8 | 257/1997 | 3.1 % | 1 | 4 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 14/40 | 8 | 264/1997 | 3.5 % | 1 | 3 |
+| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 €/t | 13/40 | 7 | 238/1997 | 2.5 % | 2 | 7 |
+| recycle-driven costs ×0.8736 | 15/40 | 9 | 305/1997 | 3.5 % | 0 | 0 |
+| electricity 129.1 €/MWh | 15/40 | 9 | 306/1997 | 3.6 % | 0 | 0 |
+| capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
+| recycle-driven costs ×0.8736; electricity 129.1 €/MWh; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 
-### Supplementary Table 6 | Corrections to the curated reference data found against the papers
+### Supplementary Table 6a | Errors in the curated reference data confirmed against the papers
 
-One row per paper. TheMeCat and Suvarna: correction rules in `agent/extraction/eval/themecat_errata.csv` and `agent/extraction/eval/suvarna_errata.csv` (page, table or figure locator in the `evidence` column), cells changed in `agent/extraction/eval/errata_applied.csv`. Humphreys 2021: one row per corrected field in `agent/nh3_supported/out/primary_errata.csv` (14 fields in 9 rows of the review tables), reference number resolved with `agent/nh3_field/humphreys_refs.csv`. Cells corrected: TheMeCat v1 289; Suvarna 2022 42; Humphreys 2021 14.
+One row per source paper with a confirmed error. A root cause is one mechanism in one source paper; error rules group the cells of one paper, field and cause; rows are records of conditions the paper did not test. TheMeCat stores STY as yield × GHSV × CO₂ fraction × 32.04/24.05 rather than the printed value, so a derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed value, dataset row and locator: `analysis/verify_2026_10_08/errata_cells_audit.csv`; rules and classes: `analysis/verify_2026_10_08/errata_adjudication.csv`. Total: 26 root causes, 45 error rules, 169 value cells and 8 rows; 24 further STY cells derived from them.
 
-| Reference set | Paper | DOI | Correction rules | Cells corrected | Nature of the correction |
-|---|---|---|---|---|---|
-| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 55 | 114 | pressures in MPa stored as bar; STY set to the yields printed in the text |
-| TheMeCat v1 | Wu 2017, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | 1 | 1 | CO selectivity stored as CO₂ conversion (Table 1) |
-| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 3 | 6 | STY set to the printed productivities; H₂/CO₂ ratio set to the printed feed |
-| TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 17 | 35 | GHSV off by a factor of ten; STY set to the printed rates (Tables 4–6) |
-| TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 11 | 11 | conversion curves of two catalysts swapped (Fig. 9a) |
-| TheMeCat v1 | Chen 2024, Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | 4 | 4 | conversion and selectivity set to the values printed in the text |
-| TheMeCat v1 | Hou 2024, J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | 4 | 4 | STY set to the printed text and Fig. 6b values |
-| TheMeCat v1 | Ghosh 2022, Chem. Eng. J. | 10.1016/j.cej.2022.135090 | 2 | 14 | methanol selectivity read on the wrong axis segment (Fig. 2b); STY derived from it |
-| TheMeCat v1 | Rui 2017, Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | 7 | 7 | STY set to the printed formation rates (Table 2) |
-| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 11 | 11 | conversion and selectivity set to the values printed in Section 3.3 |
-| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 10 | 10 | STY and conversion set to the printed Table 1 values |
-| TheMeCat v1 | Jiang 2020, J. Catal. | 10.1016/j.jcat.2020.01.014 | 1 | 1 | STY set to the printed value in the text |
-| TheMeCat v1 | Ota 2012, J. Catal. | 10.1016/j.jcat.2012.05.020 | 1 | 1 | STY set to the printed rate (Table 2) |
-| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 17 | 17 | bulk In₂O₃ row listed as In/ZrO₂; STY set to SI Table S5 values |
-| TheMeCat v1 | Chen 2019, Energy Technol. | 10.1002/ente.201800747 | 30 | 30 | STY set to the printed SI Table S1 values |
-| TheMeCat v1 | Wang 2017, Sci. Adv. | 10.1126/sciadv.1701290 | 5 | 5 | STY set to the printed SI Table S2 values |
-| TheMeCat v1 | Lin 2021, Catal. Today | 10.1016/j.cattod.2020.05.049 | 10 | 10 | STY recomputed from X × S × F replaced by the printed rates (Table 1) |
-| TheMeCat v1 | Zhang 2017, J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | 8 | 8 | STY recomputed from X × S × F replaced by the printed yields (Table 4) |
-| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 4 | 35 | pressure in bar stored as MPa; rates of one series shifted one temperature step |
-| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 5 | 4 (+ 8 rows dropped) | rows at temperatures not tested dropped; STY on an inconsistent basis not scored |
-| Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 2 | 2 | two STY values assigned to the wrong catalysts |
-| Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | rate assigned to the Sn-free catalyst instead of the Sn-promoted one |
-| Humphreys 2021 (ref. 104, 2 rows) | Kobayashi 2017, J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | 6 | 6 | Ru-free supports listed as Ru catalysts (name, active metal, metal content) |
-| Humphreys 2021 (ref. 81, 2 rows) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | Ru loading, space velocity and rate set to the printed values |
-| Humphreys 2021 (ref. 159, 1 row) | Fan 2017, ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | 1 | 1 | reduction flow taken as the reaction space velocity |
-| Humphreys 2021 (ref. 186, 1 row) | Liu 2019, Catal. Lett. | 10.1007/s10562-019-02674-1 | 1 | 1 | space velocity set to the printed WHSV |
-| Humphreys 2021 (ref. 199, 1 row) | Gao 2017, ACS Catal. | 10.1021/acscatal.7b00284 | 1 | 1 | space velocity off by a factor of ten |
-| Humphreys 2021 (ref. 200, 1 row) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | Co loading set to the ICP-AES value |
-| Humphreys 2021 (ref. 100, 1 row) | Lin 2018, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | 1 | 1 | volumetric flow printed as a space velocity |
+| Reference set | Paper | DOI | Root causes | Error rules | Cells | Derived STY cells | Nature of the error |
+|---|---|---|---|---|---|---|---|
+| Humphreys 2021 (ref. 159) | Fan 2017, ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | 1 | 1 | 1 | – | reduction flow (440 NmL min⁻¹) taken as the reaction space velocity. |
+| Humphreys 2021 (ref. 199) | Gao 2017, ACS Catal. | 10.1021/acscatal.7b00284 | 1 | 1 | 1 | – | space velocity 6,000 instead of 60,000 (×0.1). |
+| Humphreys 2021 (ref. 104) | Kobayashi 2017, J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | 1 | 2 | 6 | – | Ru-free TiH₂ and BaTiO2.5H0.5 listed as Ru catalysts. |
+| Humphreys 2021 (ref. 100) | Lin 2018, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | 1 | 1 | 1 | – | volumetric flow 70 dm³ h⁻¹ printed as a space velocity. |
+| Humphreys 2021 (ref. 186) | Liu 2019, Catal. Lett. | 10.1007/s10562-019-02674-1 | 1 | 1 | 1 | – | space velocity 70,000 instead of the printed 24,000 mL g⁻¹ h⁻¹. |
+| Humphreys 2021 (ref. 81) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | 3 | – | nominal Ru loading 1 wt% instead of the measured 0.86 wt%; Co rate 5.7 instead of the printed 5.5 mmol g⁻¹ h⁻¹; space velocity of the Ru row 36,000 (66,000 for the paper's Fe and Co rows). |
+| Humphreys 2021 (ref. 200) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | 1 | – | Co loading 3.4 instead of the ICP-AES 3.73 wt%. |
+| Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | 1 | – | rate of 5Ni10Sn/10InZrO₂ assigned to the Sn-free catalyst. |
+| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 3a series assigned one temperature step low. |
+| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 1 | 1 | 0 (+ 8 rows) | – | rows at 533 and 573 K, which the paper did not test. |
+| Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 1 | 2 | 2 | – | two 300 °C STY values assigned to the wrong samples (Ir/In₂O₃-5, pristine In₂O₃). |
+| TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 1 | 1 | 19 | 16 | GHSV 3.6 stored as 36.2 NL g⁻¹ h⁻¹ (×10); STY derived from it. |
+| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 2 | 3 | 62 | – | pressures of 0.4–36 MPa stored as bar; yields of two Cu–Ba/Al₂O₃ rows at 553 K stored at ten times X × S. |
+| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 1 | 1 | 1 | – | bulk In₂O₃ data listed as a second In0.1/ZrO₂ row. |
+| TheMeCat v1 | Ghosh 2022, Chem. Eng. J. | 10.1016/j.cej.2022.135090 | 1 | 1 | 7 | 7 | methanol selectivity below 1 % read as 0–90 % (×100, Fig. 2b); STY derived from it. |
+| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 2 | 8 | 8 | – | In13/ZrO₂ conversion differs from the printed values; Fig. 10b series read on the left axis instead of the right. |
+| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 1 | 1 | 4 | – | H₂/CO₂ = 3 stored as 3.1. |
+| TheMeCat v1 | Wu 2017, Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | 1 | 1 | 1 | – | CO selectivity of CZA200 stored as CO₂ conversion (Table 1). |
+| TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 2 | 7 | 11 | – | conversion curves of In0.25 and In0.12 swapped (Fig. 9a); In₂O₃ yields rotated between 260 and 300 °C (Fig. 9b). |
+| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 1 | 4 | 4 | 1 | conversions at 5–50 bar misread (Fig. 7b); STY at 5 bar derived from it. |
+
+### Supplementary Table 6b | Differences of definition and minor differences, not counted as errors
+
+Differences between curated and printed values that are not errors of the curated data. Definition: the paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit of the last printed digit. Total: definition 139 cells, minor 13 cells. The printed values are used for scoring in both cases.
+
+| Reference set | Paper | DOI | Definition (cells) | Minor (cells) |
+|---|---|---|---|---|
+| Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 4 | – |
+| TheMeCat v1 | Bansode 2013, Catal. Sci. Technol. | 10.1039/c2cy20604h | 47 | 5 |
+| TheMeCat v1 | Chen 2019, ACS Catal. | 10.1021/acscatal.9b01869 | 16 | – |
+| TheMeCat v1 | Chen 2019, Energy Technol. | 10.1002/ente.201800747 | 30 | – |
+| TheMeCat v1 | Chen 2024, Angew. Chem. Int. Ed. | 10.1002/anie.202401168 | – | 4 |
+| TheMeCat v1 | Hou 2024, J. Environ. Sci. | 10.1016/j.jes.2023.05.010 | 4 | – |
+| TheMeCat v1 | Jiang 2020, J. Catal. | 10.1016/j.jcat.2020.01.014 | 1 | – |
+| TheMeCat v1 | Lin 2021, Catal. Today | 10.1016/j.cattod.2020.05.049 | 10 | – |
+| TheMeCat v1 | Ota 2012, J. Catal. | 10.1016/j.jcat.2012.05.020 | 1 | – |
+| TheMeCat v1 | Rui 2017, Appl. Catal. B | 10.1016/j.apcatb.2017.06.069 | 7 | – |
+| TheMeCat v1 | Sharma 2023, Fuel | 10.1016/j.fuel.2022.125878 | 2 | 1 |
+| TheMeCat v1 | Wang 2017, RSC Adv. | 10.1039/c6ra28305e | 2 | – |
+| TheMeCat v1 | Wang 2017, Sci. Adv. | 10.1126/sciadv.1701290 | 5 | – |
+| TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 2 | 3 |
+| TheMeCat v1 | Zhang 2017, J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | 8 | – |

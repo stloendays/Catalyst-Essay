@@ -5,7 +5,8 @@ Outputs (this folder):
                             reference studies' own operating points)
   reconciliation_cost.csv   Table B: production cost and breakdown, model run with each reference's own prices
   capex_scale.csv           specific fixed capital (EUR/(t/a)) of the model at each reference's scale
-  summary.json              key numbers, identity gate, sensitivity summary (from lit_sensitivity.py)
+  summary.json              key numbers, identity gate (the field-result sensitivity is lit_sensitivity.py's
+                            sensitivity_summary.json; it is not copied here, so it cannot go stale)
 
 Model: data/meoh/meoh_general_model.py (unchanged) through plant_variant.py (same equations, knobs exposed).
 Reference numbers: reference_values.csv (source, locator, conversion for each).
@@ -292,6 +293,28 @@ def table_a(cases):
     return pd.DataFrame(rows), res
 
 
+RANGE_METRICS = [("H2 consumption (t/t MeOH)", "h2_t_per_t"), ("CO2 consumption (t/t MeOH)", "co2_t_per_t"),
+                 ("Carbon efficiency (MeOH C / fresh CO2)", "carbon_efficiency"),
+                 ("Recycle ratio (recycle / fresh feed, mol)", "recycle_ratio"),
+                 ("Electricity, compression (MWh/t)", "elec_MWh_t"), ("GHSV (1/h, bed density 1.05 t/m3)", "GHSV_h"),
+                 ("Per-pass CO2 conversion", "X")]
+CONVENTIONAL_X = (0.22, 0.33)          # per-pass conversion of the conventional reference loops (PF 0.2197 ... VD 0.33)
+
+
+def metric_ranges(res):
+    """Real min-max of each plant metric over the model cases of Table A, with the case at each end: all cases, and
+    the cases at conventional per-pass conversion."""
+    rows = []
+    conv = [k for k, r in res.items() if CONVENTIONAL_X[0] - 1e-3 <= float(r["X"]) <= CONVENTIONAL_X[1] + 1e-3]
+    for label, key in RANGE_METRICS:
+        for subset, keys in (("all model cases (M1-M12)", list(res)),
+                             (f"per-pass conversion {CONVENTIONAL_X[0]:g}-{CONVENTIONAL_X[1]:g}", conv)):
+            v = {k: float(res[k][key]) for k in keys}
+            lo, hi = min(v, key=v.get), max(v, key=v.get)
+            rows.append(dict(metric=label, cases=subset, n=len(keys), min=v[lo], min_case=lo, max=v[hi], max_case=hi))
+    return pd.DataFrame(rows)
+
+
 # ------------------------------------------------------------------ Table B ------------------------------------
 def lean(r):
     """Model terms that every TEA boundary shares: feed + electricity + catalyst replacement + capital annuity."""
@@ -489,7 +512,8 @@ GROUPS_EC = {"reactor (catalyst inventory)": ["Reactor modules"],
 def decompose(row, **kw):
     """NPC of one literature candidate split into terms (EUR/t), all including the 1/0.9 revenue-linked mark-up."""
     c = dict(X=row.X, SMeOH=row.SMeOH, SCH4=row.SCH4, SCO=row.SCO)
-    r = V.economics(c["X"], c["SMeOH"], c["SCH4"], c["SCO"], STY_per_g_cat=row.STY, P_bar=row.P_bar,
+    X = row.X_eff_recycled_opt if np.isfinite(row.X_eff_recycled_opt) else row.X   # conversion at the chosen purge
+    r = V.economics(X, c["SMeOH"], c["SCH4"], c["SCO"], STY_per_g_cat=row.STY, P_bar=row.P_bar,
                     h2_co2=row.h2_co2, T_C=row.T_C, x_co="recycled_central", purge=row.purge_recycled_opt, **kw)
     per_t = 1e6 / ANCHOR_TPY
     out = {"feed H2 + CO2 (selectivity and purge losses)": float(r["h2_eur_t"] + r["co2_eur_t"]) / 0.9,
@@ -540,6 +564,9 @@ def main():
     cases = model_cases(tp)
     ta, res = table_a(cases)
     ta.to_csv(HERE / "reconciliation_plant.csv", index=False)
+    mr = metric_ranges(res)
+    mr.to_csv(HERE / "plant_metric_ranges.csv", index=False, float_format="%.4g")
+    print(mr.to_string())
     tb, bres = table_b(tp)
     tb.to_csv(HERE / "reconciliation_cost.csv", index=False, float_format="%.4g")
     cs = capex_scale(tp)
@@ -548,7 +575,6 @@ def main():
     dd.to_csv(HERE / "mismatch_driver_decomposition.csv", index=False, float_format="%.4g")
     dagg.to_csv(HERE / "mismatch_driver_shares.csv", index=False, float_format="%.4g")
     print(dagg.T.to_string())
-    sens = json.loads((HERE / "sensitivity_summary.json").read_text(encoding="utf-8"))
     a = res["M1 anchor one-step (calibration point)"]
     summary = dict(
         identity_gate_max_abs_eur_t=gate,
@@ -574,14 +600,8 @@ def main():
         nieminen={k: round(float(bres["nieminen"][k]), 4) for k in ("cost_eur_t", "h2_t_per_t", "co2_t_per_t",
                                                                     "carbon_efficiency", "recycle_ratio")},
         capex_scale=cs.to_dict(orient="records"),
-        sensitivity={k: dict(top1=f"{v['top1_mismatch_groups']}/{v['groups']}", papers=v["papers_with_mismatch"],
-                             inversions=v["pairwise_inversions"],
-                             regret_median_mismatched=round(v["regret_median_mismatched"], 4),
-                             groups_flipped=v["groups_flipped_vs_baseline"],
-                             economic_winner_changed=v["groups_economic_winner_changed"], knobs=v["knobs"])
-                     for k, v in sens["variants"].items()},
-        sensitivity_check=sens["check"],
         mismatch_driver_shares=dagg.to_dict(orient="records"),
+        plant_metric_ranges=mr.to_dict(orient="records"),
     )
     (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     pd.set_option("display.width", 250, "display.max_columns", 20, "display.max_colwidth", 60)

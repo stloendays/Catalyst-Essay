@@ -1,95 +1,133 @@
-# Paper leaderboards versus plant-cost leaderboards (CO2-to-methanol) — 2026-10-05, 50-paper set 2026-10-06
+# Paper leaderboards versus plant-cost leaderboards (CO2-to-methanol) — frozen treatment of 2026-10-12
 
 `run_literature_inversion.py` takes the literature-extraction Agent's output (`agent/extraction/out/records_normalized.csv`,
-used as extracted) through the generalized methanol recycle-economics model and compares, within each paper, the
-paper's own leaderboard with the plant-cost leaderboard.
+used as extracted) through the methanol recycle-economics model (`data/meoh/meoh_general_model.py`) and compares,
+within each paper, the paper's own leaderboard with the plant-cost leaderboard.
 
-- **Candidates:** 991 operating points from 45 of the 50 extracted papers have conversion, methanol selectivity, T, P,
-  H2/CO2 and a productivity basis. They come from the main text, main-text figures and Supporting Information.
-  The other five papers give no usable operating point:
-  - Yang 2024: no methanol selectivity;
-  - Ma 2019: no space velocity, and the "STY" is printed as a yield (%);
-  - Richard 2017: ambient pressure not extracted;
-  - Hengne 2018: no conversion;
-  - Lam 2018: rates extrapolated to zero conversion.
-- **Excluded entries:** an entry whose feed adds water or CO to CO2/H2 (for example the H2O co-feeding series of
-  Jiang 2020, or a CO/(CO2+CO) ratio above zero) is not a candidate, because the plant model takes a dry CO2/H2
-  make-up (`meoh_candidates.cofeed`).
-- **Comparison groups:** entries of one paper at the same P, H2/CO2 and space velocity, i.e. the comparison the paper
-  itself makes. 83 groups with at least two entries, 906 entries, 44 papers.
-- **Paper leaderboard:** methanol STY per g catalyst.
-  - It is the printed STY when every entry in the group prints it, otherwise it is derived from the space velocity.
-  - The printed STY is not used when, within the group, printed STY / (F_CO2 X S) varies by more than a factor of 3.
-    Three groups are affected, all of them papers whose printed rates contradict their own conversion and selectivity:
-    - Sharma 2021 mixes per-g-Cu and per-g-catalyst rates (factor 54);
-    - Martin 2016 (factor 14);
-    - Rui 2017 prints a zero rate at non-zero conversion.
+Treatment (author decisions of 2026-10-08; step S5 of `analysis/verify_2026_10_08/meoh_decomposition.py`):
 
-    These groups use the mass-GHSV STY.
-  - For volumetric space velocity a bulk density of 1.0 g/mL is assumed, with 0.5 and 2.0 tested.
-- **Plant leaderboard:** net production cost at the entry's own T, P and H2/CO2, with CO recycled (central RWGS
-  rule) and each entry's cost-optimal purge.
+- **Cohort: printed values only.** CO2 conversion and methanol selectivity printed, and every CO / CH4 selectivity the
+  paper reports printed too; a printed STY sets a group's basis only where it is itself printed. Plot readings enter
+  the all-entries sensitivity. 351 entries from 33 studies; 40 comparison groups with 310 entries in 28 papers.
+- **Comparison groups:** entries of one paper at the same P, H2/CO2 and space velocity (the comparison the paper itself
+  makes: catalysts, and temperatures of one catalyst). One measurement printed in several places counts once (same
+  catalyst, temperature and values).
+- **Paper leaderboard:** methanol STY per g catalyst (printed when every entry of the group prints it and printed STY /
+  conversion-derived productivity varies by no more than 3x; otherwise derived from the space velocity).
+- **Plant leaderboard:** net production cost at each entry's own T, P and H2/CO2; recycled CO bounded by RWGS and
+  CO-hydrogenation equilibrium; per-pass CO2 conversion = the laboratory value, capped where the loop outlet reaches
+  CO2-hydrogenation equilibrium; cost-optimal purge over the canonical grid (0.5–40 %).
 
-## Agent self-check against the hand-built case
-
-All 21 Gothe et al. (2025) Table 4 entries were taken from the Agent's extraction and run through the same code path.
-They reproduce the frozen Table 4 costs to 2.3e-13 EUR/t, under both inert and recycled CO. The four canonical states
-come out at 943.30, 961.51, 966.96 and 1258.17 EUR/t (`selfcheck_gothe_table4.csv`).
+The extracted Gothe et al. (2025) Table 4 entries reproduce the frozen Table 4 costs to 2.3e-13 EUR/t; the four
+canonical states are 943.30, 961.51, 966.96 and 1258.17 EUR/t (`selfcheck_gothe_table4.csv`).
 
 ## Result
 
-| Leaderboard / plant treatment | Groups with a different winner | Papers affected | Regret if the paper's winner is built (median of mismatched / max) | Pairwise orderings inverted |
-|---|---|---|---|---|
-| **STY, recycled CO, optimal purge (primary)** | **33 / 83 (40 %)** | **19 / 44** | **2.0 % / 182 %** | **1019/8458 (12 %)** |
-| STY, recycled CO, 2 % purge | 35 / 83 (42 %) | 22 / 44 | 4.4 % / 557 % | 898/8458 (11 %) |
-| STY, inert CO, optimal purge | 46 / 83 (55 %) | 37 / 44 | 6.9 % / 98 % | 1740/8458 (21 %) |
-| single-pass yield X·S_MeOH | 31 / 83 (37 %) | 18 / 44 | 2.0 % / 182 % | 989/8458 (12 %) |
-| conversion X | 16 / 83 (19 %) | 13 / 44 | 2.2 % / 96 % | 849/8458 (10 %) |
-| **methanol selectivity S_MeOH** | **63 / 83 (76 %)** | **40 / 44** | **15.2 % / 4360 %** | **4358/8458 (52 %)** |
+| Leaderboard / treatment | Groups with a different winner | Papers | Regret, median of mismatched / max | Regret > 5 % | Pairwise orderings inverted |
+|---|---|---|---|---|---|
+| **STY (primary)** | **15 / 40 (38 %)** | **9 / 28** | **3.5 % / 83 %** | **7 (2 papers)** | **304 / 1,997** |
+| single-pass yield X·S_MeOH | 15 / 40 | 9 / 28 | 3.5 % / 83 % | 7 | 309 / 1,997 |
+| conversion X | 12 / 40 | 8 / 28 | 8.9 % / 131 % | 8 | 261 / 1,997 |
+| methanol selectivity S_MeOH | 31 / 40 (78 %) | 22 / 28 | 19.9 % / 2,617 % | 24 | 1,112 / 1,997 |
 
-Robustness of the primary result:
-- Assumed density 0.5 or 2.0 g/mL: unchanged, 33 / 83 groups.
-- Printed values only, no plot readings: 17 / 50 groups, 11 / 38 papers.
-- Only entries whose reported selectivities to MeOH, CO and CH4 sum to at least 95 %: 22 / 61 groups, 14 / 37 papers.
-- Without Bansode 2013, the paper contributing the most groups: 26 / 75 groups (35 %), 18 / 43 papers; regret median
-  1.3 %, max 9.9 %.
+Paper-cluster bootstrap of the primary (10,000 resamples of papers): 95 % CI 15–57 %. Paper-weighted share 27 %.
 
-Weighting each paper equally, 37 % of a paper's comparison groups pick a different winner.
+Disagreements of the primary by kind (`mismatch_kinds.py`, `summary.json` primary.kinds), with denominators:
 
-Regrets above 10 % all come from Bansode 2013. There, the highest-STY entries of a group are low-temperature points
-with 1–3 % single-pass conversion, and building them needs a very large recycle. Outside Bansode the largest regrets are
-9.9 % (Ma 2023, Zn-CdZrOx series), 9.0 % (Wang 2015, Cu/SiO2: the 380 °C entry against the 390 °C entry at 6 L g-1 h-1)
-and 8.7 % (Wang 2020, CuO/Ce0.4Zr0.6O2 loading series).
+| Kind | Groups | Regret > 5 % |
+|---|---|---|
+| other catalyst, same temperature | 6 | 0 |
+| other catalyst and temperature (joint change) | 4 | 4 |
+| other catalyst, total (of 32 groups with ≥ 2 catalysts) | 10 / 32 | 4 |
+| same catalyst at another temperature (of 22 groups with a temperature series) | 5 / 22 | 3 |
+| same catalyst, same temperature | 0 | 0 |
 
-Mean top-3 overlap in the 57 groups of four or more entries: 2.25 of 3 (primary), 0.72 of 3 for selectivity leaderboards.
+Six of the seven disagreements with a regret above 5 % are groups of Bansode 2013 (10.1039/c2cy20604h); without that
+paper the result is 8 / 32 groups, one with a regret above 5 % (h-In2O3-R, Dang 2020, 11.6 %).
 
-### Development history
+Sensitivities (printed cohort unless stated; `summary.json` variants, limit_sweep, isothermal):
 
-| Set | Candidates | Groups | STY winner differs | Selectivity winner differs |
-|---|---|---|---|---|
-| 20 papers, main pass only (2026-10-05, PR #16) | – | 22 | 4 / 22 | 14 / 22 |
-| 20 papers after the recall passes (PR #18) | 443 from 19 | 36 | 16 / 36 (44 %), 7 / 19 papers | 27 / 36 (75 %) |
-| 40 papers (Shi 2020 dropped; co-feed exclusion; printed-STY consistency rule) | 750 from 35 | 68 | 27 / 68 (40 %), 14 / 34 papers | 51 / 68 (75 %) |
-| 50 papers (+10 TheMeCat papers downloaded by hand) | 991 from 45 | 83 | 33 / 83 (40 %), 19 / 44 papers | 63 / 83 (76 %) |
+| Variant | Different winner |
+|---|---|
+| inert CO | 21 / 40 |
+| 2 % purge | 12 / 40 |
+| laboratory conversion uncapped (step S4) | 16 / 40 |
+| reactor-inlet non-H2/CO2 limit 6.86 % (step S6) | 28 / 40 |
+| inlet limit 4–30 % (absolute) | 28 → 16 / 40 |
+| bulk density 0.5 / 2.0 g/mL | 15 / 40, 14 / 40 |
+| reported selectivities sum to ≥ 95 % | 11 / 28 |
+| isothermal catalyst comparisons (one temperature, ≥ 2 catalysts) | 21 / 62 |
+| all entries, plot readings included | 35 / 83 (24 / 44 papers) |
+| all entries, inlet limit 6.86 % | 54 / 82 |
 
-## What decides the plant ranking
+At the primary optimum every entry sits at the lowest purge level of the grid (0.5 %), with a median reactor-inlet
+non-H2/CO2 fraction of 13.6 % (`summary.json` thermodynamics); the inlet-limit sweep above shows how the result moves
+when that fraction is bounded. The two checks below (author decision 2026-10-12: S5 stays the pre-specified primary)
+test that purge optimum.
 
-- **CO is a recycled intermediate, not a loss.** With CO recycled, a catalyst's CO selectivity costs little.
-  - Bansode 2013, 10 MPa: the highest-STY entry (Cu–Ba/Al2O3, 473 K: 62 % methanol selectivity, 2.8 % conversion)
-    costs 1,170 EUR/t; the plant-cost winner (Cu–K/Al2O3, 553 K: 0.9 % selectivity, 20.7 % conversion) costs 1,002.
-  - Wang 2017, CZ series: CZ-350 (41 % selectivity, 4.6 % conversion) beats CZ-450 (54 %, 4.2 %).
-- **Methane is a loss.** Methane leaves only through the purge, so methane selectivity separates the costs. In
-  Gothe 2025 the highest-STY entry (5 wt% Re, 200 °C) ranks third because its 3 % CH4 costs more than the ≤ 1 % CH4 of
-  the 1 wt% Re entries.
-- **Ranking by selectivity alone is the costly mistake.** The most selective entry often has very low conversion, so
-  it needs a much larger catalyst inventory and recycle.
+## Purge boundary and inlet-constrained optimization (`run_purge_boundary.py`, ED Fig. 8)
 
-The two CO treatments bound the plant ranking:
-- Recycled CO assumes the catalyst converts recycled CO as far as reverse-water-gas-shift equilibrium requires.
-- Inert CO assumes it never converts it.
+Same model and treatment as S5; the purge grid is extended below 0.5 % (120 log-spaced levels down to 1e-4 %, 516
+levels in all). The canonical part of the grid reproduces the primary costs to < 1e-6 EUR/t.
 
-The share of groups whose winner changes is 40 % under the first and 55 % under the second. How much the wrong choice
-costs depends on the treatment.
+**1. Purge boundary.** The 0.5 % optimum is the edge of the grid, not a minimum of the cost: on the extended grid the
+optimum lies below 0.5 % for 309 of the 310 scored entries (median 0.048 % purge, none at the new floor), and the cost at
+0.5 % exceeds it by a median 10.9 % (> 1 % for 299 entries, > 10 % for 159). Above 0.5 % the cost rises monotonically for
+every entry. At the extended optimum the reactor inlet carries a median 40 % of species other than H2 and CO2 (10th–90th
+percentile 28–64 %) and the recycle ratio (recycle / fresh make-up, molar) is a median 44 (the anchor loop: 2.85). The
+leaderboard count barely moves (14 / 40, regret > 5 % in 2; plant-cost winner changed in 6 groups), because the
+optimum moves for all entries of a group together.
 
-The analysis reads the current extraction output; rerun it after the extraction is extended (about 44 min for 991
-candidates on one core).
+**2. Inlet-constrained optimization.** Minimum cost over the extended grid with the reactor-inlet non-H2/CO2 fraction
+within published CO2-to-methanol loop designs (`inlet_inert_literature.csv`): the cost model's anchor loop (Campos et
+al. 2022 one-step, 6.86 % as reproduced by the model) and the envelope of the four published designs (4.92 % Nieminen et
+al. 2019 to 10.25 % Campos et al. 2022 three-step). No entry is infeasible.
+
+| Inlet limit | Different winner | Regret > 5 % | Other catalyst / of 32 | Other T / of 22 | Winner changed vs S5 | Median purge | Median recycle ratio | Mean inlet CO / CH4 / N2 (mol%) |
+|---|---|---|---|---|---|---|---|---|
+| none, grid 0.5–40 % (S5) | 15 / 40 | 7 | 10 | 5 | — | 0.5 % | 27.6 | 9.8 / 2.7 / 4.1 |
+| none, extended grid | 14 / 40 | 2 | 7 | 7 | 6 | 0.048 % | 43.9 | 15.2 / 6.5 / 21.3 |
+| ≤ 10.25 % (highest published) | 24 / 40 | 18 | 14 | 10 | 18 | 1.0 % | 16.7 | 6.6 / 0.6 / 2.7 |
+| ≤ 6.86 % (anchor loop) | 28 / 40 | 22 | 16 | 12 | 24 | 2.55 % | 13.4 | 4.8 / 0.3 / 1.6 |
+| ≤ 4.92 % (lowest published) | 26 / 40 | 25 | 16 | 10 | 24 | 4.2 % | 9.6 | 3.5 / 0.2 / 1.1 |
+
+Paper-cluster 95 % CI: 44–73 % (10.25 %), 54–83 % (6.86 %), 52–78 % (4.92 %). Under the constraint the result no longer
+rests on one paper: Bansode 2013 contributes 5–7 disagreements and without it 18–21 / 32 remain (13–20 with a regret
+above 5 %). The plant-cost leader is now the more selective catalyst (17–21 of the disagreements; under S5, 4 of 15)
+and the one making less CO (16–20; S5 3): CO and CH4 must leave through the purge to hold the inlet composition, which
+costs H2. Sweep of the limit on the extended grid: 3 % 27 / 39, 4–10 % 25–28 / 40, 15 % 22, 20 % 19, 25–30 % 16, 40 % 15.
+
+Outputs: `purge_boundary_summary.json`, `purge_boundary_entries.csv` (one row per scored entry, every treatment),
+`purge_boundary_curves.csv` (cost and loop state along the grid), `group_metrics_purge_{extended,published_min,anchor,
+published_max}.csv`. About 3.5 min on 6 workers.
+
+Further sensitivities on the frozen candidates:
+
+- `run_conversion_sensitivity.py`: each catalyst may load more catalyst and raise its conversion towards equilibrium
+  (calibrated first-order approach, measured selectivities held): 14 / 40, regret > 5 % in 3; other catalyst 5 / 32,
+  same catalyst at another temperature 9 / 22. Caps 0.90, 0.95 and 0.99 X_eq give the same result.
+- `run_selectivity_split.py`: 176 of the 310 entries print no CH4 selectivity. All unreported carbon as CO: 14 / 40
+  (regret > 5 % in 6); all as CH4: 18 / 40 (12).
+
+Statistics (`analysis/meoh_main_result_stats_2026_10_06`), pruning (`analysis/meoh_pruning_2026_10_06`), catalyst
+charges (`analysis/meoh_catalyst_cost_2026_10_06`) and plant-term variants (`analysis/meoh_plant_benchmark_2026_10_06`)
+run on the same candidates.
+
+## Outputs
+
+`literature_candidates.csv` (printed cohort, the primary), `literature_candidates_all_entries.csv`, `group_metrics.csv`,
+`group_metrics_all_entries.csv`, `group_metrics_inlet_limit.csv`, `group_metrics_isothermal.csv`,
+`selfcheck_gothe_table4.csv`, `summary.json`, `mismatch_kinds.json`, `conversion_sensitivity_*`,
+`selectivity_split_*`. About 5.5 min on 4 workers (`INV_WORKERS`); the conversion sensitivity about 16 min.
+`.github/workflows/methanol-main-result.yml` reruns the field result on ubuntu-latest and compares it with the committed
+summary.
+
+## History
+
+| Treatment | Groups with a different winner |
+|---|---|
+| original treatment, all entries (main until 2026-10-08) | 33 / 83 |
+| thermodynamic treatment with the 6.86 % inlet limit (2026-10-07, closed PR #36) | 54 / 82 |
+| frozen: printed values, step S5 (2026-10-12) | 15 / 40 |
+
+The step-by-step decomposition between them is `analysis/verify_2026_10_08/meoh_decomposition.py`.

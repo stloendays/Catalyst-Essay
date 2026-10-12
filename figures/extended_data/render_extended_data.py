@@ -1,4 +1,4 @@
-"""Extended Data figures 1-7, 183 mm wide, drawn from the panel tables of ed_data.py.
+"""Extended Data figures 1-8, 183 mm wide, drawn from the panel tables of ed_data.py.
 
     pur_bridge_env/python render_extended_data.py          -> EDFig{N}_{slug}.{svg,pdf,png}
     pur_bridge_env/python render_extended_data.py 3 5      -> only ED Figs 3 and 5
@@ -8,18 +8,19 @@ import re
 import sys
 
 import numpy as np
+from matplotlib.patches import Patch
 from matplotlib.ticker import NullFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "composite"))
 import ed_data as E  # noqa: E402
-from style import DARK_B, DARK_G, FE, INK, OTHER, PALE_B, PALE_G, RED, RU, Page, boxed  # noqa: E402
+from style import DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, TINT_B, Page, boxed  # noqa: E402
 
 # Numbered in the order the manuscript first cites them (2026-10-07 restructure); the panel functions keep the
 # names of the first numbering (ed2 = bimetallic, ed4 = measured NH3, ed5 = actual Ru, ed6 = benchmark, ed7 = pruning).
 SLUGS = {1: "extraction_accuracy", 2: "bound_pruning", 3: "methanol_robustness", 4: "meoh_plant_benchmark",
-         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc"}
+         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc", 8: "meoh_purge_inlet"}
 METAL_COL = {"Ru": RU, "Fe": FE, "Co": OTHER, "Ni": PALE_G}
 
 
@@ -102,9 +103,9 @@ def ed2():
                        label="previous layers (%d)" % len(old))
             ax.scatter(new.logTOF_673K, new.cost_USD_t, s=7, c=RU, ec=INK, lw=0.25, zorder=3,
                        label="added (%d)" % len(new))
-        ax.axhline(fe, color=DARK_G, lw=0.7, ls="--", zorder=1)
-        ax.text(xhi - 0.1, fe * 0.9, "Fe %.2f; %d below" % (fe, int(t.below_Fe.sum())), fontsize=5.2,
-                color=DARK_G, va="top", ha="right")
+        # the Fe benchmark goes into the legend (upper right is empty); a label on the line sat on the cheap surfaces
+        ax.axhline(fe, color=DARK_G, lw=0.7, ls="--", zorder=1,
+                   label="Fe %.2f (%d surfaces below)" % (fe, int(t.below_Fe.sum())))
         ax.set_yscale("log")
         ax.set_ylim(ylo, yhi)
         ax.set_xlim(xlo, xhi)
@@ -123,9 +124,11 @@ def ed2():
 def ed3():
     d = E.edfig3()
     a, b, c, dd = (d[k][0] for k in "abcd")
-    pg = Page(183.0, 120.0)
+    ng = a.attrs["groups"]
+    pg = Page(183.0, 182.0)
+    up = 62.0                     # panels a-d sit above panel e
     # a bootstrap
-    ax = pg.ax(14, 70, 70, 40)
+    ax = pg.ax(14, 70 + up, 70, 40)
     ax.bar(a.bin_low_fraction, a.resamples, width=a.bin_high_fraction - a.bin_low_fraction, align="edge",
            color=PALE_B, ec=INK, lw=0.3)
     lo, hi = a.attrs["ci"]
@@ -134,20 +137,24 @@ def ed3():
     ax.axvline(a.attrs["point"], color=RED, lw=0.9)
     top = a.resamples.max() * 1.22
     ax.set_ylim(0, top)
-    ax.text(a.attrs["point"] - 0.008, top * 0.97, "observed %d/83\n(%.1f %%)" % (
-        round(a.attrs["point"] * 83), 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
+    ax.text(a.attrs["point"] - 0.008, top * 0.97, "observed %d/%d\n(%.1f %%)" % (
+        round(a.attrs["point"] * ng), ng, 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
     ax.text(hi + 0.008, top * 0.75, "95 %% CI\n%.1f–%.1f %%" % (100 * lo, 100 * hi), fontsize=5.4,
             va="top")
-    ax.set_xlim(0.05, 0.75)
-    ax.set_xticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
-    ax.set_xticklabels(["10", "20", "30", "40", "50", "60", "70"])
+    # x range from the populated bins (a 10 % margin), so the histogram fills the panel
+    occ = a[a.resamples > 0]
+    x0, x1 = max(0.0, float(occ.bin_low_fraction.min()) - 0.05), min(1.0, float(occ.bin_high_fraction.max()) + 0.05)
+    ax.set_xlim(x0, x1)
+    ticks = [t / 10 for t in range(0, 11) if x0 <= t / 10 <= x1]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(["%d" % round(100 * t) for t in ticks])
     ax.set_xlabel("comparisons whose STY leader is not the plant-cost leader (%)")
     ax.set_ylabel("bootstrap resamples")
     boxed(ax)
-    pg.letter("a", 2, 117)
-    pg.title("Paper-cluster bootstrap, %s resamples of 44 papers" % format(a.attrs["n"], ","), 14, 117)
+    pg.letter("a", 2, 117 + up)
+    pg.title("Paper-cluster bootstrap, %s resamples of the papers" % format(a.attrs["n"], ","), 14, 117 + up)
     # b regret threshold
-    bx = pg.ax(108, 70, 70, 40)
+    bx = pg.ax(108, 70 + up, 70, 40)
     th = b.threshold.to_numpy()
     xs = np.where(th == 0, 0.0003, th)
     bx.plot(xs * 100, b.groups, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3)
@@ -158,15 +165,17 @@ def ed3():
     bx.set_xticks([0.03, 0.1, 0.5, 1, 2, 5, 10])
     bx.set_xticklabels(["0", "0.1", "0.5", "1", "2", "5", "10"])
     bx.xaxis.set_minor_formatter(NullFormatter())
-    bx.set_ylim(0, 40)
+    btop = int(5 * np.ceil(1.3 * float(b.groups.max()) / 5))
+    bx.set_ylim(0, btop)
+    bx.set_yticks(range(0, btop + 1, 5))          # counts: integer ticks
     bx.set_xlabel("regret at least (%)")
     bx.set_ylabel("mismatched comparisons")
     bx.text(0.97, 0.95, "labels: comparisons (papers)", transform=bx.transAxes, fontsize=5.0, ha="right", va="top")
     boxed(bx)
-    pg.letter("b", 96, 117)
-    pg.title("Size of the disagreements", 108, 117)
+    pg.letter("b", 96, 117 + up)
+    pg.title("Size of the disagreements", 108, 117 + up)
     # c noise scenarios
-    cx = pg.ax(40, 12, 46, 40)
+    cx = pg.ax(14, 12 + up, 70, 40)
     y = np.arange(len(c))[::-1]
     cx.errorbar(c.mismatch_groups_mean, y + 0.13, xerr=[c.mismatch_groups_mean - c.mismatch_groups_q025,
                                                         c.mismatch_groups_q975 - c.mismatch_groups_mean],
@@ -179,21 +188,25 @@ def ed3():
     cx.text(c.attrs["observed"] + 0.8, -0.75, "observed %d" % c.attrs["observed"], color=RED, fontsize=5.2,
             va="center", ha="left")
     cx.set_yticks(y)
-    cx.set_yticklabels(c.label, fontsize=5.6)
+    short = {"meas_k1": "error ×1", "meas_k2": "error ×2", "meas_k4": "error ×4",
+             "meas_k1_plus_extraction": "×1 + plot\nreadings"}
+    cx.set_yticklabels([short[k] for k in c.scenario], fontsize=5.6)
     cx.set_ylim(-1.05, len(c) + 0.75)
-    cx.set_xlim(0, 80)
-    cx.set_xlabel("comparisons (of 83), mean and\n95 %% range over %s draws" % format(c.attrs["draws"], ","))
+    cx.set_xlim(0, max(ng, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
+    cx.set_xlabel("comparisons (of %d), mean and\n95 %% range over %s draws" % (ng, format(c.attrs["draws"], ",")))
     cx.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
     boxed(cx)
-    pg.letter("c", 2, 59)
-    pg.title("Measurement and plot-reading resampling", 14, 59)
+    pg.letter("c", 2, 59 + up)
+    pg.title("Measurement resampling" if "meas_k1_plus_extraction" not in set(c.scenario)
+             else "Measurement and plot-reading resampling", 14, 59 + up)
     # d per-group persistence
-    dx = pg.ax(108, 12, 70, 40)
+    dx = pg.ax(108, 12 + up, 70, 40)
     xg = np.arange(len(dd)) + 1
     dx.bar(xg, dd.p_mismatch_meas_k1, 0.75, color=[RU if p >= 0.9 else PALE_B for p in dd.p_mismatch_meas_k1],
            ec=INK, lw=0.25, label="error ×1")
-    dx.scatter(xg, dd.p_mismatch_meas_k1_plus_extraction, s=5, marker="_", c=INK, lw=0.7, zorder=3,
-               label="×1 + plot-reading errors")
+    if "p_mismatch_meas_k1_plus_extraction" in dd:
+        dx.scatter(xg, dd.p_mismatch_meas_k1_plus_extraction, s=5, marker="_", c=INK, lw=0.7, zorder=3,
+                   label="×1 + plot-reading errors")
     dx.axhline(0.9, color=INK, lw=0.5, ls=":")
     nrob = int((dd.p_mismatch_meas_k1 >= 0.9).sum())
     dx.text(len(dd) + 0.4, 1.02, "%d of %d stay in ≥ 90 %% of draws" % (nrob, len(dd)), fontsize=5.2, ha="right",
@@ -204,8 +217,41 @@ def ed3():
     dx.set_ylabel("draws still mismatched (%)")
     dx.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3, ncol=2)
     boxed(dx)
-    pg.letter("d", 96, 59)
-    pg.title("Persistence of each observed disagreement", 108, 59)
+    pg.letter("d", 96, 59 + up)
+    pg.title("Persistence of each observed disagreement", 108, 59 + up)
+    # e limit on the reactor-inlet non-H2/CO2 fraction
+    e = d["e"][0]
+    ex = pg.ax(14, 12, 164, 40)
+    fin = e[np.isfinite(e.limit)]
+    xmax = 0.36
+    lit = e.attrs.get("literature")
+    if lit:
+        ex.axvspan(lit[0] * 100, lit[1] * 100, color=PALE_G, alpha=0.45, lw=0, zorder=0)
+        ex.text((lit[0] + lit[1]) * 50, 0.97, "published CO$_2$-to-methanol\nreactor inlets (%d designs)" % lit[2],
+                fontsize=5.0, ha="center", va="top", color=DARK_G)
+    ex.plot(fin.limit * 100, fin.share, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3,
+            label="all comparisons")
+    ex.plot(fin.limit * 100, fin.iso_share, color=FE, lw=0.9, marker="s", ms=2.4, mec=INK, mew=0.3,
+            label="isothermal catalyst comparisons")
+    nl = e[~np.isfinite(e.limit)].iloc[0]
+    ex.scatter([xmax * 100], [nl.share], s=10, c=RU, ec=INK, lw=0.3, zorder=3, clip_on=False)
+    ex.scatter([xmax * 100], [nl.iso_share], s=9, c=FE, marker="s", ec=INK, lw=0.3, zorder=3, clip_on=False)
+    ref = e.attrs["reference"]
+    r = e[np.isclose(e.limit, ref)].iloc[0]
+    ex.axvline(ref * 100, color=RED, lw=0.7, ls="--")
+    ex.text(ref * 100 + 0.4, 0.06, "workbook limit %.2f %% (sensitivity): %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
+        100 * ref, r.mismatched, r.groups, 100 * r.share, r.iso_mismatched, r.iso_groups, 100 * r.iso_share),
+        color=RED, fontsize=5.2, va="bottom")
+    ex.set_xlim(0, xmax * 100 + 1.5)
+    ex.set_xticks([0, 5, 10, 15, 20, 25, 30, xmax * 100])
+    ex.set_xticklabels(["0", "5", "10", "15", "20", "25", "30", "no limit"])
+    pct_axis(ex, 1.0)
+    ex.set_xlabel("limit on the reactor-inlet content of species other than H$_2$ and CO$_2$ (mol%)")
+    ex.set_ylabel("STY leader \u2260 plant-cost leader (%)")
+    ex.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
+    boxed(ex)
+    pg.letter("e", 2, 59)
+    pg.title("Inlet-composition limit of the loop", 14, 59)
     return pg
 
 
@@ -260,16 +306,20 @@ def ed5():
     d = E.edfig5()
     a, b, c, dd = (d[k][0] for k in "abcd")
     pg = Page(183.0, 112.0)
-    ax = pg.ax(62, 66, 116, 36)
-    y = np.arange(len(a))[::-1]
+    # a across the full width (14-178 mm); treatment above each bar on the left, P and the median gap above it on
+    # the right, so the axis spans exactly 0-1
+    ax = pg.ax(14, 64, 164, 38)
+    n = len(a)
+    y = np.arange(n)[::-1].astype(float)
     cols = [OTHER, PALE_B, RU, FE, FE]
-    ax.barh(y, a.P_Fe_cheaper, 0.6, color=cols, ec=INK, lw=0.4)
-    for yi, p, med in zip(y, a.P_Fe_cheaper, a.median_Ru_minus_Fe_USD_t):
-        ax.text(p + 0.01, yi, ("%.3f   (median Ru − Fe %+.2f USD t$^{-1}$)" % (p, med)).replace("-", "−"),
-                va="center", fontsize=5.4)
-    ax.set_yticks(y)
-    ax.set_yticklabels(a.treatment, fontsize=5.8)
-    ax.set_xlim(0, 1.6)
+    ax.barh(y - 0.1, a.P_Fe_cheaper, 0.42, color=cols, ec=INK, lw=0.4)
+    for yi, lab, pf, med in zip(y, a.treatment, a.P_Fe_cheaper, a.median_Ru_minus_Fe_USD_t):
+        ax.text(0.004, yi + 0.17, lab, fontsize=5.6, ha="left", va="bottom")
+        ax.text(0.996, yi + 0.17, "P(Fe cheaper) %.3f; median Ru %s Fe %s USD t$^{-1}$" % (
+            pf, "−", ("%+.2f" % med).replace("-", "−")), fontsize=5.4, ha="right", va="bottom")
+    ax.set_yticks([])
+    ax.set_ylim(-0.45, n - 0.4)
+    ax.set_xlim(-0.012, 1.012)
     ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_xlabel("P(Fe cheaper), %s draws" % format(int(a.draws.iloc[0]), ","))
     ax.axvline(0.5, color=INK, lw=0.4, ls=":")
@@ -280,7 +330,7 @@ def ed5():
              ("c", c, "r", "Ru recovery r (%)", False),
              ("d", dd, "Ru_wt_pct", "Ru content of the Ru/C bed (wt%)", False)]
     for k, (p, t, key, xl, logx) in enumerate(specs):
-        bx = pg.ax(14 + k * 58, 12, 46, 36)
+        bx = pg.ax(14 + k * (164 + 11) / 3, 12, (164 - 2 * 11) / 3, 36)   # three equal panels, 14-178 mm
         lo, hi = t[key + "_low"].to_numpy(), t[key + "_high"].to_numpy()
         mid = np.sqrt(lo * hi) if logx else (lo + hi) / 2
         scale = 100 if key == "r" else 1
@@ -306,7 +356,7 @@ def ed5():
             bx.set_ylabel("P(Ru cheaper) (%)")
         bx.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3, ncol=2, columnspacing=0.8)
         boxed(bx)
-        pg.letter(p, 2 + k * 58, 55)
+        pg.letter(p, 2 + k * (164 + 11) / 3, 55)
     pg.title("Where the Ru catalyst wins", 14, 55)
     return pg
 
@@ -315,26 +365,43 @@ def ed5():
 def ed6():
     d = E.edfig6()
     a, b, c, dd = (d[k][0] for k in "abcd")
-    pg = Page(183.0, 128.0)
-    # a: Perez-Fortes terms
-    ax = pg.ax(48, 74, 50, 44)
-    short = ["H$_2$", "power + utilities", "catalyst replacement", "capital (8 %, 20 y)", "fixed O&M",
-             "residual + 10 % of NPC", "break-even price, like-for-like", "total, anchor convention"]
-    y = np.arange(len(a))[::-1]
-    ax.barh(y + 0.19, a.model, 0.36, color=RU, ec=INK, lw=0.35, label="model")
-    ax.barh(y - 0.19, a.reference, 0.36, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
-    for yi, m, r in zip(y, a.model, a.reference):
-        ax.text(max(m, r) + 12, yi, "%.0f / %.0f" % (m, r), va="center", fontsize=5.0)
-    ax.set_yticks(y)
-    ax.set_yticklabels(short, fontsize=5.6)
-    ax.set_xlim(0, 1080)
+    # grid shared by the Extended Data figures: left column axes 14-84 mm, right column 108-178 mm; category labels
+    # sit above their bars so that the bar panels align with the scatter panels instead of being pushed right
+    pg = Page(183.0, 132.0)
+    # a: Perez-Fortes terms: the stoichiometric feed (the same for every catalyst) and the catalyst-sensitive terms;
+    # the two large rows are drawn at 1/10 so that the sensitive terms (tens of EUR/t) stay readable
+    ax = pg.ax(14, 72, 70, 50)
+    n = len(a)
+    base = np.arange(n)[::-1].astype(float)
+    big = a.term.str.startswith(("stoichiometric", "total")).to_numpy()
+    scale = np.where(big, 0.1, 1.0)
+    ax.barh(base + 0.02, a.model * scale, 0.24, color=RU, ec=INK, lw=0.35, label="model")
+    ax.barh(base - 0.24, a.reference * scale, 0.24, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
+    short = {"stoichiometric": "stoichiometric H$_2$ + CO$_2$ (bars ×0.1)",
+             "H$_2$ and CO$_2$ above": "feed above stoichiometry",
+             "electricity": "electricity (model: compressors; ref.: net utilities)",
+             "catalyst replacement": "catalyst replacement", "capital": "capital (8 %, 20 y)",
+             "fixed O&M": "fixed O&M: ref. value on both sides (model's own %.1f)" % a.attrs["model_own_fixed_om"],
+             "catalyst-sensitive": "catalyst-sensitive subtotal",
+             "total": "total; ref. = NPV = 0 break-even price (bars ×0.1)"}
+    for yb, t, m, r, sc, dev, cat in zip(base, a.term, a.model, a.reference, scale, a.deviation_pct, a.category):
+        lab = next(v for k, v in short.items() if t.startswith(k))
+        ax.text(2.0, yb + 0.17, lab, fontsize=5.2, ha="left", va="bottom",
+                fontweight="bold" if cat in ("subtotal", "total") else "normal")
+        ax.text(max(m, r) * sc + 2, yb - 0.11, ("%.1f / %.1f (%+.0f %%)" % (m, r, dev)).replace("-", "−"),
+                va="center", fontsize=5.0)
+        if cat == "subtotal":
+            ax.axhline(yb + 0.62, color=INK, lw=0.4)
+    ax.set_yticks([])
+    ax.set_ylim(-0.5, n - 0.25)
+    ax.set_xlim(0, 175)
     ax.set_xlabel("EUR t$^{-1}$ MeOH")
-    ax.legend(loc="lower right", fontsize=5.0, borderaxespad=0.3, bbox_to_anchor=(1.0, 0.28))
+    ax.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handlelength=1.2)
     boxed(ax)
-    pg.letter("a", 2, 125)
-    pg.title("Pérez-Fortes plant at its own assumptions", 14, 125)
+    pg.letter("a", 2, 129)
+    pg.title("Pérez-Fortes plant at its own assumptions", 14, 129)
     # b: parity across studies
-    bx = pg.ax(118, 74, 60, 44)
+    bx = pg.ax(108, 72, 70, 50)
     lim = (200, 1100)
     bx.fill_between(lim, [lim[0] * 0.95, lim[1] * 0.95], [lim[0] * 1.05, lim[1] * 1.05], color=PALE_G, lw=0,
                     zorder=0)
@@ -343,8 +410,8 @@ def ed6():
         col = RED if r.study.startswith("Perez") else (FE if r.study.startswith("Campos") else PALE_B)
         bx.scatter(r.reference_eur_t, r.model_eur_t, s=14, c=col, ec=INK, lw=0.35, zorder=3)
     pf = b[b.study.str.startswith("Perez")].iloc[0]
-    bx.annotate(("Pérez-Fortes %+.1f %%" % pf.deviation_pct).replace("-", "−"), (pf.reference_eur_t, pf.model_eur_t), xytext=(-8, 14),
-                textcoords="offset points", fontsize=5.2, color=RED, ha="right",
+    bx.annotate(("Pérez-Fortes %+.1f %%" % pf.deviation_pct).replace("-", "−"), (pf.reference_eur_t, pf.model_eur_t),
+                xytext=(-8, 14), textcoords="offset points", fontsize=5.2, color=RED, ha="right",
                 arrowprops=dict(arrowstyle="-", color=RED, lw=0.5))
     bx.set_xlim(lim)
     bx.set_ylim(lim)
@@ -353,45 +420,52 @@ def ed6():
     bx.text(0.04, 0.95, "%d cases, %d studies\nband: ±5 %%\ngreen: Campos (anchor)" % (
         len(b), b.study.str.split(",| ").str[0].nunique()), transform=bx.transAxes, fontsize=5.0, va="top")
     boxed(bx)
-    pg.letter("b", 108, 125)
-    pg.title("Like-for-like cost, each study's own inputs", 118, 125)
-    # c: PF plant metrics
-    cx = pg.ax(48, 12, 50, 44)
-    y = np.arange(len(c))[::-1]
-    cx.barh(y, c.ratio, 0.55, color=[RED if abs(v - 1) > 0.1 else PALE_B for v in c.ratio], ec=INK, lw=0.35)
+    pg.letter("b", 96, 129)
+    pg.title("Like-for-like cost, each study's own inputs", 108, 129)
+    # c: PF plant metrics, model / reference as a deviation from 1
+    cx = pg.ax(14, 12, 70, 44)
+    m = len(c)
+    yc = np.arange(m)[::-1].astype(float)
+    cols = [RED if abs(v - 1) > 0.1 else PALE_B for v in c.ratio]
+    cx.barh(yc - 0.1, c.ratio - 1.0, 0.44, left=1.0, color=cols, ec=INK, lw=0.35)
     cx.axvline(1.0, color=INK, lw=0.6)
-    for yi, r in zip(y, c.itertuples()):
-        cx.text(1.27, yi, "%.3g / %.3g" % (r.model, r.reference), va="center", fontsize=5.0)
-    cx.set_yticks(y)
-    cx.set_yticklabels(c.metric, fontsize=5.6)
-    cx.set_xlim(0.5, 1.65)
-    cx.set_xticks([0.5, 0.75, 1.0, 1.25])
-    cx.set_xlabel("model / Pérez-Fortes")
-    cx.text(0.99, 1.01, "model / ref.", transform=cx.transAxes, fontsize=5.0, ha="right", va="bottom")
+    for yi, r in zip(yc, c.itertuples()):
+        cx.text(0.615, yi + 0.16, r.metric, fontsize=5.2, ha="left", va="bottom")
+        cx.text(max(1.0, r.ratio) + 0.02, yi - 0.1, ("%.3g / %.3g (×%.2f)" % (r.model, r.reference, r.ratio)),
+                va="center", fontsize=5.0)
+    cx.set_yticks([])
+    cx.set_ylim(-0.5, m - 0.38)
+    cx.set_xlim(0.6, 1.5)
+    cx.set_xticks([0.6, 0.8, 1.0, 1.2, 1.4])
+    cx.set_xlabel("model / Pérez-Fortes (red: more than 10 % apart)")
     boxed(cx)
     pg.letter("c", 2, 63)
     pg.title("Loop metrics at the Pérez-Fortes point", 14, 63)
     # d: headline across variants
-    dx = pg.ax(118, 12, 60, 44)
+    dx = pg.ax(108, 12, 70, 44)
     assert (dd.key.to_numpy() == np.arange(1, len(dd) + 1)).all()
     xs = np.arange(len(dd))
-    colors = [RED if v == "baseline" else (FE if v.startswith("catalyst_repl_95") else PALE_B) for v in dd.variant]
+    colors = [RED if v == "baseline" else (RU if v.startswith("pf_aligned") else
+                                            (FE if v.startswith("catalyst_repl_95") else PALE_B)) for v in dd.variant]
     dx.bar(xs, dd.mismatch_groups, 0.7, color=colors, ec=INK, lw=0.3)
-    base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
-    dx.axhline(base, color=RED, lw=0.5, ls="--")
+    base_n = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
+    dx.axhline(base_n, color=RED, lw=0.5, ls="--")
     dx.set_xticks(xs)
     dx.set_xticklabels([str(k) for k in dd.key], fontsize=5.0)
+    dx.set_xlim(-0.6, len(dd) - 0.4)
     ngr = int(dd.groups.max())
-    dx.set_ylim(0, ngr)
+    top = 5 * np.ceil(1.45 * dd.mismatch_groups.max() / 5)
+    dx.set_ylim(0, top)
     dx.set_ylabel("comparisons with a different winner (of %d)" % ngr)
     dx.set_xlabel("plant-model variant (key in Source Data)")
-    dx.text(0.03, 0.97, "red: model as used (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y" % base,
-            transform=dx.transAxes, fontsize=5.0, va="top", bbox=dict(fc="white", ec="none", pad=1.0))
+    dx.text(0.02, 0.97, "red: model as used (%d); green: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y\n"
+            "dark: recycle, compression, capital set to Pérez-Fortes" % base_n,
+            transform=dx.transAxes, fontsize=5.0, va="top")
     for x, v in zip(xs, dd.mismatch_groups):
-        dx.text(x, v + 0.5, str(v), ha="center", va="bottom", fontsize=5.0, rotation=90)
+        dx.text(x, v + 0.3, str(v), ha="center", va="bottom", fontsize=5.0)
     boxed(dx)
-    pg.letter("d", 108, 63)
-    pg.title("Headline under %d plant-model variants" % len(dd), 118, 63)
+    pg.letter("d", 96, 63)
+    pg.title("Headline under %d plant-model variants" % len(dd), 108, 63)
     return pg
 
 
@@ -400,7 +474,8 @@ def ed7():
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
     pg = Page(183.0, 120.0)
-    ax = pg.ax(14, 70, 60, 40)
+    # shared grid: left column axes 14-84 mm, right column 108-178 mm; panel c spans 14-178 mm
+    ax = pg.ax(14, 70, 70, 40)
     ev = a.evaluated_recycled_opt
     for m, col, lab, z in ((~ev, OTHER, "excluded by the bound (%d)" % (~ev).sum(), 2),
                            (ev, RU, "evaluated in full (%d)" % ev.sum(), 3)):
@@ -441,34 +516,201 @@ def ed7():
     bx.set_xlabel("full plant cost (USD t$^{-1}$ NH$_3$)")
     bx.set_ylabel("lower bound (USD t$^{-1}$)")
     bx.legend(loc="lower right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.2)
-    bx.text(0.97, 0.2, "%d surfaces inside the bed cap shown (of %d costed)" % (len(fb), len(b)),
-            transform=bx.transAxes, fontsize=5.0, va="bottom", ha="right")
+    n_pure = int(sum(len(E._els(x)) == 1 for x in fb.surface))
+    # above the diagonal is empty by construction (bound <= cost): the note goes there, right of the Fe line
+    bx.text(0.17, 0.96, "%d surfaces inside the bed cap shown\n(%d bimetallic, %d pure metal; of %s costed)"
+            % (len(fb), len(fb) - n_pure, n_pure, format(len(b), ",")), transform=bx.transAxes, fontsize=5.0,
+            va="top", ha="left")
     boxed(bx)
     pg.letter("b", 96, 117)
-    pg.title("Ammonia bimetallic surfaces", 108, 117)
-    cx = pg.ax(62, 12, 116, 36)
-    y = np.arange(len(c))[::-1]
-    cx.barh(y, c.full_evaluations / c.candidates, 0.55, color=RU, ec=INK, lw=0.35, label="evaluated in full")
-    cx.barh(y, c.excluded_by_bound / c.candidates, 0.55, left=c.full_evaluations / c.candidates, color=PALE_B,
-            ec=INK, lw=0.35, label="excluded by the bound")
-    for yi, r in zip(y, c.itertuples()):
-        cx.text(1.02, yi, "%d / %d evaluated; %d excluded (%.1f %%); leaders missed %d" % (
-            r.full_evaluations, r.candidates, r.excluded_by_bound, 100 * r.excluded_by_bound / r.candidates,
-            r.leader_missed), va="center", fontsize=5.2)
-    cx.set_yticks(y)
-    cx.set_yticklabels(c.system, fontsize=5.8)
-    cx.set_xlim(0, 1.9)
+    pg.title("Ammonia alloy and metal surfaces", 108, 117)
+    # c: share of the candidates evaluated in full; labels above the bars, counts inside the segments, so the
+    # axes span exactly the data range (0-100 %) and the full width of panels a and b
+    cx = pg.ax(14, 10, 164, 34)
+    nc = len(c)
+    yc = np.arange(nc)[::-1].astype(float)
+    full = (c.full_evaluations / c.candidates).to_numpy()
+    cx.barh(yc - 0.1, full, 0.42, color=RU, ec=INK, lw=0.35)
+    cx.barh(yc - 0.1, 1.0 - full, 0.42, left=full, color=PALE_B, ec=INK, lw=0.35)
+    for yi, r, f in zip(yc, c.itertuples(), full):
+        cx.text(0.004, yi + 0.17, "%s, %s candidates" % (r.system, format(int(r.candidates), ",")), fontsize=5.6,
+                ha="left", va="bottom")
+        cx.text(f / 2, yi - 0.1, "%s evaluated in full" % format(int(r.full_evaluations), ","), fontsize=5.2,
+                ha="center", va="center", color="white")
+        cx.text(f + (1 - f) / 2, yi - 0.1, "%s excluded by the bound (%.1f %%)" % (
+            format(int(r.excluded_by_bound), ","), 100 * r.excluded_by_bound / r.candidates), fontsize=5.2,
+            ha="center", va="center", color=INK)
+    cx.set_yticks([])
+    cx.set_ylim(-0.45, nc - 0.4)
+    cx.set_xlim(-0.012, 1.012)            # a hairline of air between the 0 and 100 % bar ends and the frame
     cx.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     cx.set_xticklabels(["0", "25", "50", "75", "100"])
     cx.set_xlabel("share of candidates (%)")
-    cx.legend(loc="lower right", fontsize=5.0, borderaxespad=0.2, bbox_to_anchor=(1.0, 1.0), ncol=2)
     boxed(cx)
-    pg.letter("c", 2, 57)
-    pg.title("Full optimizations saved", 14, 57)
+    pg.letter("c", 2, 51)
+    pg.title("Full optimizations saved by the lower bound; plant-cost leaders or sub-Fe surfaces excluded: %d"
+             % int(c.leader_missed.sum()), 14, 51)
     return pg
 
 
-FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5}
+# ---------------------------------------------------------------------------------------------- ED Fig. 8
+TREAT_COL = {"canonical": RU, "extended": PALE_B, "limit_published_max": PALE_G, "limit_anchor": FE,
+             "limit_published_min": DARK_G}
+TREAT_TICK = {"canonical": "S5\n0.5–40 %", "extended": "S5\nfrom 10$^{-4}$ %", "limit_published_max": "inlet\n≤ %.2f %%",
+              "limit_anchor": "inlet\n≤ %.2f %%", "limit_published_min": "inlet\n≤ %.2f %%"}
+
+
+def _purge_axis(ax):
+    ax.set_xscale("log")
+    ax.set_xlim(1e-4, 40)
+    ax.set_xticks([1e-4, 1e-3, 1e-2, 0.1, 0.5, 2, 10, 40])
+    ax.set_xticklabels(["10$^{-4}$", "10$^{-3}$", "0.01", "0.1", "0.5", "2", "10", "40"])
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xlabel("purge (% of the loop gas)")
+
+
+def _strip(ax, c, col, keys, rng):
+    for x, k in enumerate(keys):
+        v = c.loc[c.key == k, col].to_numpy(float)
+        v = v[np.isfinite(v)]
+        ax.scatter(x + rng.uniform(-0.28, 0.28, len(v)), v, s=1.6, c=TREAT_COL[k], ec=INK, lw=0.12, zorder=2)
+        med = float(np.median(v))
+        ax.plot([x - 0.36, x + 0.36], [med, med], color=INK, lw=0.9, zorder=3)
+    ax.set_xlim(-0.6, len(keys) - 0.4)
+    ax.set_yscale("log")
+
+
+def ed8():
+    d = E.edfig8()
+    a, b, c, dd, e, f = (d[k][0] for k in "abcdef")
+    keys = list(e.key)
+    lim = {"limit_published_min": b.attrs["published"][0], "limit_anchor": b.attrs["anchor"],
+           "limit_published_max": b.attrs["published"][1]}
+    ticks = [TREAT_TICK[k] % (100 * lim[k]) if k in lim else TREAT_TICK[k] for k in keys]
+    floor = 100 * a.attrs["purge_floor"]
+    opt = c[c.key == "extended"]
+    pg = Page(183.0, 178.0)
+    # a cost along the purge grid, relative to the cost at the lowest level of the canonical grid
+    ax = pg.ax(14, 128, 70, 40)
+    ax.axvspan(floor, 40, color=TINT_B, lw=0, zorder=0)
+    for _, g in a.groupby("i"):
+        ax.plot(g.purge * 100, g.cost_rel_0p5pct, color=RU, lw=0.25, alpha=0.2, zorder=1)
+    med = a.groupby("purge").cost_rel_0p5pct.median()
+    ax.plot(med.index * 100, med.values, color=INK, lw=1.0, zorder=3, label="median of %d entries" % a.i.nunique())
+    ax.scatter(opt.purge * 100, opt.cost_rel_0p5pct, s=2.0, c=DARK_B, lw=0, zorder=4, label="optimum, extended grid")
+    ax.axvline(floor, color=RED, lw=0.7, ls="--", zorder=4)
+    _purge_axis(ax)
+    ax.set_yscale("log")
+    ax.set_ylim(0.05, 5)
+    ax.set_yticks([0.05, 0.1, 0.2, 0.5, 1, 2, 5])
+    ax.set_yticklabels(["0.05", "0.1", "0.2", "0.5", "1", "2", "5"])
+    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.set_ylabel("cost / cost at %.1f %% purge" % floor)
+    below = int((opt.purge < a.attrs["purge_floor"] - 1e-12).sum())
+    ax.text(floor * 1.15, 0.062, "S5 grid\n(0.5–40 %)", color=RED, fontsize=5.0, va="bottom")
+    ax.text(0.03, 0.04, "optimum below %.1f %%: %d of %d entries\nmedian optimum %.3f %% purge" % (
+        floor, below, len(opt), 100 * float(np.median(opt.purge))), transform=ax.transAxes, fontsize=5.0,
+        va="bottom")
+    ax.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handlelength=1.4, markerscale=2.5)
+    boxed(ax)
+    pg.letter("a", 2, 175)
+    pg.title("Cost along the purge grid, every scored entry", 14, 175)
+    # b reactor-inlet content of species other than H2 and CO2
+    bx = pg.ax(108, 128, 70, 40)
+    lo, hi, nlit = b.attrs["published"]
+    bx.axhspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
+    for _, g in b.groupby("i"):
+        bx.plot(g.purge * 100, g.nonreactive * 100, color=RU, lw=0.25, alpha=0.2, zorder=1)
+    mb = b.groupby("purge").nonreactive.median()
+    bx.plot(mb.index * 100, mb.values * 100, color=INK, lw=1.0, zorder=3)
+    bx.scatter(opt.purge * 100, opt.nonreactive * 100, s=2.0, c=DARK_B, lw=0, zorder=4)
+    bx.axvline(floor, color=RED, lw=0.7, ls="--", zorder=4)
+    bx.axhline(100 * b.attrs["anchor"], color=DARK_G, lw=0.6, ls="--", zorder=2)
+    _purge_axis(bx)
+    bx.set_ylim(0, 100)
+    bx.set_ylabel("reactor inlet, not H$_2$ or CO$_2$ (mol%)")
+    # just above the band at the lowest purges, where the curves sit near 100 % and the optima do not reach
+    bx.text(1.3e-4, 100 * hi + 0.8, "shaded: %d published\nloop designs, %.2f–%.2f %%\ndashed: anchor loop %.2f %%" % (
+        nlit, 100 * lo, 100 * hi, 100 * b.attrs["anchor"]), fontsize=5.0, ha="left", va="bottom", color=DARK_G)
+    boxed(bx)
+    pg.letter("b", 96, 175)
+    pg.title("Reactor-inlet content other than H$_2$ and CO$_2$", 108, 175)
+    # c optimal purge per treatment
+    rng = np.random.default_rng(8)
+    cx = pg.ax(14, 70, 70, 40)
+    _strip(cx, c.assign(purge=c.purge * 100), "purge", keys, rng)
+    cx.axhline(floor, color=RED, lw=0.6, ls="--", zorder=1)
+    cx.set_ylim(1e-4, 40)
+    cx.set_yticks([1e-4, 1e-3, 1e-2, 0.1, 0.5, 2, 10, 40])
+    cx.set_yticklabels(["10$^{-4}$", "10$^{-3}$", "0.01", "0.1", "0.5", "2", "10", "40"])
+    cx.yaxis.set_minor_formatter(NullFormatter())
+    cx.set_xticks(range(len(keys)))
+    cx.set_xticklabels(ticks, fontsize=5.4)
+    cx.set_ylabel("optimal purge (%)")
+    boxed(cx)
+    pg.letter("c", 2, 117)
+    pg.title("Optimal purge (bars: median)", 14, 117)
+    # d recycle ratio at the optimum
+    dx = pg.ax(108, 70, 70, 40)
+    _strip(dx, dd, "recycle_ratio", keys, rng)
+    ar = dd.attrs["anchor_recycle_ratio"]
+    dx.axhline(ar, color=DARK_G, lw=0.6, ls="--", zorder=1)
+    dx.text(-0.5, ar * 0.85, "anchor loop %.2f" % ar, color=DARK_G, fontsize=5.0, ha="left", va="top")
+    dx.set_ylim(0.5, 1e4)
+    dx.set_yticks([1, 10, 100, 1000, 10000])
+    dx.set_yticklabels(["1", "10", "100", "1,000", "10,000"])
+    dx.yaxis.set_minor_formatter(NullFormatter())
+    dx.set_xticks(range(len(keys)))
+    dx.set_xticklabels(ticks, fontsize=5.4)
+    dx.set_ylabel("recycle / fresh make-up (molar)")
+    boxed(dx)
+    pg.letter("d", 96, 117)
+    pg.title("Recycle ratio at the optimum (bars: median)", 108, 117)
+    # e comparisons with a different winner
+    ex = pg.ax(14, 12, 70, 40)
+    y = np.arange(len(e))[::-1].astype(float)
+    ng = int(e.groups.max())
+    ex.barh(y - 0.12, e.different_winner, 0.4, color=[TREAT_COL[k] for k in e.key], ec=INK, lw=0.35)
+    ex.barh(y - 0.12, e.regret_gt5pct, 0.4, color="none", ec=INK, lw=0.35, hatch="//////")
+    for yi, r in zip(y, e.itertuples()):
+        ex.text(0.3, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
+        ex.text(r.different_winner + 0.6, yi - 0.12, "%d / %d (%d > 5 %%)" % (r.different_winner, r.groups,
+                                                                            r.regret_gt5pct),
+                fontsize=5.0, va="center")
+    ex.set_yticks([])
+    ex.set_ylim(-0.55, len(e) - 0.3)
+    ex.set_xlim(0, ng)
+    ex.set_xticks(range(0, ng + 1, 10))
+    ex.set_xlabel("comparisons, STY leader ≠ plant-cost leader (of %d)" % ng)
+    boxed(ex)
+    pg.letter("e", 2, 59)
+    pg.title("Comparisons with a different winner (hatched: regret > 5 %)", 14, 59)
+    # f mean inlet CO, CH4, N2 at the optimum
+    fx = pg.ax(108, 12, 70, 40)
+    fx.axvspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
+    left = np.zeros(len(f))
+    for sp, colr in (("CO", OS), ("CH4", OTHER), ("N2", PALE_B)):
+        fx.barh(y - 0.12, 100 * f[sp], 0.4, left=left, color=colr, ec=INK, lw=0.35, zorder=2,
+                label={"CO": "CO", "CH4": "CH$_4$", "N2": "N$_2$"}[sp])
+        left += 100 * f[sp].to_numpy()
+    for yi, r in zip(y, f.itertuples()):
+        fx.text(0.4, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
+        fx.text(100 * r.nonreactive + 0.8, yi - 0.12, "%.1f %%" % (100 * r.nonreactive), fontsize=5.0, va="center")
+    fx.set_yticks([])
+    fx.set_ylim(-0.55, len(f) - 0.3)
+    fx.set_xlim(0, 50)
+    fx.set_xlabel("reactor inlet (mol%, mean over the scored entries)")
+    h, lab = fx.get_legend_handles_labels()
+    h.append(Patch(color=PALE_G, alpha=0.6, lw=0))
+    lab.append("published designs")
+    fx.legend(h, lab, loc="lower right", fontsize=5.0, borderaxespad=0.3, handlelength=1.2, ncol=2)
+    boxed(fx)
+    pg.letter("f", 96, 59)
+    pg.title("Reactor-inlet CO, CH$_4$ and N$_2$ at the optimum", 108, 59)
+    return pg
+
+
+FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5, 8: ed8}
 
 
 # ---------------------------------------------------------------------------------------------- captions
@@ -521,27 +763,46 @@ def write_captions():
 
     d = E.edfig3()
     a, b, c, dd = (d[k][0] for k in "abcd")
+    e = d["e"][0]
     cc = c.set_index("scenario")
     bc = b.set_index("threshold")
+    st = E.rjson(E.STATS + "summary.json")
     out += ["## Extended Data Fig. 3 | Robustness of the methanol leader changes", "",
-            "**a**, Share of the 83 published comparisons whose STY leader is not the plant-cost leader, over %s "
-            "paper-cluster bootstrap resamples of the 44 papers: observed %s %%, 95 %% CI %s–%s %%. **b**, Mismatched "
+            "**a**, Share of the %d published comparisons whose STY leader is not the "
+            "plant-cost leader, over %s paper-cluster bootstrap resamples of the %d papers: "
+            "observed %s %%, 95 %% CI %s–%s %%. **b**, Mismatched "
             "comparisons whose regret (cost penalty of building the STY leader) is at least the threshold: %d at 0, "
             "%d at 1 %% (%d papers), %d at 5 %%, %d at 10 %%. **c**, Mean and 95 %% range over %s draws of the number "
             "of mismatched comparisons when every entry is re-measured with the error the papers' own data imply (×1, "
-            "×2, ×4) or with ×1 plus the agent's measured plot-reading errors (circles), against the noise floor, the "
-            "number of comparisons whose reported STY leader changes under re-measurement alone (squares): ×1 %.1f "
-            "(%d–%d) against a floor of %.1f (%d–%d); dashed, observed %d. **d**, Share of draws in which each observed "
-            "mismatch persists (bars, ×1; ticks, ×1 plus plot-reading errors); %d of %d persist in at least 90 %% of "
-            "draws at ×1 and %d with plot-reading errors added. Source: `%s`." % (
-                format(a.attrs["n"], ","), _p(a.attrs["point"]), _p(a.attrs["ci"][0]), _p(a.attrs["ci"][1]),
-                bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
+            "×2, ×4; circles), against the noise floor, the number of comparisons whose reported STY leader changes "
+            "under re-measurement alone (squares): ×1 %.1f (%d–%d) against a floor of %.1f (%d–%d); dashed, observed "
+            "%d. **d**, Share of draws in which each observed mismatch persists at ×1; %d of %d persist in at least "
+            "90 %% of draws. Source: `%s`." % (
+                st["groups"], format(a.attrs["n"], ","), st["papers"], _p(a.attrs["point"]), _p(a.attrs["ci"][0]),
+                _p(a.attrs["ci"][1]), bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
                 bc.loc[0.1, "groups"], format(c.attrs["draws"], ","),
                 cc.loc["meas_k1", "mismatch_groups_mean"], cc.loc["meas_k1", "mismatch_groups_q025"],
                 cc.loc["meas_k1", "mismatch_groups_q975"], cc.loc["meas_k1", "noise_floor_mean"],
                 cc.loc["meas_k1", "noise_floor_q025"], cc.loc["meas_k1", "noise_floor_q975"], c.attrs["observed"],
-                int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd),
-                int((dd.p_mismatch_meas_k1_plus_extraction >= 0.9).sum()), E.STATS), ""]
+                int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd), E.STATS)]
+    fin = e[np.isfinite(e.limit)]
+    span = fin[(fin.limit >= 0.05 - 1e-9) & (fin.limit <= 0.10 + 1e-9)]
+    nl = e[~np.isfinite(e.limit)].iloc[0]
+    ref = e[np.isclose(e.limit, e.attrs["reference"])].iloc[0]
+    lit = e.attrs.get("literature")
+    out[-1] = out[-1].replace(" Source: `%s`." % E.STATS, "")
+    out[-1] += (" **e**, Share of comparisons whose STY leader is not the plant-cost leader against the limit on the "
+                "reactor-inlet content of species other than H$_2$ and CO$_2$ (all comparisons, circles; isothermal "
+                "comparisons of at least two catalysts, squares; right edge, no limit). Dashed, the calibrated reference "
+                "loop (%s %%): %d / %d (%s %%) and %d / %d (%s %%). Shaded, the reactor inlets of %d published "
+                "CO$_2$-to-methanol loop designs (%.1f–%.1f %%). Between 5 %% and 10 %%: %s–%s %% and %s–%s %%; no limit: "
+                "%s %% and %s %%. Source: `%s`; `%s` (summary.json limit_sweep, isothermal; inlet_inert_literature.csv)."
+                % (_p(e.attrs["reference"], 2), ref.mismatched, ref.groups, _p(ref.share), ref.iso_mismatched,
+                   ref.iso_groups, _p(ref.iso_share), lit[2], 100 * lit[0], 100 * lit[1],
+                   _p(min(span.share.min(), ref.share)), _p(max(span.share.max(), ref.share)),
+                   _p(min(span.iso_share.min(), ref.iso_share)), _p(max(span.iso_share.max(), ref.iso_share)),
+                   _p(nl.share), _p(nl.iso_share), E.STATS, E.INV))
+    out += [""]
 
     d = E.edfig4()
     t, bm = d["a"][0], d["b"][0].set_index("metal")
@@ -581,22 +842,66 @@ def write_captions():
     rest = b[~b.study.str.startswith("Campos")]
     base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
     cat = dd[dd.variant.str.startswith("catalyst_repl_95")].set_index("variant").mismatch_groups
+    ta = a.set_index("category")
+    sub, tot = ta.loc["subtotal"], ta.loc["total"]
+    stoich = ta.loc["catalyst-independent"]
+    sens = a[a.category == "catalyst-sensitive"]
+    fom = ta.loc["accounting"]
+    pf_aligned = dd[dd.variant == "pf_aligned_recycle_compression_capital"].mismatch_groups.iloc[0]
     out += ["## Extended Data Fig. 4 | The methanol plant model against published plants", "",
-            "**a**, Cost terms of the Pérez-Fortes et al. (2016) plant run at its own point, prices, catalyst charge "
-            "and finance (model / reference, EUR t$^{-1}$): break-even methanol price (production cost plus capital recovery) %.0f / %.0f (%+.1f %%); the anchor "
-            "convention adds a catalyst-independent residual and 10 %% of the net production cost (%.0f EUR t$^{-1}$), "
-            "common to every catalyst. **b**, Like-for-like cost against each study's reported production cost or break-even price at that study's "
-            "own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases %+.1f to "
-            "%+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s). **d**, Number "
-            "of the 83 comparisons whose STY leader is not the plant-cost leader under %d plant-model variants (keys in "
-            "Source Data): model as used %d; catalyst replacement at 95.24 EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, "
-            "%d and %d. Source: `%s`." % (
-                pf.model_eur_t, pf.reference_eur_t, pf.deviation_pct,
-                a.set_index("term").loc["residual direct + 10 % of NPC (anchor convention)", "model"], len(b),
+            "**a**, The Pérez-Fortes et al. (2016) plant run at its own operating point, prices, catalyst charge and "
+            "finance, term by term (model / reference, EUR t$^{-1}$). The stoichiometric H$_2$ and CO$_2$ demand "
+            "(%.1f / %.1f) does not depend on the catalyst. The catalyst-sensitive terms (feed above stoichiometry, "
+            "electricity, catalyst replacement, capital) sum to %.1f / %.1f (%+.1f %%): feed %+.1f %%, electricity "
+            "%+.1f %%, catalyst %+.1f %%, capital %+.1f %%. Fixed operation and maintenance is the reference value on "
+            "both sides (%.2f). Total, against the reference break-even price (NPV = 0): %.1f / %.1f (%+.1f %%). "
+            "**b**, Like-for-like cost against each study's reported production cost or break-even price at that "
+            "study's own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases "
+            "%+.1f to %+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s; red, "
+            "more than 10 %% apart). **d**, Number of the %d comparisons whose STY leader is not the plant-cost leader "
+            "under %d plant-model variants (keys in Source Data): model as used %d; catalyst replacement at 95.24 "
+            "EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, %d and %d; recycle, compression and capital set to "
+            "Pérez-Fortes gives %d. Source: `%s`." % (
+                stoich.model, stoich.reference, sub.model, sub.reference, sub.deviation_pct,
+                *sens.deviation_pct.iloc[:4], fom.model, tot.model, tot.reference, tot.deviation_pct, len(b),
                 rest.deviation_pct.min(), rest.deviation_pct.max(),
-                "; ".join("%s %.2f" % (r.metric.replace("$_2$", "2"), r.ratio) for r in c.itertuples()), len(dd), base,
+                "; ".join("%s %.2f" % (r.metric.replace("$_2$", "2"), r.ratio) for r in c.itertuples()),
+                E.rjson(E.STATS + "summary.json")["groups"], len(dd), base,
                 cat["catalyst_repl_95.24EURkg_6y"], cat["catalyst_repl_95.24EURkg_4y"],
-                cat["catalyst_repl_95.24EURkg_1y"], E.BENCH), ""]
+                cat["catalyst_repl_95.24EURkg_1y"], pf_aligned, E.BENCH), ""]
+
+    d = E.edfig8()
+    e8, f8 = d["e"][0].set_index("key"), d["f"][0].set_index("key")
+    pb = E.rjson(E.INV + "purge_boundary_summary.json")
+    bd, ext = pb["boundary"], pb["boundary"]["at_extended_optimum"]
+    lim = pb["limits"]
+    n_pub = d["b"][0].attrs["published"][2]
+    row = lambda k: "%d / %d (%d with regret > 5 %%)" % (e8.loc[k, "different_winner"], e8.loc[k, "groups"],  # noqa: E731
+                                                       e8.loc[k, "regret_gt5pct"])
+    lab = [("canonical", "frozen grid"), ("extended", "extended grid"),
+           ("limit_published_max", "≤ %.2f %%" % (100 * lim["published_max"])),
+           ("limit_anchor", "≤ %.2f %%" % (100 * lim["anchor"])),
+           ("limit_published_min", "≤ %.2f %%" % (100 * lim["published_min"]))]
+    out += ["## Extended Data Fig. 8 | Purge boundary and inlet-constrained methanol loops", "",
+            "**a**, Net production cost along the purge grid for each of the %d scored methanol entries (S5 model), "
+            "relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, dashed); the grid is "
+            "extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below 0.5 %% for %d of %d "
+            "entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above it. **b**, "
+            "Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the inlets of "
+            "%d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the cost model "
+            "(%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; dashed, anchor "
+            "loop %.2f) for the frozen grid, the extended grid (median recycle ratio %.0f) and with the inlet content "
+            "limited to %.2f, %.2f and %.2f %% on the extended grid (bars, median). **e**, Comparisons whose STY "
+            "leader is not the plant-cost leader: %s. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each optimum, "
+            "mean over the scored entries (total: %s). Source: `%s` (purge_boundary_summary.json, "
+            "purge_boundary_entries.csv, purge_boundary_curves.csv)." % (
+                pb["entries"], bd["extended_optimum_below_0p5pct"], pb["entries"], 100 * ext["purge"]["median"],
+                _p(bd["cost_at_0p5pct_above_extended_optimum"]["median"]), n_pub,
+                100 * lim["published_min"], 100 * lim["published_max"], _p(lim["anchor"], 2),
+                pb["anchor_loop"]["recycle_ratio"], ext["recycle_ratio"]["median"], 100 * lim["published_max"],
+                100 * lim["anchor"], 100 * lim["published_min"],
+                "; ".join("%s %s" % (t, row(k)) for k, t in lab),
+                "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab), E.INV), ""]
 
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
@@ -606,16 +911,20 @@ def write_captions():
             "in %d comparison groups; every bound lies below its full cost. Agent rule per group: evaluate the paper's "
             "leader in full, then the others in increasing bound order until the next bound exceeds the best full "
             "cost; %d candidates are evaluated in full (blue), %d are excluded. **b**, The same for the %d ammonia "
-            "bimetallic surfaces inside the bed cap (of %d costed); a surface is excluded when its bound exceeds the Fe "
+            "surfaces inside the bed cap (%d bimetallic, %d pure metals; of %d costed); a surface is excluded when its bound exceeds the Fe "
             "benchmark (%.2f USD t$^{-1}$, dashed). **c**, Share of candidates evaluated in full: %s. No plant-cost "
             "leader and no surface below Fe is excluded. Source: `%s`, `%s`." % (
                 len(a), a.group.nunique(), int(a.evaluated_recycled_opt.sum()), int((~a.evaluated_recycled_opt).sum()),
-                int(b.feasible.sum()), len(b), fe,
+                int(b.feasible.sum()), int((b.feasible & b.surface.str.count(r"[A-Z]").gt(1)).sum()),
+                int((b.feasible & b.surface.str.count(r"[A-Z]").eq(1)).sum()), len(b), fe,
                 "; ".join("%s %d / %d (%s %% excluded)" % (s, r.full_evaluations, r.candidates,
                                                           _p(r.excluded_by_bound / r.candidates))
                           for s, r in cr.iterrows()), E.PRUNE + "candidate_bounds.csv", E.ALLOY), ""]
     assert int(cr.leader_missed.sum()) == 0
-    assert (a.bound <= a.cost_recycled_opt * (1 + 5e-6)).all() and (a.bound <= a.cost_inert_opt * (1 + 5e-6)).all()
+    # infeasible candidates (NaN cost) are in no leaderboard; the bound must hold for every feasible one
+    for col in ("cost_recycled_opt", "cost_inert_opt"):
+        fin = np.isfinite(a[col])
+        assert (a.bound[fin] <= a[col][fin] * (1 + 5e-6)).all(), col
     head, *blocks = "\n".join(out).split("\n## Extended Data Fig. ")
     blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
     text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))

@@ -121,6 +121,7 @@ def edfig3():
     rows = []
     labels = {"meas_k1": "re-measured, error x1", "meas_k2": "re-measured, error x2",
               "meas_k4": "re-measured, error x4", "meas_k1_plus_extraction": "error x1 + plot-reading errors"}
+    labels = {k: v for k, v in labels.items() if k in st["noise"]}      # the printed-value primary has no plot readings
     for k, lab in labels.items():
         v = st["noise"][k]
         rows.append(dict(scenario=k, label=lab, mismatch_groups_mean=v["mismatch_groups_mean"],
@@ -136,14 +137,46 @@ def edfig3():
     gp = rcsv(STATS + "group_noise_probabilities.csv")
     d = gp[gp.observed_mismatch.astype(str) == "True"].copy()
     d = d.sort_values(["p_mismatch_meas_k1", "observed_regret"], ascending=False).reset_index(drop=True)
-    d = d[["group", "doi", "observed_regret", "p_mismatch_meas_k1", "p_mismatch_meas_k2", "p_mismatch_meas_k4",
-           "p_mismatch_meas_k1_plus_extraction"]]
+    d = d[["group", "doi", "observed_regret"] + [f"p_mismatch_{k}" for k in labels]]
     assert int((d.p_mismatch_meas_k1 >= 0.9).sum()) == st["noise"]["meas_k1"]["observed_mismatches_kept_in_ge_90pct"]
+    c.attrs["groups"] = st["groups"]
+    a.attrs["groups"] = st["groups"]
+    e = limit_sweep_table()
     return {"a": (a, STATS + "group_noise_probabilities.csv (observed_mismatch, doi) re-drawn with the seed and "
                   "resample count of " + STATS + "summary.json; 95 % CI checked against summary.json"),
             "b": (b, STATS + "regret_threshold_curve.csv"),
             "c": (c, STATS + "summary.json (noise.*)"),
-            "d": (d, STATS + "group_noise_probabilities.csv (observed_mismatch == True)")}
+            "d": (d, STATS + "group_noise_probabilities.csv (observed_mismatch == True)"),
+            "e": (e, INV + "summary.json (limit_sweep, isothermal); published reactor-inlet compositions in "
+                  + INV + "inlet_inert_literature.csv")}
+
+
+def limit_sweep_table():
+    """Share of comparisons whose STY leader is not the plant-cost leader against the limit on the reactor-inlet
+    non-H2/CO2 fraction, for all comparisons and for isothermal catalyst comparisons. Rows: the absolute limits of
+    the sweep, the reference loop value used by the primary, and no limit (plotted at the right edge)."""
+    sm = rjson(INV + "summary.json")
+    ref = float(sm["thermodynamics"]["inlet_limit"])
+    rows = []
+    for key, v in sm["limit_sweep"].items():
+        lim = np.inf if key.startswith("none") else float(key.rstrip("%")) / 100.0
+        iso = sm["isothermal"]["limit_sweep"][key]
+        rows.append(dict(limit=lim, label=key, groups=v["groups"], mismatched=v["top1_mismatch_groups"],
+                         share=v["top1_mismatch_fraction"], iso_groups=iso["groups"],
+                         iso_mismatched=iso["top1_mismatch_groups"], iso_share=iso["top1_mismatch_fraction"]))
+    p, iso = sm["variants"]["inlet_limit_6.86pct"], sm["isothermal"]["variants"]["inlet_limit_6.86pct"]
+    rows.append(dict(limit=ref, label="reference loop %.2f%%" % (100 * ref), groups=p["groups"],
+                     mismatched=p["top1_mismatch_groups"], share=p["top1_mismatch_fraction"],
+                     iso_groups=iso["groups"], iso_mismatched=iso["top1_mismatch_groups"],
+                     iso_share=iso["top1_mismatch_fraction"]))
+    t = pd.DataFrame(rows).sort_values("limit").reset_index(drop=True)
+    t.attrs["reference"] = ref
+    lit = path(INV + "inlet_inert_literature.csv")
+    if os.path.exists(lit):
+        L = pd.read_csv(lit)
+        L = L[L.loop_type.str.upper().str.startswith("CO2") & L.non_h2co2_pct.notna()]
+        t.attrs["literature"] = (float(L.non_h2co2_pct.min()) / 100.0, float(L.non_h2co2_pct.max()) / 100.0, len(L))
+    return t
 
 
 # ------------------------------------------------------------------ ED Fig. 4: measured ammonia catalysts -------
@@ -184,7 +217,7 @@ def edfig5():
     rows = [("preregistered (pure-Ru benchmark bed)", "Ru_base", sm["base_reproduced"]["P_Fe_cheaper"]),
             ("A: u and r on the price, benchmark bed (Fig. 3d reading)", "Ru_A", sm["A"]["P_Fe_cheaper"]),
             ("A_bed: u and r, commercial Ru/C bed", "Ru_A_bed", sm["A_bed"]["P_Fe_cheaper"]),
-            ("B: measured Ru catalysts, 90-97 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
+            ("B: measured Ru catalysts, 90-95.6 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
             ("B0: measured Ru catalysts, no recovery", "Ru_B0", sm["B0"]["P_Fe_cheaper"])]
     a = []
     for lab, col, p in rows:
@@ -219,13 +252,64 @@ def edfig5():
 
 
 # ------------------------------------------------------------------ ED Fig. 6: methanol plant benchmark ---------
+def pf_cost_terms():
+    """Perez-Fortes 2016 at its own point, prices, catalyst charge and finance, split into the stoichiometric feed
+    (3 H2 and 1 CO2 per MeOH at the study's prices; the same for every catalyst) and the catalyst-sensitive terms (feed
+    above stoichiometry, compression electricity, catalyst replacement, capital), from the independent accounting of
+    analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py (molecular weights read from the model source). The
+    harmonized total puts the reference fixed operating cost (FCP 24.57 EUR/t) on the model side; the model's own fixed
+    O&M is reported separately and is not part of that total."""
+    import sys
+    sys.path.insert(0, path("analysis/review_pf_benchmark_2026_10_09"))
+    import pf_benchmark_audit as PA
+    from pathlib import Path as _P
+    b = _P(path(BENCH))
+    summ = json.loads((b / "summary.json").read_text(encoding="utf-8"))
+    report, terms = PA.calculate(PA.rows(b / "reconciliation_cost.csv"), PA.ref_values(PA.rows(b / "reference_values.csv")),
+                                 summ["perez_fortes_primary"], float(summ["perez_fortes_like_for_like_eur_t"]),
+                                 PA.plant_pf(PA.rows(b / "reconciliation_plant.csv")), PA.weight_constants(PA.MODEL_PATH))
+    assert not report["errors"], report["errors"]
+    t = {r["item"]: r for r in terms}
+    rc = rcsv(BENCH + "reconciliation_cost.csv")
+    pf = rc[rc.case.str.startswith("B3 Perez-Fortes")].set_index("term")
+    rows = [("stoichiometric H$_2$ and CO$_2$ (3:1)", "catalyst-independent",
+             t["H2 for three H2 per MeOH"]["model_EUR_t"], t["H2 for three H2 per MeOH"]["reference_EUR_t"]),
+            ("H$_2$ and CO$_2$ above stoichiometry", "catalyst-sensitive",
+             t["H2 expenditure above stoichiometric floor"]["model_EUR_t"]
+             + t["CO2 expenditure above stoichiometric floor"]["model_EUR_t"],
+             t["H2 expenditure above stoichiometric floor"]["reference_EUR_t"]
+             + t["CO2 expenditure above stoichiometric floor"]["reference_EUR_t"]),
+            ("electricity (model: compressors; ref.: utilities net)", "catalyst-sensitive",
+             t["electricity and utilities"]["model_EUR_t"], t["electricity and utilities"]["reference_EUR_t"]),
+            ("catalyst replacement", "catalyst-sensitive",
+             t["catalyst replacement"]["model_EUR_t"], t["catalyst replacement"]["reference_EUR_t"]),
+            ("capital (8 %, 20 y)", "catalyst-sensitive",
+             t["capital annuity"]["model_EUR_t"], t["capital annuity"]["reference_EUR_t"]),
+            ("fixed O&M (reference value on both sides)", "accounting",
+             t["fixed O&M on published basis"]["model_EUR_t"], t["fixed O&M on published basis"]["reference_EUR_t"])]
+    a = pd.DataFrame(rows, columns=["term", "category", "model", "reference"])
+    sens = a[a.category == "catalyst-sensitive"][["model", "reference"]].sum()
+    tot = a[["model", "reference"]].sum()
+    like = pf.loc["TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)"]
+    # model side: the terms add up to the harmonized total; reference side: the published NPV = 0 break-even price.
+    # The reference terms are derived shares of the variable production cost (raw materials 95.9 %, utilities 2.6 %,
+    # consumables 1.5 % of 283 M EUR/a = 642.0 EUR/t, against 641.48 EUR/t in its Table 4) and add up to 724.1.
+    assert abs(tot.model - float(like.model)) < 0.06 and abs(tot.reference - float(like.reference)) < 1.0, (tot, like)
+    a = pd.concat([a, pd.DataFrame([
+        dict(term="catalyst-sensitive subtotal", category="subtotal", model=sens.model, reference=sens.reference),
+        dict(term="total (harmonized; ref.: NPV = 0 break-even price)", category="total", model=tot.model,
+             reference=float(like.reference))])], ignore_index=True)
+    a["deviation_pct"] = 100 * (a.model / a.reference - 1)
+    a.attrs["reference_terms_sum"] = float(tot.reference)
+    a.attrs["model_own_fixed_om"] = float(pf.loc["fixed O&M", "model"])
+    a.attrs["anchor_residual"] = float(pf.loc["residual direct + 10 % of NPC (anchor convention)", "model"])
+    a.attrs["breakeven_basis"] = str(like.ref_basis)
+    return a
+
+
 def edfig6():
     rc = rcsv(BENCH + "reconciliation_cost.csv")
-    pf = rc[rc.case.str.startswith("B3 Perez-Fortes")].copy()
-    terms = ["H2", "electricity + utilities", "catalyst replacement", "capital (annuity at 8 %, 20 y)", "fixed O&M",
-             "residual direct + 10 % of NPC (anchor convention)",
-             "TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)", "TOTAL, anchor convention"]
-    a = pf.set_index("term").loc[terms, ["model", "reference", "deviation", "ref_basis"]].reset_index()
+    a = pf_cost_terms()
     tot = rc[rc.term.str.contains("like-for-like") | (rc.term == "TOTAL") | (rc.term == "TOTAL with catalyst term")]
     tot = tot[~tot.term.str.contains("catalyst in residual")]
     label = []
@@ -260,13 +344,17 @@ def edfig6():
           ("compression power (MWh/t)", "elec_MWh_t", "electricity_compressors_MWh_t")]
     c = pd.DataFrame([dict(metric=lab, model=m7[mk], reference=float(ref[rk]), ratio=m7[mk] / float(ref[rk]))
                       for lab, mk, rk in qs])
-    ss = rjson(BENCH + "sensitivity_summary.json")["variants"]
+    sj = rjson(BENCH + "sensitivity_summary.json")
+    ss = sj["variants"]
     d = pd.DataFrame([dict(variant=k, mismatch_groups=v["top1_mismatch_groups"], groups=v["groups"],
                            papers_with_mismatch=v["papers_with_mismatch"],
-                           regret_median_mismatched=v["regret_median_mismatched"]) for k, v in ss.items()])
+                           regret_median_mismatched=v["regret_median_mismatched"],
+                           knobs=json.dumps(v.get("knobs", {}))) for k, v in ss.items()])
+    d.attrs["pf_alignment"] = sj.get("pf_alignment", {})
     d = d.sort_values("mismatch_groups", kind="stable").reset_index(drop=True)
     d.insert(0, "key", np.arange(1, len(d) + 1))
-    return {"a": (a, BENCH + "reconciliation_cost.csv (case B3 Perez-Fortes 2016)"),
+    return {"a": (a, BENCH + "reconciliation_cost.csv (case B3 Perez-Fortes 2016), split by "
+                  "analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py"),
             "b": (b, BENCH + "reconciliation_cost.csv (TOTAL and like-for-like rows)"),
             "c": (c, BENCH + "summary.json (model_cases M7) and reference_values.csv (ref_id PEREZFORTES16)"),
             "d": (d, BENCH + "sensitivity_summary.json (variants)")}
@@ -329,8 +417,62 @@ def edfig7():
             "c": (d, PRUNE + "summary.json, " + ALLOY_SUM + " (pruning) and " + ALLOY)}, fe
 
 
+# ------------------------------------------------------------------ ED Fig. 8: purge optimum and inlet composition
+PURGE_TREATMENTS = (("canonical", "S5 as frozen: purge grid 0.5–40 %"),
+                    ("extended", "S5 model, purge grid extended to 10$^{-4}$ %"),
+                    ("limit_published_max", "inlet ≤ %.2f %% (highest published design)"),
+                    ("limit_anchor", "inlet ≤ %.2f %% (the cost model's anchor loop)"),
+                    ("limit_published_min", "inlet ≤ %.2f %% (lowest published design)"))
+
+
+def edfig8():
+    """Purge-boundary test and inlet-constrained optimization (run_purge_boundary.py): cost and inlet composition along
+    the extended purge grid for every scored entry; purge, recycle ratio and inlet CO / CH4 / N2 at the optimum of each
+    treatment; comparisons with a different winner."""
+    src = INV + "purge_boundary_"
+    sm = rjson(src + "summary.json")
+    ent = rcsv(src + "entries.csv")
+    cur = rcsv(src + "curves.csv")
+    assert len(ent) == sm["entries"] and cur.i.nunique() == len(ent)
+    lim = sm["limits"]
+    label = {k: (t % (100 * lim[k[6:]]) if k.startswith("limit_") else t) for k, t in PURGE_TREATMENTS}
+    cur["cost_rel_0p5pct"] = cur.cost_eur_t / ent.cost_at_0p5pct.to_numpy()[cur.i.to_numpy()]
+    a = cur[["i", "purge", "cost_eur_t", "cost_rel_0p5pct"]]
+    a.attrs["purge_floor"] = sm["grid"]["canonical_floor"]
+    b = cur[["i", "purge", "nonreactive", "CO", "CH4", "N2"]].copy()
+    b.attrs["published"] = (lim["published_min"], lim["published_max"], len(sm["published_inlet_non_h2co2_pct"]))
+    b.attrs["anchor"] = lim["anchor"]
+    long = []
+    for k, _ in PURGE_TREATMENTS:
+        t = pd.DataFrame(dict(treatment=label[k], key=k, i=ent.index, cost_eur_t=ent[k + "_cost"],
+                              cost_rel_0p5pct=ent[k + "_cost"] / ent.cost_at_0p5pct, purge=ent[k + "_purge"],
+                              recycle_ratio=ent[k + "_recycle_ratio"], nonreactive=ent[k + "_nonreactive"],
+                              CO=ent[k + "_CO"], CH4=ent[k + "_CH4"], N2=ent[k + "_N2"]))
+        long.append(t)
+    long = pd.concat(long, ignore_index=True)
+    c = long[["treatment", "key", "i", "purge", "cost_rel_0p5pct", "nonreactive"]]
+    d = long[["treatment", "key", "i", "recycle_ratio"]].copy()
+    d.attrs["anchor_recycle_ratio"] = sm["anchor_loop"]["recycle_ratio"]
+    res = {"canonical": sm["boundary"]["s5_scored"], "extended": sm["boundary"]["scored"],
+           **{"limit_" + k: v["scored"] for k, v in sm["constrained"].items()}}
+    changed = {"canonical": 0, "extended": sm["boundary"]["plant_winner_changed_vs_s5"],
+               **{"limit_" + k: v["plant_winner_changed_vs_s5"] for k, v in sm["constrained"].items()}}
+    e = pd.DataFrame([dict(treatment=label[k], key=k, groups=res[k]["groups"],
+                           different_winner=res[k]["top1_mismatch_groups"],
+                           regret_gt5pct=res[k]["regret_bins"]["gt5pct"]["groups"],
+                           plant_winner_changed_vs_s5=changed[k]) for k, _ in PURGE_TREATMENTS])
+    f = long.groupby(["key", "treatment"], sort=False)[["CO", "CH4", "N2", "nonreactive"]].mean().reset_index()
+    f.attrs["published"] = b.attrs["published"]
+    return {"a": (a, src + "curves.csv (cost_eur_t) / " + src + "entries.csv (cost_at_0p5pct)"),
+            "b": (b, src + "curves.csv; limits " + src + "summary.json (" + INV + "inlet_inert_literature.csv)"),
+            "c": (c, src + "entries.csv (<treatment>_purge)"),
+            "d": (d, src + "entries.csv (<treatment>_recycle_ratio); anchor " + src + "summary.json anchor_loop"),
+            "e": (e, src + "summary.json (boundary, constrained)"),
+            "f": (f, src + "entries.csv (<treatment>_CO, _CH4, _N2, _nonreactive), means over the scored entries")}
+
+
 if __name__ == "__main__":
-    for f in (edfig1, edfig3, edfig4, edfig5, edfig6):
+    for f in (edfig1, edfig3, edfig4, edfig5, edfig6, edfig8):
         r = f()
         print(f.__name__, {k: v[0].shape for k, v in r.items()})
     r, _ = edfig2()

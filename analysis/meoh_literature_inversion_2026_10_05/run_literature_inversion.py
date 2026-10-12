@@ -1,210 +1,241 @@
-"""Paper leaderboards versus plant-cost leaderboards for literature CO2-to-methanol catalysts.
+"""Paper leaderboards versus plant-cost leaderboards for literature CO2-to-methanol catalysts: the frozen methanol field
+result (author decisions of 2026-10-08) and its sensitivities.
 
 Input: the literature-extraction Agent's normalized records (agent/extraction/out/records_normalized.csv), used as
 extracted, with no manual correction. Every record with CO2 conversion, methanol selectivity, temperature, pressure
-and H2/CO2 is a candidate operating point.
+and H2/CO2 (and a dry CO2/H2 feed) is a candidate operating point.
+
+Primary cohort: printed values only (meoh_candidates.printed_entry): CO2 conversion and methanol selectivity printed,
+and every CO / CH4 selectivity the paper reports printed too; a printed STY defines the group basis only where it is
+itself printed. Entries read from plots enter the all-entries sensitivity.
 
 Comparison groups. Within one paper, entries tested at the same pressure, H2/CO2 ratio and space velocity form one
-group: the comparison the paper itself makes (catalysts, and temperatures of one catalyst, as in the frozen
-four-state case). Groups with at least two entries are scored.
+group: the comparison the paper itself makes (catalysts, and temperatures of one catalyst). Groups with at least two
+entries are scored. One measurement printed in several places counts once (same catalyst, temperature and values).
 
-Paper leaderboard. Methanol space-time yield per g catalyst, the productivity figure papers use to rank catalysts.
-One productivity basis per group: the printed STY when every entry prints it, otherwise STY derived from the mass
-space velocity, otherwise from the volumetric space velocity with a bulk density of 1.0 g/mL (0.5 and 2.0 g/mL
-tested). Derived STY = GHSV x y_CO2 x X x S_MeOH / 22.414 x 32.042.
+Paper leaderboard. Methanol space-time yield per g catalyst. One productivity basis per group
+(meoh_candidates.group_basis): the printed STY when every entry prints it, unless printed STY / conversion-derived
+productivity varies by more than 3x within the group; otherwise STY from the mass space velocity, otherwise from the
+volumetric space velocity with a bulk density of 1.0 g/mL (0.5 and 2.0 g/mL tested).
 
-Plant leaderboard. Net production cost (EUR/t MeOH) from the generalized recycle-economics model
-(data/meoh/meoh_general_model.py) at each entry's own pressure, H2/CO2 and temperature, with catalyst mass from the
-group's productivity basis. Primary: recycled CO (central RWGS rule), entry-optimal purge. Variants: inert CO,
-2 % purge. Selectivity closure follows the workbook: S_MeOH and S_CH4 as reported ("<1" -> 0), CO-like residual
-1 - S_MeOH - S_CH4; when S_CH4 is not reported, S_CH4 = 1 - S_MeOH - S_CO if S_CO is reported, else 0.
+Plant leaderboard (frozen treatment, step S5 of analysis/verify_2026_10_08/meoh_decomposition.py). Net production cost
+(EUR/t MeOH) from the generalized recycle-economics model (data/meoh/meoh_general_model.py) at each entry's own
+pressure, H2/CO2 and temperature: recycled CO bounded by RWGS and CO-hydrogenation equilibrium, the per-pass CO2
+conversion the laboratory value capped where the loop outlet reaches CO2-hydrogenation equilibrium, cost-optimal purge
+over the canonical grid. Selectivity closure follows the workbook: S_MeOH and S_CH4 as reported ("<1" -> 0), CO-like
+residual 1 - S_MeOH - S_CH4; when S_CH4 is not reported, S_CH4 = 1 - S_MeOH - S_CO if S_CO is reported, else 0.
+
+Sensitivities (summary "variants" on the printed cohort unless stated): all entries (plot readings included), the
+reactor-inlet non-H2/CO2 limit of the workbook (6.86 %, step S6; x 1.5, 2, 3 and absolute limits 4-30 %), laboratory
+conversion uncapped (step S4), inert CO, 2 % purge, bulk density 0.5 / 2.0 g/mL, the leaderboard by X*S, X or
+S_MeOH, without the paper with the most groups, entries whose reported selectivities sum to >= 95 %, and isothermal
+catalyst comparisons (entries of a group at one temperature naming at least two catalysts). Disagreements are split
+by kind with their denominators (mismatch_kinds.classify). Conversion raised with catalyst inventory and the
+unreported CO / CH4 split are in run_conversion_sensitivity.py and run_selectivity_split.py.
 
 Self-check (Agent consistency with the hand-built case): the extracted Gothe et al. 2025 Table 4 entries are run
 through the same code path; their costs must equal the frozen Table 4 results, including the four canonical states.
 
-Outputs (this folder): literature_candidates.csv, group_metrics.csv, summary.json.
+Parallel over unique operating points, INV_WORKERS processes (default 4).
+
+Outputs (this folder): literature_candidates.csv (printed cohort, the primary), literature_candidates_all_entries.csv,
+group_metrics.csv (primary), group_metrics_all_entries.csv, group_metrics_inlet_limit.csv,
+group_metrics_isothermal.csv, selfcheck_gothe_table4.csv, summary.json.
 """
-import csv
 import json
+import os
 import sys
-from itertools import combinations
+import time
+from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(REPO / "data" / "meoh"))
+sys.path.insert(0, str(HERE))
 import meoh_general_model as G  # noqa: E402
 
-from meoh_candidates import (GOTHE_DOI, RECORDS, REQUIRED, RHO_DEFAULT, RHO_RANGE, candidate_row,  # noqa: E402
-                             gothe_selfcheck, read_records)
+from meoh_candidates import (GOTHE_DOI, LIMIT_SWEEP, RHO_SCALES, ROW_KEYS, aggregate, bootstrap,  # noqa: E402
+                             build_candidates, catalyst_key, gothe_selfcheck, plant_costs_star, read_records)
+from mismatch_kinds import classify, leader_differences  # noqa: E402
 
 sys.path.insert(0, str(REPO / "agent"))
 from selfcheck_gate import require  # noqa: E402
 
-require()          # ACSA scores new candidates only after reproducing all three hand-built cases
+WORKERS = int(os.environ.get("INV_WORKERS", "4"))
+TREATMENT = ("printed values only; recycled CO bounded by RWGS and CO-hydrogenation equilibrium; per-pass conversion "
+             "capped at the loop's CO2-hydrogenation equilibrium; cost-optimal purge, no inlet limit (step S5)")
 
 
-# ---------------------------------------------------------------- candidates ----------------------------------
-d = read_records()
-d = d.dropna(subset=REQUIRED).copy()
-rows = [c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None]
-cand = pd.DataFrame(rows)
-cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/CO2 "
-                 + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
+def regret_bins(gm):
+    m = gm[gm.top1_mismatch]
+    return {f"gt{int(t * 100)}pct": dict(groups=int((m.regret > t).sum()), papers=int(m[m.regret > t].doi.nunique()))
+            for t in (0.01, 0.05, 0.10)}
 
 
-PRINTED_SPREAD_MAX = 3.0   # printed STY / (F_CO2 X S) may vary by plot reading, not by more than this within a group
-
-
-def group_basis(g):
-    if g.sty_print.notna().all():
-        ratio = g.sty_print / g.sty_mass
-        if g.sty_mass.notna().all() and (ratio.min() <= 0 or ratio.max() / ratio.min() > PRINTED_SPREAD_MAX):
-            # the paper's printed rates contradict its own conversion and selectivity (mixed per-g-metal and
-            # per-g-catalyst rates in Sharma 2021; a zero rate at non-zero conversion in Rui 2017)
-            return "STY from mass GHSV (printed STY inconsistent with X*S*F)", g.sty_mass
-        return "printed STY", g.sty_print
-    if g.sty_mass.notna().all():
-        return "STY from mass GHSV", g.sty_mass
-    if g.sty_vol.notna().all():
-        return "STY from volumetric GHSV (assumed density)", g.sty_vol
-    if g.sty_print.notna().any():
-        return "printed STY (partial)", g.sty_print
-    return None, None
-
-
-parts = []
-for key, g in cand.groupby("group"):
-    basis, sty = group_basis(g)
-    g = g.copy()
-    g["sty_basis"] = basis
-    g["STY"] = sty
-    parts.append(g)
-cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
-cand = cand[cand.STY > 0].reset_index(drop=True)
-
-
-def plant(row, x_co="recycled_central", purge="opt", sty_scale=1.0):
-    kw = dict(STY_per_g_cat=row.STY * sty_scale, P_bar=row.P_bar, h2_co2=row.h2_co2, T_C=row.T_C, x_co=x_co)
-    c = dict(X=row.X, SMeOH=row.SMeOH, SCH4=row.SCH4, SCO=row.SCO)
-    if purge == "opt":
-        sweep = G.purge_sweep(c, **kw)["cost_eur_t"]
-        j = int(np.nanargmin(sweep))
-        return float(sweep[j]), float(G.PURGES[j])
-    return float(G.cost(c, purge=purge, **kw)["cost_eur_t"]), purge
-
-
-VARIANTS = {
-    "recycled_opt": dict(x_co="recycled_central", purge="opt"),
-    "recycled_2pct": dict(x_co="recycled_central", purge=0.02),
-    "inert_opt": dict(x_co="inert", purge="opt"),
-    "inert_2pct": dict(x_co="inert", purge=0.02),
-}
-for name, kw in VARIANTS.items():
-    res = [plant(r, **kw) for r in cand.itertuples()]
-    cand[f"cost_{name}"] = [c for c, _ in res]
-    if kw["purge"] == "opt":
-        cand[f"purge_{name}"] = [p for _, p in res]
-vol = cand.sty_basis.str.startswith("STY from volumetric")
-for rho in RHO_RANGE:
-    scale = RHO_DEFAULT / rho          # STY per g scales with 1/density
-    cand[f"cost_recycled_opt_rho{rho:g}"] = [plant(r, sty_scale=scale if v else 1.0)[0]
-                                             for r, v in zip(cand.itertuples(), vol)]
-
-# ---------------------------------------------------------------- self-check ----------------------------------
-got = cand[cand.doi == GOTHE_DOI].copy()
-check = gothe_selfcheck(got)
-selfcheck_max = float(check.abs_diff.max())
-canon = check[(check.canonical_state != "") & (check.treatment == "inert")]
-
-# ---------------------------------------------------------------- group metrics -------------------------------
-def group_metrics(g, cost_col, up_col="STY"):
-    g = g.sort_values(up_col, ascending=False)
-    up_best = g[up_col].max()
-    up_winners = set(g.index[g[up_col] >= up_best - 1e-12])
-    econ_idx = g[cost_col].idxmin()
-    c_best = g[cost_col].min()
-    c_up = g.loc[list(up_winners), cost_col].min()
-    n = len(g)
-    pairs = list(combinations(g.index, 2))
-    inv = sum(1 for a, b in pairs
-              if (g.at[a, up_col] - g.at[b, up_col]) * (g.at[b, cost_col] - g.at[a, cost_col]) < 0)
-    rho = (float(spearmanr(g[up_col], -g[cost_col]).statistic) if n >= 3 and g[up_col].nunique() > 1 else None)
-    up3 = set(g.nlargest(min(3, n), up_col).index)
-    ec3 = set(g.nsmallest(min(3, n), cost_col).index)
-    return dict(n=n, top1_mismatch=econ_idx not in up_winners,
-                regret=(c_up - c_best) / c_best,
-                upstream_winner=g.loc[sorted(up_winners)[0], "catalyst"], economic_winner=g.at[econ_idx, "catalyst"],
-                upstream_winner_cost=c_up, economic_winner_cost=c_best,
-                economic_rank_of_upstream_winner=int((g[cost_col] < c_up - 1e-9).sum()) + 1,
-                pairs=len(pairs), inversions=inv, spearman=rho,
-                top3_overlap=len(up3 & ec3) if n >= 4 else None)
-
-
-def aggregate(frame, cost_col, up_col="STY", label=""):
-    out = []
-    for key, g in frame.groupby("group"):
-        if len(g) < 2:
-            continue
-        m = group_metrics(g, cost_col, up_col)
-        m.update(group=key, doi=g.doi.iloc[0], basis=g.sty_basis.iloc[0])
-        out.append(m)
-    gm = pd.DataFrame(out)
-    if gm.empty:
-        return gm, {}
-    papers = gm.groupby("doi").top1_mismatch.any()
-    s = dict(variant=label, groups=len(gm), papers=int(gm.doi.nunique()), entries=int(gm.n.sum()),
-             top1_mismatch_groups=int(gm.top1_mismatch.sum()),
-             top1_mismatch_fraction=float(gm.top1_mismatch.mean()),
-             papers_with_mismatch=int(papers.sum()),
-             paper_weighted_mismatch_fraction=float(gm.groupby("doi").top1_mismatch.mean().mean()),
-             regret_median_all=float(gm.regret.median()),
-             regret_median_mismatched=float(gm.loc[gm.top1_mismatch, "regret"].median()) if gm.top1_mismatch.any() else 0.0,
-             regret_max=float(gm.regret.max()),
-             regret_mean_all=float(gm.regret.mean()),
-             pairwise_inversions=f"{int(gm.inversions.sum())}/{int(gm.pairs.sum())}",
-             pairwise_inversion_fraction=float(gm.inversions.sum() / gm.pairs.sum()),
-             groups_n_ge_4=int((gm.n >= 4).sum()),
-             top3_overlap_mean_n_ge_4=float(gm.loc[gm.n >= 4, "top3_overlap"].mean()) if (gm.n >= 4).any() else None)
+def scored(frame, cost_col, label, up_col="STY", with_kinds=False):
+    gm, s = aggregate(frame, cost_col, up_col=up_col, label=label)
+    if s:
+        s["regret_bins"] = regret_bins(gm)
+        if with_kinds:
+            gm, s["kinds"] = classify(frame, gm, cost_col)
     return gm, s
 
 
-primary_gm, primary = aggregate(cand, "cost_recycled_opt", label="primary: recycled CO, optimal purge, STY leaderboard")
-variants = {}
-for name in VARIANTS:
-    if name != "recycled_opt":
-        variants[name] = aggregate(cand, f"cost_{name}", label=name)[1]
-for rho in RHO_RANGE:
-    variants[f"density_{rho:g}"] = aggregate(cand, f"cost_recycled_opt_rho{rho:g}", label=f"density {rho:g} g/mL")[1]
-cand["XS"] = cand.X * cand.SMeOH
-variants["leaderboard_X_times_S"] = aggregate(cand, "cost_recycled_opt", up_col="XS", label="X*S leaderboard")[1]
-variants["leaderboard_X"] = aggregate(cand, "cost_recycled_opt", up_col="X", label="X leaderboard")[1]
-variants["leaderboard_S_MeOH"] = aggregate(cand, "cost_recycled_opt", up_col="SMeOH", label="S_MeOH leaderboard")[1]
-variants["printed_values_only"] = aggregate(cand[~cand.plot_read], "cost_recycled_opt", label="no plot readings")[1]
-BIGGEST = primary_gm.groupby("doi").size().idxmax()          # paper contributing the most scored groups
-variants["without_paper_with_most_groups"] = aggregate(cand[cand.doi != BIGGEST], "cost_recycled_opt",
-                                                       label=f"without {BIGGEST}")[1]
-variants["methanol_products_only"] = aggregate(cand[~cand.other_products], "cost_recycled_opt",
-                                               label="reported S_MeOH+S_CO+S_CH4 >= 95 %")[1]
+def main():
+    require()          # ACSA scores new candidates only after reproducing all three hand-built cases
+    t0 = time.time()
+    records = read_records()
+    sets = {"printed": build_candidates(records, printed_only=True),
+            "all": build_candidates(records, printed_only=False)}
+    keys = sorted({tuple(float(r[k]) for k in ROW_KEYS) for c in sets.values() for r in c[ROW_KEYS].to_dict("records")})
+    with Pool(WORKERS) as pool:
+        res = pool.map(plant_costs_star, [(dict(zip(ROW_KEYS, k)), RHO_SCALES) for k in keys], chunksize=4)
+    table = dict(zip(keys, res))
+    for name, c in sets.items():
+        costs = pd.DataFrame([table[tuple(float(r[k]) for k in ROW_KEYS)] for r in c[ROW_KEYS].to_dict("records")],
+                             index=c.index)
+        sets[name] = c = pd.concat([c, costs], axis=1)
+        c["feasible"] = np.isfinite(c.cost_recycled_opt)
+        c["XS"] = c.X * c.SMeOH
+    cand, alle = sets["printed"], sets["all"]
 
-# ---------------------------------------------------------------- outputs -------------------------------------
-keep = ["group", "doi", "entry", "catalyst", "T_C", "P_bar", "h2_co2", "ghsv_key", "X", "SMeOH", "SCO", "SCH4",
-        "reported_S_sum", "other_products", "plot_read", "sty_basis", "STY", "cost_recycled_opt",
-        "purge_recycled_opt", "cost_recycled_2pct", "cost_inert_opt", "purge_inert_opt", "cost_inert_2pct",
-        "cost_recycled_opt_rho0.5", "cost_recycled_opt_rho2", "source", "location"]
-cand.sort_values(["group", "STY"], ascending=[True, False])[keep].to_csv(HERE / "literature_candidates.csv",
-                                                                       index=False, float_format="%.6g")
-primary_gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
-check.to_csv(HERE / "selfcheck_gothe_table4.csv", index=False, float_format="%.10g")
-summary = dict(
-    records_in=int(len(read_records())), candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),
-    primary=primary, variants=variants,
-    selfcheck=dict(entries=int(len(got)), max_abs_diff_eur_t=selfcheck_max,
-                   canonical_states={r.canonical_state: round(r.agent, 2) for r in canon.itertuples()}),
-)
-(HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
-print(json.dumps(summary, indent=1, default=float))
+    # ------------------------------------------------------------ self-check ----------------------------------
+    got = alle[alle.doi == GOTHE_DOI].copy()
+    check = gothe_selfcheck(got)
+    selfcheck_max = float(check.abs_diff.max())
+    canon = check[(check.canonical_state != "") & (check.treatment == "inert")]
+
+    # ------------------------------------------------------------ primary -------------------------------------
+    primary_gm, primary = scored(cand, "cost_recycled_opt", "primary: " + TREATMENT, with_kinds=True)
+    primary["bootstrap"] = bootstrap(primary_gm)
+    primary["leader_differences"] = leader_differences(cand, primary_gm, "cost_recycled_opt", "purge_recycled_opt")
+
+    # ------------------------------------------------------------ sensitivities -------------------------------
+    all_gm, all_entries = scored(alle, "cost_recycled_opt", "all entries, plot readings included", with_kinds=True)
+    all_entries["bootstrap"] = bootstrap(all_gm)
+    inlet_gm, inlet = scored(cand, "cost_recycled_opt_inlet", "reactor-inlet non-H2/CO2 <= 6.86 % (step S6)",
+                             with_kinds=True)
+    inlet["bootstrap"] = bootstrap(inlet_gm)
+    variants = {
+        "inlet_limit_6.86pct": inlet,
+        **{f"inlet_limit_x{m:g}": scored(cand, f"cost_recycled_opt_limit_x{m:g}", f"inlet limit 6.86 % x {m:g}")[1]
+           for m in (1.5, 2.0, 3.0)},
+        "conversion_uncapped": scored(cand, "cost_recycled_opt_uncapped",
+                                      "laboratory conversion uncapped (step S4)")[1],
+        "recycled_2pct": scored(cand, "cost_recycled_2pct", "2 % purge")[1],
+        "inert_opt": scored(cand, "cost_inert_opt", "inert CO, optimal purge")[1],
+        "inert_opt_inlet_limit": scored(cand, "cost_inert_opt_inlet", "inert CO, inlet limit 6.86 %")[1],
+        "inert_2pct": scored(cand, "cost_inert_2pct", "inert CO, 2 % purge")[1],
+        **{f"density_{name[3:]}": scored(cand, f"cost_recycled_opt_{name}", f"density {name[3:]} g/mL")[1]
+           for name in RHO_SCALES},
+        "leaderboard_X_times_S": scored(cand, "cost_recycled_opt", "X*S leaderboard", up_col="XS")[1],
+        "leaderboard_X": scored(cand, "cost_recycled_opt", "X leaderboard", up_col="X")[1],
+        "leaderboard_S_MeOH": scored(cand, "cost_recycled_opt", "S_MeOH leaderboard", up_col="SMeOH")[1],
+        "methanol_products_only": scored(cand[~cand.other_products], "cost_recycled_opt",
+                                         "reported S_MeOH+S_CO+S_CH4 >= 95 %")[1],
+        "all_entries": all_entries,
+        "all_entries_inert_opt": scored(alle, "cost_inert_opt", "all entries, inert CO")[1],
+        "all_entries_inlet_limit": scored(alle, "cost_recycled_opt_inlet", "all entries, inlet limit 6.86 %")[1],
+        "all_entries_leaderboard_S_MeOH": scored(alle, "cost_recycled_opt", "all entries, S_MeOH leaderboard",
+                                                 up_col="SMeOH")[1],
+    }
+    biggest = primary_gm.groupby("doi").size().idxmax()          # paper contributing the most scored groups
+    variants["without_paper_with_most_groups"] = scored(cand[cand.doi != biggest], "cost_recycled_opt",
+                                                        f"without {biggest}")[1]
+    limit_sweep = {f"{lim * 100:g}%": scored(cand, f"cost_recycled_opt_lim{lim * 100:g}",
+                                             f"inlet limit {lim * 100:g} %")[1] for lim in LIMIT_SWEEP}
+    limit_sweep["none (primary)"] = {k: primary[k] for k in ("groups", "top1_mismatch_groups", "papers",
+                                                             "top1_mismatch_fraction")}
+
+    # isothermal catalyst comparisons: within a group, the entries at one temperature that name at least two
+    # different catalysts (the paper's catalyst ranking at fixed T, P, H2/CO2 and space velocity)
+    iso = cand.copy()
+    iso["group"] = iso.group + " | T " + iso.T_C.round(1).map("{:g}".format)
+    ncat = iso.groupby("group").catalyst.agg(lambda s: s.map(catalyst_key).nunique())
+    iso = iso[iso.group.isin(ncat[ncat >= 2].index)]
+    iso_gm, isothermal = scored(iso, "cost_recycled_opt", "isothermal catalyst comparisons, primary")
+    isothermal["bootstrap"] = bootstrap(iso_gm)
+    isothermal_variants = {"inlet_limit_6.86pct": scored(iso, "cost_recycled_opt_inlet", "isothermal, inlet limit")[1],
+                           "all_entries": None}
+    isothermal_limit_sweep = {f"{lim * 100:g}%": scored(iso, f"cost_recycled_opt_lim{lim * 100:g}",
+                                                        f"isothermal, inlet limit {lim * 100:g} %")[1]
+                              for lim in LIMIT_SWEEP}
+    isothermal_limit_sweep["none (primary)"] = {k: isothermal[k] for k in ("groups", "top1_mismatch_groups", "papers",
+                                                                           "top1_mismatch_fraction")}
+    iso_all = alle.copy()
+    iso_all["group"] = iso_all.group + " | T " + iso_all.T_C.round(1).map("{:g}".format)
+    nca = iso_all.groupby("group").catalyst.agg(lambda s: s.map(catalyst_key).nunique())
+    isothermal_variants["all_entries"] = scored(iso_all[iso_all.group.isin(nca[nca >= 2].index)], "cost_recycled_opt",
+                                                "isothermal, all entries")[1]
+    isothermal["variants"] = isothermal_variants
+    isothermal["limit_sweep"] = isothermal_limit_sweep
+
+    # bookkeeping of the thermodynamic treatment (primary cohort, entries in scored groups)
+    n = cand.groupby("group").size()
+    ing = cand[cand.group.isin(n[n >= 2].index)]
+    thermo = dict(
+        entries_in_scored_groups=int(len(ing)),
+        conversion_capped_at_some_purge=int((ing.n_capped_recycled > 0).sum()),
+        conversion_capped_at_primary_optimum=int((ing.X_eff_recycled_opt < ing.X * (1 - 1e-9)).sum()),
+        equilibrium_feasible_at_primary_optimum=int(ing.equilibrium_feasible_at_opt_recycled.sum()),
+        inlet_nonreactive_at_primary_optimum_quantiles={q: float(ing.nonreactive_at_opt_recycled.quantile(q))
+                                                        for q in (0.1, 0.5, 0.9, 1.0)},
+        entries_outside_inlet_limit_at_primary_optimum=int((ing.nonreactive_at_opt_recycled > G.NONREACTIVE_MAX).sum()),
+        entries_with_no_purge_level_within_inlet_limit=int((ing.n_inlet_ok_recycled == 0).sum()),
+        inlet_limit=float(G.NONREACTIVE_MAX),
+        purge_primary_quantiles={q: float(ing.purge_recycled_opt.quantile(q)) for q in (0.0, 0.1, 0.5, 0.9, 1.0)},
+        purge_at_grid_corner=int((ing.purge_recycled_opt <= G.PURGES[0] + 1e-12).sum()))
+    cohort = dict(
+        entries=int(len(cand)), entries_in_scored_groups=int(len(ing)), papers_with_entries=int(cand.doi.nunique()),
+        ch4_selectivity_not_printed=int((~ing.ch4_printed).sum()),
+        co_selectivity_not_printed=int((~ing.co_printed).sum()),
+        neither_printed=int((~ing.ch4_printed & ~ing.co_printed).sum()),
+        sty_basis_counts={k: int(v) for k, v in primary_gm.basis.value_counts().items()},
+        all_entries=int(len(alle)))
+
+    # ------------------------------------------------------------ outputs -------------------------------------
+    keep = ["group", "doi", "entry", "catalyst", "catalyst_key", "T_C", "P_bar", "h2_co2", "ghsv_key", "X", "SMeOH",
+            "SCO", "SCH4", "reported_S_sum", "other_products", "plot_read", "printed", "sty_printed", "ch4_printed",
+            "co_printed", "sty_basis", "STY", "y_co2", "feasible",
+            "cost_recycled_opt", "purge_recycled_opt", "X_eff_recycled_opt", "n_capped_recycled",
+            "equilibrium_feasible_at_opt_recycled", "nonreactive_at_opt_recycled", "co2_hyd_approach_at_opt_recycled",
+            "cost_recycled_opt_inlet", "purge_recycled_opt_inlet", "n_inlet_ok_recycled",
+            "cost_recycled_opt_limit_x1.5", "cost_recycled_opt_limit_x2", "cost_recycled_opt_limit_x3",
+            *[f"cost_recycled_opt_lim{lim * 100:g}" for lim in LIMIT_SWEEP],
+            "cost_recycled_opt_uncapped", "cost_recycled_2pct", "cost_recycled_2pct_inlet",
+            "cost_inert_opt", "purge_inert_opt", "cost_inert_opt_inlet", "cost_inert_2pct", "cost_inert_2pct_inlet",
+            "cost_recycled_opt_rho0.5", "cost_recycled_opt_rho2", "source", "location"]
+    for name, c in (("literature_candidates.csv", cand), ("literature_candidates_all_entries.csv", alle)):
+        # full precision: downstream reruns rebuild costs from these inputs
+        c.sort_values(["group", "STY"], ascending=[True, False])[keep].to_csv(HERE / name, index=False,
+                                                                           float_format="%.12g")
+    primary_gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
+    all_gm.to_csv(HERE / "group_metrics_all_entries.csv", index=False, float_format="%.6g")
+    inlet_gm.to_csv(HERE / "group_metrics_inlet_limit.csv", index=False, float_format="%.6g")
+    iso_gm.to_csv(HERE / "group_metrics_isothermal.csv", index=False, float_format="%.6g")
+    check.to_csv(HERE / "selfcheck_gothe_table4.csv", index=False, float_format="%.10g")
+    summary = dict(
+        treatment=TREATMENT, records_in=int(len(records)), cohort=cohort,
+        candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),   # printed cohort (primary)
+        duplicate_entries_counted_once=dict(printed=int(cand.attrs.get("duplicates_removed", 0)),
+                                            all=int(alle.attrs.get("duplicates_removed", 0))),
+        primary=primary, thermodynamics=thermo, variants=variants, limit_sweep=limit_sweep, isothermal=isothermal,
+        selfcheck=dict(entries=int(len(got)), max_abs_diff_eur_t=selfcheck_max,
+                       canonical_states={r.canonical_state: round(r.agent, 2) for r in canon.itertuples()}),
+        unique_operating_points=len(keys), runtime_s=round(time.time() - t0, 1), workers=WORKERS,
+    )
+    (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
+    p = summary["primary"]
+    print(json.dumps(summary, indent=1, default=float))
+    print(f"\nprimary {p['top1_mismatch_groups']}/{p['groups']} groups, {p['papers_with_mismatch']}/{p['papers']} papers;"
+          f" regret > 5 %: {p['regret_bins']['gt5pct']['groups']}; all entries "
+          f"{all_entries['top1_mismatch_groups']}/{all_entries['groups']}; inlet limit "
+          f"{inlet['top1_mismatch_groups']}/{inlet['groups']}")
+
+
+if __name__ == "__main__":
+    main()

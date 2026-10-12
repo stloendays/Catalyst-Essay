@@ -26,8 +26,10 @@ Literature values
                   Chem. Res. 45, 4150-4155 (2006), doi:10.1021/ie051398g; fewer than 1% of Fe
                   atoms are exposed in reduced fused-iron catalyst: Liu, Li, Suzuki, Ohnishi &
                   Ichikawa, CIESC J. 51, 462 (2000). u = 0.11 / 0.01 is a lower bound.
-  r    0.90-0.97  89-97.6% of the Ru recovered from spent activated-carbon-supported Ru ammonia
-                  catalyst: CN 1872418 A; 0.90 is the lower end used here.
+  r    0.90-0.9555  Ru recovered from spent promoted (Ba, K, Mg) activated-carbon-supported Ru ammonia
+                  catalyst: 93.05-95.55% (CN 1872418 A, Examples 1-3) and 91.1-95.4% (CN 101638727 B,
+                  Examples 1-3); 0.90 is the lower end used here. The 97.61% of CN 1872418 A Example 4 is an
+                  unpromoted Ru/C and is not used (author decision 2026-10-12).
   w    8 wt% (5-10 wt%)  Ru content of the commercial carbon-supported Ru ammonia catalyst
                   (BP/Kellogg KAAP catalyst ~8 wt% Ru on graphitised carbon): Brown et al., Catal. Lett.
                   144, 545 (2014); US 4,600,571.
@@ -71,7 +73,7 @@ FE_COST = 15.291704676621144
 ALPHA_STAR_CANON = 201.22
 P_RU = PRICE["Ru"]                       # 53,852.5 USD/kg, frozen
 U_MIN = 0.11 / 0.01                      # dispersion ratio, lower bound
-R_HI, R_LO = 0.97, 0.90                  # Ru recovery (CN 1872418 A)
+R_HI, R_LO = 0.9555, 0.90                # Ru recovery, promoted spent Ru/C (CN 1872418 A Ex. 3; lower end 0.90)
 W_RU = 0.08                              # Ru mass fraction of the commercial Ru/C catalyst (Brown 2014)
 W_RANGE = (0.05, 0.10)                   # its literature range (Brown 2014; US 4,600,571)
 RHO_SUPPORTED = (430.0, 550.0)           # bulk density range of the supported Ru/C bed, kg/m3 (derived)
@@ -142,9 +144,9 @@ SCEN = [  # key, label, u, r, mask
     ("pure", "Pure Ru, benchmark formulation (canonical)", 1.0, 0.0, None),
     ("supported", "Supported Ru/C, no recovery", U_MIN, 0.0, None),
     ("supp_rec90", "Supported Ru/C, 90% recovery", U_MIN, R_LO, None),
-    ("supp_rec97", "Supported Ru/C, 97% recovery", U_MIN, R_HI, None),
+    ("supp_rec_hi", "Supported Ru/C, 95.55% recovery", U_MIN, R_HI, None),
     ("kaap90", "Supported Ru/C, 90% recovery, KAAP loop (90 bar, Tsep -20 C)", U_MIN, R_LO, kaap),
-    ("kaap97", "Supported Ru/C, 97% recovery, KAAP loop (90 bar, Tsep -20 C)", U_MIN, R_HI, kaap),
+    ("kaap_hi", "Supported Ru/C, 95.55% recovery, KAAP loop (90 bar, Tsep -20 C)", U_MIN, R_HI, kaap),
 ]
 pts = []
 for key, label, u, r, mask in SCEN:
@@ -186,6 +188,14 @@ print("KAAP loop floor (free, infinitely active catalyst): %.4f USD/t at %3.0f C
 p_star = float(list(csv.DictReader(open(HERE / "fig2_ru_price_sweep.csv", encoding="utf-8")))[-1]["price_USD_kg"])
 for r in (0.0, R_LO, R_HI):
     print("parity needs u = %.1f at r = %.2f" % (P_RU * (1 - r) / p_star, r))
+# gap_to_Fe is against the Fe optimum of the main loop (15.29 USD/t) for every row; the like-for-like comparison of a
+# KAAP-loop point is Fe in the same KAAP loop (row fe_kaap). Both are written, with the Fe cost each one uses
+# (independent review analysis/review_ru_cost_2026_10_09: the KAAP rows were read against the main-loop Fe).
+fe_same = {"main": FE_COST, "KAAP": next(p["cost"] for p in pts if p["key"] == "fe_kaap")}
+for p in pts:
+    loop = "KAAP" if p["key"] in ("kaap90", "kaap_hi", "fe_kaap") else "main"
+    p["Fe_same_loop_cost"] = fe_same[loop]
+    p["gap_to_Fe_same_loop"] = p["cost"] - fe_same[loop]
 with open(HERE / "fig2_ru_actual_cost_points.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(pts[0]), lineterminator="\n")
     w.writeheader()

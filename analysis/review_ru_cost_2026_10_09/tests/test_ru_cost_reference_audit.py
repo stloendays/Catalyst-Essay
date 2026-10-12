@@ -12,15 +12,15 @@ def fixtures():
         dict(key="pure", cost="22", gap_to_Fe="7"),
         dict(key="fe_kaap", cost="19", gap_to_Fe="4"),
         dict(key="kaap90", cost="18", gap_to_Fe="3"),
-        dict(key="kaap97", cost="17.5", gap_to_Fe="2.5"),
+        dict(key="kaap_hi", cost="17.5", gap_to_Fe="2.5"),
     ]
     beds, readings = [], []
     for loop in ("main", "KAAP"):
         fe_ref = 15 if loop == "main" else 19
         for w in (0.05, 0.08, 0.10):
             for rho in (430, 550):
-                for rec in (0.90, 0.97):
-                    key = ("kaap" if loop == "KAAP" else "supp_rec") + str(round(rec * 100))
+                for rec in (0.90, 0.9555):
+                    key = ("kaap" if loop == "KAAP" else "supp_rec") + ("90" if rec == 0.90 else "_hi")
                     cost = fe_ref + (0.3 if rec == 0.9 else -0.3) + (0.08 - w)
                     state = dict(
                         cost=str(cost), Fe_reference_cost=str(fe_ref),
