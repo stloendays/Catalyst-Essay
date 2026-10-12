@@ -1,0 +1,55 @@
+name: Methanol printed-value provenance QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "analysis/review_selectivity_2026_10_09/**"
+      - ".github/workflows/methanol-selectivity-provenance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # audit loads precisely the pinned S5 extraction commit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Five synthetic provenance tests
+        run: python -m unittest discover -s analysis/review_selectivity_2026_10_09/tests -v
+      - name: Audit pinned printed-value cohort (advisory)
+        run: |
+          python analysis/review_selectivity_2026_10_09/selectivity_source_audit.py \
+            --out-dir /tmp/meoh_sources > /tmp/meoh_provenance.log
+          cat /tmp/meoh_provenance.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          doc = json.loads(Path("/tmp/meoh_sources/selectivity_source_summary.json").read_text())
+          src = doc["candidates"]
+          assert src["candidates"] > 0
+          assert src["source_unique"] + src["source_unresolved"] == src["candidates"]
+          for v in doc["scenario"].values():
+              assert v["mismatches"] <= v["groups"]
+              assert v["mismatches_gt5pct"] <= v["mismatches"]
+              assert v["mismatch_winner_either_closure"] <= v["mismatches"]
+              assert v["gt5pct_winner_either_closure"] <= v["mismatches_gt5pct"]
+          print("Source-provenance audit completed; NOT a frozen paper statistic.")
+          PY
+      - name: Re-evaluate leaderboards in selectivity-complete subcohorts
+        run: |
+          python analysis/review_selectivity_2026_10_09/selectivity_subset_rerank.py \
+            --out-dir /tmp/meoh_sources --strict
+      - name: Upload audit tables for researcher/Claude review
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisional-methanol-selectivity-provenance
+          path: /tmp/meoh_sources/*
+          retention-days: 7

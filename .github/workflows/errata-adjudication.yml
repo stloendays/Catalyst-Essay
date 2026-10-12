@@ -1,0 +1,48 @@
+name: Errata adjudication
+
+# Reruns the first-pass errata classification, the final adjudication and the leave-one-paper-out check on a clean runner and compares the outputs
+# with the committed ones. Needs nothing outside the repository (the TheMeCat columns the STY test reads are in
+# analysis/verify_2026_10_08/themecat_v1_subset.csv).
+
+on:
+  push:
+    paths:
+      - ".github/workflows/errata-adjudication.yml"
+      - "analysis/verify_2026_10_08/errata_*"
+      - "analysis/verify_2026_10_08/themecat_v1_subset.csv"
+      - "analysis/verify_2026_10_08/leave_one_paper_out*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: errata-adjudication-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  V: analysis/verify_2026_10_08
+
+jobs:
+  errata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: First-pass classification and final adjudication
+        run: |
+          python $V/errata_classification.py > /dev/null
+          python $V/errata_adjudication.py
+          python $V/leave_one_paper_out.py
+      - name: Compare with the committed outputs
+        run: >
+          python $V/compare_outputs.py
+          $V/errata_classification.csv $V/errata_rules.csv $V/errata_summary.json
+          $V/errata_adjudication.csv $V/errata_cells_audit.csv $V/errata_adjudication_summary.json
+          $V/leave_one_paper_out.csv $V/leave_one_paper_out_summary.json

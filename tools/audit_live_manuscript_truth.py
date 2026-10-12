@@ -391,15 +391,18 @@ tokens(
     "NH3 actual-catalyst cost (Fig. 2d)",
     s2,
     "11%",
-    f"{float(ac['supp_rec97']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
-    f"{float(ac['supp_rec97']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
-    f"from {abs(float(ac['supp_rec97']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe",
-    f"{float(ac['supp_rec97']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
-    f"{float(ac['kaap97']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
+    f"{float(ac['supp_rec_hi']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
+    f"{float(ac['supp_rec_hi']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
+    # the gap's sign decides the wording: with the 0.9555 recovery bound both ends lie above Fe
+    (f"from {abs(float(ac['supp_rec_hi']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe"
+     if float(ac['supp_rec_hi']['gap_to_Fe']) < 0 else
+     f"{float(ac['supp_rec_hi']['gap_to_Fe']):.2f}–{float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe"),
+    f"{float(ac['supp_rec_hi']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
+    f"{float(ac['kaap_hi']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
     f"{float(ac['fe_kaap']['cost']):.2f}",
 )
 ok("NH3 actual-catalyst: Ru/C with recovery below Fe in the KAAP loop",
-   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap97"]["cost"]) < float(ac["fe_kaap"]["cost"]))
+   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap_hi"]["cost"]) < float(ac["fe_kaap"]["cost"]))
 lit = {r["id"]: r for r in rows("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")}
 tokens(
     "NH3 literature activity gains (Fig. 3a)",
@@ -440,6 +443,8 @@ def n_ok(source, field):
 ext = json.loads((ROOT / "agent/extraction/eval/summary.json").read_text(encoding="utf-8"))
 p18, p31 = ext["precision"]["first18"], ext["precision"]["added31"]
 err = ext["errata"]
+_ea_c = json.loads((ROOT / "analysis/verify_2026_10_08/errata_adjudication_summary.json")
+                  .read_text(encoding="utf-8"))["confirmed"]
 lit = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/summary.json").read_text(encoding="utf-8"))
 alloy = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/summary.json").read_text(encoding="utf-8"))
 ext_all = alloy["extended_with_usgs_prices"]
@@ -457,7 +462,9 @@ tokens(
     f"{p18['unmatched_unreviewed']} are not yet reviewed)",
     f"an estimated {p31['precision_all_extracted'] * 100:.0f}% in the 31 papers added later",
     f"{p31['pooled_sample'].split('/')[0]} of a random {p31['pooled_sample'].split('/')[1]} such entries",
-    f"{sum(v['cells'] for v in err['by_reference'].values())} curated cells and {err['rows_dropped']} curated rows",
+    # errata counted by root cause (analysis/verify_2026_10_08/errata_adjudication.py), not by changed cell
+    f"{_ea_c['root_causes']} root causes, one mechanism in one source paper each, in {_ea_c['error_rules']} rules, "
+    f"{_ea_c['value_cells_error_rules']} cells and {_ea_c['dropped_records']} rows",
 )
 ok("Agent: Gothe Table 4 extracted exactly", ext["gothe"]["matched"] == 21 and ext["gothe"]["X_CO2"] == "21/21")
 canon = lit["selfcheck"]["canonical_states"]
@@ -499,7 +506,7 @@ FE_COST_ALLOY = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/allo
                            .read_text(encoding="utf-8"))["Fe_cost_USD_t"]
 
 # ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
-s7 = section("Bimetallic surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
+s7 = section("Outside nitride formers and sp metals, surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
 tm = alloy["extended_excluding_sp_and_group3to5"]
 glob_below = tm["below_Fe_surfaces"]
 anch_below = [x[0] for x in tm["below_Fe_anchored_surfaces"]]
@@ -616,11 +623,12 @@ ok("NH3 measured: errata file covers nine review rows", len({(r["page"], r["row"
 # ----- NH3 field statistic (30 primary papers) ------------------------------------------------------------------
 fd = json.loads((ROOT / "analysis/nh3_field_2026_10_06/summary.json").read_text(encoding="utf-8"))
 fev = json.loads((ROOT / "agent/nh3_field/eval/summary.json").read_text(encoding="utf-8"))
-FP, FV = fd["primary"], fd["variants"]
+fpr = json.loads((ROOT / "analysis/nh3_field_2026_10_06/summary_printed.json").read_text(encoding="utf-8"))
+FP, FV = fpr["primary"], fpr["variants"]          # frozen ammonia field result: printed values only
 fk = FP["mismatch_kinds"]
 fci = FP["bootstrap_papers"]["mismatch_fraction_ci95"]
 rate_ev = next(f for f in fev["fields"] if f["field"] == "rate")
-_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics.csv")
+_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics_printed.csv")
              if r["mismatch_kind"] == "different metal" and r["plant_winner"].startswith("Fe"))
 tokens(
     "NH3 field statistic",
@@ -664,19 +672,21 @@ tokens(
     f"median regret of {V['leaderboard_S_MeOH']['regret_median_mismatched'] * 100:.0f}%",
     f"in {V['leaderboard_X']['top1_mismatch_groups']} of {V['leaderboard_X']['groups']}",
     f"to {V['inert_opt']['top1_mismatch_groups']} of {V['inert_opt']['groups']} comparisons across {V['inert_opt']['papers_with_mismatch']} papers",
-    f"({V['printed_values_only']['top1_mismatch_groups']} of {V['printed_values_only']['groups']} comparisons)",
+    f"({V['all_entries']['top1_mismatch_groups']} of {V['all_entries']['groups']} comparisons)",
     f"({V['methanol_products_only']['top1_mismatch_groups']} of {V['methanol_products_only']['groups']})",
     f"up to {P0['regret_max'] * 100:.0f}%",
 )
 wo = V["without_paper_with_most_groups"]
-ok("MeOH literature: regret outside the largest paper below 10 %", wo["regret_max"] < 0.10
-   and "c2cy20604h" in wo["variant"])
-tokens("MeOH literature: other papers", s8, f"in the other {wo['papers']} papers the regret stays below 10%")
+ok("MeOH literature: the paper with most groups is Bansode 2013", "c2cy20604h" in wo["variant"])
+tokens("MeOH literature: without the paper with most groups", s8,
+       f"without it the leaders differ in {wo['top1_mismatch_groups']} of {wo['groups']} comparisons, with regrets up to "
+       f"{wo['regret_max'] * 100:.0f}%")
 # ----- Firmness of the methanol headline ---------------------------------------------------------------------
 st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
 cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))
 pb = json.loads((ROOT / "analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json").read_text(encoding="utf-8"))
-k1, ke = st["noise"]["meas_k1"], st["noise"]["meas_k1_plus_extraction"]
+k1 = st["noise"]["meas_k1"]
+ke = st["noise"].get("meas_k1_plus_extraction", k1)   # not run on the printed-value primary (no plot readings)
 sci = st["cluster_bootstrap"]["fraction_ci95"]
 r1 = next(r for r in st["regret_threshold_curve"] if r["threshold"] == 0.01)
 c3 = cc["variants"]["composition_3y"]
@@ -704,8 +714,9 @@ tokens("MeOH literature: response-surface validation in Methods", text,
 _pv = [v["top1_mismatch_groups"] for k, v in pb["variants"].items()
        if not k.startswith(("catalyst", "combined", "baseline"))]
 tokens("MeOH plant benchmark: loop, recycle and price variants", text,
-       f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
-ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
+       f"disagreement at {min(_pv)}–{max(_pv)} of {P0['groups']} comparisons")
+ok("MeOH plant benchmark: baseline reproduces the headline",
+   pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/{P0['groups']}")
 
 tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces",
        f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",
@@ -734,6 +745,12 @@ tokens("Main text: field-level methanol and ammonia results", m_field,
        f"spread over {P0['papers_with_mismatch']} of the {P0['papers']} papers",
        f"in {FP['top1_mismatch_groups']} of them ({FP['top1_mismatch_fraction'] * 100:.0f}%",
        f"{tot['matched']} of the {tot['curated']} curated entries")
+_ea = json.loads((ROOT / "analysis/verify_2026_10_08/errata_adjudication_summary.json").read_text(encoding="utf-8"))
+_ec = _ea["confirmed"]
+tokens("Methods: curated-data errors counted by root cause (errata adjudication)", text,
+       f"{_ec['root_causes']} root causes", f"{_ec['value_cells_error_rules']} cells")
+ok("Methods: no first-pass errata count (331 cells / 148 / 280)",
+   not re.search(r"\b331 cells\b|\b280 cells\b|\b148 (?:errors|rules)\b", text))
 ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)

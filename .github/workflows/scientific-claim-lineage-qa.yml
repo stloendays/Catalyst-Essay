@@ -1,0 +1,47 @@
+name: Scientific claim lineage independent QA
+
+on:
+  pull_request:
+    branches: [verify-2026-10-08]
+    paths:
+      - "analysis/review_claim_lineage_2026_10_09/**"
+      - ".github/workflows/scientific-claim-lineage-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  claim-lineage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Synthetic source/document and paper-cluster tests
+        run: python -m unittest discover -s analysis/review_claim_lineage_2026_10_09/tests -v
+      - name: Assert committed source-data invariants and report publication blockers
+        run: |
+          python analysis/review_claim_lineage_2026_10_09/check_claim_lineage.py \
+            --out-dir /tmp/science_lineage
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("/tmp/science_lineage/claim_lineage.json").read_text())
+          assert d["source_invariants"]=="PASS",d["source_errors"]
+          assert d["status"] in ("BLOCKED", "REVIEW_READY")
+          print("Source invariants PASS. Publication status:", d["status"], "blockers:", d["blocking_claims"])
+          print("CI does NOT certify publication readiness; use --publication-gate after human review.")
+          PY
+      - name: Recompute matched DOI-cluster confidence intervals for chosen S5 cohort
+        run: |
+          python analysis/review_claim_lineage_2026_10_09/paired_paper_bootstrap.py \
+            --out-dir /tmp/science_lineage --strict
+      - name: Upload paper/figure/SI logical consistency evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: provisional-claim-evidence-logic-review
+          path: /tmp/science_lineage/*
+          retention-days: 7

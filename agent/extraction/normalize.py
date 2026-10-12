@@ -47,7 +47,7 @@ def _clean(u: str | None) -> str:
         return ""
     s = u.strip()
     for a, b in (("−", "-"), ("–", "-"), ("⁻¹", "-1"), ("⁻", "-"), ("¹", "1"), ("·", " "), ("⋅", " "),
-                 ("μ", "u"), ("µ", "u"), ("℃", "°C"), ("^", ""), ("·", " ")):
+                 ("∙", " "), ("•", " "), ("×", " "), ("μ", "u"), ("µ", "u"), ("℃", "°C"), ("^", "")):
         s = s.replace(a, b)
     return s
 
@@ -85,15 +85,20 @@ def pct(v, u):
 # --- composite units (GHSV, STY) -------------------------------------------------
 _PREFIX = {"": 1.0, "k": 1e3, "m": 1e-3, "u": 1e-6, "n": 1e-9}
 _TOKEN = re.compile(
-    r"(?P<pre>[kmun]?)(?P<base>mol|ml|nml|nl|l|g|hours|hour|hr|h|min|s|cm3)"
-    r"(?P<label>[_ ]?(?:cat|catalyst|meoh|ch3oh|methanol|metal|cu|in|in2o3|pd|re|zn|ir|pt|au|ni|co))?"
+    r"(?P<pre>[kmun]?)(?P<base>mol|ml|nml|nl|l|g|hours|hour|hr|h|min|sec|s|cm3)"
+    r"(?P<label>[_ ]?(?:cat|catalyst|meoh|ch3oh|methanol|metal|cu|in2o3|in|pd|re|zn|ir|pt|au|ni|co2|co))?"
     r"(?P<exp>-?\d)?$")
 
 
 def _parse(unit: str):
-    """Return list of (prefix, base, label, exponent). None if a token is not understood."""
-    s = _clean(unit).lower()
+    """Return list of (prefix, base, label, exponent). None if a token is not understood.
+    An exponent written inside a '/' denominator ('g/(hr gcat-1)') is read as the same per-unit, not as its inverse."""
+    s = _clean(unit).lower().replace(",", " ")
     s = s.replace("gcat", "g_cat").replace("kgcat", "kg_cat")
+    # normal volume written into the unit: 'cmSTP3', 'cm3STP', 'cm3_STP' -> cm3
+    s = re.sub(r"cm\s*(?:stp|ntp)\s*3|cm3[_ ]?(?:stp|ntp)\b", "cm3", s)
+    s = re.sub(r"\bk\s+(cm3|ml|l)\b", r"k\1", s)                # 'k cm3STP' -> 'kcm3'
+    s = re.sub(r"(?:(?<=mol)|(?<=-1))(kg|g|h|min|s)-1", r" \1-1", s)   # glued tokens: 'mmolKg-1h-1'
     s = re.sub(r"\(?\b(stp|ntp)\b\)?", " ", s)   # 'mL (STP) g-cat-1 h-1': the volume is already normal
     s = s.replace("g-cat", "g_cat")
     s = re.sub(r"(?<=[a-z])\.(?=[a-z])", " ", s)   # 'mmol/kgcat.h': '.' used as the multiplication dot
@@ -112,20 +117,20 @@ def _parse(unit: str):
             m = _TOKEN.match(tok)
             if not m:
                 return None
-            exp = int(m.group("exp")) if m.group("exp") else 1
+            exp = abs(int(m.group("exp"))) if m.group("exp") else 1
             base = m.group("base")
             pre = m.group("pre")
             if base in ("nml", "nl"):
                 pre, base = ("m" if base == "nml" else ""), ("ml" if base == "nml" else "l")
-            if base == "ml":
-                pre, base = "m", "l"
-            if base == "cm3":
-                pre, base = "m", "l"
+            if base in ("ml", "cm3"):   # mL = cm3 = 1e-3 L, combined with a written prefix (k cm3 = L)
+                pre, base = {"": "m", "k": "", "m": "u", "u": "n"}[pre], "l"
             if base in ("hr", "hour", "hours"):
                 base = "h"
-            if base == "min" or base == "mol" or base == "l" or base == "g" or base == "h" or base == "s":
-                pass
-            out.append((pre, base, (m.group("label") or "").strip("_ "), exp * sign))
+            if base == "sec":
+                base = "s"
+            if sign < 0 or (m.group("exp") or "").startswith("-"):
+                exp = -exp
+            out.append((pre, base, (m.group("label") or "").strip("_ "), exp))
     return out
 
 
@@ -141,8 +146,22 @@ def _time_factor(tokens):
     return f  # multiply a 'per <time>' value by this to get 'per h'
 
 
+def ghsv_basis_from_unit(unit):
+    """'per_mass_catalyst' when the unit divides by a mass, 'per_volume_catalyst' for a bare inverse time (h-1),
+    None when the unit is not understood (the extracted label is then used)."""
+    t = _parse(unit or "")
+    if not t:
+        return None
+    if any(x[1] == "g" and x[3] == -1 for x in t):
+        return "per_mass_catalyst"
+    if len(t) == 1 and t[0][1] in ("h", "min", "s") and t[0][3] == -1:
+        return "per_volume_catalyst"
+    return None
+
+
 def ghsv_NL_gcat_h(v, u, basis):
-    """mL g-1 h-1, L g-1 h-1, L kg-1 h-1, mL g-1 min-1 ... -> NL g-1 h-1."""
+    """mL g-1 h-1, L g-1 h-1, L kg-1 h-1, mL g-1 min-1 ... -> NL g-1 h-1. A volume labelled CO2 ('mL CO2 gcat-1
+    h-1') comes back as the CO2 flow; normalize_record converts it to the total feed."""
     if v is None or basis != "per_mass_catalyst":
         return None
     t = _parse(u or "")
@@ -279,6 +298,8 @@ def normalize_record(doi: str, r: dict) -> dict:
         return None if n["value"] is None else f"{n['value']} {n['unit'] or ''}".strip()
 
     sty_raw = sty_g_g_h(r["methanol_sty"]["value"], r["methanol_sty"]["unit"])
+    # GHSV basis from the unit whenever the unit states it (a mass in the denominator, or a bare h-1), as for STY
+    ghsv_basis = ghsv_basis_from_unit(r["ghsv"]["unit"]) or r["ghsv_basis"]
     # An explicit basis in the unit (mmol kgcat-1 h-1, g gRe-1 h-1) overrides an 'other'/'unspecified' label.
     basis = r["sty_basis"]
     unit_basis = sty_basis_from_unit(r["methanol_sty"]["unit"])
@@ -306,9 +327,10 @@ def normalize_record(doi: str, r: dict) -> dict:
         "P_bar": press_bar(r["pressure"]["value"], r["pressure"]["unit"]),
         "H2_CO2": ratio(r["h2_co2_ratio"]["value"], r["h2_co2_ratio"]["unit"]),
         "feed": r["feed_composition"],
-        "GHSV_NL_gcat_h": ghsv_NL_gcat_h(r["ghsv"]["value"], r["ghsv"]["unit"], r["ghsv_basis"]),
+        "GHSV_NL_gcat_h": ghsv_NL_gcat_h(r["ghsv"]["value"], r["ghsv"]["unit"], ghsv_basis),
         "GHSV_raw": raw("ghsv"),
-        "ghsv_basis": r["ghsv_basis"],
+        "ghsv_basis": ghsv_basis,
+        "ghsv_basis_extracted": r["ghsv_basis"],
         "cat_mass_g": mass_g(r["catalyst_mass"]["value"], r["catalyst_mass"]["unit"]),
         "TOS_raw": raw("time_on_stream"),
         "X_CO2_pct": pct(r["co2_conversion"]["value"], r["co2_conversion"]["unit"]),
@@ -339,7 +361,7 @@ def normalize_record(doi: str, r: dict) -> dict:
         flags.append("P_unit")
     if r["methanol_sty"]["value"] is not None and sty_raw is None:
         flags.append("STY_unit")
-    if r["ghsv"]["value"] is not None and r["ghsv_basis"] == "per_mass_catalyst" and row["GHSV_NL_gcat_h"] is None:
+    if r["ghsv"]["value"] is not None and ghsv_basis == "per_mass_catalyst" and row["GHSV_NL_gcat_h"] is None:
         flags.append("GHSV_unit")
     # physical range check: a converted STY above 10 g MeOH per g catalyst per h (or 5000 per g metal) means the
     # unit was transcribed wrongly (e.g. 'kg/g_cat/h' for g/kg); the value is flagged and not used
@@ -356,6 +378,14 @@ def normalize_record(doi: str, r: dict) -> dict:
     # Same GHSV counted on reactants only (inert N2/Ar/He removed), when the feed composition is stated.
     # Curated datasets use both conventions, so both are kept.
     row["inert_frac"] = inert_fraction(r["feed_composition"])
+    # a space velocity counted on CO2 only ('3000 mL CO2 gcat-1 h-1'): CO2 is (1 - inert) / (1 + H2/CO2) of the feed
+    if row["GHSV_NL_gcat_h"] is not None and any(x[1] == "l" and x[2] == "co2" for x in _parse(r["ghsv"]["unit"]) or []):
+        if row["H2_CO2"] and row["inert_frac"] is not None:
+            row["GHSV_NL_gcat_h"] *= (1.0 + row["H2_CO2"]) / (1.0 - row["inert_frac"])
+            flags.append("GHSV_from_CO2_basis")
+        else:
+            row["GHSV_NL_gcat_h"] = None
+            flags.append("GHSV_unit")
     row["GHSV_inert_free_NL_gcat_h"] = (row["GHSV_NL_gcat_h"] * (1 - row["inert_frac"])
                                         if row["GHSV_NL_gcat_h"] is not None and row["inert_frac"] is not None else None)
     row["flags"] = ";".join(flags)
@@ -372,7 +402,7 @@ FIELD_GROUPS = {
     "S_CO": (["S_CO_pct", "S_CO_q"], "S_CO_q"),
     "S_CH4": (["S_CH4_pct", "S_CH4_q"], "S_CH4_q"),
     "STY": (["STY_g_gcat_h", "STY_g_gmetal_h", "STY_gcat_from_metal", "STY_raw", "sty_basis", "sty_basis_extracted", "STY_q"], "STY_q"),
-    "GHSV": (["GHSV_NL_gcat_h", "GHSV_raw", "ghsv_basis", "GHSV_inert_free_NL_gcat_h", "inert_frac", "ghsv_derived", "flow_NL_h"], None),
+    "GHSV": (["GHSV_NL_gcat_h", "GHSV_raw", "ghsv_basis", "ghsv_basis_extracted", "GHSV_inert_free_NL_gcat_h", "inert_frac", "ghsv_derived", "flow_NL_h"], None),
     "H2_CO2": (["H2_CO2", "feed"], None),
     "cat_mass_g": (["cat_mass_g"], None),
     "metal_wt_pct": (["metal_wt_pct"], None),

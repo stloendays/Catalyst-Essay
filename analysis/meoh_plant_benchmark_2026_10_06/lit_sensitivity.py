@@ -1,32 +1,34 @@
 """Headline group-level comparison (paper STY leader vs plant-cost leader) rerun with plant terms set to reference values.
 
-Input: the frozen candidate set of the 50-paper literature inversion
-(analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv: 991 operating points, groups, STY basis).
-For each variant the primary plant cost (recycled CO, central RWGS rule, entry-optimal purge on the 0.5-40 % grid) is
-recomputed with `plant_variant.economics` and the group metrics are re-aggregated with the same definitions as
-run_literature_inversion.py (group_metrics / aggregate copied verbatim). The baseline variant must reproduce 33/83.
+Input: the candidate set of the literature inversion
+(analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv: operating points, groups, STY basis).
+For each variant the primary plant cost (frozen treatment: recycled CO, central rule, per-pass conversion capped at
+the loop's CO2-hydrogenation equilibrium, cost-optimal purge over the 0.5-40 % grid) is recomputed with
+`plant_variant.economics`, and the group metrics are re-aggregated with the main result's own functions
+(meoh_candidates.aggregate). The capped conversion depends on the loop only, not on prices or the knobs varied here.
+The baseline variant must reproduce the main result (printed values, step S5).
 
-Parallel: multiprocessing over candidates (default 30 workers).
+Parallel: multiprocessing over candidates (BENCH_WORKERS, default 4).
 """
 from __future__ import annotations
 
 import json
 import sys
-from itertools import combinations
 from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(REPO / "analysis" / "meoh_literature_inversion_2026_10_05"))
 import plant_variant as V  # noqa: E402
+from meoh_candidates import ROW_KEYS, aggregate  # noqa: E402
 
 G = V.G
-WORKERS = int(__import__("os").environ.get("BENCH_WORKERS", "12"))
+WORKERS = int(__import__("os").environ.get("BENCH_WORKERS", "4"))
 CANDS = REPO / "analysis" / "meoh_literature_inversion_2026_10_05" / "literature_candidates.csv"
 
 
@@ -38,72 +40,25 @@ def _one(args):
     base = dict(STY_per_g_cat=row["STY"], P_bar=row["P_bar"], h2_co2=row["h2_co2"], T_C=row["T_C"])
     out = {}
     try:
-        x = G.resolve_x_co("recycled_central", *c, row["h2_co2"], G.PURGES, row["T_C"], row["P_bar"])
+        b = G.purge_sweep(dict(X=c[0], SMeOH=c[1], SCH4=c[2], SCO=c[3]), x_co="recycled_central", **base)
     except ValueError:
         return {name: (np.nan, np.nan) for name in variants}
+    ok = np.isfinite(np.asarray(b["cost_eur_t"], dtype=float))   # every purge level (no inlet limit)
+    c = (b["X_eff"],) + c[1:]          # per-pass conversion capped at CO2-hydrogenation equilibrium
     for name, kw in variants.items():
-        try:
-            sweep = V.economics(*c, purge=G.PURGES, x_co=x, **base, **kw)["cost_eur_t"]
-        except ValueError:
+        if not ok.any():
             out[name] = (np.nan, np.nan)
             continue
-        j = int(np.nanargmin(sweep))
+        sweep = V.economics(*c, purge=G.PURGES, x_co=b["x_co"], **base, **kw)["cost_eur_t"]
+        j = int(np.argmin(np.where(ok, sweep, np.inf)))
         out[name] = (float(sweep[j]), float(G.PURGES[j]))
     return out
 
 
 def costs(cand, variants, workers=WORKERS):
-    rows = cand[["X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"]].to_dict("records")
+    rows = cand[ROW_KEYS].to_dict("records")
     with Pool(workers) as pool:
         return pool.map(_one, [(r, variants) for r in rows], chunksize=4)
-
-
-# ------------------------------------------------- copied from run_literature_inversion.py (unchanged logic) ----
-def group_metrics(g, cost_col, up_col="STY"):
-    g = g.sort_values(up_col, ascending=False)
-    up_best = g[up_col].max()
-    up_winners = set(g.index[g[up_col] >= up_best - 1e-12])
-    econ_idx = g[cost_col].idxmin()
-    c_best = g[cost_col].min()
-    c_up = g.loc[list(up_winners), cost_col].min()
-    n = len(g)
-    pairs = list(combinations(g.index, 2))
-    inv = sum(1 for a, b in pairs
-              if (g.at[a, up_col] - g.at[b, up_col]) * (g.at[b, cost_col] - g.at[a, cost_col]) < 0)
-    rho = (float(spearmanr(g[up_col], -g[cost_col]).statistic) if n >= 3 and g[up_col].nunique() > 1 else None)
-    up3 = set(g.nlargest(min(3, n), up_col).index)
-    ec3 = set(g.nsmallest(min(3, n), cost_col).index)
-    return dict(n=n, top1_mismatch=econ_idx not in up_winners,
-                regret=(c_up - c_best) / c_best,
-                upstream_winner=g.loc[sorted(up_winners)[0], "catalyst"], economic_winner=g.at[econ_idx, "catalyst"],
-                upstream_winner_cost=c_up, economic_winner_cost=c_best,
-                economic_rank_of_upstream_winner=int((g[cost_col] < c_up - 1e-9).sum()) + 1,
-                pairs=len(pairs), inversions=inv, spearman=rho,
-                top3_overlap=len(up3 & ec3) if n >= 4 else None)
-
-
-def aggregate(frame, cost_col, up_col="STY", label=""):
-    out = []
-    for key, g in frame.groupby("group"):
-        if len(g) < 2:
-            continue
-        m = group_metrics(g, cost_col, up_col)
-        m.update(group=key, doi=g.doi.iloc[0], basis=g.sty_basis.iloc[0])
-        out.append(m)
-    gm = pd.DataFrame(out)
-    papers = gm.groupby("doi").top1_mismatch.any()
-    s = dict(variant=label, groups=len(gm), papers=int(gm.doi.nunique()), entries=int(gm.n.sum()),
-             top1_mismatch_groups=int(gm.top1_mismatch.sum()),
-             top1_mismatch_fraction=float(gm.top1_mismatch.mean()),
-             papers_with_mismatch=int(papers.sum()),
-             paper_weighted_mismatch_fraction=float(gm.groupby("doi").top1_mismatch.mean().mean()),
-             regret_median_all=float(gm.regret.median()),
-             regret_median_mismatched=float(gm.loc[gm.top1_mismatch, "regret"].median()) if gm.top1_mismatch.any() else 0.0,
-             regret_max=float(gm.regret.max()),
-             regret_mean_all=float(gm.regret.mean()),
-             pairwise_inversions=f"{int(gm.inversions.sum())}/{int(gm.pairs.sum())}",
-             pairwise_inversion_fraction=float(gm.inversions.sum() / gm.pairs.sum()))
-    return gm, s
 
 
 def run(variants: dict, workers=WORKERS):
@@ -119,6 +74,27 @@ def run(variants: dict, workers=WORKERS):
         group_tables[name] = gm
     return cand, results, group_tables
 
+
+def pf_alignment():
+    """Model / Perez-Fortes ratios of the catalyst-sensitive plant terms at the Perez-Fortes point (advisor review
+    2026-10-08, item 4: align the catalyst-sensitive terms to the reference and recount). Read from this folder:
+    recycle ratio and compressor electricity of model case M7 (reconciliation_plant.csv) against the reference values
+    (reference_values.csv: recycle 4.7 mol/mol, compressors 0.305 MWh/t, both on the compressor-only basis), and the
+    capital annuity of case B3 (reconciliation_cost.csv, reference = breakeven 723.6 minus VCP + FCP)."""
+    plant = pd.read_csv(HERE / "reconciliation_plant.csv").set_index("metric")
+    m7 = next(c for c in plant.columns if c.startswith("M7 at Perez-Fortes"))
+    ref = pd.read_csv(HERE / "reference_values.csv")
+    ref = ref[ref.ref_id == "PEREZFORTES16"].set_index("quantity").value.astype(float)
+    cost = pd.read_csv(HERE / "reconciliation_cost.csv")
+    cap = cost[cost.case.str.startswith("B3 ") & cost.term.str.startswith("capital")].iloc[0]
+    return dict(
+        recycle_mult=float(ref["recycle_ratio"]) / float(plant.at["Recycle ratio (recycle / fresh feed, mol)", m7]),
+        elec_mult=float(ref["electricity_compressors_MWh_t"]) / float(plant.at["Electricity, compression (MWh/t)", m7]),
+        capex_mult=float(cap.reference) / float(cap.model))
+
+
+PF_ALIGN = pf_alignment()
+ELEC_EUR_MWH = V.M.ELEC_EUR_MWH
 
 # Plant terms set to reference values (see README section 4). Each knob is one reference value.
 VARIANTS = {
@@ -155,6 +131,15 @@ VARIANTS = {
     "combined_cat3y_dp3.75": dict(cat_term=(18.1, 3.0), loop_dp=3.75),
     "combined_cat3y_dp3.75_recycle2.68": dict(cat_term=(18.1, 3.0), loop_dp=3.75, recycle_mult=2.68),
     "combined_cat3y_dp3.75_h2half": dict(cat_term=(18.1, 3.0), loop_dp=3.75, h2_price=3097.4 / 2),
+    # catalyst-sensitive terms aligned to Perez-Fortes 2016 at its own point (pf_alignment), one at a time and together:
+    # recycle flow (model 5.38 vs 4.7 mol/mol), compression electricity (0.213 vs 0.305 MWh/t, as an electricity-cost
+    # factor) and capital (38.1 vs 57.6 EUR/t, as a capital factor)
+    "pf_aligned_recycle": dict(recycle_mult=PF_ALIGN["recycle_mult"]),
+    "pf_aligned_compression": dict(elec_price=ELEC_EUR_MWH * PF_ALIGN["elec_mult"]),
+    "pf_aligned_capital": dict(capex_mult=PF_ALIGN["capex_mult"]),
+    "pf_aligned_recycle_compression_capital": dict(recycle_mult=PF_ALIGN["recycle_mult"],
+                                                   elec_price=ELEC_EUR_MWH * PF_ALIGN["elec_mult"],
+                                                   capex_mult=PF_ALIGN["capex_mult"]),
 }
 
 
@@ -166,11 +151,12 @@ if __name__ == "__main__":
     rel = np.abs(cand.cost_baseline / frozen.cost_recycled_opt - 1)
     froz_summary = json.loads((CANDS.parent / "summary.json").read_text(encoding="utf-8"))["primary"]
     check = dict(max_rel_diff_vs_frozen_costs=float(np.nanmax(rel)),
+                 infeasible_same_as_main=bool((np.isnan(cand.cost_baseline) == np.isnan(frozen.cost_recycled_opt)).all()),
                  baseline_top1=f"{res['baseline']['top1_mismatch_groups']}/{res['baseline']['groups']}",
                  frozen_top1=f"{froz_summary['top1_mismatch_groups']}/{froz_summary['groups']}",
                  baseline_inversions=res["baseline"]["pairwise_inversions"],
                  frozen_inversions=froz_summary["pairwise_inversions"])
-    assert check["baseline_top1"] == check["frozen_top1"], check
+    assert check["baseline_top1"] == check["frozen_top1"] and check["infeasible_same_as_main"], check
     assert check["baseline_inversions"] == check["frozen_inversions"], check
     base = gms["baseline"].set_index("group")
     flips = []
@@ -188,7 +174,7 @@ if __name__ == "__main__":
             + [f"cost_{v}" for v in VARIANTS] + [f"purge_{v}" for v in VARIANTS])
     cand[keep].to_csv(HERE / "sensitivity_candidates.csv", index=False, float_format="%.6g")
     pd.DataFrame(flips).to_csv(HERE / "sensitivity_winner_changes.csv", index=False)
-    out = dict(check=check, variants=res, runtime_s=round(time.time() - t0, 1), workers=WORKERS)
+    out = dict(check=check, pf_alignment=PF_ALIGN, variants=res, runtime_s=round(time.time() - t0, 1), workers=WORKERS)
     (HERE / "sensitivity_summary.json").write_text(json.dumps(out, indent=1, default=float) + chr(10), encoding="utf-8")
     print(json.dumps({k: (v["top1_mismatch_groups"], v["groups"], v["papers_with_mismatch"], v["pairwise_inversions"],
                           round(v["regret_median_mismatched"], 4), v["groups_flipped_vs_baseline"])
