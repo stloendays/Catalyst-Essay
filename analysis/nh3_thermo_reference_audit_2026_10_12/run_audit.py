@@ -192,9 +192,10 @@ def _one_reference(mode, root, nworkers, original):
         h = hc.NH3Harness(CFG, root)
         if int(h.NSTATE) < 1000:
             raise AssertionError("Less than 1000 thermodynamically feasible process states")
+        temperatures = sorted(set([float(x)+273.15 for x in h.T_GRID_C] + [673.0, 698.15]))
         form = {
             str(T): original_gform(h.ctx, T, hc.KineticContext.gas_G)
-            for T in (623.15, 673.0, 698.15, 723.15)
+            for T in temperatures
         }
         for temp, value in form.items():
             if target and abs(value-target(float(temp))) > 1e-11:
@@ -278,13 +279,7 @@ def main():
         for tc in (350.0, 375.0, 400.0, 425.0, 450.0):
             T = tc+273.15
             for mode in ("frozen", "NIST", "GB"):
-                val = modes[mode]["gas_formation_eV_per_NH3_by_T_K"].get(str(T))
-                if val is None:
-                    # Interpolate no thermodynamics: compute frozen gas directly.
-                    val = original_gform(
-                        _dummy_ctx, T, original) if False else (
-                            gform_nist_ev(T) if mode == "NIST" else
-                            gform_gb_ev(T) if mode == "GB" else None)
+                val = modes[mode]["gas_formation_eV_per_NH3_by_T_K"][str(T)]
                 thermo.append({
                     "mode": mode,
                     "T_C": tc,
