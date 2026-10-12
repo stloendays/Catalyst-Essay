@@ -4,9 +4,9 @@
 
 ### Supplementary Table 1 | The 50 CO₂-to-methanol papers of the extraction set
 
-First author, year and journal from `agent/extraction/fetch_manifest.json` and Crossref; reference set from `agent/extraction/paper_set.txt`; curated, extracted and matched entries from `agent/extraction/eval/entry_metrics.csv` (Gothe 2025 Table 4: `agent/extraction/eval/gothe_table4_scores.csv` and `agent/extraction/out/records_normalized.csv`); SI files from `agent/extraction/si_manifest.json`; candidate operating points from `analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv`. Lam 2018 has no curated reference and was scored by PDF review only. SI column: number of SI files retrieved.
+First author, year and journal from `agent/extraction/fetch_manifest.json` and Crossref; reference set from `agent/extraction/paper_set.txt`; curated, extracted and matched entries from `agent/extraction/eval/entry_metrics.csv` (Gothe 2025 Table 4: `agent/extraction/eval/gothe_table4_scores.csv` and `agent/extraction/out/records_normalized.csv`); SI files from `agent/extraction/si_manifest.json`; candidate operating points of the printed-value primary from `analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv`. Lam 2018 has no curated reference and was scored by PDF review only. SI column: number of SI files retrieved.
 
-| First author | Year | Journal | DOI | Reference set | Curated entries | Extracted entries | Matched entries | SI obtained | Candidate operating points |
+| First author | Year | Journal | DOI | Reference set | Curated entries | Extracted entries | Matched entries | SI obtained | Candidate operating points (printed values) |
 |---|---|---|---|---|---|---|---|---|---|
 | Gothe | 2025 | ACS Catal. | 10.1021/acscatal.5c05984 | Gothe (Table 4) | 21 | 21 | 21 | yes (1) | 21 |
 | Wu | 2017 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.7b01464 | TheMeCat | 22 | 26 | 22 | yes (1) | 6 |
@@ -62,41 +62,41 @@ First author, year and journal from `agent/extraction/fetch_manifest.json` and C
 
 ### Supplementary Table 2 | The 30 primary ammonia-synthesis papers
 
-First author and year from `agent/nh3_field/fetch_manifest.json`, journal from Crossref; Humphreys 2021 reference number from `agent/nh3_field/paper_set.txt`; SI files from `agent/nh3_field/si_manifest.json`; extracted catalyst entries, primary entries (one per catalyst and comparison) and their metals from `analysis/nh3_field_2026_10_06/candidates.csv`; comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from `analysis/nh3_field_2026_10_06/group_metrics.csv`; totals checked against `analysis/nh3_field_2026_10_06/summary.json`.
+First author and year from `agent/nh3_field/fetch_manifest.json`, journal from Crossref; Humphreys 2021 reference number from `agent/nh3_field/paper_set.txt`; SI files from `agent/nh3_field/si_manifest.json`; extracted catalyst entries from `analysis/nh3_field_2026_10_06/candidates.csv`; printed-value primary entries (one per catalyst and comparison) and their metals from `analysis/nh3_field_2026_10_06/candidates_printed.csv`; comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from `analysis/nh3_field_2026_10_06/group_metrics_printed.csv`; totals checked against `analysis/nh3_field_2026_10_06/summary.json` and `analysis/nh3_field_2026_10_06/summary_printed.json`.
 
-| First author | Year | Journal | DOI | Humphreys 2021 | SI obtained | Catalyst entries | Primary entries | Metals (primary) | Comparison groups | Groups with a different winner |
+| First author | Year | Journal | DOI | Humphreys 2021 | SI obtained | Catalyst entries | Printed-value entries | Metals (printed) | Comparison groups | Groups with a different winner |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Kitano | 2012 | Nat. Chem. | 10.1038/nchem.1476 | – | yes (1) | 31 | 19 | Ru | 3 | 1 |
-| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 11 | Ru | 1 | 0 |
-| Kitano | 2016 | Chem. Sci. | 10.1039/c6sc00767h | ref. 115 | yes (1) | 35 | 15 | Ru | 3 | 1 |
-| Inoue | 2016 | ACS Catal. | 10.1021/acscatal.6b01940 | ref. 116 | yes (1) | 38 | 16 | Ru | 4 | 2 |
-| Wu | 2017 | Adv. Mater. | 10.1002/adma.201700924 | ref. 119 | yes (1) | 27 | 13 | Ru | 1 | 0 |
-| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 55 | Co, Fe, Ru | 12 | 12 |
-| Hattori | 2018 | ACS Catal. | 10.1021/acscatal.8b02839 | ref. 105 | yes (1) | 41 | 22 | Ru | 4 | 0 |
+| Kitano | 2012 | Nat. Chem. | 10.1038/nchem.1476 | – | yes (1) | 31 | 18 | Ru | 3 | 1 |
+| Inoue | 2014 | ACS Catal. | 10.1021/cs401044a | ref. 96 | yes (1) | 22 | 2 | Ru | 1 | 0 |
+| Kitano | 2016 | Chem. Sci. | 10.1039/c6sc00767h | ref. 115 | yes (1) | 35 | 10 | Ru | 2 | 0 |
+| Inoue | 2016 | ACS Catal. | 10.1021/acscatal.6b01940 | ref. 116 | yes (1) | 38 | 2 | Ru | 0 | 0 |
+| Wu | 2017 | Adv. Mater. | 10.1002/adma.201700924 | ref. 119 | yes (1) | 27 | 9 | Ru | 0 | 0 |
+| Kitano | 2018 | Angew. Chem. Int. Ed. | 10.1002/anie.201712398 | ref. 106 | yes (1) | 93 | 8 | Co, Fe, Ru | 1 | 1 |
+| Hattori | 2018 | ACS Catal. | 10.1021/acscatal.8b02839 | ref. 105 | yes (1) | 41 | 5 | Ru | 1 | 0 |
 | Kobayashi | 2017 | J. Am. Chem. Soc. | 10.1021/jacs.7b08891 | ref. 104 | yes (1) | 23 | 2 | Ru | 1 | 0 |
-| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 34 | Co, Fe, Ru | 6 | 6 |
-| Kitano | 2019 | J. Am. Chem. Soc. | 10.1021/jacs.9b10726 | ref. 82 | yes (1) | 56 | 21 | Co, Fe, Ru | 6 | 6 |
-| Sato | 2017 | Chem. Sci. | 10.1039/c6sc02382g | ref. 171 | yes (2) | 18 | 16 | Ru | 5 | 2 |
-| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 36 | Ru | 7 | 3 |
-| Lin | 2018 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | ref. 100 | yes (1) | 10 | 10 | Ru | 5 | 0 |
-| Wang | 2019 | Inorg. Chem. Front. | 10.1039/c8qi01244j | ref. 101 | yes (1) | 28 | 20 | Ru | 5 | 1 |
-| Lin | 2019 | ACS Catal. | 10.1021/acscatal.8b03554 | ref. 175 | yes (1) | 24 | 24 | Ru | 6 | 0 |
+| Tang | 2018 | Adv. Energy Mater. | 10.1002/aenm.201801772 | ref. 81 | yes (1) | 38 | 15 | Co, Fe, Ru | 2 | 2 |
+| Kitano | 2019 | J. Am. Chem. Soc. | 10.1021/jacs.9b10726 | ref. 82 | yes (1) | 56 | 3 | Co, Fe | 1 | 1 |
+| Sato | 2017 | Chem. Sci. | 10.1039/c6sc02382g | ref. 171 | yes (2) | 18 | 3 | Ru | 1 | 0 |
+| Ogura | 2018 | Chem. Sci. | 10.1039/c7sc05343f | ref. 77 | yes (1) | 48 | 17 | Ru | 1 | 0 |
+| Lin | 2018 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.8b02126 | ref. 100 | yes (1) | 10 | 2 | Ru | 1 | 0 |
+| Wang | 2019 | Inorg. Chem. Front. | 10.1039/c8qi01244j | ref. 101 | yes (1) | 28 | 4 | Ru | 1 | 0 |
+| Lin | 2019 | ACS Catal. | 10.1021/acscatal.8b03554 | ref. 175 | yes (1) | 24 | 8 | Ru | 2 | 0 |
 | Lin | 2019 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.9b01610 | ref. 174 | yes (1) | 6 | 4 | Ru | 1 | 0 |
-| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 50 | Ru | 7 | 3 |
-| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 20 | Ru | 4 | 0 |
-| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 6 | Ru | 2 | 0 |
-| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 43 | Ru | 4 | 0 |
-| Inoue | 2019 | ACS Catal. | 10.1021/acscatal.8b03650 | ref. 197 | yes (1) | 57 | 24 | Co, Ru | 6 | 2 |
-| Gao | 2017 | ACS Catal. | 10.1021/acscatal.7b00284 | ref. 199 | yes (1) | 62 | 4 | Co | 1 | 0 |
-| Wang | 2020 | Nat. Commun. | 10.1038/s41467-020-14287-z | ref. 200 | yes (2) | 34 | 13 | Co | 4 | 0 |
-| Wang | 2019 | Chem. Commun. | 10.1039/c8cc07130f | ref. 201 | yes (1) | 20 | 5 | Co | 0 | 0 |
+| Ma | 2017 | Catal. Sci. Technol. | 10.1039/c6cy02089e | ref. 178 | yes (1) | 55 | 19 | Ru | 4 | 1 |
+| Liu | 2019 | Catal. Lett. | 10.1007/s10562-019-02674-1 | ref. 186 | yes (1) | 26 | 5 | Ru | 1 | 0 |
+| Ma | 2019 | RSC Adv. | 10.1039/c9ra03097b | ref. 191 | yes (1) | 29 | 3 | Ru | 1 | 0 |
+| Li | 2019 | Chem. Asian J. | 10.1002/asia.201900618 | ref. 184 | yes (1) | 49 | 11 | Ru | 2 | 0 |
+| Inoue | 2019 | ACS Catal. | 10.1021/acscatal.8b03650 | ref. 197 | yes (1) | 57 | 4 | Co | 1 | 0 |
+| Gao | 2017 | ACS Catal. | 10.1021/acscatal.7b00284 | ref. 199 | yes (1) | 62 | 2 | Co | 1 | 0 |
+| Wang | 2020 | Nat. Commun. | 10.1038/s41467-020-14287-z | ref. 200 | yes (2) | 34 | 3 | Co | 0 | 0 |
+| Wang | 2019 | Chem. Commun. | 10.1039/c8cc07130f | ref. 201 | yes (1) | 20 | 0 | – | 0 | 0 |
 | Lin | 2014 | RSC Adv. | 10.1039/c4ra06175f | ref. 129 | yes (1) | 12 | 0 | – | 0 | 0 |
-| Hagen | 2002 | Chem. Commun. | 10.1039/b202781j | ref. 122 | no | 62 | 5 | Co | 1 | 0 |
-| Sato | 2021 | ACS Catal. | 10.1021/acscatal.1c02887 | – | yes (1) | 41 | 26 | Co, Fe | 8 | 4 |
-| Ye | 2020 | Nature | 10.1038/s41586-020-2464-9 | ref. 134 | no | 43 | 23 | Ni | 3 | 0 |
-| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 58 | Fe | 8 | 1 |
-| Fan | 2017 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | ref. 159 | yes (1) | 40 | 28 | Fe | 6 | 0 |
-| **Total** |  |  | **30 papers** |  |  | **1,176** | **623** |  | **124** | **44** |
+| Hagen | 2002 | Chem. Commun. | 10.1039/b202781j | ref. 122 | no | 62 | 1 | Co | 0 | 0 |
+| Sato | 2021 | ACS Catal. | 10.1021/acscatal.1c02887 | – | yes (1) | 41 | 12 | Co | 2 | 0 |
+| Ye | 2020 | Nature | 10.1038/s41586-020-2464-9 | ref. 134 | no | 43 | 3 | Ni | 1 | 0 |
+| Humphreys | 2020 | J. Mater. Chem. A | 10.1039/d0ta05238h | ref. 84 | yes (1) | 108 | 7 | Fe | 1 | 1 |
+| Fan | 2017 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.7b02812 | ref. 159 | yes (1) | 40 | 0 | – | 0 | 0 |
+| **Total** |  |  | **30 papers** |  |  | **1,176** | **182** |  | **33** | **7** |
 
 ### Supplementary Table 3 | Bimetallic surface layers of the ammonia screen
 

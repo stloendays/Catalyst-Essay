@@ -207,10 +207,10 @@ def table1(cr):
            f"{rel(EX / 'paper_set.txt')}; curated, extracted and matched entries from "
            f"{rel(EX / 'eval/entry_metrics.csv')} (Gothe 2025 Table 4: {rel(EX / 'eval/gothe_table4_scores.csv')} and "
            f"{rel(EX / 'out/records_normalized.csv')}); SI files from {rel(EX / 'si_manifest.json')}; candidate "
-           f"operating points from {rel(INV / 'literature_candidates.csv')}. Lam 2018 has no curated reference and was "
+           f"operating points of the printed-value primary from {rel(INV / 'literature_candidates.csv')}. Lam 2018 has no curated reference and was "
            f"scored by PDF review only. SI column: number of SI files retrieved.")
     hdr = ["First author", "Year", "Journal", "DOI", "Reference set", "Curated entries", "Extracted entries",
-           "Matched entries", "SI obtained", "Candidate operating points"]
+           "Matched entries", "SI obtained", "Candidate operating points (printed values)"]
     return block(1, "The 50 CO₂-to-methanol papers of the extraction set", cap, hdr, rows)
 
 
@@ -219,8 +219,8 @@ def table2(cr):
     ps = paper_set(NF / "paper_set.txt")
     fm, sm = manifest(NF / "fetch_manifest.json"), manifest(NF / "si_manifest.json")
     cand = pd.read_csv(FIELD / "candidates.csv")
-    gm = pd.read_csv(FIELD / "group_metrics.csv")
-    prim = cand[cand.group.notna()]
+    gm = pd.read_csv(FIELD / "group_metrics_printed.csv")          # frozen primary: printed values only
+    prim = pd.read_csv(FIELD / "candidates_printed.csv")
     rows, tot = [], dict(rec=0, prim=0, grp=0, mis=0)
     for doi, tag in ps:
         author, year, journal = bib(doi, fm, cr)
@@ -233,18 +233,20 @@ def table2(cr):
         rows.append([author, year, journal, doi, hum, f"yes ({nsi})" if nsi else "no", num(len(c)), num(len(p)),
                      metals, num(len(g)), num(mis)])
     s = json.loads((FIELD / "summary.json").read_text(encoding="utf-8"))
+    sp = json.loads((FIELD / "summary_printed.json").read_text(encoding="utf-8"))
     assert (tot["rec"], tot["prim"], tot["grp"], tot["mis"]) == (
-        s["records_in"], s["primary_entries_after_dedup"], s["primary"]["groups"], s["primary"]["top1_mismatch_groups"])
+        s["records_in"], sp["entries"]["printed"], sp["primary"]["groups"], sp["primary"]["top1_mismatch_groups"])
     rows.append(["**Total**", "", "", f"**{len(ps)} papers**", "", "", f"**{num(tot['rec'])}**",
                  f"**{num(tot['prim'])}**", "", f"**{tot['grp']}**", f"**{tot['mis']}**"])
     cap = (f"First author and year from {rel(NF / 'fetch_manifest.json')}, journal from Crossref; Humphreys 2021 "
            f"reference number from {rel(NF / 'paper_set.txt')}; SI files from {rel(NF / 'si_manifest.json')}; "
-           f"extracted catalyst entries, primary entries (one per catalyst and comparison) and their metals from "
-           f"{rel(FIELD / 'candidates.csv')}; comparison groups and groups whose highest-rate catalyst is not the "
-           f"lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from "
-           f"{rel(FIELD / 'group_metrics.csv')}; totals checked against {rel(FIELD / 'summary.json')}.")
+           f"extracted catalyst entries from {rel(FIELD / 'candidates.csv')}; printed-value primary entries (one per "
+           f"catalyst and comparison) and their metals from {rel(FIELD / 'candidates_printed.csv')}; comparison groups "
+           f"and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate "
+           f"per g catalyst, no metal recovery) from {rel(FIELD / 'group_metrics_printed.csv')}; totals checked "
+           f"against {rel(FIELD / 'summary.json')} and {rel(FIELD / 'summary_printed.json')}.")
     hdr = ["First author", "Year", "Journal", "DOI", "Humphreys 2021", "SI obtained", "Catalyst entries",
-           "Primary entries", "Metals (primary)", "Comparison groups", "Groups with a different winner"]
+           "Printed-value entries", "Metals (printed)", "Comparison groups", "Groups with a different winner"]
     return block(2, "The 30 primary ammonia-synthesis papers", cap, hdr, rows)
 
 
