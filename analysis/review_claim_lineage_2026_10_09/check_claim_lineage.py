@@ -122,8 +122,10 @@ def compute_evidence(root=ROOT):
             "different_catalyst_lab": int(kind_lab["other_catalyst"]),
             "winner_pair_material_vs_temperature": change_types,
             "different_catalyst_adjustable": int(kind_adj["other_catalyst"]),
-            "same_catalyst_temperature_lab": int(kind_lab["other_temperature"]),
-            "same_catalyst_temperature_adjustable": int(kind_adj["other_temperature"]),
+            "same_catalyst_temperature_lab": int(kind_lab["T"]),
+            "same_catalyst_same_temperature_lab": int(kind_lab["same_record"]),
+            "same_catalyst_temperature_adjustable": int(kind_adj["T"]),
+            "same_catalyst_same_temperature_adjustable": int(kind_adj["same_record"]),
             "old_benchmark_baseline": "{}/{}".format(
                 bench["variants"]["baseline"]["top1_mismatch_groups"],
                 bench["variants"]["baseline"]["groups"]),
@@ -159,17 +161,19 @@ def compute_evidence(root=ROOT):
     check(int(lab["gt5pct"]) == m["gt5pct"], "S5 and conversion-fixed cost-regret counts differ")
     check(m["multi_catalyst_groups"] == int(kind_lab["multi_catalyst_groups"]),
           "Multi-material eligible groups differ")
-    check(m["different_catalyst_lab"] + m["same_catalyst_temperature_lab"] == m["mismatches"],
+    check(m["different_catalyst_lab"] + m["same_catalyst_temperature_lab"]
+          + m["same_catalyst_same_temperature_lab"] == m["mismatches"],
           "Laboratory mismatch classification count does not close")
     check(m["different_catalyst_adjustable"] +
-          m["same_catalyst_temperature_adjustable"] == m["adjustable_mismatches"],
+          m["same_catalyst_temperature_adjustable"]
+          + m["same_catalyst_same_temperature_adjustable"] == m["adjustable_mismatches"],
           "Adjustable mismatch classification count does not close")
     for source_col, reported in (("lab", kind_lab), ("cost_f0.95", kind_adj)):
         types = change_types[source_col]
         check(types.get("different_material_same_winner_T", 0) +
               types.get("different_material_and_winner_T", 0) == int(reported["other_catalyst"]),
               "Observed material+temperature split does not close for " + source_col)
-        check(types.get("same_material_different_T", 0) == int(reported["other_temperature"]),
+        check(types.get("same_material_different_T", 0) == int(reported["T"]),
               "Same-catalyst temperature split does not close for " + source_col)
     check(m["temperature_series_groups_strict"] <= m["temperature_series_groups_legacy"],
           "Temperature unique series exceeds legacy row-based series")
