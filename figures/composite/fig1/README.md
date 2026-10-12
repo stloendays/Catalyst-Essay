@@ -5,7 +5,7 @@ A globally correlated catalyst screen inverts at the industrial decision frontie
 
 | Panel | Content | Source |
 |---|---|---|
-| a | forward propagation (step site → microkinetics → catalyst bed → synthesis loop → cost) and the backward-design return path | schematic; stage-1 render from `renders/`, stage-2 curve is the model volcano |
+| a | three tiers of optimum — atomic (descriptor, intrinsic turnover), laboratory (measured activity, STY at test conditions), industrial (plant-cost leader) — over the forward chain step site → microkinetics → laboratory test → catalyst bed → synthesis loop → cost; bars mark the segment each case measures (ammonia atomic → industrial, Figs 1, 3, 4; CO₂-to-methanol published laboratory → industrial, Figs 2, 5; Au/TiO₂ CO-oxidation control laboratory → catalyst requirement, Fig. 6); backward-design return path | schematic; stage-1 render from `renders/`, stage-2 curve is the model volcano |
 | b | Ru, Os, Fe step sites with N\*, descriptor, price, atomic → economic rank | `renders/*_211_N.png`, `fig1_metals.csv` |
 | c | model volcano, log TOF at 673 K versus E\_N, 15 metals, decision-frontier band | `closure/scaling_reachability.csv` + `fig1_metals.csv` |
 | d | minimum catalyst bed volume versus E\_N; only Ru, Os, Fe fit the 90 m³ limit | `fig1_metals.csv` |
