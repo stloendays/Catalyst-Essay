@@ -6,8 +6,10 @@ workflow after both scripts).
   ledger: 83 groups / 909 entries / 44 papers -> 40 / 310 / 28; all entries S5 35/83, 6.86 % 54/82; grouping identical
 
 With --committed DIR (a copy of the committed outputs taken before the rerun), the regenerated definition_scan.csv,
-stability_5_15.csv, group_ledger.csv and both JSON summaries must equal the committed ones (integers exactly, floats
-to 1e-9 relative).
+stability_5_15.csv, group_ledger.csv and both JSON summaries must equal the committed ones: integers and labels
+exactly; floats to 1e-6 relative in the JSON summaries and 1e-5 in the CSVs (written to 6 significant digits). The costs reproduce the frozen ones only to ~1e-11
+from machine to machine, so a small regret can move by ~1e-8 relative; the run time and the reproduction noise itself
+are not compared.
 """
 import argparse
 import json
@@ -31,22 +33,42 @@ def same_frame(a, b):
     for c in a.columns:
         x, y = a[c], b[c]
         if pd.api.types.is_float_dtype(x) or pd.api.types.is_float_dtype(y):
-            if not np.allclose(x.astype(float), y.astype(float), rtol=1e-9, atol=0, equal_nan=True):
+            if not np.allclose(x.astype(float), y.astype(float), rtol=1e-5, atol=1e-9, equal_nan=True):
                 return False
         elif not (x.fillna("").astype(str) == y.fillna("").astype(str)).all():
             return False
     return True
 
 
-def same_json(a, b, path=""):
+# Keys whose values are machine-dependent: run time, and the floating-point noise of the frozen-column reproduction
+# (about 1e-11; it is checked against its 1e-6 tolerance above, not against the committed value).
+VOLATILE = {"runtime_s", "max_relative_difference", "per_column"}
+
+
+def json_diff(a, b, path=""):
+    """First path at which two JSON values differ (floats to 1e-6 relative or 1e-9 absolute), or None."""
     if isinstance(a, dict):
-        return isinstance(b, dict) and a.keys() == b.keys() and all(
-            same_json(a[k], b[k], f"{path}.{k}") for k in a if k != "runtime_s")
+        if not isinstance(b, dict) or a.keys() != b.keys():
+            return path or "/"
+        for k in a:
+            if k not in VOLATILE:
+                d = json_diff(a[k], b[k], f"{path}.{k}")
+                if d:
+                    return d
+        return None
     if isinstance(a, list):
-        return isinstance(b, list) and len(a) == len(b) and all(same_json(x, y, path) for x, y in zip(a, b))
+        if not isinstance(b, list) or len(a) != len(b):
+            return path
+        for i, (x, y) in enumerate(zip(a, b)):
+            d = json_diff(x, y, f"{path}[{i}]")
+            if d:
+                return d
+        return None
     if isinstance(a, float) or isinstance(b, float):
-        return bool(np.isclose(float(a), float(b), rtol=1e-9, atol=1e-15, equal_nan=True))
-    return a == b
+        if a is None or b is None:
+            return path if a is not b else None
+        return None if np.isclose(float(a), float(b), rtol=1e-6, atol=1e-9, equal_nan=True) else path
+    return None if a == b else path
 
 
 def main():
@@ -82,8 +104,9 @@ def main():
             if not same_frame(pd.read_csv(HERE / f), pd.read_csv(args.committed / f)):
                 fails.append(f"{f} differs from the committed file")
         for f in JSONS:
-            if not same_json(json.loads((HERE / f).read_text()), json.loads((args.committed / f).read_text())):
-                fails.append(f"{f} differs from the committed file")
+            d = json_diff(json.loads((HERE / f).read_text()), json.loads((args.committed / f).read_text()))
+            if d:
+                fails.append(f"{f} differs from the committed file at {d}")
         print("regenerated outputs equal the committed ones" if not fails else "")
     if fails:
         raise SystemExit("FAIL: " + "; ".join(fails))
