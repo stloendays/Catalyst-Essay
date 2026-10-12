@@ -76,6 +76,20 @@ def kinetic_states(x0,xeq,beta):
     return answer
 
 
+def methanol_sty_under_selectivity(sty0,x0,s0,x,s,m):
+    """Preserve product formation basis: STY is methanol, not CO2 conversion.
+
+    For a fixed gas feed, MeOH formation scales as X * SMeOH. A variable
+    selectivity requires an extra S(m)/S0 factor; otherwise the economic
+    model would receive mutually inconsistent selectivity and productivity.
+    The source beta=1/gamma=0 branch remains algebraically identical.
+    """
+    if not all(math.isfinite(v) for v in (sty0,x0,s0,x,s,m)) or min(sty0,x0,s0,x,s,m)<=0:
+        raise ValueError("STY and all conversion/selectivity/inventory fractions must be positive and finite")
+    frozen=sty0*x/(x0*m)
+    return frozen if s==s0 else frozen*(s/s0)
+
+
 def optimize_one(row,beta=1.0,gamma=0.0,inventory_cap_multiple=None):
     """Mirror J.evaluate at beta=1,gamma=0,no cap; independently cross-check."""
     x0,sty0=float(row.X),float(row.STY)
@@ -93,7 +107,7 @@ def optimize_one(row,beta=1.0,gamma=0.0,inventory_cap_multiple=None):
     for m,x,flag in kinetic_states(x0,xeq,beta):
         s,co,ch4=shift_selectivity(float(row.SMeOH),float(row.SCO),
                                   float(row.SCH4),m,gamma)
-        sty=sty0*x/(x0*m)
+        sty=methanol_sty_under_selectivity(sty0,x0,float(row.SMeOH),x,s,m)
         c={"X":x,"SMeOH":s,"SCH4":ch4,"SCO":co,
            "STY":sty,"P_bar":float(row.P_bar),"T_C":float(row.T_C),
            "h2_co2":float(row.h2_co2)}

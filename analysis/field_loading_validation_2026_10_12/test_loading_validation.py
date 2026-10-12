@@ -4,7 +4,7 @@ import math
 import unittest
 from experimental_holdout import (ACS,SA,comparable_tracks,mass_ghsv,model_x,
                                   fitted_beta,evaluate_holdouts)
-from conditional_stress import kinetic_states,shift_selectivity,SCENARIOS
+from conditional_stress import kinetic_states,shift_selectivity,methanol_sty_under_selectivity,SCENARIOS
 
 
 class SourceAlignedTests(unittest.TestCase):
@@ -73,6 +73,18 @@ class SourceAlignedTests(unittest.TestCase):
                 self.assertAlmostEqual(s+co+ch4,1,places=13)
         sm,co,ch4=shift_selectivity(1.,0.,0.,2,-.05)
         self.assertAlmostEqual(sm+co+ch4,1,places=13)
+
+    def test_methanol_productivity_tracks_methanol_not_co2_conversion_only(self):
+        self.assertAlmostEqual(methanol_sty_under_selectivity(2.0,.2,.8,.3,.8,2),
+                               2.0*.3/(.2*2),places=14)
+        self.assertAlmostEqual(methanol_sty_under_selectivity(2.0,.2,.8,.3,.4,2),
+                               2.0*.3/(.2*2)*(.4/.8),places=14)
+        self.assertAlmostEqual(methanol_sty_under_selectivity(2.0,.2,.8,.3,.95,2),
+                               2.0*.3/(.2*2)*(.95/.8),places=14)
+        self.assertAlmostEqual(methanol_sty_under_selectivity(2.0,.2,.8,.2,.8,1),
+                               2.0,places=14)
+        with self.assertRaises(ValueError):
+            methanol_sty_under_selectivity(2,.2,.8,.3,-.1,2)
 
     def test_stress_scenarios_are_distinct_unfrozen_conditions(self):
         self.assertEqual(len(SCENARIOS),10)

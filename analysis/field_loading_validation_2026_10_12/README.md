@@ -27,7 +27,7 @@ Conditional re-evaluation uses only the original 4 groups (28 candidate entries)
 Ten unfrozen, NOT literature-calibrated scenarios:
 - Baseline beta=1, fixed measured selectivity and no catalyst mass ceiling. The implementation must match all 28 original PR #55 cost optima at tolerance 2e-8 relative/2e-5 EUR/t absolute, and reproduce all 4 cross-inlet survivors.
 - Generalized conversion X(m)=Xeq*[1-(1-X0/Xeq)^(m^beta)] with beta=0.5, 0.75 or 1.25; these are separate structural stress models, NOT source-fitted kinetic confidence intervals.
-- Selectivity SMeOH(m)=clip(S0 + gamma*ln(m), .001, 1) with gamma=-0.05, +0.05 or -0.15. The source anchor at m=1 and the sum SMeOH+SCO+SCH4=1 are preserved. Gamma values are invented stress coefficients, **not** reaction kinetics.
+- Selectivity SMeOH(m)=clip(S0 + gamma*ln(m), .001, 1) with gamma=-0.05, +0.05 or -0.15. The source anchor at m=1 and the sum SMeOH+SCO+SCH4=1 are preserved. Gamma values are invented stress coefficients, **not** reaction kinetics. **When SMeOH changes, methanol STY must also change as STY0 × [X(m)/X0] × [SMeOH(m)/SMeOH0] / m; using X alone would violate the same model product-carbon balance.**
 - Catalyst mass ceilings of 1x, 2x or 5x the original plant reference of 478.13 tonnes per module times six = 2,868.78 tonnes. These are hypothetical inventory sensitivity bounds, not certified reactor volume or pressure-drop limits.
 
 Reports conditional_candidates.csv, conditional_group_verdicts.csv, conditional_stress_report.json. A source group lacking feasible states is marked 'unscored_due_to_candidate_infeasibility' rather than counted as an economic winner or a zero-regret group. Four survivor groups cannot estimate a general rate/prevalence of ranking reversals.
