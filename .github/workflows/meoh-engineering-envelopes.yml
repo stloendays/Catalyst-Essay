@@ -1,0 +1,147 @@
+name: Methanol engineering equipment-envelope sensitivity
+
+# Exploratory stacked PR on #55. Never touch frozen S5 or the existing joint-sensitivity files.
+# Push only: avoids duplicate PR+push 310-point optimizations and preserves the completed #55 CI.
+on:
+  push:
+    branches: [analysis/meoh-engineering-envelope-20261012]
+    paths:
+      - ".github/workflows/meoh-engineering-envelopes.yml"
+      - "analysis/meoh_engineering_envelope_2026_10_12/*.py"
+      - "analysis/meoh_engineering_envelope_2026_10_12/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-equipment-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUNBUFFERED: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+  ENGINEERING_SCRIPT: analysis/meoh_engineering_envelope_2026_10_12/run_engineering_envelopes.py
+
+jobs:
+  verify:
+    name: Reference, physics and two-point smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Code compiles and engineering screens unit-test
+        run: |
+          python -m py_compile "$ENGINEERING_SCRIPT"
+          python -m unittest discover -s analysis/meoh_engineering_envelope_2026_10_12/tests -v
+      - name: Two-candidate numerical smoke
+        run: |
+          python "$ENGINEERING_SCRIPT" shard --index 0 --count 1 --smoke 2 \
+            --out /tmp/smoke/shard_0.csv
+          python - <<'PY'
+          import pandas as pd
+          p = pd.read_csv('/tmp/smoke/shard_0.csv')
+          assert len(p) == 2 * 2 * 4 * 7, len(p)
+          assert p.row_id.nunique() == 2
+          assert p[(p.cap == 'uncapped') & (p.max_m == 10)
+                   & (p.inlet == 'open')].cost.notna().all()
+          print("Two-point source identity and 56-scenario checks passed")
+          PY
+
+  shard:
+    name: Engineering reoptimization shard ${{ matrix.index }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        index: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Optimize joint loading and purge under equipment constraints
+        run: >
+          python "$ENGINEERING_SCRIPT" shard
+          --index ${{ matrix.index }} --count 4
+          --out /tmp/equipment/shard_${{ matrix.index }}.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: equipment-shard-${{ matrix.index }}
+          path: /tmp/equipment/shard_${{ matrix.index }}.csv
+          retention-days: 30
+
+  aggregate:
+    name: Compare source-aligned rankings and publish reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [verify, shard]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-engineering-envelope-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: equipment-shard-*
+          merge-multiple: true
+          path: /tmp/equipment
+      - name: Assert 310 candidates, 56 scenarios, reproduce previous baseline, enforce physical cap masks
+        run: |
+          python "$ENGINEERING_SCRIPT" aggregate \
+            --input-dir /tmp/equipment \
+            --output /tmp/engineering_reports
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('/tmp/engineering_reports/engineering_summary.json').read_text())
+          assert p['candidate_entries'] == 310
+          assert p['comparison_groups'] == 40
+          assert len(p['scenarios']) == 14
+          assert p['checks']['baseline_m10_no_caps_matches_prior_joint_scan']
+          for key, case in p['scenarios'].items():
+              assert len(case['inlets']) == 4, key
+          print('Independent baseline reproduction and engineering masks passed')
+          PY
+      - name: Publish results separately from the original frozen and joint results
+        run: |
+          mkdir -p analysis/meoh_engineering_envelope_2026_10_12/results
+          cp /tmp/engineering_reports/engineering_summary.json \
+             /tmp/engineering_reports/engineering_group_metrics.csv \
+             /tmp/engineering_reports/engineering_candidate_optima.csv \
+             analysis/meoh_engineering_envelope_2026_10_12/results/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: methanol-equipment-envelope-results
+          path: analysis/meoh_engineering_envelope_2026_10_12/results/
+          retention-days: 60
+      - name: Commit results only on the engineering analysis branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_engineering_envelope_2026_10_12/results/
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "CI: record unfrozen engineering envelope analysis (run ${{ github.run_id }})"
+          for attempt in 1 2 3; do
+            git pull --rebase origin analysis/meoh-engineering-envelope-20261012 &&
+            git push origin HEAD:analysis/meoh-engineering-envelope-20261012 && exit 0
+            sleep 5
+          done
+          exit 1
