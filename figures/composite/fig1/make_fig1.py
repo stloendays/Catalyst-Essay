@@ -93,11 +93,52 @@ ax.set_xlim(0, 118)
 ax.set_ylim(0, 52)
 ax.set_aspect("equal")
 ax.axis("off")
-REND = fig.canvas.get_renderer()
+# text widths for the layout are measured at the export resolution on a scratch figure
+_MFIG = plt.figure(dpi=600)
+_MREND = _MFIG.canvas.get_renderer()
+
+
+def width_mm(s, fs, weight="normal"):
+    t = _MFIG.text(0, 0, s, fontsize=fs, fontweight=weight)
+    w = t.get_window_extent(_MREND).width / 600 * 25.4
+    t.remove()
+    return w
+
+
+def sub_label(x, y, parts, fs, ha="left", weight="bold", sub_fs=5.3, **kw):
+    """Label with subscripts set at sub_fs (>= 5.3 pt) instead of mathtext's 0.7 x base size.
+    parts: [(text, is_subscript), ...]; a leading space in a part becomes a word space."""
+    kern, space, drop = 0.12, 0.278 * fs * 25.4 / 72, 0.19 * fs * 25.4 / 72
+    runs, total = [], 0.0
+    for txt, sub in parts:
+        gap = space if txt.startswith(" ") else (kern if runs else 0.0)
+        txt = txt.strip()
+        size = sub_fs if sub else fs
+        w = width_mm(txt, size, weight)
+        runs.append((txt, size, -drop if sub else 0.0, total + gap))
+        total += gap + w
+    x0 = x - total if ha == "right" else x
+    for txt, size, dy, dx in runs:
+        ax.text(x0 + dx, y + dy, txt, ha="left", va="baseline", fontsize=size, fontweight=weight, **kw)
+    return x0, x0 + total
+
+
+def snapped_dashes(x0, y0, x1, y1, on_mm, off_mm, color, lw):
+    """Dashed outline drawn side by side, each side starting and ending on a dash. Projecting caps
+    carry the end dashes over the corner by half a line width, so the corners close."""
+    pt, lw_mm = 72 / 25.4, lw * 25.4 / 72
+    for (xa, ya), (xb, yb) in (((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)),
+                               ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))):
+        length = math.hypot(xb - xa, yb - ya)
+        n = max(round((length + off_mm) / (on_mm + off_mm)), 1)
+        k = (length + lw_mm) / (n * on_mm + (n - 1) * off_mm)    # visible dashes span length + lw
+        ax.plot([xa, xb], [ya, yb], color=color, lw=lw, zorder=2.5, dash_capstyle="projecting",
+                dashes=((on_mm * k - lw_mm) * pt / lw, (off_mm * k + lw_mm) * pt / lw))
+
 
 # stage centres (mm); the icons are sized so the five connectors come out 5.7-6.9 mm long
 xs = [9.2, 28.65, 51.55, 72.4, 91.5, 109.55]
-yc = 19.2
+yc = 20.2
 # tier columns: the laboratory column runs from the end of the microkinetics icon to the
 # start of the catalyst-inventory label, wide enough for its heading
 B1, B2 = 36.55, 62.75
@@ -111,30 +152,43 @@ for name, sub, x0, x1 in TIERS:
     ax.plot([x0 + 0.4, x0 + 0.4, x1 - 0.4, x1 - 0.4], [41.9, 42.6, 42.6, 41.9], color=INK, lw=0.6,
             solid_capstyle="butt", solid_joinstyle="miter")
 
-# case segments: the part of the chain each case study measures, in neutral tones. The ammonia
-# literature comparison (Fig. 2c,f) hangs under the ammonia bar from the laboratory tier.
-BAR_H, GAP = 3.0, 0.4
-BASE = 0.95         # baseline above the bar bottom: centres cap height and subscript depth in the bar
-X_AU = 82.8         # the Au/TiO2 segment ends after catalyst inventory
-CASES = [  # name, segment, figures, x0, x1, row, face, edge, dash
-    ("Ammonia", "atomic → industrial", "Figs 1, 3, 4", 0.5, 117.5, 0, GRID, INK, "-"),
-    (None, "published laboratory → industrial", "Fig. 2c,f", B1, 117.5, 1, GRID, INK, "-"),
-    ("CO$_2$-to-methanol", "published laboratory → industrial", "Figs 2, 5", B1, 117.5, 2, PAPER, MID, "-"),
-    ("Au/TiO$_2$ control", "laboratory → catalyst mass", "Fig. 6", B1, X_AU, 3, "white", MID, (0, (2.4, 1.2))),
-]
+# case segments: one bar per case over the part of the chain it measures, a neutral lightness
+# step per case. Bars that start at the laboratory tier carry their case name to the left, in the
+# empty atomic column; the ammonia bar carries a tick at the laboratory tier for its literature
+# comparison (Fig. 2c,f), which starts where the methanol and Au/TiO2 bars start.
+BAR_H, GAP = 3.2, 1.1   # GAP leaves about 0.85 mm of white between the 0.7-pt outlines
+BASE = 1.0              # text baseline above the bar bottom
+XL = B1 + 0.4           # left edge of the laboratory-tier bars, the tick and the tier boundary
+X_AU = 82.8             # the Au/TiO2 segment ends after catalyst inventory
+FS_NAME, FS_BAR = 6.5, 6.0
 bar_top = 41.2
-for name, span, figs, x0, x1, row, fc, ec, dash in CASES:
-    y0 = bar_top - BAR_H * (row + 1) - GAP * max(row - 1, 0)
-    ax.add_patch(Rectangle((x0 + 0.4, y0), x1 - x0 - 0.8, BAR_H, fc=fc, ec=ec, lw=0.7, ls=dash, zorder=2))
-    xt = x0 + 1.5
-    if name:
-        t = ax.text(xt, y0 + BASE, name, ha="left", va="baseline", fontsize=5.8, fontweight="bold", zorder=3)
-        xt = t.get_window_extent(REND).transformed(ax.transData.inverted()).x1 + 1.6
-    ax.text(xt, y0 + BASE, span, ha="left", va="baseline", fontsize=5.8, zorder=3)
-    if x1 > 117:
-        ax.text(x1 - 1.5, y0 + BASE, figs, ha="right", va="baseline", fontsize=5.8, zorder=3)
+CASES = [  # name parts, segment, figures, x0, x1, face, edge
+    ([("Ammonia", False)], "atomic → industrial", "Figs 1, 3, 4", 0.9, 117.1, "#C9CDD3", INK),
+    ([("CO", False), ("2", True), ("-to-methanol", False)], "published laboratory → industrial",
+     "Figs 2b,d,e, 5", XL, 117.1, GRID, MID),
+    ([("Au/TiO", False), ("2", True), (" control", False)], "laboratory → catalyst requirement", "Fig. 6",
+     XL, X_AU - 0.4, "white", MID),
+]
+for row, (name, span, figs, x0, x1, fc, ec) in enumerate(CASES):
+    y0 = bar_top - BAR_H * (row + 1) - GAP * row
+    yb = y0 + BASE
+    if fc == "white":
+        ax.add_patch(Rectangle((x0, y0), x1 - x0, BAR_H, fc=fc, ec="none", zorder=2))
+        snapped_dashes(x0, y0, x1, y0 + BAR_H, 1.0, 0.55, ec, 0.7)
     else:
-        ax.text(x1 + 0.3, y0 + BASE, figs, ha="left", va="baseline", fontsize=5.8, zorder=3)
+        ax.add_patch(Rectangle((x0, y0), x1 - x0, BAR_H, fc=fc, ec=ec, lw=0.7, zorder=2))
+    if x0 < 1:
+        xt = sub_label(x0 + 1.5, yb, name, FS_NAME, zorder=3)[1] + 1.6
+    else:
+        sub_label(x0 - 1.2, yb, name, FS_NAME, ha="right", zorder=3)
+        xt = x0 + 1.5
+    ax.text(xt, yb, span, ha="left", va="baseline", fontsize=FS_BAR, zorder=3)
+    ax.text(x1 - 1.5, yb, figs, ha="right", va="baseline", fontsize=FS_BAR, zorder=3)
+    if row == 0:
+        ax.plot([XL, XL], [y0, y0 + 1.3], color=INK, lw=0.7, solid_capstyle="butt", zorder=3)
+        ax.text(XL + 1.5, yb, "lab → industrial, Fig. 2c,f", ha="left", va="baseline", fontsize=FS_BAR,
+                zorder=3)
+plt.close(_MFIG)
 
 # stage 1: step site render
 ru_img = crop_rgba(os.path.join(HERE, "renders", "Ru_211_N.png"))
@@ -220,26 +274,26 @@ ax.text(xs[5], yc + 6.3, "USD t$^{-1}$", fontsize=5.3, color=MID, ha="center", v
 labels = [("Atomic descriptor", r"N* at the step, $E_\mathrm{N}$"),
           ("Microkinetics", "TOF at 673 K"),
           ("Laboratory test", "measured rate, STY"),
-          ("Catalyst inventory", r"$V_\mathrm{bed}\leq$ 90 m$^3$"),
+          ("Catalyst inventory", r"$V_\mathrm{bed}$ ≤ 90 m$^3$"),
           ("Synthesis loop", "$T$, $P$, $T_\\mathrm{sep}$\nreoptimized"),
           ("Economics", "catalyst-dependent\ncost")]
 for x, (t1, t2) in zip(xs, labels):
-    ax.text(x, 10.1, t1, ha="center", va="top", fontsize=6.0, fontweight="bold")
-    ax.text(x, 7.6, t2, ha="center", va="top", fontsize=5.5, color=MID, linespacing=1.1)
+    ax.text(x, yc - 9.1, t1, ha="center", va="top", fontsize=6.0, fontweight="bold")
+    ax.text(x, yc - 11.6, t2, ha="center", va="top", fontsize=5.5, color=MID, linespacing=1.1)
 # stage-to-stage connectors at mid-height, edge to edge
 for x0, x1 in ((xs[0] + w_img / 2 + 0.4, xs[1] - 7.6), (xs[1] + 7.4, x3 - 8.6), (x3 + 9.4, xs[3] - 4.6),
                (xs[3] + 4.6, cx0 - 2.4), (sx + 2.3, xs[5] - 3.8)):
     ax.annotate("", xy=(x1, yc), xytext=(x0, yc),
                 arrowprops=dict(arrowstyle="-|>", lw=1.0, color=INK, mutation_scale=7, shrinkA=0, shrinkB=0))
 # tier boundaries in the icon row only, continuing the bar starts and broken around the connectors
-for xb in (B1, B2):
-    for ya, yb in ((yc - 8.2, yc - 1.6), (yc + 1.6, 27.7)):
+for xb in (XL, B2):
+    for ya, yb in ((yc - 8.2, yc - 1.6), (yc + 1.6, yc + 8.5)):
         ax.plot([xb, xb], [ya, yb], color="#C9CDD3", lw=0.5, ls=(0, (1.5, 1.5)), zorder=0)
 # backward design return path: from economics back up to the atomic descriptor
 YB = 0.45
 ax.plot([xs[5], xs[5], xs[0], xs[0]], [3.3, YB, YB, 3.6], color=RED, lw=0.9, ls=(0, (3, 2)),
         solid_joinstyle="miter")
-ax.annotate("", xy=(xs[0], 5.3), xytext=(xs[0], 3.6),
+ax.annotate("", xy=(xs[0], 6.3), xytext=(xs[0], 3.6),
             arrowprops=dict(arrowstyle="-|>", lw=0.9, color=RED, mutation_scale=8, shrinkA=0, shrinkB=0))
 ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "Backward design: activity multiplier α* needed for parity  vs  "
         "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="baseline")
