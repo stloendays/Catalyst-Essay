@@ -62,7 +62,44 @@ Sensitivities (printed cohort unless stated; `summary.json` variants, limit_swee
 
 At the primary optimum every entry sits at the lowest purge level of the grid (0.5 %), with a median reactor-inlet
 non-H2/CO2 fraction of 13.6 % (`summary.json` thermodynamics); the inlet-limit sweep above shows how the result moves
-when that fraction is bounded.
+when that fraction is bounded. The two checks below (author decision 2026-10-12: S5 stays the pre-specified primary)
+test that purge optimum.
+
+## Purge boundary and inlet-constrained optimization (`run_purge_boundary.py`, ED Fig. 8)
+
+Same model and treatment as S5; the purge grid is extended below 0.5 % (120 log-spaced levels down to 1e-4 %, 516
+levels in all). The canonical part of the grid reproduces the primary costs to < 1e-6 EUR/t.
+
+**1. Purge boundary.** The 0.5 % optimum is the edge of the grid, not a minimum of the cost: on the extended grid the
+optimum lies below 0.5 % for 309 of the 310 scored entries (median 0.048 % purge, none at the new floor), and the cost at
+0.5 % exceeds it by a median 10.9 % (> 1 % for 299 entries, > 10 % for 159). Above 0.5 % the cost rises monotonically for
+every entry. At the extended optimum the reactor inlet carries a median 40 % of species other than H2 and CO2 (10th–90th
+percentile 28–64 %) and the recycle ratio (recycle / fresh make-up, molar) is a median 44 (the anchor loop: 2.85). The
+leaderboard count barely moves (14 / 40, regret > 5 % in 2; plant-cost winner changed in 6 groups), because the
+optimum moves for all entries of a group together.
+
+**2. Inlet-constrained optimization.** Minimum cost over the extended grid with the reactor-inlet non-H2/CO2 fraction
+within published CO2-to-methanol loop designs (`inlet_inert_literature.csv`): the cost model's anchor loop (Campos et
+al. 2022 one-step, 6.86 % as reproduced by the model) and the envelope of the four published designs (4.92 % Nieminen et
+al. 2019 to 10.25 % Campos et al. 2022 three-step). No entry is infeasible.
+
+| Inlet limit | Different winner | Regret > 5 % | Other catalyst / of 32 | Other T / of 22 | Winner changed vs S5 | Median purge | Median recycle ratio | Mean inlet CO / CH4 / N2 (mol%) |
+|---|---|---|---|---|---|---|---|---|
+| none, grid 0.5–40 % (S5) | 15 / 40 | 7 | 10 | 5 | — | 0.5 % | 27.6 | 9.8 / 2.7 / 4.1 |
+| none, extended grid | 14 / 40 | 2 | 7 | 7 | 6 | 0.048 % | 43.9 | 15.2 / 6.5 / 21.3 |
+| ≤ 10.25 % (highest published) | 24 / 40 | 18 | 14 | 10 | 18 | 1.0 % | 16.7 | 6.6 / 0.6 / 2.7 |
+| ≤ 6.86 % (anchor loop) | 28 / 40 | 22 | 16 | 12 | 24 | 2.55 % | 13.4 | 4.8 / 0.3 / 1.6 |
+| ≤ 4.92 % (lowest published) | 26 / 40 | 25 | 16 | 10 | 24 | 4.2 % | 9.6 | 3.5 / 0.2 / 1.1 |
+
+Paper-cluster 95 % CI: 44–73 % (10.25 %), 54–83 % (6.86 %), 52–78 % (4.92 %). Under the constraint the result no longer
+rests on one paper: Bansode 2013 contributes 5–7 disagreements and without it 18–21 / 32 remain (13–20 with a regret
+above 5 %). The plant-cost leader is now the more selective catalyst (17–21 of the disagreements; under S5, 4 of 15)
+and the one making less CO (16–20; S5 3): CO and CH4 must leave through the purge to hold the inlet composition, which
+costs H2. Sweep of the limit on the extended grid: 3 % 27 / 39, 4–10 % 25–28 / 40, 15 % 22, 20 % 19, 25–30 % 16, 40 % 15.
+
+Outputs: `purge_boundary_summary.json`, `purge_boundary_entries.csv` (one row per scored entry, every treatment),
+`purge_boundary_curves.csv` (cost and loop state along the grid), `group_metrics_purge_{extended,published_min,anchor,
+published_max}.csv`. About 3.5 min on 6 workers.
 
 Further sensitivities on the frozen candidates:
 

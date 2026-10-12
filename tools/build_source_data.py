@@ -445,12 +445,12 @@ def fig6():
 # numbered in first-citation order (2026-10-07); E.edfigN keep the names of the first numbering
 ED_TITLES = {1: "Extraction accuracy", 2: "Compute saved by the lower bound", 3: "Robustness of the methanol result",
              4: "Methanol plant benchmark", 5: "Measured ammonia catalysts", 6: "Bimetallic surfaces",
-             7: "Actual-Ru-catalyst Monte Carlo"}
+             7: "Actual-Ru-catalyst Monte Carlo", 8: "Methanol purge optimum and reactor-inlet composition"}
 
 
 def ed():
     tables = {1: E.edfig1(), 2: E.edfig7()[0], 3: E.edfig3(), 4: E.edfig6(), 5: E.edfig4(), 6: E.edfig2()[0],
-              7: E.edfig5()}
+              7: E.edfig5(), 8: E.edfig8()}
     _, fe2 = E.edfig2()
     for n, t in tables.items():
         b = Book("SourceData_EDFig%d.xlsx" % n, "Extended Data Fig. %d (%s; renderer "

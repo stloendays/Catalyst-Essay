@@ -1,4 +1,4 @@
-"""Extended Data figures 1-7, 183 mm wide, drawn from the panel tables of ed_data.py.
+"""Extended Data figures 1-8, 183 mm wide, drawn from the panel tables of ed_data.py.
 
     pur_bridge_env/python render_extended_data.py          -> EDFig{N}_{slug}.{svg,pdf,png}
     pur_bridge_env/python render_extended_data.py 3 5      -> only ED Figs 3 and 5
@@ -8,18 +8,19 @@ import re
 import sys
 
 import numpy as np
+from matplotlib.patches import Patch
 from matplotlib.ticker import NullFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "composite"))
 import ed_data as E  # noqa: E402
-from style import DARK_B, DARK_G, FE, INK, OTHER, PALE_B, PALE_G, RED, RU, Page, boxed  # noqa: E402
+from style import DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, TINT_B, Page, boxed  # noqa: E402
 
 # Numbered in the order the manuscript first cites them (2026-10-07 restructure); the panel functions keep the
 # names of the first numbering (ed2 = bimetallic, ed4 = measured NH3, ed5 = actual Ru, ed6 = benchmark, ed7 = pruning).
 SLUGS = {1: "extraction_accuracy", 2: "bound_pruning", 3: "methanol_robustness", 4: "meoh_plant_benchmark",
-         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc"}
+         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc", 8: "meoh_purge_inlet"}
 METAL_COL = {"Ru": RU, "Fe": FE, "Co": OTHER, "Ni": PALE_G}
 
 
@@ -552,7 +553,164 @@ def ed7():
     return pg
 
 
-FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5}
+# ---------------------------------------------------------------------------------------------- ED Fig. 8
+TREAT_COL = {"canonical": RU, "extended": PALE_B, "limit_published_max": PALE_G, "limit_anchor": FE,
+             "limit_published_min": DARK_G}
+TREAT_TICK = {"canonical": "S5\n0.5–40 %", "extended": "S5\nfrom 10$^{-4}$ %", "limit_published_max": "inlet\n≤ %.2f %%",
+              "limit_anchor": "inlet\n≤ %.2f %%", "limit_published_min": "inlet\n≤ %.2f %%"}
+
+
+def _purge_axis(ax):
+    ax.set_xscale("log")
+    ax.set_xlim(1e-4, 40)
+    ax.set_xticks([1e-4, 1e-3, 1e-2, 0.1, 0.5, 2, 10, 40])
+    ax.set_xticklabels(["10$^{-4}$", "10$^{-3}$", "0.01", "0.1", "0.5", "2", "10", "40"])
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xlabel("purge (% of the loop gas)")
+
+
+def _strip(ax, c, col, keys, rng):
+    for x, k in enumerate(keys):
+        v = c.loc[c.key == k, col].to_numpy(float)
+        v = v[np.isfinite(v)]
+        ax.scatter(x + rng.uniform(-0.28, 0.28, len(v)), v, s=1.6, c=TREAT_COL[k], ec=INK, lw=0.12, zorder=2)
+        med = float(np.median(v))
+        ax.plot([x - 0.36, x + 0.36], [med, med], color=INK, lw=0.9, zorder=3)
+    ax.set_xlim(-0.6, len(keys) - 0.4)
+    ax.set_yscale("log")
+
+
+def ed8():
+    d = E.edfig8()
+    a, b, c, dd, e, f = (d[k][0] for k in "abcdef")
+    keys = list(e.key)
+    lim = {"limit_published_min": b.attrs["published"][0], "limit_anchor": b.attrs["anchor"],
+           "limit_published_max": b.attrs["published"][1]}
+    ticks = [TREAT_TICK[k] % (100 * lim[k]) if k in lim else TREAT_TICK[k] for k in keys]
+    floor = 100 * a.attrs["purge_floor"]
+    opt = c[c.key == "extended"]
+    pg = Page(183.0, 178.0)
+    # a cost along the purge grid, relative to the cost at the lowest level of the canonical grid
+    ax = pg.ax(14, 128, 70, 40)
+    ax.axvspan(floor, 40, color=TINT_B, lw=0, zorder=0)
+    for _, g in a.groupby("i"):
+        ax.plot(g.purge * 100, g.cost_rel_0p5pct, color=RU, lw=0.25, alpha=0.2, zorder=1)
+    med = a.groupby("purge").cost_rel_0p5pct.median()
+    ax.plot(med.index * 100, med.values, color=INK, lw=1.0, zorder=3, label="median of %d entries" % a.i.nunique())
+    ax.scatter(opt.purge * 100, opt.cost_rel_0p5pct, s=2.0, c=DARK_B, lw=0, zorder=4, label="optimum, extended grid")
+    ax.axvline(floor, color=RED, lw=0.7, ls="--", zorder=4)
+    _purge_axis(ax)
+    ax.set_yscale("log")
+    ax.set_ylim(0.05, 5)
+    ax.set_yticks([0.05, 0.1, 0.2, 0.5, 1, 2, 5])
+    ax.set_yticklabels(["0.05", "0.1", "0.2", "0.5", "1", "2", "5"])
+    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.set_ylabel("cost / cost at %.1f %% purge" % floor)
+    below = int((opt.purge < a.attrs["purge_floor"] - 1e-12).sum())
+    ax.text(floor * 1.15, 0.062, "S5 grid\n(0.5–40 %)", color=RED, fontsize=5.0, va="bottom")
+    ax.text(0.03, 0.04, "optimum below %.1f %%: %d of %d entries\nmedian optimum %.3f %% purge" % (
+        floor, below, len(opt), 100 * float(np.median(opt.purge))), transform=ax.transAxes, fontsize=5.0,
+        va="bottom")
+    ax.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handlelength=1.4, markerscale=2.5)
+    boxed(ax)
+    pg.letter("a", 2, 175)
+    pg.title("Cost along the purge grid, every scored entry", 14, 175)
+    # b reactor-inlet content of species other than H2 and CO2
+    bx = pg.ax(108, 128, 70, 40)
+    lo, hi, nlit = b.attrs["published"]
+    bx.axhspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
+    for _, g in b.groupby("i"):
+        bx.plot(g.purge * 100, g.nonreactive * 100, color=RU, lw=0.25, alpha=0.2, zorder=1)
+    mb = b.groupby("purge").nonreactive.median()
+    bx.plot(mb.index * 100, mb.values * 100, color=INK, lw=1.0, zorder=3)
+    bx.scatter(opt.purge * 100, opt.nonreactive * 100, s=2.0, c=DARK_B, lw=0, zorder=4)
+    bx.axvline(floor, color=RED, lw=0.7, ls="--", zorder=4)
+    bx.axhline(100 * b.attrs["anchor"], color=DARK_G, lw=0.6, ls="--", zorder=2)
+    _purge_axis(bx)
+    bx.set_ylim(0, 100)
+    bx.set_ylabel("reactor inlet, not H$_2$ or CO$_2$ (mol%)")
+    # just above the band at the lowest purges, where the curves sit near 100 % and the optima do not reach
+    bx.text(1.3e-4, 100 * hi + 0.8, "shaded: %d published\nloop designs, %.2f–%.2f %%\ndashed: anchor loop %.2f %%" % (
+        nlit, 100 * lo, 100 * hi, 100 * b.attrs["anchor"]), fontsize=5.0, ha="left", va="bottom", color=DARK_G)
+    boxed(bx)
+    pg.letter("b", 96, 175)
+    pg.title("Reactor-inlet content other than H$_2$ and CO$_2$", 108, 175)
+    # c optimal purge per treatment
+    rng = np.random.default_rng(8)
+    cx = pg.ax(14, 70, 70, 40)
+    _strip(cx, c.assign(purge=c.purge * 100), "purge", keys, rng)
+    cx.axhline(floor, color=RED, lw=0.6, ls="--", zorder=1)
+    cx.set_ylim(1e-4, 40)
+    cx.set_yticks([1e-4, 1e-3, 1e-2, 0.1, 0.5, 2, 10, 40])
+    cx.set_yticklabels(["10$^{-4}$", "10$^{-3}$", "0.01", "0.1", "0.5", "2", "10", "40"])
+    cx.yaxis.set_minor_formatter(NullFormatter())
+    cx.set_xticks(range(len(keys)))
+    cx.set_xticklabels(ticks, fontsize=5.4)
+    cx.set_ylabel("optimal purge (%)")
+    boxed(cx)
+    pg.letter("c", 2, 117)
+    pg.title("Optimal purge (bars: median)", 14, 117)
+    # d recycle ratio at the optimum
+    dx = pg.ax(108, 70, 70, 40)
+    _strip(dx, dd, "recycle_ratio", keys, rng)
+    ar = dd.attrs["anchor_recycle_ratio"]
+    dx.axhline(ar, color=DARK_G, lw=0.6, ls="--", zorder=1)
+    dx.text(-0.5, ar * 0.85, "anchor loop %.2f" % ar, color=DARK_G, fontsize=5.0, ha="left", va="top")
+    dx.set_ylim(0.5, 1e4)
+    dx.set_yticks([1, 10, 100, 1000, 10000])
+    dx.set_yticklabels(["1", "10", "100", "1,000", "10,000"])
+    dx.yaxis.set_minor_formatter(NullFormatter())
+    dx.set_xticks(range(len(keys)))
+    dx.set_xticklabels(ticks, fontsize=5.4)
+    dx.set_ylabel("recycle / fresh make-up (molar)")
+    boxed(dx)
+    pg.letter("d", 96, 117)
+    pg.title("Recycle ratio at the optimum (bars: median)", 108, 117)
+    # e comparisons with a different winner
+    ex = pg.ax(14, 12, 70, 40)
+    y = np.arange(len(e))[::-1].astype(float)
+    ng = int(e.groups.max())
+    ex.barh(y - 0.12, e.different_winner, 0.4, color=[TREAT_COL[k] for k in e.key], ec=INK, lw=0.35)
+    ex.barh(y - 0.12, e.regret_gt5pct, 0.4, color="none", ec=INK, lw=0.35, hatch="//////")
+    for yi, r in zip(y, e.itertuples()):
+        ex.text(0.3, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
+        ex.text(r.different_winner + 0.6, yi - 0.12, "%d / %d (%d > 5 %%)" % (r.different_winner, r.groups,
+                                                                            r.regret_gt5pct),
+                fontsize=5.0, va="center")
+    ex.set_yticks([])
+    ex.set_ylim(-0.55, len(e) - 0.3)
+    ex.set_xlim(0, ng)
+    ex.set_xticks(range(0, ng + 1, 10))
+    ex.set_xlabel("comparisons, STY leader ≠ plant-cost leader (of %d)" % ng)
+    boxed(ex)
+    pg.letter("e", 2, 59)
+    pg.title("Comparisons with a different winner (hatched: regret > 5 %)", 14, 59)
+    # f mean inlet CO, CH4, N2 at the optimum
+    fx = pg.ax(108, 12, 70, 40)
+    fx.axvspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
+    left = np.zeros(len(f))
+    for sp, colr in (("CO", OS), ("CH4", OTHER), ("N2", PALE_B)):
+        fx.barh(y - 0.12, 100 * f[sp], 0.4, left=left, color=colr, ec=INK, lw=0.35, zorder=2,
+                label={"CO": "CO", "CH4": "CH$_4$", "N2": "N$_2$"}[sp])
+        left += 100 * f[sp].to_numpy()
+    for yi, r in zip(y, f.itertuples()):
+        fx.text(0.4, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
+        fx.text(100 * r.nonreactive + 0.8, yi - 0.12, "%.1f %%" % (100 * r.nonreactive), fontsize=5.0, va="center")
+    fx.set_yticks([])
+    fx.set_ylim(-0.55, len(f) - 0.3)
+    fx.set_xlim(0, 50)
+    fx.set_xlabel("reactor inlet (mol%, mean over the scored entries)")
+    h, lab = fx.get_legend_handles_labels()
+    h.append(Patch(color=PALE_G, alpha=0.6, lw=0))
+    lab.append("published designs")
+    fx.legend(h, lab, loc="lower right", fontsize=5.0, borderaxespad=0.3, handlelength=1.2, ncol=2)
+    boxed(fx)
+    pg.letter("f", 96, 59)
+    pg.title("Reactor-inlet CO, CH$_4$ and N$_2$ at the optimum", 108, 59)
+    return pg
+
+
+FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5, 8: ed8}
 
 
 # ---------------------------------------------------------------------------------------------- captions

@@ -417,8 +417,62 @@ def edfig7():
             "c": (d, PRUNE + "summary.json, " + ALLOY_SUM + " (pruning) and " + ALLOY)}, fe
 
 
+# ------------------------------------------------------------------ ED Fig. 8: purge optimum and inlet composition
+PURGE_TREATMENTS = (("canonical", "S5 as frozen: purge grid 0.5–40 %"),
+                    ("extended", "S5 model, purge grid extended to 10$^{-4}$ %"),
+                    ("limit_published_max", "inlet ≤ %.2f %% (highest published design)"),
+                    ("limit_anchor", "inlet ≤ %.2f %% (the cost model's anchor loop)"),
+                    ("limit_published_min", "inlet ≤ %.2f %% (lowest published design)"))
+
+
+def edfig8():
+    """Purge-boundary test and inlet-constrained optimization (run_purge_boundary.py): cost and inlet composition along
+    the extended purge grid for every scored entry; purge, recycle ratio and inlet CO / CH4 / N2 at the optimum of each
+    treatment; comparisons with a different winner."""
+    src = INV + "purge_boundary_"
+    sm = rjson(src + "summary.json")
+    ent = rcsv(src + "entries.csv")
+    cur = rcsv(src + "curves.csv")
+    assert len(ent) == sm["entries"] and cur.i.nunique() == len(ent)
+    lim = sm["limits"]
+    label = {k: (t % (100 * lim[k[6:]]) if k.startswith("limit_") else t) for k, t in PURGE_TREATMENTS}
+    cur["cost_rel_0p5pct"] = cur.cost_eur_t / ent.cost_at_0p5pct.to_numpy()[cur.i.to_numpy()]
+    a = cur[["i", "purge", "cost_eur_t", "cost_rel_0p5pct"]]
+    a.attrs["purge_floor"] = sm["grid"]["canonical_floor"]
+    b = cur[["i", "purge", "nonreactive", "CO", "CH4", "N2"]].copy()
+    b.attrs["published"] = (lim["published_min"], lim["published_max"], len(sm["published_inlet_non_h2co2_pct"]))
+    b.attrs["anchor"] = lim["anchor"]
+    long = []
+    for k, _ in PURGE_TREATMENTS:
+        t = pd.DataFrame(dict(treatment=label[k], key=k, i=ent.index, cost_eur_t=ent[k + "_cost"],
+                              cost_rel_0p5pct=ent[k + "_cost"] / ent.cost_at_0p5pct, purge=ent[k + "_purge"],
+                              recycle_ratio=ent[k + "_recycle_ratio"], nonreactive=ent[k + "_nonreactive"],
+                              CO=ent[k + "_CO"], CH4=ent[k + "_CH4"], N2=ent[k + "_N2"]))
+        long.append(t)
+    long = pd.concat(long, ignore_index=True)
+    c = long[["treatment", "key", "i", "purge", "cost_rel_0p5pct", "nonreactive"]]
+    d = long[["treatment", "key", "i", "recycle_ratio"]].copy()
+    d.attrs["anchor_recycle_ratio"] = sm["anchor_loop"]["recycle_ratio"]
+    res = {"canonical": sm["boundary"]["s5_scored"], "extended": sm["boundary"]["scored"],
+           **{"limit_" + k: v["scored"] for k, v in sm["constrained"].items()}}
+    changed = {"canonical": 0, "extended": sm["boundary"]["plant_winner_changed_vs_s5"],
+               **{"limit_" + k: v["plant_winner_changed_vs_s5"] for k, v in sm["constrained"].items()}}
+    e = pd.DataFrame([dict(treatment=label[k], key=k, groups=res[k]["groups"],
+                           different_winner=res[k]["top1_mismatch_groups"],
+                           regret_gt5pct=res[k]["regret_bins"]["gt5pct"]["groups"],
+                           plant_winner_changed_vs_s5=changed[k]) for k, _ in PURGE_TREATMENTS])
+    f = long.groupby(["key", "treatment"], sort=False)[["CO", "CH4", "N2", "nonreactive"]].mean().reset_index()
+    f.attrs["published"] = b.attrs["published"]
+    return {"a": (a, src + "curves.csv (cost_eur_t) / " + src + "entries.csv (cost_at_0p5pct)"),
+            "b": (b, src + "curves.csv; limits " + src + "summary.json (" + INV + "inlet_inert_literature.csv)"),
+            "c": (c, src + "entries.csv (<treatment>_purge)"),
+            "d": (d, src + "entries.csv (<treatment>_recycle_ratio); anchor " + src + "summary.json anchor_loop"),
+            "e": (e, src + "summary.json (boundary, constrained)"),
+            "f": (f, src + "entries.csv (<treatment>_CO, _CH4, _N2, _nonreactive), means over the scored entries")}
+
+
 if __name__ == "__main__":
-    for f in (edfig1, edfig3, edfig4, edfig5, edfig6):
+    for f in (edfig1, edfig3, edfig4, edfig5, edfig6, edfig8):
         r = f()
         print(f.__name__, {k: v[0].shape for k, v in r.items()})
     r, _ = edfig2()

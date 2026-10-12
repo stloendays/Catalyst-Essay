@@ -405,15 +405,17 @@ def cost(c, **kw):
 PURGES = M.PURGES  # 0.5-40 %, 0.1 % steps (396 levels), same grid as the canonical sweep
 
 
-def purge_sweep(c, cap_conversion=True, **kw):
-    """Cost and loop state on the canonical purge grid (vectorized over purge).
+def purge_sweep(c, cap_conversion=True, purges=None, **kw):
+    """Cost and loop state on the canonical purge grid (vectorized over purge); `purges` replaces the grid (the
+    purge-boundary test extends it below 0.5 %).
 
     With the reaction temperature known and cap_conversion, the per-pass CO2 conversion at each purge level is
     min(X, X_eq), X_eq being the conversion at which the loop outlet reaches CO2-hydrogenation equilibrium: a
     catalyst that would pass equilibrium at the loop-inlet composition reaches it and stops there. X_eff and
     X_capped record the conversion used."""
-    s = cost(c, purge=PURGES, **kw)
-    n = len(PURGES)
+    grid = PURGES if purges is None else np.asarray(purges, dtype=float)
+    s = cost(c, purge=grid, **kw)
+    n = len(grid)
     s["X_eff"] = np.full(n, float(c["X"]))
     s["X_capped"] = np.zeros(n, dtype=bool)
     if not cap_conversion or "equilibrium_feasible" not in s:
@@ -421,7 +423,7 @@ def purge_sweep(c, cap_conversion=True, **kw):
     bad = ~np.asarray(s["equilibrium_feasible"])
     if not bad.any():
         return s
-    purges, X0 = PURGES[bad], float(c["X"])
+    purges, X0 = grid[bad], float(c["X"])
 
     def f(X, idx):
         return np.log(cost(dict(c, X=X[idx]), purge=purges[idx], **kw)["co2_hyd_approach"])
@@ -474,7 +476,7 @@ def eligible_purges(sweep, nonreactive_max=NONREACTIVE_MAX):
     return np.asarray(sweep["equilibrium_feasible"]) & (np.asarray(sweep["nonreactive_fraction"]) <= nonreactive_max)
 
 
-def optimal_purge(c, constrained=False, sweep=None, **kw):
+def optimal_purge(c, constrained=False, sweep=None, purges=None, **kw):
     """Cost-optimal purge level of one candidate on the canonical grid (needs T_C).
 
     constrained=False (frozen treatment): minimum over every level of the conversion-capped sweep.
@@ -482,7 +484,8 @@ def optimal_purge(c, constrained=False, sweep=None, **kw):
     are NaN when no level is eligible (the candidate is infeasible).
     Returns dict(cost_eur_t, purge, feasible, n_eligible, at_opt) where at_opt holds the sweep entries at the
     chosen level."""
-    s = purge_sweep(c, **kw) if sweep is None else sweep
+    grid = PURGES if purges is None else np.asarray(purges, dtype=float)
+    s = purge_sweep(c, purges=grid, **kw) if sweep is None else sweep
     cost_ = np.asarray(s["cost_eur_t"], dtype=float)
     ok = eligible_purges(s)
     pick = ok if constrained else np.isfinite(cost_)
@@ -491,7 +494,7 @@ def optimal_purge(c, constrained=False, sweep=None, **kw):
     j = int(np.argmin(np.where(pick, cost_, np.inf)))
     at = {k: float(np.asarray(v).ravel()[j]) for k, v in s.items()
           if isinstance(v, np.ndarray) and v.shape == cost_.shape}
-    return dict(cost_eur_t=float(cost_[j]), purge=float(PURGES[j]), feasible=bool(ok[j]), n_eligible=int(ok.sum()),
+    return dict(cost_eur_t=float(cost_[j]), purge=float(grid[j]), feasible=bool(ok[j]), n_eligible=int(ok.sum()),
                 at_opt=at)
 
 
