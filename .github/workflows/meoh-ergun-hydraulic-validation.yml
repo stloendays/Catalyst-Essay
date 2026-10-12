@@ -1,0 +1,65 @@
+name: Methanol Ergun hydraulic physics and evidence gate
+
+on:
+  push:
+    branches: [analysis/meoh-ergun-hydraulic-validation-20261012]
+    paths:
+      - ".github/workflows/meoh-ergun-hydraulic-validation.yml"
+      - "analysis/meoh_hydraulic_2026_10_12/*.py"
+      - "analysis/meoh_hydraulic_2026_10_12/*.json"
+      - "analysis/meoh_hydraulic_2026_10_12/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ergun-source-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  numerical-and-source-validity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-ergun-hydraulic-validation-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compile and verify hydraulic mathematics and original compressor cost
+        run: |
+          python -m py_compile analysis/meoh_hydraulic_2026_10_12/ergun_screen.py
+          python -m unittest discover -s analysis/meoh_hydraulic_2026_10_12/tests -v
+      - name: Source completeness gate (do not fabricate plant geometry)
+        run: |
+          python analysis/meoh_hydraulic_2026_10_12/ergun_screen.py \
+            --input analysis/meoh_hydraulic_2026_10_12/bed_input_requirements.json \
+            --output analysis/meoh_hydraulic_2026_10_12/results/bed_input_audit.json
+          python - <<'PY'
+          import json
+          p=json.load(open("analysis/meoh_hydraulic_2026_10_12/results/bed_input_audit.json"))
+          assert p["status"]=="blocked_missing_physical_measurements"
+          assert not p["any_pressure_drop_claim"]
+          assert p["n_experimentally_validated_geometry_designs"]==0
+          assert len(p["missing_required_source_fields"])>=10
+          print("Physics code validated, actual experimental geometry NOT established; no industrial pressure-drop claim.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meoh-Ergun-physical-input-provenance-gate
+          path: analysis/meoh_hydraulic_2026_10_12/results/bed_input_audit.json
+          retention-days: 60
+      - name: Commit evidence-status report in independent branch only
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_hydraulic_2026_10_12/results/bed_input_audit.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "CI: verified Ergun maths and explicitly blocked physical-design claim (${{ github.run_id }})"
+          git pull --rebase origin analysis/meoh-ergun-hydraulic-validation-20261012
+          git push origin HEAD:analysis/meoh-ergun-hydraulic-validation-20261012
