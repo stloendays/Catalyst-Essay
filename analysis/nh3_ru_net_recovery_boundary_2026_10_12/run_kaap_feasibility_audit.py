@@ -32,7 +32,7 @@ from lifecycle_cashflow import MetalCashflow, annualized_metal_multiplier
 from kaap_feasibility_math import (classify_feasibility, minimum_feasible_activity_multiplier,
                                    find_fe_activity_cost_parity)
 
-FE_ALPHA = (0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0)
+FE_ALPHA = (0.1, 0.15, 0.2, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0)
 CAPACITY_SCALE = (0.5, 0.75, 1.0, 1.25, 1.5)
 CONTRACTS = ("owned_ideal", "lease_rent_0pct", "lease_rent_1pct",
              "lease_rent_2pct", "lease_rent_2pct_secured",
@@ -131,6 +131,7 @@ def main():
             "nominal_opt_Fe_volume_m3":orig["Fe_bed_volume_m3"],
             "nominal_feasible_volume_margin_m3":orig["Fe_bed_volume_margin_m3"],
             "nominal_best_Fe_T_C":orig["Fe_opt_T_C"],
+            "nominal_best_Fe_P_bar":orig["Fe_opt_P_bar"],
             "nominal_count_feasible_states":orig["n_Fe_volume_feasible_states"],
             "engineering_validation_status":"UNVALIDATED -- isothermal whole-bed model only",
         }
@@ -205,6 +206,8 @@ def main():
                 "status_warning":"Only a frozen-kinetic activity-and-volume sensitivity; no serial-bed process model",
             })
     save_csv(HERE/"kaap_fe_effectiveness_parity.csv",alpha_thresholds)
+    if not (0 < sum(not x["Fe_model_volume_feasible"] for x in curves) < len(curves)):
+        raise AssertionError("Fe volume sensitivity failed to exercise BOTH feasible and infeasible states")
     assert len(alpha_thresholds)==len(CAPACITY_SCALE)*len(CONTRACTS)
 
     # The source literature explicitly describes Fe upfront + Ru downstream.
@@ -238,7 +241,7 @@ def main():
                 original_volume_diagnostics["KAAP"]["nominal_opt_Fe_volume_m3"]/h.V_CAP,
         },
         "missing_physical_evidence":[
-            "Fe/Cu? site-dependent true rate constant and Fe particle morphology at KAAP pressure/composition",
+            "Fe promoter- and facet-dependent intrinsic kinetics and morphology at KAAP gas composition",
             "adiabatic multibed plug-flow conversion, gas phase compositions and intercooling",
             "Ru inlet after Fe stages, NH3 inhibition of Fe vs Ru, H2 inhibition on Ru",
             "actual KBR installation bed distributions, pressure drop and size at equal annual NH3 capacity",
