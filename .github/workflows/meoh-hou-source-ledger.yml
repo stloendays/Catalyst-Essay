@@ -1,0 +1,65 @@
+name: Hou source errata ledger (all 30 records, no data mutation)
+
+on:
+  push:
+    branches: [analysis/meoh-hou-argon-feed-recheck-20261012]
+    paths:
+      - ".github/workflows/meoh-hou-source-ledger.yml"
+      - "analysis/meoh_hou_source_provenance_2026_10_12/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hou-source-ledger-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-ledger:
+    name: Audit source gas labels and report a 30-row UNAPPLIED erratum proposal
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-hou-argon-feed-recheck-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Original source feed metadata and source-specific correction ledger
+        run: |
+          python -m py_compile analysis/meoh_hou_source_provenance_2026_10_12/generate_erratum_proposal.py
+          python analysis/meoh_hou_source_provenance_2026_10_12/generate_erratum_proposal.py \
+            --output analysis/meoh_hou_source_provenance_2026_10_12/results
+          python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          root=Path("analysis/meoh_hou_source_provenance_2026_10_12/results")
+          s=json.loads((root/"hou_source_erratum_proposal_summary.json").read_text())
+          with (root/"hou_30_entry_proposed_source_erratum.csv").open() as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==30
+          assert s["original_printed_cohort_entries"]==6
+          assert s["original_printed_cohort_bare_yco2_misassignments"]==3
+          assert s["curated_record_issue_counts"]["incorrect_N2_species"]==13
+          assert s["curated_record_issue_counts"]["source_feed_absent"]==12
+          assert all(r["proposal_status"]=="UNAPPLIED_SIDE_CAR" for r in rows)
+          assert all(r["change_to_reported_STY"]=="NO" for r in rows)
+          print("PASS: source extraction intact; 30-entry audited, 12 figure records require manual checks")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hou-unapplied-30-record-source-erratum-ledger
+          path: analysis/meoh_hou_source_provenance_2026_10_12/results/
+          retention-days: 60
+      - name: Record only the unapplied source proposal in the analysis branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_hou_source_provenance_2026_10_12/results/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "CI: add unapplied Hou Ar source provenance correction proposal (${{ github.run_id }})"
+          git pull --rebase origin analysis/meoh-hou-argon-feed-recheck-20261012
+          git push origin HEAD:analysis/meoh-hou-argon-feed-recheck-20261012
