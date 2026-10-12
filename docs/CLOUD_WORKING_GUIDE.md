@@ -42,4 +42,4 @@ cache is then recomputed.
 - Supplementary Tables and Extended Data captions are generated; change their generators, not the Markdown.
 - Extended Data figures and references must be cited in numerical order; the reference list is renumbered by order of
   first citation (main text, then captions).
-- Open work: the human gold-standard check (100 values, `gold_standard_sample.xlsx`) is with the author.
+- Gold-standard validation: **the author confirmed completion of manual review of the 100 sampled methanol values on 2026-10-12**. The reviewed source-evidence workbook, machine-readable CSV, historical AI audits and explicit author-attestation provenance are under `analysis/verify_2026_10_08/gold_standard_human_review_2026_10_12/`. The original manual cells are left unmodified; full-dataset accuracy is not inferred.
