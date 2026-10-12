@@ -1,5 +1,9 @@
 # NH3 Fe–Ru Catalyst Metal Lifecycle DCF Audit (2026-10-12)
 
+> **Editorial hold (2026-10-12, author decision).** Ruthenium metal recovery is optional, not mandatory. The baseline 15-metal Fe–Ru comparison uses no recovered-metal credit; promoted/supported Ru/C with 90–95.55% recovery is an explicitly opt-in scenario. The lifecycle financing/discounted cash-flow sensitivity is **deferred from the active manuscript**, Discussion, Methods and Supplementary Information, and should not be presented as eliminating the baseline atomic-to-economic ranking inversion.
+>
+> **Future-use reminder.** Preserve the DCF code, numerical outputs and provenance below as exploratory analysis. Reintroduce only with **author approval** and a separately labeled recovery-assisted scenario, clarifying metal ownership versus leasing/consignment, gross salt recovery versus saleable Ru, recovery timing and settlement, realization yield, financing basis and same-loop Fe comparator. Optional recovery does not mean inventory carrying cost is mathematically irrelevant when claiming recovered-Ru cost parity. Do not change frozen datasets, figures, S5 or the published-value gold standard solely because of this note.
+
 **Status:** Derived, exploratory, independent of frozen NH3-FINAL-1.1. PR [#57](https://github.com/stloendays/Catalyst-Essay/pull/57) remains a draft.
 
 ## Cloud provenance and verification
