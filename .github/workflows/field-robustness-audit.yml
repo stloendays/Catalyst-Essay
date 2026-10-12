@@ -95,9 +95,32 @@ jobs:
           path: /tmp/shards/shard_${{ matrix.shard }}.csv
           retention-days: 30
 
+  targeted:
+    name: Targeted loading-convergence and product-split checks
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/joint-meoh-robustness-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Verify the four surviving catalyst comparisons
+        run: python analysis/field_robustness_2026_10_12/targeted_boundary_check.py
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: targeted-boundary-results
+          path: analysis/field_robustness_2026_10_12/targeted_results/
+          retention-days: 60
+
   report:
     name: Assemble 310 entries and publish unfrozen results
-    needs: [verify, joint]
+    needs: [verify, joint, targeted]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -118,6 +141,10 @@ jobs:
         with:
           name: joint-frozen-audit
           path: /tmp/field_audit
+      - uses: actions/download-artifact@v4
+        with:
+          name: targeted-boundary-results
+          path: /tmp/targeted_reports
       - name: Aggregate group rankings, regret and paper-bootstrap
         run: |
           python "$SCRIPT" aggregate --input-dir /tmp/joint_shards --output /tmp/joint_report
@@ -138,6 +165,7 @@ jobs:
           mkdir -p analysis/field_robustness_2026_10_12/results
           cp /tmp/joint_report/joint*.csv /tmp/joint_report/joint_summary.json analysis/field_robustness_2026_10_12/results/
           cp /tmp/field_audit/audit_summary.json /tmp/field_audit/cross_scenario_groups.csv analysis/field_robustness_2026_10_12/results/
+          cp /tmp/targeted_reports/targeted_* analysis/field_robustness_2026_10_12/results/
       - uses: actions/upload-artifact@v4
         with:
           name: joint-inventory-purge-results
