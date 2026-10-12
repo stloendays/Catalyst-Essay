@@ -43,6 +43,7 @@ jobs:
       - name: Original source, PR argon fugacity, and industrial model isolation tests
         run: |
           python -m py_compile "$SCRIPT" \
+            analysis/meoh_hou_feed_recheck_2026_10_12/stress_missing_product_split.py \
             analysis/meoh_hou_feed_recheck_2026_10_12/tests/test_source_argon.py
           python -m unittest discover -s \
             analysis/meoh_hou_feed_recheck_2026_10_12/tests -v
@@ -69,6 +70,26 @@ jobs:
           assert all(len(v["cases"])==v["groups"] for v in
               s["three_inlet_intersections_fixed_original_STY"].values())
           print("PASS: old PR56 costs/regret reproduced, six source entries corrected, 40 fixed-source lab groups rescored")
+          PY
+      - name: Joint Ar-lab-feed and extreme unreported CO-vs-CH4 product split
+        run: |
+          python analysis/meoh_hou_feed_recheck_2026_10_12/stress_missing_product_split.py \
+            --output "$REPORT"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path("analysis/meoh_hou_feed_recheck_2026_10_12/results")
+          s=json.loads((root/"hou_argon_product_split_summary.json").read_text())
+          o=pd.read_csv(root/"hou_argon_all_CH4_candidate_optima.csv")
+          verdict=pd.read_csv(root/"hou_argon_product_split_comparison.csv")
+          assert len(o)==3*56 and len(verdict)==2*56
+          assert len(s["scenarios"])==2*2*7
+          assert s["jointly_reoptimized_bare_candidates"]==3
+          assert o["SCH4"].min()>0.0 and o["SCO"].max()==0.0
+          for d in s["scenarios"].values():
+              assert len(d["cases"])==d["all_40_group_source_fixed_three_inlet_material_sameT_groups"]
+          print("PASS: simultaneous argon feed and extreme byproduct closure jointly reoptimized")
           PY
       - uses: actions/upload-artifact@v4
         with:
