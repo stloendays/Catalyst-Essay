@@ -1,0 +1,57 @@
+name: NH3 measured Fe/Ru kinetics (kinetics swap and staged converter)
+on:
+  pull_request:
+    paths:
+      - "analysis/nh3_staged_converter_2026_10_12/**"
+      - ".github/workflows/nh3-staged-converter.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  staged-converter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      PYTHONIOENCODING: utf-8
+    defaults:
+      run:
+        working-directory: analysis/nh3_staged_converter_2026_10_12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: .
+        run: pip install -r requirements.txt pyyaml
+      - name: Check the frozen NH3 workbook used by the loop-cost unit test
+        working-directory: .
+        run: echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+      - name: Unit checks (equilibrium, loop closure and costs against NH3-FINAL-1.1)
+        run: python -m unittest test_staged -v
+      - name: Keep the committed outputs for comparison
+        run: mkdir -p /tmp/committed && cp *.csv *.json /tmp/committed/
+      - name: Validate the rate laws against their sources
+        run: python validate_kinetics.py > /tmp/validation.log
+      - name: Kinetics swap in NH3-FINAL-1.1 (asserts the frozen Fe and Ru anchors first)
+        run: python kinetics_swap.py && python plot_swap.py
+      - name: Optimise the staged converters
+        run: python run_staged.py --workers 4
+      - name: Decision boundaries
+        run: python boundary.py > /tmp/boundary.log
+      - name: Figure
+        run: python plot_staged.py
+      - name: Compare with the committed results
+        run: python check_regression.py /tmp/committed .
+      - name: Frozen inputs untouched
+        working-directory: .
+        run: git diff --exit-code -- provenance/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/ docs/ figures/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-staged-converter
+          path: |
+            analysis/nh3_staged_converter_2026_10_12/*.csv
+            analysis/nh3_staged_converter_2026_10_12/*.json
+            analysis/nh3_staged_converter_2026_10_12/*.png
+          retention-days: 90
