@@ -1,0 +1,43 @@
+name: MeOH inlet-limit definition and 83 -> 40 ledger
+on:
+  pull_request:
+    paths:
+      - "analysis/meoh_inlet_definition_2026_10_12/**"
+      - ".github/workflows/meoh-inlet-definition.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inlet-definition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+      INLET_WORKERS: "4"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyyaml
+      - name: Keep a copy of the committed outputs
+        run: |
+          mkdir -p /tmp/committed
+          cp analysis/meoh_inlet_definition_2026_10_12/{definition_scan.csv,stability_5_15.csv,group_ledger.csv,summary.json,ledger_summary.json} /tmp/committed/
+      - name: Definitions x limits (stops unless the frozen columns are reproduced to 1e-6)
+        run: python analysis/meoh_inlet_definition_2026_10_12/run_inlet_definition.py
+      - name: 83 -> 40 group ledger
+        run: python analysis/meoh_inlet_definition_2026_10_12/run_group_ledger.py
+      - name: Reproduction anchors (S5 15/40, 6.86 % 28/40, lim4 28/40, lim10 24/40, lim30 16/40) and committed outputs
+        run: python analysis/meoh_inlet_definition_2026_10_12/check_anchors.py --committed /tmp/committed
+      - name: Frozen inputs unchanged
+        run: git diff --exit-code -- analysis/meoh_literature_inversion_2026_10_05/ data/meoh/ docs/ figures/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meoh-inlet-definition
+          path: |
+            analysis/meoh_inlet_definition_2026_10_12/*.csv
+            analysis/meoh_inlet_definition_2026_10_12/*.json
+          retention-days: 90
