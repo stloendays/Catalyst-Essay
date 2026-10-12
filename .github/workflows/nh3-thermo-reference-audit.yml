@@ -1,0 +1,107 @@
+name: NH3 thermochemical reference robustness (unfrozen)
+
+on:
+  pull_request:
+    paths:
+      - "analysis/nh3_thermo_reference_audit_2026_10_12/**"
+      - ".github/workflows/nh3-thermo-reference-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-thermo-and-economic-ranking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    env:
+      PYTHONIOENCODING: utf-8
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install pinned scientific library types
+        run: python -m pip install numpy scipy openpyxl pyyaml
+
+      - name: Reference chemistry unit checks
+        run: python -m unittest discover -s analysis/nh3_thermo_reference_audit_2026_10_12 -p "test_*.py" -v
+
+      - name: Verify unchanged Wang S1 and frozen manifest
+        run: |
+          echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+          test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml
+          test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
+
+      - name: Full three-reference model audit (all 15 metals)
+        timeout-minutes: 100
+        run: |
+          set -euo pipefail
+          python analysis/nh3_thermo_reference_audit_2026_10_12/run_audit.py --workers 4 \
+            --out analysis/nh3_thermo_reference_audit_2026_10_12/results \
+            | tee /tmp/nh3_thermo_run.log
+
+      - name: Publish result comparison to Actions job summary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          d = Path("analysis/nh3_thermo_reference_audit_2026_10_12/results")
+          data = json.loads((d / "summary.json").read_text())
+          lines = [
+              "# NH3 thermochemistry and economic ordering audit",
+              "",
+              "**Exploratory model sensitivity, not a canonical patch.**",
+              "",
+              "| Gas Gibbs reference | Process states | Activity leaders | Economic feasible order | Fe (USD/t) | Ru (USD/t) | Os (USD/t) | Ru-Fe (USD/t) | Ru activity parity |",
+              "|---|---:|---|---|---:|---:|---:|---:|---:|",
+          ]
+          def fmt(x):
+              return "--" if x is None else f"{x:.5f}"
+          for key in ("frozen", "NIST", "GB"):
+              x = data["results"][key]
+              lines.append(
+                  f'| {key} | {x["number_process_states"]} | '
+                  f'{", ".join(x["intrinsic_order"][:3])} | '
+                  f'{", ".join(x["feasible_economic_order"])} | '
+                  f'{fmt(x["Fe_cost_USD_t"])} | {fmt(x["Ru_cost_USD_t"])} | '
+                  f'{fmt(x["Os_cost_USD_t"])} | {fmt(x["Ru_minus_Fe_USD_t"])} | '
+                  f'{fmt(x["Ru_activity_parity_multiplier"])} |'
+              )
+          lines += [
+              "",
+              "The baseline must reproduce all 15 atomic ranks, 14,136 states and published Fe/Ru/Os costs.",
+              "A changed ordering is an audit result, not a CI failure; the manuscript remains frozen.",
+              "Metal recovery remains zero; no optional DCF extension is included.",
+              "Ideal-gas and gas-formation-only model sensitivity cannot substitute for an independent kinetic recalibration.",
+          ]
+          report = "\n".join(lines) + "\n"
+          (d / "audit_summary.md").write_text(report, encoding="utf-8")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write(report)
+          print(report)
+          PY
+
+      - name: Confirm no frozen inputs or manuscript were changed
+        run: |
+          git diff --exit-code -- provenance/ docs/MANUSCRIPT_MAIN_TEXT.md \
+            docs/SUPPLEMENTARY_INFORMATION.md docs/MAIN_FIGURE_CAPTIONS.md \
+            analysis/meoh_literature_inversion_2026_10_05/
+
+      - name: Upload success or partial audit diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-thermochemistry-economic-ranking-unfrozen
+          path: |
+            analysis/nh3_thermo_reference_audit_2026_10_12/results/
+            /tmp/nh3_thermo_run.log
+          if-no-files-found: warn
+          retention-days: 90
