@@ -1,0 +1,92 @@
+name: Methanol Re formulation STY basis and metal replacement price
+
+# Targeted Re/TiO2 analysis only. No modifications to main, frozen S5,
+# PR #55 joint results, or PR #56 equipment-envelope optimizer.
+on:
+  push:
+    branches: [analysis/meoh-re-normalization-cost-20261012]
+    paths:
+      - ".github/workflows/meoh-re-denominator-price.yml"
+      - "analysis/meoh_re_formulation_2026_10_12/*.py"
+      - "analysis/meoh_re_formulation_2026_10_12/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-re-formulation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUNBUFFERED: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+  RE_SCRIPT: analysis/meoh_re_formulation_2026_10_12/run_re_normalization_price.py
+  OUTPUT: analysis/meoh_re_formulation_2026_10_12/results
+
+jobs:
+  source_basis_cost:
+    name: Source STY normalization, exact TEA and reoptimized Re costs
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-re-normalization-cost-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install same pinned TEA/thermo dependencies as previous joint test
+        run: pip install -r requirements.txt
+      - name: Compile and source/normalization/unit test
+        run: |
+          python -m py_compile "$RE_SCRIPT"
+          python -m unittest discover -s analysis/meoh_re_formulation_2026_10_12/tests -v
+      - name: Re-run matched 200 C pair and full nine-point source group
+        run: |
+          python "$RE_SCRIPT" --output "$OUTPUT"
+          python - <<'PY'
+          import json
+          import pandas as pd
+          from pathlib import Path
+          root = Path("analysis/meoh_re_formulation_2026_10_12/results")
+          s = json.loads((root / "re_normalization_price_summary.json").read_text())
+          c = pd.read_csv(root / "re_candidate_price_optima.csv")
+          d = pd.read_csv(root / "re_lab_normalization_decisions.csv")
+          assert s["candidate_rows"] == 9
+          assert s["original_group_count"] == 1
+          assert s["regression"]["zero_price_optima_matched_prior_full_engineering_scan"] == 270
+          assert len(c) == 9 * 2 * 3 * 5 * 5 * 2 * 2, len(c)
+          assert len(d) == 4 * 2 * 3 * 5 * 5 * 2 * 2, len(d)
+          baseline = s["zero_price_6p86_no_cap_m10"]
+          assert baseline["matched200_per_gcat"]["mismatch"] is True
+          assert baseline["matched200_per_gcat"]["kind"] == "other catalyst, same temperature"
+          assert baseline["matched200_per_gRe"]["mismatch"] is False
+          assert baseline["all9_per_gRe"]["kind"] == "other temperature"
+          assert s["price_scenarios"]["price_is_market_observation"] is False
+          print("Source denomination, zero-price PR56 regression, and 600-scenario reoptimization pass")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unfrozen-Re-STY-basis-metal-replacement-parameter-scan
+          path: analysis/meoh_re_formulation_2026_10_12/results/
+          retention-days: 60
+      - name: Commit only isolated Re formulation reports
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add "$OUTPUT"
+          if git diff --cached --quiet; then
+            echo "No generated report changes"; exit 0
+          fi
+          git commit -m "CI: save unfrozen Re basis and net replacement-price scan (${{ github.run_id }})"
+          for attempt in 1 2 3; do
+            git pull --rebase origin analysis/meoh-re-normalization-cost-20261012 &&
+            git push origin HEAD:analysis/meoh-re-normalization-cost-20261012 && exit 0
+            sleep 5
+          done
+          exit 1
