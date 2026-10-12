@@ -1,0 +1,91 @@
+name: Methanol Hou original argon source correction
+
+# Unfrozen source corrections only; do not alter frozen S5, source CSV or TEA.
+on:
+  push:
+    branches: [analysis/meoh-hou-argon-feed-recheck-20261012]
+    paths:
+      - ".github/workflows/meoh-hou-argon-feed-recheck.yml"
+      - "analysis/meoh_hou_feed_recheck_2026_10_12/*.py"
+      - "analysis/meoh_hou_feed_recheck_2026_10_12/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hou-argon-source-recheck-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUNBUFFERED: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+  SCRIPT: analysis/meoh_hou_feed_recheck_2026_10_12/recheck_source_argon.py
+  REPORT: analysis/meoh_hou_feed_recheck_2026_10_12/results
+
+jobs:
+  verify-and-rescore:
+    name: Validate original Hou source and fixed-champion reranking
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-hou-argon-feed-recheck-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the established plant-model environment
+        run: pip install -r requirements.txt
+      - name: Original source, PR argon fugacity, and industrial model isolation tests
+        run: |
+          python -m py_compile "$SCRIPT" \
+            analysis/meoh_hou_feed_recheck_2026_10_12/tests/test_source_argon.py
+          python -m unittest discover -s \
+            analysis/meoh_hou_feed_recheck_2026_10_12/tests -v
+      - name: Recalculate Hou 6 candidate records and full 40-group original lab champion decisions
+        run: |
+          python "$SCRIPT" --output "$REPORT"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root=Path("analysis/meoh_hou_feed_recheck_2026_10_12/results")
+          s=json.loads((root/"hou_feed_source_correction_summary.json").read_text())
+          a=pd.read_csv(root/"hou_candidate_feed_variants.csv")
+          b=pd.read_csv(root/"hou_group_rankings_fixed_original_sty.csv")
+          assert s["input_entries"]==310 and s["unchanged_entries"]==304
+          assert s["hou_entries"]==6 and s["hou_groups"]==2
+          assert len(a)==6*56*3
+          assert len(b)==2*56*3
+          assert len(s["scenarios"])==56*3
+          assert len(s["three_inlet_intersections_fixed_original_STY"])==14*3
+          assert set(a["variant"])=={"legacy","corrected_N2_proxy","corrected_Ar_PR"}
+          assert not a.duplicated(["variant","row_id","max_m","inlet","cap"]).any()
+          assert s["laboratory_only_corrected_composition"]["untouched_plant_makeup_composition"]
+          assert all(len(v["cases"])==v["groups"] for v in
+              s["three_inlet_intersections_fixed_original_STY"].values())
+          print("PASS: old PR56 costs/regret reproduced, six source entries corrected, 40 fixed-source lab groups rescored")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hou-argon-source-corrected-unfrozen-mp-results
+          path: analysis/meoh_hou_feed_recheck_2026_10_12/results/
+          retention-days: 60
+      - name: Commit only reproducible unfrozen source-recheck outputs to isolated branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add "$REPORT"
+          if git diff --cached --quiet; then echo "No report changes"; exit 0; fi
+          git commit -m "CI: source-verified Hou 4-1-1 Ar feed rescore (${{ github.run_id }})"
+          for attempt in 1 2 3; do
+            git pull --rebase origin analysis/meoh-hou-argon-feed-recheck-20261012 &&
+            git push origin HEAD:analysis/meoh-hou-argon-feed-recheck-20261012 && exit 0
+            sleep 5
+          done
+          exit 1
