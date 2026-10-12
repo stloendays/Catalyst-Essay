@@ -37,3 +37,30 @@ Cloud workflow: `.github/workflows/nh3-ru-net-recovery-boundary.yml` (PR or manu
 - Realizing a salvage credit requires evidence for refining cost, fractions reaching saleable metal, refining purity, catalysts' physical lifespan, site exposure/dispersion and industrial plant compatibility.
 - Continuous pressure optimization beyond the frozen 14,136-state library and feasibility of an Fe catalyst in a KAAP-style low-pressure loop are not established here.
 - **Do not edit manuscript numbers or re-freeze the main results on the basis of this exploratory overlay.** Confirm CI and expert/primary literature inputs first.
+
+
+## Finite 25-year metal cash-flow audit (additive extension, same PR)
+
+The frozen plant assumptions are **12% discount rate**, **25-year plant life**, and **10-year nominal catalyst replacement life**. Frozen metal costs previously used a straight-line purchase-minus-recovery charge, even though reactor/compressor fixed assets carry a 12%-discount capital-recovery factor. This extension addresses that **accounting mismatch**, and is not a revision of the canonical numbers.
+
+For a metal inventory of M kg purchased at price P USD/kg, with collector return r, refining yield y, monetary sale payout f, per-collected-kg processing fee c and resale delay tau, the 25-year metal present cost is:
+
+    PV = sum_k [M P / (1+i)^(purchase_k)]
+       + sum_j [M r c / (1+i)^(retirement_j)]
+       - sum_j [M r y f P / (1+i)^(retirement_j+tau)]
+
+The equivalent annual metal cost is CRF(i,25) × PV, divided by annual tonnes NH3. Fe is **recalculated on exactly the same metal-financing convention** with its baseline 0% recovery, 10-year replacement life and same process feasibility mask. Plant OPEX, reactor/pressure CAPEX and the 14,136-state process physics are unchanged. The metal-finance-rate sweep 0–12% is a counterfactual to show what cheaper metal leasing could change; it does **not** adjust the reactor financing rate, which remains frozen at 12%.
+
+- Case grid: physical gross Ru recovery 90%, 93.05% and 95.55%; Ru life 5/10/15 years; Ru loading 5/8/10 wt%; bed densities 430/490/550 kg/m3; main and KAAP masks; ideal zero-interest, ideal 12%-interest, mild process losses, strong process losses. These produce 648 lifecycle cases.
+- Financing sensitivity: 0, 0.5, 1, 2, 4, 8 and 12% metal financing over the 18 loop/bed choices, each at three recovery fractions, Ru life 10 years: 378 more cases.
+- Scenario process penalties: 95% refining yield/95% market-price sale/500 USD per collected kilogram/0.5-year delay (mild); 85%/90%/1,500 USD per kg/one-year delay (strong). **These numbers are hypothetical stresses, not supplier quotes or primary industrial yield measurements.** Ru recovery as a salt must not be equated to saleable metallic Ru.
+- Financial assumption: replacement at t=0, L, 2L ... strictly before project closure and attempted recovered-metal resale on replacement and at project year 25. Crediting the final partly used catalyst at closure is **optimistic**; the model omits ownership/lease contract restrictions, market price paths, taxes, end-of-project dismantling costs and catalyst-volume lifetime deterioration.
+- Regression: the 20-year/10-year, zero-financing, full-terminal-recovery algebra **must reproduce the earlier 24 benchmark rows within 10^-9 USD/t** for each loop and own-bed corner. Actual results retain the 25-year cash-flow horizon, which need not reproduce the frozen straight-line figure numbers.
+
+New cloud outputs: lifecycle_dcf_report.json, lifecycle_cost_scenarios.csv, lifecycle_finance_sensitivity.csv, lifecycle_legacy_regression.csv, lifecycle_financing_break_even.png. The finite-project result is a **model-conditioned financial sensitivity**; any claim about bankable Ru leasing or industrial Ru-metal refining requires commercial primary evidence.
+
+Run from a clean CI checkout after the frozen response cache is constructed:
+
+    NH3_HARNESS=/tmp/nh3_harness python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py
+
+**Editorial gate:** Do not replace the canonical ranking or same-loop Figure 3 values until a domain expert validates the Ru metal inventory financing contract, final recovery yield, and genuine feasibility of Fe in the KAAP loop.

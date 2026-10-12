@@ -43,6 +43,13 @@ jobs:
           sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{decision_thresholds.csv,decision_report.json} > /tmp/expected_analysis_sha.txt
           python analysis/nh3_ru_net_recovery_boundary_2026_10_12/analyze_boundary.py > /tmp/decision_report_stdout.json
           sha256sum -c /tmp/expected_analysis_sha.txt
+      - name: Finite-horizon Ru/Fe cash-flow audit (25 years)
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py
+      - name: Confirm lifecycle discounted-cash-flow result stability
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{lifecycle_cost_scenarios.csv,lifecycle_finance_sensitivity.csv,lifecycle_legacy_regression.csv,lifecycle_dcf_report.json} > /tmp/lifecycle_expected.sha
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py > /tmp/lifecycle_summary.json
+          sha256sum -c /tmp/lifecycle_expected.sha
       - uses: actions/upload-artifact@v4
         with:
           name: nh3-ru-net-recovery-boundary
@@ -51,4 +58,7 @@ jobs:
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/summary.json
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/decision_report.json
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/ru_fe_net_recovery_decision.png
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.png
           retention-days: 90
