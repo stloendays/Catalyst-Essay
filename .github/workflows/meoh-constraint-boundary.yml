@@ -1,0 +1,83 @@
+name: Methanol constraint boundary
+
+# Reruns analysis/meoh_constraint_boundary_2026_10_12 on a GitHub runner: Task A (decision boundary in the
+# reactor-inlet limit, including the model sweep that re-derives the frozen costs) and Task B (pre-registered
+# laboratory-only rules, PROTOCOL_B.md), then checks the reproduction anchors (check_anchors.py: the quick check,
+# the frozen field result and its limit sweep, the STY baseline of Task B and the pre-registration order) and compares
+# every regenerated output with the committed one. Nothing is committed back.
+
+on:
+  push:
+    paths:
+      - ".github/workflows/meoh-constraint-boundary.yml"
+      - "analysis/meoh_constraint_boundary_2026_10_12/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/**"
+      - "data/meoh/**"
+  pull_request:
+    paths:
+      - ".github/workflows/meoh-constraint-boundary.yml"
+      - "analysis/meoh_constraint_boundary_2026_10_12/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/**"
+      - "data/meoh/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meoh-constraint-boundary-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONIOENCODING: utf-8
+      BOUNDARY_WORKERS: "4"
+      D: analysis/meoh_constraint_boundary_2026_10_12
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }       # check_anchors.py verifies that the protocol was committed first
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - name: Install
+        run: pip install -r requirements.txt pyyaml
+      - name: Keep the committed outputs
+        run: |
+          mkdir -p committed
+          for f in entry_feasibility.csv boundary_groups.csv boundary_curve.csv boundary_summary.json \
+                   rules_by_scenario.csv rules_fixed.csv rules_lopo_folds.csv rules_group_choices.csv rules_summary.json; do
+            cp $D/$f committed/$f
+          done
+      - name: Task A (model sweep, boundary, figure)
+        working-directory: ${{ env.D }}
+        run: |
+          python run_boundary.py
+          python make_boundary_figure.py
+      - name: Task B (protocol B)
+        working-directory: ${{ env.D }}
+        run: python run_rules.py
+      - name: Reproduction anchors
+        working-directory: ${{ env.D }}
+        run: python check_anchors.py
+      - name: Compare with the committed outputs
+        run: |
+          fail=0
+          for f in boundary_summary.json rules_summary.json; do
+            python tools/compare_json_numbers.py committed/$f $D/$f --rtol 1e-6 --atol 1e-9 || fail=1
+          done
+          for f in entry_feasibility.csv boundary_groups.csv boundary_curve.csv rules_by_scenario.csv rules_fixed.csv \
+                   rules_lopo_folds.csv rules_group_choices.csv; do
+            python tools/compare_csv_numbers.py committed/$f $D/$f --rtol 1e-7 --atol 1e-12 || fail=1
+          done
+          exit $fail
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meoh-constraint-boundary-outputs
+          path: |
+            ${{ env.D }}/*.csv
+            ${{ env.D }}/*.json
+            ${{ env.D }}/boundary_curve.png
+            ${{ env.D }}/boundary_curve.svg
