@@ -25,6 +25,8 @@ GOTHE_DOI = "10.1021/acscatal.5c05984"
 VM, MW_MEOH = 22.414, 32.042
 RHO_DEFAULT, RHO_RANGE = 1.0, (0.5, 2.0)
 REQUIRED = ["X_CO2_pct", "S_MeOH_pct", "P_bar", "H2_CO2", "T_K"]
+PRINTED_Q = ("=", "<", "<=")            # a printed number (not "~", the qualifier of a value read from a plot)
+PLOT_SRC = ("plot", "SI-plot")          # values the figure passes read from a plot
 
 
 def pct(v, q):
@@ -75,9 +77,31 @@ def read_records(path=RECORDS) -> pd.DataFrame:
     return pd.read_csv(path, keep_default_na=False, na_values=[""])
 
 
+def _printed(r, field):
+    """None when the paper does not report the field; else True when the value is a printed number (qualifier =, <
+    or <=, and not taken from a plot by the figure passes)."""
+    v = getattr(r, "STY_g_gcat_h" if field == "STY" else f"{field}_pct")
+    if pd.isna(v):
+        return None
+    return (getattr(r, f"{field}_q") in PRINTED_Q) and (getattr(r, f"{field}_src") not in PLOT_SRC)
+
+
+def printed_entry(r) -> bool:
+    """Printed-value cohort (frozen primary, author decision 2026-10-08): CO2 conversion and methanol selectivity
+    printed, and every CO / CH4 selectivity the paper reports printed too."""
+    perf = [_printed(r, f) for f in ("X_CO2", "S_MeOH", "S_CO", "S_CH4")]
+    return bool(perf[0] and perf[1]) and not any(q is False for q in perf[2:])
+
+
+def catalyst_key(name) -> str:
+    """Catalyst identity: the name before the location bracket, whitespace and dash variants ignored."""
+    return re.sub(r"\s+", "", str(name).split(" [")[0]).lower().replace("\u2013", "-").replace("\u2212", "-")
+
+
 def candidate_row(r):
     """One extracted record -> one candidate operating point, or None if it has no conversion or methanol, or if its
-    feed adds water or CO."""
+    feed adds water or CO. printed: the entry belongs to the printed-value cohort; sty_printed: its STY is a printed
+    number (a plot-read STY does not define the printed cohort's leaderboard)."""
     if cofeed(r.feed):
         return None
     X = float(r.X_CO2_pct) / 100.0
@@ -93,10 +117,12 @@ def candidate_row(r):
     gkey = (f"{float(r.GHSV_NL_gcat_h):.3g} NL/g/h" if pd.notna(r.GHSV_NL_gcat_h)
             else (f"{gv:g} h-1" if gv else str(r.GHSV_raw)))
     plot_read = "~" in (str(r.X_CO2_q), str(r.S_MeOH_q))
+    sty_printed = sty_print is not None and bool(_printed(r, "STY"))
     return dict(doi=r.doi, entry=r.entry_label, catalyst=f"{r.catalyst_name} [{r.entry_label}]", T_C=float(r.T_K) - 273.15,
                 P_bar=float(r.P_bar), h2_co2=float(r.H2_CO2), ghsv_key=gkey, X=X, SMeOH=sm, SCO=sco,
                 SCH4=sch4, reported_S_sum=rep, other_products=rep < 0.95, plot_read=plot_read,
-                sty_print=sty_print, sty_mass=sty_mass, sty_vol=sty_vol, gv=gv, y_co2=y_co2,
+                printed=printed_entry(r), sty_printed=sty_printed, ch4_printed=bool(pd.notna(r.S_CH4_pct)),
+                co_printed=bool(pd.notna(r.S_CO_pct)), sty_print=sty_print, sty_mass=sty_mass, sty_vol=sty_vol, gv=gv, y_co2=y_co2,
                 source=r.data_source_type, location=r.primary_location)
 
 
@@ -155,12 +181,20 @@ def group_basis(g):
     return None, None
 
 
-def build_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
+def build_candidates(records: pd.DataFrame = None, printed_only: bool = True) -> pd.DataFrame:
     """Every extracted record with conversion, methanol selectivity, T, P and H2/CO2 (and a dry CO2/H2 feed) -> one
-    candidate operating point; comparison groups (paper, P, H2/CO2, space velocity) and the group STY basis."""
+    candidate operating point; comparison groups (paper, P, H2/CO2, space velocity) and the group STY basis.
+
+    printed_only=True (frozen primary): only printed-value entries (`printed_entry`), and a printed STY is the group
+    basis only where it is itself printed; otherwise the group falls back to the STY derived from the printed
+    conversion, selectivity and space velocity. printed_only=False: every entry, plot readings included (sensitivity).
+    """
     d = read_records() if records is None else records
     d = d.dropna(subset=REQUIRED).copy()
     cand = pd.DataFrame([c for c in (candidate_row(r) for _, r in d.iterrows()) if c is not None])
+    if printed_only:
+        cand = cand[cand.printed].copy()
+        cand.loc[~cand.sty_printed, "sty_print"] = None
     cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/CO2 "
                      + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
     parts = []
@@ -173,8 +207,12 @@ def build_candidates(records: pd.DataFrame = None) -> pd.DataFrame:
     cand = pd.concat([p for p in parts if p.STY.notna().any()]).dropna(subset=["STY"])
     cand = cand[cand.STY > 0]
     # one measurement printed in several places (stability series, repeated panels, several SI tables) counts once:
-    # entries of a group with the same temperature, conversion, selectivities and STY, first in document order
-    dup = cand.duplicated(["group", "T_C", "X", "SMeOH", "SCH4", "SCO", "STY"], keep="first")
+    # entries of a group with the same catalyst, temperature, conversion, selectivities and STY, first in document
+    # order. The catalyst is part of the key: different catalysts that print the same values (blank supports at the
+    # detection limit in 10.1002/cctc.202000974, Cu/ZrO2(IV) and (V) at 473 K in 10.1021/cs500979c) stay separate
+    # entries (independent review of PR #42; the 2026-10-07 key had no catalyst).
+    cand["catalyst_key"] = cand.catalyst.map(catalyst_key)
+    dup = cand.duplicated(["group", "catalyst_key", "T_C", "X", "SMeOH", "SCH4", "SCO", "STY"], keep="first")
     out = cand[~dup].reset_index(drop=True)
     out.attrs["duplicates_removed"] = int(dup.sum())
     return out
@@ -199,18 +237,18 @@ def _pick(cost, mask):
 def plant_costs(row: dict, sty_scales: dict = None) -> dict:
     """All plant-cost treatments of one candidate (dict with ROW_KEYS).
 
-    For recycled CO (central rule) and inert CO, on the canonical purge grid:
-      cost_<co>_opt                  primary: minimum over the eligible purge levels (equilibrium feasible and
-                                     nonreactive fraction within the workbook limit); NaN when none is eligible
-      cost_<co>_opt_eqonly           minimum over the equilibrium-feasible levels (no nonreactive limit)
-      cost_<co>_opt_limit_ch4n2      diagnostic: equilibrium feasible and CH4 + N2 (not CO) within the limit
-      cost_<co>_opt_unconstrained    minimum over every level, conversion capped at equilibrium (no nonreactive limit)
-      cost_<co>_opt_uncapped         minimum over every level with the laboratory conversion uncapped (the treatment
-                                     before 2026-10-07)
-      cost_<co>_2pct / _2pct_unconstrained   at 2 % purge: NaN when 2 % is not eligible / always evaluated
-    plus the purges chosen, the number of eligible levels, and the nonreactive fraction and CO2-hydrogenation
-    approach at the unconstrained optimum. sty_scales: {name: factor} for recycled-CO variants with STY x factor
-    (eligibility does not depend on STY)."""
+    For recycled CO (central rule: bounded by RWGS and CO-hydrogenation equilibrium) and inert CO, on the canonical
+    purge grid with the per-pass conversion capped at the loop's CO2-hydrogenation equilibrium
+    (meoh_general_model.purge_sweep):
+      cost_<co>_opt                  frozen primary (step S5): minimum over every purge level
+      cost_<co>_opt_inlet            inlet-limit sensitivity (step S6): minimum over the levels whose reactor-inlet
+                                     non-H2/CO2 fraction is within the workbook limit (6.86 %); NaN when none is
+      cost_<co>_opt_limit_x<m>       the same limit x 1.5 / 2 / 3; cost_recycled_opt_lim<L>: absolute limits L
+      cost_<co>_opt_uncapped         minimum over every level with the laboratory conversion uncapped (step S4)
+      cost_<co>_2pct / _2pct_inlet   at 2 % purge / at 2 % purge, NaN when 2 % is outside the inlet limit
+    plus the purges chosen, the number of levels within the inlet limit, the conversion used at the optimum, and the
+    nonreactive fraction and CO2-hydrogenation approach at the primary optimum. sty_scales: {name: factor} for
+    recycled-CO variants of the primary with STY x factor."""
     c = dict(X=row["X"], SMeOH=row["SMeOH"], SCH4=row["SCH4"], SCO=row["SCO"])
     kw = dict(P_bar=row["P_bar"], h2_co2=row["h2_co2"], T_C=row["T_C"])
     out = {}
@@ -219,33 +257,31 @@ def plant_costs(row: dict, sty_scales: dict = None) -> dict:
         cost = np.asarray(s["cost_eur_t"], dtype=float)
         ok = G.eligible_purges(s)
         eq = np.asarray(s["equilibrium_feasible"])
-        out[f"cost_{tag}_opt"], out[f"purge_{tag}_opt"] = _pick(cost, ok)
-        out[f"cost_{tag}_opt_eqonly"], out[f"purge_{tag}_opt_eqonly"] = _pick(cost, eq)
-        # diagnostic: the limit applied to CH4 + N2 only (recycled CO counted as a reactant, not as an inert)
-        ch4n2 = np.asarray(s["methane_fraction"]) + np.asarray(s["n2_inlet_fraction"])
-        out[f"cost_{tag}_opt_limit_ch4n2"] = _pick(cost, eq & (ch4n2 <= G.NONREACTIVE_MAX))[0]
+        out[f"cost_{tag}_opt"], out[f"purge_{tag}_opt"] = _pick(cost, np.isfinite(cost))
+        out[f"cost_{tag}_opt_inlet"], out[f"purge_{tag}_opt_inlet"] = _pick(cost, ok)
         nonreactive = np.asarray(s["nonreactive_fraction"])
         for m in (1.5, 2.0, 3.0):           # sensitivity of the primary to the nonreactive limit
             out[f"cost_{tag}_opt_limit_x{m:g}"] = _pick(cost, eq & (nonreactive <= m * G.NONREACTIVE_MAX))[0]
         if tag == "recycled":
             for lim in LIMIT_SWEEP:          # absolute limits, for the limit sweep
                 out[f"cost_recycled_opt_lim{lim * 100:g}"] = _pick(cost, eq & (nonreactive <= lim))[0]
-        out[f"cost_{tag}_opt_unconstrained"], out[f"purge_{tag}_opt_unconstrained"] = _pick(cost, np.isfinite(cost))
         su = G.purge_sweep(c, cap_conversion=False, STY_per_g_cat=row["STY"], x_co=rule, **kw)
         out[f"cost_{tag}_opt_uncapped"] = _pick(np.asarray(su["cost_eur_t"], dtype=float),
                                                 np.isfinite(np.asarray(su["cost_eur_t"], dtype=float)))[0]
         out[f"n_capped_{tag}"] = int(np.asarray(s["X_capped"]).sum())
-        out[f"X_eff_{tag}_opt"] = (float(np.asarray(s["X_eff"])[ok][np.argmin(cost[ok])]) if ok.any() else np.nan)
-        out[f"cost_{tag}_2pct"] = float(cost[I_2PCT]) if ok[I_2PCT] else np.nan
-        out[f"cost_{tag}_2pct_unconstrained"] = float(cost[I_2PCT])
-        out[f"n_eligible_{tag}"] = int(ok.sum())
         ju = int(np.nanargmin(cost))
-        out[f"nonreactive_at_unconstrained_{tag}"] = float(s["nonreactive_fraction"][ju])
-        out[f"co2_hyd_approach_at_unconstrained_{tag}"] = float(s["co2_hyd_approach"][ju])
+        out[f"X_eff_{tag}_opt"] = float(np.asarray(s["X_eff"])[ju])
+        out[f"equilibrium_feasible_at_opt_{tag}"] = bool(eq[ju])
+        out[f"cost_{tag}_2pct"] = float(cost[I_2PCT])
+        out[f"cost_{tag}_2pct_inlet"] = float(cost[I_2PCT]) if ok[I_2PCT] else np.nan
+        out[f"n_inlet_ok_{tag}"] = int(ok.sum())
+        out[f"nonreactive_at_opt_{tag}"] = float(s["nonreactive_fraction"][ju])
+        out[f"co2_hyd_approach_at_opt_{tag}"] = float(s["co2_hyd_approach"][ju])
         if tag == "recycled":
             for name, f in (sty_scales or {}).items():
                 e = G.cost(dict(c, X=s["X_eff"]), purge=G.PURGES, x_co=s["x_co"], STY_per_g_cat=row["STY"] * f, **kw)
-                out[f"cost_recycled_opt_{name}"] = _pick(np.asarray(e["cost_eur_t"], dtype=float), ok)[0]
+                ce = np.asarray(e["cost_eur_t"], dtype=float)
+                out[f"cost_recycled_opt_{name}"] = _pick(ce, np.isfinite(ce))[0]
     return out
 
 

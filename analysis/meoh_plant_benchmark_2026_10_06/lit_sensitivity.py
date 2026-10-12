@@ -2,11 +2,11 @@
 
 Input: the candidate set of the literature inversion
 (analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv: operating points, groups, STY basis).
-For each variant the primary plant cost (recycled CO, central rule, cost-optimal purge among the eligible levels of
-the 0.5-40 % grid: within CO2-hydrogenation equilibrium and the workbook nonreactive limit) is recomputed with
+For each variant the primary plant cost (frozen treatment: recycled CO, central rule, per-pass conversion capped at
+the loop's CO2-hydrogenation equilibrium, cost-optimal purge over the 0.5-40 % grid) is recomputed with
 `plant_variant.economics`, and the group metrics are re-aggregated with the main result's own functions
-(meoh_candidates.aggregate). Eligibility depends on the loop only, not on prices or the knobs varied here. The baseline
-variant must reproduce the main result.
+(meoh_candidates.aggregate). The capped conversion depends on the loop only, not on prices or the knobs varied here.
+The baseline variant must reproduce the main result (printed values, step S5).
 
 Parallel: multiprocessing over candidates (BENCH_WORKERS, default 4).
 """
@@ -43,7 +43,7 @@ def _one(args):
         b = G.purge_sweep(dict(X=c[0], SMeOH=c[1], SCH4=c[2], SCO=c[3]), x_co="recycled_central", **base)
     except ValueError:
         return {name: (np.nan, np.nan) for name in variants}
-    ok = G.eligible_purges(b)
+    ok = np.isfinite(np.asarray(b["cost_eur_t"], dtype=float))   # every purge level (no inlet limit)
     c = (b["X_eff"],) + c[1:]          # per-pass conversion capped at CO2-hydrogenation equilibrium
     for name, kw in variants.items():
         if not ok.any():

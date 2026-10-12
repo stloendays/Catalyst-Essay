@@ -35,10 +35,13 @@ x_CO rules (`x_co=` accepts a number or one of these names):
 
 Feasibility. `economics` (with T_C) returns `equilibrium_feasible`: the reactor outlet does not exceed
 CO2-hydrogenation (methanol) equilibrium, Q_CO2hyd / K_CO2hyd <= 1 + EQ_TOL. A loop state above it would make
-methanol beyond equilibrium and cannot be built. `optimal_purge` minimises the cost over the purge levels that are
-equilibrium feasible and whose non-H2/CO2 (nonreactive) fraction at the reactor inlet is within the workbook's own
-limit (`meoh_d01_model.SOURCE_NONREACTIVE_REFERENCE`, the `purge_diagnostic` of the generator); a candidate with no
-such level is infeasible.
+methanol beyond equilibrium and cannot be built; `purge_sweep` caps the per-pass conversion where the loop outlet
+reaches it, so every purge level of a capped sweep is equilibrium feasible. `optimal_purge` minimises the cost over
+every purge level of that sweep: the frozen methanol treatment (thermodynamically consistent, step S5 of
+analysis/verify_2026_10_08/meoh_decomposition.py; author decision 2026-10-08). With constrained=True it minimises
+only over the levels whose non-H2/CO2 (nonreactive) fraction at the reactor inlet is also within the workbook's own
+limit (`meoh_d01_model.SOURCE_NONREACTIVE_REFERENCE`, the `purge_diagnostic` of the generator; a candidate with no
+such level is infeasible): the inlet-limit sensitivity (step S6).
 
 Equilibrium constants are those of the process anchor's kinetic model (Processes 2022, 10, 1535, Table 1;
 K_CO2hyd in bar^-2, K_RWGS dimensionless, K_COhyd = K_CO2hyd / K_RWGS). Activities are fugacities of the
@@ -471,11 +474,12 @@ def eligible_purges(sweep, nonreactive_max=NONREACTIVE_MAX):
     return np.asarray(sweep["equilibrium_feasible"]) & (np.asarray(sweep["nonreactive_fraction"]) <= nonreactive_max)
 
 
-def optimal_purge(c, constrained=True, sweep=None, **kw):
+def optimal_purge(c, constrained=False, sweep=None, **kw):
     """Cost-optimal purge level of one candidate on the canonical grid (needs T_C).
 
-    constrained=True: minimum over the eligible levels (`eligible_purges`); cost and purge are NaN when no level is
-    eligible (the candidate is infeasible). constrained=False: minimum over every level (the earlier treatment).
+    constrained=False (frozen treatment): minimum over every level of the conversion-capped sweep.
+    constrained=True (inlet-limit sensitivity): minimum over the eligible levels (`eligible_purges`); cost and purge
+    are NaN when no level is eligible (the candidate is infeasible).
     Returns dict(cost_eur_t, purge, feasible, n_eligible, at_opt) where at_opt holds the sweep entries at the
     chosen level."""
     s = purge_sweep(c, **kw) if sweep is None else sweep

@@ -3,10 +3,9 @@ own composition-based price.
 
 Candidate construction, group STY basis, group metrics and bootstrap are those of the main result
 (analysis/meoh_literature_inversion_2026_10_05/meoh_candidates.py, imported). The plant cost is
-meoh_general_model.economics(..., cat_price_eur_kg=, cat_life_y=) on the canonical purge grid (recycled CO, central
-rule), minimised over the eligible purge levels of the main result (within CO2-hydrogenation equilibrium and the
-workbook nonreactive limit; eligibility depends on the loop only, not on the catalyst charge). A candidate with no
-eligible level is infeasible in every variant and leaves both leaderboards.
+meoh_general_model.economics(..., cat_price_eur_kg=, cat_life_y=) on the canonical purge grid under the frozen
+treatment of the main result (recycled CO, central rule; per-pass conversion capped at the loop's CO2-hydrogenation
+equilibrium, which depends on the loop only, not on the catalyst charge), minimised over every purge level.
 
 Order of work:
   1. rebuild the candidates and check them against literature_candidates.csv of the main result;
@@ -64,13 +63,14 @@ PRIMARY = "composition_3y"
 
 # ---------------------------------------------------------------- plant cost -----------------------------------
 def _one(args):
-    """Primary plant cost (recycled CO, central rule, eligible optimal purge) for every variant of one candidate. The
-    CO-recycle conversion and the eligible purge levels depend only on the loop, so they are solved once."""
+    """Primary plant cost (frozen treatment: recycled CO, central rule, conversion capped at CO2-hydrogenation
+    equilibrium, optimal purge over every level) for every variant of one candidate. The CO-recycle conversion and the
+    capped conversion depend only on the loop, so they are solved once."""
     row, charges = args
     c = (row["X"], row["SMeOH"], row["SCH4"], row["SCO"])
     kw = dict(STY_per_g_cat=row["STY"], P_bar=row["P_bar"], h2_co2=row["h2_co2"], T_C=row["T_C"])
     base = G.purge_sweep(dict(X=c[0], SMeOH=c[1], SCH4=c[2], SCO=c[3]), x_co="recycled_central", **kw)
-    ok = G.eligible_purges(base)
+    ok = np.isfinite(np.asarray(base["cost_eur_t"], dtype=float))   # every purge level (no inlet limit)
     c = (base["X_eff"],) + c[1:]          # per-pass conversion capped at CO2-hydrogenation equilibrium
     out = {}
     for name, (price, life) in charges.items():

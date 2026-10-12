@@ -3,8 +3,8 @@ need the full plant optimization.
 
 Full evaluation (what run_literature_inversion.py does per candidate): the recycle-loop cost on the 396-level purge
 grid, with the recycled-CO conversion resolved at every purge level by bisection against the RWGS and CO-hydrogenation
-equilibria (central rule), then the minimum over the eligible purge levels (within CO2-hydrogenation equilibrium and
-the workbook nonreactive limit).
+equilibria (central rule) and the per-pass CO2 conversion capped where the loop outlet reaches CO2-hydrogenation
+equilibrium, then the minimum over the purge levels (the frozen treatment, step S5).
 
 Lower bound (no equilibrium solve). At each purge level p of the same grid, for 1 mol net methanol and any
 recycled-CO per-pass conversion x in [0, 1] (so it covers the inert and every recycled-CO rule):
@@ -19,8 +19,9 @@ recycled-CO per-pass conversion x in [0, 1] (so it covers the inert and every re
   reactor inlet       >= (1 + H2/CO2) co2_in_lb + (1-p)/p ch4 + N2;    crude liquid >= 2 + 2 ch4
 Every equipment-cost term rises with its flow or power, every cost coefficient is positive, and the catalyst inventory
 (from the space-time yield) enters exactly, so the plant model evaluated on these flows is a lower bound on the cost
-at that purge level under both CO treatments; the bound is the minimum over the whole grid, so it is also below
-the minimum over the eligible levels.
+at that purge level under both CO treatments. The bound takes the laboratory conversion; where the full evaluation
+caps it, the capped conversion is lower, every flow larger and the cost higher, so the bound still holds (checked for
+every candidate below). The bound is the minimum over the whole grid.
 
 Agent rule per comparison group (the scored groups of the main result, group_metrics.csv): fully evaluate the paper's
 leader (needed for the regret) and then candidates in increasing bound order, stopping when the next bound exceeds the

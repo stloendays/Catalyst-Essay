@@ -1,10 +1,10 @@
 """How firm is the headline methanol result (paper STY leader != plant-cost leader)?
 
-Input: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (the feasible entries of the comparison
-groups with at least two feasible entries) and group_metrics.csv. The plant model, candidate construction and group
-definitions are those of run_literature_inversion.py and are not changed.
+Input: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (the frozen primary: printed values,
+step S5; the entries of the comparison groups with at least two entries) and group_metrics.csv. The plant model,
+candidate construction and group definitions are those of run_literature_inversion.py and are not changed.
 
-A. Sampling uncertainty. The 83 groups come from 44 papers, and groups of one paper are not independent. A
+A. Sampling uncertainty. The groups come from fewer papers, and groups of one paper are not independent. A
    paper-cluster bootstrap (10,000 resamples of papers with replacement) gives the 95 % interval of the share of
    groups whose STY leader is not the plant-cost leader; the paper-weighted share is bootstrapped the same way.
 B. Size of the disagreement. Share of groups whose STY leader is not the plant-cost leader AND costs more than the
@@ -23,11 +23,13 @@ C. Measurement noise. Every entry is re-measured with the error model derived fr
 D. Extraction error. For entries whose conversion or selectivity was read from a plot, the agent's measured plot
    reading errors (agent/extraction/eval/field_scores.csv, adjudicated truth, plot and SI-plot values) are
    resampled and removed: ln(X) error, methanol-selectivity error as a MeOH <-> CO transfer (the closure residual),
-   and the STY error where the group prints STY. Combined with measurement noise k = 1.
+   and the STY error where the group prints STY. Combined with measurement noise k = 1. Run only when the input
+   holds plot readings: the frozen primary (printed values) has none, so D is not run for it.
 
-Plant cost of a perturbed entry: recycled CO (central rule), cost-optimal purge among the eligible levels (within
-CO2-hydrogenation equilibrium and the workbook nonreactive limit), at the entry's own T, P and H2/CO2 -- the primary
-treatment. A perturbed entry with no eligible purge level is infeasible and leaves both leaderboards of that draw. Each entry gets an additive per-dimension response surface from exact model runs
+Plant cost of a perturbed entry: the frozen treatment (step S5) -- recycled CO bounded by RWGS and CO-hydrogenation
+equilibrium, per-pass conversion capped at the loop's CO2-hydrogenation equilibrium, cost-optimal purge over the
+canonical grid (meoh_general_model.optimal_purge), at the entry's own T, P and H2/CO2. A perturbed entry the model
+cannot run (NaN) leaves both leaderboards of that draw. Each entry gets an additive per-dimension response surface from exact model runs
 on a grid in each perturbation coordinate (ln X, MeOH->CH4, MeOH->CO, ln STY); draws outside the grid are run
 exactly. The surface is validated against exact runs of complete replicates (validation.csv).
 
@@ -190,7 +192,7 @@ def load():
     c = c[c.group.isin(n[n >= 2].index)].reset_index(drop=True)
     if SMOKE:
         c = c[c.group.isin(c.group.unique()[:4])].reset_index(drop=True)
-    c["printed"] = c.sty_basis.str.startswith("printed STY")
+    c["sty_printed_basis"] = c.sty_basis.str.startswith("printed STY")
     gm = pd.read_csv(INV / "group_metrics.csv")
     return c, gm
 
@@ -283,7 +285,7 @@ def draws(c, rng, n, k_meas=1.0, extraction=False, pools=None):
     dc = np.zeros((n, m))
     if extraction:
         pr = c.plot_read.to_numpy()
-        printed = c.printed.to_numpy()
+        printed = c.sty_printed_basis.to_numpy()
         lx, ds, ls = pools
         u += np.where(pr, -rng.choice(lx, (n, m)), 0.0)
         dc += np.where(pr, rng.choice(ds, (n, m)), 0.0)
@@ -293,7 +295,7 @@ def draws(c, rng, n, k_meas=1.0, extraction=False, pools=None):
     dc = np.clip(dc, -SCO, 0.9 * S - d4)
     s_new = S - d4 - dc
     v_der = u + np.log(s_new / S)
-    v = np.where(c.printed.to_numpy(), v_print, v_der)
+    v = np.where(c.sty_printed_basis.to_numpy(), v_print, v_der)
     sty = c.STY.to_numpy() * np.exp(v)
     return dict(u=u, d4=d4, dc=dc, v=v), sty
 
@@ -394,6 +396,8 @@ def main():
     # run order: the scenarios the text quotes first; each keeps its own random stream (STREAM)
     scenarios = {"meas_k1": dict(k_meas=1.0), "meas_k2": dict(k_meas=2.0),
                  "meas_k1_plus_extraction": dict(k_meas=1.0, extraction=True), "meas_k4": dict(k_meas=4.0)}
+    if not c.plot_read.any():                   # D needs plot readings; the printed-value primary has none
+        del scenarios["meas_k1_plus_extraction"]
     STREAM = {"meas_k1": 0, "meas_k2": 1, "meas_k4": 2, "meas_k1_plus_extraction": 3}
     results, per_group, valid_rows = {}, {}, []
     for si, (name, kw) in enumerate(scenarios.items()):
@@ -470,7 +474,7 @@ def main():
     summary = dict(
         input=str(INV.relative_to(REPO)).replace("\\", "/"),
         groups=int(ng), papers=int(len(papers)), entries=int(len(c)),
-        plot_read_entries=int(c.plot_read.sum()), printed_sty_entries=int(c.printed.sum()),
+        plot_read_entries=int(c.plot_read.sum()), printed_sty_entries=int(c.sty_printed_basis.sum()),
         surface_f0_max_rel_diff_vs_frozen=float(base_diff),
         point_estimate=dict(groups=int(mm0.sum()), fraction=float(mm0.mean()),
                             papers=int(len(set(doi_of_group[mm0]))), paper_weighted_fraction=float(paper_w)),
