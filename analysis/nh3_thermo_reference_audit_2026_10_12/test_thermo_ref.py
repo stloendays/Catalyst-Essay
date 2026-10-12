@@ -26,7 +26,9 @@ class ReferenceTests(unittest.TestCase):
                 self.assertTrue(math.isfinite(h) and math.isfinite(s))
                 self.assertTrue(s > 0)
             for g in (gform_nist_ev(temp), gform_gb_ev(temp)):
-                self.assertLess(g, 0)
+                # At 350-450 C the ideal-gas standard Gibbs of NH3 formation is positive;
+                # exothermic enthalpy does not imply negative Gibbs at high T.
+                self.assertGreater(g, 0)
                 k = full_kp(g, temp)
                 self.assertGreater(k, 0)
                 y = equilibrium_y_nh3(temp, 90, g)
