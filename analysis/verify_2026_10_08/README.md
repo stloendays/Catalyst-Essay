@@ -26,7 +26,7 @@ branch `meoh-physical-lock-2026-10-07` through `git show`).
 - The field results of both methanol and ammonia use printed values only; plot readings enter sensitivity analyses.
 - Methanol disagreements are reported separately as other catalyst and other temperature of the same catalyst, each
   with its denominator and with the count whose cost gap exceeds 5 %.
-- Nothing here is frozen yet; the frozen version will be implemented in the analysis code and tagged.
+- The frozen scientific-analysis version was implemented and tagged as `freeze/field-2026-10-12`; the final author-confirmed gold-standard source audit is archived additively under `gold_standard_human_review_2026_10_12/`.
 
 - Errata are counted by root cause (one mechanism in one source paper), with rules and cells alongside. TheMeCat's
   STY is the dataset's own derivation (yield x GHSV x CO2 fraction x 32.04 / 24.05 on 704 of 712 rows); a printed STY
@@ -64,4 +64,8 @@ Unfinished local worktree states of 2026-10-07 are kept as tags `archive/wip-tex
 4. Done (2026-10-12, `errata_adjudication.py`): 26 root causes, 45 error rules, 169 value cells and 8 dropped
    records; 18 further rules (24 cells) are STY values derived from a confirmed input error. Counted by root cause,
    rules and cells alongside.
-5. The gold standard is filled in by hand in `gold_standard_sample.xlsx`.
+5. **Completed 2026-10-12 (author-confirmed):** 100 sampled methanol fields have been manually reviewed and accepted by the author. See [`gold_standard_human_review_2026_10_12/HUMAN_REVIEW_CONFIRMATION.md`](gold_standard_human_review_2026_10_12/HUMAN_REVIEW_CONFIRMATION.md), the final row-level original-PDF/SI workbook, the CSV evidence export, and preserved audit history. The source workbook's original human signoff columns were not retroactively populated by AI; author completion is recorded separately and explicitly.
+
+## Human gold-standard completion (author confirmation, 2026-10-12)
+
+The author confirmed that manual review of all 100 randomly sampled methanol literature fields is complete and acceptable. The final machine-assisted 100-row source audit and the author's explicit human-review completion record are archived at [`gold_standard_human_review_2026_10_12/`](gold_standard_human_review_2026_10_12/). This does not imply full-dataset 100% accuracy or that all 100 source values are verbatim printed: 91 printed/unit-equivalent, 6 derived ratios, and 3 source-provenance/qualification distinctions. Original sampled values and the frozen field economics are not changed by this documentation update.
