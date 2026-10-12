@@ -1,0 +1,101 @@
+name: Methanol fixed-original-STY and survivor source QA
+
+# Fast interpretation-only CI; DOES NOT rerun the 310x56 plant calculations
+# and does not change frozen S5 or earlier joint m-p reports.
+on:
+  push:
+    branches: [analysis/meoh-engineering-envelope-20261012]
+    paths:
+      - ".github/workflows/meoh-decision-accounting.yml"
+      - "analysis/meoh_engineering_review_2026_10_12/*.py"
+      - "analysis/meoh_engineering_review_2026_10_12/tests/**"
+      - "analysis/meoh_survivor_source_2026_10_12/*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-decision-accounting-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONIOENCODING: utf-8
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+
+jobs:
+  decision_review:
+    name: Fixed laboratory champion and source consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/meoh-engineering-envelope-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Regression tests for fixed source leader and feasibility partitions
+        run: |
+          python -m py_compile \
+            analysis/meoh_engineering_review_2026_10_12/audit_fixed_sty_leader.py \
+            analysis/meoh_survivor_source_2026_10_12/audit_survivor_sources.py
+          python -m unittest discover -s analysis/meoh_engineering_review_2026_10_12/tests -v
+      - name: Source-fixed experimental-STY and conditional economic reversal audit
+        run: |
+          python analysis/meoh_engineering_review_2026_10_12/audit_fixed_sty_leader.py \
+            --output analysis/meoh_engineering_review_2026_10_12/results
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('analysis/meoh_engineering_review_2026_10_12/results/fixed_original_STY_leader_summary.json').read_text())
+          assert p['original_comparison_groups'] == 40
+          assert len(p['scenarios']) == 14
+          assert p['baseline_matches_pr55_39_group_result'] is True
+          for key, scenario in p['scenarios'].items():
+              assert len(scenario['inlets']) == 4
+              for inlet, stat in scenario['inlets'].items():
+                  assert (stat['original_leader_comparable']+
+                          stat['original_leader_excluded']+
+                          stat['single_feasible']+
+                          stat['none_feasible']) == 40, (key,inlet)
+          PY
+      - name: Curated source transcriptions and STY unit checks (explicit independent verification flags)
+        run: |
+          python analysis/meoh_survivor_source_2026_10_12/audit_survivor_sources.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('analysis/meoh_survivor_source_2026_10_12/results/source_verification.json').read_text())
+          assert p['re']['converted_per_catalyst_sty']['1_wt_pct'] == 0.55
+          assert p['re']['converted_per_catalyst_sty']['5_wt_pct'] == 0.9
+          assert p['in2o3']['independently_verified_against_original_si'] is False
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meoh-fixed-laboratory-champion-and-source-qa
+          path: |
+            analysis/meoh_engineering_review_2026_10_12/results/
+            analysis/meoh_survivor_source_2026_10_12/results/
+          retention-days: 60
+      - name: Commit analysis-only reports without changing original S5 or m-p optimizations
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/meoh_engineering_review_2026_10_12/results \
+                  analysis/meoh_survivor_source_2026_10_12/results
+          if git diff --cached --quiet; then
+            echo "No report diff"; exit 0
+          fi
+          git commit -m "CI: add source-fixed STY leader and paper QA reports (${{ github.run_id }})"
+          for attempt in 1 2 3; do
+            git pull --rebase origin analysis/meoh-engineering-envelope-20261012 &&
+            git push origin HEAD:analysis/meoh-engineering-envelope-20261012 && exit 0
+            sleep 5
+          done
+          exit 1
