@@ -96,14 +96,21 @@ def argon_equilibrium(h2_co2,y_co2,t_c,p_bar):
     """Argon-specific, multi-root laboratory equilibrium, NOT the plant loop."""
     if not np.isclose(h2_co2,4.,atol=1e-12) or not np.isclose(y_co2,Y_CO2_SOURCE,atol=2e-10):
         raise AssertionError("Argon correction is source-specific to Hou 4:1:1")
-    if "Ar" not in G.PR_CRIT:
-        raise AssertionError("Argon fugacity species missing inside isolated solver")
+    if "Ar" in G.PR_CRIT:
+        raise AssertionError("Industrial process species must not be modified by Ar laboratory solve")
     # For CO2=1, total feed=1/yCO2=6: H2=4 and Ar=1.
     inert_per_co2=1./y_co2-1.-h2_co2
     if not np.isclose(inert_per_co2,1.,atol=1e-8):
         raise AssertionError("Ar/CO2 ratio must be 1")
     feed={"CO2":1.,"H2":h2_co2,"Ar":inert_per_co2}
-    roots=equilibrium_roots(feed,t_c,p_bar)
+    # Add Ar ONLY while evaluating laboratory equilibrium and remove it
+    # before the industrial G.cost loop is ever called. This prevents an
+    # accidental Ar species in the process thermodynamics.
+    G.PR_CRIT["Ar"]=ARGON_PR_CRIT
+    try:
+        roots=equilibrium_roots(feed,t_c,p_bar)
+    finally:
+        G.PR_CRIT.pop("Ar",None)
     if not roots:
         raise RuntimeError("No physically valid argon lab equilibrium root")
     if not 0 < roots[0] < 1:
@@ -117,12 +124,12 @@ def isolated_argon_solver():
         raise AssertionError("Expected frozen PR species set without Ar")
     original_eq=J.feed_eq
     try:
-        G.PR_CRIT["Ar"]=ARGON_PR_CRIT
         J.feed_eq=argon_equilibrium
         yield
     finally:
         J.feed_eq=original_eq
-        G.PR_CRIT.pop("Ar",None)
+        if "Ar" in G.PR_CRIT:
+            raise AssertionError("Ar laboratory equilibrium was not isolated from the process EOS")
 
 def compare_numerical_regression(prior,now,keys=("row_id","max_m","inlet","cap")):
     merged=now.merge(prior,on=list(keys),validate="one_to_one",
