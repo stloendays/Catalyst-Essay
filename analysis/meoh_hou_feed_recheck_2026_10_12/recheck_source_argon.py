@@ -286,7 +286,38 @@ def main():
                           roots_corrected_Ar=int(ar.x_eq_roots),
                           above_lab_eq_legacy=bool(old.above_feed_eq),
                           above_lab_eq_corrected_Ar=bool(ar.above_feed_eq)))
+    # The unchanged 38 non-Hou groups preserve their already validated
+    # three-inlet intersections. Rebuild only the two affected Hou groups.
+    # This avoids claiming that deleted original-STY leaders are reversals.
+    robust_intersections={}
+    for max_m in E.LOADING_MAX:
+        for cap in E.CAPS:
+            known={d["group"] for d in reference["scenarios"][f"m{int(max_m)}__{cap}"]
+                   ["fixed_leader_material_sameT_3inlet_intersection"]["cases"]}
+            fixed_unaffected=known-set(hou.group)
+            for variant in VARIANTS:
+                new_hou=set()
+                for group_key in hou.group.unique():
+                    all_three=group[
+                        (group.max_m==max_m)&(group.cap==cap)&
+                        (group.variant==variant)&(group.group==group_key)&
+                        (group.inlet.isin(J.INLET_NAMES))]
+                    if len(all_three)!=3:
+                        raise AssertionError("Hou 3 inlet comparisons missing")
+                    if all_three.sameT_other_catalyst_gt5.astype(bool).all():
+                        new_hou.add(group_key)
+                current=sorted(fixed_unaffected|new_hou)
+                key=f"m{int(max_m)}__{cap}__{variant}"
+                robust_intersections[key]=dict(
+                    groups=len(current),
+                    independent_papers=len({g.split(" | ",1)[0] for g in current}),
+                    without_bansode=sum(g.split(" | ",1)[0]!=J.BANSODE for g in current),
+                    hou_groups=sorted(new_hou),
+                    cases=current)
+                if variant=="legacy" and set(current)!=known:
+                    raise AssertionError("Legacy robust three-inlet intersection drifted")
     summary={
+        "three_inlet_intersections_fixed_original_STY":robust_intersections,
         "scope":"Unfrozen Hou-only, 6-experiment source feed recheck with 304 other frozen-compatible experimental candidates untouched.",
         "source":{
             "doi":DOI, "journal_reference":"J. Environmental Sciences 140 (2024) 91-102",
@@ -337,7 +368,9 @@ def main():
       "fixed_group_decisions":len(group),"all_40_group_scenarios":len(summaries),
       "per_entry_equilibrium":lines,
       "anchor_m10_uncapped":{v:summaries[f"m10__uncapped__inlet_6p86__{v}"]
-                            for v in VARIANTS}
+                            for v in VARIANTS},
+      "original_four_robust_intersection":{v:robust_intersections[f"m10__uncapped__{v}"]
+                                          for v in VARIANTS}
     },indent=2,default=float))
 
 
