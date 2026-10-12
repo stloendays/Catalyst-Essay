@@ -38,7 +38,7 @@ def audit(points: list[dict], beds: list[dict], readings: list[dict]
           ) -> tuple[dict, list[dict]]:
     by_key = {x["key"]: x for x in points}
     errors: list[str] = []
-    for expected in ("pure", "fe_kaap", "kaap90", "kaap97"):
+    for expected in ("pure", "fe_kaap", "kaap90", "kaap_hi"):
         if expected not in by_key:
             errors.append(f"Missing canonical point {expected}")
     if errors:
@@ -90,7 +90,9 @@ def audit(points: list[dict], beds: list[dict], readings: list[dict]
             continue
         loop = row["loop"]
         r = float(row["recovery"])
-        key = ("kaap" if loop == "KAAP" else "supp_rec") + str(round(r * 100))
+        # the canonical bed rows are keyed by recovery: 90 for the lower end, _hi for the upper end (0.9555 since
+        # 2026-10-12, the promoted spent Ru/C)
+        key = ("kaap" if loop == "KAAP" else "supp_rec") + ("90" if abs(r - 0.90) < 1e-9 else "_hi")
         state = (key, round(float(row["w_Ru"]), 7),
                  round(float(row["rho_bed_kg_m3"]), 5))
         match = bed_index.get(state)

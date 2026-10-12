@@ -15,8 +15,9 @@ Variants (Fe is the benchmark fused-iron catalyst in every variant):
        metal mass and the bed volume by u, a different convention from Fig. 3d.)
        u = D_Ru / f_Fe, log-uniform 11-50: D_Ru from 11 % (Ba-Cs-K promoted Ru/C, 3.2 wt% Ru; Rossetti et al. 2006)
        to 50 % (2 nm Ru particles in Ba-Ru/C; Nishi, Chen & Takagi, Catalysts 9, 480, 2019; D ~ 1/d[nm]), f_Fe = 1 % (exposed
-       Fe atoms of reduced fused iron < 1 %; Liu et al. 2000). r uniform 0.90-0.97: 89-97.6 % of the Ru recovered
-       from spent activated-carbon-supported Ru ammonia catalyst (CN 1872418 A).
+       Fe atoms of reduced fused iron < 1 %; Liu et al. 2000). r uniform 0.90-0.9555: Ru recovered from spent promoted
+       activated-carbon-supported Ru ammonia catalyst, 93.05-95.55 % (CN 1872418 A Ex. 1-3) and 91.1-95.4 %
+       (CN 101638727 B Ex. 1-3); the unpromoted 97.61 % (CN 1872418 A Ex. 4) is not used (2026-10-12).
   A_bed  as A, with the supported bed: Ru content and bed density of the commercial supported catalyst instead of the
        benchmark 71.51 wt% at 2,500 kg m-3. Ru content uniform 5-10 wt% (commercial carbon-supported Ru ammonia
        catalyst ~8 wt%; Brown et al., Catal. Lett. 144, 545, 2014; US 4,600,571), bed density uniform 430-550 kg m-3
@@ -24,7 +25,7 @@ Variants (Fe is the benchmark fused-iron catalyst in every variant):
        drawn from the measured catalysts (r 0.90-0.94, bed 500-1,000 kg m-3).
   B  measured Ru catalysts: each draw takes one of the measured Ru catalysts of the primary set
        (analysis/nh3_supported_2026_10_06), with its effective descriptor, residual multiplier and Ru content, bed
-       density uniform 430-550 kg m-3, r uniform 0.90-0.97. Dispersion is part of the measured rate, so u is not
+       density uniform 430-550 kg m-3, r uniform 0.90-0.9555. Dispersion is part of the measured rate, so u is not
        applied.
   B0 as B without recovery.
 
@@ -53,7 +54,7 @@ RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
 BASE = REPO / "analysis" / "supervisor_2026_09_20" / "nh3_cost_mc_summary.json"
 SUPPORTED = REPO / "analysis" / "nh3_supported_2026_10_06" / "supported_candidates.csv"
 N = 5000
-U_RANGE, R_RANGE, BED_RANGE = (11.0, 50.0), (0.90, 0.97), (430.0, 550.0)
+U_RANGE, R_RANGE, BED_RANGE = (11.0, 50.0), (0.90, 0.9555), (430.0, 550.0)
 W_COMM = (0.05, 0.10)  # Ru mass fraction of the commercial supported catalyst, variant A_bed
 
 

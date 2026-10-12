@@ -102,9 +102,9 @@ def ed2():
                        label="previous layers (%d)" % len(old))
             ax.scatter(new.logTOF_673K, new.cost_USD_t, s=7, c=RU, ec=INK, lw=0.25, zorder=3,
                        label="added (%d)" % len(new))
-        ax.axhline(fe, color=DARK_G, lw=0.7, ls="--", zorder=1)
-        ax.text(xhi - 0.1, fe * 0.9, "Fe %.2f; %d below" % (fe, int(t.below_Fe.sum())), fontsize=5.2,
-                color=DARK_G, va="top", ha="right")
+        # the Fe benchmark goes into the legend (upper right is empty); a label on the line sat on the cheap surfaces
+        ax.axhline(fe, color=DARK_G, lw=0.7, ls="--", zorder=1,
+                   label="Fe %.2f (%d surfaces below)" % (fe, int(t.below_Fe.sum())))
         ax.set_yscale("log")
         ax.set_ylim(ylo, yhi)
         ax.set_xlim(xlo, xhi)
@@ -140,9 +140,13 @@ def ed3():
         round(a.attrs["point"] * ng), ng, 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
     ax.text(hi + 0.008, top * 0.75, "95 %% CI\n%.1f–%.1f %%" % (100 * lo, 100 * hi), fontsize=5.4,
             va="top")
-    ax.set_xlim(0.05, 0.95)
-    ax.set_xticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    ax.set_xticklabels(["10", "20", "30", "40", "50", "60", "70", "80", "90"])
+    # x range from the populated bins (a 10 % margin), so the histogram fills the panel
+    occ = a[a.resamples > 0]
+    x0, x1 = max(0.0, float(occ.bin_low_fraction.min()) - 0.05), min(1.0, float(occ.bin_high_fraction.max()) + 0.05)
+    ax.set_xlim(x0, x1)
+    ticks = [t / 10 for t in range(0, 11) if x0 <= t / 10 <= x1]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(["%d" % round(100 * t) for t in ticks])
     ax.set_xlabel("comparisons whose STY leader is not the plant-cost leader (%)")
     ax.set_ylabel("bootstrap resamples")
     boxed(ax)
@@ -160,7 +164,9 @@ def ed3():
     bx.set_xticks([0.03, 0.1, 0.5, 1, 2, 5, 10])
     bx.set_xticklabels(["0", "0.1", "0.5", "1", "2", "5", "10"])
     bx.xaxis.set_minor_formatter(NullFormatter())
-    bx.set_ylim(0, max(40, 1.25 * float(b.groups.max())))
+    btop = int(5 * np.ceil(1.3 * float(b.groups.max()) / 5))
+    bx.set_ylim(0, btop)
+    bx.set_yticks(range(0, btop + 1, 5))          # counts: integer ticks
     bx.set_xlabel("regret at least (%)")
     bx.set_ylabel("mismatched comparisons")
     bx.text(0.97, 0.95, "labels: comparisons (papers)", transform=bx.transAxes, fontsize=5.0, ha="right", va="top")
@@ -168,7 +174,7 @@ def ed3():
     pg.letter("b", 96, 117 + up)
     pg.title("Size of the disagreements", 108, 117 + up)
     # c noise scenarios
-    cx = pg.ax(40, 12 + up, 46, 40)
+    cx = pg.ax(14, 12 + up, 70, 40)
     y = np.arange(len(c))[::-1]
     cx.errorbar(c.mismatch_groups_mean, y + 0.13, xerr=[c.mismatch_groups_mean - c.mismatch_groups_q025,
                                                         c.mismatch_groups_q975 - c.mismatch_groups_mean],
@@ -181,7 +187,9 @@ def ed3():
     cx.text(c.attrs["observed"] + 0.8, -0.75, "observed %d" % c.attrs["observed"], color=RED, fontsize=5.2,
             va="center", ha="left")
     cx.set_yticks(y)
-    cx.set_yticklabels(c.label, fontsize=5.6)
+    short = {"meas_k1": "error ×1", "meas_k2": "error ×2", "meas_k4": "error ×4",
+             "meas_k1_plus_extraction": "×1 + plot\nreadings"}
+    cx.set_yticklabels([short[k] for k in c.scenario], fontsize=5.6)
     cx.set_ylim(-1.05, len(c) + 0.75)
     cx.set_xlim(0, max(ng, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
     cx.set_xlabel("comparisons (of %d), mean and\n95 %% range over %s draws" % (ng, format(c.attrs["draws"], ",")))
@@ -212,7 +220,7 @@ def ed3():
     pg.title("Persistence of each observed disagreement", 108, 59 + up)
     # e limit on the reactor-inlet non-H2/CO2 fraction
     e = d["e"][0]
-    ex = pg.ax(14, 12, 112, 40)
+    ex = pg.ax(14, 12, 164, 40)
     fin = e[np.isfinite(e.limit)]
     xmax = 0.36
     lit = e.attrs.get("literature")
@@ -297,16 +305,20 @@ def ed5():
     d = E.edfig5()
     a, b, c, dd = (d[k][0] for k in "abcd")
     pg = Page(183.0, 112.0)
-    ax = pg.ax(62, 66, 116, 36)
-    y = np.arange(len(a))[::-1]
+    # a across the full width (14-178 mm); treatment above each bar on the left, P and the median gap above it on
+    # the right, so the axis spans exactly 0-1
+    ax = pg.ax(14, 64, 164, 38)
+    n = len(a)
+    y = np.arange(n)[::-1].astype(float)
     cols = [OTHER, PALE_B, RU, FE, FE]
-    ax.barh(y, a.P_Fe_cheaper, 0.6, color=cols, ec=INK, lw=0.4)
-    for yi, p, med in zip(y, a.P_Fe_cheaper, a.median_Ru_minus_Fe_USD_t):
-        ax.text(p + 0.01, yi, ("%.3f   (median Ru − Fe %+.2f USD t$^{-1}$)" % (p, med)).replace("-", "−"),
-                va="center", fontsize=5.4)
-    ax.set_yticks(y)
-    ax.set_yticklabels(a.treatment, fontsize=5.8)
-    ax.set_xlim(0, 1.6)
+    ax.barh(y - 0.1, a.P_Fe_cheaper, 0.42, color=cols, ec=INK, lw=0.4)
+    for yi, lab, pf, med in zip(y, a.treatment, a.P_Fe_cheaper, a.median_Ru_minus_Fe_USD_t):
+        ax.text(0.004, yi + 0.17, lab, fontsize=5.6, ha="left", va="bottom")
+        ax.text(0.996, yi + 0.17, "P(Fe cheaper) %.3f; median Ru %s Fe %s USD t$^{-1}$" % (
+            pf, "−", ("%+.2f" % med).replace("-", "−")), fontsize=5.4, ha="right", va="bottom")
+    ax.set_yticks([])
+    ax.set_ylim(-0.45, n - 0.4)
+    ax.set_xlim(-0.012, 1.012)
     ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_xlabel("P(Fe cheaper), %s draws" % format(int(a.draws.iloc[0]), ","))
     ax.axvline(0.5, color=INK, lw=0.4, ls=":")
@@ -317,7 +329,7 @@ def ed5():
              ("c", c, "r", "Ru recovery r (%)", False),
              ("d", dd, "Ru_wt_pct", "Ru content of the Ru/C bed (wt%)", False)]
     for k, (p, t, key, xl, logx) in enumerate(specs):
-        bx = pg.ax(14 + k * 58, 12, 46, 36)
+        bx = pg.ax(14 + k * (164 + 11) / 3, 12, (164 - 2 * 11) / 3, 36)   # three equal panels, 14-178 mm
         lo, hi = t[key + "_low"].to_numpy(), t[key + "_high"].to_numpy()
         mid = np.sqrt(lo * hi) if logx else (lo + hi) / 2
         scale = 100 if key == "r" else 1
@@ -343,7 +355,7 @@ def ed5():
             bx.set_ylabel("P(Ru cheaper) (%)")
         bx.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3, ncol=2, columnspacing=0.8)
         boxed(bx)
-        pg.letter(p, 2 + k * 58, 55)
+        pg.letter(p, 2 + k * (164 + 11) / 3, 55)
     pg.title("Where the Ru catalyst wins", 14, 55)
     return pg
 
@@ -352,36 +364,43 @@ def ed5():
 def ed6():
     d = E.edfig6()
     a, b, c, dd = (d[k][0] for k in "abcd")
-    pg = Page(183.0, 128.0)
-    # a: Perez-Fortes terms: the stoichiometric feed (the same for every catalyst) and the catalyst-sensitive terms,
-    # on a broken axis so that the sensitive terms (tens of EUR/t) are readable next to the 583 EUR/t floor
-    ax = pg.ax(44, 74, 50, 44)
-    y = np.arange(len(a))[::-1]
-    big = a.term.str.startswith(("stoichiometric", "total"))
-    scale = np.where(big, 0.1, 1.0)                    # the two large rows drawn at 1/10 (labelled with full values)
-    ax.barh(y + 0.19, a.model * scale, 0.36, color=RU, ec=INK, lw=0.35, label="model")
-    ax.barh(y - 0.19, a.reference * scale, 0.36, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
-    for yi, m, r, sc, dev in zip(y, a.model, a.reference, scale, a.deviation_pct):
-        ax.text(max(m, r) * sc + 2, yi, ("%.1f / %.1f (%+.0f %%)" % (m, r, dev)).replace("-", "−"), va="center",
-                fontsize=5.0)
-    for yi, cat in zip(y, a.category):
+    # grid shared by the Extended Data figures: left column axes 14-84 mm, right column 108-178 mm; category labels
+    # sit above their bars so that the bar panels align with the scatter panels instead of being pushed right
+    pg = Page(183.0, 132.0)
+    # a: Perez-Fortes terms: the stoichiometric feed (the same for every catalyst) and the catalyst-sensitive terms;
+    # the two large rows are drawn at 1/10 so that the sensitive terms (tens of EUR/t) stay readable
+    ax = pg.ax(14, 72, 70, 50)
+    n = len(a)
+    base = np.arange(n)[::-1].astype(float)
+    big = a.term.str.startswith(("stoichiometric", "total")).to_numpy()
+    scale = np.where(big, 0.1, 1.0)
+    ax.barh(base + 0.02, a.model * scale, 0.24, color=RU, ec=INK, lw=0.35, label="model")
+    ax.barh(base - 0.24, a.reference * scale, 0.24, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
+    short = {"stoichiometric": "stoichiometric H$_2$ + CO$_2$ (bars ×0.1)",
+             "H$_2$ and CO$_2$ above": "feed above stoichiometry",
+             "electricity": "electricity (model: compressors; ref.: net utilities)",
+             "catalyst replacement": "catalyst replacement", "capital": "capital (8 %, 20 y)",
+             "fixed O&M": "fixed O&M: ref. value on both sides (model's own %.1f)" % a.attrs["model_own_fixed_om"],
+             "catalyst-sensitive": "catalyst-sensitive subtotal",
+             "total": "total; ref. = NPV = 0 break-even price (bars ×0.1)"}
+    for yb, t, m, r, sc, dev, cat in zip(base, a.term, a.model, a.reference, scale, a.deviation_pct, a.category):
+        lab = next(v for k, v in short.items() if t.startswith(k))
+        ax.text(2.0, yb + 0.17, lab, fontsize=5.2, ha="left", va="bottom",
+                fontweight="bold" if cat in ("subtotal", "total") else "normal")
+        ax.text(max(m, r) * sc + 2, yb - 0.11, ("%.1f / %.1f (%+.0f %%)" % (m, r, dev)).replace("-", "−"),
+                va="center", fontsize=5.0)
         if cat == "subtotal":
-            ax.axhline(yi + 0.5, color=INK, lw=0.4)
-    short = {"stoichiometric": "stoichiometric H$_2$ + CO$_2$ (bar ×0.1)", "H$_2$ and CO$_2$ above": "feed above stoichiometry",
-             "electricity": "electricity (model gross / ref. net)", "catalyst replacement": "catalyst replacement",
-             "capital": "capital (8 %, 20 y)",
-             "fixed O&M": "fixed O&M: ref. value both (model own %.1f)" % a.attrs["model_own_fixed_om"],
-             "catalyst-sensitive": "catalyst-sensitive subtotal", "total": "total; ref. = break-even (bar ×0.1)"}
-    ax.set_yticks(y)
-    ax.set_yticklabels([next(v for k, v in short.items() if t.startswith(k)) for t in a.term], fontsize=5.2)
-    ax.set_xlim(0, 180)
+            ax.axhline(yb + 0.62, color=INK, lw=0.4)
+    ax.set_yticks([])
+    ax.set_ylim(-0.5, n - 0.25)
+    ax.set_xlim(0, 175)
     ax.set_xlabel("EUR t$^{-1}$ MeOH")
-    ax.legend(loc="center right", fontsize=5.0, borderaxespad=0.3, bbox_to_anchor=(1.0, 0.55))
+    ax.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handlelength=1.2)
     boxed(ax)
-    pg.letter("a", 2, 125)
-    pg.title("Pérez-Fortes plant at its own assumptions", 14, 125)
+    pg.letter("a", 2, 129)
+    pg.title("Pérez-Fortes plant at its own assumptions", 14, 129)
     # b: parity across studies
-    bx = pg.ax(118, 74, 60, 44)
+    bx = pg.ax(108, 72, 70, 50)
     lim = (200, 1100)
     bx.fill_between(lim, [lim[0] * 0.95, lim[1] * 0.95], [lim[0] * 1.05, lim[1] * 1.05], color=PALE_G, lw=0,
                     zorder=0)
@@ -390,8 +409,8 @@ def ed6():
         col = RED if r.study.startswith("Perez") else (FE if r.study.startswith("Campos") else PALE_B)
         bx.scatter(r.reference_eur_t, r.model_eur_t, s=14, c=col, ec=INK, lw=0.35, zorder=3)
     pf = b[b.study.str.startswith("Perez")].iloc[0]
-    bx.annotate(("Pérez-Fortes %+.1f %%" % pf.deviation_pct).replace("-", "−"), (pf.reference_eur_t, pf.model_eur_t), xytext=(-8, 14),
-                textcoords="offset points", fontsize=5.2, color=RED, ha="right",
+    bx.annotate(("Pérez-Fortes %+.1f %%" % pf.deviation_pct).replace("-", "−"), (pf.reference_eur_t, pf.model_eur_t),
+                xytext=(-8, 14), textcoords="offset points", fontsize=5.2, color=RED, ha="right",
                 arrowprops=dict(arrowstyle="-", color=RED, lw=0.5))
     bx.set_xlim(lim)
     bx.set_ylim(lim)
@@ -400,47 +419,52 @@ def ed6():
     bx.text(0.04, 0.95, "%d cases, %d studies\nband: ±5 %%\ngreen: Campos (anchor)" % (
         len(b), b.study.str.split(",| ").str[0].nunique()), transform=bx.transAxes, fontsize=5.0, va="top")
     boxed(bx)
-    pg.letter("b", 108, 125)
-    pg.title("Like-for-like cost, each study's own inputs", 118, 125)
-    # c: PF plant metrics
-    cx = pg.ax(48, 12, 50, 44)
-    y = np.arange(len(c))[::-1]
-    cx.barh(y, c.ratio, 0.55, color=[RED if abs(v - 1) > 0.1 else PALE_B for v in c.ratio], ec=INK, lw=0.35)
+    pg.letter("b", 96, 129)
+    pg.title("Like-for-like cost, each study's own inputs", 108, 129)
+    # c: PF plant metrics, model / reference as a deviation from 1
+    cx = pg.ax(14, 12, 70, 44)
+    m = len(c)
+    yc = np.arange(m)[::-1].astype(float)
+    cols = [RED if abs(v - 1) > 0.1 else PALE_B for v in c.ratio]
+    cx.barh(yc - 0.1, c.ratio - 1.0, 0.44, left=1.0, color=cols, ec=INK, lw=0.35)
     cx.axvline(1.0, color=INK, lw=0.6)
-    for yi, r in zip(y, c.itertuples()):
-        cx.text(1.27, yi, "%.3g / %.3g" % (r.model, r.reference), va="center", fontsize=5.0)
-    cx.set_yticks(y)
-    cx.set_yticklabels(c.metric, fontsize=5.6)
-    cx.set_xlim(0.5, 1.65)
-    cx.set_xticks([0.5, 0.75, 1.0, 1.25])
-    cx.set_xlabel("model / Pérez-Fortes")
-    cx.text(0.99, 1.01, "model / ref.", transform=cx.transAxes, fontsize=5.0, ha="right", va="bottom")
+    for yi, r in zip(yc, c.itertuples()):
+        cx.text(0.615, yi + 0.16, r.metric, fontsize=5.2, ha="left", va="bottom")
+        cx.text(max(1.0, r.ratio) + 0.02, yi - 0.1, ("%.3g / %.3g (×%.2f)" % (r.model, r.reference, r.ratio)),
+                va="center", fontsize=5.0)
+    cx.set_yticks([])
+    cx.set_ylim(-0.5, m - 0.38)
+    cx.set_xlim(0.6, 1.5)
+    cx.set_xticks([0.6, 0.8, 1.0, 1.2, 1.4])
+    cx.set_xlabel("model / Pérez-Fortes (red: more than 10 % apart)")
     boxed(cx)
     pg.letter("c", 2, 63)
     pg.title("Loop metrics at the Pérez-Fortes point", 14, 63)
     # d: headline across variants
-    dx = pg.ax(118, 12, 60, 44)
+    dx = pg.ax(108, 12, 70, 44)
     assert (dd.key.to_numpy() == np.arange(1, len(dd) + 1)).all()
     xs = np.arange(len(dd))
     colors = [RED if v == "baseline" else (RU if v.startswith("pf_aligned") else
                                             (FE if v.startswith("catalyst_repl_95") else PALE_B)) for v in dd.variant]
     dx.bar(xs, dd.mismatch_groups, 0.7, color=colors, ec=INK, lw=0.3)
-    base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
-    dx.axhline(base, color=RED, lw=0.5, ls="--")
+    base_n = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
+    dx.axhline(base_n, color=RED, lw=0.5, ls="--")
     dx.set_xticks(xs)
     dx.set_xticklabels([str(k) for k in dd.key], fontsize=5.0)
+    dx.set_xlim(-0.6, len(dd) - 0.4)
     ngr = int(dd.groups.max())
-    dx.set_ylim(0, ngr)
+    top = 5 * np.ceil(1.45 * dd.mismatch_groups.max() / 5)
+    dx.set_ylim(0, top)
     dx.set_ylabel("comparisons with a different winner (of %d)" % ngr)
     dx.set_xlabel("plant-model variant (key in Source Data)")
-    dx.text(0.03, 0.97, "red: model as used (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y\n"
-            "dark: recycle, compression, capital set to Pérez-Fortes" % base,
-            transform=dx.transAxes, fontsize=5.0, va="top", bbox=dict(fc="white", ec="none", pad=1.0))
+    dx.text(0.02, 0.97, "red: model as used (%d); green: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y\n"
+            "dark: recycle, compression, capital set to Pérez-Fortes" % base_n,
+            transform=dx.transAxes, fontsize=5.0, va="top")
     for x, v in zip(xs, dd.mismatch_groups):
-        dx.text(x, v + 0.5, str(v), ha="center", va="bottom", fontsize=5.0, rotation=90)
+        dx.text(x, v + 0.3, str(v), ha="center", va="bottom", fontsize=5.0)
     boxed(dx)
-    pg.letter("d", 108, 63)
-    pg.title("Headline under %d plant-model variants" % len(dd), 118, 63)
+    pg.letter("d", 96, 63)
+    pg.title("Headline under %d plant-model variants" % len(dd), 108, 63)
     return pg
 
 
@@ -449,7 +473,8 @@ def ed7():
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
     pg = Page(183.0, 120.0)
-    ax = pg.ax(14, 70, 60, 40)
+    # shared grid: left column axes 14-84 mm, right column 108-178 mm; panel c spans 14-178 mm
+    ax = pg.ax(14, 70, 70, 40)
     ev = a.evaluated_recycled_opt
     for m, col, lab, z in ((~ev, OTHER, "excluded by the bound (%d)" % (~ev).sum(), 2),
                            (ev, RU, "evaluated in full (%d)" % ev.sum(), 3)):
@@ -491,31 +516,39 @@ def ed7():
     bx.set_ylabel("lower bound (USD t$^{-1}$)")
     bx.legend(loc="lower right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.2)
     n_pure = int(sum(len(E._els(x)) == 1 for x in fb.surface))
-    bx.text(0.97, 0.2, "%d surfaces inside the bed cap shown (%d bimetallic, %d pure metal; of %d costed)"
-            % (len(fb), len(fb) - n_pure, n_pure, len(b)), transform=bx.transAxes, fontsize=5.0, va="bottom",
-            ha="right")
+    # above the diagonal is empty by construction (bound <= cost): the note goes there, right of the Fe line
+    bx.text(0.17, 0.96, "%d surfaces inside the bed cap shown\n(%d bimetallic, %d pure metal; of %s costed)"
+            % (len(fb), len(fb) - n_pure, n_pure, format(len(b), ",")), transform=bx.transAxes, fontsize=5.0,
+            va="top", ha="left")
     boxed(bx)
     pg.letter("b", 96, 117)
     pg.title("Ammonia alloy and metal surfaces", 108, 117)
-    cx = pg.ax(62, 12, 116, 36)
-    y = np.arange(len(c))[::-1]
-    cx.barh(y, c.full_evaluations / c.candidates, 0.55, color=RU, ec=INK, lw=0.35, label="evaluated in full")
-    cx.barh(y, c.excluded_by_bound / c.candidates, 0.55, left=c.full_evaluations / c.candidates, color=PALE_B,
-            ec=INK, lw=0.35, label="excluded by the bound")
-    for yi, r in zip(y, c.itertuples()):
-        cx.text(1.02, yi, "%d / %d evaluated; %d excluded (%.1f %%); leaders missed %d" % (
-            r.full_evaluations, r.candidates, r.excluded_by_bound, 100 * r.excluded_by_bound / r.candidates,
-            r.leader_missed), va="center", fontsize=5.2)
-    cx.set_yticks(y)
-    cx.set_yticklabels(c.system, fontsize=5.8)
-    cx.set_xlim(0, 1.9)
+    # c: share of the candidates evaluated in full; labels above the bars, counts inside the segments, so the
+    # axes span exactly the data range (0-100 %) and the full width of panels a and b
+    cx = pg.ax(14, 10, 164, 34)
+    nc = len(c)
+    yc = np.arange(nc)[::-1].astype(float)
+    full = (c.full_evaluations / c.candidates).to_numpy()
+    cx.barh(yc - 0.1, full, 0.42, color=RU, ec=INK, lw=0.35)
+    cx.barh(yc - 0.1, 1.0 - full, 0.42, left=full, color=PALE_B, ec=INK, lw=0.35)
+    for yi, r, f in zip(yc, c.itertuples(), full):
+        cx.text(0.004, yi + 0.17, "%s, %s candidates" % (r.system, format(int(r.candidates), ",")), fontsize=5.6,
+                ha="left", va="bottom")
+        cx.text(f / 2, yi - 0.1, "%s evaluated in full" % format(int(r.full_evaluations), ","), fontsize=5.2,
+                ha="center", va="center", color="white")
+        cx.text(f + (1 - f) / 2, yi - 0.1, "%s excluded by the bound (%.1f %%)" % (
+            format(int(r.excluded_by_bound), ","), 100 * r.excluded_by_bound / r.candidates), fontsize=5.2,
+            ha="center", va="center", color=INK)
+    cx.set_yticks([])
+    cx.set_ylim(-0.45, nc - 0.4)
+    cx.set_xlim(-0.012, 1.012)            # a hairline of air between the 0 and 100 % bar ends and the frame
     cx.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
     cx.set_xticklabels(["0", "25", "50", "75", "100"])
     cx.set_xlabel("share of candidates (%)")
-    cx.legend(loc="lower right", fontsize=5.0, borderaxespad=0.2, bbox_to_anchor=(1.0, 1.0), ncol=2)
     boxed(cx)
-    pg.letter("c", 2, 57)
-    pg.title("Full optimizations saved", 14, 57)
+    pg.letter("c", 2, 51)
+    pg.title("Full optimizations saved by the lower bound; plant-cost leaders or sub-Fe surfaces excluded: %d"
+             % int(c.leader_missed.sum()), 14, 51)
     return pg
 
 

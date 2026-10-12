@@ -391,15 +391,18 @@ tokens(
     "NH3 actual-catalyst cost (Fig. 2d)",
     s2,
     "11%",
-    f"{float(ac['supp_rec97']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
-    f"{float(ac['supp_rec97']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
-    f"from {abs(float(ac['supp_rec97']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe",
-    f"{float(ac['supp_rec97']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
-    f"{float(ac['kaap97']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
+    f"{float(ac['supp_rec_hi']['p_eff_USD_kg']):.0f}–{float(ac['supp_rec90']['p_eff_USD_kg']):.0f}",
+    f"{float(ac['supp_rec_hi']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f}",
+    # the gap's sign decides the wording: with the 0.9555 recovery bound both ends lie above Fe
+    (f"from {abs(float(ac['supp_rec_hi']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe"
+     if float(ac['supp_rec_hi']['gap_to_Fe']) < 0 else
+     f"{float(ac['supp_rec_hi']['gap_to_Fe']):.2f}–{float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe"),
+    f"{float(ac['supp_rec_hi']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold",
+    f"{float(ac['kaap_hi']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f}",
     f"{float(ac['fe_kaap']['cost']):.2f}",
 )
 ok("NH3 actual-catalyst: Ru/C with recovery below Fe in the KAAP loop",
-   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap97"]["cost"]) < float(ac["fe_kaap"]["cost"]))
+   float(ac["kaap90"]["cost"]) < float(ac["fe_kaap"]["cost"]) and float(ac["kaap_hi"]["cost"]) < float(ac["fe_kaap"]["cost"]))
 lit = {r["id"]: r for r in rows("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")}
 tokens(
     "NH3 literature activity gains (Fig. 3a)",

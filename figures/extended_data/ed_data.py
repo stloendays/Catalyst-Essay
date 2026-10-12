@@ -217,7 +217,7 @@ def edfig5():
     rows = [("preregistered (pure-Ru benchmark bed)", "Ru_base", sm["base_reproduced"]["P_Fe_cheaper"]),
             ("A: u and r on the price, benchmark bed (Fig. 3d reading)", "Ru_A", sm["A"]["P_Fe_cheaper"]),
             ("A_bed: u and r, commercial Ru/C bed", "Ru_A_bed", sm["A_bed"]["P_Fe_cheaper"]),
-            ("B: measured Ru catalysts, 90-97 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
+            ("B: measured Ru catalysts, 90-95.6 % recovery", "Ru_B", sm["B"]["P_Fe_cheaper"]),
             ("B0: measured Ru catalysts, no recovery", "Ru_B0", sm["B0"]["P_Fe_cheaper"])]
     a = []
     for lab, col, p in rows:
