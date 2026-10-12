@@ -10,6 +10,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PR61_BLOB = "c2f24bb9a5c64235017bfc8758caa304b1b6338f"  # branch nh3-ru-commercial-terms-2026-10-12
+CRLF, LF = bytes([13, 10]), bytes([10])
 
 
 def rows(name):
@@ -37,9 +38,8 @@ class EvidenceTables(unittest.TestCase):
                 self.assertGreaterEqual(float(r["rate_pct"]), 0.0)
 
     def test_vendored_pr61_module_is_byte_identical(self):
-        data = (HERE / "supplier_metal_contracts_pr61.py").read_bytes().replace(b"
-", b"
-")
+        # Compare as git stores it (LF), so a CRLF checkout on Windows also passes.
+        data = (HERE / "supplier_metal_contracts_pr61.py").read_bytes().replace(CRLF, LF)
         blob = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
         self.assertEqual(blob, PR61_BLOB)
 
