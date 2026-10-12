@@ -121,6 +121,7 @@ def edfig3():
     rows = []
     labels = {"meas_k1": "re-measured, error x1", "meas_k2": "re-measured, error x2",
               "meas_k4": "re-measured, error x4", "meas_k1_plus_extraction": "error x1 + plot-reading errors"}
+    labels = {k: v for k, v in labels.items() if k in st["noise"]}      # the printed-value primary has no plot readings
     for k, lab in labels.items():
         v = st["noise"][k]
         rows.append(dict(scenario=k, label=lab, mismatch_groups_mean=v["mismatch_groups_mean"],
@@ -136,8 +137,7 @@ def edfig3():
     gp = rcsv(STATS + "group_noise_probabilities.csv")
     d = gp[gp.observed_mismatch.astype(str) == "True"].copy()
     d = d.sort_values(["p_mismatch_meas_k1", "observed_regret"], ascending=False).reset_index(drop=True)
-    d = d[["group", "doi", "observed_regret", "p_mismatch_meas_k1", "p_mismatch_meas_k2", "p_mismatch_meas_k4",
-           "p_mismatch_meas_k1_plus_extraction"]]
+    d = d[["group", "doi", "observed_regret"] + [f"p_mismatch_{k}" for k in labels]]
     assert int((d.p_mismatch_meas_k1 >= 0.9).sum()) == st["noise"]["meas_k1"]["observed_mismatches_kept_in_ge_90pct"]
     c.attrs["groups"] = st["groups"]
     a.attrs["groups"] = st["groups"]
@@ -156,15 +156,15 @@ def limit_sweep_table():
     non-H2/CO2 fraction, for all comparisons and for isothermal catalyst comparisons. Rows: the absolute limits of
     the sweep, the reference loop value used by the primary, and no limit (plotted at the right edge)."""
     sm = rjson(INV + "summary.json")
-    ref = float(sm["infeasible"]["nonreactive_limit"])
+    ref = float(sm["thermodynamics"]["inlet_limit"])
     rows = []
     for key, v in sm["limit_sweep"].items():
-        lim = np.inf if key == "none" else float(key.rstrip("%")) / 100.0
-        iso = sm["isothermal"][key]
+        lim = np.inf if key.startswith("none") else float(key.rstrip("%")) / 100.0
+        iso = sm["isothermal"]["limit_sweep"][key]
         rows.append(dict(limit=lim, label=key, groups=v["groups"], mismatched=v["top1_mismatch_groups"],
                          share=v["top1_mismatch_fraction"], iso_groups=iso["groups"],
                          iso_mismatched=iso["top1_mismatch_groups"], iso_share=iso["top1_mismatch_fraction"]))
-    p, iso = sm["primary"], sm["isothermal"]["reference 6.86%"]
+    p, iso = sm["variants"]["inlet_limit_6.86pct"], sm["isothermal"]["variants"]["inlet_limit_6.86pct"]
     rows.append(dict(limit=ref, label="reference loop %.2f%%" % (100 * ref), groups=p["groups"],
                      mismatched=p["top1_mismatch_groups"], share=p["top1_mismatch_fraction"],
                      iso_groups=iso["groups"], iso_mismatched=iso["top1_mismatch_groups"],
@@ -252,13 +252,64 @@ def edfig5():
 
 
 # ------------------------------------------------------------------ ED Fig. 6: methanol plant benchmark ---------
+def pf_cost_terms():
+    """Perez-Fortes 2016 at its own point, prices, catalyst charge and finance, split into the stoichiometric feed
+    (3 H2 and 1 CO2 per MeOH at the study's prices; the same for every catalyst) and the catalyst-sensitive terms (feed
+    above stoichiometry, compression electricity, catalyst replacement, capital), from the independent accounting of
+    analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py (molecular weights read from the model source). The
+    harmonized total puts the reference fixed operating cost (FCP 24.57 EUR/t) on the model side; the model's own fixed
+    O&M is reported separately and is not part of that total."""
+    import sys
+    sys.path.insert(0, path("analysis/review_pf_benchmark_2026_10_09"))
+    import pf_benchmark_audit as PA
+    from pathlib import Path as _P
+    b = _P(path(BENCH))
+    summ = json.loads((b / "summary.json").read_text(encoding="utf-8"))
+    report, terms = PA.calculate(PA.rows(b / "reconciliation_cost.csv"), PA.ref_values(PA.rows(b / "reference_values.csv")),
+                                 summ["perez_fortes_primary"], float(summ["perez_fortes_like_for_like_eur_t"]),
+                                 PA.plant_pf(PA.rows(b / "reconciliation_plant.csv")), PA.weight_constants(PA.MODEL_PATH))
+    assert not report["errors"], report["errors"]
+    t = {r["item"]: r for r in terms}
+    rc = rcsv(BENCH + "reconciliation_cost.csv")
+    pf = rc[rc.case.str.startswith("B3 Perez-Fortes")].set_index("term")
+    rows = [("stoichiometric H$_2$ and CO$_2$ (3:1)", "catalyst-independent",
+             t["H2 for three H2 per MeOH"]["model_EUR_t"], t["H2 for three H2 per MeOH"]["reference_EUR_t"]),
+            ("H$_2$ and CO$_2$ above stoichiometry", "catalyst-sensitive",
+             t["H2 expenditure above stoichiometric floor"]["model_EUR_t"]
+             + t["CO2 expenditure above stoichiometric floor"]["model_EUR_t"],
+             t["H2 expenditure above stoichiometric floor"]["reference_EUR_t"]
+             + t["CO2 expenditure above stoichiometric floor"]["reference_EUR_t"]),
+            ("electricity (model: compressors; ref.: utilities net)", "catalyst-sensitive",
+             t["electricity and utilities"]["model_EUR_t"], t["electricity and utilities"]["reference_EUR_t"]),
+            ("catalyst replacement", "catalyst-sensitive",
+             t["catalyst replacement"]["model_EUR_t"], t["catalyst replacement"]["reference_EUR_t"]),
+            ("capital (8 %, 20 y)", "catalyst-sensitive",
+             t["capital annuity"]["model_EUR_t"], t["capital annuity"]["reference_EUR_t"]),
+            ("fixed O&M (reference value on both sides)", "accounting",
+             t["fixed O&M on published basis"]["model_EUR_t"], t["fixed O&M on published basis"]["reference_EUR_t"])]
+    a = pd.DataFrame(rows, columns=["term", "category", "model", "reference"])
+    sens = a[a.category == "catalyst-sensitive"][["model", "reference"]].sum()
+    tot = a[["model", "reference"]].sum()
+    like = pf.loc["TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)"]
+    # model side: the terms add up to the harmonized total; reference side: the published NPV = 0 break-even price.
+    # The reference terms are derived shares of the variable production cost (raw materials 95.9 %, utilities 2.6 %,
+    # consumables 1.5 % of 283 M EUR/a = 642.0 EUR/t, against 641.48 EUR/t in its Table 4) and add up to 724.1.
+    assert abs(tot.model - float(like.model)) < 0.06 and abs(tot.reference - float(like.reference)) < 1.0, (tot, like)
+    a = pd.concat([a, pd.DataFrame([
+        dict(term="catalyst-sensitive subtotal", category="subtotal", model=sens.model, reference=sens.reference),
+        dict(term="total (harmonized; ref.: NPV = 0 break-even price)", category="total", model=tot.model,
+             reference=float(like.reference))])], ignore_index=True)
+    a["deviation_pct"] = 100 * (a.model / a.reference - 1)
+    a.attrs["reference_terms_sum"] = float(tot.reference)
+    a.attrs["model_own_fixed_om"] = float(pf.loc["fixed O&M", "model"])
+    a.attrs["anchor_residual"] = float(pf.loc["residual direct + 10 % of NPC (anchor convention)", "model"])
+    a.attrs["breakeven_basis"] = str(like.ref_basis)
+    return a
+
+
 def edfig6():
     rc = rcsv(BENCH + "reconciliation_cost.csv")
-    pf = rc[rc.case.str.startswith("B3 Perez-Fortes")].copy()
-    terms = ["H2", "electricity + utilities", "catalyst replacement", "capital (annuity at 8 %, 20 y)", "fixed O&M",
-             "residual direct + 10 % of NPC (anchor convention)",
-             "TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP)", "TOTAL, anchor convention"]
-    a = pf.set_index("term").loc[terms, ["model", "reference", "deviation", "ref_basis"]].reset_index()
+    a = pf_cost_terms()
     tot = rc[rc.term.str.contains("like-for-like") | (rc.term == "TOTAL") | (rc.term == "TOTAL with catalyst term")]
     tot = tot[~tot.term.str.contains("catalyst in residual")]
     label = []
@@ -293,13 +344,17 @@ def edfig6():
           ("compression power (MWh/t)", "elec_MWh_t", "electricity_compressors_MWh_t")]
     c = pd.DataFrame([dict(metric=lab, model=m7[mk], reference=float(ref[rk]), ratio=m7[mk] / float(ref[rk]))
                       for lab, mk, rk in qs])
-    ss = rjson(BENCH + "sensitivity_summary.json")["variants"]
+    sj = rjson(BENCH + "sensitivity_summary.json")
+    ss = sj["variants"]
     d = pd.DataFrame([dict(variant=k, mismatch_groups=v["top1_mismatch_groups"], groups=v["groups"],
                            papers_with_mismatch=v["papers_with_mismatch"],
-                           regret_median_mismatched=v["regret_median_mismatched"]) for k, v in ss.items()])
+                           regret_median_mismatched=v["regret_median_mismatched"],
+                           knobs=json.dumps(v.get("knobs", {}))) for k, v in ss.items()])
+    d.attrs["pf_alignment"] = sj.get("pf_alignment", {})
     d = d.sort_values("mismatch_groups", kind="stable").reset_index(drop=True)
     d.insert(0, "key", np.arange(1, len(d) + 1))
-    return {"a": (a, BENCH + "reconciliation_cost.csv (case B3 Perez-Fortes 2016)"),
+    return {"a": (a, BENCH + "reconciliation_cost.csv (case B3 Perez-Fortes 2016), split by "
+                  "analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py"),
             "b": (b, BENCH + "reconciliation_cost.csv (TOTAL and like-for-like rows)"),
             "c": (c, BENCH + "summary.json (model_cases M7) and reference_values.csv (ref_id PEREZFORTES16)"),
             "d": (d, BENCH + "sensitivity_summary.json (variants)")}

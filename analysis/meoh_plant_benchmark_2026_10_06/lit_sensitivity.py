@@ -75,6 +75,27 @@ def run(variants: dict, workers=WORKERS):
     return cand, results, group_tables
 
 
+def pf_alignment():
+    """Model / Perez-Fortes ratios of the catalyst-sensitive plant terms at the Perez-Fortes point (advisor review
+    2026-10-08, item 4: align the catalyst-sensitive terms to the reference and recount). Read from this folder:
+    recycle ratio and compressor electricity of model case M7 (reconciliation_plant.csv) against the reference values
+    (reference_values.csv: recycle 4.7 mol/mol, compressors 0.305 MWh/t, both on the compressor-only basis), and the
+    capital annuity of case B3 (reconciliation_cost.csv, reference = breakeven 723.6 minus VCP + FCP)."""
+    plant = pd.read_csv(HERE / "reconciliation_plant.csv").set_index("metric")
+    m7 = next(c for c in plant.columns if c.startswith("M7 at Perez-Fortes"))
+    ref = pd.read_csv(HERE / "reference_values.csv")
+    ref = ref[ref.ref_id == "PEREZFORTES16"].set_index("quantity").value.astype(float)
+    cost = pd.read_csv(HERE / "reconciliation_cost.csv")
+    cap = cost[cost.case.str.startswith("B3 ") & cost.term.str.startswith("capital")].iloc[0]
+    return dict(
+        recycle_mult=float(ref["recycle_ratio"]) / float(plant.at["Recycle ratio (recycle / fresh feed, mol)", m7]),
+        elec_mult=float(ref["electricity_compressors_MWh_t"]) / float(plant.at["Electricity, compression (MWh/t)", m7]),
+        capex_mult=float(cap.reference) / float(cap.model))
+
+
+PF_ALIGN = pf_alignment()
+ELEC_EUR_MWH = V.M.ELEC_EUR_MWH
+
 # Plant terms set to reference values (see README section 4). Each knob is one reference value.
 VARIANTS = {
     "baseline": {},
@@ -110,6 +131,15 @@ VARIANTS = {
     "combined_cat3y_dp3.75": dict(cat_term=(18.1, 3.0), loop_dp=3.75),
     "combined_cat3y_dp3.75_recycle2.68": dict(cat_term=(18.1, 3.0), loop_dp=3.75, recycle_mult=2.68),
     "combined_cat3y_dp3.75_h2half": dict(cat_term=(18.1, 3.0), loop_dp=3.75, h2_price=3097.4 / 2),
+    # catalyst-sensitive terms aligned to Perez-Fortes 2016 at its own point (pf_alignment), one at a time and together:
+    # recycle flow (model 5.38 vs 4.7 mol/mol), compression electricity (0.213 vs 0.305 MWh/t, as an electricity-cost
+    # factor) and capital (38.1 vs 57.6 EUR/t, as a capital factor)
+    "pf_aligned_recycle": dict(recycle_mult=PF_ALIGN["recycle_mult"]),
+    "pf_aligned_compression": dict(elec_price=ELEC_EUR_MWH * PF_ALIGN["elec_mult"]),
+    "pf_aligned_capital": dict(capex_mult=PF_ALIGN["capex_mult"]),
+    "pf_aligned_recycle_compression_capital": dict(recycle_mult=PF_ALIGN["recycle_mult"],
+                                                   elec_price=ELEC_EUR_MWH * PF_ALIGN["elec_mult"],
+                                                   capex_mult=PF_ALIGN["capex_mult"]),
 }
 
 
@@ -144,7 +174,7 @@ if __name__ == "__main__":
             + [f"cost_{v}" for v in VARIANTS] + [f"purge_{v}" for v in VARIANTS])
     cand[keep].to_csv(HERE / "sensitivity_candidates.csv", index=False, float_format="%.6g")
     pd.DataFrame(flips).to_csv(HERE / "sensitivity_winner_changes.csv", index=False)
-    out = dict(check=check, variants=res, runtime_s=round(time.time() - t0, 1), workers=WORKERS)
+    out = dict(check=check, pf_alignment=PF_ALIGN, variants=res, runtime_s=round(time.time() - t0, 1), workers=WORKERS)
     (HERE / "sensitivity_summary.json").write_text(json.dumps(out, indent=1, default=float) + chr(10), encoding="utf-8")
     print(json.dumps({k: (v["top1_mismatch_groups"], v["groups"], v["papers_with_mismatch"], v["pairwise_inversions"],
                           round(v["regret_median_mismatched"], 4), v["groups_flipped_vs_baseline"])

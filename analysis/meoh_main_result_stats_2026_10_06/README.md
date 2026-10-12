@@ -1,11 +1,10 @@
-# How firm is the methanol field result? — 2026-10-06, updated 2026-10-07
+# How firm is the methanol field result? — frozen treatment of 2026-10-12
 
-Field result (`analysis/meoh_literature_inversion_2026_10_05/`, 50-paper set, primary treatment of 2026-10-07):
+Field result (`analysis/meoh_literature_inversion_2026_10_05/`, frozen treatment: printed values only, step S5):
 within published CO2-to-methanol comparisons, the paper's space-time-yield (STY) leader is not the plant-cost leader
-in **54 of 82** comparison groups (37 of 44 papers). The primary caps the per-pass CO2 conversion at
+in **15 of 40** comparison groups (9 of 28 papers). The plant cost caps the per-pass CO2 conversion at
 CO2-hydrogenation equilibrium, converts recycled CO only up to reverse-water-gas-shift and CO-hydrogenation
-equilibrium, and optimizes the purge only where the reactor inlet holds no more species other than H2 and CO2 than
-the calibrated reference loop (6.86 %). This folder asks four questions of that number:
+equilibrium, and optimizes the purge over the canonical grid. This folder asks four questions of that number:
 - its sampling uncertainty;
 - how large the disagreements are;
 - whether they survive measurement noise;
@@ -35,21 +34,21 @@ entry state and the perturbation, so no run is repeated and the work can be spli
 `run_failed_infeasible.log` is a run that stopped when an extreme perturbation left the plant model's feasible loop.
 Such states are treated as missing, and the entry leaves both leaderboards of that draw.
 
-## Result (current primary; GitHub Actions run 37598533207)
+## Result (frozen treatment; GitHub Actions run 38199314441)
 
 | Question | Result |
 |---|---|
-| Point estimate | 54 / 82 groups (65.9 %), 37 / 44 papers; paper-weighted 74.6 % |
-| **Sampling uncertainty** (paper-cluster bootstrap, 10,000 resamples) | **95 % CI 51.5–80.0 %** (paper-weighted 62.7–85.7 %) |
-| **Size**: mismatches whose regret is at least | 1 %: 51 (36 papers) · 2 %: 50 · 5 %: 46 · **10 %: 42 (31 papers)** |
-| **Measurement noise** (each entry re-measured, measured error ×1) | 54.0 mismatched groups on average (95 % range 50–58); **47 of the 54 stay mismatched in ≥ 90 % of re-measurements**, all with regret ≥ 1 % (median 45 %) |
-| Noise floor (re-measurement alone changes the reported STY leader) | 12.1 groups (7–17) at ×1 · 21.2 (15–28) at ×2 · 33.6 (26–41) at ×4 |
-| **Extraction error** (plot readings resampled from the agent's measured errors, plus noise ×1) | 55.6 mismatched groups (50–61); 40 stay mismatched in ≥ 90 % of draws |
-| Response surface against exact runs | 18 of 1,640 group verdicts differ (5 exact replicates per scenario) |
+| Point estimate | 15 / 40 groups (37.5 %), 9 / 28 papers; paper-weighted 26.9 % |
+| **Sampling uncertainty** (paper-cluster bootstrap, 10,000 resamples) | **95 % CI 15.2–57.1 %** (paper-weighted 12.6–43.2 %) |
+| **Size**: mismatches whose regret is at least | 0.5 %: 13 · **1 %: 12 (6 papers)** · 2 %: 8 · 5 %: 7 (2 papers) · 10 %: 6 (2 papers) |
+| **Measurement noise** (each entry re-measured, measured error ×1) | 16.5 mismatched groups on average (95 % range 13–20); **11 of the 15 stay mismatched in ≥ 90 % of re-measurements** |
+| Noise floor (re-measurement alone changes the reported STY leader) | 4.2 groups (1–8) at ×1 · 8.0 (4–12) at ×2 · 13.7 (9–19) at ×4 |
+| Extraction error (plot readings) | not run: the printed-value cohort holds no plot readings |
+| Response surface against exact runs | 1 of 600 group verdicts differs (5 exact replicates per scenario); cost error median 1e-5, max 1.3 % at ×1 |
 
-Even at four times the measured error, the noise floor (33.6) stays below the observed 54.
+The 310 entries of the 40 groups enter; 184 of them carry a printed STY basis.
 
-## Result of the previous treatment (33 / 83; superseded by the CI run of the current primary)
+## Result of the original treatment (33 / 83, all entries; superseded)
 
 | Question | Result |
 |---|---|
@@ -101,7 +100,7 @@ They are resampled for the 534 plot-read entries; the STY error applies only whe
 
 ## Response surface and its validation
 
-- **The surface.** Each of the 906 entries gets an additive, piecewise-linear response from exact runs of the plant
+- **The surface.** Each entry gets an additive, piecewise-linear response from exact runs of the plant
   model on a grid in each perturbation coordinate: ln X, MeOH→CH4, MeOH→CO, ln STY. The grid spans ±2.5 in ln and up
   to ±0.15 in selectivity, inside each entry's physical range.
 - **Off-grid draws.** Every draw outside the grid is run exactly: 14,202 to 46,173 runs per scenario.

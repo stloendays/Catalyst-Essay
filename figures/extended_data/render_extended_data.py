@@ -183,19 +183,21 @@ def ed3():
     cx.set_yticks(y)
     cx.set_yticklabels(c.label, fontsize=5.6)
     cx.set_ylim(-1.05, len(c) + 0.75)
-    cx.set_xlim(0, max(80, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
+    cx.set_xlim(0, max(ng, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
     cx.set_xlabel("comparisons (of %d), mean and\n95 %% range over %s draws" % (ng, format(c.attrs["draws"], ",")))
     cx.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
     boxed(cx)
     pg.letter("c", 2, 59 + up)
-    pg.title("Measurement and plot-reading resampling", 14, 59 + up)
+    pg.title("Measurement resampling" if "meas_k1_plus_extraction" not in set(c.scenario)
+             else "Measurement and plot-reading resampling", 14, 59 + up)
     # d per-group persistence
     dx = pg.ax(108, 12 + up, 70, 40)
     xg = np.arange(len(dd)) + 1
     dx.bar(xg, dd.p_mismatch_meas_k1, 0.75, color=[RU if p >= 0.9 else PALE_B for p in dd.p_mismatch_meas_k1],
            ec=INK, lw=0.25, label="error ×1")
-    dx.scatter(xg, dd.p_mismatch_meas_k1_plus_extraction, s=5, marker="_", c=INK, lw=0.7, zorder=3,
-               label="×1 + plot-reading errors")
+    if "p_mismatch_meas_k1_plus_extraction" in dd:
+        dx.scatter(xg, dd.p_mismatch_meas_k1_plus_extraction, s=5, marker="_", c=INK, lw=0.7, zorder=3,
+                   label="×1 + plot-reading errors")
     dx.axhline(0.9, color=INK, lw=0.5, ls=":")
     nrob = int((dd.p_mismatch_meas_k1 >= 0.9).sum())
     dx.text(len(dd) + 0.4, 1.02, "%d of %d stay in ≥ 90 %% of draws" % (nrob, len(dd)), fontsize=5.2, ha="right",
@@ -228,7 +230,7 @@ def ed3():
     ref = e.attrs["reference"]
     r = e[np.isclose(e.limit, ref)].iloc[0]
     ex.axvline(ref * 100, color=RED, lw=0.7, ls="--")
-    ex.text(ref * 100 + 0.4, 0.06, "reference loop %.2f %%: %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
+    ex.text(ref * 100 + 0.4, 0.06, "workbook limit %.2f %% (sensitivity): %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
         100 * ref, r.mismatched, r.groups, 100 * r.share, r.iso_mismatched, r.iso_groups, 100 * r.iso_share),
         color=RED, fontsize=5.2, va="bottom")
     ex.set_xlim(0, xmax * 100 + 1.5)
@@ -351,20 +353,30 @@ def ed6():
     d = E.edfig6()
     a, b, c, dd = (d[k][0] for k in "abcd")
     pg = Page(183.0, 128.0)
-    # a: Perez-Fortes terms
-    ax = pg.ax(48, 74, 50, 44)
-    short = ["H$_2$", "power + utilities", "catalyst replacement", "capital (8 %, 20 y)", "fixed O&M",
-             "residual + 10 % of NPC", "break-even price, like-for-like", "total, anchor convention"]
+    # a: Perez-Fortes terms: the stoichiometric feed (the same for every catalyst) and the catalyst-sensitive terms,
+    # on a broken axis so that the sensitive terms (tens of EUR/t) are readable next to the 583 EUR/t floor
+    ax = pg.ax(44, 74, 50, 44)
     y = np.arange(len(a))[::-1]
-    ax.barh(y + 0.19, a.model, 0.36, color=RU, ec=INK, lw=0.35, label="model")
-    ax.barh(y - 0.19, a.reference, 0.36, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
-    for yi, m, r in zip(y, a.model, a.reference):
-        ax.text(max(m, r) + 12, yi, "%.0f / %.0f" % (m, r), va="center", fontsize=5.0)
+    big = a.term.str.startswith(("stoichiometric", "total"))
+    scale = np.where(big, 0.1, 1.0)                    # the two large rows drawn at 1/10 (labelled with full values)
+    ax.barh(y + 0.19, a.model * scale, 0.36, color=RU, ec=INK, lw=0.35, label="model")
+    ax.barh(y - 0.19, a.reference * scale, 0.36, color=PALE_B, ec=INK, lw=0.35, label="Pérez-Fortes 2016")
+    for yi, m, r, sc, dev in zip(y, a.model, a.reference, scale, a.deviation_pct):
+        ax.text(max(m, r) * sc + 2, yi, ("%.1f / %.1f (%+.0f %%)" % (m, r, dev)).replace("-", "−"), va="center",
+                fontsize=5.0)
+    for yi, cat in zip(y, a.category):
+        if cat == "subtotal":
+            ax.axhline(yi + 0.5, color=INK, lw=0.4)
+    short = {"stoichiometric": "stoichiometric H$_2$ + CO$_2$ (bar ×0.1)", "H$_2$ and CO$_2$ above": "feed above stoichiometry",
+             "electricity": "electricity (model gross / ref. net)", "catalyst replacement": "catalyst replacement",
+             "capital": "capital (8 %, 20 y)",
+             "fixed O&M": "fixed O&M: ref. value both (model own %.1f)" % a.attrs["model_own_fixed_om"],
+             "catalyst-sensitive": "catalyst-sensitive subtotal", "total": "total; ref. = break-even (bar ×0.1)"}
     ax.set_yticks(y)
-    ax.set_yticklabels(short, fontsize=5.6)
-    ax.set_xlim(0, 1080)
+    ax.set_yticklabels([next(v for k, v in short.items() if t.startswith(k)) for t in a.term], fontsize=5.2)
+    ax.set_xlim(0, 180)
     ax.set_xlabel("EUR t$^{-1}$ MeOH")
-    ax.legend(loc="lower right", fontsize=5.0, borderaxespad=0.3, bbox_to_anchor=(1.0, 0.28))
+    ax.legend(loc="center right", fontsize=5.0, borderaxespad=0.3, bbox_to_anchor=(1.0, 0.55))
     boxed(ax)
     pg.letter("a", 2, 125)
     pg.title("Pérez-Fortes plant at its own assumptions", 14, 125)
@@ -410,7 +422,8 @@ def ed6():
     dx = pg.ax(118, 12, 60, 44)
     assert (dd.key.to_numpy() == np.arange(1, len(dd) + 1)).all()
     xs = np.arange(len(dd))
-    colors = [RED if v == "baseline" else (FE if v.startswith("catalyst_repl_95") else PALE_B) for v in dd.variant]
+    colors = [RED if v == "baseline" else (RU if v.startswith("pf_aligned") else
+                                            (FE if v.startswith("catalyst_repl_95") else PALE_B)) for v in dd.variant]
     dx.bar(xs, dd.mismatch_groups, 0.7, color=colors, ec=INK, lw=0.3)
     base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
     dx.axhline(base, color=RED, lw=0.5, ls="--")
@@ -420,7 +433,8 @@ def ed6():
     dx.set_ylim(0, ngr)
     dx.set_ylabel("comparisons with a different winner (of %d)" % ngr)
     dx.set_xlabel("plant-model variant (key in Source Data)")
-    dx.text(0.03, 0.97, "red: model as used (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y" % base,
+    dx.text(0.03, 0.97, "red: model as used (%d)\ngreen: catalyst 95.24 EUR kg$^{-1}$, 1/4/6 y\n"
+            "dark: recycle, compression, capital set to Pérez-Fortes" % base,
             transform=dx.transAxes, fontsize=5.0, va="top", bbox=dict(fc="white", ec="none", pad=1.0))
     for x, v in zip(xs, dd.mismatch_groups):
         dx.text(x, v + 0.5, str(v), ha="center", va="bottom", fontsize=5.0, rotation=90)
@@ -476,11 +490,13 @@ def ed7():
     bx.set_xlabel("full plant cost (USD t$^{-1}$ NH$_3$)")
     bx.set_ylabel("lower bound (USD t$^{-1}$)")
     bx.legend(loc="lower right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.2)
-    bx.text(0.97, 0.2, "%d surfaces inside the bed cap shown (of %d costed)" % (len(fb), len(b)),
-            transform=bx.transAxes, fontsize=5.0, va="bottom", ha="right")
+    n_pure = int(sum(len(E._els(x)) == 1 for x in fb.surface))
+    bx.text(0.97, 0.2, "%d surfaces inside the bed cap shown (%d bimetallic, %d pure metal; of %d costed)"
+            % (len(fb), len(fb) - n_pure, n_pure, len(b)), transform=bx.transAxes, fontsize=5.0, va="bottom",
+            ha="right")
     boxed(bx)
     pg.letter("b", 96, 117)
-    pg.title("Ammonia bimetallic surfaces", 108, 117)
+    pg.title("Ammonia alloy and metal surfaces", 108, 117)
     cx = pg.ax(62, 12, 116, 36)
     y = np.arange(len(c))[::-1]
     cx.barh(y, c.full_evaluations / c.candidates, 0.55, color=RU, ec=INK, lw=0.35, label="evaluated in full")

@@ -616,11 +616,12 @@ ok("NH3 measured: errata file covers nine review rows", len({(r["page"], r["row"
 # ----- NH3 field statistic (30 primary papers) ------------------------------------------------------------------
 fd = json.loads((ROOT / "analysis/nh3_field_2026_10_06/summary.json").read_text(encoding="utf-8"))
 fev = json.loads((ROOT / "agent/nh3_field/eval/summary.json").read_text(encoding="utf-8"))
-FP, FV = fd["primary"], fd["variants"]
+fpr = json.loads((ROOT / "analysis/nh3_field_2026_10_06/summary_printed.json").read_text(encoding="utf-8"))
+FP, FV = fpr["primary"], fpr["variants"]          # frozen ammonia field result: printed values only
 fk = FP["mismatch_kinds"]
 fci = FP["bootstrap_papers"]["mismatch_fraction_ci95"]
 rate_ev = next(f for f in fev["fields"] if f["field"] == "rate")
-_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics.csv")
+_fe_dm = sum(1 for r in rows("analysis/nh3_field_2026_10_06/group_metrics_printed.csv")
              if r["mismatch_kind"] == "different metal" and r["plant_winner"].startswith("Fe"))
 tokens(
     "NH3 field statistic",
@@ -664,7 +665,7 @@ tokens(
     f"median regret of {V['leaderboard_S_MeOH']['regret_median_mismatched'] * 100:.0f}%",
     f"in {V['leaderboard_X']['top1_mismatch_groups']} of {V['leaderboard_X']['groups']}",
     f"to {V['inert_opt']['top1_mismatch_groups']} of {V['inert_opt']['groups']} comparisons across {V['inert_opt']['papers_with_mismatch']} papers",
-    f"({V['printed_values_only']['top1_mismatch_groups']} of {V['printed_values_only']['groups']} comparisons)",
+    f"({V['all_entries']['top1_mismatch_groups']} of {V['all_entries']['groups']} comparisons)",
     f"({V['methanol_products_only']['top1_mismatch_groups']} of {V['methanol_products_only']['groups']})",
     f"up to {P0['regret_max'] * 100:.0f}%",
 )
@@ -676,7 +677,8 @@ tokens("MeOH literature: other papers", s8, f"in the other {wo['papers']} papers
 st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
 cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))
 pb = json.loads((ROOT / "analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json").read_text(encoding="utf-8"))
-k1, ke = st["noise"]["meas_k1"], st["noise"]["meas_k1_plus_extraction"]
+k1 = st["noise"]["meas_k1"]
+ke = st["noise"].get("meas_k1_plus_extraction", k1)   # not run on the printed-value primary (no plot readings)
 sci = st["cluster_bootstrap"]["fraction_ci95"]
 r1 = next(r for r in st["regret_threshold_curve"] if r["threshold"] == 0.01)
 c3 = cc["variants"]["composition_3y"]
@@ -704,8 +706,9 @@ tokens("MeOH literature: response-surface validation in Methods", text,
 _pv = [v["top1_mismatch_groups"] for k, v in pb["variants"].items()
        if not k.startswith(("catalyst", "combined", "baseline"))]
 tokens("MeOH plant benchmark: loop, recycle and price variants", text,
-       f"disagreement at {min(_pv)}–{max(_pv)} of 83 comparisons")
-ok("MeOH plant benchmark: baseline reproduces the headline", pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/83")
+       f"disagreement at {min(_pv)}–{max(_pv)} of {P0['groups']} comparisons")
+ok("MeOH plant benchmark: baseline reproduces the headline",
+   pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/{P0['groups']}")
 
 tokens("Abstract headline numbers", text, "1,695 alloy and metal surfaces",
        f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",

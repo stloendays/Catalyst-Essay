@@ -40,13 +40,15 @@ def read_json(rel):
 lit = read_json("analysis/meoh_literature_inversion_2026_10_05/summary.json")
 stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")
 cand = read_csv("analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv")
-nh3 = read_json("analysis/nh3_field_2026_10_06/summary.json")
-nh3_groups = read_csv("analysis/nh3_field_2026_10_06/group_metrics.csv")
+nh3_run = read_json("analysis/nh3_field_2026_10_06/summary.json")
+nh3 = read_json("analysis/nh3_field_2026_10_06/summary_printed.json")          # frozen primary: printed values
+nh3_groups = read_csv("analysis/nh3_field_2026_10_06/group_metrics_printed.csv")
 nh3_cand = read_csv("analysis/nh3_field_2026_10_06/candidates.csv")
+nh3_pcand = read_csv("analysis/nh3_field_2026_10_06/candidates_printed.csv")
 assert lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
 assert stats["point_estimate"]["groups"] == lit["primary"]["top1_mismatch_groups"]
 assert stats["groups"] == lit["primary"]["groups"]
-assert nh3["selfcheck_supported_chain"]["pass_"]
+assert nh3_run["selfcheck_supported_chain"]["pass_"]
 
 MEOH_GROUPS = [("10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h", "Re/TiO$_2$, 100 bar"),
                ("10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 10.6 NL/g/h", "Cu/Al$_2$O$_3$ (K, Ba), 10 MPa")]
@@ -70,9 +72,9 @@ def nh3_kind_counts():
 
 
 def nh3_example():
-    rows = [r for r in nh3_cand if r["group"] == NH3_GROUP[0]]
     g = next(r for r in nh3_groups if r["group"] == NH3_GROUP[0])
-    assert len(rows) == int(g["n"])
+    rows = [r for r in nh3_pcand if r["group"] == NH3_GROUP[0]]
+    assert len(rows) == int(g["n"]), (len(rows), g["n"])
     return rows, g
 
 
@@ -110,15 +112,21 @@ if __name__ == "__main__":
         f = x["top1_mismatch_fraction"]
         col = RED if lab.startswith("S$") else (RU if lab == "STY" else PALE_B)
         b.bar(i, f, 0.62, color=col, ec=INK, lw=0.4, zorder=2)
+        g5 = x["regret_bins"]["gt5pct"]["groups"] / x["groups"]
+        b.bar(i, g5, 0.62, color="none", ec=INK, lw=0.4, hatch="//////", zorder=2.5)
         ytxt = (hi if i == 0 else f) + 0.035
         b.text(i, ytxt, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), ha="center", va="bottom", fontsize=5.0)
     b.errorbar([0], [P0["top1_mismatch_fraction"]], yerr=[[P0["top1_mismatch_fraction"] - lo],
                                                           [hi - P0["top1_mismatch_fraction"]]],
                fmt="none", ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
     b.scatter([0], [V["inert_opt"]["top1_mismatch_fraction"]], marker="_", s=60, c=INK, lw=0.9, zorder=4)
-    b.text(0.97, 0.97, "bar on STY: 95 % CI\n(paper-cluster bootstrap);\ntick: recycled CO taken as inert",
+    kd = P0["kinds"]
+    b.text(0.03, 0.97, "bar on STY: 95 %% CI\n(paper-cluster bootstrap)\ntick: recycled CO as inert\n"
+           "hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d,\nsame catalyst, other T %d/%d" % (
+               kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"], kd["other_temperature"]["groups"],
+               kd["other_temperature"]["of"]),
            transform=b.transAxes, fontsize=5.0,
-           ha="right", va="top", color=INK)
+           ha="left", va="top", color=INK)
     b.set_xticks(range(len(cases)))
     b.set_xticklabels([l for l, _ in cases], fontsize=5.6)
     b.set_ylim(0, 1.0)
@@ -140,6 +148,9 @@ if __name__ == "__main__":
         f = x["top1_mismatch_fraction"]
         l, h = x["bootstrap_papers"]["mismatch_fraction_ci95"]
         c1.bar(i, f, 0.62, color=col, ec=INK, lw=0.4, zorder=2)
+        if "regret_bins" in x:
+            c1.bar(i, x["regret_bins"]["gt5pct"]["groups"] / x["groups"], 0.62, color="none", ec=INK, lw=0.4,
+                   hatch="//////", zorder=2.5)
         c1.errorbar([i], [f], yerr=[[f - l], [h - f]], fmt="none", ecolor=INK, elinewidth=0.6, capsize=1.8,
                     capthick=0.6, zorder=3)
         c1.text(i, h + 0.035, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), ha="center", va="bottom",
@@ -151,7 +162,8 @@ if __name__ == "__main__":
     c1.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     c1.set_yticklabels(["0", "25", "50", "75", "100"])
     c1.set_ylabel("leader changes (% of comparisons)")
-    c1.text(0.04, 0.97, "bars: 95 % CI", transform=c1.transAxes, fontsize=5.0, va="top", color=INK)
+    c1.text(0.04, 0.97, "bars: 95 % CI\nhatched: cost gap > 5 %", transform=c1.transAxes, fontsize=5.0, va="top",
+            color=INK)
     boxed(c1)
 
     kinds, fe_wins = nh3_kind_counts()

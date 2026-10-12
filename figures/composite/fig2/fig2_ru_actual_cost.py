@@ -186,6 +186,14 @@ print("KAAP loop floor (free, infinitely active catalyst): %.4f USD/t at %3.0f C
 p_star = float(list(csv.DictReader(open(HERE / "fig2_ru_price_sweep.csv", encoding="utf-8")))[-1]["price_USD_kg"])
 for r in (0.0, R_LO, R_HI):
     print("parity needs u = %.1f at r = %.2f" % (P_RU * (1 - r) / p_star, r))
+# gap_to_Fe is against the Fe optimum of the main loop (15.29 USD/t) for every row; the like-for-like comparison of a
+# KAAP-loop point is Fe in the same KAAP loop (row fe_kaap). Both are written, with the Fe cost each one uses
+# (independent review analysis/review_ru_cost_2026_10_09: the KAAP rows were read against the main-loop Fe).
+fe_same = {"main": FE_COST, "KAAP": next(p["cost"] for p in pts if p["key"] == "fe_kaap")}
+for p in pts:
+    loop = "KAAP" if p["key"] in ("kaap90", "kaap97", "fe_kaap") else "main"
+    p["Fe_same_loop_cost"] = fe_same[loop]
+    p["gap_to_Fe_same_loop"] = p["cost"] - fe_same[loop]
 with open(HERE / "fig2_ru_actual_cost_points.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(pts[0]), lineterminator="\n")
     w.writeheader()

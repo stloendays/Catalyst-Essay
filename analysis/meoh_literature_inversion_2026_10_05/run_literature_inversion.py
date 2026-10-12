@@ -148,7 +148,8 @@ def main():
                                                         f"without {biggest}")[1]
     limit_sweep = {f"{lim * 100:g}%": scored(cand, f"cost_recycled_opt_lim{lim * 100:g}",
                                              f"inlet limit {lim * 100:g} %")[1] for lim in LIMIT_SWEEP}
-    limit_sweep["none (primary)"] = {k: primary[k] for k in ("groups", "top1_mismatch_groups", "papers")}
+    limit_sweep["none (primary)"] = {k: primary[k] for k in ("groups", "top1_mismatch_groups", "papers",
+                                                             "top1_mismatch_fraction")}
 
     # isothermal catalyst comparisons: within a group, the entries at one temperature that name at least two
     # different catalysts (the paper's catalyst ranking at fixed T, P, H2/CO2 and space velocity)
@@ -160,12 +161,18 @@ def main():
     isothermal["bootstrap"] = bootstrap(iso_gm)
     isothermal_variants = {"inlet_limit_6.86pct": scored(iso, "cost_recycled_opt_inlet", "isothermal, inlet limit")[1],
                            "all_entries": None}
+    isothermal_limit_sweep = {f"{lim * 100:g}%": scored(iso, f"cost_recycled_opt_lim{lim * 100:g}",
+                                                        f"isothermal, inlet limit {lim * 100:g} %")[1]
+                              for lim in LIMIT_SWEEP}
+    isothermal_limit_sweep["none (primary)"] = {k: isothermal[k] for k in ("groups", "top1_mismatch_groups", "papers",
+                                                                           "top1_mismatch_fraction")}
     iso_all = alle.copy()
     iso_all["group"] = iso_all.group + " | T " + iso_all.T_C.round(1).map("{:g}".format)
     nca = iso_all.groupby("group").catalyst.agg(lambda s: s.map(catalyst_key).nunique())
     isothermal_variants["all_entries"] = scored(iso_all[iso_all.group.isin(nca[nca >= 2].index)], "cost_recycled_opt",
                                                 "isothermal, all entries")[1]
     isothermal["variants"] = isothermal_variants
+    isothermal["limit_sweep"] = isothermal_limit_sweep
 
     # bookkeeping of the thermodynamic treatment (primary cohort, entries in scored groups)
     n = cand.groupby("group").size()
@@ -213,6 +220,7 @@ def main():
     check.to_csv(HERE / "selfcheck_gothe_table4.csv", index=False, float_format="%.10g")
     summary = dict(
         treatment=TREATMENT, records_in=int(len(records)), cohort=cohort,
+        candidates=int(len(cand)), papers_with_candidates=int(cand.doi.nunique()),   # printed cohort (primary)
         duplicate_entries_counted_once=dict(printed=int(cand.attrs.get("duplicates_removed", 0)),
                                             all=int(alle.attrs.get("duplicates_removed", 0))),
         primary=primary, thermodynamics=thermo, variants=variants, limit_sweep=limit_sweep, isothermal=isothermal,

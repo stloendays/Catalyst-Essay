@@ -15,7 +15,8 @@ printed set: leaderboard per g catalyst and per g metal, 90 % Ru recovery, bed d
 fused-Fe references removed, measured at >= 5 MPa, without the paper with the most groups; and the all-entries result
 (plot readings included) as the sensitivity.
 
-Outputs (this folder): summary_printed.json, group_metrics_printed.csv.
+Outputs (this folder): summary_printed.json, group_metrics_printed.csv, candidates_printed.csv (the printed
+primary entries).
 """
 import json
 import sys
@@ -87,6 +88,8 @@ def main():
     out = dict(treatment="printed values only", entries=entries, primary=primary, variants=variants)
     (HERE / "summary_printed.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
     gm.to_csv(HERE / "group_metrics_printed.csv", index=False, float_format="%.6g")
+    pr.drop(columns=["rate_per_gmetal", "printed"]).to_csv(HERE / "candidates_printed.csv", index=False,
+                                                           float_format="%.6g")
     print(json.dumps(out, indent=1, default=float))
     print(f"\nprimary {primary['top1_mismatch_groups']}/{primary['groups']} groups ({primary['papers_with_mismatch']}"
           f"/{primary['papers']} papers), regret > 5 %: {primary['regret_bins']['gt5pct']['groups']}")

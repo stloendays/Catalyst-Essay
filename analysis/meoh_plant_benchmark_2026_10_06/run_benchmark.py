@@ -5,7 +5,8 @@ Outputs (this folder):
                             reference studies' own operating points)
   reconciliation_cost.csv   Table B: production cost and breakdown, model run with each reference's own prices
   capex_scale.csv           specific fixed capital (EUR/(t/a)) of the model at each reference's scale
-  summary.json              key numbers, identity gate, sensitivity summary (from lit_sensitivity.py)
+  summary.json              key numbers, identity gate (the field-result sensitivity is lit_sensitivity.py's
+                            sensitivity_summary.json; it is not copied here, so it cannot go stale)
 
 Model: data/meoh/meoh_general_model.py (unchanged) through plant_variant.py (same equations, knobs exposed).
 Reference numbers: reference_values.csv (source, locator, conversion for each).
@@ -574,7 +575,6 @@ def main():
     dd.to_csv(HERE / "mismatch_driver_decomposition.csv", index=False, float_format="%.4g")
     dagg.to_csv(HERE / "mismatch_driver_shares.csv", index=False, float_format="%.4g")
     print(dagg.T.to_string())
-    sens = json.loads((HERE / "sensitivity_summary.json").read_text(encoding="utf-8"))
     a = res["M1 anchor one-step (calibration point)"]
     summary = dict(
         identity_gate_max_abs_eur_t=gate,
@@ -600,13 +600,6 @@ def main():
         nieminen={k: round(float(bres["nieminen"][k]), 4) for k in ("cost_eur_t", "h2_t_per_t", "co2_t_per_t",
                                                                     "carbon_efficiency", "recycle_ratio")},
         capex_scale=cs.to_dict(orient="records"),
-        sensitivity={k: dict(top1=f"{v['top1_mismatch_groups']}/{v['groups']}", papers=v["papers_with_mismatch"],
-                             inversions=v["pairwise_inversions"],
-                             regret_median_mismatched=round(v["regret_median_mismatched"], 4),
-                             groups_flipped=v["groups_flipped_vs_baseline"],
-                             economic_winner_changed=v["groups_economic_winner_changed"], knobs=v["knobs"])
-                     for k, v in sens["variants"].items()},
-        sensitivity_check=sens["check"],
         mismatch_driver_shares=dagg.to_dict(orient="records"),
         plant_metric_ranges=mr.to_dict(orient="records"),
     )

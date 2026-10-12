@@ -253,6 +253,7 @@ KNOBS = {"cat_term": lambda v: f"catalyst {num(v[0])} €/kg replaced every {num
          "loop_dp": lambda v: f"loop ΔP {num(v)} bar", "h2_price": lambda v: f"H₂ {num(v)} €/t",
          "co2_price": lambda v: f"CO₂ {num(v)} €/t", "elec_price": lambda v: f"electricity {num(v)} €/MWh",
          "recycle_mult": lambda v: f"recycle-driven costs ×{num(v)}",
+         "capex_mult": lambda v: f"capital ×{num(v)}",
          "ec_ref": lambda v: f"equipment split from Campos 2022 SI ({len(v)} items)"}
 
 
@@ -327,14 +328,15 @@ def table3():
                       "Reference (€ per t/a)", "Reference basis", "Model / reference"], rows))
 
     rows = []
-    for v in s["sensitivity"].values():
+    sens = json.loads((BENCH / "sensitivity_summary.json").read_text(encoding="utf-8"))
+    for v in sens["variants"].values():
         knobs = "; ".join(KNOBS[k](x) for k, x in v["knobs"].items()) or "frozen model"
-        rows.append([knobs, v["top1"], num(v["papers"]), v["inversions"],
-                     num(100 * v["regret_median_mismatched"], 1) + " %", num(v["groups_flipped"]),
-                     num(v["economic_winner_changed"])])
-    chk = s["sensitivity_check"]
+        rows.append([knobs, f"{v['top1_mismatch_groups']}/{v['groups']}", num(v["papers_with_mismatch"]),
+                     v["pairwise_inversions"], num(100 * v["regret_median_mismatched"], 1) + " %",
+                     num(v["groups_flipped_vs_baseline"]), num(v["groups_economic_winner_changed"])])
+    chk = sens["check"]
     out.append(block("5f", "Headline comparison rerun with primary-source plant terms",
-                     f"From `sensitivity` in {rel(BENCH / 'summary.json')}: groups whose STY leader is not the "
+                     f"From {rel(BENCH / 'sensitivity_summary.json')}: groups whose STY leader is not the "
                      f"plant-cost leader, papers affected, pairwise orderings inverted, median regret of the "
                      f"mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner "
                      f"changes. The baseline reproduces the frozen headline ({chk['frozen_top1']}, "
