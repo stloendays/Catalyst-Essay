@@ -65,7 +65,7 @@ def audit(root: Path, output: Path):
                 raise AssertionError(f"{name} has a different upstream leader for {g}")
 
     cand = keyed(
-        ({"group": r["group"] + "\x1f" + r["catalyst"], **r}
+        ({**r, "group": r["group"] + "\x1f" + r["catalyst"]}
          for r in read(me / "literature_candidates.csv")),
         "literature_candidates.csv")
     out = []
