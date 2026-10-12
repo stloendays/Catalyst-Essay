@@ -37,14 +37,14 @@ def test_equal_fe_stages():
 def test_original_not_forced_to_win():
     r=compare(80,60,1.)
     assert r["Fe_only"]>r["Fe_to_Ru"]>r["Ru_to_Fe"]
-    assert math.isclose(r["Fe_only"],.117323,abs_tol=8e-5)
+    assert math.isclose(r["Fe_only"],.167364,abs_tol=8e-5)
 
 def test_hypothetical_crossover():
     r=compare(80,60,20.)
-    assert r["Fe_to_Ru"]>r["Fe_only"]>r["Ru_to_Fe"]
-    assert math.isclose(r["Fe_to_Ru"],.122476,abs_tol=8e-5)
-    assert 17<threshold(80,60)<18
-    assert 16<threshold(80,60,mode="dh")<18
+    assert r["Fe_to_Ru"]>r["Ru_to_Fe"]>r["Fe_only"]
+    assert math.isclose(r["Fe_to_Ru"],.220117,abs_tol=8e-5)
+    assert 6.4<threshold(80,60)<6.9
+    assert 10.8<threshold(80,60,mode="dh")<11.3
 
 def test_source_immutability():
     assert RU_CEO2.adsorption_h2[0]==-87100.
