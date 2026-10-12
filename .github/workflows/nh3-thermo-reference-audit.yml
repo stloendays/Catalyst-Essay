@@ -42,9 +42,10 @@ jobs:
         timeout-minutes: 100
         run: |
           set -euo pipefail
+          mkdir -p analysis/nh3_thermo_reference_audit_2026_10_12/results
           python analysis/nh3_thermo_reference_audit_2026_10_12/run_audit.py --workers 4 \
             --out analysis/nh3_thermo_reference_audit_2026_10_12/results \
-            | tee /tmp/nh3_thermo_run.log
+            | tee analysis/nh3_thermo_reference_audit_2026_10_12/results/run.log
 
       - name: Publish result comparison to Actions job summary
         run: |
@@ -102,6 +103,5 @@ jobs:
           name: nh3-thermochemistry-economic-ranking-unfrozen
           path: |
             analysis/nh3_thermo_reference_audit_2026_10_12/results/
-            /tmp/nh3_thermo_run.log
           if-no-files-found: warn
           retention-days: 90
