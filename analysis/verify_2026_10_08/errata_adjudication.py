@@ -53,6 +53,32 @@ LABEL = {"ERR": "确认错误", "DER": "随根因派生（不单独计）", "CON
 KIND_ZH = {"E-unit": "单位", "E-assignment": "标错对象", "E-value": "数值"}
 
 # One root cause per mechanism and source paper: (dataset, doi or Humphreys ref, field set) -> (id, description)
+ROOT_EN = {'S1': '7 bar stored as 7 MPa',
+           'S2': 'rates of the Fig. 3a series assigned one temperature step low',
+           'S3': 'rows at 533 and 573 K, which the paper did not test',
+           'S4': 'two 300 °C STY values assigned to the wrong samples (Ir/In₂O₃-5, pristine In₂O₃)',
+           'S5': 'rate of 5Ni10Sn/10InZrO₂ assigned to the Sn-free catalyst',
+           'T1': 'methanol selectivity below 1 % read as 0–90 % (×100, Fig. 2b); STY derived from it',
+           'T2': 'GHSV 3.6 stored as 36.2 NL g⁻¹ h⁻¹ (×10); STY derived from it',
+           'T3': 'pressures of 0.4–36 MPa stored as bar',
+           'T4': 'yields of two Cu–Ba/Al₂O₃ rows at 553 K stored at ten times X × S',
+           'T5': 'conversion curves of In0.25 and In0.12 swapped (Fig. 9a)',
+           'T6': 'In₂O₃ yields rotated between 260 and 300 °C (Fig. 9b)',
+           'T7': 'bulk In₂O₃ data listed as a second In0.1/ZrO₂ row',
+           'T8': 'In13/ZrO₂ conversion differs from the printed values',
+           'T9': 'Fig. 10b series read on the left axis instead of the right',
+           'T10': 'conversions at 5–50 bar misread (Fig. 7b); STY at 5 bar derived from it',
+           'T11': 'CO selectivity of CZA200 stored as CO₂ conversion (Table 1)',
+           'T12': 'H₂/CO₂ = 3 stored as 3.1',
+           'H1': 'Ru-free TiH₂ and BaTiO2.5H0.5 listed as Ru catalysts',
+           'H2': 'volumetric flow 70 dm³ h⁻¹ printed as a space velocity',
+           'H3': 'reduction flow (440 NmL min⁻¹) taken as the reaction space velocity',
+           'H4': 'nominal Ru loading 1 wt% instead of the measured 0.86 wt%',
+           'H5': 'Co rate 5.7 instead of the printed 5.5 mmol g⁻¹ h⁻¹',
+           'H6': "space velocity of the Ru row 36,000 (66,000 for the paper's Fe and Co rows)", 'H7': 'space velocity 70,000 instead of the printed 24,000 mL g⁻¹ h⁻¹',
+           'H8': 'space velocity 6,000 instead of 60,000 (×0.1)',
+           'H9': 'Co loading 3.4 instead of the ICP-AES 3.73 wt%'}
+
 ROOTS = [
     ("Suvarna 2022", "10.1039/c4cy00848k", {"pressure_bar"}, "S1", "7 bar 存成 7 MPa（压力 ×10）"),
     ("Suvarna 2022", "10.1039/c4cy00848k", {"temperature_k"}, "S2", "Fig. 3a 速率整体错配到低一档温度"),
@@ -265,13 +291,14 @@ def main():
     rules["error_kind"] = [KIND_ZH.get(c, "") if f == "ERR" else "" for c, f in zip(rules.first_class, final)]
     rules["root_id"] = root
     rules["root_cause"] = root_text
+    rules["root_cause_en"] = [ROOT_EN.get(x, "") for x in root]
     rules["basis"] = basis
     rules["source_doi"] = [HUMPHREYS_DOI.get(humphreys_ref(e), "") if d.startswith("Humphreys") else dd
                            for d, dd, e in zip(rules.dataset, rules.doi.fillna(""), rules.evidence)]
     rules["locator"] = [e.split(":")[0] if ":" in e else "" for e in rules.evidence.astype(str)]
     rules["unit_of_count"] = np.where(rules.field.eq("(row dropped)"), "records", "value cells")
     cols = ["check_no", "dataset", "doi", "source_doi", "field", "cells", "unit_of_count", "first_class", "final_class",
-            "final_label", "error_kind", "root_id", "root_cause", "max_rel_diff", "locator", "basis", "evidence",
+            "final_label", "error_kind", "root_id", "root_cause", "root_cause_en", "max_rel_diff", "locator", "basis", "evidence",
             "row_ids", "rule"]
     rules[cols].to_csv(HERE / "errata_adjudication.csv", index=False, encoding="utf-8-sig", float_format="%.6g")
 

@@ -15,6 +15,7 @@ branch `meoh-physical-lock-2026-10-07` through `git show`).
 | `compare_outputs.py` | Compares regenerated outputs with the committed ones (counts and labels exactly, floats to a tolerance) | used by `.github/workflows/verify-2026-10-08.yml` |
 | `errata_classification.py` | First-pass classification of every correction to TheMeCat, Suvarna 2022 and the Humphreys 2021 review; every row still needs a check against the paper | `errata_classification.csv`, `errata_rules.csv`, `errata_summary.json` |
 | `errata_adjudication.py` | Final class of every rule (error, derived, convention, minor), one root cause per confirmed error, the STY derivation test on TheMeCat and the check that the methanol groups carry the paper values | `errata_adjudication.csv`, `errata_cells_audit.csv`, `errata_adjudication_summary.json`; reads `themecat_v1_subset.csv` (TheMeCat v1 columns used by the STY test, Toldy et al., Sci. Data 2026, CC BY 4.0) |
+| `leave_one_paper_out.py` | Methanol field result with the comparisons of one paper removed at a time (Bansode 2013 alone gives 8 of 40), for the S5 primary, the 6.86 % inlet limit and the extended purge grid | `leave_one_paper_out.csv`, `leave_one_paper_out_summary.json` |
 
 ## Decisions (author, 2026-10-08)
 
@@ -46,6 +47,7 @@ python analysis/verify_2026_10_08/reversal_kinds.py
 NH3_HARNESS=<harness root> python analysis/verify_2026_10_08/nh3_printed.py
 python analysis/verify_2026_10_08/errata_classification.py
 python analysis/verify_2026_10_08/errata_adjudication.py
+python analysis/verify_2026_10_08/leave_one_paper_out.py
 python analysis/verify_2026_10_08/gold_standard_sample.py analysis/verify_2026_10_08/gold_standard_sample.xlsx
 ```
 
