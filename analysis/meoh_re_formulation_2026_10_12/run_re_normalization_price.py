@@ -237,7 +237,7 @@ def assert_prior_unpriced(candidate_results):
                             suffixes=("_now", "_original"), indicator=True)
     if (merged._merge != "both").any() or len(merged) != len(baseline):
         raise AssertionError("Original equipment scan candidate identity drifted")
-    same = np.isclose(merged.cost, merged.cost_original,
+    same = np.isclose(merged.cost_now, merged.cost_original,
                       rtol=2e-8, atol=2e-5, equal_nan=True)
     if not same.all():
         bad = merged.loc[~same, ["row_id", "max_m", "inlet", "cap"]]
@@ -363,7 +363,7 @@ def main():
     summary_rows, summary = summarize(f, candidates)
     summary["regression"] = {
         "zero_price_optima_matched_prior_full_engineering_scan": covered,
-        "additive_price_formula_matches_original_TEa": additive,
+        "additive_price_formula_matches_original_TEA": additive,
     }
     args.output.mkdir(parents=True, exist_ok=True)
     candidates.to_csv(args.output / "re_candidate_price_optima.csv",
