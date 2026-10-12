@@ -124,10 +124,18 @@ def candidate(r, printed_only):
     return c
 
 
-def build(records, basis_fn, dedup, printed_only=False):
+def build(records, basis_fn, dedup, printed_only=False, annotate=None):
+    """Candidate set (groups, STY basis, optional one count per repeated print). annotate(record) -> dict adds
+    record-level columns to each candidate (used by the selectivity-split sensitivity); it does not change the set."""
     d = records.dropna(subset=MC.REQUIRED).copy()
-    cand = pd.DataFrame([c for c in (candidate(r, printed_only) for r in d.itertuples(index=False))
-                         if c is not None])
+    rows = []
+    for r in d.itertuples(index=False):
+        c = candidate(r, printed_only)
+        if c is not None:
+            if annotate is not None:
+                c.update(annotate(r))
+            rows.append(c)
+    cand = pd.DataFrame(rows)
     cand["group"] = (cand.doi + " | " + cand.P_bar.map("{:g} bar".format) + " | H2/CO2 "
                      + cand.h2_co2.map("{:.3g}".format) + " | " + cand.ghsv_key)
     parts = []
