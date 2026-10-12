@@ -1,0 +1,39 @@
+name: S6 conversion raised
+
+# Conversion raised with catalyst inventory under the reactor-inlet limit of step S6
+# (analysis/verify_2026_10_12_s6_conversion). Uploads the summary, groups and points as an artifact.
+
+on:
+  push:
+    branches: [analysis/s6-conversion-raised-2026-10-12]
+    paths:
+      - ".github/workflows/s6-conversion-raised.yml"
+      - "analysis/verify_2026_10_12_s6_conversion/run_s6_conversion.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt pyyaml
+      - name: S6 conversion raised
+        run: INV_WORKERS=4 python analysis/verify_2026_10_12_s6_conversion/run_s6_conversion.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s6-conversion
+          path: |
+            analysis/verify_2026_10_12_s6_conversion/s6_conversion_summary.json
+            analysis/verify_2026_10_12_s6_conversion/s6_conversion_groups.csv
+            analysis/verify_2026_10_12_s6_conversion/s6_conversion_points.csv
