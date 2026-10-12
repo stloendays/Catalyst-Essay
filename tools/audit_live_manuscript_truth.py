@@ -443,6 +443,8 @@ def n_ok(source, field):
 ext = json.loads((ROOT / "agent/extraction/eval/summary.json").read_text(encoding="utf-8"))
 p18, p31 = ext["precision"]["first18"], ext["precision"]["added31"]
 err = ext["errata"]
+_ea_c = json.loads((ROOT / "analysis/verify_2026_10_08/errata_adjudication_summary.json")
+                  .read_text(encoding="utf-8"))["confirmed"]
 lit = json.loads((ROOT / "analysis/meoh_literature_inversion_2026_10_05/summary.json").read_text(encoding="utf-8"))
 alloy = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/summary.json").read_text(encoding="utf-8"))
 ext_all = alloy["extended_with_usgs_prices"]
@@ -460,7 +462,9 @@ tokens(
     f"{p18['unmatched_unreviewed']} are not yet reviewed)",
     f"an estimated {p31['precision_all_extracted'] * 100:.0f}% in the 31 papers added later",
     f"{p31['pooled_sample'].split('/')[0]} of a random {p31['pooled_sample'].split('/')[1]} such entries",
-    f"{sum(v['cells'] for v in err['by_reference'].values())} curated cells and {err['rows_dropped']} curated rows",
+    # errata counted by root cause (analysis/verify_2026_10_08/errata_adjudication.py), not by changed cell
+    f"{_ea_c['root_causes']} root causes, one mechanism in one source paper each, in {_ea_c['error_rules']} rules, "
+    f"{_ea_c['value_cells_error_rules']} cells and {_ea_c['dropped_records']} rows",
 )
 ok("Agent: Gothe Table 4 extracted exactly", ext["gothe"]["matched"] == 21 and ext["gothe"]["X_CO2"] == "21/21")
 canon = lit["selfcheck"]["canonical_states"]
@@ -502,7 +506,7 @@ FE_COST_ALLOY = json.loads((ROOT / "analysis/nh3_alloy_extension_2026_10_05/allo
                            .read_text(encoding="utf-8"))["Fe_cost_USD_t"]
 
 # ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
-s7 = section("Bimetallic surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
+s7 = section("Outside nitride formers and sp metals, surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
 tm = alloy["extended_excluding_sp_and_group3to5"]
 glob_below = tm["below_Fe_surfaces"]
 anch_below = [x[0] for x in tm["below_Fe_anchored_surfaces"]]
@@ -673,9 +677,10 @@ tokens(
     f"up to {P0['regret_max'] * 100:.0f}%",
 )
 wo = V["without_paper_with_most_groups"]
-ok("MeOH literature: regret outside the largest paper below 10 %", wo["regret_max"] < 0.10
-   and "c2cy20604h" in wo["variant"])
-tokens("MeOH literature: other papers", s8, f"in the other {wo['papers']} papers the regret stays below 10%")
+ok("MeOH literature: the paper with most groups is Bansode 2013", "c2cy20604h" in wo["variant"])
+tokens("MeOH literature: without the paper with most groups", s8,
+       f"without it the leaders differ in {wo['top1_mismatch_groups']} of {wo['groups']} comparisons, with regrets up to "
+       f"{wo['regret_max'] * 100:.0f}%")
 # ----- Firmness of the methanol headline ---------------------------------------------------------------------
 st = json.loads((ROOT / "analysis/meoh_main_result_stats_2026_10_06/summary.json").read_text(encoding="utf-8"))
 cc = json.loads((ROOT / "analysis/meoh_catalyst_cost_2026_10_06/summary.json").read_text(encoding="utf-8"))

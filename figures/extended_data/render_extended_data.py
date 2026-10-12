@@ -774,19 +774,17 @@ def write_captions():
             "comparisons whose regret (cost penalty of building the STY leader) is at least the threshold: %d at 0, "
             "%d at 1 %% (%d papers), %d at 5 %%, %d at 10 %%. **c**, Mean and 95 %% range over %s draws of the number "
             "of mismatched comparisons when every entry is re-measured with the error the papers' own data imply (×1, "
-            "×2, ×4) or with ×1 plus the agent's measured plot-reading errors (circles), against the noise floor, the "
-            "number of comparisons whose reported STY leader changes under re-measurement alone (squares): ×1 %.1f "
-            "(%d–%d) against a floor of %.1f (%d–%d); dashed, observed %d. **d**, Share of draws in which each observed "
-            "mismatch persists (bars, ×1; ticks, ×1 plus plot-reading errors); %d of %d persist in at least 90 %% of "
-            "draws at ×1 and %d with plot-reading errors added. Source: `%s`." % (
+            "×2, ×4; circles), against the noise floor, the number of comparisons whose reported STY leader changes "
+            "under re-measurement alone (squares): ×1 %.1f (%d–%d) against a floor of %.1f (%d–%d); dashed, observed "
+            "%d. **d**, Share of draws in which each observed mismatch persists at ×1; %d of %d persist in at least "
+            "90 %% of draws. Source: `%s`." % (
                 st["groups"], format(a.attrs["n"], ","), st["papers"], _p(a.attrs["point"]), _p(a.attrs["ci"][0]),
                 _p(a.attrs["ci"][1]), bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
                 bc.loc[0.1, "groups"], format(c.attrs["draws"], ","),
                 cc.loc["meas_k1", "mismatch_groups_mean"], cc.loc["meas_k1", "mismatch_groups_q025"],
                 cc.loc["meas_k1", "mismatch_groups_q975"], cc.loc["meas_k1", "noise_floor_mean"],
                 cc.loc["meas_k1", "noise_floor_q025"], cc.loc["meas_k1", "noise_floor_q975"], c.attrs["observed"],
-                int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd),
-                int((dd.p_mismatch_meas_k1_plus_extraction >= 0.9).sum()), E.STATS)]
+                int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd), E.STATS)]
     fin = e[np.isfinite(e.limit)]
     span = fin[(fin.limit >= 0.05 - 1e-9) & (fin.limit <= 0.10 + 1e-9)]
     nl = e[~np.isfinite(e.limit)].iloc[0]
@@ -844,22 +842,66 @@ def write_captions():
     rest = b[~b.study.str.startswith("Campos")]
     base = int(dd[dd.variant == "baseline"].mismatch_groups.iloc[0])
     cat = dd[dd.variant.str.startswith("catalyst_repl_95")].set_index("variant").mismatch_groups
+    ta = a.set_index("category")
+    sub, tot = ta.loc["subtotal"], ta.loc["total"]
+    stoich = ta.loc["catalyst-independent"]
+    sens = a[a.category == "catalyst-sensitive"]
+    fom = ta.loc["accounting"]
+    pf_aligned = dd[dd.variant == "pf_aligned_recycle_compression_capital"].mismatch_groups.iloc[0]
     out += ["## Extended Data Fig. 4 | The methanol plant model against published plants", "",
-            "**a**, Cost terms of the Pérez-Fortes et al. (2016) plant run at its own point, prices, catalyst charge "
-            "and finance (model / reference, EUR t$^{-1}$): break-even methanol price (production cost plus capital recovery) %.0f / %.0f (%+.1f %%); the anchor "
-            "convention adds a catalyst-independent residual and 10 %% of the net production cost (%.0f EUR t$^{-1}$), "
-            "common to every catalyst. **b**, Like-for-like cost against each study's reported production cost or break-even price at that study's "
-            "own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases %+.1f to "
-            "%+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s). **d**, Number "
-            "of the 83 comparisons whose STY leader is not the plant-cost leader under %d plant-model variants (keys in "
-            "Source Data): model as used %d; catalyst replacement at 95.24 EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, "
-            "%d and %d. Source: `%s`." % (
-                pf.model_eur_t, pf.reference_eur_t, pf.deviation_pct,
-                a.set_index("term").loc["residual direct + 10 % of NPC (anchor convention)", "model"], len(b),
+            "**a**, The Pérez-Fortes et al. (2016) plant run at its own operating point, prices, catalyst charge and "
+            "finance, term by term (model / reference, EUR t$^{-1}$). The stoichiometric H$_2$ and CO$_2$ demand "
+            "(%.1f / %.1f) does not depend on the catalyst. The catalyst-sensitive terms (feed above stoichiometry, "
+            "electricity, catalyst replacement, capital) sum to %.1f / %.1f (%+.1f %%): feed %+.1f %%, electricity "
+            "%+.1f %%, catalyst %+.1f %%, capital %+.1f %%. Fixed operation and maintenance is the reference value on "
+            "both sides (%.2f). Total, against the reference break-even price (NPV = 0): %.1f / %.1f (%+.1f %%). "
+            "**b**, Like-for-like cost against each study's reported production cost or break-even price at that "
+            "study's own inputs (%d cases; band ±5 %%; green, the Campos anchor); deviations of the non-anchor cases "
+            "%+.1f to %+.1f %%. **c**, Loop metrics at the Pérez-Fortes operating point, model / reference (%s; red, "
+            "more than 10 %% apart). **d**, Number of the %d comparisons whose STY leader is not the plant-cost leader "
+            "under %d plant-model variants (keys in Source Data): model as used %d; catalyst replacement at 95.24 "
+            "EUR kg$^{-1}$ every 6, 4 and 1 y gives %d, %d and %d; recycle, compression and capital set to "
+            "Pérez-Fortes gives %d. Source: `%s`." % (
+                stoich.model, stoich.reference, sub.model, sub.reference, sub.deviation_pct,
+                *sens.deviation_pct.iloc[:4], fom.model, tot.model, tot.reference, tot.deviation_pct, len(b),
                 rest.deviation_pct.min(), rest.deviation_pct.max(),
-                "; ".join("%s %.2f" % (r.metric.replace("$_2$", "2"), r.ratio) for r in c.itertuples()), len(dd), base,
+                "; ".join("%s %.2f" % (r.metric.replace("$_2$", "2"), r.ratio) for r in c.itertuples()),
+                E.rjson(E.STATS + "summary.json")["groups"], len(dd), base,
                 cat["catalyst_repl_95.24EURkg_6y"], cat["catalyst_repl_95.24EURkg_4y"],
-                cat["catalyst_repl_95.24EURkg_1y"], E.BENCH), ""]
+                cat["catalyst_repl_95.24EURkg_1y"], pf_aligned, E.BENCH), ""]
+
+    d = E.edfig8()
+    e8, f8 = d["e"][0].set_index("key"), d["f"][0].set_index("key")
+    pb = E.rjson(E.INV + "purge_boundary_summary.json")
+    bd, ext = pb["boundary"], pb["boundary"]["at_extended_optimum"]
+    lim = pb["limits"]
+    n_pub = d["b"][0].attrs["published"][2]
+    row = lambda k: "%d / %d (%d with regret > 5 %%)" % (e8.loc[k, "different_winner"], e8.loc[k, "groups"],  # noqa: E731
+                                                       e8.loc[k, "regret_gt5pct"])
+    lab = [("canonical", "frozen grid"), ("extended", "extended grid"),
+           ("limit_published_max", "≤ %.2f %%" % (100 * lim["published_max"])),
+           ("limit_anchor", "≤ %.2f %%" % (100 * lim["anchor"])),
+           ("limit_published_min", "≤ %.2f %%" % (100 * lim["published_min"]))]
+    out += ["## Extended Data Fig. 8 | Purge boundary and inlet-constrained methanol loops", "",
+            "**a**, Net production cost along the purge grid for each of the %d scored methanol entries (S5 model), "
+            "relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, dashed); the grid is "
+            "extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below 0.5 %% for %d of %d "
+            "entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above it. **b**, "
+            "Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the inlets of "
+            "%d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the cost model "
+            "(%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; dashed, anchor "
+            "loop %.2f) for the frozen grid, the extended grid (median recycle ratio %.0f) and with the inlet content "
+            "limited to %.2f, %.2f and %.2f %% on the extended grid (bars, median). **e**, Comparisons whose STY "
+            "leader is not the plant-cost leader: %s. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each optimum, "
+            "mean over the scored entries (total: %s). Source: `%s` (purge_boundary_summary.json, "
+            "purge_boundary_entries.csv, purge_boundary_curves.csv)." % (
+                pb["entries"], bd["extended_optimum_below_0p5pct"], pb["entries"], 100 * ext["purge"]["median"],
+                _p(bd["cost_at_0p5pct_above_extended_optimum"]["median"]), n_pub,
+                100 * lim["published_min"], 100 * lim["published_max"], _p(lim["anchor"], 2),
+                pb["anchor_loop"]["recycle_ratio"], ext["recycle_ratio"]["median"], 100 * lim["published_max"],
+                100 * lim["anchor"], 100 * lim["published_min"],
+                "; ".join("%s %s" % (t, row(k)) for k, t in lab),
+                "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab), E.INV), ""]
 
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
@@ -869,11 +911,12 @@ def write_captions():
             "in %d comparison groups; every bound lies below its full cost. Agent rule per group: evaluate the paper's "
             "leader in full, then the others in increasing bound order until the next bound exceeds the best full "
             "cost; %d candidates are evaluated in full (blue), %d are excluded. **b**, The same for the %d ammonia "
-            "bimetallic surfaces inside the bed cap (of %d costed); a surface is excluded when its bound exceeds the Fe "
+            "surfaces inside the bed cap (%d bimetallic, %d pure metals; of %d costed); a surface is excluded when its bound exceeds the Fe "
             "benchmark (%.2f USD t$^{-1}$, dashed). **c**, Share of candidates evaluated in full: %s. No plant-cost "
             "leader and no surface below Fe is excluded. Source: `%s`, `%s`." % (
                 len(a), a.group.nunique(), int(a.evaluated_recycled_opt.sum()), int((~a.evaluated_recycled_opt).sum()),
-                int(b.feasible.sum()), len(b), fe,
+                int(b.feasible.sum()), int((b.feasible & b.surface.str.count(r"[A-Z]").gt(1)).sum()),
+                int((b.feasible & b.surface.str.count(r"[A-Z]").eq(1)).sum()), len(b), fe,
                 "; ".join("%s %d / %d (%s %% excluded)" % (s, r.full_evaluations, r.candidates,
                                                           _p(r.excluded_by_bound / r.candidates))
                           for s, r in cr.iterrows()), E.PRUNE + "candidate_bounds.csv", E.ALLOY), ""]
