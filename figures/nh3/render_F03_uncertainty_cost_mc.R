@@ -44,8 +44,8 @@ render <- function(device = c("svg", "pdf", "png")) {
   par(family = "serif", fg = ink, col.axis = ink, col.lab = ink, col.main = ink,
       mgp = c(2.2, 0.7, 0), tcl = -0.25, las = 1)
 
-  # a — descriptor endpoints
-  par(mar = c(4.1, 7.2, 2.7, 1.0))
+  # a — descriptor endpoints (left margin wide enough for the two-line category labels)
+  par(mar = c(4.1, 9.8, 2.7, 1.0))
   x <- c(val[["Fe_feasible_descriptor_MC"]], val[["Fe_economic_top1_descriptor_MC"]],
          val[["top1_survival_descriptor_MC"]], val[["Fe_top3_actionable_descriptor_MC"]])
   labs <- c("Fe feasible", "Fe economic Top-1", "Atomic -> economic\nTop-1 survival", "Fe Top-3 actionable")
