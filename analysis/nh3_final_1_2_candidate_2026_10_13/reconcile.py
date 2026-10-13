@@ -36,10 +36,18 @@ def check(thermo, swap, domain=None):
         economic = x["feasible_economic_order"]
         assert len(order) == 15 and len(x["metals"]) == 15, f"{name}: incomplete metal cohort"
         assert len(set(order)) == 15 and {"Fe", "Ru", "Os"}.issubset(economic)
+        sorted_activity = sorted(x["metals"], key=lambda m: x["metals"][m]["intrinsic_logTOF_673K"], reverse=True)
+        sorted_feasible = sorted((m for m, d in x["metals"].items() if d["feasible"] is not None),
+                                 key=lambda m: x["metals"][m]["feasible"]["cost_USD_t"])
+        assert order == sorted_activity, f"{name}: intrinsic rank vs records inconsistent"
+        assert economic == sorted_feasible, f"{name}: economic rank vs records inconsistent"
         assert isinstance(x["number_process_states"], int) and x["number_process_states"] > 1000
         for k in ("Fe_cost_USD_t", "Ru_cost_USD_t", "Os_cost_USD_t",
                   "Ru_activity_parity_multiplier"):
             assert finite(x[k]) and x[k] > 0, f"{name}: invalid {k}"
+        for metal in ("Fe", "Ru", "Os"):
+            assert abs(x[f"{metal}_cost_USD_t"] -
+                       x["metals"][metal]["feasible"]["cost_USD_t"]) < 2e-7, f"{name}: {metal} cost vs record"
         expected_inversion = (order[:3] == ["Ru", "Os", "Fe"] and
                               economic[:3] == ["Fe", "Ru", "Os"])
         expected_economic = economic[:3] == ["Fe", "Ru", "Os"]
