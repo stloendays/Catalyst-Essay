@@ -23,8 +23,13 @@ gain is process-state dependent. Points declared infeasible may simply require a
 state not in this subset.
 
 The subset reproduces both exact one-dimensional parity anchors:
-  alpha=1       -> P_eff* ~= 163.763 USD/kg
-  alpha=201.223 -> P_eff* ~= canonical Ru price 53,852.5 USD/kg
+  alpha=1       -> P_eff* ~= the sweep's Fe-Ru parity price (1.1: 163.763 USD/kg)
+  alpha=alpha*  -> P_eff* ~= canonical Ru price 53,852.5 USD/kg (1.1: alpha* = 201.223)
+
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) reads the 1.1 sweep
+figures/composite/fig2/fig2_ru_price_sweep.csv and writes next to this script (the committed
+files, byte-identical); NH3_MODEL=1.2 reads nh3_1_2/ru_price_sweep.csv (written by ru_price_sweep.py
+on the same definition) and the NH3-FINAL-1.2 run, and writes to nh3_1_2/.
 
 Outputs:
   activity_lifecycle_certified_boundary.csv
@@ -36,14 +41,26 @@ from __future__ import annotations
 import csv
 import json
 import math
+import sys
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-PRICE_SWEEP = ROOT / "figures/composite/fig2/fig2_ru_price_sweep.csv"
-RUN = ROOT / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+sys.path.insert(0, str(ROOT / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+VERSION = NM.VERSION
+OUT = NM.out_dir(HERE)
+if VERSION == "1.1":
+    PRICE_SWEEP = ROOT / "figures/composite/fig2/fig2_ru_price_sweep.csv"
+    RUN = ROOT / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+else:
+    PRICE_SWEEP = OUT / "ru_price_sweep.csv"
+    RUN = ROOT / "provenance/nh3_final_1_2/source_harness/outputs" / NM.RUNS["1.2"]
+    if not PRICE_SWEEP.exists():
+        raise SystemExit(f"missing {PRICE_SWEEP}; run ru_price_sweep.py with NH3_MODEL=1.2 first")
 CFG = yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"))
 RES = json.loads((RUN / "results.json").read_text(encoding="utf-8"))
 
@@ -177,13 +194,14 @@ def parity_alpha(effective_price: float):
     return hi, subset_optimum(hi, effective_price)
 
 
-# Axis-anchor validation.
+# Axis-anchor validation: alpha = 1 reproduces the sweep's own parity price (last row; 1.1: 163.76330261666772).
+P_STAR = float(raw[-1]["price_USD_kg"])
 p1, _ = parity_price(1.0)
-assert abs(p1 - 163.76330261666772) < 1e-3
+assert abs(p1 - P_STAR) < 1e-3, (p1, P_STAR)
 pa, _ = parity_price(ALPHA_STAR)
 assert abs(pa - P_RU) < 1e-2
 
-alpha_grid = [
+alpha_grid = sorted([
     1.0,
     G673,
     1.25,
@@ -198,7 +216,7 @@ alpha_grid = [
     50.0,
     100.0,
     ALPHA_STAR,
-]
+])  # already ascending in 1.1; in 1.2 the all-state gain (1.575) falls between 1.5 and 1.75
 
 rows = []
 for alpha in alpha_grid:
@@ -220,7 +238,7 @@ for alpha in alpha_grid:
         }
     )
 
-with (HERE / "activity_lifecycle_certified_boundary.csv").open("w", encoding="utf-8", newline="") as fh:
+with (OUT / "activity_lifecycle_certified_boundary.csv").open("w", encoding="utf-8", newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(rows)
@@ -245,7 +263,7 @@ for life_i, recovery_i in ((10.0, 0.99), (15.0, 0.99), (20.0, 0.99), (20.0, 0.98
         }
     )
 
-with (HERE / "activity_lifecycle_target_keypoints.csv").open("w", encoding="utf-8", newline="") as fh:
+with (OUT / "activity_lifecycle_target_keypoints.csv").open("w", encoding="utf-8", newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(target_rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(target_rows)
@@ -256,9 +274,17 @@ recovery = 0.98
 peff = P_RU * (1 - recovery) * (10.0 / life_y)
 key = subset_optimum(GALL, peff)
 pcrit_gall, boundary_gall = parity_price(GALL)
+feasible_key = key["cost"] <= FE_COST
+caution = (
+    f"The {GALL:.6f} value is the maximum scaling-derived gain at any process state, not a uniform multiplier proven "
+    "reachable at the cost-optimal state. The explicit point below "
+    + ("certifies cost feasibility only" if feasible_key else "is not cost-feasible even")
+    + " under the direct-multiplier parameterization; strict scaling-consistent joint reachability requires a "
+    "separate E_N x lifecycle sweep."
+)
 record = {
     "schema": "nh3-backward-direct-activity-lifecycle-target-v2",
-    "method": "minimize reconstructed FINAL-1.1 cost over the 53 distinct process states already present in the fully reoptimized Ru price sweep; this gives a conservative upper bound on the direct activity multiplier required for parity at each lifecycle condition",
+    "method": f"minimize reconstructed FINAL-{VERSION} cost over the {len(states)} distinct process states already present in the fully reoptimized Ru price sweep; this gives a conservative upper bound on the direct activity multiplier required for parity at each lifecycle condition",
     "no_new_DFT": True,
     "frozen_sources_modified": False,
     "Fe_cost_USD_t": q(FE_COST, 9),
@@ -266,7 +292,7 @@ record = {
     "reference_direct_activity_multiplier_equal_to_all_state_scaling_gain_maximum": q(GALL, 12),
     "conditional_parity_effective_price_at_reference_multiplier_USD_kg": q(pcrit_gall, 6),
     "conditional_required_recovery_at_reference_multiplier_and_20y": q(1 - pcrit_gall / P_RU * 2.0, 9),
-    "reachability_caution": "The 2.524565 value is the maximum scaling-derived gain at any process state, not a uniform multiplier proven reachable at the cost-optimal state. The explicit point below certifies cost feasibility only under the direct-multiplier parameterization; strict scaling-consistent joint reachability requires a separate E_N x lifecycle sweep.",
+    "reachability_caution": caution,
     "explicit_point": {
         "activity_multiplier": q(GALL, 12),
         "catalyst_life_y": int(round(life_y)),
@@ -280,7 +306,7 @@ record = {
             "Tsep_C": int(round(key["Tsep_C"])),
             "V_m3": q(key["V_m3"], 9),
         },
-        "certified_cost_feasible_given_direct_activity_multiplier": key["cost"] <= FE_COST,
+        "certified_cost_feasible_given_direct_activity_multiplier": feasible_key,
         "strict_scaling_reachability_established": False,
     },
     "boundary_state_at_reference_multiplier": {
@@ -291,9 +317,10 @@ record = {
         "Tsep_C": int(round(boundary_gall["Tsep_C"])),
     },
 }
-assert record["explicit_point"]["certified_cost_feasible_given_direct_activity_multiplier"]
-(HERE / "activity_lifecycle_certified_keypoint.json").write_text(
-    json.dumps(record, indent=2), encoding="utf-8"
+if VERSION == "1.1":  # a 1.1 result, kept as that version's regression check; 1.2 reports whatever it finds
+    assert record["explicit_point"]["certified_cost_feasible_given_direct_activity_multiplier"]
+(OUT / "activity_lifecycle_certified_keypoint.json").write_text(
+    json.dumps(record, indent=2), encoding="utf-8", newline=chr(10)  # LF on every platform (file is -text)
 )
 
 print(json.dumps(record, indent=2))

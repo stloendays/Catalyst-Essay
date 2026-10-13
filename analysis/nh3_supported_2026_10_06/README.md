@@ -6,6 +6,11 @@ its own metal content, which also replaces the pure-metal benchmark formulation.
 `run_supported_chain.py` writes `supported_candidates.csv`, `group_metrics.csv` and `summary.json`. Input:
 `agent/nh3_supported/out/records.csv` (extraction and adjudication: `agent/nh3_supported/README.md`).
 
+**NH3-FINAL-1.2 (2026-10-13).** This README and the files in this folder are the NH3-FINAL-1.1 chain (`NH3_MODEL=1.1`,
+the default, reproduces them byte for byte). `NH3_MODEL=1.2` writes the same files to `nh3_1_2/`; the numbers 1.1 → 1.2
+and what changes in the reading are in `nh3_1_2/README.md` (Fe benchmark 15.29 → 11.52 USD/t; two primary catalysts,
+Ru/Cs/Ba/CCHT 11.01 and 20% Fe–BaH₂ 11.19, now fall below Fe without recovery).
+
 **Primary-source errata (2026-10-06, branch `humphreys-errata`, builds on PR #27).** The PR #27 field analysis
 checked the review rows against the cited papers and found ten review errors in nine rows
 (`agent/nh3_field/eval/humphreys_adjudication.csv`). They are applied as a layer after the manual adjudication

@@ -24,8 +24,6 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-import yaml
-
 REPO = Path(__file__).resolve().parents[1]
 VERSION = os.environ.get("NH3_MODEL", "1.1")
 if VERSION not in ("1.1", "1.2"):
@@ -57,6 +55,7 @@ def core():
 
 
 def cfg() -> dict:
+    import yaml  # only here, so stdlib-only CI readers can import this module
     return yaml.safe_load((run_dir() / "manifest_resolved.yaml").read_text(encoding="utf-8"))
 
 

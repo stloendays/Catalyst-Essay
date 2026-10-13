@@ -117,3 +117,7 @@ pur_bridge_env/python        make_fig2.py       # -> Fig2.svg / .pdf / .png
 ```
 
 `make_fig2.py` imports the shared visual system in `../style.py`.
+
+The two model scripts select the ammonia model with `NH3_MODEL` (`analysis/nh3_model.py`). The default, 1.1, rewrites
+the CSVs above byte for byte. `NH3_MODEL=1.2` runs them on NH3-FINAL-1.2 (`$NH3_HARNESS_1_2`) and writes the same
+files to `nh3_1_2/`; that folder's README lists the 1.1 → 1.2 numbers.

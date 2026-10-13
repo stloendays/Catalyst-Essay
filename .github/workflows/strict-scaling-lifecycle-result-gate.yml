@@ -6,6 +6,7 @@ on:
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json"
+      - "analysis/fe_bridge_backward_2026_09_29/nh3_1_2/scaling_lifecycle_exact_*"
       - "analysis/fe_bridge_backward_2026_09_29/run_statewise_strict_scaling_lifecycle.py"
       - "analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py"
       - ".github/workflows/strict-scaling-lifecycle-result-gate.yml"
@@ -14,6 +15,7 @@ on:
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_global_boundary.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_keypoints.csv"
       - "analysis/fe_bridge_backward_2026_09_29/scaling_lifecycle_exact_summary.json"
+      - "analysis/fe_bridge_backward_2026_09_29/nh3_1_2/scaling_lifecycle_exact_*"
       - "analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py"
   workflow_dispatch:
 
@@ -27,3 +29,5 @@ jobs:
           python-version: "3.12"
       - name: Validate promoted exact result
         run: python analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py
+      - name: Validate promoted exact result (NH3-FINAL-1.2)
+        run: NH3_MODEL=1.2 python analysis/fe_bridge_backward_2026_09_29/validate_strict_scaling_lifecycle_result.py
