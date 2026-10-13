@@ -2,7 +2,8 @@
 
 Sets: round 1 (frozen, analysis/nh3_field_2026_10_06), batch 2 (runs/batch2_corrected; uncorrected runs/batch2),
 pooled (runs/pooled), and the sensitivities runs/batch2_corrected_units, runs/pooled_units, runs/pooled_single_chain;
-the SI sets (runs/*_si*) and the verification follow-up (runs/*_vf*).
+the SI sets (runs/*_si*) and the verification follow-up (runs/*_vf*; primary with Qiu Ba-Ru SAs/S-1 at the printed
+0.23 wt%, the extracted 0.27 wt% kept as superseded sets *_extracted027).
 Cross-metal group: a scored group whose entries hold more than one metal (a fused-Fe reference counts as Fe).
 """
 import json
@@ -22,9 +23,15 @@ SETS = {"round1": REPO / "analysis" / "nh3_field_2026_10_06", "batch2": HERE / "
         "batch2_si_uncorrected": HERE / "runs" / "batch2_si", "pooled_si_uncorrected": HERE / "runs" / "pooled_si_uncorrected",
         "batch2_si_units": HERE / "runs" / "batch2_si_corrected_units", "pooled_si_units": HERE / "runs" / "pooled_si_units",
         "pooled_si_single_chain": HERE / "runs" / "pooled_si_single_chain",
-        # verification follow-up (2026-10-13): Qiu loading correction removed (finding 1) ...
-        "batch2_vf_qiu": HERE / "runs" / "batch2_vf_corrected", "pooled_vf_qiu": HERE / "runs" / "pooled_vf",
-        # ... and the screening revisited with the SI (finding 2; 22 included papers)
+        # verification follow-up (2026-10-13): finding 1 alone, Qiu Ba-Ru SAs/S-1 at the printed 0.23 wt% (19 papers) ...
+        "batch2_vf_qiu": HERE / "runs" / "batch2_vf_qiu023", "pooled_vf_qiu": HERE / "runs" / "pooled_vf_qiu023",
+        # ... superseded: finding 1 alone with the extracted 0.27 wt%, and the follow-up primary with 0.27 wt% (commit
+        # 249051f; reproduced byte for byte under the _qiu027 labels before the 0.23 correction was added)
+        "batch2_vf_qiu_extracted027": HERE / "runs" / "batch2_vf_corrected",
+        "pooled_vf_qiu_extracted027": HERE / "runs" / "pooled_vf",
+        "batch2_vf_extracted027": HERE / "runs" / "batch2_vf_screen_corrected_qiu027",
+        "pooled_vf_extracted027": HERE / "runs" / "pooled_vf_screen_qiu027",
+        # ... and the screening revisited with the SI (finding 2; 22 included papers); primary: Qiu at 0.23 wt%
         "batch2_vf": HERE / "runs" / "batch2_vf_screen_corrected", "pooled_vf": HERE / "runs" / "pooled_vf_screen",
         "batch2_vf_uncorrected": HERE / "runs" / "batch2_vf_screen",
         "pooled_vf_uncorrected": HERE / "runs" / "pooled_vf_screen_uncorrected",
@@ -63,6 +70,31 @@ def one(d: Path):
              papers_with_disagreement=sorted(gm[gm.top1_mismatch].doi.unique()),
              scored_papers=sorted(gm.doi.unique()), printed_entries=sp["entries"])
     return dict(primary=p, variants={k: brief(sp["variants"][k]) for k in VARIANTS if k in sp["variants"]})
+
+
+QIU = "10.1021/acs.chemmater.9b03099"
+
+
+def qiu_loading():
+    """Qiu 2019 Ba-Ru SAs/S-1: printed 0.23 wt% (primary) vs the extracted 0.27 wt% (superseded): correction rows,
+    the entries' plant costs and the 375 C group of each run."""
+    cor = pd.read_csv(HERE / "batch2_si_corrections.csv", keep_default_na=False, dtype=str)
+    cor = cor[cor.doi == QIU]
+    res = dict(correction_rows={f: int((cor.field == f).sum()) for f in cor.field.unique()},
+               metal_wt_pct={r.entry_label: dict(extracted=r.extracted, printed=r.corrected)
+                             for r in cor[cor.field == "metal_wt_pct"].itertuples()})
+    cols = ["cost_USD_t", "cost_recovery90", "cost_bed500", "cost_bed2500"]
+    for key in ("batch2_vf", "batch2_vf_extracted027", "batch2_vf_qiu", "batch2_vf_qiu_extracted027"):
+        cp = pd.read_csv(SETS[key] / "candidates_printed.csv")
+        gm = pd.read_csv(SETS[key] / "group_metrics_printed.csv")
+        q = cp[(cp.doi == QIU) & cp.group.notna()]
+        g = gm[(gm.doi == QIU) & gm.group.str.contains("375 C")]
+        res[key] = dict(entries={f"{r.catalyst} {r.T_C:.0f} C": dict(metal_wt_pct=r.metal_wt_pct,
+                                                                     **{c: getattr(r, c) for c in cols})
+                                 for r in q.itertuples()},
+                        group_375C=g[["n", "paper_winner", "plant_winner", "paper_winner_cost", "plant_winner_cost",
+                                      "regret", "top1_mismatch"]].to_dict("records"))
+    return res
 
 
 def main():
@@ -121,6 +153,7 @@ def main():
                                  cost_usd_at_5_30_per_M=round(tok[vf].prompt_tokens.sum() / 1e6 * 5
                                                               + tok[vf].completion_tokens.sum() / 1e6 * 30, 2))
     out["tokens_vf_task"]["by_doi_pass"] = {f"{d} {p_}": v for (d, p_), v in out["tokens_vf_task"]["by_doi_pass"].items()}
+    out["qiu_loading"] = qiu_loading()
     out["corrections"] = int(len(pd.read_csv(HERE / "batch2_corrections.csv")))
     out["unit_completions"] = int(len(pd.read_csv(HERE / "batch2_unit_completions.csv")))
     (HERE / "report_numbers.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")

@@ -271,6 +271,8 @@ files are byte-identical to the frozen ones; the self-check CSV differs exactly 
 
 ### Result (printed-value primary, frozen definition)
 
+Qiu 2019 Ba-Ru SAs/S-1 enters the primary with its printed Ru loading, 0.23 wt% (Finding 1).
+
 | | Batch 2 with SI (above) | **Batch 2, follow-up** | Pooled with SI (above) | **Pooled, follow-up** |
 |---|---:|---:|---:|---:|
 | Papers screened / included | 25 / 19 | **25 / 22** | 55 / 49 | **55 / 52** |
@@ -289,22 +291,54 @@ files are byte-identical to the frozen ones; the self-check CSV differs exactly 
 Round 1 alone stays at 7/33, or 5/33 with the fused-Fe references removed (CI 3.2–29.0 %).
 
 The two findings act separately:
-- **Finding 1 alone** (`runs/batch2_vf_corrected`, `runs/pooled_vf`) leaves the counts at 4/9 and 11/42.
+- **Finding 1 alone** (19-paper records; `runs/batch2_vf_qiu023`, `runs/pooled_vf_qiu023`) leaves the counts at 4/9 and
+  11/42.
 - **Finding 2** adds Lu 2018 and Wu 2020 as scored papers, and one disagreement.
 
 ### Finding 1: Qiu 2019 Ru loading
 
 `batch2_si_corrections.csv` had blanked the Ru loading of Ba-Ru SAs/S-1 (two entries, 648 K and 673 K) as "not
 printed". That correction came from the main-text check (`batch2_pdf_check.csv` id 20), but SI Table S2 (p26) prints
-0.23 wt% (ICP-MS) for this catalyst.
+0.23 wt% Ru for this catalyst (ICP-MS, footnote a). The 0.27 wt% that the extraction carried over belongs to the parent
+Ru SAs/S-1.
 
-Both rows were removed from `batch2_si_corrections.csv` and `batch2_si_corrections_plus_units.csv`; the other
-corrections stay. `batch2_corrections.csv`, the main-text-only file, is unchanged: without the SI the loading was indeed
-not printed.
+**The primary uses the printed 0.23 wt%.** The blanking rows were removed, and `batch2_si_corrections.csv`,
+`batch2_si_corrections_plus_units.csv` and `batch2_vf_sens_wu_pressure.csv` each carry three rows per entry:
+- `metal_wt_pct` 0.27 → 0.23;
+- `rate_umol_gmetal_h` rederived as rate per g catalyst / 0.0023, as `normalize.py` derives it: 297,222 → 348,913 and
+  514,630 → 604,130 µmol g⁻¹ h⁻¹ at 648 and 673 K;
+- `metal_loading_raw` "0.27 wt %" → "0.23 wt %".
 
-The entries now carry the extracted 0.27 wt%, and the Qiu 375 °C group grows from 2 to 3 entries. Ba-Ru SAs/S-1 leads
-both rankings (24.74 USD/t), so there is no disagreement. With the printed 0.23 wt% instead, Ba-Ru SAs/S-1 still leads
-both rankings (25.21 USD/t; sensitivity `runs/batch2_vf_qiu023`). Batch 2 stays at 4/9 either way.
+The plant cost uses only the loading; the other two rows keep `candidates.csv` consistent. `batch2_corrections.csv`,
+the main-text-only file, is unchanged: without the SI the loading was indeed not printed.
+
+The Qiu 375 °C group has 3 entries:
+
+| Qiu 2019, 375 °C, 0.1 MPa | Extracted 0.27 wt% (superseded) | **Printed 0.23 wt% (primary)** |
+|---|---:|---:|
+| Ba-Ru SAs/S-1, plant cost | 24.74 USD/t | **25.21 USD/t** |
+| Ru SAs/S-1, 0.27 wt% | 25.38 USD/t | 25.38 USD/t |
+| Cs-Ru/MgO, 0.27 wt% | 25.71 USD/t | 25.71 USD/t |
+| Paper leader = plant leader | Ba-Ru SAs/S-1 | Ba-Ru SAs/S-1 |
+| 90 % Ru recovery: Ba-Ru SAs/S-1 / Ru SAs/S-1 | 23.75 / 24.21 USD/t, no disagreement | 24.28 / 24.21 USD/t, disagreement, regret 0.28 % |
+
+With 0.23 wt% every primary number of the follow-up is unchanged: batch 2 5/11 (4/8 papers, CI 12.5–77.8 %), pooled
+12/44 (10/31, CI 14.3–41.7 %), fused-Fe references removed 2/11 and 7/44 (CI 5.0–28.0 %). Two variants register the
+lower loading:
+- **90 % Ru recovery** gains the Qiu group: batch 2 3/11 → 4/11 (CI 10.0–46.2 % → 12.5–60.0 %), pooled 10/44 → 11/44
+  (CI 11.3–35.0 % → 13.2–37.8 %).
+- **Bed density 2,500 kg m⁻³:** the Qiu group already disagreed (6/11 and 11/44 are unchanged). Its kind changes from
+  "same metal and metal content" to "same metal, different metal content", and its regret from 0.53 % to 2.27 %.
+
+**Superseded record.** The first follow-up run (commit 249051f) carried the extracted 0.27 wt%. Its outputs were
+reproduced through the same wrapper before the 0.23 rows were added:
+- `runs/batch2_vf_screen_corrected_qiu027`, with `batch2_si_corrections_qiu027.csv` (the corrections file of 249051f):
+  all nine output files equal the committed `runs/batch2_vf_screen_corrected`, and the console log is identical.
+- `runs/pooled_vf_screen_qiu027`: equal to the committed `runs/pooled_vf_screen` except the `pooled_from` path in
+  `summary.json`.
+
+The finding-1-only runs with 0.27 wt% stay in `runs/batch2_vf_corrected` and `runs/pooled_vf`. `report_numbers.json`
+holds them as `*_extracted027` and the Qiu entries' costs under `qiu_loading`.
 
 ### Finding 2: screening revisited with the SI
 
@@ -379,7 +413,7 @@ rows). It is not a printed value, so it does not enter the primary.
 
 ### Sensitivities
 
-All give 5/11 for batch 2 and 12/44 pooled:
+All give 5/11 for batch 2 and 12/44 pooled. All but the uncorrected records carry the Qiu 0.23 wt% rows.
 - uncorrected records (`runs/batch2_vf_screen`, `runs/pooled_vf_screen_uncorrected`);
 - unparsed units converted (`runs/batch2_vf_screen_corrected_units`, `runs/pooled_vf_screen_units`);
 - one chain run over the concatenated records (`runs/pooled_vf_screen_single_chain`);
@@ -391,7 +425,7 @@ All give 5/11 for batch 2 and 12/44 pooled:
 |---|---|---|
 | Rate per g catalyst | 5/11 (4/8), 12.5–77.8 % | 12/44 (10/31), 14.3–41.7 % |
 | Rate per g metal | 6/11 (5/8), 25.0–87.5 % | 16/44 (12/31), 20.9–52.1 % |
-| 90 % Ru recovery | 3/11 (3/8), 10.0–46.2 % | 10/44 (9/31), 11.3–35.0 % |
+| 90 % Ru recovery | 4/11 (4/8), 12.5–60.0 % | 11/44 (10/31), 13.2–37.8 % |
 | Bed density 500 kg m⁻³ | 5/11 (4/8) | 12/44 (10/31) |
 | Bed density 2,500 kg m⁻³ | 6/11 (5/8) | 11/44 (9/31) |
 | Commercial fused-Fe references removed | 2/11 (2/8), 0–50.0 % | 7/44 (6/31), 5.0–28.0 % |
@@ -410,7 +444,7 @@ Commands (with `D:\Research\CatalystForge\.venv\Scripts\python.exe`; nus-fetch i
 
 ```
 score.py chain round1_regression_fix ../../agent/nh3_field/out/records_normalized.csv
-score.py chain batch2_vf_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set.txt --corrections batch2_si_corrections.csv   # finding 1 only (19-paper records)
+score.py chain batch2_vf_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set.txt --corrections batch2_si_corrections.csv   # finding 1 only (19-paper records; Qiu at 0.27 wt%, superseded; the file then held the 5 Zheng rows)
 score.py pool pooled_vf ../nh3_field_2026_10_06 runs/batch2_vf_corrected
 nus-fetch python: b2.py si-fetch-screen 10.1039/c9cc07385j 10.1039/c9cy01303b   # ACS SI: Figshare (see above)
 b2.py si-text
@@ -423,8 +457,29 @@ pdf_check_sample_vf.py
 report_numbers.py
 ```
 
-The finding-1 runs (`runs/batch2_vf_corrected*`, `runs/pooled_vf*` without `_screen`) used the 19-paper records. They
-are staged in each run folder. `agent/nh3_field/out_batch2/records_normalized.csv` now holds the 22-paper merge.
+The finding-1 runs (`runs/batch2_vf_corrected*`, `runs/batch2_vf_qiu023`, `runs/pooled_vf*` without `_screen`) used
+the 19-paper records. They are staged in each run folder. `agent/nh3_field/out_batch2/records_normalized.csv` now holds
+the 22-paper merge.
+
+Qiu printed loading (0.23 wt%) in the primary: commands, run with the NH3-FINAL-1.1 harness
+(`NH3_HARNESS=D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1`; no response surface is rebuilt). Round 1
+was rerun first (`runs/round1_regression_qiu/`): 7/33, the six output files equal the frozen ones, and the self-check
+CSV differs exactly as described above.
+
+```
+score.py chain round1_regression_qiu ../../agent/nh3_field/out/records_normalized.csv
+score.py chain batch2_vf_screen_corrected_qiu027 ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt --corrections batch2_si_corrections_qiu027.csv   # superseded 0.27 wt%, reproduction
+score.py pool pooled_vf_screen_qiu027 ../nh3_field_2026_10_06 runs/batch2_vf_screen_corrected_qiu027
+score.py chain batch2_vf_screen_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt --corrections batch2_si_corrections.csv
+score.py chain batch2_vf_screen_corrected_units ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt --corrections batch2_si_corrections_plus_units.csv
+score.py chain batch2_vf_sens_wu_pressure ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt --corrections batch2_vf_sens_wu_pressure.csv
+score.py chain pooled_vf_screen_single_chain runs/pooled_vf_screen_single_chain_input.csv --paper-set pooled_paper_set_vf.txt --corrections batch2_si_corrections.csv
+score.py pool pooled_vf_screen ../nh3_field_2026_10_06 runs/batch2_vf_screen_corrected
+score.py pool pooled_vf_screen_units ../nh3_field_2026_10_06 runs/batch2_vf_screen_corrected_units
+score.py pool pooled_vf_sens_wu_pressure ../nh3_field_2026_10_06 runs/batch2_vf_sens_wu_pressure
+score.py pool pooled_vf_qiu023 ../nh3_field_2026_10_06 runs/batch2_vf_qiu023   # finding 1 alone, pooled
+report_numbers.py
+```
 
 ## Files
 
@@ -439,6 +494,9 @@ are staged in each run folder. `agent/nh3_field/out_batch2/records_normalized.cs
 - Follow-up: `batch2_screening_si_manifest.json`, `fetch_si_batch2_screen.log`, `batch2_paper_set_vf.txt`,
   `pooled_paper_set_vf.txt`, `pdf_check_sample_vf.py`, `batch2_vf_pdf_check_sample.csv`, `batch2_vf_pdf_check.csv`,
   `batch2_vf_sens_wu_pressure.csv`, `batch2_vf_sens_qiu023.csv`
+- Qiu printed loading: `batch2_si_corrections_qiu027.csv` (superseded corrections file, commit 249051f),
+  `runs/batch2_vf_screen_corrected_qiu027/`, `runs/pooled_vf_screen_qiu027/`, `runs/pooled_vf_qiu023/`,
+  `runs/round1_regression_qiu/`
 - Logs: `runs_*.log`, `fetch_si_batch2.log`, `agent/nh3_field/out_batch2/extract_*.log`
 
 Commands, run with `D:\Research\CatalystForge\.venv\Scripts\python.exe`:
