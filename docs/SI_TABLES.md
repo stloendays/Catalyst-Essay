@@ -328,7 +328,98 @@ From `analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json`: groups
 | capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 | recycle-driven costs ×0.8736; electricity 129.1 €/MWh; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 
-### Supplementary Table 6a | Errors in the curated reference data confirmed against the papers
+### Supplementary Table 6 | The 83 methanol comparison groups and the 40 of the primary analysis
+
+One row per comparison group of the all-entries cohort (entries of one paper at the same pressure, H₂/CO₂ ratio and space velocity, plot readings included), from `analysis/meoh_inlet_definition_2026_10_12/group_ledger.csv`; counts checked against `analysis/meoh_inlet_definition_2026_10_12/ledger_summary.json`. Entries: all entries of the group / entries with printed conversion and selectivities. The same grouping rule applied to printed values alone keeps 40 groups (310 entries, 28 papers); 20 groups come from 11 papers without printed values and 23 have fewer than two printed entries (31 with none, 12 with one). Verdict columns: whether the space-time-yield leader of the group is not its plant-cost leader, with the regret where it is not; inlet limit, CO, methane and N₂ at most 6.86% of the reactor inlet (primary); no limit, the loop without it. Printed values: the primary analysis, from `analysis/meoh_literature_inversion_2026_10_05/group_metrics_inlet_limit.csv` and `analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv`. All entries: the sensitivity with plot readings, from the ledger; under the inlet limit one group keeps fewer than two entries that can meet the limit (–).
+
+| Paper | DOI | Comparison group | Entries (all / printed) | Status | Printed values, inlet limit | Printed values, no limit | All entries, inlet limit | All entries, no limit |
+|---|---|---|---|---|---|---|---|---|
+| Bahruji 2016 | 10.1016/j.jcat.2016.03.017 | 20 bar, H₂/CO₂ 3, 3.6 NL/g/h | 27 / 17 | kept | no | no | yes (15.9 %) | no |
+| Bansode 2013 | 10.1039/c2cy20604h | 4 bar, H₂/CO₂ 3.8, 10.6 NL/g/h | 11 / 11 | kept | no | yes (82.9 %) | no | yes (82.9 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 4 bar, H₂/CO₂ 3.8, 4000 h-1 | 4 / 4 | kept | yes (108.8 %) | yes (33.4 %) | yes (108.8 %) | yes (33.4 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 30 bar, H₂/CO₂ 3.8, 10.6 NL/g/h | 11 / 11 | kept | yes (2.0 %) | yes (57.5 %) | yes (2.0 %) | yes (57.5 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 30 bar, H₂/CO₂ 3.8, 4000 h-1 | 4 / 4 | kept | yes (299.4 %) | yes (11.7 %) | yes (299.4 %) | yes (11.7 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 100 bar, H₂/CO₂ 3.8, 10.6 NL/g/h | 11 / 11 | kept | yes (157.6 %) | yes (16.8 %) | yes (157.6 %) | yes (16.8 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 100 bar, H₂/CO₂ 3.8, 4000 h-1 | 4 / 4 | kept | yes (0.1 %) | no | yes (0.1 %) | no |
+| Bansode 2013 | 10.1039/c2cy20604h | 360 bar, H₂/CO₂ 3.8, 10.6 NL/g/h | 11 / 11 | kept | yes (21.7 %) | yes (5.0 %) | yes (21.7 %) | yes (5.0 %) |
+| Bansode 2013 | 10.1039/c2cy20604h | 360 bar, H₂/CO₂ 3.8, 4000 h-1 | 4 / 4 | kept | yes (12.9 %) | yes (3.5 %) | yes (12.9 %) | yes (3.5 %) |
+| Chen 2019 | 10.1002/ente.201800747 | 40 bar, H₂/CO₂ 3, 21.6 NL/g/h | 32 / 30 | kept | yes (79.6 %) | no | yes (82.9 %) | no |
+| Chen 2019 | 10.1021/acscatal.9b01869 | 50 bar, H₂/CO₂ 0.25, 24000 h-1 | 3 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Chen 2019 | 10.1021/acscatal.9b01869 | 50 bar, H₂/CO₂ 4, 24000 h-1 | 16 / 16 | kept | yes (36.4 %) | no | yes (36.4 %) | no |
+| Chen 2024 | 10.1002/anie.202401168 | 30 bar, H₂/CO₂ 3, 9 NL/g/h | 44 / 1 | dropped: fewer than two printed entries | – | – | yes (52.9 %) | yes (0.8 %) |
+| Chou 2019 | 10.1016/j.apcata.2019.117144 | 40 bar, H₂/CO₂ 4, 52 NL/g/h | 20 / 0 | dropped: no printed values in the paper | – | – | yes (169.0 %) | no |
+| Daifeng 2022 | 10.1016/j.jcou.2022.102209 | 40 bar, H₂/CO₂ 3, 24 NL/g/h | 35 / 0 | dropped: no printed values in the paper | – | – | yes (100.8 %) | yes (1.0 %) |
+| Dang 2020 | 10.1126/sciadv.aaz2060 | 50 bar, H₂/CO₂ 3, 9 NL/g/h | 2 / 1 | dropped: fewer than two printed entries | – | – | yes (33.6 %) | no |
+| Dang 2020 | 10.1126/sciadv.aaz2060 | 50 bar, H₂/CO₂ 3.04, 9 NL/g/h | 18 / 4 | kept | yes (83.1 %) | yes (11.6 %) | yes (83.1 %) | yes (12.5 %) |
+| Frei 2019 | 10.1038/s41467-019-11349-9 | 50 bar, H₂/CO₂ 4, 48 NL/g/h | 3 / 3 | kept | no | no | no | no |
+| Frei 2020 | 10.1021/acscatal.9b03305 | 50 bar, H₂/CO₂ 4, 24 NL/g/h | 12 / 12 | kept | yes (14.5 %) | yes (0.6 %) | yes (14.5 %) | yes (0.6 %) |
+| Frei 2021 | 10.1038/s41467-021-22224-x | 50 bar, H₂/CO₂ 4, 24 NL/g/h | 12 / 0 | dropped: no printed values in the paper | – | – | yes (21.7 %) | no |
+| Gao 2015 | 10.1039/c5cy00372e | 3 bar, H₂/CO₂ 3.04, 10 NL/g/h | 3 / 1 | dropped: fewer than two printed entries | – | – | no | no |
+| Gao 2015 | 10.1039/c5cy00372e | 10 bar, H₂/CO₂ 3.04, 10 NL/g/h | 3 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Gao 2015 | 10.1039/c5cy00372e | 30 bar, H₂/CO₂ 3.04, 10 NL/g/h | 3 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Gao 2015 | 10.1039/c5cy00372e | 50 bar, H₂/CO₂ 3.04, 10 NL/g/h | 5 / 5 | kept | no | no | no | no |
+| Gao 2015 | 10.1039/c5cy00372e | 70 bar, H₂/CO₂ 3.04, 10 NL/g/h | 3 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Gao 2015 | 10.1039/c5cy00372e | 90 bar, H₂/CO₂ 3.04, 10 NL/g/h | 3 / 1 | dropped: fewer than two printed entries | – | – | no | no |
+| Ghosh 2022 | 10.1016/j.cej.2022.135090 | 40 bar, H₂/CO₂ 3, 6 NL/g/h | 7 / 0 | dropped: no printed values in the paper | – | – | no | yes (49.0 %) |
+| Gothe 2025 | 10.1021/acscatal.5c05984 | 100 bar, H₂/CO₂ 4, 10 NL/g/h | 9 / 9 | kept | yes (8.2 %) | yes (1.8 %) | yes (8.2 %) | yes (1.8 %) |
+| Gothe 2025 | 10.1021/acscatal.5c05984 | 100 bar, H₂/CO₂ 4, 20 NL/g/h | 2 / 2 | kept | no | no | no | no |
+| Gothe 2025 | 10.1021/acscatal.5c05984 | 100 bar, H₂/CO₂ 4, 40 NL/g/h | 2 / 2 | kept | no | no | no | no |
+| Guo 2024 | 10.1016/j.cej.2024.149370 | 50 bar, H₂/CO₂ 4, 21 NL/g/h | 25 / 0 | dropped: no printed values in the paper | – | – | yes (99.5 %) | no |
+| Hou 2024 | 10.1016/j.jes.2023.05.010 | 30 bar, H₂/CO₂ 4, 18 NL/g/h | 15 / 3 | kept | no | no | yes (26.4 %) | no |
+| Hou 2024 | 10.1016/j.jes.2023.05.010 | 30 bar, H₂/CO₂ 4, 18000 h-1 | 15 / 3 | kept | yes (23.1 %) | no | yes (84.9 %) | no |
+| Huang 2021 | 10.1021/acsaem.1c01502 | 50 bar, H₂/CO₂ 3, 30 NL/g/h | 15 / 0 | dropped: no printed values in the paper | – | – | yes (35.2 %) | yes (1.1 %) |
+| Jiang 2020 | 10.1021/acscatal.0c03324 | 30 bar, H₂/CO₂ 3, 10 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Jiang 2020 | 10.1021/acscatal.0c03324 | 30 bar, H₂/CO₂ 3, 14 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | yes (4.5 %) | no |
+| Jiang 2020 | 10.1021/acscatal.0c03324 | 30 bar, H₂/CO₂ 3, 18 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Jiang 2020 | 10.1021/acscatal.0c03324 | 30 bar, H₂/CO₂ 3, 2 NL/g/h | 6 / 0 | dropped: no printed values in the paper | – | – | no | yes (1.3 %) |
+| Jiang 2020 | 10.1021/acscatal.0c03324 | 30 bar, H₂/CO₂ 3, 6 NL/g/h | 4 / 0 | dropped: no printed values in the paper | – | – | yes (15.9 %) | no |
+| Karelovic 2015 | 10.1039/c4cy00848k | 7 bar, H₂/CO₂ 9, 2 NL/g/h | 6 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Karelovic 2015 | 10.1039/c4cy00848k | 7 bar, H₂/CO₂ 9, 4 NL/g/h | 6 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Lin 2021 | 10.1016/j.cattod.2020.05.049 | 41 bar, H₂/CO₂ 3, 3.6 NL/g/h | 12 / 10 | kept | yes (54.9 %) | yes (1.4 %) | yes (54.9 %) | yes (1.4 %) |
+| Ma 2023 | 10.1016/j.fuel.2023.128376 | 50 bar, H₂/CO₂ 4, 24 NL/g/h | 17 / 1 | dropped: fewer than two printed entries | – | – | yes (38.1 %) | yes (0.7 %) |
+| Ma 2023 | 10.1016/j.fuel.2023.128376 | 50 bar, H₂/CO₂ 4, 24000 h-1 | 18 / 0 | dropped: fewer than two printed entries | – | – | yes (50.1 %) | yes (10.0 %) |
+| Malik 2018 | 10.1016/j.apcata.2018.04.036 | 30 bar, H₂/CO₂ 3, 2.4 NL/g/h | 13 / 4 | kept | yes (78.5 %) | no | yes (27.9 %) | no |
+| Malik 2020 | 10.1016/j.cattod.2019.05.040 | 10 bar, H₂/CO₂ 3, 2.4 NL/g/h | 2 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Malik 2020 | 10.1016/j.cattod.2019.05.040 | 20 bar, H₂/CO₂ 3, 2.4 NL/g/h | 2 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Malik 2020 | 10.1016/j.cattod.2019.05.040 | 30 bar, H₂/CO₂ 3, 2.4 NL/g/h | 13 / 2 | kept | no | no | yes (27.5 %) | no |
+| Martin 2016 | 10.1002/anie.201600943 | 50 bar, H₂/CO₂ 4, 26 NL/g/h | 2 / 2 | kept | no | no | no | no |
+| Meng 2021 | 10.1126/sciadv.abi6012 | 40 bar, H₂/CO₂ 3, 12 NL/g/h | 18 / 12 | kept | yes (3.7 %) | no | yes (9.3 %) | no |
+| Meng 2021 | 10.1126/sciadv.abi6012 | 40 bar, H₂/CO₂ 3, 24 NL/g/h | 4 / 4 | kept | yes (13.3 %) | no | yes (13.3 %) | no |
+| Meng 2021 | 10.1126/sciadv.abi6012 | 40 bar, H₂/CO₂ 4, 12 NL/g/h | 5 / 0 | dropped: fewer than two printed entries | – | – | yes (125.3 %) | yes (13.0 %) |
+| Meng 2021 | 10.1126/sciadv.abi6012 | 40 bar, H₂/CO₂ 5, 12 NL/g/h | 5 / 1 | dropped: fewer than two printed entries | – | – | yes (110.8 %) | yes (12.1 %) |
+| Meng 2021 | 10.1126/sciadv.abi6012 | 40 bar, H₂/CO₂ 8, 30 NL/g/h | 2 / 2 | kept | no | yes (0.0 %) | no | yes (0.0 %) |
+| Meng 2024 | 10.1016/j.fuel.2024.131111 | 40 bar, H₂/CO₂ 5, 12 NL/g/h | 20 / 11 | kept | yes (11.9 %) | yes (0.2 %) | yes (17.6 %) | no |
+| Meng 2024 | 10.1016/j.fuel.2024.131111 | 40 bar, H₂/CO₂ 5, 18 NL/g/h | 2 / 0 | dropped: fewer than two printed entries | – | – | yes (1.2 %) | no |
+| Meng 2024 | 10.1016/j.fuel.2024.131111 | 60 bar, H₂/CO₂ 10, 116 NL/g/h | 2 / 0 | dropped: fewer than two printed entries | – | – | yes (0.4 %) | yes (0.2 %) |
+| Ota 2012 | 10.1016/j.jcat.2012.05.020 | 30 bar, H₂/CO₂ 3, 13.4 NL/g/h | 3 / 3 | kept | yes (37.6 %) | no | yes (37.6 %) | no |
+| Rui 2017 | 10.1016/j.apcatb.2017.06.069 | 50 bar, H₂/CO₂ 4, 21 NL/g/h | 15 / 2 | kept | no | no | yes (44.8 %) | yes (0.1 %) |
+| Ruiz Esquius 2020 | 10.1002/cctc.202000974 | 20 bar, H₂/CO₂ 3, 3.6 NL/g/h | 31 / 31 | kept | yes (0.6 %) | no | yes (0.6 %) | no |
+| Samson 2014 | 10.1021/cs500979c | 80 bar, H₂/CO₂ 3, 3600 h-1 | 19 / 19 | kept | yes (9.6 %) | no | yes (9.6 %) | no |
+| Sharma 2021 | 10.1021/acsami.1c05586 | 30 bar, H₂/CO₂ 3, 7.2 NL/g/h | 36 / 0 | dropped: no printed values in the paper | – | – | yes (205.1 %) | yes (2.5 %) |
+| Sharma 2023 | 10.1016/j.fuel.2022.125878 | 30 bar, H₂/CO₂ 3, 12000 h-1 | 17 / 2 | kept | yes (61.3 %) | no | yes (102.0 %) | yes (0.6 %) |
+| Shen 2021 | 10.1021/acscatal.0c05628 | 50 bar, H₂/CO₂ 4, 21 NL/g/h | 20 / 8 | kept | yes (53.1 %) | no | yes (66.7 %) | no |
+| Song 2020 | 10.1016/j.apcatb.2019.118367 | 30 bar, H₂/CO₂ 3, 6 NL/g/h | 9 / 1 | dropped: fewer than two printed entries | – | – | no | no |
+| Sun 2020 | 10.1039/d0gc01597k | 50 bar, H₂/CO₂ 4, 21 NL/g/h | 10 / 4 | kept | yes (98.3 %) | no | yes (128.6 %) | no |
+| Wang 2015 | 10.1021/acscatal.5b00682 | 30 bar, H₂/CO₂ 4, 12 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | – | no |
+| Wang 2015 | 10.1021/acscatal.5b00682 | 30 bar, H₂/CO₂ 4, 16 NL/g/h | 8 / 0 | dropped: no printed values in the paper | – | – | yes (372.7 %) | yes (17.8 %) |
+| Wang 2015 | 10.1021/acscatal.5b00682 | 30 bar, H₂/CO₂ 4, 3 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Wang 2015 | 10.1021/acscatal.5b00682 | 30 bar, H₂/CO₂ 4, 6 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Wang 2015 | 10.1021/acscatal.5b00682 | 30 bar, H₂/CO₂ 4, 9 NL/g/h | 2 / 0 | dropped: no printed values in the paper | – | – | no | no |
+| Wang 2015 | 10.1039/c5ra04774a | 30 bar, H₂/CO₂ 3, 3.6 NL/g/h | 24 / 0 | dropped: no printed values in the paper | – | – | yes (8.5 %) | yes (1.0 %) |
+| Wang 2017 | 10.1039/c6ra28305e | 30 bar, H₂/CO₂ 3, 3600 h-1 | 4 / 4 | kept | yes (2.6 %) | yes (1.2 %) | yes (2.6 %) | yes (1.2 %) |
+| Wang 2017 | 10.1126/sciadv.1701290 | 20 bar, H₂/CO₂ 3, 24 NL/g/h | 10 / 1 | dropped: fewer than two printed entries | – | – | yes (47.8 %) | yes (6.1 %) |
+| Wang 2017 | 10.1126/sciadv.1701290 | 50 bar, H₂/CO₂ 3, 24 NL/g/h | 24 / 1 | dropped: fewer than two printed entries | – | – | yes (26.0 %) | yes (1.6 %) |
+| Wang 2017 | 10.1126/sciadv.1701290 | 50 bar, H₂/CO₂ 4, 24 NL/g/h | 11 / 1 | dropped: fewer than two printed entries | – | – | yes (50.8 %) | yes (1.8 %) |
+| Wang 2020 | 10.1016/j.mcat.2020.111105 | 30 bar, H₂/CO₂ 3, 10000 h-1 | 36 / 1 | dropped: fewer than two printed entries | – | – | yes (97.6 %) | yes (13.1 %) |
+| Wu 2017 | 10.1021/acs.iecr.7b01464 | 20 bar, H₂/CO₂ 3.03, 0.873 NL/g/h | 3 / 0 | dropped: fewer than two printed entries | – | – | no | no |
+| Wu 2017 | 10.1021/acs.iecr.7b01464 | 30 bar, H₂/CO₂ 3.03, 0.873 NL/g/h | 15 / 5 | kept | yes (13.6 %) | yes (1.4 %) | yes (13.6 %) | yes (1.4 %) |
+| Wu 2017 | 10.1021/acs.iecr.7b01464 | 40 bar, H₂/CO₂ 3.03, 0.873 NL/g/h | 3 / 1 | dropped: fewer than two printed entries | – | – | no | no |
+| Zaman 2023 | 10.1016/j.fuel.2023.127927 | 20 bar, H₂/CO₂ 3, 2.4 NL/g/h | 20 / 5 | kept | yes (0.3 %) | no | yes (2.7 %) | yes (0.7 %) |
+| Zhang 2017 | 10.1016/j.jcou.2016.11.015 | 40 bar, H₂/CO₂ 3.04, 1.5 NL/g/h | 10 / 10 | kept | no | no | no | no |
+| Zhu 2021 | 10.1021/acscatal.1c03170 | 30 bar, H₂/CO₂ 3, 60 NL/g/h | 14 / 4 | kept | yes (62.8 %) | no | yes (62.8 %) | yes (0.7 %) |
+| **Total** | **44 papers** | **83 groups** | **909 / 322** | **40 kept; 20 + 23 dropped** | **28 of 40** | **15 of 40** | **54 of 82** | **35 of 83** |
+
+### Supplementary Table 7a | Errors in the curated reference data confirmed against the papers
 
 One row per source paper with a confirmed error. A root cause is one mechanism in one source paper; error rules group the cells of one paper, field and cause; rows are records of conditions the paper did not test. TheMeCat stores STY as yield × GHSV × CO₂ fraction × 32.04/24.05 rather than the printed value, so a derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed value, dataset row and locator: `analysis/verify_2026_10_08/errata_cells_audit.csv`; rules and classes: `analysis/verify_2026_10_08/errata_adjudication.csv`. Total: 26 root causes, 45 error rules, 169 value cells and 8 rows; 24 further STY cells derived from them.
 
@@ -355,7 +446,7 @@ One row per source paper with a confirmed error. A root cause is one mechanism i
 | TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 2 | 7 | 11 | – | conversion curves of In0.25 and In0.12 swapped (Fig. 9a); In₂O₃ yields rotated between 260 and 300 °C (Fig. 9b). |
 | TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 1 | 4 | 4 | 1 | conversions at 5–50 bar misread (Fig. 7b); STY at 5 bar derived from it. |
 
-### Supplementary Table 6b | Differences of definition and minor differences, not counted as errors
+### Supplementary Table 7b | Differences of definition and minor differences, not counted as errors
 
 Differences between curated and printed values that are not errors of the curated data. Definition: the paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit of the last printed digit. Total: definition 139 cells, minor 13 cells. The printed values are used for scoring in both cases.
 

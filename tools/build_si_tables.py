@@ -448,14 +448,92 @@ def table5():
     return "\n".join(out)
 
 
-# ---- Supplementary Table 6: errata of the curated reference data ---------------------------------------------
+# ---- Supplementary Table 6: the 83 -> 40 methanol comparison groups ------------------------------------------
+# One row per comparison group of the all-entries cohort (plot readings included), from the ledger of
+# analysis/meoh_inlet_definition_2026_10_12/run_group_ledger.py; the printed-value verdicts of the 40 kept groups come
+# from the frozen group metrics of the primary analysis (inert-limited loop S6 and unlimited loop S5).
+LEDGER = ROOT / "analysis/meoh_inlet_definition_2026_10_12"
+LEDGER_STATUS = {"paper without printed values": "dropped: no printed values in the paper",
+                 "fewer than 2 printed entries": "dropped: fewer than two printed entries"}
+
+
+def _verdict(differs, regret):
+    if differs is None or (isinstance(differs, float) and math.isnan(differs)):
+        return "–"
+    return f"yes ({pct(float(regret))})" if bool(differs) else "no"
+
+
+def table_ledger(cr, fm):
+    led = pd.read_csv(LEDGER / "group_ledger.csv")
+    s = json.loads((LEDGER / "ledger_summary.json").read_text(encoding="utf-8"))
+    g5 = pd.read_csv(INV / "group_metrics.csv").set_index("group")
+    g6 = pd.read_csv(INV / "group_metrics_inlet_limit.csv").set_index("group")
+    kept = led[led.scored_in_printed_primary.astype(bool)]
+    assert led.group.is_unique and set(kept.group) == set(g5.index) == set(g6.index)
+    assert led.reason_not_scored.fillna("kept").isin(["kept", *LEDGER_STATUS]).all()
+    assert (kept.printed_S5_different_leader.astype(bool) == g5.loc[kept.group, "top1_mismatch"].values).all()
+    rows, tot = [], dict(p6=0, p5=0, a6=0, a6n=0, a5=0)
+    for r in led.itertuples(index=False):
+        author, year, _ = bib(r.doi, fm, cr)
+        status = "kept" if r.scored_in_printed_primary else LEDGER_STATUS[r.reason_not_scored]
+        cond = r.group.split(" | ", 1)[1].replace(" | ", ", ").replace("H2/CO2", "H₂/CO₂")
+        if r.scored_in_printed_primary:
+            p6 = _verdict(g6.at[r.group, "top1_mismatch"], g6.at[r.group, "regret"])
+            p5 = _verdict(g5.at[r.group, "top1_mismatch"], g5.at[r.group, "regret"])
+            tot["p6"] += bool(g6.at[r.group, "top1_mismatch"]); tot["p5"] += bool(g5.at[r.group, "top1_mismatch"])
+        else:
+            p6 = p5 = "–"
+        a6 = _verdict(r.all_entries_S6_different_leader, r.all_entries_S6_regret)
+        a5 = _verdict(r.all_entries_S5_different_leader, r.all_entries_S5_regret)
+        tot["a6"] += a6.startswith("yes"); tot["a6n"] += a6 != "–"; tot["a5"] += a5.startswith("yes")
+        rows.append([f"{author} {year}", r.doi, cond, f"{num(r.entries)} / {num(r.printed_entries)}", status,
+                     p6, p5, a6, a5])
+    order = sorted(range(len(rows)), key=lambda i: (rows[i][0].lower(), rows[i][1], led.P_bar.iloc[i],
+                                                    led.h2_co2.iloc[i], rows[i][2]))
+    rows = [rows[i] for i in order]
+    ae, pp, gr = s["all_entries"], s["printed_primary"], s["groups_dropped_by_reason"]
+    res, split = s["all_entries_result"], s["all_entries_result_split"]
+    assert (len(led), led.doi.nunique(), int(led.entries.sum())) == (ae["groups"], ae["papers"], ae["entries"])
+    assert (len(kept), kept.doi.nunique(), int(kept.printed_entries.sum())) == (pp["groups"], pp["papers"], pp["entries"])
+    assert all(int((led.reason_not_scored == k).sum()) == gr[k] for k in LEDGER_STATUS) and gr["other"] == 0
+    assert (tot["a5"], len(led)) == (res["S5"]["different_leader"], res["S5"]["groups"])
+    assert (tot["a6"], tot["a6n"]) == (res["S6_6_86pct"]["different_leader"], res["S6_6_86pct"]["groups"])
+    assert tot["p5"] == split["S5"]["printed_primary"]["different_leader"]
+    assert tot["p6"] == int(g6.top1_mismatch.sum()) and tot["p5"] == int(g5.top1_mismatch.sum())
+    rows.append(["**Total**", f"**{ae['papers']} papers**", f"**{ae['groups']} groups**",
+                 f"**{num(ae['entries'])} / {num(int(led.printed_entries.sum()))}**",
+                 f"**{len(kept)} kept; {gr['paper without printed values']} + {gr['fewer than 2 printed entries']} "
+                 f"dropped**", f"**{tot['p6']} of {len(kept)}**", f"**{tot['p5']} of {len(kept)}**",
+                 f"**{tot['a6']} of {tot['a6n']}**", f"**{tot['a5']} of {len(led)}**"])
+    pr = s["papers_dropped_by_reason"]
+    cap = (f"One row per comparison group of the all-entries cohort (entries of one paper at the same pressure, H₂/CO₂ "
+           f"ratio and space velocity, plot readings included), from {rel(LEDGER / 'group_ledger.csv')}; counts checked "
+           f"against {rel(LEDGER / 'ledger_summary.json')}. Entries: all entries of the group / entries with printed "
+           f"conversion and selectivities. The same grouping rule applied to printed values alone keeps "
+           f"{pp['groups']} groups ({num(pp['entries'])} entries, {pp['papers']} papers); "
+           f"{gr['paper without printed values']} groups come from {pr['paper without printed values']} papers without "
+           f"printed values and {gr['fewer than 2 printed entries']} have fewer than two printed entries "
+           f"({s['groups_dropped_by_printed_entries']['0']} with none, {s['groups_dropped_by_printed_entries']['1']} with "
+           f"one). Verdict columns: whether the space-time-yield leader of the group is not its plant-cost leader, with "
+           f"the regret where it is not; inlet limit, CO, methane and N₂ at most 6.86% of the reactor inlet (primary); "
+           f"no limit, the loop without it. Printed values: the primary analysis, from "
+           f"{rel(INV / 'group_metrics_inlet_limit.csv')} and {rel(INV / 'group_metrics.csv')}. All entries: the "
+           f"sensitivity with plot readings, from the ledger; under the inlet limit one group keeps fewer than two "
+           f"entries that can meet the limit (–).")
+    hdr = ["Paper", "DOI", "Comparison group", "Entries (all / printed)", "Status",
+           "Printed values, inlet limit", "Printed values, no limit", "All entries, inlet limit", "All entries, no limit"]
+    return block(6, f"The {ae['groups']} methanol comparison groups and the {pp['groups']} of the primary analysis",
+                 cap, hdr, rows)
+
+
+# ---- Supplementary Table 7: errata of the curated reference data ---------------------------------------------
 # Read from the final adjudication (analysis/verify_2026_10_08/errata_adjudication.py): one root cause = one
 # mechanism in one source paper; STY values a dataset derives from a confirmed input error count with that root.
 ADJ = ROOT / "analysis/verify_2026_10_08/errata_adjudication.csv"
 SET_NAME = {"TheMeCat": "TheMeCat v1", "Suvarna 2022": "Suvarna 2022", "Humphreys 2021 review": "Humphreys 2021"}
 
 
-def table6(cr, fms):
+def table7(cr, fms):
     r = pd.read_csv(ADJ)
     r["paper_doi"] = r.source_doi.fillna(r.doi)
     hum_ref = r.evidence.str.extract(r"^(ref\. \d+)")[0]
@@ -489,7 +567,7 @@ def table6(cr, fms):
            f"derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed "
            f"value, dataset row and locator: {rel(ROOT / 'analysis/verify_2026_10_08/errata_cells_audit.csv')}; rules "
            f"and classes: {rel(ADJ)}. Total: {tot}.")
-    out = [block("6a", "Errors in the curated reference data confirmed against the papers", cap,
+    out = [block("7a", "Errors in the curated reference data confirmed against the papers", cap,
                  ["Reference set", "Paper", "DOI", "Root causes", "Error rules", "Cells", "Derived STY cells",
                   "Nature of the error"], rows)]
 
@@ -506,7 +584,7 @@ def table6(cr, fms):
            f"of the last printed digit. Total: definition {int(rest[rest.final_class == 'CONV'].cells.sum())} cells, "
            f"minor {int(rest[rest.final_class == 'MINOR'].cells.sum())} cells. The printed values are used for scoring "
            f"in both cases.")
-    out.append(block("6b", "Differences of definition and minor differences, not counted as errors", cap,
+    out.append(block("7b", "Differences of definition and minor differences, not counted as errors", cap,
                      ["Reference set", "Paper", "DOI", "Definition (cells)", "Minor (cells)"], rows))
     return "\n".join(out)
 
@@ -520,7 +598,8 @@ def main():
     parts = ["# Supplementary Tables", "",
              "<!-- Generated by tools/build_si_tables.py from the repository files named in each caption; do not edit "
              "by hand. -->", "",
-             table1(cr), table2(cr), table4(), table5(), table3(), table6(cr, (fm_ex, fm_nf))]
+             table1(cr), table2(cr), table4(), table5(), table3(), table_ledger(cr, fm_ex),
+             table7(cr, (fm_ex, fm_nf))]
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")
     for n in dict.fromkeys(NOTES):

@@ -7,8 +7,9 @@ including the closed strict-scaling x lifecycle reachability result.
 Since the supervisor decisions of 2026-10-12 (docs/SUPERVISOR_FEEDBACK_2026-10-12.md) it checks the
 inert-limited methanol loop (S6) as the primary result with the unlimited loop (S5) alongside, the
 measured Fe/Ru rate laws and the staged converter, both Ru-inventory financing conventions, and the
-reference numbering. The checks follow the wording of the revision of 2026-10-13 (commit 2d9feb2). Standard library
-only (CI runs it without the project requirements).
+reference numbering. The checks follow the wording of the revision of 2026-10-13 (commit 2d9feb2) and cover the
+83 -> 40 group ledger table of the Supplementary Information (docs/SI_TABLES.md) and the numbering of the
+Supplementary Tables. Standard library only (CI runs it without the project requirements).
 
 Result lines: PASS, FAIL (exit code 1) and WARN. WARN marks a manuscript number that disagrees with
 its merged source; it is reported, not counted as a failure, because this audit never edits the text.
@@ -759,10 +760,44 @@ ok("MeOH 83 -> 40 ledger: identical grouping rule, every dropped group accounted
 tokens("Main text: 83 -> 40 comparison groups", m_field,
        f"giving {pp['groups']} comparisons with {pp['entries']} entries in {pp['papers']} papers; with plot-read values "
        f"the same rule gives {ae['groups']} comparisons in {ae['papers']} papers")
+# the per-group ledger table of the Supplementary Information (tools/build_si_tables.py, from group_ledger.csv)
+SIT = (ROOT / "docs/SI_TABLES.md").read_text(encoding="utf-8")
+_lt = re.search(r"^### Supplementary Table (\d+) \| The (\d+) methanol comparison groups and the (\d+) of the primary "
+                r"analysis[ \t]*$", SIT, re.M)
+LEDGER_TABLE = int(_lt.group(1)) if _lt else -1
+_lrows, _lhead, _ltot = [], [], []
+if _lt:
+    _j_ = SIT.find("\n### ", _lt.end())
+    _cells = [[c.strip() for c in ln.strip().strip("|").split("|")]
+              for ln in SIT[_lt.end():_j_ if _j_ >= 0 else len(SIT)].splitlines() if ln.startswith("| ")]
+    _lhead, _body_rows = _cells[0], _cells[1:]
+    _ltot = [r for r in _body_rows if r[0] == "**Total**"]
+    _lrows = [r for r in _body_rows if r[0] != "**Total**"]
+_lstat = [r[_lhead.index("Status")] for r in _lrows] if "Status" in _lhead else []
+_ledger_csv = rows("analysis/meoh_inlet_definition_2026_10_12/group_ledger.csv")
+ok(f"SI Table {LEDGER_TABLE}: the 83 -> 40 ledger lists every group once (83 rows, 40 kept) with the ledger's drop reasons",
+   _lt is not None and (int(_lt.group(2)), int(_lt.group(3))) == (ae["groups"], pp["groups"])
+   and len(_lrows) == len(_ledger_csv) == ae["groups"] == 83
+   and len({(r[1], r[2]) for r in _lrows}) == len(_lrows)
+   and _lstat.count("kept") == pp["groups"] == 40
+   and _lstat.count("dropped: no printed values in the paper") == gr["paper without printed values"]
+   and _lstat.count("dropped: fewer than two printed entries") == gr["fewer than 2 printed entries"],
+   f"{len(_lrows)} rows, {_lstat.count('kept')} kept" if _lt else "table not found in docs/SI_TABLES.md")
+ok(f"SI Table {LEDGER_TABLE}: verdict totals equal the frozen S6/S5 primary and the all-entries sensitivity",
+   len(_ltot) == 1 and _ltot[0][-4:] == [f"**{n6} of {g6}**", f"**{n5} of {g5}**"] + [
+       f"**{led['all_entries_result'][k]['different_leader']} of {led['all_entries_result'][k]['groups']}**"
+       for k in ("S6_6_86pct", "S5")],
+   " | ".join(_ltot[0][-4:]) if _ltot else "no total row")
 tokens("Methods: 83 -> 40 comparison groups", methods,
        f"of the {ae['groups']} groups that include plot-read values, {gr['paper without printed values']} come from "
        f"{pr['paper without printed values']} papers without printed values and {gr['fewer than 2 printed entries']} have "
-       f"fewer than two printed entries, which leaves the {pp['groups']} groups of the primary analysis")
+       f"fewer than two printed entries, which leaves the {pp['groups']} groups of the primary analysis (Supplementary "
+       f"Table {LEDGER_TABLE})")
+tokens("SI Note 3: 83 -> 40 comparison groups", s8,
+       f"giving {pp['groups']} comparisons with {pp['entries']} entries in {pp['papers']} papers. With plot-read values the "
+       f"same rule gives {ae['groups']} comparisons in {ae['papers']} papers; {gr['paper without printed values']} of them "
+       f"come from {pr['paper without printed values']} papers without printed values and "
+       f"{gr['fewer than 2 printed entries']} have fewer than two printed entries (Supplementary Table {LEDGER_TABLE})")
 
 # published loop designs (reactor-inlet mol% as printed in their stream tables): CO + CH4 + N2, the species the limit
 # counts, and all species other than H2 and CO2
@@ -1539,6 +1574,16 @@ ok("References: every [n] in the main text, captions and SI exists in the list",
 _uncited = sorted(set(_ref_ids) - set(_b_order) - set(_c_only))
 ok("References: every listed reference is cited in the main body or a caption", not _uncited,
    f"uncited {_uncited}" if _uncited else "")
+
+# ----- Supplementary Tables: numbered 1..N in order of first citation in the main text ------------------------------
+_st_heads = sorted({int(x) for x in re.findall(r"^### Supplementary Table (\d+)", SIT, re.M)})
+_st_order = _first_order(int(x) for x in re.findall(r"Supplementary Tables? (\d+)", _body))
+_st_si = [int(x) for x in re.findall(r"Supplementary Tables? (\d+)", raw_si)]
+ok("Supplementary Tables: 1..N in order of first main-text citation, all cited, SI cites only existing tables, "
+   "SI states the range",
+   _st_heads == list(range(1, len(_st_heads) + 1)) and _st_order == _st_heads and set(_st_si) <= set(_st_heads)
+   and f"Supplementary Tables 1–{len(_st_heads)} follow the notes" in raw_si,
+   f"tables {_st_heads}, main-text order {_st_order}")
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail, warn in checks if not passed and not warn]
