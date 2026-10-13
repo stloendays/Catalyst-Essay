@@ -65,8 +65,18 @@ jobs:
           python validate_kinetics.py
       - name: Recompute measured pair full 8-sensitivity cost optima
         run: python kinetics_swap.py
-      - name: Export kinetics output
-        run: mkdir -p /tmp/nh3-kinetics-results && cp kinetics_swap.json validation_summary.json /tmp/nh3-kinetics-results/
+      - name: Source fit-domain and fugacity-closure diagnostic
+        run: |
+          python ../nh3_final_1_2_candidate_2026_10_13/audit_domain.py \
+            --kinetics kinetics_swap.json \
+            --profiles kinetics_swap_pressure_profiles.csv \
+            --validation validation_summary.json \
+            --out /tmp/nh3-source-domain
+      - name: Export independent kinetics and scientific QA
+        run: |
+          mkdir -p /tmp/nh3-kinetics-results
+          cp kinetics_swap.json kinetics_swap_pressure_profiles.csv validation_summary.json /tmp/nh3-kinetics-results/
+          cp /tmp/nh3-source-domain/* /tmp/nh3-kinetics-results/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -91,10 +101,18 @@ jobs:
         with:
           name: nh3-final12-kinetics
           path: /tmp/audit-kinetics
-      - name: Fail-closed decision audit and manuscript-gate summary
+      - name: Independent result and falsification tests
         run: |
-          python analysis/nh3_final_1_2_candidate_2026_10_13/reconcile.py --thermo /tmp/audit-thermo/summary.json --kinetics /tmp/audit-kinetics/kinetics_swap.json --out /tmp/nh3-final12-audit | tee /tmp/nh3-final12-report.log
+          python -m unittest discover -s analysis/nh3_final_1_2_candidate_2026_10_13 -p 'test_*.py' -v
+      - name: Fail-closed numeric audit with observational scientific verdict
+        run: |
+          python analysis/nh3_final_1_2_candidate_2026_10_13/reconcile.py \
+            --thermo /tmp/audit-thermo/summary.json \
+            --kinetics /tmp/audit-kinetics/kinetics_swap.json \
+            --domain /tmp/audit-kinetics/source_domain.json \
+            --out /tmp/nh3-final12-audit | tee /tmp/nh3-final12-report.log
           cat /tmp/nh3-final12-audit/AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/audit-kinetics/SOURCE_DOMAIN.md >> "$GITHUB_STEP_SUMMARY"
       - name: Refuse manuscript or frozen data mutation
         run: |
           test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
