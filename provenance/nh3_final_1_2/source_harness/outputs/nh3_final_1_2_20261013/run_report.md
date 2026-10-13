@@ -1,0 +1,39 @@
+# Run 20261013
+- Status: **PASS**
+- Mode: `full`
+- Model: `NH3-FINAL-1.2`
+- Process states: 14510
+- Activity ranking: Ru > Os > Fe > Rh > Ir > Co > Re > Mo > Ni > W > Pd > Pt > Cu > Ag > Au
+- Feasible economic ranking: Fe > Ru > Os
+- Fe / Ru / Os costs: 11.515783597179 / 16.632749358903 / 19.746543665635 USD/t
+- Top-3 Spearman: -0.5
+- Fe feasibility (1000 draws): 0.792000
+- Ru activity break-even: 114.667125x
+- Scaling headroom @673K: 1.022770700x
+- Max scaling headroom across process states: 1.575275489x
+- Best strict-scaling Ru cost: 16.454818591159 USD/t
+
+## Regression checks
+- PASS — process_state_count: actual=14510 expected=14510
+- PASS — raw_global_spearman: actual=0.9107142857142855 expected=0.9107142857142855
+- PASS — censored_global_spearman: actual=0.684172319121686 expected=0.684172319121686
+- PASS — top3_spearman: actual=-0.5 expected=-0.5
+- PASS — Fe_cost_USD_t: actual=11.515783597179267 expected=11.515783597179267
+- PASS — Fe_optimum_T_C: actual=425.0 expected=425.0
+- PASS — Fe_optimum_P_bar: actual=105.0 expected=105.0
+- PASS — Fe_optimum_Tsep_C: actual=30.0 expected=30.0
+- PASS — Ru_cost_USD_t: actual=16.632749358902807 expected=16.632749358902807
+- PASS — Ru_optimum_T_C: actual=450.0 expected=450.0
+- PASS — Ru_optimum_P_bar: actual=220.0 expected=220.0
+- PASS — Ru_optimum_Tsep_C: actual=30.0 expected=30.0
+- PASS — Os_cost_USD_t: actual=19.746543665634597 expected=19.746543665634597
+- PASS — Os_optimum_T_C: actual=450.0 expected=450.0
+- PASS — Os_optimum_P_bar: actual=340.0 expected=340.0
+- PASS — Os_optimum_Tsep_C: actual=30.0 expected=30.0
+- PASS — activity_order: actual=['Ru', 'Os', 'Fe', 'Rh', 'Ir', 'Co', 'Re', 'Mo', 'Ni', 'W', 'Pd', 'Pt', 'Cu', 'Ag', 'Au'] expected=['Ru', 'Os', 'Fe', 'Rh', 'Ir', 'Co', 'Re', 'Mo', 'Ni', 'W', 'Pd', 'Pt', 'Cu', 'Ag', 'Au']
+- PASS — feasible_metals: actual=['Fe', 'Ru', 'Os'] expected=['Fe', 'Ru', 'Os']
+- PASS — Fe_feasibility_probability: actual=0.792 expected=0.792
+- PASS — Ru_activity_break_even_multiplier: actual=114.66712547049676 expected=114.66712547049676
+- PASS — Ru_scaling_max_gain_673K: actual=1.02277070031183 expected=1.02277070031183
+- PASS — Ru_scaling_max_gain_all_states: actual=1.575275488957531 expected=1.575275488957531
+- PASS — Ru_best_scaling_cost_USD_t: actual=16.454818591158695 expected=16.454818591158695

@@ -7,12 +7,16 @@ on:
       - "figures/composite/fig2/fig2_ru_price_sweep.csv"
       - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml"
       - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json"
+      - "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/manifest_resolved.yaml"
+      - "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/results.json"
   pull_request:
     paths:
       - "analysis/fe_bridge_backward_2026_09_29/**"
       - "figures/composite/fig2/fig2_ru_price_sweep.csv"
       - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/manifest_resolved.yaml"
       - "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json"
+      - "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/manifest_resolved.yaml"
+      - "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/results.json"
   workflow_dispatch:
 
 jobs:
@@ -29,3 +33,8 @@ jobs:
       - name: Verify committed outputs are reproducible
         run: |
           git diff --exit-code --             analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_boundary.csv             analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_certified_keypoint.json
+      - name: Recompute certified inner region (NH3-FINAL-1.2, from the committed nh3_1_2/ru_price_sweep.csv)
+        run: NH3_MODEL=1.2 python analysis/fe_bridge_backward_2026_09_29/build_certified_inner_surface.py
+      - name: Verify committed NH3-FINAL-1.2 outputs are reproducible
+        run: |
+          git diff --exit-code -- analysis/fe_bridge_backward_2026_09_29/nh3_1_2/activity_lifecycle_certified_boundary.csv analysis/fe_bridge_backward_2026_09_29/nh3_1_2/activity_lifecycle_target_keypoints.csv analysis/fe_bridge_backward_2026_09_29/nh3_1_2/activity_lifecycle_certified_keypoint.json

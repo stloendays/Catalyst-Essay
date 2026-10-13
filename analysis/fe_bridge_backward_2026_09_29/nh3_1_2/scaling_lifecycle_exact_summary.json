@@ -1,0 +1,51 @@
+{
+  "schema": "nh3-final-1.2-strict-scaling-lifecycle-reachability-v2",
+  "created_date": "2026-10-13",
+  "no_new_DFT": true,
+  "method": "For each of the 14,510 frozen FINAL-1.2 process states, maximize strict-scaling TOF over the canonical 0.005-eV E_N grid. At fixed state, metal inventory, reactor volume and vessel cost are monotone in required active metal / bed volume, so the E_N that maximizes TOF is also the cost-minimizing E_N for every lifetime/recovery value. The global lifecycle boundary is then the lower envelope over all states.",
+  "process_states": 14510,
+  "strict_scaling_E_N_domain_eV": [-2.2, 0.2],
+  "canonical_grid_step_eV": 0.005,
+  "baseline_regression_anchor": {
+    "Ru_cost_USD_t": 16.454818591158716,
+    "E_N_eV": -1.18,
+    "canonical_Ru_cost_target_USD_t": 16.454818591158695,
+    "status": "PASS"
+  },
+  "Fe_reference_cost_USD_t": 11.515783597179267,
+  "critical_lifecycle_factor_q_per_y": 0.0008251028617208592,
+  "equivalent_effective_Ru_price_at_10y_USD_kg": 444.33851860822574,
+  "strict_scaling_parity_state": {
+    "E_N_eV": -1.19,
+    "T_C": 425.0,
+    "P_bar": 110.0,
+    "Tsep_C": 30.0,
+    "V_m3": 3.5089796487052407,
+    "cost_USD_t": 11.515783597179267
+  },
+  "tested_lifecycle_envelope": {
+    "max_life_y": 20.0,
+    "max_recovery_fraction": 0.99,
+    "best_corner": {
+      "life_y": 20.0,
+      "recovery_fraction": 0.99,
+      "best_strict_scaling_cost_USD_t": 11.199047305179601,
+      "margin_vs_Fe_USD_t": -0.3167362919996659,
+      "relative_margin_vs_Fe": -0.027504536649789846,
+      "best_E_N_eV": -1.19,
+      "T_C": 425.0,
+      "P_bar": 110.0,
+      "Tsep_C": 30.0,
+      "V_m3": 3.5089796487052407
+    },
+    "intersects_strict_scaling_manifold": true
+  },
+  "boundary_examples": {
+    "required_recovery_at_10y": 0.9917489713827914,
+    "required_recovery_at_15y": 0.9876234570741871,
+    "required_recovery_at_20y": 0.9834979427655828,
+    "required_life_at_99pct_recovery_y": 12.119701026298346,
+    "required_life_at_98pct_recovery_y": 24.23940205259669
+  },
+  "interpretation": "The direct activity-only target is unreachable. Allowing lifetime and recovery to improve jointly moves the economic target much closer to the strict scaling manifold, and the preregistered lifecycle box (life <= 20 y, recovery <= 0.99) intersects it. The best tested corner (20 y, 99% recovery) is below Fe by 0.3167 USD/t NH3 (2.75%). Parity is reached inside the box, e.g. at 20 y with 98.3498% recovery or at 99% recovery with 12.12 y lifetime."
+}
