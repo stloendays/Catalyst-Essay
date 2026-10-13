@@ -86,20 +86,113 @@ def boxed(ax):
     ax.tick_params(which="both", top=False, right=False)
 
 
-# ---- a: forward propagation and backward design ----------------------------
+# ---- a: three optima along the forward chain and the segment each case measures ----
 letter("a", 2.0, 168.0)
 ax = ax_mm(4.0, 114.0, 118.0, 52.0)
 ax.set_xlim(0, 118)
 ax.set_ylim(0, 52)
 ax.set_aspect("equal")
 ax.axis("off")
-xs = [12.0, 36.0, 60.0, 84.0, 107.0]
-yc = 31.0
-ax.text(1.0, 50.0, "Forward propagation", fontsize=7, fontweight="bold", va="top")
+# text widths for the layout are measured at the export resolution on a scratch figure
+_MFIG = plt.figure(dpi=600)
+_MREND = _MFIG.canvas.get_renderer()
+
+
+def width_mm(s, fs, weight="normal", style="normal"):
+    t = _MFIG.text(0, 0, s, fontsize=fs, fontweight=weight, fontstyle=style)
+    w = t.get_window_extent(_MREND).width / 600 * 25.4
+    t.remove()
+    return w
+
+
+def sub_label(x, y, parts, fs, ha="left", weight="bold", sub_fs=5.3, **kw):
+    """Label with sub- and superscripts set at sub_fs (>= 5.3 pt) instead of mathtext's 0.7 x base size.
+    parts: [(text, kind[, style]), ...], kind False (normal), True or "sub" (subscript) or "sup"
+    (superscript), style "normal" or "italic"; a leading space in a part becomes a word space."""
+    kern, space = 0.12, 0.278 * fs * 25.4 / 72
+    drop, rise = 0.19 * fs * 25.4 / 72, 0.36 * fs * 25.4 / 72
+    runs, total = [], 0.0
+    for part in parts:
+        txt, kind = part[0], part[1]
+        style = part[2] if len(part) > 2 else "normal"
+        gap = space if txt.startswith(" ") else (kern if runs else 0.0)
+        txt = txt.strip()
+        size = sub_fs if kind else fs
+        dy = -drop if kind in (True, "sub") else (rise if kind == "sup" else 0.0)
+        w = width_mm(txt, size, weight, style)
+        runs.append((txt, size, dy, total + gap, style))
+        total += gap + w
+    x0 = x - total if ha == "right" else (x - total / 2 if ha == "center" else x)
+    for txt, size, dy, dx, style in runs:
+        ax.text(x0 + dx, y + dy, txt, ha="left", va="baseline", fontsize=size, fontweight=weight,
+                fontstyle=style, **kw)
+    return x0, x0 + total
+
+
+def snapped_dashes(x0, y0, x1, y1, on_mm, off_mm, color, lw):
+    """Dashed outline drawn side by side, each side starting and ending on a dash. Projecting caps
+    carry the end dashes over the corner by half a line width, so the corners close."""
+    pt, lw_mm = 72 / 25.4, lw * 25.4 / 72
+    for (xa, ya), (xb, yb) in (((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)),
+                               ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))):
+        length = math.hypot(xb - xa, yb - ya)
+        n = max(round((length + off_mm) / (on_mm + off_mm)), 1)
+        k = (length + lw_mm) / (n * on_mm + (n - 1) * off_mm)    # visible dashes span length + lw
+        ax.plot([xa, xb], [ya, yb], color=color, lw=lw, zorder=2.5, dash_capstyle="projecting",
+                dashes=((on_mm * k - lw_mm) * pt / lw, (off_mm * k + lw_mm) * pt / lw))
+
+
+# stage centres (mm); the icons are sized so the five connectors come out 5.7-6.9 mm long
+xs = [9.2, 28.65, 51.55, 72.4, 91.5, 109.55]
+yc = 20.2
+# tier columns: the laboratory column runs from the end of the microkinetics icon to the
+# start of the catalyst-inventory label, wide enough for its heading
+B1, B2 = 36.55, 62.75
+TIERS = [("Atomic optimum", "descriptor,\nintrinsic turnover", 0.5, B1),
+         ("Laboratory optimum", "measured activity,\nSTY at test conditions", B1, B2),
+         ("Industrial optimum", "plant-cost leader after process\noptimization and economics", B2, 117.5)]
+for name, sub, x0, x1 in TIERS:
+    xm = (x0 + x1) / 2
+    ax.text(xm, 50.0, name, ha="center", va="top", fontsize=7.0, fontweight="bold")
+    ax.text(xm, 47.3, sub, ha="center", va="top", fontsize=5.5, color=MID, linespacing=1.1)
+    ax.plot([x0 + 0.4, x0 + 0.4, x1 - 0.4, x1 - 0.4], [41.9, 42.6, 42.6, 41.9], color=INK, lw=0.6,
+            solid_capstyle="butt", solid_joinstyle="miter")
+
+# case segments: one bar per case over the part of the chain it measures, a neutral lightness
+# step per case. Bars that start at the laboratory tier carry their case name to the left, in the
+# empty atomic column.
+BAR_H, GAP = 3.2, 1.1   # GAP leaves about 0.85 mm of white between the 0.7-pt outlines
+BASE = 1.0              # text baseline above the bar bottom
+XL = B1 + 0.4           # left edge of the laboratory-tier bars, the tick and the tier boundary
+X_AU = 82.8             # the Au/TiO2 segment ends after catalyst inventory
+FS_NAME, FS_BAR = 6.5, 6.0
+bar_top = 41.2
+CASES = [  # name parts, segment, figures, x0, x1, face, edge
+    ([("Ammonia", False)], "atomic → industrial", "Figs 1, 3, 4", 0.9, 117.1, "#C9CDD3", INK),
+    ([("CO", False), ("2", True), ("-to-methanol", False)], "published laboratory → industrial",
+     "Figs 2b,d,e, 5", XL, 117.1, GRID, MID),
+    ([("Au/TiO", False), ("2", True), (" control", False)], "laboratory → catalyst requirement", "Fig. 6",
+     XL, X_AU - 0.4, "white", MID),
+]
+for row, (name, span, figs, x0, x1, fc, ec) in enumerate(CASES):
+    y0 = bar_top - BAR_H * (row + 1) - GAP * row
+    yb = y0 + BASE
+    if fc == "white":
+        ax.add_patch(Rectangle((x0, y0), x1 - x0, BAR_H, fc=fc, ec="none", zorder=2))
+        snapped_dashes(x0, y0, x1, y0 + BAR_H, 1.0, 0.55, ec, 0.7)
+    else:
+        ax.add_patch(Rectangle((x0, y0), x1 - x0, BAR_H, fc=fc, ec=ec, lw=0.7, zorder=2))
+    if x0 < 1:
+        xt = sub_label(x0 + 1.5, yb, name, FS_NAME, zorder=3)[1] + 1.6
+    else:
+        sub_label(x0 - 1.2, yb, name, FS_NAME, ha="right", zorder=3)
+        xt = x0 + 1.5
+    ax.text(xt, yb, span, ha="left", va="baseline", fontsize=FS_BAR, zorder=3)
+    ax.text(x1 - 1.5, yb, figs, ha="right", va="baseline", fontsize=FS_BAR, zorder=3)
 
 # stage 1: step site render
 ru_img = crop_rgba(os.path.join(HERE, "renders", "Ru_211_N.png"))
-h_img = 17.0
+h_img = 12.5
 w_img = h_img * ru_img.shape[1] / ru_img.shape[0]
 ax.imshow(ru_img, extent=(xs[0] - w_img / 2, xs[0] + w_img / 2, yc - h_img / 2, yc + h_img / 2), zorder=3)
 
@@ -107,81 +200,110 @@ ax.imshow(ru_img, extent=(xs[0] - w_img / 2, xs[0] + w_img / 2, yc - h_img / 2, 
 vx = np.interp(np.linspace(0, 1, 60), (cE - cE.min()) / (cE.max() - cE.min()), (cE - cE.min()) / (cE.max() - cE.min()))
 vy = np.interp(vx, (cE - cE.min()) / (cE.max() - cE.min()),
                (curve_logtof - curve_logtof.min()) / (curve_logtof.max() - curve_logtof.min()))
-ax.plot([xs[1] - 8.0, xs[1] - 8.0, xs[1] + 8.0], [yc + 7.0, yc - 7.0, yc - 7.0], color=MID, lw=0.6, zorder=1)
-ax.plot(xs[1] - 7.5 + 15.0 * vx, yc - 6.0 + 12.0 * vy, color=INK, lw=0.9, zorder=2)
-for m, off in (("Ru", 0.0), ("Fe", 0.0)):
+ax.plot([xs[1] - 7.0, xs[1] - 7.0, xs[1] + 7.0], [yc + 6.0, yc - 6.0, yc - 6.0], color=MID, lw=0.6, zorder=1)
+ax.plot(xs[1] - 6.5 + 13.0 * vx, yc - 5.0 + 10.5 * vy, color=INK, lw=0.9, zorder=2)
+for m in ("Ru", "Fe"):
     e = (M[m]["E_N_eV"] - cE.min()) / (cE.max() - cE.min())
     t = (M[m]["logTOF_673K"] - curve_logtof.min()) / (curve_logtof.max() - curve_logtof.min())
-    ax.plot(xs[1] - 7.5 + 15.0 * e, yc - 6.0 + 12.0 * t, "o", ms=3.4, mfc=C[m], mec=INK, mew=0.4, zorder=3)
-ax.text(xs[1] - 7.8, yc + 5.6, "TOF", fontsize=5.5, color=MID, va="top")
-ax.text(xs[1] + 7.8, yc - 7.2, r"$E_\mathrm{N}$", fontsize=5.5, color=MID, ha="right", va="bottom")
+    ax.plot(xs[1] - 6.5 + 13.0 * e, yc - 5.0 + 10.5 * t, "o", ms=3.0, mfc=C[m], mec=INK, mew=0.4, zorder=3)
+ax.text(xs[1] - 6.7, yc + 6.0, "TOF", fontsize=5.5, color=MID, va="top")
+sub_label(xs[1] + 7.0, yc - 7.9, [("E", False, "italic"), ("N", True)], 5.5, ha="right", weight="normal",
+          color=MID)
 
-# stage 3: packed-bed converter
-ax.add_patch(FancyBboxPatch((xs[2] - 4.2, yc - 8.5), 8.4, 17.0, boxstyle="round,pad=0,rounding_size=2.6",
+# stage 3: laboratory test (tube reactor in a furnace, product chromatogram)
+x3 = xs[2]
+xf = x3 - 5.2                          # tube axis
+ax.add_patch(FancyBboxPatch((xf - 3.0, yc - 4.6), 6.0, 9.2, boxstyle="round,pad=0,rounding_size=0.9",
+                            fc=PAPER, ec=INK, lw=0.6, zorder=2))
+ax.add_patch(Rectangle((xf - 0.6, yc - 6.4), 1.2, 12.8, fc="white", ec=INK, lw=0.5, zorder=3))
+ax.add_patch(Rectangle((xf - 0.45, yc - 1.4), 0.9, 2.8, fc=C["Ru"], ec="none", zorder=4))
+ax.annotate("", xy=(xf, yc + 6.4), xytext=(xf, yc + 8.2),
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
+ax.annotate("", xy=(xf, yc - 8.2), xytext=(xf, yc - 6.4),
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
+gx = np.linspace(0.0, 7.6, 240)
+gy = sum(h * np.exp(-0.5 * ((gx - c) / 0.26) ** 2) for c, h in ((1.6, 2.6), (3.7, 7.6), (5.8, 4.2)))
+ax.plot([x3 + 0.6, x3 + 0.6, x3 + 9.0], [yc + 5.0, yc - 4.6, yc - 4.6], color=MID, lw=0.6, zorder=1)
+ax.plot(x3 + 0.9 + gx, yc - 4.6 + gy, color=INK, lw=0.7, zorder=2)
+
+# stage 4: packed-bed converter
+ax.add_patch(FancyBboxPatch((xs[3] - 4.0, yc - 6.0), 8.0, 12.0, boxstyle="round,pad=0,rounding_size=2.2",
                             fc="white", ec=INK, lw=0.8, zorder=2))
 rng = np.random.default_rng(7)
-bx = rng.uniform(xs[2] - 3.2, xs[2] + 3.2, 70)
-by = rng.uniform(yc - 6.2, yc + 3.6, 70)
-ax.scatter(bx, by, s=2.2, c=C["Ru"], edgecolors="none", zorder=3)
-ax.plot([xs[2] - 3.6, xs[2] + 3.6], [yc + 4.4] * 2, color=INK, lw=0.5, zorder=3)
-ax.annotate("", xy=(xs[2], yc + 8.4), xytext=(xs[2], yc + 11.5),
-            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5))
-ax.annotate("", xy=(xs[2], yc - 11.5), xytext=(xs[2], yc - 8.4),
-            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5))
+bx = rng.uniform(xs[3] - 3.1, xs[3] + 3.1, 62)
+by = rng.uniform(yc - 4.3, yc + 2.4, 62)
+ax.scatter(bx, by, s=2.0, c=C["Ru"], edgecolors="none", zorder=3)
+ax.plot([xs[3] - 3.4, xs[3] + 3.4], [yc + 3.1] * 2, color=INK, lw=0.5, zorder=3)
+ax.annotate("", xy=(xs[3], yc + 5.9), xytext=(xs[3], yc + 8.2),
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
+ax.annotate("", xy=(xs[3], yc - 8.2), xytext=(xs[3], yc - 5.9),
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
 
-# stage 4: synthesis loop (compressor -> converter -> separator -> recycle)
-cx0 = xs[3] - 9.0
-ax.add_patch(Polygon([[cx0 - 2.4, yc - 3.2], [cx0 - 2.4, yc + 3.2], [cx0 + 2.4, yc + 1.8], [cx0 + 2.4, yc - 1.8]],
+# stage 5: synthesis loop (compressor -> converter -> separator -> recycle)
+cx0 = xs[4] - 6.6
+ax.add_patch(Polygon([[cx0 - 2.1, yc - 2.8], [cx0 - 2.1, yc + 2.8], [cx0 + 2.1, yc + 1.6], [cx0 + 2.1, yc - 1.6]],
                      closed=True, fc="white", ec=INK, lw=0.7, zorder=2))
-ax.add_patch(Rectangle((xs[3] - 1.6, yc - 5.5), 3.2, 11.0, fc="white", ec=INK, lw=0.7, zorder=2))
-ax.add_patch(Rectangle((xs[3] - 1.2, yc - 4.2), 2.4, 7.0, fc=C["Ru"], ec="none", alpha=0.55, zorder=3))
-sx = xs[3] + 8.2
-ax.add_patch(FancyBboxPatch((sx - 2.2, yc - 4.0), 4.4, 8.0, boxstyle="round,pad=0,rounding_size=1.4",
+ax.add_patch(Rectangle((xs[4] - 1.4, yc - 4.8), 2.8, 9.6, fc="white", ec=INK, lw=0.7, zorder=2))
+ax.add_patch(Rectangle((xs[4] - 1.05, yc - 3.7), 2.1, 6.1, fc=C["Ru"], ec="none", alpha=0.55, zorder=3))
+sx = xs[4] + 6.4
+ax.add_patch(FancyBboxPatch((sx - 1.9, yc - 3.5), 3.8, 7.0, boxstyle="round,pad=0,rounding_size=1.2",
                             fc="white", ec=INK, lw=0.7, zorder=2))
-ax.add_patch(Rectangle((sx - 1.9, yc - 3.7), 3.8, 2.4, fc="#C6CCDC", ec="none", zorder=3))
-for x0, x1 in ((cx0 + 2.4, xs[3] - 1.6), (xs[3] + 1.6, sx - 2.2)):
+ax.add_patch(Rectangle((sx - 1.65, yc - 3.25), 3.3, 2.1, fc="#C6CCDC", ec="none", zorder=3))
+for x0, x1 in ((cx0 + 2.1, xs[4] - 1.4), (xs[4] + 1.4, sx - 1.9)):
     ax.annotate("", xy=(x1, yc), xytext=(x0, yc), arrowprops=dict(arrowstyle="-|>", lw=0.6, color=INK,
                                                                      mutation_scale=5, shrinkA=0, shrinkB=0))
-ax.plot([sx, sx, cx0, cx0], [yc + 4.0, yc + 8.2, yc + 8.2, yc + 3.2], color=INK, lw=0.6, zorder=2)
-ax.annotate("", xy=(cx0, yc + 3.3), xytext=(cx0, yc + 5.0),
+ax.plot([sx, sx, cx0, cx0], [yc + 3.5, yc + 6.0, yc + 6.0, yc + 2.8], color=INK, lw=0.6, zorder=2)
+ax.annotate("", xy=(cx0, yc + 2.9), xytext=(cx0, yc + 4.4),
             arrowprops=dict(arrowstyle="-|>", lw=0.6, color=INK, mutation_scale=5, shrinkA=0, shrinkB=0))
-ax.text((sx + cx0) / 2, yc + 8.8, "recycle", fontsize=5.3, color=MID, ha="center", va="bottom")
-ax.annotate("", xy=(sx, yc - 8.4), xytext=(sx, yc - 4.0),
+ax.text((sx + cx0) / 2, yc + 6.4, "recycle", fontsize=5.3, color=MID, ha="center", va="bottom")
+ax.annotate("", xy=(sx, yc - 7.6), xytext=(sx, yc - 3.5),
             arrowprops=dict(arrowstyle="-|>", lw=0.6, color=INK, mutation_scale=5, shrinkA=0, shrinkB=0))
-ax.text(sx + 0.8, yc - 8.6, r"NH$_3$(l)", fontsize=5.3, color=MID, va="top")
+sub_label(sx - 0.7, yc - 7.2, [("NH", False), ("3", True), ("(l)", False)], 5.5, ha="right",
+          weight="normal", color=MID)
 
-# stage 5: catalyst-dependent cost stack
+# stage 6: catalyst-dependent cost stack
 segs = [("fresh-feed\ncompression", 9.66, "#C6CCDC"), ("compressor\nCAPEX", 3.87, "#9DACCB"),
         ("vessel + reactor", 0.92, "#CBD7C3"), ("recycle", 0.76, "#ACBF9F")]
 tot = sum(s[1] for s in segs)
-y0 = yc - 8.0
+y0 = yc - 6.0
 for name, v, col in segs:
-    hh = 16.0 * v / tot
-    ax.add_patch(Rectangle((xs[4] - 3.6, y0), 7.2, hh, fc=col, ec="white", lw=0.5, zorder=2))
+    hh = 12.0 * v / tot
+    ax.add_patch(Rectangle((xs[5] - 3.2, y0), 6.4, hh, fc=col, ec="white", lw=0.5, zorder=2))
     y0 += hh
-ax.add_patch(Rectangle((xs[4] - 3.6, yc - 8.0), 7.2, 16.0, fc="none", ec=INK, lw=0.6, zorder=3))
-ax.text(xs[4] + 5.0, yc + 8.0, "USD t$^{-1}$", fontsize=5.3, color=MID, va="top")
+ax.add_patch(Rectangle((xs[5] - 3.2, yc - 6.0), 6.4, 12.0, fc="none", ec=INK, lw=0.6, zorder=3))
+sub_label(xs[5], yc + 6.7, [("USD t", False), ("−1", "sup")], 5.5, ha="center", weight="normal", color=MID)
 
-labels = [("Atomic descriptor", r"N* at the step, $E_\mathrm{N}$"),
-          ("Microkinetics", "TOF at 673 K"),
-          ("Catalyst inventory", r"$V_\mathrm{bed}\leq$ 90 m$^3$"),
-          ("Synthesis loop", r"$T$, $P$, $T_\mathrm{sep}$ reoptimized"),
-          ("Economics", "catalyst-dependent cost")]
-for x, (t1, t2) in zip(xs, labels):
-    ax.text(x, yc - 13.0, t1, ha="center", va="top", fontsize=6.5, fontweight="bold")
-    ax.text(x, yc - 16.6, t2, ha="center", va="top", fontsize=6.0, color=MID)
+# second-line labels: scripts at >= 5.3 pt via sub_label; baselines match va="top" at yc - 11.6
+Y1, DY = yc - 13.15, 2.45
+labels = [("Atomic descriptor", [[("N* at the step,", False), (" E", False, "italic"), ("N", True)]]),
+          ("Microkinetics", [[("TOF at 673 K", False)]]),
+          ("Laboratory test", [[("measured rate, STY", False)]]),
+          ("Catalyst inventory", [[("V", False, "italic"), ("bed", True), (" ≤ 90 m", False), ("3", "sup")]]),
+          ("Synthesis loop", [[("T", False, "italic"), (",", False), (" P", False, "italic"), (",", False),
+                               (" T", False, "italic"), ("sep", True)], [("reoptimized", False)]]),
+          ("Economics", [[("catalyst-dependent", False)], [("cost", False)]])]
+for x, (t1, lines) in zip(xs, labels):
+    ax.text(x, yc - 9.1, t1, ha="center", va="top", fontsize=6.0, fontweight="bold")
+    for k, parts in enumerate(lines):
+        sub_label(x, Y1 - k * DY, parts, 5.5, ha="center", weight="normal", color=MID)
+plt.close(_MFIG)
 # stage-to-stage connectors at mid-height, edge to edge
-for x0, x1 in ((xs[0] + 10.0, xs[1] - 9.4), (xs[1] + 9.0, xs[2] - 5.0),
-               (xs[2] + 5.0, cx0 - 2.5), (sx + 2.9, xs[4] - 4.4)):
+for x0, x1 in ((xs[0] + w_img / 2 + 0.4, xs[1] - 7.6), (xs[1] + 7.4, x3 - 8.6), (x3 + 9.4, xs[3] - 4.6),
+               (xs[3] + 4.6, cx0 - 2.4), (sx + 2.3, xs[5] - 3.8)):
     ax.annotate("", xy=(x1, yc), xytext=(x0, yc),
                 arrowprops=dict(arrowstyle="-|>", lw=1.0, color=INK, mutation_scale=7, shrinkA=0, shrinkB=0))
-# backward design return path
-ax.add_patch(FancyArrowPatch((xs[4], 4.6), (xs[0], 4.6), arrowstyle="-|>", mutation_scale=8,
-                             lw=0.9, color=RED, linestyle=(0, (3, 2)), connectionstyle="arc3,rad=0"))
-ax.plot([xs[4], xs[4]], [4.6, yc - 20.0], color=RED, lw=0.9, ls=(0, (3, 2)))
-ax.plot([xs[0], xs[0]], [4.6, yc - 20.0], color=RED, lw=0.9, ls=(0, (3, 2)))
-ax.text((xs[0] + xs[4]) / 2, 6.0, "Backward design: activity multiplier α* needed for parity  vs  "
-        "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="bottom")
+# tier boundaries in the icon row only, continuing the bar starts and broken around the connectors
+for xb in (XL, B2):
+    for ya, yb in ((yc - 8.2, yc - 1.6), (yc + 1.6, yc + 8.5)):
+        ax.plot([xb, xb], [ya, yb], color="#C9CDD3", lw=0.5, ls=(0, (1.5, 1.5)), zorder=0)
+# backward design return path: from economics back up to the atomic descriptor
+YB = 0.45
+ax.plot([xs[5], xs[5], xs[0], xs[0]], [3.3, YB, YB, 3.6], color=RED, lw=0.9, ls=(0, (3, 2)),
+        solid_joinstyle="miter")
+ax.annotate("", xy=(xs[0], 6.3), xytext=(xs[0], 3.6),
+            arrowprops=dict(arrowstyle="-|>", lw=0.9, color=RED, mutation_scale=8, shrinkA=0, shrinkB=0))
+ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "Backward design: activity multiplier α* needed for parity vs "
+        "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="baseline")
 
 # ---- b: the three frontier candidates --------------------------------------
 letter("b", 124.0, 168.0)
