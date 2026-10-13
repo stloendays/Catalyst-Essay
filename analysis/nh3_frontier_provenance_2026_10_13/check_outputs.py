@@ -1,10 +1,15 @@
 """Compare a rerun with the committed outputs.
 
-    python check_outputs.py <committed_dir> <rerun_dir>
+    python check_outputs.py [--only swap|staged] <committed_dir> <rerun_dir>
 
 frontier_swap.json: every number within 1e-6 (deterministic array arithmetic).
 staged_window.json: window edges within 0.2 %/y, savings within 0.02 USD/t, same optimal arrangement at the savings
-points (optimiser noise of differential evolution is ~1e-3 USD/t).
+points (optimiser noise of differential evolution is ~1e-3 USD/t). Only the staged-window cases of <committed_dir> are
+compared, so a subset run (staged_window.py --cases) can be checked against a full one.
+
+--only swap     compare frontier_swap.json only (e.g. the NH3-FINAL-1.2 rerun against nh3_1_2/)
+--only staged   compare staged_window.json only (e.g. the committed nh3_1_2/ staged window against a 1.1 rerun: the
+                staged converter is the same calculation under NH3-FINAL-1.1 and 1.2)
 """
 import json
 import sys
@@ -29,12 +34,23 @@ def walk(a, b, path, tol, bad):
 
 
 def main():
-    old, new = Path(sys.argv[1]), Path(sys.argv[2])
+    args = sys.argv[1:]
+    only = None
+    if args[:1] == ["--only"]:
+        only, args = args[1], args[2:]
+        assert only in ("swap", "staged"), only
+    old, new = Path(args[0]), Path(args[1])
     bad = []
-    walk(json.loads((old / "frontier_swap.json").read_text()), json.loads((new / "frontier_swap.json").read_text()),
-         "frontier_swap", 1e-6, bad)
-    a = json.loads((old / "staged_window.json").read_text())
-    b = json.loads((new / "staged_window.json").read_text())
+    if only != "staged":
+        walk(json.loads((old / "frontier_swap.json").read_text(encoding="utf-8")),
+             json.loads((new / "frontier_swap.json").read_text(encoding="utf-8")), "frontier_swap", 1e-6, bad)
+    if only == "swap":
+        for x in bad[:50]:
+            print("DIFF", x)
+        print(f"{len(bad)} differences")
+        sys.exit(1 if bad else 0)
+    a = json.loads((old / "staged_window.json").read_text(encoding="utf-8"))
+    b = json.loads((new / "staged_window.json").read_text(encoding="utf-8"))
     for c, v in a["cases"].items():
         for kind in ("lower", "upper"):
             x, y = v["window_direct"][kind], b["cases"][c]["window_direct"][kind]

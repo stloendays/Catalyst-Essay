@@ -132,6 +132,7 @@ The direct edges supersede the design-library envelope of PR #75 (0.8–6.7 %/y)
 | `frontier_swap.py` | Items 1–5. Asserts the committed headline, then writes `frontier_swap.json` and `frontier_swap_robustness.csv` (about 10 s). |
 | `staged_window.py` | Item 6: scan, direct edges and base-case points. Writes `staged_scan.csv`, `staged_direct.csv` and `staged_window.json` (about 72 min on 4 workers). |
 | `check_outputs.py` | Compares a rerun with the committed outputs: swap within 1e-6, edges within 0.2 %/y, savings within 0.02 USD/t. |
+| `nh3_1_2/` | NH3-FINAL-1.2 (`NH3_MODEL=1.2`): the same scripts and file names; key numbers 1.1 → 1.2 in `nh3_1_2/README.md`. |
 
     python3.12 -m venv /tmp/v && /tmp/v/bin/pip install -r requirements.txt pyyaml
     cd analysis/nh3_frontier_provenance_2026_10_13

@@ -18,6 +18,13 @@ Cases: base; Ru/C cap 480 C; Ru/C cap 500 C; both catalysts capped at 460 C; Ru/
 rescaled to the fitted rate at 400 C, 90 bar, 2 % NH3, H2/N2 = 3); recovery 90 %; Ru price x0.7; Ru price x1.3.
 
     python staged_window.py [--workers 4]  -> staged_scan.csv, staged_direct.csv, staged_window.json
+    NH3_MODEL=1.2 python staged_window.py [--workers 2] [--cases base "Ru/C cap 480 C" ...]
+                                           -> nh3_1_2/staged_scan.csv, nh3_1_2/staged_direct.csv, nh3_1_2/staged_window.json
+
+NH3_MODEL=1.2: converter.py builds its economic controls from the NH3-FINAL-1.2 core and manifest; its costs are
+bit-identical to 1.1 (analysis/nh3_staged_converter_2026_10_12/staged_invariance_1_2.py), and the committed KAAP-type
+optima used as the check and as start points are read from that folder's nh3_1_2/arrangements.csv (byte copy of the 1.1
+file). --cases restricts the run to a subset of CASES (the base case is always included); the default is all cases.
 """
 from __future__ import annotations
 
@@ -39,6 +46,10 @@ sys.path.insert(0, str(SC))
 import converter as C  # noqa: E402
 import kinetics as K  # noqa: E402
 from run_staged import DE_KW, PATTERNS  # noqa: E402
+
+NM = C.NM                                                       # NH3_MODEL=1.1 (default) | 1.2, analysis/nh3_model.py
+OUT = NM.out_dir(HERE)                                          # this folder for 1.1, nh3_1_2/ for 1.2
+ARR = C.OUT / "arrangements.csv"                                # committed KAAP-type optima (1.2: byte copy of 1.1)
 
 P_RU = 53852.5
 PATS = ("FFF", "FFR", "FRR", "RRR")
@@ -135,7 +146,7 @@ def pool_map(fn, jobs, workers):
 
 def committed_x():
     out = {}
-    with (SC / "arrangements.csv").open(encoding="utf-8") as f:
+    with ARR.open(encoding="utf-8") as f:
         for r in csv.DictReader(f):
             if r["loop"].startswith("KAAP") and r["mode"] == "adiabatic" and r["economics"].startswith("25-y"):
                 out.setdefault(r["pattern"], []).append([float(v) for v in r["x"].split(";")])
@@ -184,7 +195,13 @@ def bracket_rates(e, step=0.0025):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--cases", nargs="+", choices=list(CASES), default=None,
+                    help="run only these cases (the base case is always included); default: all")
     a = ap.parse_args()
+    if a.cases:                                                 # subset run (CASES keeps its order)
+        keep = {"base", *a.cases}
+        for c in [c for c in CASES if c not in keep]:
+            del CASES[c]
     t0 = time.time()
 
     def stamp(m):
@@ -196,7 +213,7 @@ def main():
     jobs = [dict(case="base", pattern=p, fin_rate=i, x0s=cx[p], stage="check") for i in (0.0, 0.12) for p in PATS]
     checks = pool_map(direct, jobs, a.workers)
     committed = {}
-    with (SC / "arrangements.csv").open(encoding="utf-8") as f:
+    with ARR.open(encoding="utf-8") as f:
         for r in csv.DictReader(f):
             if r["loop"].startswith("KAAP") and r["mode"] == "adiabatic" and r["economics"].startswith("25-y"):
                 committed[(0.12 if "12%" in r["economics"] else 0.0, r["pattern"])] = float(r["cost"])
@@ -263,10 +280,14 @@ def main():
             w.writeheader()
             for r in sorted(recs, key=lambda r: (list(CASES).index(r["case"]), r["fin_rate"], r["pattern"])):
                 w.writerow({k: (f"{v:.6f}" if isinstance(v, float) else v) for k, v in r.items()})
-    write(HERE / "staged_scan.csv", scan)
-    write(HERE / "staged_direct.csv", allrec)
+    write(OUT / "staged_scan.csv", scan)
+    write(OUT / "staged_direct.csv", allrec)
 
     out = dict(no_h2_inhibition_rescale_factor=NO_H2_SCALE, committed_check=chk, cases={})
+    if NM.VERSION != "1.1":                                     # run identity (the 1.1 file is unchanged)
+        out["model"] = dict(version=NM.VERSION, run=NM.RUNS[NM.VERSION], manifest=C.MANIFEST.relative_to(NM.root()).as_posix(),
+                            F_CAL=float(C.CFG["economics"]["calibration_factor"]), cases_run=list(CASES),
+                            committed_optima=ARR.relative_to(REPO).as_posix())
     for c in CASES:
         e = edges(D[c])
         es = scan_edges[c]
@@ -299,7 +320,7 @@ def main():
                                    Ru_volume_fraction=diffs(base[i])[0]["Ru_volume_fraction"])
         for i in (0.0135, 0.021, 0.051)}
     out["runtime_s"] = round(time.time() - t0)
-    (HERE / "staged_window.json").write_text(json.dumps(_round(out), indent=1) + "\n", encoding="utf-8")
+    (OUT / "staged_window.json").write_text(json.dumps(_round(out), indent=1) + "\n", encoding="utf-8")
     for c, v in out["cases"].items():
         print(c, "direct", v["window_direct"], "scan", v["window_scan"])
     print(json.dumps(_round(out["base_savings_vs_all_Fe"]), indent=1))

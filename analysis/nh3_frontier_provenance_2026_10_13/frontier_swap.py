@@ -7,7 +7,14 @@ reproduces kinetics_swap.json. Every other number uses the same arrays and the c
 kinetics_swap.costs() with four explicit knobs (Ru/Fe price, catalyst life, converter-premium factor, effectiveness
 factor) and is asserted equal to it at the base point.
 
-    python frontier_swap.py   -> frontier_swap.json, frontier_swap_robustness.csv
+    python frontier_swap.py                   -> frontier_swap.json, frontier_swap_robustness.csv (NH3-FINAL-1.1)
+    NH3_MODEL=1.2 python frontier_swap.py     -> nh3_1_2/frontier_swap.json, nh3_1_2/frontier_swap_robustness.csv
+
+With NH3_MODEL=1.2 kinetics_swap builds the 14,510 process states of NH3-FINAL-1.2 (run nh3_final_1_2_20261013), the
+reproduction gate checks the committed 1.2 headline variant (states '1.2', plug flow, measured rates) of
+analysis/nh3_staged_converter_2026_10_12/nh3_1_2/kinetics_swap.json, and the descriptor Ru-price parity of item 3 is
+checked against the 1.2 Fig. 2 Ru price sweep (analysis/fe_bridge_backward_2026_09_29/nh3_1_2/ru_price_sweep.csv)
+instead of the 1.1 manuscript value 163.76 USD/kg.
 """
 from __future__ import annotations
 
@@ -26,9 +33,16 @@ SC = REPO / "analysis" / "nh3_staged_converter_2026_10_12"
 sys.path.insert(0, str(SC))
 import kinetics_swap as KS  # noqa: E402
 
+NM = KS.NM                                   # NH3_MODEL=1.1 (default) | 1.2, analysis/nh3_model.py
+OUT = NM.out_dir(HERE)                       # this folder for 1.1, nh3_1_2/ for 1.2
 hc = KS.hc
 P_RU, P_FE = KS.P_RU, hc.PRICE["Fe"]
 R_HEAD = 0.9555
+# committed headline of the plug-flow / measured-rate variant, rounded as quoted (README of the kinetics swap)
+HEADLINE = {
+    "1.1": dict(Fe=(15.58, 425.0, 170.0), Ru_benchmark=(28.07, 325.0), parity=(24.6, 1), gaps=[-1.36, 1.12, -1.07, 1.86]),
+    "1.2": dict(Fe=(14.93, 450.0, 140.0), Ru_benchmark=(33.07, 735.0), parity=(13.95, 2), gaps=[-3.46, 1.45, -1.41, 1.73]),
+}[NM.VERSION]
 
 
 def close(a, b, tol):
@@ -127,8 +141,8 @@ def main():
     h = KS.build(False)
     st = KS.state_arrays(h)
     # ---- 0. reproduce the committed headline -----------------------------------------------------------------
-    committed = json.loads((SC / "kinetics_swap.json").read_text(encoding="utf-8"))
-    cv = next(v for v in committed["variants"] if v["states"] == "frozen" and v["sizing"] == "plug" and v["scale"] == "source")
+    committed = json.loads((KS.OUT / "kinetics_swap.json").read_text(encoding="utf-8"))
+    cv = next(v for v in committed["variants"] if v["states"] == KS.STATES[0] and v["sizing"] == "plug" and v["scale"] == "source")
     _, V0, _, _ = h.cost_arrays("Fe", h.frozen_state_logtof(hc.EN0_CANON["Fe"]))
     j0 = next(i for i in range(h.NSTATE) if (h.state_T[i], h.state_P[i], h.state_Tsep[i]) == KS.CAL_STATE)
     rv = KS.evaluate(h, st, "plug", "source", float(V0[j0]))
@@ -144,11 +158,12 @@ def main():
                 parity_multiple=rv["Ru_activity_multiple_for_parity"],
                 RuC_minus_Fe={k: dict(global_=sup[k]["Ru_minus_Fe_global"], KAAP=sup[k]["Ru_minus_Fe_KAAP"])
                               for k in ("cashflow 0% r 0.9555", "cashflow 12% r 0.9555")})
-    assert round(head["Fe"]["cost"], 2) == 15.58 and head["Fe"]["T_C"] == 425 and head["Fe"]["P_bar"] == 170
-    assert round(head["Ru_benchmark"]["cost"], 2) == 28.07 and head["Ru_benchmark"]["P_bar"] == 325
-    assert round(head["parity_multiple"], 1) == 24.6
+    E = HEADLINE
+    assert round(head["Fe"]["cost"], 2) == E["Fe"][0] and head["Fe"]["T_C"] == E["Fe"][1] and head["Fe"]["P_bar"] == E["Fe"][2]
+    assert round(head["Ru_benchmark"]["cost"], 2) == E["Ru_benchmark"][0] and head["Ru_benchmark"]["P_bar"] == E["Ru_benchmark"][1]
+    assert round(head["parity_multiple"], E["parity"][1]) == E["parity"][0]
     c0, c12 = head["RuC_minus_Fe"]["cashflow 0% r 0.9555"], head["RuC_minus_Fe"]["cashflow 12% r 0.9555"]
-    assert [round(v, 2) for v in (c0["global_"], c12["global_"], c0["KAAP"], c12["KAAP"])] == [-1.36, 1.12, -1.07, 1.86]
+    assert [round(v, 2) for v in (c0["global_"], c12["global_"], c0["KAAP"], c12["KAAP"])] == E["gaps"]
     out["reproduced_headline"] = head
     print("headline reproduced:", json.dumps(head, default=float)[:400], flush=True)
 
@@ -195,7 +210,8 @@ def main():
         return float(np.min(M.ru_bench(p_ru=10.0 ** lp)[0][0])) - fe_target
     p_par = 10 ** brentq(gp, -2.0, 6.0, xtol=1e-12)
     (bt, bp), bV = M.ru_bench(p_ru=p_par)
-    # same sweep on the frozen descriptor kinetics (reproduces the manuscript's 163.76 USD/kg)
+    # same sweep on the frozen descriptor kinetics (1.1: reproduces the manuscript's 163.76 USD/kg; 1.2: the 1.2 Fig. 2
+    # Ru price sweep's parity price, last row of fe_bridge_backward_2026_09_29/nh3_1_2/ru_price_sweep.csv)
     lv = h.frozen_state_logtof(hc.EN0_CANON["Ru"])
     fe_fr = KS.FROZEN["Fe"]
 
@@ -203,9 +219,18 @@ def main():
         tot, V, _, _ = h.cost_arrays("Ru", lv, price=10.0 ** lp)
         return float(np.min(np.where(V <= h.V_CAP, tot, np.inf))) - fe_fr
     p_fr = 10 ** brentq(gf, -2.0, 6.0, xtol=1e-12)
+    if NM.VERSION == "1.1":
+        ref = dict(frozen_descriptor_manuscript=163.76)
+    else:
+        sweep = REPO / "analysis" / "fe_bridge_backward_2026_09_29" / "nh3_1_2" / "ru_price_sweep.csv"
+        with sweep.open(encoding="utf-8") as f:
+            p_ref = float(list(csv.DictReader(f))[-1]["price_USD_kg"])
+        close(p_fr, p_ref, 1e-6 * p_ref)
+        ref = dict(frozen_descriptor_reference=p_ref,
+                   frozen_descriptor_reference_source="analysis/fe_bridge_backward_2026_09_29/nh3_1_2/ru_price_sweep.csv (last row)")
     out["3_Ru_price_parity_benchmark"] = dict(
         measured_kinetics_USD_kg=p_par, at_parity=opt(h, bt, bV),
-        frozen_descriptor_USD_kg_recomputed=p_fr, frozen_descriptor_manuscript=163.76,
+        frozen_descriptor_USD_kg_recomputed=p_fr, **ref,
         Ru_benchmark_best_100_200_bar=rv["Ru_benchmark_best_100_200_bar"],
         Ru_benchmark_best_100_200_bar_minus_optimum=rv["Ru_benchmark_best_100_200_bar"]["cost"] - rv["Ru_benchmark"]["cost"])
 
@@ -241,7 +266,7 @@ def main():
             row[f"RuC_P_12_{where}"] = g12[where]["Ru_C"]["P_bar"]
             row[f"breakeven_{where}"] = breakeven(mm, where, **kw)
         rows.append(row)
-    with (HERE / "frontier_swap_robustness.csv").open("w", newline="", encoding="utf-8") as f:
+    with (OUT / "frontier_swap_robustness.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         for r in rows:
@@ -250,12 +275,18 @@ def main():
     for where in ("global", "KAAP"):
         fe12 = [r for r in rows if r[f"gap_12_{where}"] > 0]
         ru0 = [r for r in rows if r[f"gap_0_{where}"] < 0]
+        # a gap of -inf / +inf means Fe / Ru/C has no state within the 90 m3 bed cap (none in 1.1; in 1.2 Fe with
+        # effectiveness 0.5 in the KAAP-type loop); min / max are taken over the cases where both are feasible
+        fin = [r for r in rows if math.isfinite(r[f"gap_0_{where}"]) and math.isfinite(r[f"gap_12_{where}"])]
         summ[where] = dict(
             n_cases=len(rows), Fe_ahead_at_12=len(fe12), RuC_ahead_at_0=len(ru0),
-            min_gap_12=min((r[f"gap_12_{where}"], r["case"]) for r in rows),
-            max_gap_0=max((r[f"gap_0_{where}"], r["case"]) for r in rows),
+            min_gap_12=min((r[f"gap_12_{where}"], r["case"]) for r in fin),
+            max_gap_0=max((r[f"gap_0_{where}"], r["case"]) for r in fin),
             exceptions_12=[r["case"] for r in rows if r[f"gap_12_{where}"] <= 0],
             exceptions_0=[r["case"] for r in rows if r[f"gap_0_{where}"] >= 0])
+        bad = {k: [r["case"] for r in rows if any(r[f"gap_{t}_{where}"] == s for t in (0, 12))]
+               for k, s in (("Fe_infeasible", -math.inf), ("RuC_infeasible", math.inf))}
+        summ[where].update({k: v for k, v in bad.items() if v})
     g0 = gaps(M, 0.0)["global"]
     dec = {k: g0["Ru_C"][k] - g0["Fe"][k] for k in ("process", "reactor", "metal")}
     dec["total"] = g0["gap"]
@@ -264,7 +295,9 @@ def main():
         RuC_minus_Fe=dec, Ru_C=g0["Ru_C"], Fe=g0["Fe"],
         note="process = compression energy + compressor CAPEX + refrigeration (state_process_cost); "
              "reactor = converter vessel proxy + Turton pressure premium; metal = catalyst metal charge"))
-    (HERE / "frontier_swap.json").write_text(json.dumps(KS._clean(out), indent=1) + "\n", encoding="utf-8")
+    if NM.VERSION != "1.1":                      # run identity (the 1.1 file is unchanged)
+        out["model"] = dict(version=NM.VERSION, run=NM.RUNS[NM.VERSION], n_states=int(h.NSTATE), F_CAL=float(h.F_CAL))
+    (OUT / "frontier_swap.json").write_text(json.dumps(KS._clean(out), indent=1) + "\n", encoding="utf-8")
     print(json.dumps(KS._clean({k: v for k, v in out.items() if k != "5_robustness"}), indent=1)[:6000])
     print(json.dumps(KS._clean(out["5_robustness"]["summary"]), indent=1))
     print(json.dumps(KS._clean(out["5_robustness"]["decomposition_0pct_global"]), indent=1))
