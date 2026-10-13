@@ -49,6 +49,9 @@ Cohort: the printed primary (40 comparison groups, 310 entries, 28 papers).
 | Near-infeasible disagreements (PR #69 rule; > 5 %) | 0 | 11 (10) |
 | Ordinary disagreements (> 5 %) | 15 (7) | 17 (12) |
 | Noise-robust disagreements (×1, ≥ 90 %) that are ordinary | 11 of 11 | 13 of 24 |
+| Noise-robust (×1, ≥ 90 %): ordinary / near-infeasible (median regret) | 11 / 0 | 13 (13.6 %) / 11 (62.8 %) |
+| Noise-robust (×2, ≥ 90 %): ordinary / near-infeasible (median regret) | 9 / 0 | 10 (13.5 %) / 10 (70.4 %) |
+| Noise-robust (×4, ≥ 90 %): ordinary / near-infeasible (median regret) | 5 / 0 | 8 (13.5 %) / 6 (70.4 %) |
 
 
 Notes on the tables:
@@ -60,7 +63,8 @@ Notes on the tables:
 - Regrets of the 24 S6 disagreements kept at ×1 (%): 2.6, 3.7, 8.2, 9.6, 11.9, 12.9, 13.3, 13.6, 14.5, 21.7, 23.1,
   36.4, 37.6, 53.1, 54.9, 61.3, 62.8, 78.5, 79.6, 83.1, 98.3, 108.8, 157.6, 299.4. Of these 24, 13 are ordinary and
   11 are near-infeasible under the PR #69 rule (regret > 1, or the STY leader's S6 cost > 2× its S5 cost). All 11
-  near-infeasible disagreements are noise-robust.
+  near-infeasible disagreements are noise-robust. At ×2 the robust set is 10 ordinary + 10 near-infeasible, at ×4
+  8 + 6: the ordinary core shrinks less with noise than the S5 set (11 → 9 → 5).
 - The four S6 disagreements that are not robust have probabilities 0.48–0.64. The kept ones start at 0.938.
 - **Response-surface accuracy is lower under S6.** The constraint makes cost jump where a purge level enters or leaves
   the eligible set.

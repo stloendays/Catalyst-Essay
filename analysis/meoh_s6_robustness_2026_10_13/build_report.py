@@ -59,6 +59,15 @@ def main():
                noise_robust_S6_k1_ordinary=dict(ordinary=len(robust_ordinary), of=len(robust6),
                                                near_infeasible=sum(cls.get(g) == "near-infeasible" for g in robust6),
                                                ordinary_groups=robust_ordinary))
+    reg6 = dict(zip(*[pd.read_csv(HERE / "stats_s6" / "group_noise_probabilities.csv")[c]
+                      for c in ("group", "observed_regret")]))
+    res["noise_robust_S6_by_class"] = {}
+    for k in ("k1", "k2", "k4"):
+        kept = n6["noise"][k]["kept_groups"]
+        res["noise_robust_S6_by_class"][k] = {
+            c: dict(groups=len(g), gt5pct=sum(reg6[x] > 0.05 for x in g),
+                    median_regret=float(np.median([reg6[x] for x in g])) if g else None)
+            for c in ("ordinary", "near-infeasible") for g in [[x for x in kept if cls.get(x) == c]]}
 
     # ------------------------------------------------------------ anchors -----------------------------------------
     frozen_stats = jload(FROZEN_STATS / "summary.json")
@@ -194,7 +203,14 @@ def tables(r):
             f"({ni['near-infeasible']['gt5pct']}) |",
             f"| Ordinary disagreements (> 5 %) | 15 (7) | {ni['ordinary']['groups']} ({ni['ordinary']['gt5pct']}) |",
             f"| Noise-robust disagreements (×1, ≥ 90 %) that are ordinary | {n5['noise']['k1']['kept_ge90']} of "
-            f"{n5['noise']['k1']['kept_ge90']} | {rb['ordinary']} of {rb['of']} |", ""]
+            f"{n5['noise']['k1']['kept_ge90']} | {rb['ordinary']} of {rb['of']} |"]
+    for k in ("k1", "k2", "k4"):
+        b = r["noise_robust_S6_by_class"][k]
+        o, q = b["ordinary"], b["near-infeasible"]
+        m = lambda x: "–" if x["median_regret"] is None else pct(x["median_regret"], 1)   # noqa: E731
+        out.append(f"| Noise-robust (×{k[1]}, ≥ 90 %): ordinary / near-infeasible (median regret) | "
+                   f"{n5['noise'][k]['kept_ge90']} / 0 | {o['groups']} ({m(o)}) / {q['groups']} ({m(q)}) |")
+    out.append("")
     return "\n".join(out)
 
 

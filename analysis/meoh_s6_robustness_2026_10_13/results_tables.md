@@ -38,3 +38,6 @@
 | Near-infeasible disagreements (PR #69 rule; > 5 %) | 0 | 11 (10) |
 | Ordinary disagreements (> 5 %) | 15 (7) | 17 (12) |
 | Noise-robust disagreements (×1, ≥ 90 %) that are ordinary | 11 of 11 | 13 of 24 |
+| Noise-robust (×1, ≥ 90 %): ordinary / near-infeasible (median regret) | 11 / 0 | 13 (13.6 %) / 11 (62.8 %) |
+| Noise-robust (×2, ≥ 90 %): ordinary / near-infeasible (median regret) | 9 / 0 | 10 (13.5 %) / 10 (70.4 %) |
+| Noise-robust (×4, ≥ 90 %): ordinary / near-infeasible (median regret) | 5 / 0 | 8 (13.5 %) / 6 (70.4 %) |
