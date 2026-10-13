@@ -76,7 +76,7 @@ render <- function(device = c("svg", "pdf", "png")) {
   axis(1); axis(2); box(bty = "l")
   legend("topright", legend = c("P(C_Fe < C_Ru) = 5,000/5,000",
                                 sprintf("minimum gap = %.3f USD/t", val[["min_Ru_minus_Fe_cost_MC"]]),
-                                sprintf("median gap = %.3f USD/t", val[["median_Ru_minus_Fe_cost_MC"]])),
+                                sprintf("median gap = %.2f USD/t", val[["median_Ru_minus_Fe_cost_MC"]])),
          bty = "o", bg = "white", box.col = "#B0B0B0", cex = 0.72)
   mtext("b   Joint cost uncertainty does not reverse Fe versus Ru", side = 3, adj = 0, line = 0.8, font = 2, cex = 0.95)
 

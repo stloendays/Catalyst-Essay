@@ -6,7 +6,7 @@ An automated agent extends the analysis to published and computed catalysts. 183
 |---|---|---|
 | a | ACSA workflow (schematic) | — |
 | b | extraction accuracy by source | `agent/extraction/eval/field_accuracy_by_source.csv` |
-| c | transition-metal bimetallic surfaces in the bed limit, cost against activity | `analysis/nh3_alloy_extension_2026_10_05/alloy_chain_results.csv` |
+| c | transition-metal bimetallic surfaces in the bed limit, cost against activity | `analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/alloy_chain_results.csv` (NH3-FINAL-1.2) |
 | d | published methanol comparisons whose leader changes | `analysis/meoh_literature_inversion_2026_10_05/summary.json` |
 | e | two comparison groups, STY against net cost | `analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv` |
 

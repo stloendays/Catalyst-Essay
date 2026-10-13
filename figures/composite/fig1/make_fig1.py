@@ -72,6 +72,14 @@ cG = np.array([float(r["gain_673K"]) for r in curve])
 curve_logtof = M["Ru"]["logTOF_673K"] + np.log10(cG)
 
 
+def mnum(fmt, v):
+    """A number with a typographic minus sign."""
+    return (fmt % v).replace("-", "−")
+
+
+OFF = ("Ag", "Au")                                     # off-scale metals, values printed beside the arrows
+
+
 def color_of(m):
     return C.get(m, OTHER)
 
@@ -375,7 +383,7 @@ for m, (txt, dx, dy, ha) in lab_c.items():
 for m, dx in (("Ag", -0.06), ("Au", 0.06)):
     axc.annotate("", xy=(M[m]["E_N_eV"] + dx, -31.6), xytext=(M[m]["E_N_eV"] + dx, -27.2),
                  arrowprops=dict(arrowstyle="-|>", lw=0.5, color=MID, mutation_scale=4))
-axc.text(2.55, -26.4, "Ag, Au\n(−52, −53)", fontsize=5.3, color=MID, ha="center", va="bottom")
+axc.text(2.55, -26.4, "Ag, Au\n(%s)" % ", ".join(mnum("%d", round(M[m]["logTOF_673K"])) for m in OFF), fontsize=5.3, color=MID, ha="center", va="bottom")
 axc.set_xlim(-2.5, 3.4)
 axc.set_ylim(-32, 1.5)
 axc.set_xlabel(r"$E_\mathrm{N}$ at the step (eV)")
@@ -403,7 +411,7 @@ for m, (txt, dx, dy, ha) in lab_d.items():
 for m, dx in (("Ag", -0.06), ("Au", 0.06)):
     axd.annotate("", xy=(M[m]["E_N_eV"] + dx, 24.6), xytext=(M[m]["E_N_eV"] + dx, 20.2),
                  arrowprops=dict(arrowstyle="-|>", lw=0.5, color=MID, mutation_scale=4))
-axd.text(2.55, 19.5, "Ag, Au\n(43, 45)", fontsize=5.3, color=MID, ha="center", va="top")
+axd.text(2.55, 19.5, "Ag, Au\n(%s)" % ", ".join("%d" % round(M[m]["log10_min_bed_m3"]) for m in OFF), fontsize=5.3, color=MID, ha="center", va="top")
 axd.set_xlim(-2.5, 3.4)
 axd.set_ylim(-5, 25)
 axd.set_xlabel(r"$E_\mathrm{N}$ at the step (eV)")
@@ -447,7 +455,8 @@ axe.set_xlim(-30, 0.5)
 axe.set_ylim(1, 2e6)
 axe.set_xlabel(r"log$_{10}$ TOF at 673 K (s$^{-1}$)")
 axe.set_ylabel(r"Metal price (USD kg$^{-1}$)")
-axe.text(0.03, 0.97, "Ag, Au off scale\n(TOF 10$^{−52}$, 10$^{−53}$)", transform=axe.transAxes,
+axe.text(0.03, 0.97, "Ag, Au off scale\n(TOF %s)" % ", ".join("10$^{%s}$" % mnum("%d", round(M[m]["logTOF_673K"]))
+                                                           for m in OFF), transform=axe.transAxes,
          fontsize=5.3, color=MID, ha="left", va="top")
 
 # ---- row 3 ------------------------------------------------------------------
@@ -473,7 +482,7 @@ for r in metals:
              fontweight="bold" if front else "normal", color=INK if front else MID)
 axf.text(0, -0.25, "Atomic\nactivity rank", ha="center", va="bottom", fontsize=6.3)
 axf.text(1, -0.25, "Economic\nrank", ha="center", va="bottom", fontsize=6.3)
-axf.text(0.5, 16.55, "top 3: ρ = −0.50", ha="center", va="center", fontsize=6.3, color=RED,
+axf.text(0.5, 16.55, "top 3: ρ = %s" % mnum("%.2f", float(rolling[0]["rho_raw"])), ha="center", va="center", fontsize=6.3, color=RED,
          fontweight="bold")
 axf.text(0.5, 17.6, "all 15: ρ = %.3f" % float(rolling[-1]["rho_raw"]), ha="center", va="center", fontsize=6.0,
          color=MID)
@@ -489,7 +498,7 @@ axg.fill_between(K, rho, 0, where=rho < 0, color=RED, alpha=0.18, lw=0, interpol
 axg.plot(K, rho, color=INK, lw=0.9, zorder=2)
 axg.plot(K, rho, "o", ms=3.0, mfc="white", mec=INK, mew=0.6, zorder=3)
 axg.plot(K[0], rho[0], "o", ms=4.2, mfc=RED, mec=INK, mew=0.5, zorder=4)
-axg.annotate("K = 3: ρ = −0.50", (K[0], rho[0]), xytext=(8, -2), textcoords="offset points",
+axg.annotate("K = %d: ρ = %s" % (K[0], mnum("%.2f", rho[0])), (K[0], rho[0]), xytext=(8, -2), textcoords="offset points",
              fontsize=6.0, color=RED, fontweight="bold", va="center")
 axg.annotate("K = 15: ρ = %.3f" % rho[-1], (K[-1], rho[-1]), xytext=(14.6, 0.30), textcoords="data",
              fontsize=6.0, color=INK, ha="right", va="center",

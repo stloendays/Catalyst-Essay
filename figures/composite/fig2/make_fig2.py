@@ -457,8 +457,9 @@ hh_.axvline(0, color=RED, lw=0.9, ls=(0, (3, 1.6)), zorder=4)
 hh_.text(0.35, 380, "Ru = Fe", color=RED, fontsize=5.8, fontweight="bold", va="top")
 med = f3["median_Ru_minus_Fe_cost_MC"]
 mn = f3["min_Ru_minus_Fe_cost_MC"]
+assert f3["P_C_Fe_lt_C_Ru_cost_MC"] == 1.0 and mn > 0      # "Fe cheaper in 5,000 / 5,000 draws"
 hh_.axvline(med, color=INK, lw=0.6, zorder=4)
-hh_.text(med + 0.25, 380, "median %.3f" % med, fontsize=5.6, va="top")
+hh_.text(med + 0.25, 380, "median %.2f" % med, fontsize=5.6, va="top")   # min to 3 decimals as in the main text
 hh_.annotate("min\n%.3f" % mn, (mn, 20), xytext=(0.3, 150), fontsize=5.6, ha="left", va="bottom",
              linespacing=1.05, arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=1))
 hh_.text(0.97, 0.66, "Fe cheaper in\n5,000 / 5,000\ndraws", transform=hh_.transAxes, ha="right", va="top",

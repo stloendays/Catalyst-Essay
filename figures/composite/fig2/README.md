@@ -3,16 +3,18 @@
 Metal cost and process reoptimization jointly define the ammonia decision boundary.
 183 × 170 mm, eight panels: `Fig2.{svg,pdf,png}`.
 
+The figure is drawn from NH3-FINAL-1.2 (canonical run `nh3_final_1_2_20261013`, 14,510 process states): the model tables in `nh3_1_2/` and the `nh3_1_2/` outputs of the analyses below. The sections *Model tables* and *Ru at its actual catalyst cost* document the NH3-FINAL-1.1 tables kept in this folder; `nh3_1_2/README.md` lists the 1.1 → 1.2 numbers.
+
 | Panel | Content | Source |
 |---|---|---|
 | a | NH3 synthesis loop: fresh-feed compressor, converter, chiller, separator, recycle compressor; the cost pools each unit carries and the decision variables T, P, T_sep | schematic |
-| b | catalyst bed at the Fe, Ru and Ru-priced-as-Fe optima, to scale (L/D = 3), with operating state and metal-inventory cost | `renders/bed_*.png`, `fig2_pressure_envelopes.csv` |
-| c | lowest feasible cost against synthesis pressure, T and T_sep reoptimized, for Fe, Ru, Os and Ru priced as Fe | `fig2_pressure_envelopes.csv` |
-| d | Ru at its actual catalyst cost: Ru reoptimized over all 14,136 states against the effective metal price p(1−r)/u, with pure Ru, supported Ru/C, Ru/C with 90–97% recovery and the KAAP loop marked (circles and diamonds: benchmark formulation; squares: the commercial Ru/C catalyst's own bed at 8 wt% Ru and 490 kg m⁻³, bars over 5–10 wt% and 430–550 kg m⁻³); below, the Ru activity multiple needed for parity at each effective price, with the own-bed range | `fig2_ru_price_sweep.csv`, `fig2_ru_actual_cost_points.csv`, `fig2_ru_alpha_sweep.csv`, `fig2_ru_bed_sensitivity.csv` |
-| e | where the canonical 6.739 USD/t Ru − Fe gap sits, and the equal-price intervention | `analysis/supervisor_2026_09_20/nh3_cost_decomposition.csv` |
-| f | the 1,000 frozen descriptor draws in (Fe E_N, Ru E_N), coloured by economic winner, with the Fe bed-feasibility interval | `closure/mc_draws.csv` |
-| g | decision endpoints across those draws | `analysis/supervisor_2026_09_20/f3_panel_summary.csv` |
-| h | Ru − Fe cost gap across the 5,000 preregistered joint cost draws | `analysis/supervisor_2026_09_20/nh3_cost_mc_histogram.csv` |
+| b | catalyst bed at the Fe, Ru and Ru-priced-as-Fe optima, to scale (L/D = 3), with operating state and metal-inventory cost | `renders/bed_*.png`, `nh3_1_2/fig2_pressure_envelopes.csv` |
+| c | lowest feasible cost against synthesis pressure, T and T_sep reoptimized, for Fe, Ru, Os and Ru priced as Fe | `nh3_1_2/fig2_pressure_envelopes.csv` |
+| d | Ru at its actual catalyst cost: Ru reoptimized over all 14,510 states against the effective metal price p(1−r)/u, with pure Ru, supported Ru/C, Ru/C with 90–95.55% recovery and the KAAP loop marked (circles and diamonds: benchmark formulation; squares: the commercial Ru/C catalyst's own bed at 8 wt% Ru and 490 kg m⁻³, bars over 5–10 wt% and 430–550 kg m⁻³); below, the Ru activity multiple needed for parity at each effective price, with the own-bed range | `nh3_1_2/fig2_ru_price_sweep.csv`, `fig2_ru_actual_cost_points.csv`, `fig2_ru_alpha_sweep.csv`, `fig2_ru_bed_sensitivity.csv` |
+| e | where the canonical 5.117 USD/t Ru − Fe gap sits, and the equal-price intervention | `analysis/supervisor_2026_09_20/nh3_1_2/nh3_cost_decomposition.csv` |
+| f | the 1,000 descriptor draws in (Fe E_N, Ru E_N), coloured by economic winner, with the Fe bed-feasibility interval | `closure/mc_draws.csv` of the 1.2 run |
+| g | decision endpoints across those draws | `analysis/supervisor_2026_09_20/nh3_1_2/f3_panel_summary.csv` |
+| h | Ru − Fe cost gap across the 5,000 preregistered joint cost draws | `analysis/supervisor_2026_09_20/nh3_1_2/nh3_cost_mc_histogram.csv` |
 
 ## Model tables
 
