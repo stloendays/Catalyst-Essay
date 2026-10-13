@@ -1,17 +1,31 @@
 """Validate all promoted non-figure derived diagnostics from frozen repository sources.
 
 No DFT, process optimization or LLM calls are executed.
+
+NH3_MODEL=1.1 (default) validates the committed files in this folder against NH3-FINAL-1.1 exactly as before.
+NH3_MODEL=1.2 validates nh3_1_2/ against the NH3-FINAL-1.2 canonical run (analysis/nh3_model.py); the MeOH, Au/TiO2
+and Agent checks are model-independent and the MeOH and Au/TiO2 rows must equal the 1.1 rows.
 """
 from __future__ import annotations
 
 import csv
 import json
 import math
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-RUN = ROOT / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+sys.path.insert(0, str(ROOT / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+VERSION = NM.VERSION
+if VERSION == "1.1":
+    RUN = ROOT / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+    OUT = HERE
+else:
+    RUN = NM.run_dir()
+    OUT = HERE / "nh3_1_2"
 
 
 def rows(path):
@@ -24,7 +38,7 @@ def close(a, b, tol=1e-10):
 
 
 # ---- decision regret ---------------------------------------------------------
-reg = {r["system"]: r for r in rows(HERE / "decision_regret_summary.csv")}
+reg = {r["system"]: r for r in rows(OUT / "decision_regret_summary.csv")}
 res = json.loads((RUN / "results.json").read_text(encoding="utf-8"))
 fe = float(res["deterministic"]["metals"]["Fe"]["feasible"]["total_cost"])
 ru = float(res["deterministic"]["metals"]["Ru"]["feasible"]["total_cost"])
@@ -37,26 +51,66 @@ best = float(meoh["5 wt% Re | 200 C"]["NPC_EUR_t_2pct_purge"])
 r_meoh = (up - best) / best
 assert close(reg["MeOH"]["normalized_decision_regret"], r_meoh, 1e-12)
 assert close(reg["AuTiO2"]["normalized_decision_regret"], 0.0, 0.0)
+if VERSION != "1.1":
+    A = NM.anchors()
+    assert close(fe, A["Fe"], 0.0) and close(ru, A["Ru"], 0.0)
+    assert close(reg["NH3"]["upstream_selected_downstream_objective"], ru, 1e-12)
+    assert close(reg["NH3"]["best_downstream_objective"], fe, 1e-12)
+    for name in ("decision_regret_summary.csv", "pairwise_inversion_index.csv", "decision_regret_uncertainty_sign.csv"):
+        r11 = {r["system"]: r for r in rows(HERE / name)}
+        r12 = {r["system"]: r for r in rows(OUT / name)}
+        assert set(r11) == set(r12) and all(r12[k] == r11[k] for k in r11 if k != "NH3"), name
 
 # Cost-side uncertainty distribution of NH3 decision regret is reconstructed by
 # reproduce_nh3_cost_mc.py; this lightweight gate checks the promoted summary
 # against the already frozen 2026-09-20 cost-MC source.
-reg_mc = json.loads((HERE / "nh3_cost_mc_regret_summary.json").read_text(encoding="utf-8"))
-cost_mc = json.loads((ROOT / "analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
-assert reg_mc["draws"] == cost_mc["draws"] == 5000
-assert reg_mc["seed"] == cost_mc["seed"] == 20260920
-assert reg_mc["P_regret_gt_0"] == cost_mc["full_14136_state_direct_cost_verification"]["P_C_Fe_lt_C_Ru"] == 1.0
+reg_mc = json.loads((OUT / "nh3_cost_mc_regret_summary.json").read_text(encoding="utf-8"))
 rq = reg_mc["regret_quantiles"]
-assert close(rq["p05"], 0.30479402441495995, 1e-12)
-assert close(rq["p50"], 0.4088909107436396, 1e-12)
-assert close(rq["p95"], 0.5425375993576715, 1e-12)
+if VERSION == "1.1":
+    cost_mc = json.loads((ROOT / "analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
+    assert reg_mc["draws"] == cost_mc["draws"] == 5000
+    assert reg_mc["seed"] == cost_mc["seed"] == 20260920
+    assert reg_mc["P_regret_gt_0"] == cost_mc["full_14136_state_direct_cost_verification"]["P_C_Fe_lt_C_Ru"] == 1.0
+    assert close(rq["p05"], 0.30479402441495995, 1e-12)
+    assert close(rq["p50"], 0.4088909107436396, 1e-12)
+    assert close(rq["p95"], 0.5425375993576715, 1e-12)
+else:
+    # No earlier 1.2 cost summary exists: check the 1.2 summary against its run, its own definition and, when the
+    # draw table is present (reproduce_nh3_cost_mc.py writes it; not committed), against the draws themselves.
+    assert reg_mc["model"] == NM.LABEL and reg_mc["run"] == NM.RUNS[VERSION]
+    assert reg_mc["draws"] == 5000 and reg_mc["seed"] == 20260920
+    assert reg_mc["process_state_count"] == A["NSTATE"]
+    assert close(reg_mc["deterministic_regret"], r_nh3, 1e-12)
+    assert reg_mc["P_regret_gt_0"] == 1.0 and reg_mc["count_regret_gt_0"] == 5000 and rq["min"] > 0
+    assert rq["min"] <= rq["p05"] <= rq["p50"] <= rq["p95"] <= rq["max"]
+    draws_csv = OUT / "nh3_cost_mc_draws_reproduced.csv"
+    if draws_csv.exists():
+        dr = rows(draws_csv)
+        assert len(dr) == 5000
+
+        def quant(v, q):  # numpy's default (linear) quantile
+            v = sorted(v)
+            pos = q * (len(v) - 1)
+            lo = int(math.floor(pos))
+            hi = min(lo + 1, len(v) - 1)
+            return v[lo] + (v[hi] - v[lo]) * (pos - lo)
+
+        rg = [float(r["normalized_regret"]) for r in dr]
+        assert close(min(rg), rq["min"], 1e-12) and close(max(rg), rq["max"], 1e-12)
+        for q, key in ((0.05, "p05"), (0.50, "p50"), (0.95, "p95")):
+            assert close(quant(rg, q), rq[key], 1e-12)
+            assert close(quant([float(r["gap_Ru_minus_Fe_USD_t"]) for r in dr], q), reg_mc["gap_and_cost_quantiles"]["gap_" + key], 1e-12)
 assert (HERE / "reproduce_nh3_cost_mc.py").exists()
 
 
 # ---- pairwise transfer index ------------------------------------------------
-tr = {r["system"]: r for r in rows(HERE / "pairwise_inversion_index.csv")}
-fig1 = {r["metal"]: r for r in rows(ROOT / "figures/composite/fig1/fig1_metals.csv")}
-s_nh3 = 10 ** (float(fig1["Ru"]["logTOF_673K"]) - float(fig1["Fe"]["logTOF_673K"]))
+tr = {r["system"]: r for r in rows(OUT / "pairwise_inversion_index.csv")}
+if VERSION == "1.1":
+    fig1 = {r["metal"]: r for r in rows(ROOT / "figures/composite/fig1/fig1_metals.csv")}
+    s_nh3 = 10 ** (float(fig1["Ru"]["logTOF_673K"]) - float(fig1["Fe"]["logTOF_673K"]))
+else:  # the atomic-reference logTOF at 673 K of the 1.2 run (fig1_metals.csv logTOF_673K is this column for 1.1)
+    m12 = res["deterministic"]["metals"]
+    s_nh3 = 10 ** (float(m12["Ru"]["activity_logTOF"]) - float(m12["Fe"]["activity_logTOF"]))
 chi_nh3 = math.log(ru / fe) / math.log(s_nh3)
 assert close(tr["NH3"]["pairwise_transfer_index_chi"], chi_nh3, 1e-12)
 
@@ -117,7 +171,7 @@ class LCGNormal:
 cent = {"Fe": -1.392120623747696, "Ru": -1.1333, "Os": -1.1095}
 sig_fe = 0.2271258177356984
 half = 0.15
-corr_rows = {float(r["latent_pairwise_correlation"]): r for r in rows(HERE / "descriptor_correlation_sensitivity.csv")}
+corr_rows = {float(r["latent_pairwise_correlation"]): r for r in rows(OUT / "descriptor_correlation_sensitivity.csv")}
 
 for rho in (0.0, 0.25, 0.5, 0.75, 0.9):
     rng = LCGNormal(20260929 + round(rho * 1000))
@@ -144,7 +198,7 @@ for rho in (0.0, 0.25, 0.5, 0.75, 0.9):
     assert close(rr["P_atomic_top1_Fe"], cnt["Fe"] / n, 5e-8)
 
 # ---- common additive descriptor bias ----------------------------------------
-common = json.loads((HERE / "common_mode_descriptor_shift.json").read_text(encoding="utf-8"))
+common = json.loads((OUT / "common_mode_descriptor_shift.json").read_text(encoding="utf-8"))
 
 
 def diff(delta, a, b):
@@ -164,9 +218,20 @@ def bisect(lo, hi, a, b):
 
 
 sw = common["switch_points_eV"]
-assert close(sw["Ru_Os_equal_activity_delta"], bisect(-0.075, -0.05, "Ru", "Os"), 1e-12)
-assert close(sw["Fe_Os_equal_activity_delta"], bisect(0.10, 0.125, "Fe", "Os"), 1e-12)
-assert close(sw["Fe_Ru_equal_activity_delta"], bisect(0.10, 0.125, "Fe", "Ru"), 1e-12)
+if VERSION == "1.1":
+    assert close(sw["Ru_Os_equal_activity_delta"], bisect(-0.075, -0.05, "Ru", "Os"), 1e-12)
+    assert close(sw["Fe_Os_equal_activity_delta"], bisect(0.10, 0.125, "Fe", "Os"), 1e-12)
+    assert close(sw["Fe_Ru_equal_activity_delta"], bisect(0.10, 0.125, "Fe", "Ru"), 1e-12)
+else:
+    for key, (a, b) in (("Ru_Os", ("Ru", "Os")), ("Fe_Os", ("Fe", "Os")), ("Fe_Ru", ("Fe", "Ru"))):
+        v = sw[key + "_equal_activity_delta"]
+        lo, hi = v - 0.0025, v + 0.0025
+        assert diff(lo, a, b) * diff(hi, a, b) < 0
+        assert close(v, bisect(lo, hi, a, b), 1e-12)
+    neg = max(v for v in sw.values() if v < 0)
+    pos = min(v for v in sw.values() if v > 0)
+    assert common["preserved_interval_eV"] == [neg, pos]
+    assert all(diff(d, "Ru", "Os") > 0 and diff(d, "Os", "Fe") > 0 for d in (neg + 1e-6, 0.0, pos - 1e-6))
 
 # ---- agent stopping efficiency ----------------------------------------------
 src = rows(ROOT / "provenance/discover_v1/source_harness/DISCOVER_BOUNDARY_C1/data/discover_boundary_c1_uncapped_breakeven_audit.csv")
@@ -192,7 +257,7 @@ assert close(stop["total_final_CU"], sum(final), 1e-12)
 assert close(stop["total_post_stability_overrun_CU"], sum(over), 1e-12)
 assert close(stop["fraction_total_compute_after_hindsight_stability"], sum(over) / sum(final), 1e-12)
 
-print("PASS non-figure scientific upgrade audit")
+print("PASS non-figure scientific upgrade audit" + ("" if VERSION == "1.1" else f" ({NM.LABEL}, {OUT.name}/)"))
 print(f"NH3/MeOH/Au regret: {r_nh3:.6f}, {r_meoh:.6f}, 0")
 print(f"NH3 regret MC p05/median/p95: {rq['p05']:.6f} / {rq['p50']:.6f} / {rq['p95']:.6f}")
 print(f"pairwise chi: NH3={chi_nh3:.6f}, MeOH={chi_meoh:.6f}, Au={chi_au:.6f}")
