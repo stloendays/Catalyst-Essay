@@ -81,7 +81,8 @@ def _state_dict(h, s, tpd):
     return dict(
         T_C=s["T_C"], P_bar=s["P_bar"], Tsep_C=s["Tsep_C"], X_N2_per_pass=X, X_over_Xeq=X / s["Xeq"],
         inlet_NH3_molpct=100 * y_in, outlet_NH3_molpct=100 * y_out, delta_NH3_molpct=100 * (y_out - y_in),
-        recycle_to_makeup=s["recycle_total"] / fresh, inlet_Nm3_h=s["inlet_Nm3_h"] * tpd / h.PLANT_TPD,
+        recycle_to_makeup=s["recycle_total"] / fresh, inlet_to_makeup=tot_in / fresh,
+        inlet_Nm3_h=s["inlet_Nm3_h"] * tpd / h.PLANT_TPD,
         inlet_Nm3_h_per_tpd=s["inlet_Nm3_h"] / h.PLANT_TPD,
         fresh_comp_MWh_t=s["fresh_comp"] / el, recycle_comp_MWh_t=s["recycle_comp"] / el,
         refrigeration_MWh_t=s["refrigeration"] / el,
