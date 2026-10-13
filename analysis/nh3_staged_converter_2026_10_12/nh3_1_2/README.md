@@ -29,7 +29,7 @@ the recycle-compressor CAPEX step, the 90 m³ cap — at a corner of the printin
 | Descriptor Fe / Ru optimum (USD/t) | 15.29 / 22.03 | 11.52 / 16.63 |
 | Descriptor Ru parity multiple | 201.22× | 114.67× |
 | Fe optimum, measured (USD/t; T, P, separator; bed) | 15.58; 425 °C, 170 bar, 30 °C; 25.6 m³ | **14.93; 450 °C, 140 bar, 30 °C; 56.3 m³** |
-| Ru benchmark optimum | 28.07 at 450 °C, 325 bar, 30 °C | **33.07 at 450 °C, 735 bar, 30 °C** (within 0.5 USD/t from 400 to 890 bar) |
+| Ru benchmark optimum | 28.07 at 450 °C, 325 bar, 30 °C | **33.07 at 450 °C, 735 bar, 30 °C** (within 0.64 USD/t from 400 to 890 bar; within 0.5 except 435–455 bar) |
 | Ru benchmark, best at 100–200 bar | 29.08 (200 bar), +1.01 over optimum | **38.26 (200 bar), +5.19** |
 | Ru activity multiple for parity with Fe | 24.6× | **13.95×** |
 | … range across variants | 14.6–37.4× (8: sizing × calibration × equilibrium) | **13.95–25.07×** (4: sizing × calibration) |
@@ -55,7 +55,8 @@ All four variants (cash flow 0 %/y and 12 %/y at r 95.55%; USD/t):
 
 No. On NH3-FINAL-1.2 the descriptor Ru optimum is already at 220 bar (from 425 bar in 1.1). Replacing the rate laws by
 the measured ones raises it again: plug flow with the measured rates puts the Ru benchmark optimum at 735 bar
-(33.07 USD/t; the cost is flat within 0.5 USD/t from 400 to 890 bar), and between 100 and 200 bar its best is
+(33.07 USD/t; from 400 to 890 bar the cost stays within 0.64 USD/t of it, and within 0.5 except at 435–455 bar,
+just above a +0.37 USD/t cost step at 435 bar that every 1.1 profile also shows), and between 100 and 200 bar its best is
 38.26 USD/t at 200 bar, 5.19 above the optimum (1.1: 325 bar, +1.01). Across the four variants the optimum lies at
 220–1,000 bar; only the F_CAL-logic plug-flow variant sits at 220 bar, 0.17 USD/t below its 200-bar value. The cause is
 the same as in 1.1: the Ru/C law's apparent H₂ order is +0.32 at 90 bar, 400 °C, 2% NH₃ (positive, lowered by H₂
