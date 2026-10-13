@@ -24,6 +24,10 @@ SUP = "analysis/nh3_supported_2026_10_06/"
 MC = "analysis/nh3_mc_ru_actual_2026_10_06/"
 BENCH = "analysis/meoh_plant_benchmark_2026_10_06/"
 PRUNE = "analysis/meoh_pruning_2026_10_06/"
+S6R = "analysis/meoh_s6_robustness_2026_10_13/"
+STATS6 = S6R + "stats_s6/"
+IDEF = "analysis/meoh_inlet_definition_2026_10_12/"
+CONV6 = "analysis/verify_2026_10_12_s6_conversion/"
 
 
 def path(rel):
@@ -89,10 +93,15 @@ def edfig2():
 
 
 # ------------------------------------------------------------------ ED Fig. 3: methanol robustness --------------
-def bootstrap_distribution():
+# Both loops of the revised manuscript: the inert-limited loop (primary; reactor-inlet CH4 + CO + N2 <= 6.86 %, frozen
+# column cost_recycled_opt_inlet) and the loop without the limit (frozen column cost_recycled_opt).
+LOOPS = (("inlet_limited", "inert-limited loop", STATS6), ("no_limit", "no limit", STATS))
+
+
+def bootstrap_distribution(stats=STATS):
     """Re-draws the paper-cluster bootstrap of run_main_result_stats.py (same seed, same sequence of draws)."""
-    st = rjson(STATS + "summary.json")
-    gp = rcsv(STATS + "group_noise_probabilities.csv")
+    st = rjson(stats + "summary.json")
+    gp = rcsv(stats + "group_noise_probabilities.csv")
     mm0 = gp.observed_mismatch.astype(str).eq("True").to_numpy()
     doi = gp.doi.to_numpy()
     rng = np.random.default_rng(st["noise_model"]["seed"])
@@ -109,74 +118,120 @@ def bootstrap_distribution():
     return boot, st
 
 
-def edfig3():
-    boot, st = bootstrap_distribution()
-    edges = np.arange(0.0, 0.8001, 0.02)
-    cnt, _ = np.histogram(boot, bins=edges)
-    a = pd.DataFrame({"bin_low_fraction": edges[:-1], "bin_high_fraction": edges[1:], "resamples": cnt})
-    a.attrs["point"] = st["point_estimate"]["fraction"]
-    a.attrs["ci"] = st["cluster_bootstrap"]["fraction_ci95"]
-    a.attrs["n"] = st["cluster_bootstrap"]["resamples"]
-    b = rcsv(STATS + "regret_threshold_curve.csv")
-    rows = []
-    labels = {"meas_k1": "re-measured, error x1", "meas_k2": "re-measured, error x2",
-              "meas_k4": "re-measured, error x4", "meas_k1_plus_extraction": "error x1 + plot-reading errors"}
-    labels = {k: v for k, v in labels.items() if k in st["noise"]}      # the printed-value primary has no plot readings
-    for k, lab in labels.items():
-        v = st["noise"][k]
-        rows.append(dict(scenario=k, label=lab, mismatch_groups_mean=v["mismatch_groups_mean"],
-                         mismatch_groups_q025=v["mismatch_groups_q025_q975"][0],
-                         mismatch_groups_q975=v["mismatch_groups_q025_q975"][1],
-                         noise_floor_mean=v["sty_leader_differs_from_reported_mean"],
-                         noise_floor_q025=v["sty_leader_differs_from_reported_q025_q975"][0],
-                         noise_floor_q975=v["sty_leader_differs_from_reported_q025_q975"][1],
-                         robust_ge90pct=v["groups_mismatched_in_ge_90pct_of_draws"]))
-    c = pd.DataFrame(rows)
-    c.attrs["observed"] = st["point_estimate"]["groups"]
-    c.attrs["draws"] = st["noise_model"]["draws"]
-    gp = rcsv(STATS + "group_noise_probabilities.csv")
-    d = gp[gp.observed_mismatch.astype(str) == "True"].copy()
-    d = d.sort_values(["p_mismatch_meas_k1", "observed_regret"], ascending=False).reset_index(drop=True)
-    d = d[["group", "doi", "observed_regret"] + [f"p_mismatch_{k}" for k in labels]]
-    assert int((d.p_mismatch_meas_k1 >= 0.9).sum()) == st["noise"]["meas_k1"]["observed_mismatches_kept_in_ge_90pct"]
-    c.attrs["groups"] = st["groups"]
-    a.attrs["groups"] = st["groups"]
-    e = limit_sweep_table()
-    return {"a": (a, STATS + "group_noise_probabilities.csv (observed_mismatch, doi) re-drawn with the seed and "
-                  "resample count of " + STATS + "summary.json; 95 % CI checked against summary.json"),
-            "b": (b, STATS + "regret_threshold_curve.csv"),
-            "c": (c, STATS + "summary.json (noise.*)"),
-            "d": (d, STATS + "group_noise_probabilities.csv (observed_mismatch == True)"),
-            "e": (e, INV + "summary.json (limit_sweep, isothermal); published reactor-inlet compositions in "
-                  + INV + "inlet_inert_literature.csv")}
+def robustness_checks():
+    """Leader changes under every robustness check of the methanol paragraph, in both loops."""
+    r = rjson(S6R + "results.json")
+    fc, ss, cc = r["frozen_columns"], r["selectivity_split"], r["catalyst_cost"]
+    lit = rjson(INV + "summary.json")["variants"]
+    conv6 = rjson(CONV6 + "s6_conversion_summary.json")["scenarios"]["printed|cost_f0.95"]
+    conv5 = rjson(INV + "conversion_sensitivity_summary.json")["scenarios"]["printed|cost_f0.95"]
 
+    def fr(d):          # entries of results.json (frozen_columns, selectivity_split, catalyst_cost)
+        return d["groups"], d["disagreements"], d["gt5pct"]
 
-def limit_sweep_table():
-    """Share of comparisons whose STY leader is not the plant-cost leader against the limit on the reactor-inlet
-    non-H2/CO2 fraction, for all comparisons and for isothermal catalyst comparisons. Rows: the absolute limits of
-    the sweep, the reference loop value used by the primary, and no limit (plotted at the right edge)."""
-    sm = rjson(INV + "summary.json")
-    ref = float(sm["thermodynamics"]["inlet_limit"])
+    def sm(d):          # meoh_candidates summaries
+        gt5 = d["regret_bins"]["gt5pct"]["groups"] if "regret_bins" in d else d["gt5pct"]
+        return d["groups"], d["top1_mismatch_groups"], gt5
+
+    checks = [
+        ("as published", "primary", fr(fc["S6"]["primary"]), fr(fc["S5"]["primary"]),
+         S6R + "results.json (frozen_columns.S6/S5.primary)"),
+        ("without the study\nwith most comparisons", "without_bansode", fr(fc["S6"]["without_bansode"]),
+         fr(fc["S5"]["without_bansode"]), S6R + "results.json (frozen_columns.S6/S5.without_bansode)"),
+        ("plot-read entries\nadded", "all_entries", sm(lit["all_entries_inlet_limit"]), sm(lit["all_entries"]),
+         INV + "summary.json (variants.all_entries_inlet_limit / all_entries)"),
+        ("products close to\nMeOH, CO, CH$_4$", "closure_ge95", fr(fc["S6"]["closure_ge95"]),
+         fr(fc["S5"]["closure_ge95"]), S6R + "results.json (frozen_columns.S6/S5.closure_ge95)"),
+        ("unreported split:\nall CO", "split_all_CO", fr(ss["S6"]["low"]), fr(ss["S5"]["low"]),
+         S6R + "results.json (selectivity_split.S6/S5.low)"),
+        ("unreported split:\nall CH$_4$", "split_all_CH4", fr(ss["S6"]["high"]), fr(ss["S5"]["high"]),
+         S6R + "results.json (selectivity_split.S6/S5.high)"),
+        ("recycled CO\nas inert", "inert_co", fr(fc["S6"]["inert_co"]), fr(fc["S5"]["inert_co"]),
+         S6R + "results.json (frozen_columns.S6/S5.inert_co)"),
+        ("catalyst priced\nfrom composition", "catalyst_priced", fr(cc["S6"]["variants"]["composition_3y"]),
+         fr(cc["S5"]["variants"]["composition_3y"]),
+         S6R + "results.json (catalyst_cost.S6/S5.variants.composition_3y)"),
+        ("more catalyst,\nconversion raised", "conversion_raised", sm(conv6), sm(conv5),
+         CONV6 + "s6_conversion_summary.json / " + INV + "conversion_sensitivity_summary.json (printed|cost_f0.95)"),
+    ]
     rows = []
-    for key, v in sm["limit_sweep"].items():
-        lim = np.inf if key.startswith("none") else float(key.rstrip("%")) / 100.0
-        iso = sm["isothermal"]["limit_sweep"][key]
-        rows.append(dict(limit=lim, label=key, groups=v["groups"], mismatched=v["top1_mismatch_groups"],
-                         share=v["top1_mismatch_fraction"], iso_groups=iso["groups"],
-                         iso_mismatched=iso["top1_mismatch_groups"], iso_share=iso["top1_mismatch_fraction"]))
-    p, iso = sm["variants"]["inlet_limit_6.86pct"], sm["isothermal"]["variants"]["inlet_limit_6.86pct"]
-    rows.append(dict(limit=ref, label="reference loop %.2f%%" % (100 * ref), groups=p["groups"],
-                     mismatched=p["top1_mismatch_groups"], share=p["top1_mismatch_fraction"],
-                     iso_groups=iso["groups"], iso_mismatched=iso["top1_mismatch_groups"],
-                     iso_share=iso["top1_mismatch_fraction"]))
-    t = pd.DataFrame(rows).sort_values("limit").reset_index(drop=True)
-    t.attrs["reference"] = ref
-    lit = path(INV + "inlet_inert_literature.csv")
-    if os.path.exists(lit):
-        L = pd.read_csv(lit)
-        L = L[L.loop_type.str.upper().str.startswith("CO2") & L.non_h2co2_pct.notna()]
-        t.attrs["literature"] = (float(L.non_h2co2_pct.min()) / 100.0, float(L.non_h2co2_pct.max()) / 100.0, len(L))
+    for label, key, s6, s5, src in checks:
+        for loop, (g, d, h) in (("inlet_limited", s6), ("no_limit", s5)):
+            rows.append(dict(check=label.replace("\n", " ").replace("$_4$", "4"), label=label, key=key, loop=loop,
+                             groups=int(g), disagreements=int(d), regret_gt5pct=int(h), fraction=d / g, source=src))
+    t = pd.DataFrame(rows)
+    v = t.set_index(["key", "loop"])
+    # anchors of the revised text
+    assert tuple(v.loc[("primary", "inlet_limited"), ["disagreements", "regret_gt5pct"]]) == (28, 22)
+    assert tuple(v.loc[("primary", "no_limit"), ["disagreements", "regret_gt5pct"]]) == (15, 7)
+    assert tuple(v.loc[("conversion_raised", "inlet_limited"), ["disagreements", "regret_gt5pct"]]) == (23, 16)
+    assert tuple(v.loc[("conversion_raised", "no_limit"), ["disagreements", "regret_gt5pct"]]) == (14, 3)
+    assert tuple(v.loc[("all_entries", "inlet_limited"), ["groups", "disagreements"]]) == (82, 54)
+    assert tuple(v.loc[("without_bansode", "inlet_limited"), ["groups", "disagreements", "regret_gt5pct"]]) == (32, 21, 17)
     return t
+
+
+def edfig3():
+    parts = {}
+    for loop, name, stats in LOOPS:
+        boot, st = bootstrap_distribution(stats)
+        parts[loop] = (boot, st, name, stats)
+    st0 = parts["no_limit"][1]
+    assert all(p[1]["groups"] == st0["groups"] and p[1]["papers"] == st0["papers"] for p in parts.values())
+    edges = np.arange(0.0, 1.0001, 0.02)
+    a = pd.DataFrame({"bin_low_fraction": edges[:-1], "bin_high_fraction": edges[1:]})
+    for loop, (boot, st, name, _) in parts.items():
+        a["resamples_" + loop] = np.histogram(boot, bins=edges)[0]
+        a.attrs[loop] = dict(name=name, point=st["point_estimate"]["fraction"],
+                             mismatched=st["point_estimate"]["groups"], ci=st["cluster_bootstrap"]["fraction_ci95"])
+    a.attrs["n"] = st0["cluster_bootstrap"]["resamples"]
+    a.attrs["groups"] = st0["groups"]
+    a.attrs["papers"] = st0["papers"]
+    b = None
+    for loop, (_, _, _, stats) in parts.items():
+        cur = rcsv(stats + "regret_threshold_curve.csv")[["threshold", "groups", "papers"]]
+        cur = cur.rename(columns={"groups": "groups_" + loop, "papers": "papers_" + loop})
+        b = cur if b is None else b.merge(cur, on="threshold", validate="one_to_one")
+    rows = []
+    labels = {"meas_k1": "re-measured, error x1", "meas_k2": "re-measured, error x2", "meas_k4": "re-measured, error x4"}
+    for loop, (_, st, name, _) in parts.items():
+        for k, lab in labels.items():
+            v = st["noise"][k]
+            rows.append(dict(loop=loop, scenario=k, label=lab, observed=st["point_estimate"]["groups"],
+                             mismatch_groups_mean=v["mismatch_groups_mean"],
+                             mismatch_groups_q025=v["mismatch_groups_q025_q975"][0],
+                             mismatch_groups_q975=v["mismatch_groups_q025_q975"][1],
+                             noise_floor_mean=v["sty_leader_differs_from_reported_mean"],
+                             noise_floor_q025=v["sty_leader_differs_from_reported_q025_q975"][0],
+                             noise_floor_q975=v["sty_leader_differs_from_reported_q025_q975"][1],
+                             robust_ge90pct=v["observed_mismatches_kept_in_ge_90pct"]))
+    c = pd.DataFrame(rows)
+    c.attrs["draws"] = st0["noise_model"]["draws"]
+    c.attrs["groups"] = st0["groups"]
+    cls = rcsv(S6R + "s6_groups.csv").set_index("group").cls
+    d = []
+    for loop, (_, st, name, stats) in parts.items():
+        gp = rcsv(stats + "group_noise_probabilities.csv")
+        m = gp[gp.observed_mismatch.astype(str) == "True"].copy()
+        m = m.sort_values(["p_mismatch_meas_k1", "observed_regret"], ascending=False).reset_index(drop=True)
+        m.insert(0, "loop", loop)
+        m["near_infeasible"] = (m.group.map(cls) == "near-infeasible") if loop == "inlet_limited" else False
+        kept = st["noise"]["meas_k1"]["observed_mismatches_kept_in_ge_90pct"]
+        assert int((m.p_mismatch_meas_k1 >= 0.9).sum()) == kept
+        d.append(m[["loop", "group", "doi", "observed_regret", "p_mismatch_meas_k1", "p_mismatch_meas_k2",
+                    "p_mismatch_meas_k4", "near_infeasible"]])
+    d = pd.concat(d, ignore_index=True)
+    s6 = d[d.loop == "inlet_limited"]
+    assert int(s6.near_infeasible.sum()) == 11 and int((s6.near_infeasible & (s6.p_mismatch_meas_k1 >= 0.9)).sum()) == 11
+    e = robustness_checks()
+    return {"a": (a, "%sgroup_noise_probabilities.csv and %sgroup_noise_probabilities.csv (observed_mismatch, doi) "
+                  "re-drawn with the seed and resample count of each summary.json; 95 %% CIs checked against "
+                  "summary.json" % (STATS6, STATS)),
+            "b": (b, STATS6 + "regret_threshold_curve.csv, " + STATS + "regret_threshold_curve.csv"),
+            "c": (c, STATS6 + "summary.json, " + STATS + "summary.json (noise.*)"),
+            "d": (d, STATS6 + "group_noise_probabilities.csv, " + STATS + "group_noise_probabilities.csv "
+                  "(observed_mismatch == True); near-infeasible: " + S6R + "s6_groups.csv (cls)"),
+            "e": (e, "see column source")}
 
 
 # ------------------------------------------------------------------ ED Fig. 4: measured ammonia catalysts -------
@@ -418,17 +473,56 @@ def edfig7():
 
 
 # ------------------------------------------------------------------ ED Fig. 8: purge optimum and inlet composition
-PURGE_TREATMENTS = (("canonical", "S5 as frozen: purge grid 0.5–40 %"),
-                    ("extended", "S5 model, purge grid extended to 10$^{-4}$ %"),
+PURGE_TREATMENTS = (("canonical", "no limit: purge grid 0.5–40 %"),
+                    ("extended", "no limit, purge grid extended to 10$^{-4}$ %"),
                     ("limit_published_max", "inlet ≤ %.2f %% (highest published design)"),
                     ("limit_anchor", "inlet ≤ %.2f %% (the cost model's anchor loop)"),
                     ("limit_published_min", "inlet ≤ %.2f %% (lowest published design)"))
 
 
+def definition_sweep_table(sm):
+    """Comparisons whose STY leader is not the plant-cost leader against the limit on the reactor-inlet fraction, when
+    the limit counts CH4 + CO + N2 (the frozen definition) or CH4 + N2 only (analysis/meoh_inlet_definition_2026_10_12,
+    definition_scan.csv), with the loop without a limit on the frozen purge grid and on the grid extended to 1e-4 %
+    (purge_boundary_summary.json). Checked against the frozen limit sweep of the literature summary."""
+    t = rcsv(IDEF + "definition_scan.csv")
+    t = t[t.limit_pct != "none"].copy()
+    t["limit"] = (t.limit_pct.astype(float) / 100.0).round(6)
+    t["definition"] = t.definition.map({"frozen": "CH4 + CO + N2", "true_inert": "CH4 + N2"})
+    t["order"] = (t.definition == "CH4 + N2").astype(int)
+    t = t.sort_values(["order", "limit"])[["definition", "limit", "groups", "different_leader", "fraction", "gt5pct",
+                                           "near_infeasible", "papers_with_disagreement"]].reset_index(drop=True)
+    lit = rjson(INV + "summary.json")
+    fr = t[t.definition == "CH4 + CO + N2"].set_index("limit")
+    for key, v in lit["limit_sweep"].items():
+        if not key.startswith("none"):
+            assert fr.loc[float(key.rstrip("%")) / 100.0, "different_leader"] == v["top1_mismatch_groups"], key
+    v6 = lit["variants"]["inlet_limit_6.86pct"]
+    r6 = fr[np.isclose(fr.index, 0.0686)].iloc[0]
+    assert (r6.different_leader, r6.gt5pct) == (v6["top1_mismatch_groups"], v6["regret_bins"]["gt5pct"]["groups"])
+    none = rcsv(IDEF + "definition_scan.csv").query("limit_pct == 'none'").iloc[0]
+    p, x = lit["primary"], sm["boundary"]["scored"]
+    assert (none.different_leader, none.gt5pct) == (p["top1_mismatch_groups"], p["regret_bins"]["gt5pct"]["groups"])
+    t = pd.concat([t, pd.DataFrame([
+        dict(definition="no limit, purge grid 0.5–40 %", limit=np.nan, groups=p["groups"],
+             different_leader=p["top1_mismatch_groups"], fraction=p["top1_mismatch_fraction"],
+             gt5pct=p["regret_bins"]["gt5pct"]["groups"], near_infeasible=0,
+             papers_with_disagreement=p["papers_with_mismatch"]),
+        dict(definition="no limit, purge grid from 1e-4 %", limit=np.nan, groups=x["groups"],
+             different_leader=x["top1_mismatch_groups"], fraction=x["top1_mismatch_fraction"],
+             gt5pct=x["regret_bins"]["gt5pct"]["groups"], near_infeasible=0,
+             papers_with_disagreement=x["papers_with_mismatch"])])], ignore_index=True)
+    t.attrs["anchor"] = sm["limits"]["anchor"]
+    t.attrs["published"] = (sm["limits"]["published_min"], sm["limits"]["published_max"],
+                            len(sm["published_inlet_non_h2co2_pct"]))
+    return t
+
+
 def edfig8():
     """Purge-boundary test and inlet-constrained optimization (run_purge_boundary.py): cost and inlet composition along
     the extended purge grid for every scored entry; purge, recycle ratio and inlet CO / CH4 / N2 at the optimum of each
-    treatment; comparisons with a different winner."""
+    treatment; comparisons with a different winner against the inlet limit for both definitions of the limited
+    species (analysis/meoh_inlet_definition_2026_10_12)."""
     src = INV + "purge_boundary_"
     sm = rjson(src + "summary.json")
     ent = rcsv(src + "entries.csv")
@@ -453,21 +547,15 @@ def edfig8():
     c = long[["treatment", "key", "i", "purge", "cost_rel_0p5pct", "nonreactive"]]
     d = long[["treatment", "key", "i", "recycle_ratio"]].copy()
     d.attrs["anchor_recycle_ratio"] = sm["anchor_loop"]["recycle_ratio"]
-    res = {"canonical": sm["boundary"]["s5_scored"], "extended": sm["boundary"]["scored"],
-           **{"limit_" + k: v["scored"] for k, v in sm["constrained"].items()}}
-    changed = {"canonical": 0, "extended": sm["boundary"]["plant_winner_changed_vs_s5"],
-               **{"limit_" + k: v["plant_winner_changed_vs_s5"] for k, v in sm["constrained"].items()}}
-    e = pd.DataFrame([dict(treatment=label[k], key=k, groups=res[k]["groups"],
-                           different_winner=res[k]["top1_mismatch_groups"],
-                           regret_gt5pct=res[k]["regret_bins"]["gt5pct"]["groups"],
-                           plant_winner_changed_vs_s5=changed[k]) for k, _ in PURGE_TREATMENTS])
+    e = definition_sweep_table(sm)
     f = long.groupby(["key", "treatment"], sort=False)[["CO", "CH4", "N2", "nonreactive"]].mean().reset_index()
     f.attrs["published"] = b.attrs["published"]
     return {"a": (a, src + "curves.csv (cost_eur_t) / " + src + "entries.csv (cost_at_0p5pct)"),
             "b": (b, src + "curves.csv; limits " + src + "summary.json (" + INV + "inlet_inert_literature.csv)"),
             "c": (c, src + "entries.csv (<treatment>_purge)"),
             "d": (d, src + "entries.csv (<treatment>_recycle_ratio); anchor " + src + "summary.json anchor_loop"),
-            "e": (e, src + "summary.json (boundary, constrained)"),
+            "e": (e, IDEF + "definition_scan.csv (limits 4-30 %); no limit: " + INV + "summary.json (primary) and "
+                  + src + "summary.json (boundary.scored)"),
             "f": (f, src + "entries.csv (<treatment>_CO, _CH4, _N2, _nonreactive), means over the scored entries")}
 
 
