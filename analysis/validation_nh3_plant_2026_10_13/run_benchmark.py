@@ -1,16 +1,21 @@
 """Run the pre-registered benchmark of the latest NH3 plant model against industrial ammonia plants.
 
-    python run_benchmark.py [--workers N]          (N <= 8; about 10 min)
+    python run_benchmark.py [--workers N]          (N <= 8; about 10 min; N = 1 runs in this process, no pool)
+    NH3_MODEL=1.2 python run_benchmark.py          NH3-FINAL-1.2 re-score (same metrics, rules and windows)
 
 Order: (1) the frozen Fe 15.29 / Ru 22.03 and measured-kinetics Fe 15.58 optima are reproduced (assertion) before
-anything else; (2) every case of benchmark_cases.csv is run at the model level it names; (3) every comparison of
+anything else (NH3-FINAL-1.2: Fe 11.52 / Ru 16.63 from its canonical results.json, measured-kinetics Fe 14.93);
+(2) every case of benchmark_cases.csv is run at the model level it names; (3) every comparison of
 benchmark_metrics.csv is judged by its pre-registered rule; (4) the PR #77 column and the uncounted sensitivities.
 
-Outputs (this folder): results_metrics.csv, results_cases.json, results_sensitivity.csv, summary.json.
+Outputs: this folder for NH3-FINAL-1.1 (results_metrics.csv, results_cases.json, results_sensitivity.csv,
+summary.json); nh3_1_2/ for NH3-FINAL-1.2, with the same files plus rescore_1_1_vs_1_2.csv (registered 1.1 verdict, 1.2
+re-score and PR #77 column side by side).
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
 import json
 import math
@@ -31,6 +36,7 @@ import nh3_model as M  # noqa: E402
 C, S = M.C, M.S
 STAGED = M.STAGED
 T_SHIFT = 25.0                    # uncounted sensitivity on T_REF
+OUT = M.NM.out_dir(HERE)          # HERE for NH3-FINAL-1.1, HERE/nh3_1_2 for NH3-FINAL-1.2
 
 
 def rows(name):
@@ -188,7 +194,8 @@ def main():
     # (1) anchors first
     h = M.build_frozen()
     anchors = M.reproduce_anchors(h)
-    print(f"anchors: frozen Fe {anchors['frozen_Fe']['cost']:.6f}, Ru {anchors['frozen_Ru']['cost']:.6f}; "
+    print(("" if M.VERSION == "1.1" else f"{M.LABEL} ") +
+          f"anchors: frozen Fe {anchors['frozen_Fe']['cost']:.6f}, Ru {anchors['frozen_Ru']['cost']:.6f}; "
           f"measured Fe {anchors['measured']['Fe']['cost']:.6f} at {anchors['measured']['Fe']['T_C']:.0f} C / "
           f"{anchors['measured']['Fe']['P_bar']:.0f} bar / {anchors['measured']['Fe']['Tsep_C']:.0f} C", flush=True)
 
@@ -204,9 +211,13 @@ def main():
     minvol = [dict(case_id=k, P_bar=float(c["P_bar"]), inlet_Nm3_h=float(c["inlet_Nm3_h"]), yNH3=float(c["yNH3"]),
                    y_out=float(c["y_out"]), inerts=float(c["inerts"]), n_beds=c["n_beds"])
               for k, c in cases.items() if c["level"] == "converter_min_volume"]
-    with mp.get_context("spawn").Pool(min(workers, len(design) + len(minvol))) as pool:
-        ad = pool.map_async(design_job, design)
-        am = pool.map_async(minvol_job, minvol)
+    # workers = 1: no pool, the converter optimisations run in this process after the state cases (same results)
+    pool_ctx = (mp.get_context("spawn").Pool(min(workers, len(design) + len(minvol))) if workers > 1
+                else contextlib.nullcontext())
+    with pool_ctx as pool:
+        if pool is not None:
+            ad = pool.map_async(design_job, design)
+            am = pool.map_async(minvol_job, minvol)
         model = {}
         # (3a) state cases (main process, meanwhile)
         for k, c in cases.items():
@@ -227,11 +238,11 @@ def main():
                                                               float(c["inerts"]), beds, fe_activity=0.5, **kw)
                 model[k] = d
         print("state and converter forward/inverse cases done", flush=True)
-        for r in ad.get():
+        for r in (ad.get() if pool is not None else map(design_job, design)):
             model[r["case_id"]] = r
             print(f"design {r['case_id']}: outlet {r['outlet_NH3_molpct']:.2f} %, bed-1 inlet {r['bed1_T_in_C']:.0f} C, "
                   f"V {r['V_m3_per_tpd']:.4f} m3/(t/d), Fe share {r['Fe_volume_fraction']:.2f} ({r['seconds']:.0f} s)", flush=True)
-        for r in am.get():
+        for r in (am.get() if pool is not None else map(minvol_job, minvol)):
             model[r["case_id"]] = r
             print(f"min volume {r['case_id']}: {r['V_total_m3']:.2f} m3 ({r['seconds']:.0f} s)", flush=True)
     model["TOP220_MINVOL/TOP140_MINVOL"] = dict(volume_ratio_220_140=model["TOP220_MINVOL"]["V_total_m3"]
@@ -266,8 +277,10 @@ def main():
         pr77.update(o77)
         pr77["_optimum_raw"] = {k: r77[k] for k in ("Fe", "Ru_benchmark", "Ru_activity_multiple_for_parity")}
 
-    # uncounted diagnostic: Gillespie-Beattie ideal-gas loop equilibrium (PR #64), same harness otherwise
-    gbi = {k: state_values(h, c, gb=True) for k, c in cases.items() if c["level"] == "state"}
+    # uncounted diagnostic: Gillespie-Beattie ideal-gas loop equilibrium (PR #64), same harness otherwise. It patches the
+    # NH3-FINAL-1.1 harness, so under NH3-FINAL-1.2 it is run on a 1.1 harness built for it (the same diagnostic).
+    hg = h if M.VERSION == "1.1" else M.build_v11()
+    gbi = {k: state_values(hg, c, gb=True) for k, c in cases.items() if c["level"] == "state"}
 
     # judge
     out_rows, n_pass = [], 0
@@ -293,7 +306,7 @@ def main():
                              pr77_pass=("" if ok77 is None else ("pass" if ok77 else "FAIL")),
                              gb_ideal_model=vg if not isinstance(vg, float) else round(vg, 6),
                              gb_ideal_pass=("" if okg is None else ("pass" if okg else "FAIL")), ref_rows=m["ref_rows"]))
-    with (HERE / "results_metrics.csv").open("w", newline="", encoding="utf-8") as f:
+    with (OUT / "results_metrics.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(out_rows[0]))
         w.writeheader()
         w.writerows(out_rows)
@@ -317,7 +330,7 @@ def main():
                              model=bb["T_out_C"], deviation="", pass_=""))
         sens.append(dict(sensitivity="Fe effectiveness 0.5", metric_id="", case_id=k, quantity="outlet_NH3_molpct",
                          model=b[-1]["y_NH3_out_molpct"], deviation="", pass_=""))
-    with (HERE / "results_sensitivity.csv").open("w", newline="", encoding="utf-8") as f:
+    with (OUT / "results_sensitivity.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(sens[0]))
         w.writeheader()
         w.writerows(sens)
@@ -342,15 +355,58 @@ def main():
                              f"{sum(1 for r in sens if r['sensitivity'] == s)}"
                           for s in sorted({r["sensitivity"] for r in sens if r["pass_"]})},
         seconds=time.time() - t0)
-    (HERE / "results_cases.json").write_text(json.dumps(_clean(dict(model=model, pr77=pr77, gb_ideal=gbi, ullmann=ull)), indent=1) + "\n",
+    if M.VERSION != "1.1":
+        summary.update(rescore_against_registered(out_rows))
+    (OUT / "results_cases.json").write_text(json.dumps(_clean(dict(model=model, pr77=pr77, gb_ideal=gbi, ullmann=ull)), indent=1) + "\n",
                                              encoding="utf-8")
-    (HERE / "summary.json").write_text(json.dumps(_clean(summary), indent=1) + "\n", encoding="utf-8")
+    (OUT / "summary.json").write_text(json.dumps(_clean(summary), indent=1) + "\n", encoding="utf-8")
     print(f"\n{n_pass}/{len(out_rows)} pre-registered comparisons pass; by table {summary['by_table']}")
     if summary["pr77"]:
         print(f"PR #77 column: {summary['pr77']['n_pass']}/{summary['pr77']['n_applicable']} applicable")
+    if M.VERSION != "1.1":
+        reg = summary["registered_NH3_FINAL_1_1"]
+        print(f"{M.LABEL} re-score {n_pass}/{len(out_rows)}; registered NH3-FINAL-1.1 verdict {reg['n_pass']}/"
+              f"{reg['n_metrics']} (by table {reg['by_table']}); flips: "
+              + ", ".join(f"{f['metric_id']} {f['flip']}" for f in summary["flips_vs_1_1"]))
     for r in out_rows:
         print(f"{r['metric_id']:4s} {r['case_id']:28s} {r['quantity']:36s} model {str(r['model']):>12.12s}  "
               f"ind {r['industrial']:>16.16s}  {r['deviation']:>22.22s}  {r['pass_']}  | PR77 {str(r['pr77_model'])[:10]} {r['pr77_pass']}")
+
+
+def rescore_against_registered(out_rows):
+    """NH3-FINAL-1.2 re-score beside the registered NH3-FINAL-1.1 verdict (this folder's results_metrics.csv and
+    summary.json, commit 6d416b6, never rewritten by a 1.2 run) -> rescore_1_1_vs_1_2.csv and summary keys."""
+    reg = {r["metric_id"]: r for r in rows("results_metrics.csv")}
+    reg_sum = json.loads((HERE / "summary.json").read_text(encoding="utf-8"))
+    tag = M.LABEL.replace("NH3-FINAL-", "v").replace(".", "_")           # v1_2
+    out, flips = [], []
+    for r in out_rows:
+        g = reg[r["metric_id"]]
+        flip = "" if g["pass_"] == r["pass_"] else f"{g['pass_'].lower()}->{r['pass_'].lower()}"
+        if flip:
+            flips.append(dict(metric_id=r["metric_id"], flip=flip, v1_1=g["model"], **{tag: r["model"]}))
+        out.append({"metric_id": r["metric_id"], "table": r["table"], "case_id": r["case_id"], "quantity": r["quantity"],
+                    "industrial": r["industrial"], "unit": r["unit"], "rule": r["rule"],
+                    "v1_1_model_registered": g["model"], "v1_1_deviation": g["deviation"], "v1_1_pass_registered": g["pass_"],
+                    f"{tag}_model": r["model"], f"{tag}_deviation": r["deviation"], f"{tag}_pass": r["pass_"], "flip": flip,
+                    "pr77_model": g["pr77_model"], "pr77_pass": g["pr77_pass"],
+                    "changes_with_model_version": "yes" if str(g["model"]) != str(r["model"]) else "no"})
+    with (OUT / "rescore_1_1_vs_1_2.csv").open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(out[0]))
+        w.writeheader()
+        w.writerows(out)
+    by = {}
+    for r in out:
+        t = by.setdefault(r["table"], [0, 0, 0])
+        t[0] += r["v1_1_pass_registered"] == "pass"
+        t[1] += r[f"{tag}_pass"] == "pass"
+        t[2] += 1
+    return dict(model_version=M.LABEL,
+                registered_NH3_FINAL_1_1=dict(n_metrics=reg_sum["n_metrics"], n_pass=reg_sum["n_pass"],
+                                              by_table=reg_sum["by_table"], source="../summary.json (commit 6d416b6)"),
+                rescore_by_table={k: dict(v1_1=f"{a}/{n}", **{tag: f"{b}/{n}"}) for k, (a, b, n) in by.items()},
+                flips_vs_1_1=flips,
+                n_rows_model_value_changed=sum(r["changes_with_model_version"] == "yes" for r in out))
 
 
 def _clean(o):

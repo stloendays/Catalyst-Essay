@@ -24,72 +24,90 @@ Secondary column, not counted: PR #77 (`analysis/nh3-final-1-2-candidate-2026101
 standard Gibbs energy with Newton–Cooper reaction fugacities in the loop equilibrium, 50–300 bar) passes **24 of the 38**
 comparisons it changes. Converter-level and staged results are identical in both columns.
 
-| ID | Case | Metric | Model | Industrial | Rule | Source | Result | PR #77 |
-|---|---|---|---:|---|---|---|---|---|
-| A01 | Topsøe 140 bar | inlet NH3 (mol%) | 2.27 | 4.10 | rel:0.20 | Dybkjaer 1995 p. 226 | **fail** | 1.87 fail |
-| A02 | Topsøe 140 bar | outlet NH3 (mol%) | 7.45 | 17.1 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | 16.9 pass |
-| A03 | Topsøe 140 bar | inlet flow (Nm³/h) | 1,137,652 | 500,000 | rel:0.25 | Dybkjaer 1995 p. 226 | **fail** | 425,248 pass |
-| A04 | Topsøe 220 bar | inlet NH3 (mol%) | 1.34 | 3.80 | rel:0.20 | Dybkjaer 1995 p. 226 | **fail** | 1.04 fail |
-| A05 | Topsøe 220 bar | outlet NH3 (mol%) | 10.2 | 19.9 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | 22.5 pass |
-| A06 | Topsøe 220 bar | inlet flow (Nm³/h) | 679,158 | 407,000 | rel:0.25 | Dybkjaer 1995 p. 226 | **fail** | 312,556 pass |
-| A07 | Krupp-Uhde 188 bar | inlet NH3 (mol%) | 1.96 | 4.18 | rel:0.20 | Appl 2011 A2 p. 211 | **fail** | 1.55 fail |
-| A08 | Krupp-Uhde 188 bar | outlet NH3 (mol%) | 9.25 | 19.7 | rel:0.15 | Appl 2011 A2 p. 211 | **fail** | 20.5 pass |
-| A09 | Krupp-Uhde 188 bar | inlet flow (Nm³/h) | 1,232,756 | 635,302 | rel:0.25 | Appl 2011 A2 p. 211 | **fail** | 522,044 pass |
-| A10 | Krupp-Uhde 188 bar | feed / make-up (mol/mol) | 7.49 | 3.52 | rel:0.25 | Appl 2011 A2 p. 211 | **fail** | 3.17 pass |
-| A11 | Topsøe S-250 137 bar | net NH3 (mol%) | 5.03 | 16.5 | rel:0.15 | Liu 2013 p. 738 | **fail** | 14.8 pass |
-| A12 | Uhde 160 bar | net NH3 (mol%) | 6.34 | 19.3 | rel:0.15 | Liu 2013 p. 740 | **fail** | 17.5 pass |
-| A13 | PFI Kavala (Casale) 266 bar | outlet NH3 (mol%) | 9.97 | 19.0 | rel:0.15 | Orphanides 2006 p. 6 | **fail** | 22.1 fail |
-| A14 | Kellogg 150 bar | inlet NH3 (mol%) | 0.891 | 2.00 | rel:0.20 | Hooper 1991 p. 269 | **fail** | 0.727 fail |
-| A15 | Kellogg 150 bar | outlet NH3 (mol%) | 7.55 | 10.0–12.0 | rel:0.15 | Hooper 1991 p. 270 | **fail** | 17.5 fail |
-| A16 | Braun 150 bar | inlet NH3 (mol%) | 2.71 | 4.00 | rel:0.20 | Liu 2013 p. 738 | **fail** | 2.20 fail |
-| A17 | Braun 150 bar | outlet NH3 (mol%) | 7.96 | 21.0 | rel:0.15 | Liu 2013 p. 738 | **fail** | 17.9 pass |
-| A18 | Braun 150 bar | net NH3 (mol%) | 5.25 | 17.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 15.7 pass |
-| A19 | Braun 150 bar | space velocity (h⁻¹) | 91,235 | 7600 | factor:2 | Liu 2013 p. 736 | **fail** | 11,938 pass |
-| A20 | Kellogg 140 bar | net NH3 (mol%) | 6.13 | 10.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 15.8 fail |
-| A21 | Kellogg 140 bar | space velocity (h⁻¹) | 92,714 | 10,000 | factor:2 | Liu 2013 p. 736 | **fail** | 12,486 pass |
-| A22 | Topsøe 260 bar | net NH3 (mol%) | 10.2 | 10.0–12.5 | rel:0.15 | Liu 2013 p. 736 | pass | 23.9 fail |
-| A23 | Topsøe 260 bar | space velocity (h⁻¹) | 101,883 | 12,000 | factor:2 | Liu 2013 p. 736 | **fail** | 16,579 pass |
-| A24 | ICI AMV 100 bar | net NH3 (mol%) | 3.09 | 13.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 11.1 pass |
-| A25 | ICI AMV 100 bar | space velocity (h⁻¹) | 99,049 | 8000 | factor:2 | Liu 2013 p. 736 | **fail** | 10,534 pass |
-| A26 | small/medium 314 bar | net NH3 (mol%) | 11.8 | 8.00–10.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | – – |
-| A27 | small/medium 314 bar | space velocity (h⁻¹) | 109,657 | 30,000 | factor:2 | Liu 2013 p. 736 | **fail** | – – |
-| A28 | Casale 250 bar | Fe bed (m³) | 6.00 | 30.0 | factor:2 | US 4,372,920 col. 4, Ex. 1 | **fail** | 17.9 pass |
-| E01 | 1000 t/d loop 151 bar | syngas + recycle compression (MW) | 8.01 | 13.0 | rel:0.30 | Liu 2013 p. 749 | **fail** | 7.50 fail |
-| E02 | Uhde 2000 t/d 195 bar | syngas + recycle compression (MW) | 17.6 | 26.6 | rel:0.30 | Lippmann & Frisse 2004 p. 11 | **fail** | 17.1 fail |
-| E03 | S-200 126 bar | recycle compression (MW) | 1.12 | 1.44 | rel:0.30 | Liu 2013 p. 779 | pass | 0.325 fail |
-| B01 | S-200 126 bar, forward | bed-1 outlet (°C) | 457 | 489 | abs:15 | Liu 2013 p. 779 | **fail** | – – |
-| B02 | S-200 126 bar, forward | bed-2 outlet (°C) | 463 | 446 | abs:15 | Liu 2013 p. 779 | **fail** | – – |
-| B03 | S-200 126 bar, forward | outlet NH3 (mol%) | 13.2 | 14.3 | rel:0.15 | Liu 2013 p. 779 | pass | – – |
-| B04 | S-200 126 bar, inverse | catalyst for printed ΔT (m³) | 76.4 | 65.3 | factor:2 | Liu 2013 p. 779 | pass | – – |
-| B05 | S-200 134 bar, forward | bed-1 outlet (°C) | 454 | 490 | abs:15 | Liu 2013 p. 779 | **fail** | – – |
-| B06 | S-200 134 bar, forward | bed-2 outlet (°C) | 463 | 444 | abs:15 | Liu 2013 p. 779 | **fail** | – – |
-| B07 | S-200 134 bar, forward | outlet NH3 (mol%) | 13.7 | 14.9 | rel:0.15 | Liu 2013 p. 779 | pass | – – |
-| B08 | S-200 134 bar, inverse | catalyst for printed ΔT (m³) | 77.6 | 65.3 | factor:2 | Liu 2013 p. 779 | pass | – – |
-| B09 | Topsøe 220 vs 140 bar | catalyst volume 220/140 bar | 0.512 | 0.600 | rel:0.25 | Dybkjaer 1995 p. 226 | pass | – – |
-| B10 | Topsøe 140 bar, cost-optimal | outlet NH3 (mol%) | 9.80 | 17.1 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | – – |
-| B11 | Topsøe 140 bar, cost-optimal | bed-1 inlet (°C) | 478 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – |
-| B12 | Topsøe 140 bar, cost-optimal | catalyst (m³ per t/d) | 0.014 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – |
-| B13 | Topsøe 220 bar, cost-optimal | outlet NH3 (mol%) | 10.1 | 19.9 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | – – |
-| B14 | Topsøe 220 bar, cost-optimal | bed-1 inlet (°C) | 470 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – |
-| B15 | Topsøe 220 bar, cost-optimal | catalyst (m³ per t/d) | 0.005 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – |
-| B16 | Krupp-Uhde 188 bar, cost-optimal | outlet NH3 (mol%) | 10.1 | 19.7 | rel:0.15 | Appl 2011 A2 p. 211 | **fail** | – – |
-| B17 | Krupp-Uhde 188 bar, cost-optimal | bed-1 inlet (°C) | 474 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – |
-| B18 | Krupp-Uhde 188 bar, cost-optimal | catalyst (m³ per t/d) | 0.008 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – |
-| B19 | KAAP 89 bar, Fe + 3 Ru/C | Fe share of catalyst volume | 0.155 | 0.350–0.650 | range | Liu 2013 p. 748 | **fail** | – – |
-| B20 | KAAP 89 bar, Fe + 3 Ru/C | outlet NH3 (mol%) | 12.7 | 21.0–21.7 | rel:0.15 | Le Blanc & Knez 1996 p. 89; Liu 2013 ch.6 p. 504; Liu 2013 p. 748 | **fail** | – – |
-| C01 | Fe optimum | pressure (bar) | 170 | 78.5–343 | window | W_P_FE (industrial_windows.csv) | pass | 140 pass |
-| C02 | Fe optimum | pressure (bar) | 170 | 155–190 | window | W_P_FE_WORLDSCALE (industrial_windows.csv) | pass | 140 fail |
-| C03 | Fe optimum | temperature (°C) | 425 | 350–540 | window | W_T_FE (industrial_windows.csv) | pass | 450 pass |
-| C04 | Fe optimum | separator (°C) | 30.0 | -25.0–7.50 | window | W_TSEP_FE (industrial_windows.csv) | **fail** | 30.0 fail |
-| C05 | Fe optimum | catalyst (m³ per t/d) | 0.026 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | 0.056 pass |
-| C06 | Fe optimum | outlet NH3 (mol%) | 11.3 | 10.0–21.0 | window | W_OUT_FE (industrial_windows.csv) | pass | 17.9 pass |
-| C07 | Fe optimum | space velocity (h⁻¹) | 46,460 | 7600–35,000 | window | W_SV_FE (industrial_windows.csv) | **fail** | 10,240 pass |
-| C08 | staged optima (44) | Ru/C upstream of Fe in any staged optimum | no | no | equals:False | Le Blanc & Knez 1996 p. 90; Liu 2013 p. 748; Le Blanc & Knez 1996 p. 84; Appl 2011 A3 p. 242 | pass | – – |
-| C09 | KAAP-type loop | Ru/C in 90-bar optimum at 12 %/y | no | yes | equals:True | Le Blanc & Knez 1996 p. 89; Le Blanc & Knez 1996 p. 90; Liu 2013 p. 747 | **fail** | – – |
-| C10 | 60–200 bar sweep | ρ(P, Ru financing boundary) | -0.976 | < -0.5 | below:-0.5 | Le Blanc & Knez 1996 p. 89 | pass | – – |
-| C11 | Ru/C optimum, 0 %/y | pressure (bar) | 145 | 89.2–138 | window | W_P_RU (industrial_windows.csv) | **fail** | 105 pass |
-| C12 | global, 12 %/y | supported Ru/C − Fe at 12 %/y (USD/t) | 1.12 | > 0 | above:0 | Liu 2013 ch.6 p. 492 | pass | 1.45 pass |
-| V01 | 10–30 MPa, −30…30 °C | separator vapour NH3, model/table | 0.602 | 0.800–1.20 | range | Appl 2011 A1 Table 5 p. 113 | **fail** | – – |
+**Model-upgrade re-score, NH3-FINAL-1.2: 32 of 64** (same 64 comparisons, tolerances and windows; the registered
+NH3-FINAL-1.1 verdict above stays 14/64). NH3-FINAL-1.2 (`provenance/nh3_final_1_2/`) takes the NH3 formation free
+energy from the Gillespie–Beattie equilibrium constant and closes the loop equilibrium on Newton–Cooper fugacities, so its
+process states replace the NH3-FINAL-1.1 states in every row that uses them (Tables A and E, C01–C07, C11, C12). Details,
+flips and the rerun command: [`nh3_1_2/README.md`](nh3_1_2/README.md).
+
+| Table | NH3-FINAL-1.1 (registered) | NH3-FINAL-1.2 | PR #77 column |
+|---|---:|---:|---:|
+| A | 1/28 | **18/28** | 17/26 |
+| E | 1/3 | **0/3** | 0/3 |
+| B | 5/20 | **5/20** | – |
+| C | 7/12 | **9/12** | 7/9 |
+| V | 0/1 | **0/1** | – |
+| **all** | **14/64** | **32/64** | 24/38 |
+
+Within 50–300 bar the NH3-FINAL-1.2 values equal the PR #77 column to every printed digit (same Gillespie–Beattie and
+Newton–Cooper loop closure). NH3-FINAL-1.2 also covers the 314-bar record (A26, A27), which PR #77 does not.
+
+| ID | Case | Metric | Model | Industrial | Rule | Source | Result | PR #77 | NH3-FINAL-1.2 |
+|---|---|---|---:|---|---|---|---|---|---|
+| A01 | Topsøe 140 bar | inlet NH3 (mol%) | 2.27 | 4.10 | rel:0.20 | Dybkjaer 1995 p. 226 | **fail** | 1.87 fail | 1.87 fail |
+| A02 | Topsøe 140 bar | outlet NH3 (mol%) | 7.45 | 17.1 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | 16.9 pass | 16.9 pass |
+| A03 | Topsøe 140 bar | inlet flow (Nm³/h) | 1,137,652 | 500,000 | rel:0.25 | Dybkjaer 1995 p. 226 | **fail** | 425,248 pass | 425,248 pass |
+| A04 | Topsøe 220 bar | inlet NH3 (mol%) | 1.34 | 3.80 | rel:0.20 | Dybkjaer 1995 p. 226 | **fail** | 1.04 fail | 1.04 fail |
+| A05 | Topsøe 220 bar | outlet NH3 (mol%) | 10.2 | 19.9 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | 22.5 pass | 22.5 pass |
+| A06 | Topsøe 220 bar | inlet flow (Nm³/h) | 679,158 | 407,000 | rel:0.25 | Dybkjaer 1995 p. 226 | **fail** | 312,556 pass | 312,556 pass |
+| A07 | Krupp-Uhde 188 bar | inlet NH3 (mol%) | 1.96 | 4.18 | rel:0.20 | Appl 2011 A2 p. 211 | **fail** | 1.55 fail | 1.55 fail |
+| A08 | Krupp-Uhde 188 bar | outlet NH3 (mol%) | 9.25 | 19.7 | rel:0.15 | Appl 2011 A2 p. 211 | **fail** | 20.5 pass | 20.5 pass |
+| A09 | Krupp-Uhde 188 bar | inlet flow (Nm³/h) | 1,232,756 | 635,302 | rel:0.25 | Appl 2011 A2 p. 211 | **fail** | 522,044 pass | 522,044 pass |
+| A10 | Krupp-Uhde 188 bar | feed / make-up (mol/mol) | 7.49 | 3.52 | rel:0.25 | Appl 2011 A2 p. 211 | **fail** | 3.17 pass | 3.17 pass |
+| A11 | Topsøe S-250 137 bar | net NH3 (mol%) | 5.03 | 16.5 | rel:0.15 | Liu 2013 p. 738 | **fail** | 14.8 pass | 14.8 pass |
+| A12 | Uhde 160 bar | net NH3 (mol%) | 6.34 | 19.3 | rel:0.15 | Liu 2013 p. 740 | **fail** | 17.5 pass | 17.5 pass |
+| A13 | PFI Kavala (Casale) 266 bar | outlet NH3 (mol%) | 9.97 | 19.0 | rel:0.15 | Orphanides 2006 p. 6 | **fail** | 22.1 fail | 22.1 fail |
+| A14 | Kellogg 150 bar | inlet NH3 (mol%) | 0.891 | 2.00 | rel:0.20 | Hooper 1991 p. 269 | **fail** | 0.727 fail | 0.727 fail |
+| A15 | Kellogg 150 bar | outlet NH3 (mol%) | 7.55 | 10.0–12.0 | rel:0.15 | Hooper 1991 p. 270 | **fail** | 17.5 fail | 17.5 fail |
+| A16 | Braun 150 bar | inlet NH3 (mol%) | 2.71 | 4.00 | rel:0.20 | Liu 2013 p. 738 | **fail** | 2.20 fail | 2.20 fail |
+| A17 | Braun 150 bar | outlet NH3 (mol%) | 7.96 | 21.0 | rel:0.15 | Liu 2013 p. 738 | **fail** | 17.9 pass | 17.9 pass |
+| A18 | Braun 150 bar | net NH3 (mol%) | 5.25 | 17.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 15.7 pass | 15.7 pass |
+| A19 | Braun 150 bar | space velocity (h⁻¹) | 91,235 | 7600 | factor:2 | Liu 2013 p. 736 | **fail** | 11,938 pass | 11,938 pass |
+| A20 | Kellogg 140 bar | net NH3 (mol%) | 6.13 | 10.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 15.8 fail | 15.8 fail |
+| A21 | Kellogg 140 bar | space velocity (h⁻¹) | 92,714 | 10,000 | factor:2 | Liu 2013 p. 736 | **fail** | 12,486 pass | 12,486 pass |
+| A22 | Topsøe 260 bar | net NH3 (mol%) | 10.2 | 10.0–12.5 | rel:0.15 | Liu 2013 p. 736 | pass | 23.9 fail | 23.9 fail |
+| A23 | Topsøe 260 bar | space velocity (h⁻¹) | 101,883 | 12,000 | factor:2 | Liu 2013 p. 736 | **fail** | 16,579 pass | 16,579 pass |
+| A24 | ICI AMV 100 bar | net NH3 (mol%) | 3.09 | 13.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | 11.1 pass | 11.1 pass |
+| A25 | ICI AMV 100 bar | space velocity (h⁻¹) | 99,049 | 8000 | factor:2 | Liu 2013 p. 736 | **fail** | 10,534 pass | 10,534 pass |
+| A26 | small/medium 314 bar | net NH3 (mol%) | 11.8 | 8.00–10.0 | rel:0.15 | Liu 2013 p. 736 | **fail** | – – | 26.8 fail |
+| A27 | small/medium 314 bar | space velocity (h⁻¹) | 109,657 | 30,000 | factor:2 | Liu 2013 p. 736 | **fail** | – – | 18,857 pass |
+| A28 | Casale 250 bar | Fe bed (m³) | 6.00 | 30.0 | factor:2 | US 4,372,920 col. 4, Ex. 1 | **fail** | 17.9 pass | 17.9 pass |
+| E01 | 1000 t/d loop 151 bar | syngas + recycle compression (MW) | 8.01 | 13.0 | rel:0.30 | Liu 2013 p. 749 | **fail** | 7.50 fail | 7.50 fail |
+| E02 | Uhde 2000 t/d 195 bar | syngas + recycle compression (MW) | 17.6 | 26.6 | rel:0.30 | Lippmann & Frisse 2004 p. 11 | **fail** | 17.1 fail | 17.1 fail |
+| E03 | S-200 126 bar | recycle compression (MW) | 1.12 | 1.44 | rel:0.30 | Liu 2013 p. 779 | pass | 0.325 fail | 0.325 fail |
+| B01 | S-200 126 bar, forward | bed-1 outlet (°C) | 457 | 489 | abs:15 | Liu 2013 p. 779 | **fail** | – – | 457 fail |
+| B02 | S-200 126 bar, forward | bed-2 outlet (°C) | 463 | 446 | abs:15 | Liu 2013 p. 779 | **fail** | – – | 463 fail |
+| B03 | S-200 126 bar, forward | outlet NH3 (mol%) | 13.2 | 14.3 | rel:0.15 | Liu 2013 p. 779 | pass | – – | 13.2 pass |
+| B04 | S-200 126 bar, inverse | catalyst for printed ΔT (m³) | 76.4 | 65.3 | factor:2 | Liu 2013 p. 779 | pass | – – | 76.4 pass |
+| B05 | S-200 134 bar, forward | bed-1 outlet (°C) | 454 | 490 | abs:15 | Liu 2013 p. 779 | **fail** | – – | 454 fail |
+| B06 | S-200 134 bar, forward | bed-2 outlet (°C) | 463 | 444 | abs:15 | Liu 2013 p. 779 | **fail** | – – | 463 fail |
+| B07 | S-200 134 bar, forward | outlet NH3 (mol%) | 13.7 | 14.9 | rel:0.15 | Liu 2013 p. 779 | pass | – – | 13.7 pass |
+| B08 | S-200 134 bar, inverse | catalyst for printed ΔT (m³) | 77.6 | 65.3 | factor:2 | Liu 2013 p. 779 | pass | – – | 77.6 pass |
+| B09 | Topsøe 220 vs 140 bar | catalyst volume 220/140 bar | 0.512 | 0.600 | rel:0.25 | Dybkjaer 1995 p. 226 | pass | – – | 0.512 pass |
+| B10 | Topsøe 140 bar, cost-optimal | outlet NH3 (mol%) | 9.80 | 17.1 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | – – | 9.80 fail |
+| B11 | Topsøe 140 bar, cost-optimal | bed-1 inlet (°C) | 478 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – | 478 fail |
+| B12 | Topsøe 140 bar, cost-optimal | catalyst (m³ per t/d) | 0.014 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – | 0.0145 fail |
+| B13 | Topsøe 220 bar, cost-optimal | outlet NH3 (mol%) | 10.1 | 19.9 | rel:0.15 | Dybkjaer 1995 p. 226 | **fail** | – – | 10.1 fail |
+| B14 | Topsøe 220 bar, cost-optimal | bed-1 inlet (°C) | 470 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – | 470 fail |
+| B15 | Topsøe 220 bar, cost-optimal | catalyst (m³ per t/d) | 0.005 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – | 0.00535 fail |
+| B16 | Krupp-Uhde 188 bar, cost-optimal | outlet NH3 (mol%) | 10.1 | 19.7 | rel:0.15 | Appl 2011 A2 p. 211 | **fail** | – – | 10.1 fail |
+| B17 | Krupp-Uhde 188 bar, cost-optimal | bed-1 inlet (°C) | 474 | 340–420 | window | W_BED1_FE (industrial_windows.csv) | **fail** | – – | 474 fail |
+| B18 | Krupp-Uhde 188 bar, cost-optimal | catalyst (m³ per t/d) | 0.008 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | – – | 0.00799 fail |
+| B19 | KAAP 89 bar, Fe + 3 Ru/C | Fe share of catalyst volume | 0.155 | 0.350–0.650 | range | Liu 2013 p. 748 | **fail** | – – | 0.155 fail |
+| B20 | KAAP 89 bar, Fe + 3 Ru/C | outlet NH3 (mol%) | 12.7 | 21.0–21.7 | rel:0.15 | Le Blanc & Knez 1996 p. 89; Liu 2013 ch.6 p. 504; Liu 2013 p. 748 | **fail** | – – | 12.7 fail |
+| C01 | Fe optimum | pressure (bar) | 170 | 78.5–343 | window | W_P_FE (industrial_windows.csv) | pass | 140 pass | 140 pass |
+| C02 | Fe optimum | pressure (bar) | 170 | 155–190 | window | W_P_FE_WORLDSCALE (industrial_windows.csv) | pass | 140 fail | 140 fail |
+| C03 | Fe optimum | temperature (°C) | 425 | 350–540 | window | W_T_FE (industrial_windows.csv) | pass | 450 pass | 450 pass |
+| C04 | Fe optimum | separator (°C) | 30.0 | -25.0–7.50 | window | W_TSEP_FE (industrial_windows.csv) | **fail** | 30.0 fail | 30.0 fail |
+| C05 | Fe optimum | catalyst (m³ per t/d) | 0.026 | 0.030–0.090 | window | W_VOL_FE (industrial_windows.csv) | **fail** | 0.056 pass | 0.0563 pass |
+| C06 | Fe optimum | outlet NH3 (mol%) | 11.3 | 10.0–21.0 | window | W_OUT_FE (industrial_windows.csv) | pass | 17.9 pass | 17.9 pass |
+| C07 | Fe optimum | space velocity (h⁻¹) | 46,460 | 7600–35,000 | window | W_SV_FE (industrial_windows.csv) | **fail** | 10,240 pass | 10,240 pass |
+| C08 | staged optima (44) | Ru/C upstream of Fe in any staged optimum | no | no | equals:False | Le Blanc & Knez 1996 p. 90; Liu 2013 p. 748; Le Blanc & Knez 1996 p. 84; Appl 2011 A3 p. 242 | pass | – – | no pass |
+| C09 | KAAP-type loop | Ru/C in 90-bar optimum at 12 %/y | no | yes | equals:True | Le Blanc & Knez 1996 p. 89; Le Blanc & Knez 1996 p. 90; Liu 2013 p. 747 | **fail** | – – | no fail |
+| C10 | 60–200 bar sweep | ρ(P, Ru financing boundary) | -0.976 | < -0.5 | below:-0.5 | Le Blanc & Knez 1996 p. 89 | pass | – – | -0.976 pass |
+| C11 | Ru/C optimum, 0 %/y | pressure (bar) | 145 | 89.2–138 | window | W_P_RU (industrial_windows.csv) | **fail** | 105 pass | 105 pass |
+| C12 | global, 12 %/y | supported Ru/C − Fe at 12 %/y (USD/t) | 1.12 | > 0 | above:0 | Liu 2013 ch.6 p. 492 | pass | 1.45 pass | 1.45 pass |
+| V01 | 10–30 MPa, −30…30 °C | separator vapour NH3, model/table | 0.602 | 0.800–1.20 | range | Appl 2011 A1 Table 5 p. 113 | **fail** | – – | 0.602 fail |
 
 Sources are given as printed page; every value, its PDF page, table or figure and a verbatim snippet are in
 `reference_values.csv` (row ids in `results_metrics.csv`). Window members are in `industrial_windows.csv`.
@@ -234,13 +252,18 @@ Industrial records used (P, T_sep as printed; T is the printed final-bed outlet 
 | `nh3_model.py`, `converter_sim.py` | the latest model imported unchanged; state at any operating point; converter forward / inverse / minimum volume; PR #77 import via `git show` |
 | `run_benchmark.py` | everything above → `results_metrics.csv`, `results_cases.json`, `results_sensitivity.csv`, `summary.json`, `run_benchmark_stdout.txt` |
 | `test_reproduce.py` | the reproduction gate |
+| `nh3_1_2/` | NH3-FINAL-1.2 re-score (`NH3_MODEL=1.2`): the same output files plus `rescore_1_1_vs_1_2.csv`; see its README |
 
     pip install -r requirements.txt pyyaml
     cd analysis/validation_nh3_plant_2026_10_13
     python -m unittest test_reproduce -v          # ~20 s
     python build_prereg_tables.py                 # regenerates the pre-registered tables (identical output)
-    python run_benchmark.py --workers 4           # ~4 min; at most 8 workers
+    python run_benchmark.py --workers 4           # ~4 min; at most 8 workers (--workers 1: no pool, ~9 min)
+    NH3_MODEL=1.2 python -m unittest test_reproduce -v
+    NH3_MODEL=1.2 python run_benchmark.py --workers 1   # NH3-FINAL-1.2 re-score -> nh3_1_2/
 
 Interpreter used: `D:\Research\CatalystForge\.venv\Scripts\python.exe` (CPython 3.12.14, numpy 2.3.5, scipy 1.18.0).
 The PR #77 column needs the branch `origin/analysis/nh3-final-1-2-candidate-20261013` fetched; without it the column is
-skipped. No file outside this folder is changed.
+skipped. No file outside this folder is changed. `NH3_MODEL` selects the model through `analysis/nh3_model.py`
+(default 1.1, which reproduces the committed files above: `results_metrics.csv` and `results_sensitivity.csv` byte for
+byte, `results_cases.json` and `summary.json` apart from their wall-clock `seconds` entries).

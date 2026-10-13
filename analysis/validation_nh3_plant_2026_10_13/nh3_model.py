@@ -17,11 +17,22 @@ Two model levels are used:
 Secondary column: PR #77 (branch analysis/nh3-final-1-2-candidate-20261013), Gillespie-Beattie standard Gibbs energy
 with Newton-Cooper reaction fugacities in the loop equilibrium (gb_fugacity_pair.GBFugacityReaction), 50-300 bar.
 Its module is read from the branch with `git show` into a temporary directory and imported; nothing is checked out.
+
+Model version (analysis/nh3_model.py, environment variable NH3_MODEL):
+  1.1 (default)  the pre-registered model above, unchanged: NH3-FINAL-1.1 states from provenance/discover_v1 and
+                 provenance/nh3_final_1_1 (kinetics_swap.build).
+  1.2            NH3-FINAL-1.2 states (Gillespie-Beattie NH3 formation free energy and Newton-Cooper fugacities in the
+                 loop equilibrium; provenance/nh3_final_1_2/source_harness, harness built by nh3_model.harness()). The
+                 measured rate laws, plug-flow sizing and every converter-level function are the same code. The
+                 converter model (converter.py) already closes its equilibrium on Gillespie-Beattie Ka with
+                 Newton-Cooper activities, and the 1.2 manifest has the 1.1 economics, plant, process and engineering
+                 blocks (asserted in assert_same_accounting), so converter-level results are the same in both versions.
 """
 from __future__ import annotations
 
 import copy
 import importlib
+import importlib.util
 import math
 import subprocess
 import sys
@@ -39,9 +50,33 @@ import converter as C  # noqa: E402
 import kinetics as K  # noqa: E402
 import kinetics_swap as S  # noqa: E402
 
+
+def _version_switch():
+    """analysis/nh3_model.py under its own module name (this file is also called nh3_model)."""
+    name = "nh3_model_version_switch"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, REPO / "analysis" / "nh3_model.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+NM = _version_switch()
+VERSION, LABEL = NM.VERSION, NM.LABEL
 hc = S.hc
-FROZEN = S.FROZEN                                   # Fe 15.2917, Ru 22.0306 (NH3-FINAL-1.1)
-MEASURED_FE = dict(cost=15.578802, T_C=425.0, P_bar=170.0, Tsep_C=30.0)   # analysis/nh3_staged_converter_2026_10_12 README
+if VERSION == "1.1":
+    FROZEN = S.FROZEN                               # Fe 15.2917, Ru 22.0306 (NH3-FINAL-1.1)
+    FROZEN_OPTIMA = dict(Fe=(425.0, 180.0, 30.0), Ru=(450.0, 425.0, 25.0))
+    MEASURED_FE = dict(cost=15.578802, T_C=425.0, P_bar=170.0, Tsep_C=30.0, V_m3=25.59425)   # staged-converter README
+else:
+    _A = NM.anchors()                               # canonical 1.2 run, results.json
+    FROZEN = dict(Fe=_A["Fe"], Ru=_A["Ru"], NSTATE=_A["NSTATE"])
+    FROZEN_OPTIMA = dict(Fe=tuple(_A["Fe_optimum"]), Ru=tuple(_A["Ru_optimum"]))
+    # Re-derived on the 1.1 definition (measured Dyson-Simon Fe rate, plug flow, source rates, no F_CAL) on the 1.2
+    # states; recorded from the first 1.2 run of run_benchmark.py (nh3_1_2/summary.json) as the 1.2 regression anchor.
+    MEASURED_FE = dict(cost=14.925644, T_C=450.0, P_bar=140.0, Tsep_C=30.0, V_m3=56.30022)
 PR77_BRANCH = "origin/analysis/nh3-final-1-2-candidate-20261013"
 PR77_FILE = "analysis/nh3_final_1_2_candidate_2026_10_13/gb_fugacity_pair.py"
 
@@ -49,14 +84,58 @@ PR77_FILE = "analysis/nh3_final_1_2_candidate_2026_10_13/gb_fugacity_pair.py"
 # --- anchors ------------------------------------------------------------------------------------------------------
 
 def build_frozen():
+    """Process-state harness of the selected version (1.1: kinetics_swap.build, unchanged; 1.2: nh3_model.harness)."""
+    if VERSION == "1.1":
+        return S.build(False)
+    assert_same_accounting()
+    h = NM.harness()
+    assert (h.NH3_REFERENCE, h.FUGACITY_IN_LOOP, h.FUGACITY_IN_MKM) == ("gillespie_beattie", True, True), "not 1.2"
+    assert h.NSTATE == FROZEN["NSTATE"], h.NSTATE
+    return h
+
+
+def build_v11():
+    """The NH3-FINAL-1.1 harness (for the uncounted Gillespie-Beattie ideal-gas diagnostic, which patches it)."""
     return S.build(False)
 
 
+def assert_same_accounting():
+    """The 1.2 manifest differs from the 1.1 manifest used by converter.py and kinetics_swap.py only in project labels,
+    the thermodynamic basis, the descriptor calibration factor F_CAL (unused by the measured rate laws), the frozen
+    regression anchors and the worker count. Every block the measured-kinetics costs read is identical."""
+    a, b = S.CFG, NM.cfg()
+    skip_top = {"project", "thermo", "frozen_regression", "numerics", "gates"}
+    for k in sorted((set(a) | set(b)) - skip_top):
+        if k == "economics":
+            ea = {kk: v for kk, v in a[k].items() if kk not in ("calibration_factor", "calibration_note")}
+            eb = {kk: v for kk, v in b[k].items() if kk not in ("calibration_factor", "calibration_note")}
+            assert ea == eb, "economics differ between the 1.1 and 1.2 manifests"
+        else:
+            assert a.get(k) == b.get(k), f"manifest block {k!r} differs between 1.1 and 1.2"
+    assert a["numerics"]["descriptor_grid_eV"] == b["numerics"]["descriptor_grid_eV"]
+    assert a["gates"] == b["gates"]
+
+
+def _frozen_reference(h):
+    """Descriptor-kinetics optima of the selected version (kinetics_swap.frozen_reference for 1.1, which asserts the
+    1.1 anchors itself; the same computation on the 1.2 harness otherwise)."""
+    if VERSION == "1.1":
+        return S.frozen_reference(h)
+    out = {}
+    for m in ("Fe", "Ru"):
+        tot, V, _, _ = h.cost_arrays(m, h.frozen_state_logtof(h.EN0[m]))
+        out[m] = S.best(h, np.where(V <= h.V_CAP, tot, np.inf), V)
+    return out
+
+
 def reproduce_anchors(h=None, tol_frozen=1e-9, tol_measured=1e-5):
-    """Frozen Fe 15.29 / Ru 22.03 (descriptor kinetics) and measured-kinetics Fe 15.58 (plug, source), asserted."""
+    """Frozen descriptor-kinetics Fe / Ru optima of the selected version (1.1: 15.29 / 22.03; 1.2: 11.52 / 16.63, from
+    the canonical results.json) and the measured-kinetics Fe optimum (plug, source), asserted."""
     h = h or build_frozen()
-    fr = S.frozen_reference(h)                       # asserts 1e-9 internally
+    fr = _frozen_reference(h)
     assert abs(fr["Fe"]["cost"] - FROZEN["Fe"]) < tol_frozen and abs(fr["Ru"]["cost"] - FROZEN["Ru"]) < tol_frozen
+    for m in ("Fe", "Ru"):
+        assert (fr[m]["T_C"], fr[m]["P_bar"], fr[m]["Tsep_C"]) == FROZEN_OPTIMA[m], fr[m]
     _, V0, _, _ = h.cost_arrays("Fe", h.frozen_state_logtof(hc.EN0_CANON["Fe"]))
     j0 = next(i for i in range(h.NSTATE) if (h.state_T[i], h.state_P[i], h.state_Tsep[i]) == S.CAL_STATE)
     r = S.evaluate(h, S.state_arrays(h), "plug", "source", float(V0[j0]))
