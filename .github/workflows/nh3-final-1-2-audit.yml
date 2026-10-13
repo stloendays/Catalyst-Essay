@@ -90,6 +90,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -113,10 +115,12 @@ jobs:
             --out /tmp/nh3-final12-audit | tee /tmp/nh3-final12-report.log
           cat /tmp/nh3-final12-audit/AUDIT.md >> "$GITHUB_STEP_SUMMARY"
           cat /tmp/audit-kinetics/SOURCE_DOMAIN.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Refuse manuscript or frozen data mutation
+      - name: Verify frozen source and manuscript match current main, not just a clean working tree
         run: |
           test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
-          git diff --exit-code -- provenance/ docs/MANUSCRIPT_MAIN_TEXT.md docs/MAIN_FIGURE_CAPTIONS.md figures/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/
+          git fetch origin main --quiet
+          git diff --exit-code origin/main -- provenance/ data/ docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md docs/MAIN_FIGURE_CAPTIONS.md figures/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/
+          git diff --exit-code -- provenance/ data/ docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md docs/MAIN_FIGURE_CAPTIONS.md figures/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
