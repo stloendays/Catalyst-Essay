@@ -14,6 +14,7 @@ import reconcile as R
 THERMO = Path(os.environ.get("NH3_FINAL12_THERMO", "/tmp/audit-thermo/summary.json"))
 KINETICS = Path(os.environ.get("NH3_FINAL12_KINETICS", "/tmp/audit-kinetics/kinetics_swap.json"))
 DOMAIN = Path(os.environ.get("NH3_FINAL12_DOMAIN", "/tmp/audit-kinetics/source_domain.json"))
+GBNC = Path(os.environ.get("NH3_FINAL12_GBNC", "/tmp/audit-kinetics/gb_nc_pair.json"))
 
 class ScienceFalsificationTests(unittest.TestCase):
     @classmethod
@@ -21,6 +22,7 @@ class ScienceFalsificationTests(unittest.TestCase):
         cls.base = R.load(THERMO)
         cls.swap = R.load(KINETICS)
         cls.domain = R.load(DOMAIN)
+        cls.gbnc = R.load(GBNC)
 
     def test_independent_artifacts_agree(self):
         self.assertEqual(set(R.check(self.base, self.swap, self.domain)),
@@ -62,6 +64,23 @@ class ScienceFalsificationTests(unittest.TestCase):
         domain["n_variants"] = 7
         with self.assertRaises(AssertionError):
             R.check(self.base, self.swap, domain)
+
+    def test_gb_newton_cooper_equilibrium_run_consistent(self):
+        self.assertEqual(R.check_gbnc(self.gbnc)["pressure_range_bar"],
+                         [50.0, 300.0])
+
+    def test_corrupted_nonideal_cost_delta_is_rejected(self):
+        eq = copy.deepcopy(self.gbnc)
+        eq["rows"]["Fe"]["delta_cost_USD_t"] += 0.4
+        with self.assertRaises(AssertionError):
+            R.check_gbnc(eq)
+
+    def test_corrupted_nonideal_equilibrium_is_rejected(self):
+        eq = copy.deepcopy(self.gbnc)
+        eq["independent_gb_equilibrium_check_90bar_425C"]["NC_from_published_Ka"] += 0.02
+        with self.assertRaises(AssertionError):
+            R.check_gbnc(eq)
+
 
 if __name__ == "__main__":
     unittest.main()
