@@ -69,3 +69,7 @@ The strengthened narrative is:
 2. uncertainty reporting distinguishes marginal uncertainty from **error dependence/model bias**;
 3. model credibility is separated into external trend validation, industrial plausibility and internal robustness;
 4. Agent results distinguish **decision stabilization** from **self-stopping efficiency**.
+
+## NH3-FINAL-1.2
+
+The values above are NH3-FINAL-1.1. The NH3 rows recomputed on NH3-FINAL-1.2 are in `nh3_1_2/` (same file names; `nh3_1_2/README.md` has the 1.1 → 1.2 table). The scripts select the model with `NH3_MODEL=1.1|1.2` (`analysis/nh3_model.py`); 1.1 remains the default and reproduces the committed files unchanged.
