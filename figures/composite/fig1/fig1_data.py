@@ -2,9 +2,9 @@
 
   descriptor E_N and metal price : provenance/discover_v1/source_harness/DISCOVER_TASK_V1.json
   activity, bed volume, cost, ranks, rolling Top-K :
-      provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
+      provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/results.json
 
-Guards reproduce the NH3-FINAL-1.1 frozen regression values; the script stops
+Guards reproduce the NH3-FINAL-1.2 canonical regression values; the script stops
 rather than writing a table if any of them fails.
 """
 import csv
@@ -15,19 +15,19 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 TASK = os.path.join(REPO, "provenance/discover_v1/source_harness/DISCOVER_TASK_V1.json")
-RES = os.path.join(REPO, "provenance/nh3_final_1_1/source_harness/outputs/"
-                         "nh3_final_20260905T134204Z/results.json")
+RES = os.path.join(REPO, "provenance/nh3_final_1_2/source_harness/outputs/"
+                         "nh3_final_1_2_20261013/results.json")
 
 task = json.load(open(TASK, encoding="utf-8"))
 det = json.load(open(RES, encoding="utf-8"))["deterministic"]
 
 act, eco = det["activity_order"], det["raw_economic_order"]
 assert act[:3] == ["Ru", "Os", "Fe"] and eco[:3] == ["Fe", "Ru", "Os"], "frontier order changed"
-assert abs(det["raw_global_spearman"] - 0.9285714285714284) < 1e-12, "global rho changed"
-assert det["process_state_count"] == 14136, "process-state library changed"
+assert abs(det["raw_global_spearman"] - 0.9107142857142855) < 1e-12, "global rho changed"
+assert det["process_state_count"] == 14510, "process-state library changed"
 costs = {m: det["metals"][m]["unconstrained"]["total_cost"] for m in ("Fe", "Ru", "Os")}
-for m, v in (("Fe", 15.291704676621144), ("Ru", 22.03059478781101), ("Os", 25.832)):
-    assert abs(costs[m] - v) < 5e-4, "%s cost changed" % m
+for m, v in (("Fe", 11.515783597179267), ("Ru", 16.632749358902807), ("Os", 19.746543665634597)):
+    assert abs(costs[m] - v) < 1e-9, "%s cost changed" % m
 
 desc = {c["id"]: c for c in task["candidate_set"]}
 assert set(desc) == set(act), "candidate set mismatch"

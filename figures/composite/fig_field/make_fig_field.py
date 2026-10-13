@@ -9,12 +9,12 @@ Composite, 183 mm wide.
      analysis/meoh_s6_robustness_2026_10_13/results.json; paper-cluster bootstrap CIs on STY:
      analysis/meoh_s6_robustness_2026_10_13/stats_s6/summary.json and analysis/meoh_main_result_stats_2026_10_06/
      summary.json
-  c  ammonia, leader changes by rate basis and plant treatment, and what the winners differ by:
-     analysis/nh3_field_2026_10_06/summary.json, group_metrics.csv, candidates.csv
+  c  ammonia (NH3-FINAL-1.2), leader changes by rate basis and plant treatment, and what the winners differ by:
+     analysis/nh3_field_2026_10_06/nh3_1_2/summary_printed.json, group_metrics_printed.csv, candidates.csv
   d  methanol group, Re/TiO2 at 100 bar: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv
      (cost_recycled_opt_inlet filled, cost_recycled_opt open)
   e  methanol group, InNi3C0.5 on m-, t-, a-ZrO2 and SiO2 at 4 MPa (Meng et al. 2021, 24 NL/g/h): same file
-  f  ammonia group, BaTiO3-xHx supports at 5 MPa: analysis/nh3_field_2026_10_06/candidates.csv
+  f  ammonia group, BaTiO3-xHx supports at 5 MPa: analysis/nh3_field_2026_10_06/nh3_1_2/candidates_printed.csv
 
     pur_bridge_env/python make_fig_field.py            -> FigField.{svg,pdf,png}
 """
@@ -57,11 +57,13 @@ stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")    
 stats6 = read_json(S6R + "stats_s6/summary.json")                                  # bootstrap, inert-limited loop
 s6res = read_json(S6R + "results.json")
 cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
-nh3_run = read_json("analysis/nh3_field_2026_10_06/summary.json")
-nh3 = read_json("analysis/nh3_field_2026_10_06/summary_printed.json")          # frozen primary: printed values
-nh3_groups = read_csv("analysis/nh3_field_2026_10_06/group_metrics_printed.csv")
-nh3_cand = read_csv("analysis/nh3_field_2026_10_06/candidates.csv")
-nh3_pcand = read_csv("analysis/nh3_field_2026_10_06/candidates_printed.csv")
+NH3F = "analysis/nh3_field_2026_10_06/nh3_1_2/"                                 # ammonia model NH3-FINAL-1.2
+nh3_run = read_json(NH3F + "summary.json")
+nh3 = read_json(NH3F + "summary_printed.json")                                   # primary: printed values
+nh3_groups = read_csv(NH3F + "group_metrics_printed.csv")
+nh3_cand = read_csv(NH3F + "candidates.csv")
+nh3_pcand = read_csv(NH3F + "candidates_printed.csv")
+assert nh3_run["model"]["label"] == "NH3-FINAL-1.2" and nh3_run["model"]["process_states"] == 14510
 assert lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
 assert stats["point_estimate"]["groups"] == lit["primary"]["top1_mismatch_groups"]
 assert stats["groups"] == lit["primary"]["groups"]
@@ -336,7 +338,7 @@ if __name__ == "__main__":
     fax.set_xlabel("rate (mmol g$_{cat}^{-1}$ h$^{-1}$)")
     fax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
     fax.set_xlim(-2.5, 55)
-    fax.set_ylim(14.5, 49)
+    fax.set_ylim(11.5, 34.5)
     fax.legend(loc="upper right", fontsize=5.3, handletextpad=0.1, borderaxespad=0.3, labelspacing=0.3)
     fax.text(0.03, 0.96, NH3_GROUP[1], transform=fax.transAxes, fontsize=5.6, va="top", fontweight="bold")
     boxed(fax)

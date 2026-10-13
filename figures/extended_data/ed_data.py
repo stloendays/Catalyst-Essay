@@ -3,6 +3,9 @@
 Every function returns {panel: (DataFrame, source)}, the exact numbers the panel plots, read from the analysis files.
 `render_extended_data.py` draws from these tables and `tools/build_source_data.py` writes them to the Source Data
 workbooks, so a figure and its Source Data cannot drift apart.
+
+Ammonia panels (bimetallic surfaces, measured catalysts, actual-Ru Monte Carlo, the ammonia rows of the bound) read the
+NH3-FINAL-1.2 outputs in the analysis folders' nh3_1_2/ subfolders (canonical run nh3_final_1_2_20261013).
 """
 import json
 import os
@@ -16,12 +19,12 @@ REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 
 EXTRACT_ACC = "agent/extraction/eval/field_accuracy_by_source.csv"
 EXTRACT_ENT = "agent/extraction/eval/entry_metrics.csv"
-ALLOY = "analysis/nh3_alloy_extension_2026_10_05/alloy_chain_results.csv"
-ALLOY_SUM = "analysis/nh3_alloy_extension_2026_10_05/summary.json"
+ALLOY = "analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/alloy_chain_results.csv"
+ALLOY_SUM = "analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/summary.json"
 STATS = "analysis/meoh_main_result_stats_2026_10_06/"
 INV = "analysis/meoh_literature_inversion_2026_10_05/"
-SUP = "analysis/nh3_supported_2026_10_06/"
-MC = "analysis/nh3_mc_ru_actual_2026_10_06/"
+SUP = "analysis/nh3_supported_2026_10_06/nh3_1_2/"
+MC = "analysis/nh3_mc_ru_actual_2026_10_06/nh3_1_2/"
 BENCH = "analysis/meoh_plant_benchmark_2026_10_06/"
 PRUNE = "analysis/meoh_pruning_2026_10_06/"
 S6R = "analysis/meoh_s6_robustness_2026_10_13/"
@@ -87,7 +90,7 @@ def edfig2():
     for p, doms in layers:
         t = feas[feas.domain.isin(doms)][cols].sort_values("cost_USD_t").reset_index(drop=True)
         out[p] = (t, ALLOY + " (feasible == True; domains %s); Fe benchmark %s" % (", ".join(doms), ALLOY_SUM))
-    assert len(out["a"][0]) == 138 and len(out["c"][0]) == s["extended_with_usgs_prices"]["feasible"]
+    assert len(out["a"][0]) == 137 and len(out["c"][0]) == s["extended_with_usgs_prices"]["feasible"]
     assert int(out["c"][0].below_Fe.sum()) == s["extended_with_usgs_prices"]["below_Fe"]
     return out, fe
 
@@ -445,7 +448,7 @@ def edfig7():
     s = rjson(ALLOY_SUM)
     al["pruned"] = al.pruned.astype(str) == "True"
     al["feasible"] = al.feasible.astype(str) == "True"
-    assert int(al.pruned.sum()) == 1397 == len(al) - 298 and len(al) == s["costed_with_frozen_or_usgs_prices"]
+    assert int(al.pruned.sum()) == 1399 == len(al) - 296 and len(al) == s["costed_with_frozen_or_usgs_prices"]
     c = al[["surface", "domain", "lower_bound_USD_t", "cost_USD_t", "feasible", "pruned"]].copy()
     fe = s["Fe_cost_USD_t"]
     assert not ((c.pruned) & (c.cost_USD_t < fe)).any()

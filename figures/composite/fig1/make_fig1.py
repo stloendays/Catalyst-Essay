@@ -1,12 +1,14 @@
 """Figure 1 — a globally correlated catalyst screen inverts at the industrial decision frontier.
 
 Composite, 183 mm wide. Data from fig1_metals.csv / fig1_rolling.csv (written by
-fig1_data.py from pinned provenance) and the model's own volcano curve
-(closure/scaling_reachability.csv). Step-site renders from build_structures.py.
+fig1_data.py from pinned provenance), the model's own volcano curve
+(closure/scaling_reachability.csv) and the Fe cost pools of the panel-a cost icon
+(results.json), all from the NH3-FINAL-1.2 canonical run. Step-site renders from build_structures.py.
 
     pur_bridge_env/python make_fig1.py            -> Fig1.{svg,pdf,png}
 """
 import csv
+import json
 import math
 import os
 
@@ -20,8 +22,10 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Polygon, Rectang
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-CURVE = os.path.join(REPO, "provenance/nh3_final_1_1/source_harness/outputs/"
-                           "nh3_final_20260905T134204Z/closure/scaling_reachability.csv")
+RUN = os.path.join(REPO, "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013")
+CURVE = os.path.join(RUN, "closure", "scaling_reachability.csv")
+FE_POOLS = json.load(open(os.path.join(RUN, "results.json"), encoding="utf-8"))[
+    "deterministic"]["metals"]["Fe"]["feasible"]["breakdown"]
 
 # ---- visual system ---------------------------------------------------------
 INK, MID, GRID = "#1B1B1B", "#6B6F76", "#E4E4E4"
@@ -262,8 +266,11 @@ sub_label(sx - 0.7, yc - 7.2, [("NH", False), ("3", True), ("(l)", False)], 5.5,
           weight="normal", color=MID)
 
 # stage 6: catalyst-dependent cost stack
-segs = [("fresh-feed\ncompression", 9.66, "#C6CCDC"), ("compressor\nCAPEX", 3.87, "#9DACCB"),
-        ("vessel + reactor", 0.92, "#CBD7C3"), ("recycle", 0.76, "#ACBF9F")]
+# cost pools of the Fe optimum (metal inventory, 0.13 USD/t, is too thin to draw)
+segs = [("fresh-feed\ncompression", FE_POOLS["fresh_comp"], "#C6CCDC"),
+        ("compressor\nCAPEX", FE_POOLS["compressor_capex"], "#9DACCB"),
+        ("vessel + reactor", FE_POOLS["vessel_pressure_premium"] + FE_POOLS["reactor_base"], "#CBD7C3"),
+        ("recycle", FE_POOLS["recycle_comp"], "#ACBF9F")]
 tot = sum(s[1] for s in segs)
 y0 = yc - 6.0
 for name, v, col in segs:
@@ -468,7 +475,8 @@ axf.text(0, -0.25, "Atomic\nactivity rank", ha="center", va="bottom", fontsize=6
 axf.text(1, -0.25, "Economic\nrank", ha="center", va="bottom", fontsize=6.3)
 axf.text(0.5, 16.55, "top 3: ρ = −0.50", ha="center", va="center", fontsize=6.3, color=RED,
          fontweight="bold")
-axf.text(0.5, 17.6, "all 15: ρ = 0.929", ha="center", va="center", fontsize=6.0, color=MID)
+axf.text(0.5, 17.6, "all 15: ρ = %.3f" % float(rolling[-1]["rho_raw"]), ha="center", va="center", fontsize=6.0,
+         color=MID)
 
 # g: rolling Top-K fidelity
 letter("g", 63.0, ROW3_Y + ROW3_H + 6.0)
@@ -483,7 +491,7 @@ axg.plot(K, rho, "o", ms=3.0, mfc="white", mec=INK, mew=0.6, zorder=3)
 axg.plot(K[0], rho[0], "o", ms=4.2, mfc=RED, mec=INK, mew=0.5, zorder=4)
 axg.annotate("K = 3: ρ = −0.50", (K[0], rho[0]), xytext=(8, -2), textcoords="offset points",
              fontsize=6.0, color=RED, fontweight="bold", va="center")
-axg.annotate("K = 15: ρ = 0.929", (K[-1], rho[-1]), xytext=(14.6, 0.30), textcoords="data",
+axg.annotate("K = 15: ρ = %.3f" % rho[-1], (K[-1], rho[-1]), xytext=(14.6, 0.30), textcoords="data",
              fontsize=6.0, color=INK, ha="right", va="center",
              arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=3))
 axg.set_xlim(2.3, 15.7)
@@ -508,7 +516,7 @@ for i, (m, v) in enumerate(zip(bars, vals)):
 axh.set_xticks(range(3))
 axh.set_xticklabels(bars, fontsize=6.8, fontweight="bold")
 axh.tick_params(axis="x", length=0)
-axh.set_ylim(0, 34)
+axh.set_ylim(0, 26)
 axh.set_ylabel(r"Catalyst-dependent cost (USD t$^{-1}$ NH$_3$)")
 axh.yaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(2.5))
 axh.text(0.5, 0.965, "economic #1 = atomic #3", transform=axh.transAxes, ha="center", va="top",

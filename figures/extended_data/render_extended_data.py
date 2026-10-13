@@ -290,7 +290,7 @@ def ed4():
     ax.set_xscale("log")
     ax.set_xlabel("laboratory rate (mmol g$_{metal}^{-1}$ h$^{-1}$)")
     ax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
-    ax.set_ylim(13, t.cost_USD_t.max() + 1.5)
+    ax.set_ylim(min(fe, t.cost_USD_t.min()) - 2.4, t.cost_USD_t.max() + 1.5)
     ax.legend(loc="upper right", fontsize=5.4, handletextpad=0.2, borderaxespad=0.4)
     boxed(ax)
     pg.letter("a", 2, 78)
@@ -518,7 +518,7 @@ def ed7():
     for m, col, lab, z in ((fb.pruned, OTHER, "excluded by the bound (%d)" % fb.pruned.sum(), 2),
                            (~fb.pruned, RU, "optimized in full (%d)" % (~fb.pruned).sum(), 3)):
         bx.scatter(fb.cost_USD_t[m], fb.lower_bound_USD_t[m], s=4, c=col, ec=INK, lw=0.2, zorder=z, label=lab)
-    lim = (8, 2e4)
+    lim = (6, 2e4)
     bx.plot(lim, lim, color=INK, lw=0.5)
     bx.axhline(fe, color=DARK_G, lw=0.6, ls="--")
     bx.axvline(fe, color=DARK_G, lw=0.6, ls="--")

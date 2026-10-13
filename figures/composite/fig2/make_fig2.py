@@ -1,11 +1,12 @@
 """Figure 2 — metal cost and process reoptimization jointly define the ammonia decision boundary.
 
-Composite, 183 x 170 mm.
-  fig2_pressure_envelopes.csv, fig2_ru_price_sweep.csv   fig2_model.py (frozen NH3-FINAL-1.1 harness)
-  fig2_ru_alpha_sweep.csv, fig2_ru_actual_cost_points.csv fig2_ru_actual_cost.py (same harness, literature u, r, KAAP)
-  renders/bed_*.png, renders/beds.json                     build_beds.py (OVITO)
-  closure/mc_draws.csv                                     NH3-FINAL-1.1 provenance, 1,000 descriptor draws
-  analysis/supervisor_2026_09_20/*                         cost decomposition, equal-price test, joint cost MC
+Composite, 183 x 170 mm. Ammonia model NH3-FINAL-1.2 (canonical run nh3_final_1_2_20261013, 14,510 process states).
+  nh3_1_2/fig2_pressure_envelopes.csv, fig2_ru_price_sweep.csv    fig2_model.py with NH3_MODEL=1.2
+  nh3_1_2/fig2_ru_alpha_sweep.csv, fig2_ru_actual_cost_points.csv, fig2_ru_bed_sensitivity.csv
+                                                                  fig2_ru_actual_cost.py with NH3_MODEL=1.2
+  renders/bed_*.png, renders/beds.json                            build_beds.py (OVITO), from nh3_1_2/ envelopes
+  closure/mc_draws.csv                                            NH3-FINAL-1.2 provenance, 1,000 descriptor draws
+  analysis/supervisor_2026_09_20/nh3_1_2/*                        cost decomposition, equal-price test, joint cost MC
 
     pur_bridge_env/python make_fig2.py            -> Fig2.{svg,pdf,png}
 """
@@ -25,23 +26,28 @@ from style import (DARK_B, DARK_G, FE, INK, LINE, MID, OS, OTHER, PALE_B, PALE_G
                    TINT_B, Page, boxed, crop_rgba, fmt_minus)
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-SUP = os.path.join(REPO, "analysis", "supervisor_2026_09_20")
-CLOSURE = os.path.join(REPO, "provenance/nh3_final_1_1/source_harness/outputs/"
-                             "nh3_final_20260905T134204Z/closure")
+SUP = os.path.join(REPO, "analysis", "supervisor_2026_09_20", "nh3_1_2")
+CLOSURE = os.path.join(REPO, "provenance/nh3_final_1_2/source_harness/outputs/"
+                             "nh3_final_1_2_20261013/closure")
+DATA = os.path.join(HERE, "nh3_1_2")                    # model tables of NH3-FINAL-1.2
 
 
 def read_csv(path):
     return list(csv.DictReader(open(path, encoding="utf-8")))
 
 
-env = read_csv(os.path.join(HERE, "fig2_pressure_envelopes.csv"))
-sweep = read_csv(os.path.join(HERE, "fig2_ru_price_sweep.csv"))
+env = read_csv(os.path.join(DATA, "fig2_pressure_envelopes.csv"))
+sweep = read_csv(os.path.join(DATA, "fig2_ru_price_sweep.csv"))
 parity = sweep.pop()                                   # last row: the Ru = Fe price
-alpha_sweep = read_csv(os.path.join(HERE, "fig2_ru_alpha_sweep.csv"))   # fig2_ru_actual_cost.py
+alpha_sweep = read_csv(os.path.join(DATA, "fig2_ru_alpha_sweep.csv"))   # fig2_ru_actual_cost.py
 assert len(alpha_sweep) == len(sweep) + 1
 alpha_sweep.pop()                                      # parity row: alpha* = 1 by construction
-PTS = {r["key"]: r for r in read_csv(os.path.join(HERE, "fig2_ru_actual_cost_points.csv"))}
-P_REACH = float(PTS["strict_scaling_reach"]["p_eff_USD_kg"])   # 237.3: audited strict-scaling lifecycle boundary
+PTS = {r["key"]: r for r in read_csv(os.path.join(DATA, "fig2_ru_actual_cost_points.csv"))}
+P_REACH = float(PTS["strict_scaling_reach"]["p_eff_USD_kg"])   # audited strict-scaling lifecycle boundary
+# the strict-scaling reach is the q* of analysis/fe_bridge_backward_2026_09_29/nh3_1_2 on the 10-year price basis
+_reach = json.load(open(os.path.join(REPO, "analysis", "fe_bridge_backward_2026_09_29", "nh3_1_2",
+                                     "scaling_lifecycle_exact_summary.json"), encoding="utf-8"))
+assert abs(P_REACH - _reach["equivalent_effective_Ru_price_at_10y_USD_kg"]) < 1e-9 * P_REACH
 decomp = {r["cost_pool"]: r for r in read_csv(os.path.join(SUP, "nh3_cost_decomposition.csv"))}
 f3 = {r["metric"]: float(r["value"]) for r in read_csv(os.path.join(SUP, "f3_panel_summary.csv"))}
 hist = read_csv(os.path.join(SUP, "nh3_cost_mc_histogram.csv"))
@@ -184,7 +190,7 @@ for (x0, x1, top, bot) in ((place["Fe"] + half_w["Fe"] + 1.0, place["Ru"] - half
                arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
     b.text((x0 + x1) / 2, ya + 1.0, top, ha="center", va="bottom", fontsize=5.8)
     b.text((x0 + x1) / 2, ya - 1.0, bot, ha="center", va="top", fontsize=5.8)
-assert (round(vr), round(mr), round(vq)) == (258, 26, 143)
+assert (round(vr), round(mr), round(vq)) == (463, 15, 277)
 
 # ---- c: pressure envelopes -------------------------------------------------------------
 RY0, RH = 63.0, 34.0
@@ -200,18 +206,25 @@ for case, (col, ls, lw) in styles.items():
     c.plot(o["P_bar"], o["cost"], "o", ms=3.6, mfc="white" if hollow else col, mec=RU if hollow else INK,
            mew=0.6, zorder=5)
 lead = dict(arrowstyle="-", lw=0.45, color=MID, shrinkA=0.5, shrinkB=2.0)
-c.annotate("Fe  15.29 (180 bar)", (180, OPT["Fe"]["cost"]), xytext=(420, 14.6), fontsize=5.8, color=DARK_G,
-           fontweight="bold", va="center", arrowprops=lead)
-c.annotate("Ru  22.03 (425 bar)", (425, OPT["Ru"]["cost"]), xytext=(520, 20.0), fontsize=5.8, color=DARK_B,
-           fontweight="bold", va="center", arrowprops=lead)
-c.annotate("Os  25.83 (425 bar)", (425, OPT["Os"]["cost"]), xytext=(470, 28.4), fontsize=5.8, color=DARK_B,
-           va="center", arrowprops=lead)
-c.text(25, 13.2, "Ru priced as Fe\n14.71 (170 bar)", fontsize=5.6, color=DARK_B, va="top", ha="left",
-       linespacing=1.1)
+
+
+def opt_label(case, name):
+    return "%s  %.2f (%d bar)" % (name, OPT[case]["cost"], OPT[case]["P_bar"])
+
+
+c.annotate(opt_label("Fe", "Fe"), (OPT["Fe"]["P_bar"], OPT["Fe"]["cost"]), xytext=(300, 13.9), fontsize=5.8,
+           color=DARK_G, fontweight="bold", va="center", arrowprops=lead)
+c.annotate(opt_label("Ru", "Ru"), (OPT["Ru"]["P_bar"], OPT["Ru"]["cost"]), xytext=(450, 15.4), fontsize=5.8,
+           color=DARK_B, fontweight="bold", va="center", arrowprops=lead)
+c.annotate(opt_label("Os", "Os"), (OPT["Os"]["P_bar"], OPT["Os"]["cost"]), xytext=(120, 23.8), fontsize=5.8,
+           color=DARK_B, va="center", arrowprops=lead)
+c.annotate("Ru priced as Fe\n%.2f (%d bar)" % (OPT["Ru_at_Fe_price"]["cost"], OPT["Ru_at_Fe_price"]["P_bar"]),
+           (OPT["Ru_at_Fe_price"]["P_bar"], OPT["Ru_at_Fe_price"]["cost"]), xytext=(180, 10.8), fontsize=5.6,
+           color=DARK_B, va="center", linespacing=1.1, arrowprops=lead)
 c.text(0.97, 0.04, r"$T$, $T_\mathrm{sep}$ reoptimized", transform=c.transAxes, ha="right", va="bottom",
        fontsize=5.6, color=MID)
 c.set_xlim(0, 1000)
-c.set_ylim(10.5, 30)
+c.set_ylim(9.0, 27.5)
 c.set_xlabel("Synthesis pressure (bar)")
 c.set_ylabel(r"Lowest cost (USD t$^{-1}$ NH$_3$)")
 c.xaxis.set_minor_locator(MultipleLocator(100))
@@ -234,9 +247,10 @@ assert abs(float(PTS["pure"]["cost"]) - OPT["Ru"]["cost"]) < 1e-9
 d1.axvspan(1.0, p_star, color=TINT_B, lw=0, zorder=0)
 d2.axvspan(1.0, P_REACH, color=PALE_G, lw=0, zorder=0)
 d1.axhline(fe_cost, color=FE, lw=0.9, ls=(0, (3, 1.6)), zorder=2)
-d1.text(2.2e5, fe_cost + 0.35, "Fe 15.29", fontsize=5.8, color=DARK_G, ha="right", va="bottom", fontweight="bold")
+d1.text(2.2e5, fe_cost + 0.3, "Fe %.2f" % fe_cost, fontsize=5.8, color=DARK_G, ha="right", va="bottom",
+        fontweight="bold")
 d1.plot(pr, co, color=RU, lw=1.2, zorder=3)
-d1.text(1.4, 25.9, "Ru cheaper", fontsize=5.6, color=DARK_B, va="top")
+d1.text(1.4, 20.3, "Ru cheaper", fontsize=5.6, color=DARK_B, va="top")
 
 
 def pt(key):
@@ -253,7 +267,7 @@ for x_, y_ in ((x0, y0_), (x1, y1), (x4, y4), (x9, y9)):
     d1.plot(x_, y_, "o", ms=3.4, mfc=RU, mec=INK, mew=0.5, zorder=6)
 # the commercial Ru/C catalyst's own bed instead of the benchmark formulation: at 95.55% and 90% recovery a square at
 # 8 wt% Ru and 490 kg m-3 (centre of 430-550) and a bar over 5-10 wt% and 430-550 kg m-3 (fig2_ru_bed_sensitivity.csv)
-BEDROWS = read_csv(os.path.join(HERE, "fig2_ru_bed_sensitivity.csv"))
+BEDROWS = read_csv(os.path.join(DATA, "fig2_ru_bed_sensitivity.csv"))
 
 
 def bed_bars(ax, k_hi, k90, field="cost"):
@@ -273,14 +287,14 @@ def bed_bars(ax, k_hi, k90, field="cost"):
 bed_bars(d1, "supp_rec_hi", "supp_rec90")
 bed_bars(d1, "kaap_hi", "kaap90")
 d1.plot(p_star, fe_cost, "o", ms=3.6, mfc=RED, mec=INK, mew=0.5, zorder=7)
-d1.text(p_star / 1.6, fe_cost + 0.45, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
+d1.text(p_star / 3.2, fe_cost + 0.3, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
         ha="right", va="bottom")
 # point labels sit above-left of their markers, on the empty side of the rising curve
 d1.text(x0 / 1.35, y0_ + 0.35, "pure Ru", fontsize=5.6, ha="right", va="bottom")
 d1.text(x1 / 1.3, y1 + 0.2, "Ru/C", fontsize=5.6, ha="right", va="bottom")   # left of the marker, above the curve
-d1.text(x9 * 1.3, fe_cost - 0.25, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
-d1.plot(x9 * 1.45, 13.1, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
-d1.text(x9 * 1.95, 13.1, "own Ru/C bed", fontsize=5.4, ha="left", va="center", color=DARK_B)
+d1.text(x9 * 1.3, fe_cost - 0.3, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
+d1.plot(1.7, 14.2, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
+d1.text(2.3, 14.2, "own Ru/C bed", fontsize=5.4, ha="left", va="center", color=DARK_B)
 # KAAP loop: Ru/C with recovery against fused iron at the same 90 bar, -20 C separator
 k9, k4, kf = (float(PTS[k]["cost"]) for k in ("kaap90", "kaap_hi", "fe_kaap"))
 d1.plot([x4 / 1.6, x9 * 1.6], [kf, kf], color=FE, lw=1.0, zorder=5)
@@ -290,8 +304,8 @@ d1.text(x4 / 1.8, (k4 + kf) / 2, "KAAP loop\n90 bar", fontsize=5.4, ha="right", 
 d1.text(x9 * 1.6, kf + 0.35, "Fe", fontsize=5.4, ha="right", va="bottom", color=DARK_G)   # above the line end
 d1.set_xscale("log")
 d1.set_xlim(1.0, 3e5)
-d1.set_ylim(12.0, 26.6)
-d1.yaxis.set_major_locator(FixedLocator([15, 20, 25]))
+d1.set_ylim(9.6, 20.6)
+d1.yaxis.set_major_locator(FixedLocator([10, 15, 20]))
 d1.yaxis.set_minor_locator(MultipleLocator(1))
 d1.set_ylabel(r"Ru cost (USD t$^{-1}$)")
 d1.tick_params(axis="x", labelbottom=False)
@@ -335,7 +349,7 @@ order = [("fresh_compression_electricity", "fresh compression"), ("metal_invento
 fe_tot = float(decomp["TOTAL"]["Fe_canonical_USD_t"])
 ru_tot = float(decomp["TOTAL"]["Ru_canonical_USD_t"])
 eq_tot = float(decomp["TOTAL"]["Ru_equal_price_reoptimized_USD_t"])
-X0 = 13.5
+X0 = 9.0
 ypos = list(range(len(order) + 2))[::-1]          # Fe row at top, then the pools, then Ru
 bh = 0.62
 e.barh(ypos[0], fe_tot - X0, left=X0, height=bh, color=FE, ec=INK, lw=0.5, zorder=3)
@@ -362,9 +376,9 @@ for t in e.get_yticklabels():
     if t.get_text() in ("Fe", "Ru", "Ru, priced as Fe"):
         t.set_fontweight("bold")
 e.tick_params(axis="y", length=0)
-e.set_xlim(X0, 26.3)
+e.set_xlim(X0, 21.2)
 e.set_ylim(yq - 0.7, ypos[0] + 0.7)
-e.xaxis.set_major_locator(FixedLocator([14, 18, 22, 26]))
+e.xaxis.set_major_locator(FixedLocator([10, 14, 18]))
 e.xaxis.set_minor_locator(MultipleLocator(1))
 e.set_xlabel(r"Cost (USD t$^{-1}$ NH$_3$)")
 
@@ -377,7 +391,9 @@ xF = np.array([float(r["E_N_Fe"]) for r in draws])
 yR = np.array([float(r["E_N_Ru"]) for r in draws])
 win = np.array([r["economic_winner"] for r in draws])
 feas = np.array([r["Fe_feasible"] == "1" for r in draws])
-assert set(win) == {"Fe", "Ru"} and int((win == "Fe").sum()) == 681 and int(feas.sum()) == 799
+N_FE_WIN, N_FE_FEAS = int((win == "Fe").sum()), int(feas.sum())
+assert set(win) == {"Fe", "Ru"} and N_FE_WIN == round(1000 * f3["Fe_economic_top1_descriptor_MC"])
+assert N_FE_FEAS == round(1000 * f3["Fe_feasible_descriptor_MC"])
 lo_f, hi_f = xF[feas].min(), xF[feas].max()
 assert feas[(xF >= lo_f) & (xF <= hi_f)].all(), "Fe feasibility is not one descriptor interval"
 f.axvspan(-3, lo_f, color="#F3F3F3", lw=0, zorder=0)
@@ -403,7 +419,7 @@ f.set_xticklabels([fmt_minus("%.1f" % v) for v in (-2.0, -1.5, -1.0)])
 f.set_yticks([-1.3, -1.2, -1.1, -1.0])
 f.set_yticklabels([fmt_minus("%.1f" % v) for v in (-1.3, -1.2, -1.1, -1.0)])
 f.text(1.03, 0.98, "economic\nwinner", transform=f.transAxes, fontsize=5.6, va="top", color=MID)
-for yy, col, txt in ((0.74, FE, "Fe  681"), (0.64, RU, "Ru  319")):
+for yy, col, txt in ((0.74, FE, "Fe  %d" % N_FE_WIN), (0.64, RU, "Ru  %d" % (len(win) - N_FE_WIN))):
     f.plot([1.06], [yy], "o", ms=3.0, mfc=col, mec="none", transform=f.transAxes, clip_on=False)
     f.text(1.1, yy, txt, transform=f.transAxes, fontsize=5.8, va="center")
 
@@ -442,14 +458,14 @@ hh_.text(0.35, 380, "Ru = Fe", color=RED, fontsize=5.8, fontweight="bold", va="t
 med = f3["median_Ru_minus_Fe_cost_MC"]
 mn = f3["min_Ru_minus_Fe_cost_MC"]
 hh_.axvline(med, color=INK, lw=0.6, zorder=4)
-hh_.text(med + 0.3, 380, "median %.2f" % med, fontsize=5.6, va="top")
-hh_.annotate("min %.2f" % mn, (mn, 36), xytext=(mn - 0.2, 150), fontsize=5.6, ha="right", va="bottom",
-             arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=1))
+hh_.text(med + 0.25, 380, "median %.3f" % med, fontsize=5.6, va="top")
+hh_.annotate("min\n%.3f" % mn, (mn, 20), xytext=(0.3, 150), fontsize=5.6, ha="left", va="bottom",
+             linespacing=1.05, arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=1))
 hh_.text(0.97, 0.66, "Fe cheaper in\n5,000 / 5,000\ndraws", transform=hh_.transAxes, ha="right", va="top",
          fontsize=6.0, fontweight="bold", linespacing=1.15)
-hh_.set_xlim(-1.5, 16.5)
+hh_.set_xlim(-1.0, 13.0)
 hh_.set_ylim(0, 400)
-hh_.xaxis.set_major_locator(FixedLocator([0, 4, 8, 12, 16]))
+hh_.xaxis.set_major_locator(FixedLocator([0, 4, 8, 12]))
 hh_.xaxis.set_minor_locator(MultipleLocator(1))
 hh_.yaxis.set_minor_locator(MultipleLocator(50))
 hh_.set_xlabel(r"$C_\mathrm{Ru} - C_\mathrm{Fe}$ (USD t$^{-1}$ NH$_3$)")
