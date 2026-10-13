@@ -39,6 +39,10 @@ Literature values
                   -20 C condenser: Humphreys, Lan & Tao, Adv. Energy Sustain. Res. 2, 2000043
                   (2021), doi:10.1002/aesr.202000043. Grid point 90 bar is used.
 
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) reads the frozen NH3-FINAL-1.1 run and writes here;
+NH3_MODEL=1.2 reads the NH3-FINAL-1.2 run (nh3_final_1_2_20261013) and writes to nh3_1_2/. The Fe, Ru and alpha* anchors
+are those of the selected run; the literature inputs (u, r, w, rho, KAAP loop) do not depend on the model version.
+
 Read-only with respect to the harness; refuses to rebuild the cached response surface.
 
     CatalystForge/.venv/python fig2_ru_actual_cost.py [harness_root]
@@ -52,25 +56,32 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import yaml
 from scipy.optimize import brentq
 
 HERE = Path(__file__).resolve().parent
-HARNESS = Path(sys.argv[1] if len(sys.argv) > 1 else
-               os.environ.get("NH3_HARNESS", r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1"))
-sys.path.insert(0, str(HARNESS))
-from harness_core import EN0_CANON, PRICE, NH3Harness  # noqa: E402
+REPO = HERE.parents[2]
+if len(sys.argv) > 1:  # harness root of the selected version
+    os.environ["NH3_HARNESS_1_2" if os.environ.get("NH3_MODEL", "1.1") == "1.2" else "NH3_HARNESS"] = sys.argv[1]
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
 
-RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
-cfg = yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"))
-h = NH3Harness(cfg, HARNESS)
-assert h.NSTATE == 14136, "process-state library changed"
+hc = NM.core()
+EN0_CANON, PRICE, MW = hc.EN0_CANON, hc.PRICE, hc.MW
+A = NM.anchors()
+OUT = NM.out_dir(HERE)
+RES = json.loads((NM.run_dir() / "results.json").read_text(encoding="utf-8"))
+h = NM.harness()
+assert h.NSTATE == A["NSTATE"], "process-state library changed"
+if not h.response_cache_path().exists():
+    raise SystemExit("response surface is not cached (%s); refusing to rebuild a frozen asset" % h.response_cache_path())
 _resp, _cp, cached = h.build_or_load_response()
 if not cached:
     raise SystemExit("response surface is not cached; refusing to rebuild a frozen asset")
+print("%s, run %s, %d process states -> %s" % (A["label"], A["run"], h.NSTATE, OUT))
 
-FE_COST = 15.291704676621144
-ALPHA_STAR_CANON = 201.22
+FE_COST = A["Fe"]                        # Fe optimum of the selected run (1.1: 15.2917, 1.2: 11.5158 USD/t)
+RU_COST = A["Ru"]                        # Ru optimum of the selected run (1.1: 22.0306, 1.2: 16.6327 USD/t)
+ALPHA_STAR_CANON = A["alpha"]            # Ru activity multiple for parity (1.1: 201.22, 1.2: 114.67)
 P_RU = PRICE["Ru"]                       # 53,852.5 USD/kg, frozen
 U_MIN = 0.11 / 0.01                      # dispersion ratio, lower bound
 R_HI, R_LO = 0.9555, 0.90                # Ru recovery, promoted spent Ru/C (CN 1872418 A Ex. 3; lower end 0.90)
@@ -117,13 +128,13 @@ def alpha_star(price, mask=None, bed_factor=1.0, target=None):
 # ---- frozen anchors reproduce --------------------------------------------------
 fe = h.cost_arrays("Fe", logvec["Fe"])
 assert abs(float(np.min(np.where(fe[1] <= h.V_CAP, fe[0], np.inf))) - FE_COST) < 1e-9
-assert abs(optimum(P_RU)["cost"] - 22.03059478781101) < 1e-9
+assert abs(optimum(P_RU)["cost"] - RU_COST) < 1e-9
 a0 = alpha_star(P_RU)
 assert abs(a0 - ALPHA_STAR_CANON) < 0.005, a0
 print("anchors: Fe %.6f, Ru %.6f, alpha* %.4f" % (FE_COST, optimum(P_RU)["cost"], a0))
 
 # ---- alpha* along the Fig. 2d price axis ----------------------------------------
-sweep_prices = [float(r["price_USD_kg"]) for r in csv.DictReader(open(HERE / "fig2_ru_price_sweep.csv", encoding="utf-8"))]
+sweep_prices = [float(r["price_USD_kg"]) for r in csv.DictReader(open(OUT / "fig2_ru_price_sweep.csv", encoding="utf-8"))]
 rows = []
 for p in sweep_prices:
     a = alpha_star(p)
@@ -131,7 +142,7 @@ for p in sweep_prices:
     rows.append(dict(price_USD_kg=p, alpha_star=a, T_C=o["T_C"], P_bar=o["P_bar"], Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
 al = np.array([r["alpha_star"] for r in rows])
 assert np.all(np.diff(al[:-1]) >= -1e-9), "alpha* is not monotone in price"
-with open(HERE / "fig2_ru_alpha_sweep.csv", "w", newline="", encoding="utf-8") as fh:
+with open(OUT / "fig2_ru_alpha_sweep.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(rows)
@@ -168,27 +179,76 @@ pts.append(dict(key="fe_kaap", label="Fe (fused iron), KAAP loop (90 bar, Tsep -
                 Tsep_C=float(h.state_Tsep[i_fe]), V_m3_benchmark=float(V_fe[i_fe]), metal_cost=float(mc_fe[i_fe])))
 print("fe_kaap     cost %.4f  %3.0f C  V %.2f m3" % (t_fe[i_fe], h.state_T[i_fe], V_fe[i_fe]))
 # Strict-scaling reach: the audited lifecycle boundary gives the effective Ru price (10-y basis) below which a
-# scaling-consistent Ru descriptor matches Fe over all 14,136 states. Metal cost scales with p (1 - r) / (u L), so
+# scaling-consistent Ru descriptor matches Fe over all process states. Metal cost scales with p (1 - r) / (u L), so
 # the same boundary applies to p_eff. Ru/C points above it miss Fe even after scaling-consistent tuning.
-REACH_JSON = HERE.parents[2] / "analysis" / "fe_bridge_backward_2026_09_29" / "scaling_lifecycle_exact_summary.json"
-reach = json.loads(REACH_JSON.read_text(encoding="utf-8"))
-assert abs(reach["Fe_reference_cost_USD_t"] - FE_COST) < 1e-12
-P_REACH = reach["equivalent_effective_Ru_price_at_10y_USD_kg"]
+
+
+def strict_scaling_reach():
+    """The boundary of analysis/fe_bridge_backward_2026_09_29 recomputed from the cached response surface of the
+    selected run: at each state the TOF-maximising E_N on the canonical 0.005-eV grid over the strict-scaling domain
+    [-2.2, 0.2] eV (the cost-minimising E_N for every lifetime and recovery), then the largest lifecycle factor
+    q = (1 - r) / L at which the lower cost envelope still reaches the Fe optimum; p_eff = P_Ru q L0 / (1 - r0)."""
+    sel = (h.EGRID >= -2.2 - 1e-9) & (h.EGRID <= 0.2 + 1e-9)
+    sub = _resp[:, sel]
+    j = np.argmax(sub, axis=1)
+    best_log = sub[np.arange(h.NSTATE), j]
+    best_en = h.EGRID[sel][j]
+    active = h.nh3_mol_s * MW["Ru"] / h.F_CAL * np.power(10.0, -best_log)
+    V = active / h.ACTIVE_FRACTION / h.BED_DENSITY
+    ok = V <= h.V_CAP
+    base = np.where(ok, reactor_cost(V) + h.state_process_cost, np.inf)
+    coeff = np.where(ok, active * P_RU / h.annual_output_t, np.inf)
+
+    def best(q):
+        t = base + coeff * q
+        i = int(np.argmin(t))
+        return float(t[i]), i
+
+    q0 = (1.0 - h.METAL_RECOVERY) / h.CATALYST_LIFE_Y   # canonical lifecycle reproduces the run's best strict-scaling Ru
+    bk = RES["backward_reachability"]
+    c0, i0 = best(q0)
+    assert abs(c0 - bk["Ru_best_scaling_cost_USD_t"]) < 1e-8 and abs(best_en[i0] - bk["Ru_best_scaling_EN_eV"]) < 1e-9
+    assert c0 > FE_COST
+    lo, hi = 0.0, q0
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if best(mid)[0] <= FE_COST else (lo, mid)
+    c, i = best(lo)
+    return dict(q=lo, p_eff=P_RU * lo * h.CATALYST_LIFE_Y / (1.0 - h.METAL_RECOVERY), E_N=float(best_en[i]),
+                T_C=float(h.state_T[i]), P_bar=float(h.state_P[i]), Tsep_C=float(h.state_Tsep[i]), V_m3=float(V[i]))
+
+
+inline = strict_scaling_reach()
+REACH_DIR = REPO / "analysis" / "fe_bridge_backward_2026_09_29"
+REACH_JSON = (REACH_DIR if NM.VERSION == "1.1" else REACH_DIR / "nh3_1_2") / "scaling_lifecycle_exact_summary.json"
+if REACH_JSON.exists():  # the audited boundary (1.1: committed; 1.2: once the fe_bridge port has written it)
+    reach = json.loads(REACH_JSON.read_text(encoding="utf-8"))
+    assert abs(reach["Fe_reference_cost_USD_t"] - FE_COST) < 1e-12
+    P_REACH = reach.get("equivalent_effective_Ru_price_at_10y_USD_kg", reach.get("effective_price_parity_at_10y_USD_kg"))
+    st = reach.get("strict_scaling_parity_state", reach.get("parity_state"))
+    st = dict(T_C=st["T_C"], P_bar=st["P_bar"], Tsep_C=st["Tsep_C"], V_m3=st["V_m3"])
+    assert abs(P_REACH / inline["p_eff"] - 1.0) < 1e-9, (P_REACH, inline)
+    assert (st["T_C"], st["P_bar"], st["Tsep_C"]) == (inline["T_C"], inline["P_bar"], inline["Tsep_C"]), (st, inline)
+    print("strict-scaling reach %.6f USD/kg from %s (recomputed here: %.6f)"
+          % (P_REACH, REACH_JSON.relative_to(REPO).as_posix(), inline["p_eff"]))
+else:
+    assert NM.VERSION != "1.1", "the committed 1.1 strict-scaling summary is missing"
+    P_REACH, st = inline["p_eff"], {k: inline[k] for k in ("T_C", "P_bar", "Tsep_C", "V_m3")}
+    print("strict-scaling reach %.6f USD/kg recomputed here (q* = %.6g per y, E_N %.3f eV)"
+          % (P_REACH, inline["q"], inline["E_N"]))
 pts.append(dict(key="strict_scaling_reach", label="Strict-scaling reach: scaling-consistent Ru matches Fe at or below this p_eff",
                 u=math.nan, recovery=math.nan, p_eff_USD_kg=P_REACH, cost=FE_COST, gap_to_Fe=0.0, alpha_star=math.nan,
-                T_C=reach["strict_scaling_parity_state"]["T_C"], P_bar=reach["strict_scaling_parity_state"]["P_bar"],
-                Tsep_C=reach["strict_scaling_parity_state"]["Tsep_C"],
-                V_m3_benchmark=reach["strict_scaling_parity_state"]["V_m3"], metal_cost=math.nan))
+                T_C=st["T_C"], P_bar=st["P_bar"], Tsep_C=st["Tsep_C"], V_m3_benchmark=st["V_m3"], metal_cost=math.nan))
 for r in (R_LO, R_HI):
     print("strict-scaling reach %.1f USD/kg needs u >= %.1f at r = %.2f" % (P_REACH, P_RU * (1 - r) / P_REACH, r))
 floor = optimum(1e-9, 1e12, mask=kaap)
 print("KAAP loop floor (free, infinitely active catalyst): %.4f USD/t at %3.0f C (%+.3f vs Fe)"
       % (floor["cost"], floor["T_C"], floor["cost"] - FE_COST))
 # u needed for parity at each recovery, with the benchmark bed
-p_star = float(list(csv.DictReader(open(HERE / "fig2_ru_price_sweep.csv", encoding="utf-8")))[-1]["price_USD_kg"])
+p_star = float(list(csv.DictReader(open(OUT / "fig2_ru_price_sweep.csv", encoding="utf-8")))[-1]["price_USD_kg"])
 for r in (0.0, R_LO, R_HI):
     print("parity needs u = %.1f at r = %.2f" % (P_RU * (1 - r) / p_star, r))
-# gap_to_Fe is against the Fe optimum of the main loop (15.29 USD/t) for every row; the like-for-like comparison of a
+# gap_to_Fe is against the Fe optimum of the main loop (FE_COST) for every row; the like-for-like comparison of a
 # KAAP-loop point is Fe in the same KAAP loop (row fe_kaap). Both are written, with the Fe cost each one uses
 # (independent review analysis/review_ru_cost_2026_10_09: the KAAP rows were read against the main-loop Fe).
 fe_same = {"main": FE_COST, "KAAP": next(p["cost"] for p in pts if p["key"] == "fe_kaap")}
@@ -196,7 +256,7 @@ for p in pts:
     loop = "KAAP" if p["key"] in ("kaap90", "kaap_hi", "fe_kaap") else "main"
     p["Fe_same_loop_cost"] = fe_same[loop]
     p["gap_to_Fe_same_loop"] = p["cost"] - fe_same[loop]
-with open(HERE / "fig2_ru_actual_cost_points.csv", "w", newline="", encoding="utf-8") as fh:
+with open(OUT / "fig2_ru_actual_cost_points.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(pts[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(pts)
@@ -227,7 +287,7 @@ for key, label, u, r, mask in SCEN[1:]:
             print("  bed x%.2f (w %4.1f%%, rho %3.0f): %-11s cost %.4f (%+.4f)  %4.0f bar  V %.2f m3  vs %s %.4f: %+.4f"
                   "  alpha* %.3f" % (k, w_ru * 100, rho, key, o["cost"], o["cost"] - base["cost"], o["P_bar"], o["V_m3"],
                                      ref_label, ref, o["cost"] - ref, a_s))
-with open(HERE / "fig2_ru_bed_sensitivity.csv", "w", newline="", encoding="utf-8") as fh:
+with open(OUT / "fig2_ru_bed_sensitivity.csv", "w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=list(sens[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(sens)
