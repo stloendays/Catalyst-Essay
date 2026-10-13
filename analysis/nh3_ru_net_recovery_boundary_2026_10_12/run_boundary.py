@@ -1,31 +1,29 @@
 """Decision boundary for promoted spent Ru/C on its own bed, with net monetary recovery.
 
-Run after the unchanged cloud harness preparation:
+Run after the unchanged cloud harness preparation (NH3-FINAL-1.1, outputs in this folder):
     NH3_HARNESS=/tmp/nh3_harness python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_boundary.py
-Read-only frozen 14,136-state response. No rewriting of official figures or baseline.
+NH3-FINAL-1.2 (outputs in nh3_1_2/):
+    NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 harness root> python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_boundary.py
+Read-only frozen response surface of the selected model. No rewriting of official figures or baseline.
 """
 from __future__ import annotations
 
 import csv
 import json
 import math
-import os
 import sys
 from pathlib import Path
 
 import numpy as np
-import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 PARENT = REPO / "analysis" / "nh3_actual_ru_params_2026_10_07"
 sys.path.insert(0, str(HERE))
 from boundary_math import effective_credit, same_loop_gap, threshold_credit
+from model_inputs import NM, fig2_own_bed, frozen_response, harness
 
-ROOT = Path(os.environ.get("NH3_HARNESS", "/tmp/nh3_harness"))
-RUN = ROOT / "outputs" / "nh3_final_20260905T134204Z"
-sys.path.insert(0, str(ROOT))
-import harness_core as hc
+OUT = NM.out_dir(HERE)
 
 RECOVERIES = (0.0, 0.80, 0.90, 0.911, 0.9305, 0.946, 0.9555)
 REALIZATIONS = (0.80, 0.90, 1.00)
@@ -34,10 +32,8 @@ DENSITIES = (430.0, 490.0, 550.0)
 
 
 def main():
-    h = hc.NH3Harness(yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8")), ROOT)
-    response, _, cached = h.build_or_load_response()
-    if not cached or h.NSTATE != 14136:
-        raise RuntimeError("Frozen cached response surface unavailable: do not rebuild implicitly")
+    hc, h, anchors = harness()
+    response = frozen_response(h, anchors)
     v = {metal: h.interp_state_vector(response, hc.EN0_CANON[metal]) for metal in ("Fe", "Ru")}
     if not all(np.isfinite(x).all() for x in v.values()):
         raise RuntimeError("Fe/Ru frozen descriptor columns missing")
@@ -46,8 +42,13 @@ def main():
     kaap = (h.state_P == 90.0) & (h.state_Tsep == -20.0)
     fe_ref = {"main": float(np.min(np.where(valid_fe, fe_total, np.inf))),
               "KAAP": float(np.min(np.where(valid_fe & kaap, fe_total, np.inf)))}
-    if abs(fe_ref["main"] - 15.291704676621144) > 1e-9 or abs(fe_ref["KAAP"] - 19.06868861189332) > 1e-9:
-        raise AssertionError(f"Fe reference mismatch: {fe_ref}")
+    # Fe references: the main loop must equal the canonical run's feasible Fe optimum, and both loops must equal the
+    # Fe references of Fig. 2's own-bed table of the same model (1.1: 15.2917.../19.0687...).
+    fig2_costs, fig2_fe, fig2_path = fig2_own_bed()
+    if (abs(fe_ref["main"] - anchors["Fe"]) > 1e-9
+            or any(abs(fe_ref[loop] - fig2_fe[loop]) > 1e-9 for loop in ("main", "KAAP"))):
+        raise AssertionError(f"Fe reference mismatch ({NM.LABEL}): {fe_ref} vs run {anchors['Fe']}, "
+                             f"{fig2_path.relative_to(REPO)} {fig2_fe}")
     u = 11.0
     bench_metal_per_m3 = h.ACTIVE_FRACTION * h.BED_DENSITY
     price = hc.PRICE["Ru"]
@@ -89,24 +90,38 @@ def main():
             writer = csv.DictWriter(output, fieldnames=list(data[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(data)
-    write_csv(HERE / "cost_surface.csv", rows)
-    write_csv(HERE / "parity_boundary.csv", boundaries)
+    write_csv(OUT / "cost_surface.csv", rows)
+    write_csv(OUT / "parity_boundary.csv", boundaries)
     canonical = [r for r in rows if r["net_realization"] == 1.0 and r["w_Ru"] in (0.05, 0.08, 0.10)
                  and r["rho_kg_m3"] in (430.0, 550.0) and r["recovery"] in (0.90, 0.9555)]
-    committed = {(x["loop"], float(x["recovery"]), float(x["w_Ru"]), float(x["rho_bed_kg_m3"])): float(x["cost"])
-                 for x in csv.DictReader((PARENT / "promoted_recovery_check.csv").open(encoding="utf-8"))}
-    for row in canonical:
-        key = (row["loop"], row["recovery"], row["w_Ru"], row["rho_kg_m3"])
-        if abs(row["Ru_cost_USD_t"] - committed[key]) > 1e-9:
-            raise AssertionError(f"Promoted recovery regression changed {key}")
+    # Golden references at eta = 1 (24 cells): the parent's promoted_recovery_check.csv of the selected model (1.1: the
+    # committed file, required; 1.2: <parent>/nh3_1_2/ if that folder is ever ported) and Fig. 2's own-bed table of the
+    # selected model (fig2_ru_actual_cost.py, independent code with the same arithmetic).
+    references = []
+    parent_csv = (PARENT if NM.VERSION == "1.1" else PARENT / "nh3_1_2") / "promoted_recovery_check.csv"
+    if parent_csv.exists():
+        with parent_csv.open(encoding="utf-8") as fh:
+            committed = {(x["loop"], float(x["recovery"]), float(x["w_Ru"]), float(x["rho_bed_kg_m3"])): float(x["cost"])
+                         for x in csv.DictReader(fh)}
+        references.append((str(parent_csv.relative_to(REPO)), committed))
+    elif NM.VERSION == "1.1":
+        raise FileNotFoundError(parent_csv)
+    references.append((str(fig2_path.relative_to(REPO)), fig2_costs))
+    for name, reference in references:
+        for row in canonical:
+            key = (row["loop"], row["recovery"], row["w_Ru"], row["rho_kg_m3"])
+            if abs(row["Ru_cost_USD_t"] - reference[key]) > 1e-9:
+                raise AssertionError(f"Promoted recovery regression ({name}) changed {key}")
+        print(f"promoted-recovery regression vs {name}: {len(canonical)}/{len(canonical)} within 1e-9 USD/t",
+              file=sys.stderr)
     report = {"scope": "derived exploratory overlay; frozen model unchanged",
               "number_of_process_states": h.NSTATE, "Fe_reference": fe_ref, "n_surface_rows": len(rows),
               "n_parity_rows": len(boundaries), "regression_rows": len(canonical),
               "recovery_basis": "promoted spent Ru/C upper bound 0.9555; physical metal vs salt yields must be distinguished",
               "credit_assumption": "q = physical recovery * monetary realization; realization subsumes costs/discounts as a scenario, not calibrated industrial cash flow",
               "feasibility_limitation": "Fe feasibility in a KAAP-specific vessel is a modeled constraint check, not a validated plant retrofit",
-              "optimisation_limitation": "14,136 fixed states, same frozen thermal/pressure physics; not continuous process design"}
-    (HERE / "summary.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+              "optimisation_limitation": f"{h.NSTATE:,} fixed states, same frozen thermal/pressure physics; not continuous process design"}
+    (OUT / "summary.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
 
 
