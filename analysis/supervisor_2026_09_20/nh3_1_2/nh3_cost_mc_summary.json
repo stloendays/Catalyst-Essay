@@ -1,0 +1,54 @@
+{
+  "schema": "supervisor-cost-mc-v1",
+  "date": "2026-10-13",
+  "model": "NH3-FINAL-1.2",
+  "run": "nh3_final_1_2_20261013",
+  "draws": 5000,
+  "seed": 20260920,
+  "preregistration": "docs/SUPERVISOR_COST_MC_PREREG_2026-09-20.md",
+  "priors": {
+    "Fe_price_multiplier": "log-uniform[0.5,2.0]",
+    "Ru_price_multiplier": "log-uniform[0.5,2.0]",
+    "CAPEX_multiplier": "uniform[0.8,1.2], common within draw",
+    "electricity_USD_MWh": "uniform[20,100], common within draw",
+    "catalyst_lifetime_y": "uniform[5,20], common within draw"
+  },
+  "full_14136_state_direct_cost_verification": {
+    "P_C_Fe_lt_C_Ru": 1.0,
+    "count_Fe_lt_Ru": 5000,
+    "count_Ru_le_Fe": 0,
+    "minimum_Ru_minus_Fe_USD_t": 1.9948272853090305,
+    "Ru_minus_Fe_USD_t_quantiles": {
+      "p05": 2.898350428114485,
+      "p50": 5.463918119279947,
+      "p95": 8.780220942797028
+    }
+  },
+  "Fe_cost_USD_t_quantiles": {
+    "p05": 7.310177040971685,
+    "p50": 13.177884086417704,
+    "p95": 18.5223789396221
+  },
+  "Ru_cost_USD_t_quantiles": {
+    "p05": 10.405327145272135,
+    "p50": 18.812385035824462,
+    "p95": 26.78026399410645
+  },
+  "alpha_star": {
+    "p05": 43.51521000190818,
+    "p10": 50.835688769489714,
+    "p25": 70.21228818875358,
+    "p50": 104.9696557321517,
+    "p75": 153.9869497053611,
+    "p90": 218.95526991219577,
+    "p95": 262.27560020003995,
+    "mean": 121.62743181100186,
+    "min": 28.10165469908857,
+    "max": 483.8635844081391
+  },
+  "P_Ru_le_Fe_at_alpha_1": 0.0,
+  "alpha_subset_validation_against_full_library": {
+    "n_checked": 199,
+    "max_alpha_relative_error": 0.0
+  }
+}
