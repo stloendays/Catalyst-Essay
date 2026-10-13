@@ -72,11 +72,15 @@ jobs:
             --profiles kinetics_swap_pressure_profiles.csv \
             --validation validation_summary.json \
             --out /tmp/nh3-source-domain
+      - name: Reoptimize the measured pair with GB + Newton-Cooper reaction-equilibrium closure
+        run: |
+          python ../nh3_final_1_2_candidate_2026_10_13/gb_fugacity_pair.py --out /tmp/nh3-GB-NC
       - name: Export independent kinetics and scientific QA
         run: |
           mkdir -p /tmp/nh3-kinetics-results
           cp kinetics_swap.json kinetics_swap_pressure_profiles.csv validation_summary.json /tmp/nh3-kinetics-results/
           cp /tmp/nh3-source-domain/* /tmp/nh3-kinetics-results/
+          cp /tmp/nh3-GB-NC/* /tmp/nh3-kinetics-results/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -115,6 +119,7 @@ jobs:
             --out /tmp/nh3-final12-audit | tee /tmp/nh3-final12-report.log
           cat /tmp/nh3-final12-audit/AUDIT.md >> "$GITHUB_STEP_SUMMARY"
           cat /tmp/audit-kinetics/SOURCE_DOMAIN.md >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/audit-kinetics/GB_NC_PAIR.md >> "$GITHUB_STEP_SUMMARY"
       - name: Verify frozen source and manuscript match current main, not just a clean working tree
         run: |
           test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
