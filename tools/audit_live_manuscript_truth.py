@@ -1585,6 +1585,21 @@ ok("Supplementary Tables: 1..N in order of first main-text citation, all cited, 
    and f"Supplementary Tables 1–{len(_st_heads)} follow the notes" in raw_si,
    f"tables {_st_heads}, main-text order {_st_order}")
 
+# ----- Recycled CO converted up to CO-hydrogenation equilibrium (merged PR #84) -------------------------------
+_cob = _j("analysis/meoh_co_conversion_bound_2026_10_13/summary.json")
+_hi, _hn = _cob["results"]["high"]["6.86"], _cob["results"]["high"]["none"]
+_si_flat = re.sub(r"\s+", " ", raw_si)
+tokens("MeOH: recycled CO converted up to CO-hydrogenation equilibrium, main text and Methods (PR #84)", text,
+       f"converted per pass up to CO-hydrogenation equilibrium, the upper end of its thermodynamic window "
+       f"({_hi['disagreements']} of {_hi['groups']}, {_hi['gt5pct']} above 5%)",
+       "recycled CO converted up to CO-hydrogenation equilibrium are reported as sensitivities")
+tokens("SI Note 3: recycled CO converted up to CO-hydrogenation equilibrium (PR #84)", _si_flat,
+       f"gives {_hn['disagreements']} of {_hn['groups']} without the limit ({_hn['gt5pct']} above 5%) and "
+       f"{_hi['disagreements']} with it ({_hi['gt5pct']} above 5%, {_hi['papers_with_disagreement']} papers)",
+       f"then falls to {pc(_hi['median_inlet_co_share_at_optimum'], 1)}%")
+ok("PR #84 gate: the central rule reproduces the frozen columns and anchors",
+   all(v["passed"] for v in _cob["gate"].values()) and all(_cob["frozen_anchors"].values()))
+
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail, warn in checks if not passed and not warn]
 warned = [(label, detail) for label, passed, detail, warn in checks if not passed and warn]
