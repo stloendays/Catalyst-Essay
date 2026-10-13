@@ -47,3 +47,48 @@ kinetic-thermodynamic reference -> 15-metal cost and feasible states ->
 backward scaling reachability -> Ru/C and DCF -> uncertainty -> alloys ->
 main manuscript / figure / source data / SI. Keep these audit outputs
 isolated until those steps pass.
+
+## 2026-10-13 extension: physical-closure risk and falsification QA
+
+The measured-kinetics job now reruns `audit_domain.py`, with an eight-variant
+fit-support table in `source_domain.csv` and `source_domain.json`, and an
+interpretation in `SOURCE_DOMAIN.md`. Reconcile consumes that report, displays
+its key findings in the Actions job summary, and archives all artifacts.
+
+**Source-range issue:** Rossetti 2006 Ru/C kinetics were fitted on 50-100 bar
+data and the original **3.2 wt%** Ru/C formulation. The present supported
+8 wt% Ru/C cost assumes unchanged activity per kg Ru. The 0% financing
+supported optimum is outside 50-100 bar in **6/8** kinetics variants; at
+12%/year all **8/8** optima exceed the fit. The optimal measured Fe case may
+also fall below its cited 150-300 atm fit reference. The pressure-window
+cost comparison is descriptive of the loss-only recovery basis, and cannot
+be transferred automatically to the 25-year DCF cases.
+
+**Thermodynamic convention issue:** At 425 C / 90 bar, GB ideal-gas
+equilibrium predicts yNH3=0.1764, but the same GB standard equilibrium using
+Newton-Cooper fugacity coefficients yields yNH3=0.1887 (**+1.22 percentage
+points**). At 145 bar this gap is **+2.29 pp**, and at 325 bar **+5.66 pp**.
+PR #75's plant-state gas standard reference and its measured kinetic rate
+are thus not a fully nonideal-gas-closed optimization, despite using the
+same GB standard equilibrium constant. These are warnings, not an
+independently corrected reactor/industrial estimate.
+
+**Numerical versus scientific tests:** The revised `reconcile.py` verifies
+frozen costs, the entire 15-metal numeric order against metal records,
+inversion flags against computed rankings, cashflow cost-gap arithmetic,
+and fit-domain source anchors. It does NOT require that the new science
+preserve the old sign. `test_reconcile.py` explicitly generates a
+counterfactual reversal of the NIST result: coherent changed rankings must
+PASS; a stale reversal flag or an incorrect DCF cost gap must FAIL. That
+counterfactual is a software test, not a new scientific result.
+
+The Actions guard compares frozen manuscript/source/data files to
+`origin/main` as well as the clean working tree, avoiding the mistaken
+assumption that `git diff` alone catches committed changes in a PR.
+
+**Current decision:** Continue to leave PR #77 as Draft. The model is
+numerically reproducible but physically unresolved for EOS/kinetic closure,
+pressure fitting and reactor/bed validity. The most important next
+scientific task is a source-consistent fugacity/loop-state reformulation
+and independent pressure-domain/held-out validation before any canonical
+NH3-FINAL-1.2 or manuscript change.
