@@ -43,19 +43,35 @@ class EvidenceTables(unittest.TestCase):
         blob = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
         self.assertEqual(blob, PR61_BLOB)
 
+    # summary.json of each model: (folder, owned parity rate, lease parity rent in %/y rounded to 0.01)
+    MODELS = {"NH3-FINAL-1.1": (HERE, 0.005604190907647176, 0.92),
+              "NH3-FINAL-1.2": (HERE / "nh3_1_2", 0.1233293716358714, 12.31)}
+    PR57 = HERE.parent / "nh3_ru_net_recovery_boundary_2026_10_12"
+
     def test_summary_threshold_classification(self):
-        path = HERE / "summary.json"
-        if not path.exists():
+        ran = 0
+        for model, (folder, owned_ref, lease_ref) in self.MODELS.items():
+            path = folder / "summary.json"
+            if not path.exists():
+                continue
+            ran += 1
+            with self.subTest(model=model):
+                s = json.loads(path.read_text(encoding="utf-8"))
+                owned_t = s["regressions"]["owned_parity_rate"]
+                lease_t = s["regressions"]["lease_parity_rent"]
+                self.assertAlmostEqual(owned_t, owned_ref, places=12)
+                self.assertEqual(round(100 * lease_t, 2), lease_ref)
+                # the owned parity rate is PR #57's financing hurdle of the same model
+                pr57 = (self.PR57 if folder == HERE else self.PR57 / "nh3_1_2") / "lifecycle_dcf_report.json"
+                if pr57.exists():
+                    hurdle = json.loads(pr57.read_text(encoding="utf-8"))["financing_hurdle_rate"]
+                    self.assertAlmostEqual(owned_t, hurdle, places=9)
+                for key, h in s["headline"].items():
+                    rate = h["rate_pct"] / 100
+                    self.assertEqual(h["owned_gap_USD_t"] <= 0, rate <= owned_t, key)
+                    self.assertEqual(h["lease_gap_USD_t"] <= 0, rate <= lease_t, key)
+        if not ran:
             self.skipTest("run_documented_rates.py has not been run")
-        s = json.loads(path.read_text(encoding="utf-8"))
-        owned_t = s["regressions"]["owned_parity_rate"]
-        lease_t = s["regressions"]["lease_parity_rent"]
-        self.assertAlmostEqual(owned_t, 0.005604190907647176, places=12)
-        self.assertEqual(round(100 * lease_t, 2), 0.92)
-        for key, h in s["headline"].items():
-            rate = h["rate_pct"] / 100
-            self.assertEqual(h["owned_gap_USD_t"] <= 0, rate <= owned_t, key)
-            self.assertEqual(h["lease_gap_USD_t"] <= 0, rate <= lease_t, key)
 
 
 if __name__ == "__main__":
