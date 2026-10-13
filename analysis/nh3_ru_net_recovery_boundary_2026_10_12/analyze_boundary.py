@@ -3,16 +3,24 @@
 This post-processing reads only Action-produced outputs. No kinetic/process calculations
 are fabricated, interpolated or added here. The parity line eta=q*/r is exact within
 the frozen process grid and the multiplicative credited-price assumption.
+
+    NH3_MODEL=1.1 (default): reads and writes this folder; NH3_MODEL=1.2: reads and writes nh3_1_2/ (run
+    run_boundary.py with the same NH3_MODEL first).
 """
 from __future__ import annotations
 
 import csv
 import hashlib
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1] / "analysis"))
+import nh3_model as NM  # noqa: E402  (stdlib only; the model itself is not loaded here)
+
+OUT = NM.out_dir(HERE)
 MAX_PROMOTED_RECOVERY = 0.9555
 
 
@@ -29,8 +37,8 @@ def write_rows(path, rows):
 
 
 def main():
-    costs_path = HERE / "cost_surface.csv"
-    boundaries_path = HERE / "parity_boundary.csv"
+    costs_path = OUT / "cost_surface.csv"
+    boundaries_path = OUT / "parity_boundary.csv"
     costs = read_rows(costs_path)
     boundaries = read_rows(boundaries_path)
     assert len(costs) == 378 and len(boundaries) == 54, "Unexpected input coverage"
@@ -68,7 +76,7 @@ def main():
             "promoted_parity_if_eta_90pct": q is not None and q <= 0.90 * MAX_PROMOTED_RECOVERY,
         })
     assert len(decision) == 18
-    write_rows(HERE / "decision_thresholds.csv", decision)
+    write_rows(OUT / "decision_thresholds.csv", decision)
 
     counts = {}
     for loop in ("main", "KAAP"):
@@ -78,7 +86,8 @@ def main():
             assert len(subset) == 63
             wins = sum(float(c["gap_same_loop_USD_t"]) < -1e-9 for c in subset)
             counts[loop][str(eta)] = {"Ru_cheaper": wins, "cases": len(subset)}
-    assert counts["main"]["1.0"]["Ru_cheaper"] == 0
+    if NM.VERSION == "1.1":  # NH3-FINAL-1.1 property; under 1.2 the count is reported, not asserted
+        assert counts["main"]["1.0"]["Ru_cheaper"] == 0
 
     key = ("KAAP", 0.08, 490.0)
     q = q_by_geometry[key]
@@ -94,7 +103,8 @@ def main():
                 "gap_Ru_minus_Fe_USD_t": float(match[0]["gap_same_loop_USD_t"])}
     comparisons = {str(eta): cost_at(MAX_PROMOTED_RECOVERY, eta) for eta in (0.8, 0.9, 1.0)}
     report = {
-        "source": "GitHub Actions derived NH3-FINAL-1.1 cost_surface/parity_boundary",
+        "source": ("GitHub Actions derived NH3-FINAL-1.1 cost_surface/parity_boundary" if NM.VERSION == "1.1"
+                   else f"{NM.LABEL} cost_surface/parity_boundary (run_boundary.py, NH3_MODEL={NM.VERSION})"),
         "source_sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                           for p in (costs_path, boundaries_path)},
         "counts_by_loop_and_net_realization": counts,
@@ -106,7 +116,7 @@ def main():
         "cost_at_9555pct_physical_recovery": comparisons,
         "meaning": "Cost equality is conditional on the KAAP pressure/temperature mask and on the frozen replacement-cost convention; eta is not a measured economic parameter.",
     }
-    (HERE / "decision_report.json").write_text(
+    (OUT / "decision_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     # This figure shows a numerical calculation, not a schematic ranking volcano.
@@ -144,7 +154,7 @@ def main():
     axes[1].legend(fontsize=7, loc="lower left")
     axes[1].grid(alpha=0.2)
     fig.suptitle("KAAP-type loop, Ru/C 8 wt%, bed density 490 kg/m3, u=11", fontsize=12)
-    fig.savefig(HERE / "ru_fe_net_recovery_decision.png", dpi=200)
+    fig.savefig(OUT / "ru_fe_net_recovery_decision.png", dpi=200)
     plt.close(fig)
     print(json.dumps(report, indent=2))
 
