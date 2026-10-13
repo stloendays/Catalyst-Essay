@@ -98,28 +98,34 @@ _MFIG = plt.figure(dpi=600)
 _MREND = _MFIG.canvas.get_renderer()
 
 
-def width_mm(s, fs, weight="normal"):
-    t = _MFIG.text(0, 0, s, fontsize=fs, fontweight=weight)
+def width_mm(s, fs, weight="normal", style="normal"):
+    t = _MFIG.text(0, 0, s, fontsize=fs, fontweight=weight, fontstyle=style)
     w = t.get_window_extent(_MREND).width / 600 * 25.4
     t.remove()
     return w
 
 
 def sub_label(x, y, parts, fs, ha="left", weight="bold", sub_fs=5.3, **kw):
-    """Label with subscripts set at sub_fs (>= 5.3 pt) instead of mathtext's 0.7 x base size.
-    parts: [(text, is_subscript), ...]; a leading space in a part becomes a word space."""
-    kern, space, drop = 0.12, 0.278 * fs * 25.4 / 72, 0.19 * fs * 25.4 / 72
+    """Label with sub- and superscripts set at sub_fs (>= 5.3 pt) instead of mathtext's 0.7 x base size.
+    parts: [(text, kind[, style]), ...], kind False (normal), True or "sub" (subscript) or "sup"
+    (superscript), style "normal" or "italic"; a leading space in a part becomes a word space."""
+    kern, space = 0.12, 0.278 * fs * 25.4 / 72
+    drop, rise = 0.19 * fs * 25.4 / 72, 0.36 * fs * 25.4 / 72
     runs, total = [], 0.0
-    for txt, sub in parts:
+    for part in parts:
+        txt, kind = part[0], part[1]
+        style = part[2] if len(part) > 2 else "normal"
         gap = space if txt.startswith(" ") else (kern if runs else 0.0)
         txt = txt.strip()
-        size = sub_fs if sub else fs
-        w = width_mm(txt, size, weight)
-        runs.append((txt, size, -drop if sub else 0.0, total + gap))
+        size = sub_fs if kind else fs
+        dy = -drop if kind in (True, "sub") else (rise if kind == "sup" else 0.0)
+        w = width_mm(txt, size, weight, style)
+        runs.append((txt, size, dy, total + gap, style))
         total += gap + w
-    x0 = x - total if ha == "right" else x
-    for txt, size, dy, dx in runs:
-        ax.text(x0 + dx, y + dy, txt, ha="left", va="baseline", fontsize=size, fontweight=weight, **kw)
+    x0 = x - total if ha == "right" else (x - total / 2 if ha == "center" else x)
+    for txt, size, dy, dx, style in runs:
+        ax.text(x0 + dx, y + dy, txt, ha="left", va="baseline", fontsize=size, fontweight=weight,
+                fontstyle=style, **kw)
     return x0, x0 + total
 
 
@@ -154,8 +160,7 @@ for name, sub, x0, x1 in TIERS:
 
 # case segments: one bar per case over the part of the chain it measures, a neutral lightness
 # step per case. Bars that start at the laboratory tier carry their case name to the left, in the
-# empty atomic column; the ammonia bar carries a tick at the laboratory tier for its literature
-# comparison (Fig. 2c,f), which starts where the methanol and Au/TiO2 bars start.
+# empty atomic column.
 BAR_H, GAP = 3.2, 1.1   # GAP leaves about 0.85 mm of white between the 0.7-pt outlines
 BASE = 1.0              # text baseline above the bar bottom
 XL = B1 + 0.4           # left edge of the laboratory-tier bars, the tick and the tier boundary
@@ -184,11 +189,6 @@ for row, (name, span, figs, x0, x1, fc, ec) in enumerate(CASES):
         xt = x0 + 1.5
     ax.text(xt, yb, span, ha="left", va="baseline", fontsize=FS_BAR, zorder=3)
     ax.text(x1 - 1.5, yb, figs, ha="right", va="baseline", fontsize=FS_BAR, zorder=3)
-    if row == 0:
-        ax.plot([XL, XL], [y0, y0 + 1.3], color=INK, lw=0.7, solid_capstyle="butt", zorder=3)
-        ax.text(XL + 1.5, yb, "lab → industrial, Fig. 2c,f", ha="left", va="baseline", fontsize=FS_BAR,
-                zorder=3)
-plt.close(_MFIG)
 
 # stage 1: step site render
 ru_img = crop_rgba(os.path.join(HERE, "renders", "Ru_211_N.png"))
@@ -207,7 +207,8 @@ for m in ("Ru", "Fe"):
     t = (M[m]["logTOF_673K"] - curve_logtof.min()) / (curve_logtof.max() - curve_logtof.min())
     ax.plot(xs[1] - 6.5 + 13.0 * e, yc - 5.0 + 10.5 * t, "o", ms=3.0, mfc=C[m], mec=INK, mew=0.4, zorder=3)
 ax.text(xs[1] - 6.7, yc + 6.0, "TOF", fontsize=5.5, color=MID, va="top")
-ax.text(xs[1] + 7.0, yc - 6.4, r"$E_\mathrm{N}$", fontsize=5.5, color=MID, ha="right", va="top")
+sub_label(xs[1] + 7.0, yc - 7.9, [("E", False, "italic"), ("N", True)], 5.5, ha="right", weight="normal",
+          color=MID)
 
 # stage 3: laboratory test (tube reactor in a furnace, product chromatogram)
 x3 = xs[2]
@@ -234,9 +235,9 @@ by = rng.uniform(yc - 4.3, yc + 2.4, 62)
 ax.scatter(bx, by, s=2.0, c=C["Ru"], edgecolors="none", zorder=3)
 ax.plot([xs[3] - 3.4, xs[3] + 3.4], [yc + 3.1] * 2, color=INK, lw=0.5, zorder=3)
 ax.annotate("", xy=(xs[3], yc + 5.9), xytext=(xs[3], yc + 8.2),
-            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5))
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
 ax.annotate("", xy=(xs[3], yc - 8.2), xytext=(xs[3], yc - 5.9),
-            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5))
+            arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
 
 # stage 5: synthesis loop (compressor -> converter -> separator -> recycle)
 cx0 = xs[4] - 6.6
@@ -257,7 +258,8 @@ ax.annotate("", xy=(cx0, yc + 2.9), xytext=(cx0, yc + 4.4),
 ax.text((sx + cx0) / 2, yc + 6.4, "recycle", fontsize=5.3, color=MID, ha="center", va="bottom")
 ax.annotate("", xy=(sx, yc - 7.6), xytext=(sx, yc - 3.5),
             arrowprops=dict(arrowstyle="-|>", lw=0.6, color=INK, mutation_scale=5, shrinkA=0, shrinkB=0))
-ax.text(sx - 0.7, yc - 6.6, r"NH$_3$(l)", fontsize=5.3, color=MID, ha="right", va="center")
+sub_label(sx - 0.7, yc - 7.2, [("NH", False), ("3", True), ("(l)", False)], 5.5, ha="right",
+          weight="normal", color=MID)
 
 # stage 6: catalyst-dependent cost stack
 segs = [("fresh-feed\ncompression", 9.66, "#C6CCDC"), ("compressor\nCAPEX", 3.87, "#9DACCB"),
@@ -269,17 +271,22 @@ for name, v, col in segs:
     ax.add_patch(Rectangle((xs[5] - 3.2, y0), 6.4, hh, fc=col, ec="white", lw=0.5, zorder=2))
     y0 += hh
 ax.add_patch(Rectangle((xs[5] - 3.2, yc - 6.0), 6.4, 12.0, fc="none", ec=INK, lw=0.6, zorder=3))
-ax.text(xs[5], yc + 6.3, "USD t$^{-1}$", fontsize=5.3, color=MID, ha="center", va="bottom")
+sub_label(xs[5], yc + 6.7, [("USD t", False), ("−1", "sup")], 5.5, ha="center", weight="normal", color=MID)
 
-labels = [("Atomic descriptor", r"N* at the step, $E_\mathrm{N}$"),
-          ("Microkinetics", "TOF at 673 K"),
-          ("Laboratory test", "measured rate, STY"),
-          ("Catalyst inventory", r"$V_\mathrm{bed}$ ≤ 90 m$^3$"),
-          ("Synthesis loop", "$T$, $P$, $T_\\mathrm{sep}$\nreoptimized"),
-          ("Economics", "catalyst-dependent\ncost")]
-for x, (t1, t2) in zip(xs, labels):
+# second-line labels: scripts at >= 5.3 pt via sub_label; baselines match va="top" at yc - 11.6
+Y1, DY = yc - 13.15, 2.45
+labels = [("Atomic descriptor", [[("N* at the step,", False), (" E", False, "italic"), ("N", True)]]),
+          ("Microkinetics", [[("TOF at 673 K", False)]]),
+          ("Laboratory test", [[("measured rate, STY", False)]]),
+          ("Catalyst inventory", [[("V", False, "italic"), ("bed", True), (" ≤ 90 m", False), ("3", "sup")]]),
+          ("Synthesis loop", [[("T", False, "italic"), (",", False), (" P", False, "italic"), (",", False),
+                               (" T", False, "italic"), ("sep", True)], [("reoptimized", False)]]),
+          ("Economics", [[("catalyst-dependent", False)], [("cost", False)]])]
+for x, (t1, lines) in zip(xs, labels):
     ax.text(x, yc - 9.1, t1, ha="center", va="top", fontsize=6.0, fontweight="bold")
-    ax.text(x, yc - 11.6, t2, ha="center", va="top", fontsize=5.5, color=MID, linespacing=1.1)
+    for k, parts in enumerate(lines):
+        sub_label(x, Y1 - k * DY, parts, 5.5, ha="center", weight="normal", color=MID)
+plt.close(_MFIG)
 # stage-to-stage connectors at mid-height, edge to edge
 for x0, x1 in ((xs[0] + w_img / 2 + 0.4, xs[1] - 7.6), (xs[1] + 7.4, x3 - 8.6), (x3 + 9.4, xs[3] - 4.6),
                (xs[3] + 4.6, cx0 - 2.4), (sx + 2.3, xs[5] - 3.8)):
@@ -295,7 +302,7 @@ ax.plot([xs[5], xs[5], xs[0], xs[0]], [3.3, YB, YB, 3.6], color=RED, lw=0.9, ls=
         solid_joinstyle="miter")
 ax.annotate("", xy=(xs[0], 6.3), xytext=(xs[0], 3.6),
             arrowprops=dict(arrowstyle="-|>", lw=0.9, color=RED, mutation_scale=8, shrinkA=0, shrinkB=0))
-ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "Backward design: activity multiplier α* needed for parity  vs  "
+ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "Backward design: activity multiplier α* needed for parity vs "
         "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="baseline")
 
 # ---- b: the three frontier candidates --------------------------------------
