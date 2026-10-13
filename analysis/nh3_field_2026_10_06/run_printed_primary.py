@@ -17,6 +17,10 @@ fused-Fe references removed, measured at >= 5 MPa, without the paper with the mo
 
 Outputs (this folder): summary_printed.json, group_metrics_printed.csv, candidates_printed.csv (the printed
 primary entries).
+
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) reads and writes this folder; NH3_MODEL=1.2 reads the
+1.2 field run (nh3_1_2/candidates.csv, nh3_1_2/summary.json of run_field_chain.py) and writes the same files into
+nh3_1_2/. No harness is loaded.
 """
 import json
 import sys
@@ -31,6 +35,7 @@ sys.path.insert(0, str(HERE))
 _argv, sys.argv = sys.argv, sys.argv[:1]
 import run_field_chain as F  # noqa: E402
 sys.argv = _argv
+OUT = F.OUT          # this folder for NH3-FINAL-1.1, nh3_1_2/ for 1.2
 
 PLOT_SRC = ("plot", "SI-plot")
 
@@ -42,11 +47,11 @@ def regret_bins(gm):
 
 
 def main():
-    c = pd.read_csv(HERE / "candidates.csv", keep_default_na=False, na_values=[""])
+    c = pd.read_csv(OUT / "candidates.csv", keep_default_na=False, na_values=[""])
     prim = c[c.status.str.startswith("primary") & c.cost_USD_t.notna() & c.duplicate_in_group.isna()].copy()
     prim["rate_per_gmetal"] = prim.rate_umol_gcat_h / (np.where(prim.fused, 71.51, prim.metal_wt_pct) / 100.0)
     gm_all, s_all = F.aggregate(prim, label="all entries, plot readings included", boot=True)
-    committed = json.loads((HERE / "summary.json").read_text(encoding="utf-8"))["primary"]
+    committed = json.loads((OUT / "summary.json").read_text(encoding="utf-8"))["primary"]
     assert (s_all["groups"], s_all["top1_mismatch_groups"]) == (committed["groups"], committed["top1_mismatch_groups"])
 
     rec = pd.read_csv(REPO / "agent" / "nh3_field" / "out" / "records_normalized.csv", keep_default_na=False,
@@ -86,9 +91,9 @@ def main():
                    T_printed=int(t_ok.sum()), outlet_used=int(uses_outlet.sum()),
                    outlet_used_printed=int((uses_outlet & outlet_ok).sum()))
     out = dict(treatment="printed values only", entries=entries, primary=primary, variants=variants)
-    (HERE / "summary_printed.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
-    gm.to_csv(HERE / "group_metrics_printed.csv", index=False, float_format="%.6g")
-    pr.drop(columns=["rate_per_gmetal", "printed"]).to_csv(HERE / "candidates_printed.csv", index=False,
+    (OUT / "summary_printed.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    gm.to_csv(OUT / "group_metrics_printed.csv", index=False, float_format="%.6g")
+    pr.drop(columns=["rate_per_gmetal", "printed"]).to_csv(OUT / "candidates_printed.csv", index=False,
                                                            float_format="%.6g")
     print(json.dumps(out, indent=1, default=float))
     print(f"\nprimary {primary['top1_mismatch_groups']}/{primary['groups']} groups ({primary['papers_with_mismatch']}"

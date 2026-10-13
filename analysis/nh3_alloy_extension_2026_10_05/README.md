@@ -4,6 +4,9 @@ Every surface of the Mamun et al. (2019) bimetallic database is taken through th
 metals: N binding energy → step-site descriptor → per-state activity on the frozen 14,136-state process library →
 frozen cost model → cost optimum under the 90 m³ bed cap → comparison with Fe (15.2917 USD/t NH₃).
 
+The results below are on NH3-FINAL-1.1. The same scripts with `NH3_MODEL=1.2` rerun the chain on NH3-FINAL-1.2 and write
+to `nh3_1_2/`; `nh3_1_2/README.md` gives the command and the key numbers 1.1 → 1.2.
+
 - Data: Mamun, Winther, Boes & Bligaard, *Scientific Data* **6**, 76 (2019), doi:10.1038/s41597-019-0080-z;
   Catalysis-Hub `MamunHighT2019` (CC BY 4.0). `fetch_mamun_n_binding.py` writes
   `mamun2019_N_binding_sites.csv`: 5,696 N* sites on 1,796 surfaces. Two independent fetches gave identical files.

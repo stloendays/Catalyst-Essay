@@ -29,6 +29,18 @@ supported_candidates.csv.
 Outputs (this folder): candidates.csv, group_metrics.csv, selfcheck_supported.csv, summary.json.
 
     CatalystForge/.venv/python run_field_chain.py [--workers N]
+
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) runs NH3-FINAL-1.1 and writes the files above into this
+folder. NH3_MODEL=1.2 runs NH3-FINAL-1.2 (harness root $NH3_HARNESS_1_2, run nh3_final_1_2_20261013, its 14,510-state
+library, F_CAL and Fe benchmark) and writes the same files into nh3_1_2/. The mapping functions are those of
+run_supported_chain.py on the selected harness core; in 1.2 the model's NH3 formation free energy is the
+Gillespie-Beattie one, so the approach-to-equilibrium ratio y_eq,model / y_eq,exp is 1 to rounding, and the laboratory
+gas enters the microkinetics with the Newton-Cooper fugacity coefficients like every plant state. The 1.2 self-check
+compares against nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv when it exists, else against
+run_supported_chain.main() rerun on the 1.2 harness into a temporary folder. The response surface is loaded from the
+harness cache and never rebuilt.
+
+    NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 source_harness with its cache/> CatalystForge/.venv/python run_field_chain.py
 """
 from __future__ import annotations
 
@@ -54,11 +66,18 @@ RECORDS = REPO / "agent" / "nh3_field" / "out" / "records_normalized.csv"
 PAPER_SET = REPO / "agent" / "nh3_field" / "paper_set.txt"
 H_RECORDS = REPO / "agent" / "nh3_supported" / "out" / "records.csv"
 
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+NM.core()          # registers the selected version's harness_core, which run_supported_chain then imports
 _argv, sys.argv = sys.argv, sys.argv[:1]          # run_supported_chain reads an optional harness path from argv
 sys.path.insert(0, str(SUPPORTED))
 import run_supported_chain as SC  # noqa: E402
 sys.argv = _argv
+SC.HARNESS, SC.RUN = NM.root(), NM.run_dir()      # the selected run (identical to its own defaults for 1.1)
 hc = SC.hc
+assert hc is NM.core(), "run_supported_chain imported a different harness_core than the selected model"
+OUT = NM.out_dir(HERE)
 
 T_PRIMARY = SC.T_PRIMARY
 FUSED = re.compile(r"fused|w[uü]stite|magnetite|industrial|commercial (?:fe|iron)|\bKM[- ]?\d|\bA301\b|\bZA-?5\b", re.I)
@@ -73,10 +92,23 @@ N_BOOT = 10_000
 _H = _RESP = None
 
 
+def load_harness():
+    """run_supported_chain.load_harness() on the selected run, with the response surface checked in the cache before
+    anything loads it: a missing surface stops the script instead of being rebuilt."""
+    h = hc.NH3Harness(NM.cfg(), NM.root())
+    cp = h.response_cache_path()
+    if not cp.exists():
+        raise SystemExit(f"response surface {cp} is not cached; refusing to rebuild a frozen asset")
+    response, _cp, cached = h.build_or_load_response()
+    if not cached:
+        raise SystemExit("response surface is not cached; refusing to rebuild a frozen asset")
+    return h, response
+
+
 def _init():
     global _H, _RESP
     if _H is None:
-        _H, _RESP = SC.load_harness()
+        _H, _RESP = load_harness()
 
 
 def map_catalyst(job: dict) -> dict:
@@ -153,8 +185,32 @@ def supported_jobs():
     return jobs
 
 
+def supported_reference():
+    """The supported chain's candidates of the selected model: its committed file (1.1: supported_candidates.csv;
+    1.2: nh3_1_2/supported_candidates.csv), else, for 1.2 only, run_supported_chain.main() rerun on the 1.2 harness
+    into a temporary folder (its own outputs untouched). Returns (path, description)."""
+    path = SUPPORTED / "supported_candidates.csv" if NM.VERSION == "1.1" else SUPPORTED / "nh3_1_2" / "supported_candidates.csv"
+    if path.exists():
+        return path, str(path.relative_to(REPO)).replace("\\", "/")
+    if NM.VERSION == "1.1":
+        raise SystemExit(f"{path} is missing")
+    import tempfile
+    tmp = Path(tempfile.mkdtemp(prefix="nh3_supported_1_2_"))
+    here, SC.HERE = SC.HERE, tmp
+    _init()
+    load, SC.load_harness = SC.load_harness, (lambda: (_H, _RESP))   # the surface already loaded (and checked) here
+    req, SC.require = SC.require, (lambda *a, **k: None)              # main() of this script has passed the gate
+    try:
+        SC.main()
+    finally:
+        SC.HERE, SC.load_harness, SC.require = here, load, req
+    return tmp / "supported_candidates.csv", ("run_supported_chain.main() rerun on the 1.2 harness (no committed "
+                                              "nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv)")
+
+
 def selfcheck(workers):
-    ref = {r["id"]: r for r in csv.DictReader((SUPPORTED / "supported_candidates.csv").open(encoding="utf-8"))}
+    ref_path, ref_desc = supported_reference()
+    ref = {r["id"]: r for r in csv.DictReader(ref_path.open(encoding="utf-8"))}
     res = run_jobs(supported_jobs(), workers)
     cols = ("cost_USD_t", "cost_alpha_transfer", "cost_bed500", "cost_bed2500", "cost_recovery90", "E_eff_eV", "alpha")
     rows, worst = [], 0.0
@@ -169,7 +225,7 @@ def selfcheck(workers):
             worst = max(worst, rel)
             rows.append(dict(id=o["key"], catalyst=want["catalyst"], ref=want["ref"], field=c, supported=b, field_chain=a,
                              rel_diff=rel))
-    return pd.DataFrame(rows), worst, len(res)
+    return pd.DataFrame(rows), worst, len(res), ref_desc
 
 
 # ------------------------------------------------------------------ candidates from the extraction ------------------
@@ -422,10 +478,12 @@ def main():
 
     summary = {}
     if not args.skip_selfcheck:
-        chk, worst, n = selfcheck(args.workers)
-        chk.to_csv(HERE / "selfcheck_supported.csv", index=False, float_format="%.12g")
+        chk, worst, n, ref_desc = selfcheck(args.workers)
+        chk.to_csv(OUT / "selfcheck_supported.csv", index=False, float_format="%.12g")
         summary["selfcheck_supported_chain"] = dict(catalysts=n, values_compared=len(chk), max_rel_diff=worst,
                                                     pass_=bool(worst < 1e-9))
+        if NM.VERSION != "1.1":
+            summary["selfcheck_supported_chain"]["reference"] = ref_desc
         print("self-check against supported_candidates.csv:", summary["selfcheck_supported_chain"], flush=True)
         if worst >= 1e-9:
             raise SystemExit("self-check failed: the field chain does not reproduce the Humphreys chain")
@@ -454,8 +512,7 @@ def main():
     for c in cands:
         c.pop("_flags", None)
     cand = pd.DataFrame(cands)
-    fe_cost = float(json.loads((SC.RUN / "results.json").read_text(encoding="utf-8"))["deterministic"]["metals"]["Fe"]
-                    ["feasible"]["total_cost"])
+    fe_cost = float(NM.anchors()["Fe"])           # the selected run's deterministic Fe cost (results.json)
 
     prim = cand[cand.status.str.startswith("primary") & cand.cost_USD_t.notna()].copy()
     grouped = assign_groups(prim)
@@ -507,8 +564,8 @@ def main():
     allc = cand[keep].merge(prim[["doi", "entry", "group", "paper_basis", "paper_rate", "SV_filled"]],
                             on=["doi", "entry"], how="left")
     allc = allc.merge(dups[["doi", "entry", "duplicate_of_group", "duplicate_in_group"]], on=["doi", "entry"], how="left")
-    allc.to_csv(HERE / "candidates.csv", index=False, float_format="%.6g")
-    gm.to_csv(HERE / "group_metrics.csv", index=False, float_format="%.6g")
+    allc.to_csv(OUT / "candidates.csv", index=False, float_format="%.6g")
+    gm.to_csv(OUT / "group_metrics.csv", index=False, float_format="%.6g")
     st = cand.status.fillna("")
     reasons = {}
     for s_ in st[st.str.startswith("outside")]:
@@ -529,7 +586,11 @@ def main():
         fused_reference_entries_primary=int(prim.fused.sum()),
         primary_below_Fe=int((prim.cost_USD_t < fe_cost).sum()),
         primary=primary, variants=variants)
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
+    if NM.VERSION != "1.1":          # the 1.1 summary keeps its committed keys; later versions name their run
+        A = NM.anchors()
+        summary = dict(model=dict(label=A["label"], run=A["run"], process_states=A["NSTATE"], F_CAL=A["F_CAL"],
+                                  Fe_USD_t=A["Fe"]), **summary)
+    (OUT / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=1, default=float))
 
 

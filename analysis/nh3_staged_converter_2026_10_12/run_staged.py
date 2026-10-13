@@ -15,7 +15,8 @@ Stages
      and financing rate is the lower envelope of the library (an upper bound on the optimum; checked in stage 4).
   4. Direct global optimisation at check points of the maps.
 
-Outputs (this folder): arrangements.csv, sensitivities.csv, design_library.csv, envelope_checks.csv, summary.json.
+Outputs (this folder; nh3_1_2/ with NH3_MODEL=1.2): arrangements.csv, sensitivities.csv, design_library.csv,
+envelope_checks.csv, summary.json. The converter costs are bit-identical under NH3-FINAL-1.1 and 1.2 (staged_invariance_1_2.py).
 """
 from __future__ import annotations
 
@@ -199,7 +200,7 @@ def main():
         r["_job"] = j
     stamp("stage 1: polishing")
     arr = polish(arr, lambda r: (r["loop"], r["economics"], r["mode"]), a.workers)
-    write_csv(HERE / "arrangements.csv", arr, extra=("loop", "economics"))
+    write_csv(C.OUT / "arrangements.csv", arr, extra=("loop", "economics"))
     base_x = {(r["loop"], r["economics"], r["mode"], r["pattern"]): r["x"] for r in arr}
     table = []
     for k, g in group(arr, lambda r: (r["loop"], r["economics"], r["mode"])).items():
@@ -245,7 +246,7 @@ def main():
     for r, j in zip(sens, jobs):
         r["_job"] = j
     sens = polish(sens, lambda r: (r["case"], r["economics"]), a.workers)
-    write_csv(HERE / "sensitivities.csv", sens, extra=("case", "economics"))
+    write_csv(C.OUT / "sensitivities.csv", sens, extra=("case", "economics"))
     summary["sensitivities"] = []
     for (case, ename), g in group(sens, lambda r: (r["case"], r["economics"])).items():
         b = min(g, key=lambda r: r["cost"])
@@ -279,12 +280,12 @@ def main():
                              x0s=[r["x"] for r in ax[(P, Ts, "FFF")]], tag=dict(stage="library")))
     stamp(f"stage 3b: {len(jobs)} continuation chains")
     lib = [r for g in run_pool(chain, jobs, a.workers) for r in g]
-    write_csv(HERE / "design_library.csv", lib, extra=("c_Ru", "c_Fe"))
+    write_csv(C.OUT / "design_library.csv", lib, extra=("c_Ru", "c_Fe"))
     stamp("stage 3: done")
 
     # ---- 4. direct checks of the envelope --------------------------------------------------------------------
     from boundary import envelope_cost, load_library
-    L = load_library(HERE / "design_library.csv")
+    L = load_library(C.OUT / "design_library.csv")
     checks = []
     for P, Ts in ((90.0, -20.0), (150.0, -5.0)):
         for p, r_, i in ((53852.5, 0.9555, 0.0), (53852.5, 0.9555, 0.12), (53852.5, 0.90, 0.0), (20000.0, 0.9555, 0.04),
@@ -301,7 +302,7 @@ def main():
         env = envelope_cost(L, (r["P_bar"], r["Tsep_C"]), r["pattern"], r["p_Ru"], r["recovery"], r["fin_rate"])
         rows.append(dict(P_bar=r["P_bar"], Tsep_C=r["Tsep_C"], pattern=r["pattern"], p_Ru=r["p_Ru"], recovery=r["recovery"],
                          fin_rate=r["fin_rate"], direct=r["cost"], envelope=env, envelope_minus_direct=env - r["cost"]))
-    with (HERE / "envelope_checks.csv").open("w", newline="", encoding="utf-8") as f:
+    with (C.OUT / "envelope_checks.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         for row in rows:
@@ -311,7 +312,7 @@ def main():
     summary["runtime_s"] = round(time.time() - t_start)
     summary["inputs"] = dict(loops=LOOPS, economics=ECON, de=DE_KW, c_Ru_grid=C_RU_GRID, c_Fe_grid=C_FE_GRID,
                              library_loops=LIBRARY_LOOPS, quadrature_points=41)
-    (HERE / "summary.json").write_text(json.dumps(_round(summary), indent=1) + "\n", encoding="utf-8")
+    (C.OUT / "summary.json").write_text(json.dumps(_round(summary), indent=1) + "\n", encoding="utf-8")
     stamp("done")
 
 

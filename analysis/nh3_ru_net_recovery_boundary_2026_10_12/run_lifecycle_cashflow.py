@@ -1,34 +1,35 @@
 """Run an explicit, finite-25-year Fe/Ru metal cash-flow comparison.
 
-This extends PR #57 without rewriting frozen NH3-FINAL-1.1. A metal inventory
+This extends PR #57 without rewriting the frozen model. A metal inventory
 is purchased at 0, L, 2L ... before plant closure; spent catalyst is processed
 on replacement, and final metal recovery is credited at plant retirement.
 Recycling fees are paid at collection; metal sale receipts can be delayed.
 
 All recovery yields, fees and settlement lags beyond the source gross recovery
 examples are scenario values, NOT literature-verified industrial contracts.
+
+    NH3_MODEL=1.1  NH3_HARNESS=<1.1 root>      outputs in this folder (NH3-FINAL-1.1, default)
+    NH3_MODEL=1.2  NH3_HARNESS_1_2=<1.2 root>  outputs in nh3_1_2/ (run run_boundary.py first: its cost_surface.csv
+                                               of the same model is the legacy-regression reference)
 """
 from __future__ import annotations
 
 import csv
 import json
 import math
-import os
 import sys
 from pathlib import Path
 
 import numpy as np
-import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-ROOT = Path(os.environ.get("NH3_HARNESS", "/tmp/nh3_harness"))
-RUN = ROOT / "outputs" / "nh3_final_20260905T134204Z"
-sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 
 from lifecycle_cashflow import MetalCashflow, annualized_metal_multiplier
-import harness_core as hc
+from model_inputs import NM, frozen_response, harness
+
+OUT = NM.out_dir(HERE)
 
 
 R_VALUES = (0.90, 0.9305, 0.9555)
@@ -54,10 +55,8 @@ def min_valid(total, mask):
 
 
 def main():
-    h = hc.NH3Harness(yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8")), ROOT)
-    matrix, _, cached = h.build_or_load_response()
-    if not cached or h.NSTATE != 14136:
-        raise AssertionError("The pinned NH3 response cache must be used, not regenerated")
+    hc, h, anchors = harness()
+    matrix = frozen_response(h, anchors)
     v = {m: h.interp_state_vector(matrix, hc.EN0_CANON[m]) for m in ("Fe", "Ru")}
     if not np.isfinite(v["Fe"]).all() or not np.isfinite(v["Ru"]).all():
         raise AssertionError("Missing descriptor columns in the frozen response cache")
@@ -136,7 +135,7 @@ def main():
     # full final resale reproduces the legacy 10-year straight-line algebra
     # exactly, while the project-consistent primary analysis is 25 years.
     regressions = []
-    with (HERE / "cost_surface.csv").open(newline="", encoding="utf-8") as fh:
+    with (OUT / "cost_surface.csv").open(newline="", encoding="utf-8") as fh:
         frozen_overlay = list(csv.DictReader(fh))
     selected = [x for x in frozen_overlay
                 if float(x["net_realization"]) == 1.0
@@ -154,7 +153,7 @@ def main():
         regressions.append({"loop": loop, "recovery": row["recovery"],
                             "w_Ru": row["w_Ru"], "rho_kg_m3": row["rho_kg_m3"],
                             "Ru_cost_difference_USD_t": delta, "Fe_cost_difference_USD_t": fdelta})
-    csv_write(HERE / "lifecycle_legacy_regression.csv", regressions)
+    csv_write(OUT / "lifecycle_legacy_regression.csv", regressions)
 
     cases = [
         ("zero_carrying_ideal", 0.0, 1.0, 1.0, 0.0, 0.0),
@@ -176,7 +175,7 @@ def main():
                                 "metal_finance_rate": rate, "refining_yield": sale_yield,
                                 "payout_fraction": fraction, "processing_fee_USD_kg_collected": fee,
                                 "sale_delay_y": delay, **result})
-    csv_write(HERE / "lifecycle_cost_scenarios.csv", scenario_rows)
+    csv_write(OUT / "lifecycle_cost_scenarios.csv", scenario_rows)
     assert len(scenario_rows) == 648
 
     rate_rows = []
@@ -189,7 +188,7 @@ def main():
                         rate_rows.append({"loop": loop, "w_Ru": w, "rho_kg_m3": rho,
                                           "gross_Ru_recovery": r, "Ru_life_y": 10.0,
                                           "metal_finance_rate": rate, **result})
-    csv_write(HERE / "lifecycle_finance_sensitivity.csv", rate_rows)
+    csv_write(OUT / "lifecycle_finance_sensitivity.csv", rate_rows)
     assert len(rate_rows) == 378
 
     # A purely conditional financing hurdle is solved only after a coarse
@@ -211,6 +210,29 @@ def main():
                 hi = mid
         critical_rate = (lo + hi) / 2
         critical_note = "Metal inventory financing hurdle at 95.55% Ru recovery, ideal sale"
+    elif coarse[0] < 0 and coarse[-1] <= 0:
+        # Ru is still at or below Fe at the frozen 12 % rate (NH3-FINAL-1.2). The parity rate has the same definition
+        # and lies above the 0-12 % sweep: continue the coarse grid in 1 %/y steps up to 100 %/y and bisect there.
+        wide = [plant_rate + 0.01 * k for k in range(int(round((1.0 - plant_rate) / 0.01)) + 1)]
+        wide_gaps = [gap_at(r) for r in wide]
+        if any(wide_gaps[i+1] < wide_gaps[i] - 1e-8 for i in range(len(wide_gaps)-1)):
+            critical_rate = None
+            critical_note = "No monotonic rate threshold: cost gaps above the 12% sweep are nonmonotone"
+        elif wide_gaps[-1] > 0:
+            k = next(i for i, g in enumerate(wide_gaps) if g > 0)
+            lo, hi = wide[k - 1], wide[k]
+            for _ in range(48):
+                mid = (lo + hi) / 2
+                if gap_at(mid) <= 0:
+                    lo = mid
+                else:
+                    hi = mid
+            critical_rate = (lo + hi) / 2
+            critical_note = ("Metal inventory financing hurdle at 95.55% Ru recovery, ideal sale; above the frozen 12% "
+                             "plant rate (Ru stays at or below Fe across the 0-12% sweep; bisected on 12-100%/y)")
+        else:
+            critical_rate = None
+            critical_note = "Ru stays at or below Fe up to 100%/y metal financing"
     else:
         critical_rate = None
         critical_note = "The financing-rate sweep does not bracket a parity threshold"
@@ -250,13 +272,13 @@ def main():
         "model_limitations": [
             "gross recovery reported for salts is not verified saleable metal recovery",
             "same-mask Fe in Ru-specific KAAP converter is an unvalidated engineering replacement scenario",
-            "fixed 14,136-state isothermal process grid and frozen cost coefficients",
+            f"fixed {h.NSTATE:,}-state isothermal process grid and frozen cost coefficients",
             "last partially used Ru bed credited at plant closure (optimistic terminal salvage)",
             "same mass loading and constant nominal metal price at each replacement; no volatility",
             "uniform production and sale proceeds as annuity equivalents; no tax or working-capital loan contract",
         ],
     }
-    (HERE / "lifecycle_dcf_report.json").write_text(
+    (OUT / "lifecycle_dcf_report.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
 
     import matplotlib
@@ -281,7 +303,7 @@ def main():
     ax.set_title("KAAP-type loop, 8 wt% Ru/C, 490 kg/m3, 25-year cash-flow horizon")
     ax.legend(fontsize=8)
     ax.grid(alpha=0.20)
-    fig.savefig(HERE / "lifecycle_financing_break_even.png", dpi=200)
+    fig.savefig(OUT / "lifecycle_financing_break_even.png", dpi=200)
     plt.close(fig)
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 

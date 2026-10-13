@@ -7,6 +7,7 @@ arrangement at a grid of (c_Ru, c_Fe); the cost at any Ru price, recovery and fi
 design (an upper bound on the optimum, checked against direct optimisation in envelope_checks.csv).
 
     python boundary.py   -> boundary_price_financing.csv, boundary_pressure.csv, boundary_summary.json
+    NH3_MODEL=1.2 python boundary.py   -> the same files in nh3_1_2/, from nh3_1_2/design_library.csv
 """
 from __future__ import annotations
 
@@ -89,7 +90,7 @@ def _write(path, rows):
 
 
 def main():
-    L = load_library(HERE / "design_library.csv")
+    L = load_library(C.OUT / "design_library.csv")
     loops = sorted({(k[0], k[1]) for k in L})
     prices = [float(v) for v in np.geomspace(2000.0, 200000.0, 41)]
     rates = [round(float(v), 4) for v in np.linspace(0.0, 0.12, 25)]
@@ -100,7 +101,7 @@ def main():
                 for i in rates:
                     rows.append(dict(P_bar=loop[0], Tsep_C=loop[1], recovery=r_, p_Ru=p, fin_rate=i,
                                      **decide(L, loop, p, r_, i)))
-    _write(HERE / "boundary_price_financing.csv", rows)
+    _write(C.OUT / "boundary_price_financing.csv", rows)
     prow = []
     for loop in loops:
         for i in rates:
@@ -109,7 +110,7 @@ def main():
         for r_ in (0.90, 0.9555):
             prow.append(dict(P_bar=loop[0], Tsep_C=loop[1], accounting="benchmark", recovery=r_, p_Ru=53852.5,
                              fin_rate=0.0, **decide(L, loop, 53852.5, r_, 0.0, accounting="frozen")))
-    _write(HERE / "boundary_pressure.csv", prow)
+    _write(C.OUT / "boundary_pressure.csv", prow)
 
     summ = {"critical_financing_rate": [], "pressure": [], "critical_Ru_charge": []}
     fine = np.linspace(0.0, 0.12, 241)
@@ -158,7 +159,7 @@ def main():
                 row[f"p_Ru_range_staged_optimum_r{r_}"] = ([v * LIFE / m for v in row["c_Ru_range_staged_is_optimum"]]
                                                            if staged_best.size else None)
             summ["critical_Ru_charge"].append(row)
-    (HERE / "boundary_summary.json").write_text(json.dumps(summ, indent=1) + "\n", encoding="utf-8")
+    (C.OUT / "boundary_summary.json").write_text(json.dumps(summ, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(summ["pressure"], indent=1))
 
 

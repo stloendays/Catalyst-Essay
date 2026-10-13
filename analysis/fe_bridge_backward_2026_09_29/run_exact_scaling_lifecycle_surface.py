@@ -1,9 +1,9 @@
-"""Exact strict-scaling x lifecycle reachability audit for NH3-FINAL-1.1.
+"""Exact strict-scaling x lifecycle reachability audit for the selected NH3 model (NH3_MODEL=1.1|1.2).
 
 This is the missing physical-reachability test after the backward target region is
 defined. It performs NO DFT and refuses to rebuild the frozen response surface.
-It must be run on the original NH3-FINAL-1.1 harness machine with the existing
-14136-state cached response.
+It must be run with the selected model's existing cached response (1.1: 14,136 states in
+$NH3_HARNESS/cache; 1.2: 14,510 states in $NH3_HARNESS_1_2/cache).
 
 For each Ru descriptor E_N on the frozen strict-scaling grid, the cached response
 surface supplies the state-resolved logTOF vector. Ru is then fully reoptimized over
@@ -14,8 +14,13 @@ all process states while lifetime/recovery enter through the exact effective met
 The primary question is whether the prespecified lifecycle envelope
 L <= 20 y and r <= 0.99 intersects the strict E_N scaling manifold at C_Ru <= C_Fe.
 
+This is the brute-force cross-check of run_statewise_strict_scaling_lifecycle.py, which writes the
+promoted files. Its keypoint/summary layout (schema v1) differs from the promoted one, so for 1.1 run it
+with --out <scratch dir> to keep the committed files; for 1.2 the default output directory is
+nh3_1_2/surface_crosscheck/.
+
 Usage:
-  python run_exact_scaling_lifecycle_surface.py /path/to/Catalyst_Economic_Leverage_Automation_Harness_v0.1
+  python run_exact_scaling_lifecycle_surface.py [harness_root] [--out DIR]
 
 Outputs:
   scaling_lifecycle_exact_boundary.csv
@@ -24,6 +29,7 @@ Outputs:
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -31,27 +37,34 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-HARNESS = Path(
-    sys.argv[1] if len(sys.argv) > 1 else os.environ.get("NH3_HARNESS", ".")
-).resolve()
-sys.path.insert(0, str(HARNESS))
+ap = argparse.ArgumentParser()
+ap.add_argument("harness_root", nargs="?", default=None)
+ap.add_argument("--out", type=Path, default=None)
+args = ap.parse_args()
+if args.harness_root:  # explicit harness root for the selected version
+    os.environ["NH3_HARNESS" if os.environ.get("NH3_MODEL", "1.1") == "1.1" else "NH3_HARNESS_1_2"] = args.harness_root
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
 
-from harness_core import EN0_CANON, NH3Harness, PRICE  # noqa: E402
+hc = NM.core()
+PRICE = hc.PRICE
+A = NM.anchors()
+res = json.loads((NM.run_dir() / "results.json").read_text(encoding="utf-8"))
+OUT = args.out or (HERE if NM.VERSION == "1.1" else NM.out_dir(HERE) / "surface_crosscheck")
+OUT.mkdir(parents=True, exist_ok=True)
 
-RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
-cfg = yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"))
-res = json.loads((RUN / "results.json").read_text(encoding="utf-8"))
-
-h = NH3Harness(cfg, HARNESS)
+h = NM.harness()
+cp = h.response_cache_path()
+if not cp.exists():  # checked before build_or_load_response, which would otherwise rebuild it
+    raise SystemExit(f"response surface {cp} is not cached; refusing to rebuild frozen scientific assets")
 resp, _cp, cached = h.build_or_load_response()
 if not cached:
     raise SystemExit("response surface is not cached; refusing to rebuild frozen scientific assets")
-if h.NSTATE != 14136:
-    raise SystemExit(f"process-state count drift: {h.NSTATE}")
+if h.NSTATE != A["NSTATE"]:
+    raise SystemExit(f"process-state count drift: {h.NSTATE} vs {A['NSTATE']}")
 
 FE_COST = float(res["deterministic"]["metals"]["Fe"]["feasible"]["total_cost"])
 P_RU = float(PRICE["Ru"])
@@ -62,7 +75,9 @@ BASELINE_STRICT_EN = float(res["backward_reachability"]["Ru_best_scaling_EN_eV"]
 # when the repository copy is available. Fall back to the same 0.005 eV grid.
 scaling_csv = (
     REPO
-    / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+    / {"1.1": "provenance/nh3_final_1_1/source_harness/outputs",
+       "1.2": "provenance/nh3_final_1_2/source_harness/outputs"}[NM.VERSION]
+    / NM.RUNS[NM.VERSION]
     / "closure/scaling_reachability.csv"
 )
 if scaling_csv.exists():
@@ -162,10 +177,10 @@ for en in en_grid:
 if not boundary_rows:
     raise SystemExit("strict-scaling manifold never reaches Fe parity even at zero effective Ru price")
 
-with (HERE / "scaling_lifecycle_exact_boundary.csv").open(
+with (OUT / "scaling_lifecycle_exact_boundary.csv").open(
     "w", encoding="utf-8", newline=""
 ) as fh:
-    w = csv.DictWriter(fh, fieldnames=list(boundary_rows[0]))
+    w = csv.DictWriter(fh, fieldnames=list(boundary_rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(boundary_rows)
 
@@ -195,10 +210,10 @@ for life, recovery in (
         }
     )
 
-with (HERE / "scaling_lifecycle_exact_keypoints.csv").open(
+with (OUT / "scaling_lifecycle_exact_keypoints.csv").open(
     "w", encoding="utf-8", newline=""
 ) as fh:
-    w = csv.DictWriter(fh, fieldnames=list(key_rows[0]))
+    w = csv.DictWriter(fh, fieldnames=list(key_rows[0]), lineterminator="\n")
     w.writeheader()
     w.writerows(key_rows)
 
@@ -209,10 +224,10 @@ corner = next(
     if r["catalyst_life_y"] == 20 and abs(r["Ru_recovery_fraction"] - 0.99) < 1e-12
 )
 summary = {
-    "schema": "nh3-final-1.1-strict-scaling-lifecycle-reachability-v1",
+    "schema": f"{NM.LABEL.lower()}-strict-scaling-lifecycle-reachability-v1",
     "no_new_DFT": True,
     "cached_response_reused": True,
-    "process_states": 14136,
+    "process_states": h.NSTATE,
     "Fe_cost_USD_t": q(FE_COST, 9),
     "baseline_regression_anchor": {
         "E_N_eV": q(baseline["E_N_eV"], 6),
@@ -231,7 +246,7 @@ summary = {
         "lifecycle envelope; if false, the backward target region remains outside it."
     ),
 }
-(HERE / "scaling_lifecycle_exact_summary.json").write_text(
-    json.dumps(summary, indent=2), encoding="utf-8"
+(OUT / "scaling_lifecycle_exact_summary.json").write_text(
+    json.dumps(summary, indent=2), encoding="utf-8", newline="\n"
 )
 print(json.dumps(summary, indent=2))

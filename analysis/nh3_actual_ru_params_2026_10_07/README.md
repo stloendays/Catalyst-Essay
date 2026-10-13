@@ -3,6 +3,12 @@
 GitHub Actions run [37633987381](https://github.com/stloendays/Catalyst-Essay/actions/runs/37633987381)
 (ubuntu-latest, Python 3.12.14, numpy 2.5.3; commit `90bbee9`). Workflow: `.github/workflows/nh3-actual-ru-params.yml`.
 
+Model switch (2026-10-13): `NH3_MODEL=1.1` (default) writes the files of this folder, byte-identical to the committed
+ones; `NH3_MODEL=1.2` writes NH3-FINAL-1.2 outputs to `nh3_1_2/` (command, checks against the 1.2 Fig. 2 and
+Monte Carlo ports, and the 1.1 → 1.2 table in `nh3_1_2/README.md`; text numbers in `nh3_1_2/TEXT_NUMBERS.md`, written by
+`text_numbers.py`). The tables below predate the 2026-10-12 recovery change (0.90–0.97); the current 1.1 values with
+r 0.90–0.9555 are in `results_table.md`.
+
 ## Results
 
 Literature-checked inputs (primary-literature check of 2026-10-07):

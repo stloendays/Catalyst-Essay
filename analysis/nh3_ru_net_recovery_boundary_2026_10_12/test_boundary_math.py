@@ -14,9 +14,14 @@ class BoundaryMathTests(unittest.TestCase):
                 effective_credit(rec, value)
 
     def test_same_loop_must_not_use_global_fe_baseline(self):
-        ru_kaap, fe_kaap, fe_global = 18.33659372776672, 19.06868861189332, 15.291704676621144
-        self.assertLess(same_loop_gap(ru_kaap, fe_kaap), 0)
-        self.assertGreater(same_loop_gap(ru_kaap, fe_global), 0)
+        # KAAP-loop Ru/C at 95.55 % recovery (benchmark bed), Fe in the KAAP loop, Fe optimum
+        # (figures/composite/fig2[/nh3_1_2]/fig2_ru_actual_cost_points.csv)
+        cases = {"NH3-FINAL-1.1": (18.33659372776672, 19.06868861189332, 15.291704676621144),
+                 "NH3-FINAL-1.2": (16.2728065463168, 16.97956884800555, 11.515783597179267)}
+        for model, (ru_kaap, fe_kaap, fe_global) in cases.items():
+            with self.subTest(model=model):
+                self.assertLess(same_loop_gap(ru_kaap, fe_kaap), 0)
+                self.assertGreater(same_loop_gap(ru_kaap, fe_global), 0)
 
     def test_threshold(self):
         self.assertAlmostEqual(threshold_credit(lambda q: 10.0 - 4.0*q, 7.0), 0.75, places=10)

@@ -1,0 +1,65 @@
+metric_id,table,case_id,quantity,unit,industrial_value,industrial_low,industrial_high,rule,ref_rows,counted,note
+A01,A,TOP140,inlet_NH3_molpct,mol%,4.1,,,rel:0.20,R1063,yes,
+A02,A,TOP140,outlet_NH3_molpct,mol%,17.1,,,rel:0.15,R1064,yes,
+A03,A,TOP140,inlet_Nm3_h,Nm3/h,500000.0,,,rel:0.25,R1062,yes,
+A04,A,TOP220,inlet_NH3_molpct,mol%,3.8,,,rel:0.20,R1055,yes,
+A05,A,TOP220,outlet_NH3_molpct,mol%,19.9,,,rel:0.15,R1056,yes,
+A06,A,TOP220,inlet_Nm3_h,Nm3/h,407000.0,,,rel:0.25,R1054,yes,
+A07,A,UHDE188,inlet_NH3_molpct,mol%,4.18,,,rel:0.20,R0010,yes,
+A08,A,UHDE188,outlet_NH3_molpct,mol%,19.67,,,rel:0.15,R0012,yes,
+A09,A,UHDE188,inlet_Nm3_h,Nm3/h,635302.0,,,rel:0.25,R0016,yes,
+A10,A,UHDE188,inlet_to_makeup,mol/mol,3.52,,,rel:0.25,R0018,yes,"converter feed / make-up (incl. recovered H2), Appl's stream table"
+A11,A,S250,delta_NH3_molpct,mol%,16.5,,,rel:0.15,R0592,yes,net NH3 = outlet - inlet
+A12,A,UHDE160,delta_NH3_molpct,mol%,19.3,,,rel:0.15,R0610,yes,
+A13,A,PFI266,outlet_NH3_molpct,mol%,19.0,,,rel:0.15,R1541,yes,
+A14,A,KELLOGG150,inlet_NH3_molpct,mol%,2.0,,,rel:0.20,R1233,yes,
+A15,A,KELLOGG150,outlet_NH3_molpct,mol%,,10.0,12.0,rel:0.15,R1237,yes,
+A16,A,BRAUN150,inlet_NH3_molpct,mol%,4.0,,,rel:0.20,R0599,yes,
+A17,A,BRAUN150,outlet_NH3_molpct,mol%,21.0,,,rel:0.15,R0598,yes,
+A18,A,BRAUN150,delta_NH3_molpct,mol%,17.0,,,rel:0.15,R0571,yes,
+A19,A,BRAUN150,GHSV_h,1/h,7600.0,,,factor:2,R0576,yes,
+A20,A,LIU_KELLOGG,delta_NH3_molpct,mol%,10.0,,,rel:0.15,R0557,yes,
+A21,A,LIU_KELLOGG,GHSV_h,1/h,10000.0,,,factor:2,R0562,yes,
+A22,A,LIU_TOPSOE,delta_NH3_molpct,mol%,,10.0,12.5,rel:0.15,R0564,yes,
+A23,A,LIU_TOPSOE,GHSV_h,1/h,12000.0,,,factor:2,R0569,yes,
+A24,A,LIU_AMV,delta_NH3_molpct,mol%,13.0,,,rel:0.15,R0578,yes,
+A25,A,LIU_AMV,GHSV_h,1/h,8000.0,,,factor:2,R0583,yes,
+A26,A,LIU_SMALL,delta_NH3_molpct,mol%,,8.0,10.0,rel:0.15,R0550,yes,
+A27,A,LIU_SMALL,GHSV_h,1/h,30000.0,,,factor:2,R0555,yes,
+A28,A,CASALE250,Fe_bed_m3,m3,30.0,,,factor:2,R1368,yes,
+E01,E,LIU93_151,fresh_plus_recycle_MW,MW,13.0,,,rel:0.30,R0651,yes,"syngas + recycle compressor, 2.7 -> 15.1 MPa (model: 30 bar suction)"
+E02,E,UHDE2000,fresh_plus_recycle_MW,MW,26.6,,,rel:0.30,R1492,yes,synthesis gas compressor of a conventional 2000 t/d Uhde plant
+E03,E,LIU919A,recycle_MW,MW,1.4413,,,rel:0.30,R0854,yes,circulator power
+B01,B,LIU919A_FWD,bed1_T_out_C,C,489.0,,,abs:15,R0846,yes,
+B02,B,LIU919A_FWD,bed2_T_out_C,C,446.0,,,abs:15,R0848,yes,
+B03,B,LIU919A_FWD,outlet_NH3_molpct,mol%,14.31,,,rel:0.15,R0849,yes,
+B04,B,LIU919A_INV,V_total_m3,m3,65.3,,,factor:2,R0937 R0938,yes,model volume for the printed bed temperature rises vs installed 18.8 + 46.5 m3
+B05,B,LIU919B_FWD,bed1_T_out_C,C,490.0,,,abs:15,R0894,yes,
+B06,B,LIU919B_FWD,bed2_T_out_C,C,444.0,,,abs:15,R0896,yes,
+B07,B,LIU919B_FWD,outlet_NH3_molpct,mol%,14.94,,,rel:0.15,R0897,yes,
+B08,B,LIU919B_INV,V_total_m3,m3,65.3,,,factor:2,R0937 R0938,yes,model volume for the printed bed temperature rises vs installed 18.8 + 46.5 m3
+B09,B,TOP220_MINVOL/TOP140_MINVOL,volume_ratio_220_140,-,0.6,,,rel:0.25,R1059 R1067,yes,Dybkjaer Table 6.1 relative catalyst volume 60 % / 100 %
+B10,B,TOP140_DESIGN,outlet_NH3_molpct,mol%,17.1,,,rel:0.15,R1064,yes,cost-optimal converter outlet NH3 vs the plant's
+B11,B,TOP140_DESIGN,bed1_T_in_C,C,,,,window:W_BED1_FE,,yes,
+B12,B,TOP140_DESIGN,V_m3_per_tpd,m3/(t/d),,,,window:W_VOL_FE,,yes,
+B13,B,TOP220_DESIGN,outlet_NH3_molpct,mol%,19.9,,,rel:0.15,R1056,yes,cost-optimal converter outlet NH3 vs the plant's
+B14,B,TOP220_DESIGN,bed1_T_in_C,C,,,,window:W_BED1_FE,,yes,
+B15,B,TOP220_DESIGN,V_m3_per_tpd,m3/(t/d),,,,window:W_VOL_FE,,yes,
+B16,B,UHDE188_DESIGN,outlet_NH3_molpct,mol%,19.67,,,rel:0.15,R0012,yes,cost-optimal converter outlet NH3 vs the plant's
+B17,B,UHDE188_DESIGN,bed1_T_in_C,C,,,,window:W_BED1_FE,,yes,
+B18,B,UHDE188_DESIGN,V_m3_per_tpd,m3/(t/d),,,,window:W_VOL_FE,,yes,
+B19,B,KAAP_DESIGN,Fe_volume_fraction,-,,0.35,0.65,range,R0643,yes,"'the first bed contains an iron catalyst, which accounts for about half the total catalyst' (Liu 2013 p. 747); 'about half' pre-registered as 0.35-0.65"
+B20,B,KAAP_DESIGN,outlet_NH3_molpct,mol%,,21.0,21.7,rel:0.15,R1529 R0951 R0644,yes,KAAP grassroots 21 % (design) to 21.7 % (Trinidad operation)
+C01,C,OPT_FE,P_bar,bar,,,,window:W_P_FE,,yes,"(a) Fe optimum pressure, all Fe loops"
+C02,C,OPT_FE,P_bar,bar,,,,window:W_P_FE_WORLDSCALE,,yes,"(a) Fe optimum pressure, world-scale"
+C03,C,OPT_FE,T_C,C,,,,window:W_T_FE,,yes,(a) Fe optimum reaction temperature
+C04,C,OPT_FE,Tsep_C,C,,,,window:W_TSEP_FE,,yes,Fe optimum separator temperature
+C05,C,OPT_FE,Fe_bed_m3_per_tpd,m3/(t/d),,,,window:W_VOL_FE,,yes,Fe optimum catalyst volume
+C06,C,OPT_FE,outlet_NH3_molpct,mol%,,,,window:W_OUT_FE,,yes,Fe optimum converter outlet NH3
+C07,C,OPT_FE,GHSV_h,1/h,,,,window:W_SV_FE,,yes,Fe optimum space velocity
+C08,C,STAGED_ALL,Ru_upstream_of_Fe_in_any_optimum,-,,,,equals:False,R1531 R0643 R1520 R0212,yes,(b) bed position: industrial Ru beds always downstream of an Fe bed
+C09,C,STAGED_90BAR,Ru_in_optimum_at_12pct,-,,,,equals:True,R1528 R1531 R0639,yes,"(b) financing: KAAP at ~90 bar was built with Ru downstream of Fe; model at its own 12 %/y rate, today's Ru price (53,852.5 USD/kg), r 95.55 %"
+C10,C,STAGED_PRESSURE,spearman_P_vs_Ru_financing_boundary,-,,,,below:-0.5,R1528 W_P_RU W_P_FE,yes,(b) pressure: the financing rate below which Ru/C enters the optimum falls with loop pressure (Ru only in low-pressure loops)
+C11,C,OPT_RUC_0PCT,P_bar,bar,,,,window:W_P_RU,,yes,"(b) supported Ru/C optimum pressure where it beats Fe (25-y cash flow, 0 %/y, r 95.55 %)"
+C12,C,OPT_RUC_12PCT,RuC_minus_Fe_global,USD/t,,,,above:0,R0947,yes,(b) at 12 %/y the global optimum is Fe (industrial majority Fe; Ru in about 10 plants)
+V01,V,ULLMANN_T5,median_ratio_model_to_table,-,,0.8,1.2,range,APPL11_A1 Table 5,yes,"model y = p_sat(T)/P vs BASF NH3 saturation table, 10-30 MPa, -30..+30 C"

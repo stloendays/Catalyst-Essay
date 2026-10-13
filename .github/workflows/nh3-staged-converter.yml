@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "analysis/nh3_staged_converter_2026_10_12/**"
+      - "analysis/nh3_model.py"
       - ".github/workflows/nh3-staged-converter.yml"
   workflow_dispatch:
 permissions:
@@ -29,6 +30,17 @@ jobs:
         run: echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
       - name: Unit checks (equilibrium, loop closure and costs against NH3-FINAL-1.1)
         run: python -m unittest test_staged -v
+      - name: NH3-FINAL-1.2 (unit checks, staged-converter invariance, kinetics swap, decision maps) against nh3_1_2/
+        env:
+          NH3_MODEL: "1.2"
+        run: |
+          mkdir -p /tmp/committed12 && cp nh3_1_2/*.csv nh3_1_2/*.json /tmp/committed12/
+          python -m unittest test_staged -v
+          python staged_invariance_1_2.py
+          python kinetics_swap.py
+          python boundary.py > /tmp/boundary12.log
+          python manuscript_numbers.py > /tmp/numbers12.log
+          python check_regression.py /tmp/committed12 nh3_1_2
       - name: Keep the committed outputs for comparison
         run: mkdir -p /tmp/committed && cp *.csv *.json /tmp/committed/
       - name: Validate the rate laws against their sources
@@ -54,4 +66,5 @@ jobs:
             analysis/nh3_staged_converter_2026_10_12/*.csv
             analysis/nh3_staged_converter_2026_10_12/*.json
             analysis/nh3_staged_converter_2026_10_12/*.png
+            analysis/nh3_staged_converter_2026_10_12/nh3_1_2/*
           retention-days: 90

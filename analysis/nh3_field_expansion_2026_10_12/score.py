@@ -10,6 +10,15 @@ run_printed_primary.py), imported unchanged. It only redirects the input records
 
 Corrections (batch2_corrections.csv: doi, entry_label, field, extracted, corrected, ...) replace a field of
 records_normalized.csv before the chain; every applied correction is listed in runs/<label>/corrections_applied.csv.
+
+Model version (analysis/nh3_model.py, read by run_field_chain): NH3_MODEL=1.1 (default) scores on NH3-FINAL-1.1 and
+writes runs/<label>/ in this folder, as before. NH3_MODEL=1.2 scores on NH3-FINAL-1.2 (harness root $NH3_HARNESS_1_2,
+run nh3_final_1_2_20261013) and writes nh3_1_2/runs/<label>/ with the same files. The run arguments of `pool` are
+written as for 1.1 (../nh3_field_2026_10_06, runs/<label>) and are read from the selected model's folders: the frozen
+round 1 from ../nh3_field_2026_10_06/nh3_1_2/ (run_field_chain.py under NH3_MODEL=1.2) and runs/<label> from
+nh3_1_2/runs/<label>. The input records and corrections files are model-independent and shared.
+
+    NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 source_harness with its cache/> python score.py chain|pool ...
 """
 from __future__ import annotations
 
@@ -31,6 +40,9 @@ _argv, sys.argv = sys.argv, sys.argv[:1]
 import run_field_chain as F  # noqa: E402
 import run_printed_primary as P  # noqa: E402
 sys.argv = _argv
+NM = F.NM                         # analysis/nh3_model.py, the version run_field_chain selected
+FROZEN_OUT = F.OUT                # the frozen round-1 run of that model: FROZEN (1.1) or FROZEN/nh3_1_2 (1.2)
+RUNS = NM.out_dir(HERE) / "runs"  # runs/ (1.1) or nh3_1_2/runs/ (1.2)
 
 
 def stage(run: Path, records: pd.DataFrame):
@@ -68,19 +80,31 @@ def _isnum(s):
 
 
 def printed(run: Path):
-    """run_printed_primary.main() with its folder (HERE) and repository root (REPO) pointed at the run."""
-    P.HERE, P.REPO = run, run
+    """run_printed_primary.main() with its folder (HERE, OUT) and repository root (REPO) pointed at the run."""
+    P.HERE, P.REPO, P.OUT = run, run, run
     P.main()
 
 
+def run_folder(d: Path) -> Path:
+    """A run argument as written for 1.1 (../nh3_field_2026_10_06 or runs/<label>) -> the folder holding that run for
+    the selected model (the same folder for 1.1)."""
+    if d.resolve() == FROZEN.resolve():
+        return FROZEN_OUT
+    try:
+        rel = d.resolve().relative_to((HERE / "runs").resolve())
+    except ValueError:
+        return d
+    return RUNS / rel
+
+
 def chain(args):
-    run = HERE / "runs" / args.label
+    run = RUNS / args.label
     run.mkdir(parents=True, exist_ok=True)
     rec = pd.read_csv(args.records, keep_default_na=False, na_values=[""])
     if args.corrections:
         rec = apply_corrections(rec, Path(args.corrections), run)
     staged = stage(run, rec)
-    F.RECORDS, F.HERE = staged, run
+    F.RECORDS, F.HERE, F.OUT = staged, run, run
     if args.paper_set:
         F.PAPER_SET = Path(args.paper_set)
     sys.argv = [sys.argv[0], "--workers", str(args.workers)] + (["--skip-selfcheck"] if args.skip_selfcheck else [])
@@ -89,11 +113,13 @@ def chain(args):
 
 
 def pool(args):
-    run = HERE / "runs" / args.label
+    run = RUNS / args.label
     run.mkdir(parents=True, exist_ok=True)
-    cands, recs = [], []
-    for d in map(Path, args.runs):
-        rec_path = (REPO / "agent" / "nh3_field" / "out" / "records_normalized.csv" if d.resolve() == FROZEN.resolve()
+    cands, recs, read = [], [], []
+    for a in map(Path, args.runs):
+        d = run_folder(a)
+        read.append(d)
+        rec_path = (REPO / "agent" / "nh3_field" / "out" / "records_normalized.csv" if a.resolve() == FROZEN.resolve()
                     else d / "agent" / "nh3_field" / "out" / "records_normalized.csv")
         cands.append(pd.read_csv(d / "candidates.csv", keep_default_na=False, na_values=[""]))
         recs.append(pd.read_csv(rec_path, keep_default_na=False, na_values=[""]))
@@ -108,8 +134,14 @@ def pool(args):
     prim = c2[c2.status.str.startswith("primary") & c2.cost_USD_t.notna() & c2.duplicate_in_group.isna()].copy()
     gm, s = F.aggregate(prim, label="pooled: paper's own rate basis, plant cost without metal recovery", boot=True)
     gm.to_csv(run / "group_metrics.csv", index=False, float_format="%.6g")
-    (run / "summary.json").write_text(json.dumps(dict(pooled_from=[str(x) for x in args.runs], primary=s), indent=1,
-                                                 default=float) + "\n", encoding="utf-8")
+    summary = dict(pooled_from=[str(x) for x in args.runs], primary=s)
+    if NM.VERSION != "1.1":          # the 1.1 summary keeps its committed keys; later versions name their run
+        A = NM.anchors()
+        summary = dict(model=dict(label=A["label"], run=A["run"], process_states=A["NSTATE"], F_CAL=A["F_CAL"],
+                                  Fe_USD_t=A["Fe"]),
+                       pooled_from=[str(x) for x in args.runs],
+                       pooled_from_read=[x.resolve().relative_to(REPO.resolve()).as_posix() for x in read], primary=s)
+    (run / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     printed(run)
 
 

@@ -1,12 +1,18 @@
 """NH3 economic Monte Carlo with the actual Ru catalyst: dispersion ratio u and Ru recovery r sampled from their
 literature ranges, and a variant that draws the Ru activity from the measured Ru catalysts.
 
+Model: NH3_MODEL=1.1 (default; NH3-FINAL-1.1, outputs in this folder) or NH3_MODEL=1.2 (NH3-FINAL-1.2, outputs in
+nh3_1_2/), through analysis/nh3_model.py.
+
 Base: the preregistered 5,000-draw cost Monte Carlo (seed 20260920; Fe and Ru price multipliers log-uniform 0.5-2,
-CAPEX multiplier 0.8-1.2, electricity 20-100 USD/MWh, catalyst life 5-20 y; full reoptimization over the 14,136
-states; analysis/nonfigure_upgrades_2026_09_29/reproduce_nh3_cost_mc.py). Those five columns are drawn first, exactly as
-preregistered, so every draw keeps its values; the new inputs come from a second generator (seed 20261006) and,
-for the commercial Ru content of A_bed, a third (seed 20261007).
-The base result (P(C_Fe < C_Ru) = 1.000, minimum gap 2.382 USD/t) is reproduced before anything is added.
+CAPEX multiplier 0.8-1.2, electricity 20-100 USD/MWh, catalyst life 5-20 y; full reoptimization over all process
+states of the selected model, 14,136 in 1.1 and 14,510 in 1.2; analysis/nonfigure_upgrades_2026_09_29/
+reproduce_nh3_cost_mc.py). Those five columns are drawn first, exactly as preregistered, so every draw keeps its values;
+the new inputs come from a second generator (seed 20261006) and, for the commercial Ru content of A_bed, a third (seed
+20261007). The deterministic Fe and Ru costs of the selected canonical run are reproduced first; under 1.1 the base
+result (P(C_Fe < C_Ru) = 1.000, minimum gap 2.382 USD/t, analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json) is
+reproduced before anything is added, under 1.2 it is checked against the 1.2 summary of that folder when present
+(nh3_1_2/nh3_cost_mc_summary.json) and otherwise recomputed and recorded.
 
 Variants (Fe is the benchmark fused-iron catalyst in every variant):
   A  Ru/C with recovery, benchmark-formulation reading of Fig. 3d: only the metal price is lowered, to the effective
@@ -27,43 +33,96 @@ Variants (Fe is the benchmark fused-iron catalyst in every variant):
        (analysis/nh3_supported_2026_10_06), with its effective descriptor, residual multiplier and Ru content, bed
        density uniform 430-550 kg m-3, r uniform 0.90-0.9555. Dispersion is part of the measured rate, so u is not
        applied.
+       The measured catalysts' effective descriptor, residual multiplier and plant feasibility are model quantities.
+       1.1 reads them from analysis/nh3_supported_2026_10_06/supported_candidates.csv. 1.2 re-derives them on the same
+       definition by running that folder's run_supported_chain.main() unchanged on the 1.2 harness (output redirected to
+       a temporary folder; the Ru rows used are written to nh3_1_2/measured_ru_catalysts.csv) and, when the 1.2 port of
+       that folder exists (nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv), asserts that it agrees.
   B0 as B without recovery.
 
-Outputs: draws.csv, summary.json.
+Outputs: draws.csv, summary.json (1.2 also: measured_ru_catalysts.csv).
 """
+import contextlib
 import csv
+import importlib.util
+import io
 import json
 import math
-import os
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
-import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-HARNESS = Path(os.environ.get("NH3_HARNESS", r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1"))
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+HARNESS = NM.root()
 sys.path.insert(0, str(HARNESS))
-import harness_core as hc  # noqa: E402
+hc = NM.core()  # registered as harness_core before the self-check gate imports it
 
 sys.path.insert(0, str(REPO / "agent"))
 from selfcheck_gate import require  # noqa: E402
 
-RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
+RUN = NM.run_dir()
+OUT = NM.out_dir(HERE)
 BASE = REPO / "analysis" / "supervisor_2026_09_20" / "nh3_cost_mc_summary.json"
-SUPPORTED = REPO / "analysis" / "nh3_supported_2026_10_06" / "supported_candidates.csv"
+BASE_1_2 = REPO / "analysis" / "supervisor_2026_09_20" / "nh3_1_2" / "nh3_cost_mc_summary.json"
+SUPPORTED_DIR = REPO / "analysis" / "nh3_supported_2026_10_06"
+SUPPORTED = SUPPORTED_DIR / "supported_candidates.csv"
+SUPPORTED_1_2 = SUPPORTED_DIR / "nh3_1_2" / "supported_candidates.csv"
 N = 5000
 U_RANGE, R_RANGE, BED_RANGE = (11.0, 50.0), (0.90, 0.9555), (430.0, 550.0)
 W_COMM = (0.05, 0.10)  # Ru mass fraction of the commercial supported catalyst, variant A_bed
+MEAS_KEYS = ("id", "catalyst", "metal_wt_pct", "T_C", "P_MPa", "E_eff_eV", "log10_alpha_res", "status", "cost_USD_t")
+
+
+def is_measured_ru(x):
+    return x["status"].startswith("primary") and x["active_metals"] == "Ru" and x["cost_USD_t"] != ""
+
+
+def derive_supported(h, response):
+    """Rows of analysis/nh3_supported_2026_10_06/supported_candidates.csv for the selected model: that folder's
+    run_supported_chain.main(), unchanged, on this harness and response surface, writing to a temporary folder."""
+    spec = importlib.util.spec_from_file_location("run_supported_chain", SUPPORTED_DIR / "run_supported_chain.py")
+    rsc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rsc)
+    rsc.hc, rsc.HARNESS, rsc.RUN = hc, HARNESS, RUN
+    rsc.load_harness = lambda: (h, response)
+    rsc.require = lambda: None  # the gate has already passed in main()
+    with tempfile.TemporaryDirectory() as tmp:
+        rsc.HERE = Path(tmp)
+        with contextlib.redirect_stdout(io.StringIO()):
+            rsc.main()
+        with (Path(tmp) / "supported_candidates.csv").open(encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+
+
+def base_reference(nstate):
+    """Preregistered cost-MC verification block of the selected model and its file, or (None, None)."""
+    path = BASE if NM.VERSION == "1.1" else BASE_1_2
+    if not path.exists():
+        return None, None
+    d = json.loads(path.read_text(encoding="utf-8"))
+    key = f"full_{nstate}_state_direct_cost_verification"
+    if key not in d:
+        keys = [k for k in d if k.startswith("full_") and k.endswith("_state_direct_cost_verification")]
+        if len(keys) != 1:
+            raise KeyError(f"{path}: no single full_<N>_state_direct_cost_verification block ({keys})")
+        key = keys[0]
+    return d[key], path.relative_to(REPO).as_posix()
 
 
 def main():
     require()
-    h = hc.NH3Harness(yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8")), HARNESS)
+    A = NM.anchors()
+    h = NM.harness()
     response, _cp, cached = h.build_or_load_response()
     if not cached:
         raise SystemExit("response surface is not cached; refusing to rebuild a frozen asset")
+    assert h.NSTATE == A["NSTATE"], (h.NSTATE, A["NSTATE"])
 
     def vector(x):
         v = h.interp_state_vector(response, x)
@@ -90,7 +149,7 @@ def main():
 
     fe0, _ = evaluate("Fe", vec["Fe"], price=hc.PRICE["Fe"], life_y=h.CATALYST_LIFE_Y, cap=1.0, elec=h.ELECTRICITY)
     ru0, _ = evaluate("Ru", vec["Ru"], price=hc.PRICE["Ru"], life_y=h.CATALYST_LIFE_Y, cap=1.0, elec=h.ELECTRICITY)
-    assert abs(fe0 - 15.291704676621144) < 1e-9 and abs(ru0 - 22.03059478781101) < 1e-9, (fe0, ru0)
+    assert abs(fe0 - A["Fe"]) < 1e-9 and abs(ru0 - A["Ru"]) < 1e-9, (fe0, ru0, A["Fe"], A["Ru"])
 
     # preregistered draws, in the preregistered order
     rng = np.random.default_rng(20260920)
@@ -104,8 +163,20 @@ def main():
     u = np.exp(rng2.uniform(math.log(U_RANGE[0]), math.log(U_RANGE[1]), N))
     r = rng2.uniform(*R_RANGE, N)
     bed = rng2.uniform(*BED_RANGE, N)
-    meas = [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8"))
-            if x["status"].startswith("primary") and x["active_metals"] == "Ru" and x["cost_USD_t"] != ""]
+    if NM.VERSION == "1.1":
+        meas = [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8")) if is_measured_ru(x)]
+    else:
+        meas = [x for x in derive_supported(h, response) if is_measured_ru(x)]
+        if SUPPORTED_1_2.exists():  # the 1.2 port of the supported chain: same catalysts, same model quantities
+            port = [x for x in csv.DictReader(SUPPORTED_1_2.open(encoding="utf-8")) if is_measured_ru(x)]
+            assert [x["id"] for x in port] == [x["id"] for x in meas], "measured Ru catalysts differ from the 1.2 port"
+            for x, y in zip(meas, port):
+                for c in ("E_eff_eV", "log10_alpha_res", "metal_wt_pct", "cost_USD_t"):
+                    assert abs(float(x[c]) - float(y[c])) < 1e-9, (x["id"], c, x[c], y[c])
+        with (OUT / "measured_ru_catalysts.csv").open("w", newline="", encoding="utf-8") as f:
+            wr = csv.DictWriter(f, fieldnames=list(MEAS_KEYS), extrasaction="ignore")
+            wr.writeheader()
+            wr.writerows(meas)
     k = rng2.integers(0, len(meas), N)
     w_comm = np.random.default_rng(20261007).uniform(*W_COMM, N)  # third generator: earlier draws keep their values
     mvec = [vector(float(x["E_eff_eV"])) for x in meas]
@@ -133,15 +204,30 @@ def main():
                          Ru_B0=b0, Ru_A_P_bar=float(h.state_P[ia])))
 
     gap0 = np.array([x["Ru_base"] - x["Fe"] for x in rows])
-    ref = json.loads(BASE.read_text(encoding="utf-8"))["full_14136_state_direct_cost_verification"]
-    assert float(np.mean(gap0 > 0)) == ref["P_C_Fe_lt_C_Ru"] == 1.0
-    assert abs(float(gap0.min()) - ref["minimum_Ru_minus_Fe_USD_t"]) < 1e-9
+    p_base = float(np.mean(gap0 > 0))
+    ref, ref_file = base_reference(h.NSTATE)
+    if NM.VERSION == "1.1":
+        assert ref is not None, BASE
+    if ref is not None:
+        assert p_base == ref["P_C_Fe_lt_C_Ru"], (p_base, ref["P_C_Fe_lt_C_Ru"])
+        assert abs(float(gap0.min()) - ref["minimum_Ru_minus_Fe_USD_t"]) < 1e-9
+        for q, p in (("p05", .05), ("p50", .5), ("p95", .95)):
+            assert abs(float(np.quantile(gap0, p)) - ref["Ru_minus_Fe_USD_t_quantiles"][q]) < 1e-9
 
     fe = np.array([x["Fe"] for x in rows])
     U, R, PE = np.array([x["u"] for x in rows]), np.array([x["r"] for x in rows]), np.array([x["p_eff_USD_kg"] for x in rows])
-    out = {"draws": N, "base_reproduced": {"P_Fe_cheaper": 1.0, "min_gap_USD_t": float(gap0.min())},
+    out = {"draws": N, "base_reproduced": {"P_Fe_cheaper": p_base, "min_gap_USD_t": float(gap0.min())},
            "ranges": {"u": U_RANGE, "r": R_RANGE, "bed_density_kg_m3": BED_RANGE,
                       "A_bed_Ru_wt_pct": [W_COMM[0] * 100, W_COMM[1] * 100], "measured_Ru_catalysts": len(meas)}}
+    if NM.VERSION != "1.1":  # 1.1 keeps its committed schema byte for byte
+        out["model"] = {"label": A["label"], "run": A["run"], "process_states": h.NSTATE, "F_CAL": A["F_CAL"],
+                        "Fe_USD_t": fe0, "Ru_USD_t": ru0,
+                        "base_checked_against": ref_file or "none (no committed preregistered cost MC for this model)",
+                        "base_gap_quantiles_USD_t": {q: float(np.quantile(gap0, p))
+                                                     for q, p in (("p05", .05), ("p50", .5), ("p95", .95))},
+                        "measured_Ru_catalysts_from": "run_supported_chain.main() on this model"
+                                                      + (" (agrees with nh3_supported_2026_10_06/nh3_1_2)"
+                                                         if SUPPORTED_1_2.exists() else "")}
     for name in ("A", "A_bed", "B", "B0"):
         ru = np.array([x["Ru_" + name] for x in rows])
         gap = ru - fe
@@ -184,11 +270,11 @@ def main():
     out["p_eff_quantiles_USD_kg"] = {q: float(np.quantile(PE, p)) for q, p in (("p05", .05), ("p50", .5), ("p95", .95))}
     winB = np.array([x["Ru_B"] < x["Fe"] for x in rows])
     out["B_Ru_winning_catalysts"] = sorted({x["measured_catalyst"] for x, w_ in zip(rows, winB) if w_})
-    with (HERE / "draws.csv").open("w", newline="", encoding="utf-8") as f:
+    with (OUT / "draws.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
-    (HERE / "summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    (OUT / "summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
     print(json.dumps(out, indent=1, default=float))
 
 

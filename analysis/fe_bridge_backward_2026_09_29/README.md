@@ -158,3 +158,13 @@ GitHub Actions workflow `.github/workflows/backward-joint-region-audit.yml` reco
 
 This CI gate validates the **backward target calculation**. The strict-scaling × lifecycle closure is now recorded separately in `scaling_lifecycle_exact_summary.json` and reproduced by `run_statewise_strict_scaling_lifecycle.py`, which uses all 14,136 FINAL-1.1 process states and the canonical 0.005-eV scaling grid without new DFT. The brute-force cached-response script is retained as an independent implementation for cross-checking.
 
+
+## NH3-FINAL-1.2 port (2026-10-13)
+
+Every script here takes `NH3_MODEL=1.1|1.2` (`analysis/nh3_model.py`). With 1.1 (default) they reproduce the files
+above; with 1.2 they write the same files to `nh3_1_2/`, whose README has the commands, the 1.1 → 1.2 table and the
+re-derived definitions. New helpers: `ru_price_sweep.py` (the Fig. 2 Ru price sweep for the selected model; the
+certified subset and the α = 1 anchor come from it) and `build_ru_lifecycle_parity_keypoints.py` (section 2 keypoints).
+Under 1.2 the tested lifecycle box (≤ 20 y, ≤ 99 % recovery) intersects the strict-scaling manifold (best corner
+−0.317 USD t⁻¹ against Fe; q* = 8.2510 × 10⁻⁴ y⁻¹), 15- and 20-year lifetimes at 99 % recovery need no activity gain,
+and the first flip is still the actual-price metal-replacement layer.

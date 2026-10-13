@@ -16,6 +16,10 @@ manifest nh3_final_20260905T134204Z). Only the catalyst mass changes:
   states   'frozen' : process states of NH3-FINAL-1.1 (model equilibrium)
            'GB'     : process states rebuilt with the Gillespie-Beattie NH3 equilibrium, as in PR #64
                       (analysis/verify_2026_10_12_nh3_equilibrium, branch verify-hou-feed-2026-10-12)
+           '1.2'    : (NH3_MODEL=1.2) the 14,510 process states of NH3-FINAL-1.2 (Gillespie-Beattie NH3 formation and
+                      Newton-Cooper fugacities in the loop equilibrium, the basis the measured rate laws already use);
+                      the equilibrium dimension of 1.1 collapses, so 1.2 has the four sizing x scale variants. The FCAL
+                      target is re-derived on its definition: the 1.2 descriptor Fe bed at the calibration state.
 
 Catalyst mapping (as in NH3-FINAL-1.1 and analysis/nh3_actual_ru_params_2026_10_07):
   Fe bed volume V from the rate per m3; Fe metal = V * 0.7151 * 2500 kg/m3 at 8 USD/kg, no recovery.
@@ -25,6 +29,7 @@ Catalyst mapping (as in NH3-FINAL-1.1 and analysis/nh3_actual_ru_params_2026_10_
       accounting) or by the 25-year cash flow at a metal financing rate of 0 or 12 %/y (Fe on the same convention).
 
     python kinetics_swap.py   -> kinetics_swap.json, kinetics_swap_pressure_profiles.csv
+    NH3_MODEL=1.2 python kinetics_swap.py   -> nh3_1_2/kinetics_swap.json, nh3_1_2/kinetics_swap_pressure_profiles.csv
 """
 from __future__ import annotations
 
@@ -42,18 +47,33 @@ import kinetics as K
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-sys.path.insert(0, str(REPO / "provenance" / "discover_v1" / "source_harness"))
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+if NM.VERSION == "1.1":
+    sys.path.insert(0, str(REPO / "provenance" / "discover_v1" / "source_harness"))
 sys.path.insert(0, str(REPO / "analysis" / "nh3_ru_net_recovery_boundary_2026_10_12"))
-import harness_core as hc  # noqa: E402
+if NM.VERSION == "1.1":
+    import harness_core as hc  # noqa: E402
+else:
+    hc = NM.core()
 from lifecycle_cashflow import MetalCashflow, annualized_metal_multiplier  # noqa: E402
 
-ROOT = REPO / "provenance" / "nh3_final_1_1" / "source_harness"          # holds inputs/<activity workbook>
-CFG = yaml.safe_load((REPO / "provenance" / "discover_v1" / "source_harness" / "outputs" / "nh3_final_20260905T134204Z"
-                      / "manifest_resolved.yaml").read_text(encoding="utf-8"))
+if NM.VERSION == "1.1":
+    ROOT = REPO / "provenance" / "nh3_final_1_1" / "source_harness"          # holds inputs/<activity workbook>
+    CFG = yaml.safe_load((REPO / "provenance" / "discover_v1" / "source_harness" / "outputs" / "nh3_final_20260905T134204Z"
+                          / "manifest_resolved.yaml").read_text(encoding="utf-8"))
+    FROZEN = dict(Fe=15.291704676621144, Ru=22.03059478781101, alpha=201.2234429878984, Fe_KAAP=19.06868861189332)
+    STATES = ("frozen", "GB")
+else:
+    ROOT, CFG = NM.root(), NM.cfg()                 # NH3-FINAL-1.2 core, manifest and activity workbook
+    _A = NM.anchors()
+    FROZEN = dict(Fe=_A["Fe"], Ru=_A["Ru"], alpha=_A["alpha"])
+    STATES = ("1.2",)
+OUT = NM.out_dir(HERE)
 U, W, RHO = 11.0, 0.08, 490.0
 P_RU = hc.PRICE["Ru"]
 CAL_STATE = (400.0, 80.0, -35.0)
-FROZEN = dict(Fe=15.291704676621144, Ru=22.03059478781101, alpha=201.2234429878984, Fe_KAAP=19.06868861189332)
 NGRID = 81
 _S = np.linspace(0.0, 1.0, NGRID)
 GRID, DGRID = 1.0 - (1.0 - _S) ** 2, 2.0 * (1.0 - _S)
@@ -81,6 +101,9 @@ def _corrected_gas_G(self, T):
 
 
 def build(corrected):
+    if NM.VERSION != "1.1":                     # 1.2: the canonical states of the selected run, nothing patched
+        assert not corrected
+        return hc.NH3Harness(CFG, ROOT)
     hc.KineticContext.gas_G = _corrected_gas_G if corrected else _ORIG_GAS_G
     try:
         return hc.NH3Harness(CFG, ROOT)
@@ -228,6 +251,13 @@ def frozen_reference(h):
         out[m] = best(h, np.where(ok, tot, np.inf), V)
         out[f"_{m}_profile"] = {float(P): float(np.min(np.where((h.state_P == P) & ok, tot, np.inf))) for P in np.unique(h.state_P)}
     assert abs(out["Fe"]["cost"] - FROZEN["Fe"]) < 1e-9 and abs(out["Ru"]["cost"] - FROZEN["Ru"]) < 1e-9, out
+    if NM.VERSION != "1.1":                     # descriptor Fe in the KAAP-type states (90 bar, -20 C) and run identity
+        lv = h.frozen_state_logtof(hc.EN0_CANON["Fe"])
+        tot, V, _, _ = h.cost_arrays("Fe", lv)
+        kaap = (h.state_P == 90.0) & (h.state_Tsep == -20.0)
+        out["Fe_KAAP"] = best(h, np.where(V <= h.V_CAP, tot, np.inf), V, kaap)
+        out["model"] = dict(version=NM.VERSION, run=NM.RUNS[NM.VERSION], n_states=int(h.NSTATE), F_CAL=float(h.F_CAL),
+                            Ru_activity_multiple_for_parity_descriptor=FROZEN["alpha"])
     return out
 
 
@@ -238,15 +268,15 @@ def main():
     fr = frozen_reference(h0)
     summary["frozen_anchor_check"] = {k: v for k, v in fr.items() if not k.startswith("_")}
     for P in sorted(fr["_Fe_profile"]):
-        profiles.append(dict(states="frozen", sizing="descriptor", scale="F_CAL", P_bar=P,
+        profiles.append(dict(states=STATES[0], sizing="descriptor", scale="F_CAL", P_bar=P,
                              Fe=fr["_Fe_profile"][P], Ru_benchmark=fr["_Ru_profile"][P]))
     # calibration target: the frozen Fe bed at the calibration state (400 C, 80 bar, -35 C), as in PR #64
     _, V0, _, _ = h0.cost_arrays("Fe", h0.frozen_state_logtof(hc.EN0_CANON["Fe"]))
     j0 = next(i for i in range(h0.NSTATE) if (h0.state_T[i], h0.state_P[i], h0.state_Tsep[i]) == CAL_STATE)
     fcal_target = float(V0[j0])
     summary["frozen_Fe_bed_at_calibration_state_m3"] = fcal_target
-    for states in ("frozen", "GB"):
-        h = h0 if states == "frozen" else build(True)
+    for states in STATES:
+        h = h0 if states == STATES[0] else build(True)
         st = state_arrays(h)
         for sizing in ("inlet", "plug"):
             for scale in ("FCAL", "source"):
@@ -264,14 +294,14 @@ def main():
                     print(f"      Ru/C {k:24s} global {v['Ru_C_global']['cost']:.3f} ({v['Ru_C_global']['P_bar']:.0f} bar) "
                           f"vs Fe {v['Fe_global']['cost']:.3f}  |  KAAP {v['Ru_C_KAAP']['cost']:.3f} vs Fe {v['Fe_KAAP']['cost']:.3f}",
                           flush=True)
-    with (HERE / "kinetics_swap_pressure_profiles.csv").open("w", newline="", encoding="utf-8") as f:
+    with (OUT / "kinetics_swap_pressure_profiles.csv").open("w", newline="", encoding="utf-8") as f:
         keys = ["states", "sizing", "scale", "P_bar", "Fe", "Ru_benchmark", "Ru_C_supported_r9555"]
         w = csv.DictWriter(f, fieldnames=keys)
         w.writeheader()
         for row in profiles:
             w.writerow({k: (f"{row[k]:.6f}" if isinstance(row.get(k), float) and math.isfinite(row[k]) else row.get(k, ""))
                         for k in keys})
-    (HERE / "kinetics_swap.json").write_text(json.dumps(_clean(summary), indent=1) + "\n", encoding="utf-8")
+    (OUT / "kinetics_swap.json").write_text(json.dumps(_clean(summary), indent=1) + "\n", encoding="utf-8")
 
 
 def _clean(o):

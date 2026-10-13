@@ -1,5 +1,8 @@
 # Ru/C net-recovery economic decision boundary (2026-10-12)
 
+**NH3-FINAL-1.2:** the three scripts take `NH3_MODEL=1.1|1.2` (`analysis/nh3_model.py`; default 1.1, which writes the
+committed files here). 1.2 outputs and the 1.1 → 1.2 table are in `nh3_1_2/` (see `nh3_1_2/README.md`).
+
 **Status: derived, exploratory analysis.** No modification to the frozen NH3-FINAL-1.1, Wang/S1 source workbook, original 15-metal ranking or official figures. The GitHub Actions workflow runs the calculation on a fresh Linux runner and publishes machine-readable CSV artifacts.
 
 ## Question

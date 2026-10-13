@@ -1,0 +1,58 @@
+name: NH3 frontier provenance (kinetics-swap frontier and staged-converter window)
+on:
+  pull_request:
+    paths:
+      - "analysis/nh3_frontier_provenance_2026_10_13/**"
+      - ".github/workflows/nh3-frontier-provenance.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frontier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      PYTHONIOENCODING: utf-8
+    defaults:
+      run:
+        working-directory: analysis/nh3_frontier_provenance_2026_10_13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        working-directory: .
+        run: pip install -r requirements.txt pyyaml
+      - name: Check the frozen NH3 workbook
+        working-directory: .
+        run: echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+      - name: NH3-FINAL-1.2 kinetics-swap frontier against nh3_1_2/ (asserts the committed 1.2 headline first)
+        env:
+          NH3_MODEL: "1.2"
+        run: |
+          mkdir -p /tmp/committed12 && cp nh3_1_2/*.csv nh3_1_2/*.json /tmp/committed12/
+          python frontier_swap.py > /tmp/frontier12.log
+          python check_outputs.py --only swap /tmp/committed12 nh3_1_2
+      - name: Keep the committed outputs for comparison
+        run: mkdir -p /tmp/committed && cp *.csv *.json /tmp/committed/
+      - name: Kinetics-swap frontier (asserts the committed PR #75 headline first)
+        run: python frontier_swap.py
+      - name: Staged-converter window by direct global optimisation
+        run: python staged_window.py --workers 4
+      - name: Compare with the committed results
+        run: python check_outputs.py /tmp/committed .
+      - name: NH3-FINAL-1.2 staged window (base and temperature caps) equals the 1.1 rerun (invariant converter)
+        run: python check_outputs.py --only staged nh3_1_2 .
+      - name: Frozen inputs and merged analyses untouched
+        working-directory: .
+        run: git diff --exit-code -- provenance/ analysis/nh3_staged_converter_2026_10_12/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/ docs/ figures/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-frontier-provenance
+          path: |
+            analysis/nh3_frontier_provenance_2026_10_13/*.csv
+            analysis/nh3_frontier_provenance_2026_10_13/*.json
+            analysis/nh3_frontier_provenance_2026_10_13/nh3_1_2/*
+          retention-days: 90
