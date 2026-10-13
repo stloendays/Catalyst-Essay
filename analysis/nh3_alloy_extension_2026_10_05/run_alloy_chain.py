@@ -11,7 +11,8 @@ Chain per candidate (no step is specific to alloys):
      exactly at its frozen descriptor. Only the 14 frozen metals with a pure Mamun surface carry an offset (Ni has
      none); every other element enters with zero offset, and `fully_anchored` marks the surfaces whose elements all
      carry one. Candidates are reported as robust when both routes place them below Fe.
-  4. Activity: per-state log10 TOF read from the cached frozen response surface (14,136 process states).
+  4. Activity: per-state log10 TOF read from the cached response surface of the selected ammonia model
+     (NH3-FINAL-1.1: 14,136 process states; NH3-FINAL-1.2: 14,510).
   5. Cost: frozen cost model with the alloy's mole-weighted molar mass and mass-weighted metal price,
      minimized over all states with V <= V_CAP. The 15 model metals keep their frozen prices; the other
      elements take USGS Mineral Commodity Summaries 2026 prices per kg of contained metal
@@ -19,8 +20,13 @@ Chain per candidate (no step is specific to alloys):
 
 Self-check: the same code path reproduces the canonical deterministic cost of every pure metal.
 Pruning: a descriptor-only lower bound (best state activity, smallest reactor, cheapest process state)
-decides which candidates need the full 14,136-state optimization; every candidate is also optimized in
+decides which candidates need the full process-library optimization; every candidate is also optimized in
 full to show that no candidate that beats Fe is pruned.
+
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) reads the frozen NH3-FINAL-1.1 run and writes here;
+NH3_MODEL=1.2 reads the NH3-FINAL-1.2 run ($NH3_HARNESS_1_2) and writes to nh3_1_2/. The Fe comparator, the
+process-state count and the pure-metal self-check come from the selected run. The response surface is only read from
+the harness cache, never rebuilt.
 
     CatalystForge/.venv/python run_alloy_chain.py [harness_root]
 """
@@ -38,23 +44,35 @@ import yaml
 from scipy.stats import spearmanr
 
 HERE = Path(__file__).resolve().parent
-HARNESS = Path(sys.argv[1] if len(sys.argv) > 1 else
-               os.environ.get("NH3_HARNESS", r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1"))
-sys.path.insert(0, str(HARNESS))
-import harness_core as hc  # noqa: E402
+if len(sys.argv) > 1:      # explicit harness root for the selected model version
+    os.environ["NH3_HARNESS" if os.environ.get("NH3_MODEL", "1.1") == "1.1" else "NH3_HARNESS_1_2"] = sys.argv[1]
+sys.path.insert(0, str(HERE.parents[1] / "analysis"))
+import nh3_model as NM  # noqa: E402
 
 sys.path.insert(0, str(HERE.parents[1] / "agent"))
 from selfcheck_gate import require  # noqa: E402
 
 require()          # ACSA scores new candidates only after reproducing all three hand-built cases
 
-RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
-cfg = yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"))
+hc = NM.core()
+HARNESS, RUN, A, OUT = NM.root(), NM.run_dir(), NM.anchors(), NM.out_dir(HERE)
+cfg = NM.cfg()
 h = hc.NH3Harness(cfg, HARNESS)
-assert h.NSTATE == 14136, "process-state library changed"
-response, _cp, cached = h.build_or_load_response()
-if not cached:
-    raise SystemExit("response surface is not cached; refusing to rebuild a frozen asset")
+assert h.NSTATE == A["NSTATE"], "process-state library changed"
+
+
+def cached_response(h):
+    """The harness response surface, read from its cache only (a missing or mismatched cache is never rebuilt)."""
+    cp = h.response_cache_path()
+    if not cp.exists():
+        raise SystemExit(f"response surface is not cached ({cp}); refusing to rebuild a frozen asset")
+    z = np.load(cp)
+    if z["response"].shape != (h.NSTATE, len(h.EGRID)) or not np.allclose(z["EGRID"], h.EGRID):
+        raise SystemExit(f"cached response surface {cp} does not match the run; refusing to rebuild")
+    return z["response"]
+
+
+response = cached_response(h)
 canon = json.loads((RUN / "results.json").read_text(encoding="utf-8"))["deterministic"]["metals"]
 
 S1_TERRACE = {'Ag': 2.9765, 'Au': 2.3914, 'Co': -0.0986, 'Cu': 1.0619, 'Ir': -0.0913, 'Mo': -1.5343,
@@ -304,11 +322,11 @@ summary["calibration"] = calib
 rows = all_rows
 
 cols = list(rows[0].keys())
-with (HERE / "alloy_chain_results.csv").open("w", newline="", encoding="utf-8") as f:
+with (OUT / "alloy_chain_results.csv").open("w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=cols, lineterminator="\n")
     w.writeheader()
     for r in sorted(rows, key=lambda r: (not r["feasible"], r["cost_USD_t"] if r["feasible"] else 0, r["surface"])):
         w.writerow(r)
-(HERE / "calibration.json").write_text(json.dumps(calib, indent=1) + "\n", encoding="utf-8")
-(HERE / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
+(OUT / "calibration.json").write_text(json.dumps(calib, indent=1) + "\n", encoding="utf-8")
+(OUT / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
 print(json.dumps({k: v for k, v in summary.items() if k not in ("self_check", "below_Fe_surfaces")}, indent=1))
