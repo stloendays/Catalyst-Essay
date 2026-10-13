@@ -13,7 +13,11 @@ Figure numbering (manuscript of 2026-10-07):
   Fig. 4  backward design                             figures/composite/fig3/make_fig3.py
   Fig. 5  methanol Re/TiO2 mechanism                  figures/composite/fig4/make_fig4.py
   Fig. 6  process routes and Au/TiO2 control          figures/composite/fig5/make_fig5.py
-  ED Figs 1-7                                         figures/extended_data/render_extended_data.py (tables: ed_data.py)
+  ED Figs 1-8                                         figures/extended_data/render_extended_data.py (tables: ed_data.py)
+
+Ammonia numbers are those of NH3-FINAL-1.2: the canonical run provenance/nh3_final_1_2/.../nh3_final_1_2_20261013 and
+the nh3_1_2/ outputs of each ammonia analysis. The Fig. 1 metal and rolling tables are built from that run's
+results.json and the DISCOVER task descriptors with the arithmetic of figures/composite/fig1/fig1_data.py.
 """
 import json
 import os
@@ -30,11 +34,15 @@ OUT = os.path.join(REPO, "source_data")
 sys.path.insert(0, os.path.join(REPO, "figures", "extended_data"))
 import ed_data as E  # noqa: E402
 
-RUN = "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
-SUP = "analysis/supervisor_2026_09_20"
-BWD = "analysis/fe_bridge_backward_2026_09_29"
+RUN = "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013"
+TASK = "provenance/discover_v1/source_harness/DISCOVER_TASK_V1.json"
+SUP = "analysis/supervisor_2026_09_20/nh3_1_2"
+BWD = "analysis/fe_bridge_backward_2026_09_29/nh3_1_2"
+FIELD = "analysis/nh3_field_2026_10_06/nh3_1_2"
+PROMO = "analysis/promoted_ru_literature_2026_10_05/nh3_1_2"
 MC4 = "analysis/meoh_measurement_mc_2026_10_05"
 F1, F2, F3, F4, F5 = ("figures/composite/fig%d" % i for i in range(1, 6))
+F2M = F2 + "/nh3_1_2"            # the ammonia model tables of Fig. 3 (renderer figures/composite/fig2)
 
 
 def csv(rel, **kw):
@@ -48,6 +56,32 @@ def js(rel):
 def kv(d):
     """A two-column table from a dict of scalars."""
     return pd.DataFrame({"quantity": list(d), "value": list(d.values())})
+
+
+def fig1_tables():
+    """The Fig. 1 metal and rolling Top-K tables (columns of fig1_metals.csv and fig1_rolling.csv), built from the
+    run's results.json and the DISCOVER task descriptors with the arithmetic of figures/composite/fig1/fig1_data.py."""
+    det = js(RUN + "/results.json")["deterministic"]
+    desc = {c["id"]: c for c in js(TASK)["candidate_set"]}
+    act, eco = det["activity_order"], det["raw_economic_order"]
+    assert set(desc) == set(act), "candidate set mismatch"
+    met = pd.DataFrame([{
+        "metal": m,
+        "E_N_eV": desc[m]["descriptor_E_N_eV"],
+        "price_USD_kg": desc[m]["price_USD_kg"],
+        "logTOF_673K": det["metals"][m]["activity_logTOF"],
+        "min_bed_m3": det["metals"][m]["min_bed_m3"],
+        "log10_min_bed_m3": np.log10(det["metals"][m]["min_bed_m3"]),
+        "feasible_90m3": int(det["metals"][m]["min_bed_m3"] <= 90.0),
+        "cost_USD_t": det["metals"][m]["unconstrained"]["total_cost"],
+        "atomic_rank": act.index(m) + 1,
+        "economic_rank": eco.index(m) + 1} for m in act])
+    roll = pd.DataFrame([{k: r[k] for k in ("K", "rho_raw", "rho_censored", "n_feasible")} for r in det["rolling"]])
+    return met, roll
+
+
+F1_SRC = RUN + "/results.json (deterministic) + " + TASK + " (descriptor_E_N_eV, price_USD_kg)"
+F1_ROLL = RUN + "/results.json (deterministic.rolling)"
 
 
 class Book:
@@ -112,8 +146,7 @@ class Book:
 # ============================================================================== Fig. 1 (ammonia ranking reversal)
 def fig1():
     b = Book("SourceData_Fig1.xlsx", "Fig. 1 (ammonia ranking reversal; renderer figures/composite/fig1/make_fig1.py)")
-    met = csv(F1 + "/fig1_metals.csv")
-    roll = csv(F1 + "/fig1_rolling.csv")
+    met, roll = fig1_tables()
     sr = csv(RUN + "/closure/scaling_reachability.csv")
     dec = csv(SUP + "/nh3_cost_decomposition.csv").set_index("cost_pool")
     ru_log = float(met.set_index("metal").loc["Ru", "logTOF_673K"])
@@ -127,33 +160,35 @@ def fig1():
                                                  + dec.loc["reactor_base", "Fe_canonical_USD_t"],
                                                  dec.loc["recycle_compression_electricity", "Fe_canonical_USD_t"]]})
     b.panel("a", [("model volcano icon (stage 2), drawn min-max normalized", curve, RUN + "/closure/scaling_reachability.csv"
-                   " + " + F1 + "/fig1_metals.csv", "logTOF = logTOF(Ru) + log10(gain_673K)"),
+                   " + " + F1_SRC, "logTOF = logTOF(Ru) + log10(gain_673K)"),
                   ("cost-stack icon (stage 5): bar proportions only, no numbers printed", stack,
-                   SUP + "/nh3_cost_decomposition.csv (Fe canonical pools)", "the renderer types these four values in "
-                   "rounded (9.66, 3.87, 0.92, 0.76); they are the Fe pools listed here")])
+                   SUP + "/nh3_cost_decomposition.csv (Fe canonical pools)",
+                   "the icon draws these four Fe pools in proportion")])
     b.panel("b", [("frontier step sites (structures are renders)", met[met.metal.isin(["Ru", "Os", "Fe"])][
-        ["metal", "E_N_eV", "price_USD_kg", "atomic_rank", "economic_rank"]], F1 + "/fig1_metals.csv", "")])
+        ["metal", "E_N_eV", "price_USD_kg", "atomic_rank", "economic_rank"]], F1_SRC, "")])
+
+    def off_axis(mask):
+        return " and ".join(met.metal[~mask])
+
     keep = met.logTOF_673K.between(-32, 1)
     b.panel("c", [("model curve", curve[["E_N_eV", "logTOF_673K_model_curve"]],
                    RUN + "/closure/scaling_reachability.csv", "Ru logTOF + log10(gain_673K)"),
-                  ("metals", met[["metal", "E_N_eV", "logTOF_673K"]].assign(plotted=keep.values),
-                   F1 + "/fig1_metals.csv", "Ag and Au fall below the axis (logTOF < -32) and are annotated")])
+                  ("metals", met[["metal", "E_N_eV", "logTOF_673K"]].assign(plotted=keep.values), F1_SRC,
+                   "%s fall below the axis (logTOF < -32) and are annotated" % off_axis(keep))])
     keepd = met.log10_min_bed_m3.between(-5, 25)
     b.panel("d", [("minimum bed volume", met[["metal", "E_N_eV", "min_bed_m3", "log10_min_bed_m3", "feasible_90m3"]]
-                   .assign(plotted=keepd.values), F1 + "/fig1_metals.csv",
-                   "90 m3 bed limit (log10 = %.6f); Ag and Au above the axis" % np.log10(90.0))])
+                   .assign(plotted=keepd.values), F1_SRC,
+                   "90 m3 bed limit (log10 = %.6f); %s above the axis" % (np.log10(90.0), off_axis(keepd)))])
     fe, ru = met.set_index("metal").loc["Fe"], met.set_index("metal").loc["Ru"]
     b.panel("e", [("price vs activity", met[["metal", "logTOF_673K", "price_USD_kg"]].assign(
-        plotted=(met.logTOF_673K >= -31).values), F1 + "/fig1_metals.csv", ""),
+        plotted=(met.logTOF_673K >= -31).values), F1_SRC, ""),
                   ("ratios printed", kv({"Ru/Fe activity": 10 ** (ru.logTOF_673K - fe.logTOF_673K),
-                                         "Ru/Fe price": ru.price_USD_kg / fe.price_USD_kg}), F1 + "/fig1_metals.csv",
-                   "")])
-    b.panel("f", [("atomic -> economic rank", met[["metal", "atomic_rank", "economic_rank"]], F1 + "/fig1_metals.csv",
-                   ""),
-                  ("Spearman rho printed", roll[roll.K.isin([3, 15])][["K", "rho_raw"]], F1 + "/fig1_rolling.csv", "")])
-    b.panel("g", [("rolling top-K Spearman", roll[["K", "rho_raw"]], F1 + "/fig1_rolling.csv", "")])
+                                         "Ru/Fe price": ru.price_USD_kg / fe.price_USD_kg}), F1_SRC, "")])
+    b.panel("f", [("atomic -> economic rank", met[["metal", "atomic_rank", "economic_rank"]], F1_SRC, ""),
+                  ("Spearman rho printed", roll[roll.K.isin([3, 15])][["K", "rho_raw"]], F1_ROLL, "")])
+    b.panel("g", [("rolling top-K Spearman", roll[["K", "rho_raw"]], F1_ROLL, "")])
     h = met.set_index("metal").loc[["Fe", "Ru", "Os"], ["cost_USD_t", "atomic_rank", "economic_rank"]].reset_index()
-    b.panel("h", [("cost of the three feasible metals", h, F1 + "/fig1_metals.csv", "")])
+    b.panel("h", [("cost of the three feasible metals", h, F1_SRC, "")])
     b.save()
 
 
@@ -161,7 +196,7 @@ def fig1():
 def fig2():
     b = Book("SourceData_Fig2.xlsx", "Fig. 2 (laboratory leaderboards vs plant-cost leaderboards; renderer "
              "figures/composite/fig_field/make_fig_field.py)")
-    nh3 = js("analysis/nh3_field_2026_10_06/summary.json")
+    nh3 = js(FIELD + "/summary_printed.json")            # the printed-values primary the renderer plots
     b.panel("a", [("ACSA workflow", None, "schematic", "")])
     # panels b, d, e: the renderer's own tables (frozen scoring code, inert-limited loop and the loop without the limit)
     sys.path.insert(0, os.path.join(REPO, "figures", "composite", "fig_field"))
@@ -188,22 +223,23 @@ def fig2():
     tc = pd.DataFrame([dict(leaderboard=k, mismatch_groups=x["top1_mismatch_groups"], groups=x["groups"],
                             papers=x["papers"], fraction=x["top1_mismatch_fraction"],
                             CI95_low=x["bootstrap_papers"]["mismatch_fraction_ci95"][0],
-                            CI95_high=x["bootstrap_papers"]["mismatch_fraction_ci95"][1]) for k, x in cases])
-    gm = csv("analysis/nh3_field_2026_10_06/group_metrics.csv")
-    cand = csv("analysis/nh3_field_2026_10_06/candidates.csv")
-    metal = cand.dropna(subset=["group"]).set_index(["group", "catalyst"]).sort_index().metal
+                            CI95_high=x["bootstrap_papers"]["mismatch_fraction_ci95"][1],
+                            regret_gt5pct_groups=x["regret_bins"]["gt5pct"]["groups"] if "regret_bins" in x else None)
+                       for k, x in cases])
+    gm = csv(FIELD + "/group_metrics_printed.csv")
+    cand = csv(FIELD + "/candidates_printed.csv")
     dm = gm[gm.mismatch_kind == "different metal"]
-    winner_metal = [metal.loc[(g, w)] for g, w in zip(dm.group, dm.plant_winner)]
-    winner_metal = [m.iloc[0] if isinstance(m, pd.Series) else m for m in winner_metal]
+    assert len(dm) == pr["mismatch_kinds"]["different metal"]["groups"]
     kinds = pd.DataFrame([dict(mechanism=k, groups=v["groups"], papers=v["papers"], regret_median=v["regret_median"],
                                regret_max=v["regret_max"]) for k, v in pr["mismatch_kinds"].items()])
-    kinds["of_which_plant_winner_is_Fe"] = [sum(m == "Fe" for m in winner_metal) if k == "different metal" else None
-                                            for k in kinds.mechanism]
-    b.panel("c", [("ammonia leader changes", tc, "analysis/nh3_field_2026_10_06/summary.json (primary, "
-                   "variants.per_g_metal_leaderboard, variants.Ru_recovery_90pct; bootstrap_papers)", ""),
+    kinds["of_which_plant_winner_is_Fe"] = [int((dm.plant_winner_metal == "Fe").sum()) if k == "different metal"
+                                            else None for k in kinds.mechanism]
+    b.panel("c", [("ammonia leader changes", tc, FIELD + "/summary_printed.json (primary, "
+                   "variants.per_g_metal_leaderboard, variants.Ru_recovery_90pct; bootstrap_papers, regret_bins)",
+                   "bar height = fraction; hatched height = regret_gt5pct_groups / groups (primary only)"),
                   ("what the mismatched comparisons differ by (primary)", kinds,
-                   "analysis/nh3_field_2026_10_06/summary.json (primary.mismatch_kinds); plant-winner metal from "
-                   "group_metrics.csv + candidates.csv", "")])
+                   FIELD + "/summary_printed.json (primary.mismatch_kinds); plant-winner metal from "
+                   "group_metrics_printed.csv (plant_winner_metal)", "")])
     for sheet, (g, _, byp, _) in zip("de", FF.MEOH_GROUPS):
         t = FF.meoh_group(g, byp)
         b.panel(sheet, [("comparison group " + g, t, "analysis/meoh_literature_inversion_2026_10_05/"
@@ -212,12 +248,14 @@ def fig2():
                          "cost_recycled_opt (no limit); marker area ~ %s; leaders of the inert-limited loop" % byp)])
     g = "10.1002/aenm.201801772 | 400 C | 5 MPa | H2/N2 3 | 6.6e+04 mL/g/h"
     t = cand[cand.group == g][["catalyst", "metal", "metal_wt_pct", "paper_rate", "cost_USD_t"]].copy()
+    gr = gm.set_index("group").loc[g]
+    assert len(t) == int(gr["n"])
     t["rate_mmol_gcat_h"] = t.paper_rate / 1000.0
     t["rate_leader"] = t.paper_rate == t.paper_rate.max()
     t["plant_cost_leader"] = t.cost_USD_t == t.cost_USD_t.min()
-    b.panel("f", [("comparison group " + g, t, "analysis/nh3_field_2026_10_06/candidates.csv",
-                   "paper_rate in umol g_cat-1 h-1; regret of the rate leader %.4f (group_metrics.csv)"
-                   % gm.set_index("group").loc[g, "regret"])])
+    b.panel("f", [("comparison group " + g, t, FIELD + "/candidates_printed.csv",
+                   "paper_rate in umol g_cat-1 h-1; regret of the rate leader %.4f (group_metrics_printed.csv)"
+                   % gr["regret"])])
     b.save()
 
 
@@ -225,15 +263,16 @@ def fig2():
 def fig3():
     b = Book("SourceData_Fig3.xlsx", "Fig. 3 (metal price and process optimization; renderer "
              "figures/composite/fig2/make_fig2.py)")
-    env = csv(F2 + "/fig2_pressure_envelopes.csv")
+    env = csv(F2M + "/fig2_pressure_envelopes.csv")
     opt = env.loc[env.groupby("case").cost.idxmin()].reset_index(drop=True)
-    sweep = csv(F2 + "/fig2_ru_price_sweep.csv")
-    asw = csv(F2 + "/fig2_ru_alpha_sweep.csv")
-    pts = csv(F2 + "/fig2_ru_actual_cost_points.csv")
+    sweep = csv(F2M + "/fig2_ru_price_sweep.csv")
+    asw = csv(F2M + "/fig2_ru_alpha_sweep.csv")
+    pts = csv(F2M + "/fig2_ru_actual_cost_points.csv")
     dec = csv(SUP + "/nh3_cost_decomposition.csv").set_index("cost_pool")
     f3 = csv(SUP + "/f3_panel_summary.csv").set_index("metric").value
     hist = csv(SUP + "/nh3_cost_mc_histogram.csv")
     draws = csv(RUN + "/closure/mc_draws.csv")
+    met = fig1_tables()[0].set_index("metal")
     b.panel("a", [("NH3 synthesis loop", None, "schematic", "")])
     o = opt.set_index("case")
     ratios = kv({"Fe bed / Ru bed": o.loc["Fe", "V_m3"] / o.loc["Ru", "V_m3"],
@@ -241,21 +280,21 @@ def fig3():
                  "Ru-priced-as-Fe bed / Ru bed": o.loc["Ru_at_Fe_price", "V_m3"] / o.loc["Ru", "V_m3"]})
     b.panel("b", [("optimum of each case (bed renders to scale)", opt[["case", "P_bar", "cost", "T_C", "Tsep_C", "V_m3",
                                                                        "metal_cost"]],
-                   F2 + "/fig2_pressure_envelopes.csv", "minimum-cost row of each case"),
-                  ("ratios printed", ratios, F2 + "/fig2_pressure_envelopes.csv", "")])
+                   F2M + "/fig2_pressure_envelopes.csv", "minimum-cost row of each case"),
+                  ("ratios printed", ratios, F2M + "/fig2_pressure_envelopes.csv", "")])
     b.panel("c", [("pressure envelopes", env[["case", "P_bar", "cost", "T_C", "Tsep_C", "V_m3"]],
-                   F2 + "/fig2_pressure_envelopes.csv", "axis shows 0-1000 bar and 10.5-30 USD/t"),
-                  ("optima", opt[["case", "P_bar", "cost"]], F2 + "/fig2_pressure_envelopes.csv", "")])
+                   F2M + "/fig2_pressure_envelopes.csv", ""),
+                  ("optima", opt[["case", "P_bar", "cost"]], F2M + "/fig2_pressure_envelopes.csv", "")])
     sw = sweep.iloc[:-1][["price_USD_kg", "cost", "P_bar"]].assign(alpha_star=asw.iloc[:-1].alpha_star.values)
     assert np.allclose(sweep.iloc[:-1].price_USD_kg.values, asw.iloc[:-1].price_USD_kg.values)
-    b.panel("d", [("Ru price sweep (upper: cost; lower: alpha* for parity)", sw, F2 + "/fig2_ru_price_sweep.csv + "
-                   + F2 + "/fig2_ru_alpha_sweep.csv", "last row of each file is the parity point, listed below"),
-                  ("parity", sweep.iloc[[-1]][["price_USD_kg", "cost", "P_bar"]], F2 + "/fig2_ru_price_sweep.csv", ""),
-                  ("actual Ru catalyst points", pts, F2 + "/fig2_ru_actual_cost_points.csv", ""),
+    b.panel("d", [("Ru price sweep (upper: cost; lower: alpha* for parity)", sw, F2M + "/fig2_ru_price_sweep.csv + "
+                   + F2M + "/fig2_ru_alpha_sweep.csv", "last row of each file is the parity point, listed below"),
+                  ("parity", sweep.iloc[[-1]][["price_USD_kg", "cost", "P_bar"]], F2M + "/fig2_ru_price_sweep.csv", ""),
+                  ("actual Ru catalyst points", pts, F2M + "/fig2_ru_actual_cost_points.csv", ""),
                   ("Ru/C catalyst's own bed (squares: 8 wt% Ru, 490 kg m-3; bars: 5-10 wt% Ru, 430-550 kg m-3)",
-                   csv(F2 + "/fig2_ru_bed_sensitivity.csv"), F2 + "/fig2_ru_bed_sensitivity.csv",
+                   csv(F2M + "/fig2_ru_bed_sensitivity.csv"), F2M + "/fig2_ru_bed_sensitivity.csv",
                    "lower panel: alpha_star_supported_bed"),
-                  ("Fe optimum", kv({"Fe cost USD/t": o.loc["Fe", "cost"]}), F2 + "/fig2_pressure_envelopes.csv", "")])
+                  ("Fe optimum", kv({"Fe cost USD/t": o.loc["Fe", "cost"]}), F2M + "/fig2_pressure_envelopes.csv", "")])
     order = ["fresh_compression_electricity", "metal_inventory", "compressor_CAPEX", "refrigeration_electricity",
              "vessel_pressure_premium", "recycle_compression_electricity", "reactor_base"]
     wf = dec.loc[order, ["Fe_canonical_USD_t", "Ru_canonical_USD_t", "Ru_minus_Fe_USD_t"]].reset_index()
@@ -269,9 +308,8 @@ def fig3():
                    RUN + "/closure/mc_draws.csv", ""),
                   ("Fe bed-feasibility interval and canonical point", kv({
                       "E_N_Fe feasible min": draws.E_N_Fe[feas].min(), "E_N_Fe feasible max": draws.E_N_Fe[feas].max(),
-                      "canonical E_N Fe": csv(F1 + "/fig1_metals.csv").set_index("metal").loc["Fe", "E_N_eV"],
-                      "canonical E_N Ru": csv(F1 + "/fig1_metals.csv").set_index("metal").loc["Ru", "E_N_eV"]}),
-                   RUN + "/closure/mc_draws.csv + " + F1 + "/fig1_metals.csv", "")])
+                      "canonical E_N Fe": met.loc["Fe", "E_N_eV"], "canonical E_N Ru": met.loc["Ru", "E_N_eV"]}),
+                   RUN + "/closure/mc_draws.csv + " + F1_SRC, "")])
     gm = ["Fe_feasible_descriptor_MC", "Fe_economic_top1_descriptor_MC", "top1_survival_descriptor_MC",
           "Fe_top3_actionable_descriptor_MC"]
     b.panel("g", [("decision endpoints (% of 1,000 draws)", pd.DataFrame({"metric": gm, "fraction": [float(f3[m]) for m in gm],
@@ -296,7 +334,7 @@ def fig4():
     ck = csv(BWD + "/activity_lifecycle_target_keypoints.csv")
     gb = csv(BWD + "/scaling_lifecycle_exact_global_boundary.csv")
     ss = js(BWD + "/scaling_lifecycle_exact_summary.json")
-    lit = csv("analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv")
+    lit = csv(PROMO + "/fig3_literature_points.csv")
     br = res["backward_reachability"]
     fe = res["deterministic"]["metals"]["Fe"]["feasible"]["total_cost"]
     lit = lit.copy()
@@ -311,8 +349,8 @@ def fig4():
                                           "strict-scaling max gain (all states)": br["Ru_scaling_max_gain_all_states"],
                                           "alpha* p05 (cost MC)": mc["p05"], "alpha* p95 (cost MC)": mc["p95"]}),
                    RUN + "/results.json; " + SUP + "/nh3_cost_mc_summary.json", ""),
-                  ("measured activity gains (bottom strip)", lit, "analysis/promoted_ru_literature_2026_10_05/"
-                   "fig3_literature_points.csv", "P04 is drawn as one point at factor_high, offset below its row")])
+                  ("measured activity gains (bottom strip)", lit, PROMO + "/fig3_literature_points.csv",
+                   "P04 is drawn as one point at factor_high, offset below its row")])
     b.panel("b", [("lowest feasible Ru cost along the strict E_N scaling line",
                    sr.dropna(subset=["Ru_min_feasible_cost"])[["E_N_eV", "Ru_min_feasible_cost"]],
                    RUN + "/closure/scaling_reachability.csv", "rows with a feasible cost"),
@@ -396,7 +434,7 @@ def fig6():
     au = csv("data/rank_preservation_control_v1_1.csv")
     semi = csv("data/rank_preservation_semiopen_v1_3_summary.csv")
     meta = js(F5 + "/renders/Au_TiO2_2to6nm.json")
-    roll = csv(F1 + "/fig1_rolling.csv").set_index("K").rho_raw
+    roll = fig1_tables()[1].set_index("K").rho_raw
     prov = js("data/meoh/meoh_candidate_ranking_D01v3_provenance.json")["metrics"]
     met = prov[next(k for k in prov if k.startswith("STY_per_gRe"))]
     purge = csv("data/meoh/meoh_purge_robustness_D01v3.csv")
@@ -422,8 +460,8 @@ def fig6():
     b.panel("e", [("exact order kept, semi-open extension", e, "data/rank_preservation_semiopen_v1_3_summary.csv", "")])
     semi_mod = semi[(semi.window == "primary_273_293K") & (semi.stress == "moderate")].mean_spearman_rho.iloc[0]
     f = pd.DataFrame([
-        dict(system="NH3, all 15 metals", rho=roll.loc[15], source=F1 + "/fig1_rolling.csv (K = 15)"),
-        dict(system="NH3, frontier top 3", rho=roll.loc[3], source=F1 + "/fig1_rolling.csv (K = 3)"),
+        dict(system="NH3, all 15 metals", rho=roll.loc[15], source=F1_ROLL + " (K = 15)"),
+        dict(system="NH3, frontier top 3", rho=roll.loc[3], source=F1_ROLL + " (K = 3)"),
         dict(system="MeOH, 4 states, 2 % purge", rho=met["spearman"],
              source="data/meoh/meoh_candidate_ranking_D01v3_provenance.json"),
         dict(system="MeOH, min over purge 0.5-40 %", rho=purge.spearman.min(),

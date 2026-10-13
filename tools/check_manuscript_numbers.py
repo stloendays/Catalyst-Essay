@@ -9,8 +9,9 @@ in its source, or text that drifted from its source, fails the check.
 --replay points at the output of ci/replay_discover_v1_headlines.py (default
 artifacts/discover_v1_scorer_replay/replay.json) for the parity-multiplier recovery counts.
 
-Sources (all committed): NH3-FINAL-1.1 provenance (results.json, closure/*), the
-2026-09-20 supervisor analyses, figures/composite/fig2 model tables, MEOH-D01-v3 data,
+Sources (all committed): NH3-FINAL-1.2 provenance (results.json, closure/*) and the
+NH3-FINAL-1.2 outputs (nh3_1_2/) of the 2026-09-20 supervisor analyses, the
+figures/composite/fig2 model tables and the Fe-bridge backward analysis; MEOH-D01-v3 data,
 the Au/TiO2 control tables and the DISCOVER-BOUNDARY-C1 agent tables.
 """
 import csv
@@ -27,8 +28,10 @@ REPLAY = Path(next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--
                    ROOT / "artifacts/discover_v1_scorer_replay/replay.json"))
 text = TEXT_PATH.read_text(encoding="utf-8")
 text = re.sub(r"\s+", " ", text)
-RUN = ROOT / "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z"
+RUN = ROOT / "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013"
 SUP = ROOT / "analysis/supervisor_2026_09_20"
+SUP12 = SUP / "nh3_1_2"                                   # NH3-FINAL-1.2 outputs of the supervisor analyses
+BWD12 = "analysis/fe_bridge_backward_2026_09_29/nh3_1_2"
 
 
 def rows(path):
@@ -37,16 +40,17 @@ def rows(path):
 
 res = json.loads((RUN / "results.json").read_text(encoding="utf-8"))
 det, mc, bw = res["deterministic"], res["monte_carlo"], res["backward_reachability"]
-head = json.loads((RUN / "closure/headline_1_1.json").read_text(encoding="utf-8"))
+head = json.loads((RUN / "closure/headline_1_2.json").read_text(encoding="utf-8"))
 mcd = json.loads((RUN / "closure/mc_detail.json").read_text(encoding="utf-8"))
 draws = rows(RUN.relative_to(ROOT) / "closure/mc_draws.csv")
-eq = json.loads((SUP / "nh3_ru_price_equalization.json").read_text(encoding="utf-8"))
-dec = {r["cost_pool"]: r for r in rows("analysis/supervisor_2026_09_20/nh3_cost_decomposition.csv")}
-cmc = json.loads((SUP / "nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
+eq = json.loads((SUP12 / "nh3_ru_price_equalization.json").read_text(encoding="utf-8"))
+dec = {r["cost_pool"]: r for r in rows(SUP12.relative_to(ROOT) / "nh3_cost_decomposition.csv")}
+cmc = json.loads((SUP12 / "nh3_cost_mc_summary.json").read_text(encoding="utf-8"))
 orc = {r["metric"]: float(r["value"]) for r in rows("analysis/supervisor_2026_09_20/agent_oracle_summary.csv")}
-sweep = rows("figures/composite/fig2/fig2_ru_price_sweep.csv")
+sweep = rows("figures/composite/fig2/nh3_1_2/fig2_ru_price_sweep.csv")
 parity = sweep.pop()
-bwd_targets = rows("analysis/fe_bridge_backward_2026_09_29/activity_lifecycle_target_keypoints.csv")
+bwd_targets = rows(BWD12 + "/activity_lifecycle_target_keypoints.csv")
+bwd_cert = json.loads((ROOT / BWD12 / "activity_lifecycle_certified_keypoint.json").read_text(encoding="utf-8"))
 meoh = {r["candidate"]: r for r in rows("data/meoh/meoh_candidate_ranking_D01v3.csv")}
 meoh_prov = json.loads((ROOT / "data/meoh/meoh_candidate_ranking_D01v3_provenance.json").read_text(encoding="utf-8"))
 purge = rows("data/meoh/meoh_purge_robustness_D01v3.csv")
@@ -101,8 +105,8 @@ claim("top-3 Spearman", "Spearman rho is %s" % minus(f(head["top3_spearman"], 2)
 claim("top-3 Kendall", "Kendall tau is %s" % minus(f(head["top3_kendall"], 2)))
 claim("global Spearman", "remains %s" % f(det["raw_global_spearman"], 3))
 fact("15 metals screened", len(act) == 15, str(len(act)))
-fact("14,136 process states", det["process_state_count"] == 14136, str(det["process_state_count"]))
-claim("14,136-state library (text)", "14,136-state")
+fact("14,510 process states", det["process_state_count"] == 14510, str(det["process_state_count"]))
+claim("14,510-state library (text)", "%s-state" % format(det["process_state_count"], ","))
 fe_u, ru_u = M["Fe"]["unconstrained"], M["Ru"]["unconstrained"]
 claim("Fe operating point", "Fe occupies an interior optimum near %d °C and %d bar with a %d °C separator"
       % (fe_u["T_C"], fe_u["P_bar"], fe_u["Tsep_C"]))
@@ -150,7 +154,7 @@ claim("Discussion 68.1%", "%s%% probability that Fe is the economic Top-1" % f(1
 claim("90 m3 criterion", "90 m3 bed-volume criterion")
 
 # ---- joint cost Monte Carlo --------------------------------------------------------------------------
-v = cmc["full_14136_state_direct_cost_verification"]
+v = cmc["full_14136_state_direct_cost_verification"]     # key name kept from 1.1; the 1.2 library has 14,510 states
 a = cmc["alpha_star"]
 claim("cost MC draws", "Across %s draws" % format(cmc["draws"], ","))
 claim("P(Fe<Ru)", "P(C_Fe < C_Ru) = %s" % f(v["P_C_Fe_lt_C_Ru"], 3))
@@ -197,10 +201,11 @@ claim(
     "joint target 20y at 98% recovery",
     f"20-year lifetime with 98% recovery requires at most {a20r98:.3f}-fold",
 )
+cert = bwd_cert["explicit_point"]
 fact(
     "strict-scaling joint reachability not overclaimed",
-    "15.257" not in text
-    and "97.894%" not in text
+    f(cert["best_subset_cost_USD_t"], 3) not in text
+    and f(100 * bwd_cert["conditional_required_recovery_at_reference_multiplier_and_20y"], 3) + "%" not in text
     and "reaches parity near the upper edge" not in text,
 )
 fact(
