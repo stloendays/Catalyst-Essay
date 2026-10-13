@@ -1,0 +1,68 @@
+name: MeOH recycled-CO conversion bound (central / equal_X / high)
+
+# Reruns analysis/meoh_co_conversion_bound_2026_10_13: the printed-cohort plant costs with recycled CO converted by
+# the central (frozen), equal_X and high (CO-hydrogenation equilibrium) rules, without an inlet limit, with the
+# 6.86 % limit and with absolute limits 5 / 8 / 10 / 15 %. The script first reproduces the frozen columns
+# cost_recycled_opt, cost_recycled_opt_inlet and cost_recycled_opt_lim{5,8,10,15} to 1e-6 relative and exits
+# non-zero otherwise. About 2 min on 4 cores.
+
+on:
+  pull_request:
+    paths:
+      - "analysis/meoh_co_conversion_bound_2026_10_13/**"
+      - ".github/workflows/meoh-co-conversion-bound.yml"
+  push:
+    branches: ["analysis/meoh-co-conversion-bound-2026-10-13"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meoh-co-conversion-bound-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  co-conversion-bound:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+      COB_WORKERS: "4"
+      D: analysis/meoh_co_conversion_bound_2026_10_13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyyaml
+      - name: Keep a copy of the committed outputs
+        run: |
+          mkdir -p /tmp/committed
+          cp $D/summary.json $D/results_table.md /tmp/committed/
+      - name: Rerun (gate on the frozen central columns, then equal_X and high)
+        run: python $D/run_co_conversion_bound.py
+      - name: Gate and frozen anchors passed
+        run: |
+          python - <<'EOF'
+          import json, sys
+          s = json.load(open("analysis/meoh_co_conversion_bound_2026_10_13/summary.json"))
+          bad = [k for k, g in s["gate"].items() if not g["passed"]] + [k for k, ok in s["frozen_anchors"].items() if not ok]
+          sys.exit("failed: " + ", ".join(bad) if bad else 0)
+          EOF
+      - name: Regenerated outputs equal the committed ones (counts exact, costs 1e-6)
+        run: |
+          python tools/compare_json_numbers.py /tmp/committed/summary.json $D/summary.json --rtol 1e-6 --ignore runtime_s workers gate
+          diff /tmp/committed/results_table.md $D/results_table.md
+      - name: Frozen inputs unchanged
+        run: git diff --exit-code -- analysis/meoh_literature_inversion_2026_10_05/ data/meoh/ docs/ figures/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meoh-co-conversion-bound
+          path: |
+            analysis/meoh_co_conversion_bound_2026_10_13/*.json
+            analysis/meoh_co_conversion_bound_2026_10_13/*.csv
+            analysis/meoh_co_conversion_bound_2026_10_13/*.md
+          retention-days: 90
