@@ -22,45 +22,77 @@ Readings (same code as figures/composite/fig2/fig2_ru_actual_cost.py):
   * Fig. 3d own-bed reading, main loop and KAAP loop (90 bar, Tsep -20 C): the Ru/C catalyst carries m_Ru / u of Ru at
     w in a bed of density rho, i.e. the benchmark bed volume times 1,787.75 / (u w rho); range over the corners of the
     set, gap to the Fe reference of the same loop, and the Ru activity multiple alpha* needed for parity.
-  * Benchmark-bed reading: p_eff = p_Ru (1 - r) / u against the parity price of the Fig. 2d sweep (163.76 USD/kg).
+  * Benchmark-bed reading: p_eff = p_Ru (1 - r) / u against the parity price of the Fig. 2d sweep (163.76 USD/kg in
+    1.1, 403.54 in 1.2).
   * Monte Carlo (5,000 draws; seeds 20260920 and 20261006 as in analysis/nh3_mc_ru_actual_2026_10_06; A_comm's Ru
     content from a third generator, seed 20261007). The uniforms are drawn once and rescaled to each set's range, so
     every set sees the same draws (common random numbers); with the baseline ranges the draws are bit-identical to
     run_mc_ru_actual.py, which is checked against its committed summary.json.
 
-Needs a harness root with the cached response columns (build_harness_root.py); the response surface is not rebuilt.
+Model: NH3_MODEL=1.1 (default; NH3-FINAL-1.1, outputs in this folder) or NH3_MODEL=1.2 (NH3-FINAL-1.2, outputs in
+nh3_1_2/), through analysis/nh3_model.py. Model quantities are taken from the selected model, never from 1.1 constants:
+  * Fe and Ru reference costs: the selected run's results.json (nh3_model.anchors()), reproduced before anything else;
+  * parity price of the Fig. 2d sweep: recomputed with the bisection of figures/composite/fig2/fig2_model.py (1.1: equal
+    to the last row of fig2_ru_price_sweep.csv, which is used; 1.2: checked against nh3_1_2/fig2_ru_price_sweep.csv when
+    that file exists);
+  * measured Ru catalysts (variants B, B0): 1.1 reads analysis/nh3_supported_2026_10_06/supported_candidates.csv; 1.2
+    re-derives E_eff, alpha_res and plant feasibility on the same definition by running that folder's
+    run_supported_chain.main() unchanged on the 1.2 harness (as analysis/nh3_mc_ru_actual_2026_10_06 does) and checks
+    them against nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv when that file exists.
+Checks against committed outputs: 1.1 reproduces the baseline set of 107a75d (Fig. 3d own-bed rows and Monte Carlo) as
+before; for both models the R_all set must reproduce the selected model's fig2_ru_bed_sensitivity.csv (R_all corners)
+and analysis/nh3_mc_ru_actual_2026_10_06 summary (A, A_bed = A_comm, B, B0) when those files exist.
+
+Needs a harness root with the cached response columns (build_harness_root.py, 1.1 only) or the full cached response
+surface; the response surface is not rebuilt.
 
     NH3_HARNESS=<root> python run_params.py   -> summary.json, fig3d_readings.csv, mc_variants.csv, results_table.md
+    NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 root> NH3_HARNESS=<1.1 root, for the self-check gate> python run_params.py
+                                              -> the same files in nh3_1_2/, plus measured_ru_catalysts.csv
 """
+import contextlib
 import csv
+import importlib.util
+import io
 import json
 import math
 import os
 import platform
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
-import yaml
 from scipy.optimize import brentq
 from scipy.stats import beta as beta_dist
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-HARNESS = Path(os.environ.get("NH3_HARNESS", r"D:/论文-AI4S/Catalyst_Economic_Leverage_Automation_Harness_v0.1"))
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+HARNESS = NM.root()
 sys.path.insert(0, str(HARNESS))
-import harness_core as hc  # noqa: E402
+hc = NM.core()  # registered as harness_core before the self-check gate imports it
 
 sys.path.insert(0, str(REPO / "agent"))
 from selfcheck_gate import require  # noqa: E402
 
-RUN = HARNESS / "outputs" / "nh3_final_20260905T134204Z"
+V11 = NM.VERSION == "1.1"
+RUN = NM.run_dir()
+OUT = NM.out_dir(HERE)
 FIG2 = REPO / "figures" / "composite" / "fig2"
+FIG2_RUN = FIG2 if V11 else FIG2 / "nh3_1_2"           # Fig. 2 model tables of the selected model
 MC_BASE = REPO / "analysis" / "nh3_mc_ru_actual_2026_10_06" / "summary.json"
-SUPPORTED = REPO / "analysis" / "nh3_supported_2026_10_06" / "supported_candidates.csv"
+MC_RUN = MC_BASE if V11 else MC_BASE.parent / "nh3_1_2" / "summary.json"
+SUPPORTED_DIR = REPO / "analysis" / "nh3_supported_2026_10_06"
+SUPPORTED = SUPPORTED_DIR / "supported_candidates.csv"
+SUPPORTED_1_2 = SUPPORTED_DIR / "nh3_1_2" / "supported_candidates.csv"
+MEAS_KEYS = ("id", "catalyst", "metal_wt_pct", "T_C", "P_MPa", "E_eff_eV", "log10_alpha_res", "status", "cost_USD_t")
 
-FE_COST = 15.291704676621144
-RU_COST = 22.03059478781101
+ANCHORS = NM.anchors()
+FE_COST = ANCHORS["Fe"]
+RU_COST = ANCHORS["Ru"]
 U_MIN = 0.11 / 0.01
 KAAP_P, KAAP_TSEP = 90.0, -20.0
 N = 5000
@@ -76,6 +108,58 @@ def rkey(r):
     return "r%g" % (100 * r)
 
 
+def is_measured_ru(x):
+    return x["status"].startswith("primary") and x["active_metals"] == "Ru" and x["cost_USD_t"] != ""
+
+
+def derive_supported(h, response):
+    """Rows of analysis/nh3_supported_2026_10_06/supported_candidates.csv for the selected model: that folder's
+    run_supported_chain.main(), unchanged, on this harness and response surface, writing to a temporary folder
+    (the same route as analysis/nh3_mc_ru_actual_2026_10_06/run_mc_ru_actual.py)."""
+    spec = importlib.util.spec_from_file_location("run_supported_chain", SUPPORTED_DIR / "run_supported_chain.py")
+    rsc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rsc)
+    rsc.hc, rsc.HARNESS, rsc.RUN = hc, HARNESS, RUN
+    rsc.load_harness = lambda: (h, response)
+    rsc.require = lambda: None  # the gate has already passed in main()
+    with tempfile.TemporaryDirectory() as tmp:
+        rsc.HERE = Path(tmp)
+        with contextlib.redirect_stdout(io.StringIO()):
+            rsc.main()
+        with (Path(tmp) / "supported_candidates.csv").open(encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+
+
+def measured_ru(h, response):
+    """The measured Ru catalysts drawn by variants B and B0, for the selected model."""
+    if V11:
+        return [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8")) if is_measured_ru(x)], SUPPORTED.name
+    meas = [x for x in derive_supported(h, response) if is_measured_ru(x)]
+    src = "run_supported_chain.main() on this model"
+    if SUPPORTED_1_2.exists():  # the 1.2 port of the supported chain: same catalysts, same model quantities
+        port = [x for x in csv.DictReader(SUPPORTED_1_2.open(encoding="utf-8")) if is_measured_ru(x)]
+        assert [x["id"] for x in port] == [x["id"] for x in meas], "measured Ru catalysts differ from the 1.2 port"
+        for x, y in zip(meas, port):
+            for c in ("E_eff_eV", "log10_alpha_res", "metal_wt_pct", "cost_USD_t"):
+                assert abs(float(x[c]) - float(y[c])) < 1e-9, (x["id"], c, x[c], y[c])
+        src += " (agrees with nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv)"
+    with (OUT / "measured_ru_catalysts.csv").open("w", newline="", encoding="utf-8") as f:
+        wr = csv.DictWriter(f, fieldnames=list(MEAS_KEYS), extrasaction="ignore", lineterminator="\n")
+        wr.writeheader()
+        wr.writerows(meas)
+    return meas, src
+
+
+def parity_price(ru_cost_at, fe_cost):
+    """Ru price at which the reoptimized Ru cost equals Fe: the bisection on log price of fig2_model.py."""
+    lo, hi = math.log10(hc.PRICE["Fe"]), math.log10(hc.PRICE["Ru"])
+    assert ru_cost_at(10.0 ** lo) < fe_cost < ru_cost_at(10.0 ** hi), "parity price outside [p_Fe, p_Ru]"
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if ru_cost_at(10.0 ** mid) < fe_cost else (lo, mid)
+    return 10.0 ** hi
+
+
 SETS = {  # recovery corners, bed-density corners, Ru mass fractions for the Fig. 3d reading; headline w
     "baseline": dict(r=(0.90, 0.94), rho=(500.0, 1000.0), w=(0.032,), w_head=0.032),
     "R1": dict(r=(0.90, R_HI), rho=(500.0, 1000.0), w=(0.032,), w_head=0.032),
@@ -87,8 +171,8 @@ SETS = {  # recovery corners, bed-density corners, Ru mass fractions for the Fig
 
 def main():
     require()
-    h = hc.NH3Harness(yaml.safe_load((RUN / "manifest_resolved.yaml").read_text(encoding="utf-8")), HARNESS)
-    assert h.NSTATE == 14136
+    h = NM.harness()
+    assert h.NSTATE == ANCHORS["NSTATE"], (h.NSTATE, ANCHORS["NSTATE"])
     response, _cp, cached = h.build_or_load_response()
     if not cached:
         raise SystemExit("response surface is not cached; refusing to rebuild a frozen asset")
@@ -132,7 +216,16 @@ def main():
     i_fe = int(np.argmin(np.where((V_fe <= h.V_CAP) & kaap, t_fe, np.inf)))
     fe_kaap = float(t_fe[i_fe])
     loops = {"main": (None, FE_COST), "KAAP": (kaap, fe_kaap)}
-    p_parity = float(list(csv.DictReader(open(FIG2 / "fig2_ru_price_sweep.csv", encoding="utf-8")))[-1]["price_USD_kg"])
+    # parity price of the Fig. 2d sweep (Ru reoptimized at its metal price = Fe), recomputed on the selected model
+    p_parity_calc = parity_price(lambda p: optimum(p)["cost"], FE_COST)
+    sweep = FIG2_RUN / "fig2_ru_price_sweep.csv"
+    p_parity_file = (float(list(csv.DictReader(open(sweep, encoding="utf-8")))[-1]["price_USD_kg"])
+                     if sweep.exists() else None)
+    if V11:
+        assert p_parity_file is not None, sweep
+    if p_parity_file is not None:
+        assert abs(p_parity_calc - p_parity_file) < 1e-9 * p_parity_file, (p_parity_calc, p_parity_file)
+    p_parity = p_parity_file if V11 else p_parity_calc  # 1.1 keeps the committed value (equal to the recomputation)
 
     readings = []
     for s, cfg in SETS.items():
@@ -158,23 +251,43 @@ def main():
                                  alpha_star=alpha_star(pe, mask, 1.0, ref), T_C=o["T_C"], P_bar=o["P_bar"],
                                  Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
 
-    # baseline own-bed reading reproduces the committed Fig. 3d series
-    # (the committed file now holds the literature readings; the baseline ones are those of OLD_REF)
     import subprocess
     from io import StringIO
-    committed = list(csv.DictReader(StringIO(subprocess.run(
-        ["git", "-C", str(REPO), "show", f"{OLD_REF}:figures/composite/fig2/fig2_ru_bed_sensitivity.csv"],
-        capture_output=True, check=True, text=True, encoding="utf-8").stdout)))
-    key_of = {("main", 0.90): "supp_rec90", ("main", 0.94): "supp_rec94", ("KAAP", 0.90): "kaap90", ("KAAP", 0.94): "kaap94"}
     n_cmp = 0
-    for x in readings:
-        if x["set"] == "baseline":
-            c = next(c for c in committed if c["key"] == key_of[(x["loop"], x["recovery"])]
-                     and float(c["rho_bed_kg_m3"]) == x["rho_bed_kg_m3"])
-            assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
-            assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
-            n_cmp += 1
-    assert n_cmp == 8
+    if V11:
+        # baseline own-bed reading reproduces the committed Fig. 3d series
+        # (the committed file now holds the literature readings; the baseline ones are those of OLD_REF)
+        committed = list(csv.DictReader(StringIO(subprocess.run(
+            ["git", "-C", str(REPO), "show", f"{OLD_REF}:figures/composite/fig2/fig2_ru_bed_sensitivity.csv"],
+            capture_output=True, check=True, text=True, encoding="utf-8").stdout)))
+        key_of = {("main", 0.90): "supp_rec90", ("main", 0.94): "supp_rec94", ("KAAP", 0.90): "kaap90",
+                  ("KAAP", 0.94): "kaap94"}
+        for x in readings:
+            if x["set"] == "baseline":
+                c = next(c for c in committed if c["key"] == key_of[(x["loop"], x["recovery"])]
+                         and float(c["rho_bed_kg_m3"]) == x["rho_bed_kg_m3"])
+                assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
+                assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
+                n_cmp += 1
+        assert n_cmp == 8
+    # the R_all own-bed corners reproduce the Fig. 3d literature series of the selected model, when it exists
+    bed_csv = FIG2_RUN / "fig2_ru_bed_sensitivity.csv"
+    if V11:
+        assert bed_csv.exists(), bed_csv
+    n_rall = 0
+    if bed_csv.exists():
+        lit = list(csv.DictReader(open(bed_csv, encoding="utf-8")))
+        key_lit = {("main", 0.90): "supp_rec90", ("main", R_HI): "supp_rec_hi", ("KAAP", 0.90): "kaap90",
+                   ("KAAP", R_HI): "kaap_hi"}
+        for x in readings:
+            if x["set"] == "R_all":
+                c = next(c for c in lit if c["key"] == key_lit[(x["loop"], x["recovery"])]
+                         and float(c["w_Ru"]) == x["w_Ru"] and float(c["rho_bed_kg_m3"]) == x["rho_bed_kg_m3"])
+                assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
+                assert abs(float(c["Fe_reference_cost"]) - x["Fe_reference_cost"]) < 1e-9, (c, x)
+                assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
+                n_rall += 1
+        assert n_rall == 24, n_rall
 
     def span(rows):
         c = [x["cost"] for x in rows]
@@ -225,8 +338,7 @@ def main():
     U_u, U_r, U_bed = rng2.random(N), rng2.random(N), rng2.random(N)
     lo, hi = math.log(U_RANGE[0]), math.log(U_RANGE[1])
     u = np.exp(lo + (hi - lo) * U_u)
-    meas = [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8"))
-            if x["status"].startswith("primary") and x["active_metals"] == "Ru" and x["cost_USD_t"] != ""]
+    meas, meas_src = measured_ru(h, response)
     kk = rng2.integers(0, len(meas), N)
     U_w = np.random.default_rng(20261007).random(N)
     w_comm = W_COMM[0] + (W_COMM[1] - W_COMM[0]) * U_w
@@ -241,14 +353,23 @@ def main():
         fe[d] = evaluate("Fe", vec["Fe"], price=hc.PRICE["Fe"] * float(fe_pm[d]), **kw)
         base[d] = evaluate("Ru", vec["Ru"], price=P_RU * float(ru_pm[d]), **kw)
 
-    # the baseline set must reproduce the actual-Ru Monte Carlo as it stood with the baseline ranges (OLD_REF); the
-    # committed summary now holds the literature ranges
-    import subprocess
-    ref = json.loads(subprocess.run(
-        ["git", "-C", str(REPO), "show", f"{OLD_REF}:{MC_BASE.relative_to(REPO).as_posix()}"],
-        capture_output=True, check=True, text=True, encoding="utf-8").stdout)
-    assert float(np.mean(base - fe > 0)) == ref["base_reproduced"]["P_Fe_cheaper"] == 1.0
-    assert abs(float((base - fe).min()) - ref["base_reproduced"]["min_gap_USD_t"]) < 1e-9
+    ref = None
+    if V11:
+        # the baseline set must reproduce the actual-Ru Monte Carlo as it stood with the baseline ranges (OLD_REF); the
+        # committed summary now holds the literature ranges
+        ref = json.loads(subprocess.run(
+            ["git", "-C", str(REPO), "show", f"{OLD_REF}:{MC_BASE.relative_to(REPO).as_posix()}"],
+            capture_output=True, check=True, text=True, encoding="utf-8").stdout)
+        assert float(np.mean(base - fe > 0)) == ref["base_reproduced"]["P_Fe_cheaper"] == 1.0
+        assert abs(float((base - fe).min()) - ref["base_reproduced"]["min_gap_USD_t"]) < 1e-9
+    # the actual-Ru Monte Carlo of the selected model (literature ranges = set R_all), when it exists
+    if V11:
+        assert MC_RUN.exists(), MC_RUN
+    lit_mc = json.loads(MC_RUN.read_text(encoding="utf-8")) if MC_RUN.exists() else None
+    if lit_mc is not None:
+        assert float(np.mean(base - fe > 0)) == lit_mc["base_reproduced"]["P_Fe_cheaper"]
+        assert abs(float((base - fe).min()) - lit_mc["base_reproduced"]["min_gap_USD_t"]) < 1e-9
+        assert lit_mc["ranges"]["measured_Ru_catalysts"] == len(meas)
 
     def ci95(k, n):
         return [float(beta_dist.ppf(0.025, k, n - k + 1)) if k > 0 else 0.0,
@@ -282,32 +403,56 @@ def main():
             mc_rows.append(dict(set=s, variant=name, P_Fe_cheaper=kfe / N, CI95_lo=mc[s][name]["CI95_Clopper_Pearson"][0],
                                 CI95_hi=mc[s][name]["CI95_Clopper_Pearson"][1],
                                 **{"gap_" + q: v for q, v in mc[s][name]["gap_quantiles_USD_t"].items()}))
-        if s == "baseline":  # bit-identical draws -> the committed summary must be reproduced exactly
+        if s == "baseline" and ref is not None:  # bit-identical draws -> the committed summary must be reproduced exactly
             for name in ("A", "A_bed", "B", "B0"):
                 assert mc[s][name]["P_Fe_cheaper"] == ref[name]["P_Fe_cheaper"], (name, mc[s][name], ref[name])
                 for q, v in ref[name]["gap_quantiles_USD_t"].items():
                     assert abs(mc[s][name]["gap_quantiles_USD_t"][q] - v) < 1e-9, (name, q)
+        if s == "R_all" and lit_mc is not None:  # literature ranges: run_mc_ru_actual.py's A_bed is A_comm here
+            for name, other in (("A", "A"), ("A_comm", "A_bed"), ("B", "B"), ("B0", "B0")):
+                assert mc[s][name]["P_Fe_cheaper"] == lit_mc[other]["P_Fe_cheaper"], (name, mc[s][name], lit_mc[other])
+                for q, v in lit_mc[other]["gap_quantiles_USD_t"].items():
+                    assert abs(mc[s][name]["gap_quantiles_USD_t"][q] - v) < 1e-9, (name, q)
         print(s, {n_: mc[s][n_]["P_Fe_cheaper"] for n_ in res}, flush=True)
 
+    if V11:  # 1.1 keeps its committed schema byte for byte
+        validation = {"selfcheck_gate": "passed (require())",
+                      "baseline_fig3d_own_bed_rows_matched_to_committed_csv": n_cmp,
+                      "baseline_MC_matches_committed_summary": True,
+                      "committed_MC_summary_P": {n_: ref[n_]["P_Fe_cheaper"] for n_ in ("A", "A_bed", "B", "B0")}}
+    else:
+        rel = lambda p: p.relative_to(REPO).as_posix()  # noqa: E731
+        validation = {
+            "selfcheck_gate": "passed (require())",
+            "deterministic_Fe_Ru_reproduced_from": f"{rel(RUN)}/results.json (|diff| < 1e-9 USD/t)",
+            "parity_price_recomputed": p_parity_calc,
+            "parity_price_checked_against": rel(sweep) if p_parity_file is not None else "none (file not present)",
+            "R_all_fig3d_rows_matched": (f"{n_rall} rows of {rel(bed_csv)}" if n_rall
+                                         else "none (file not present)"),
+            "R_all_MC_matches": rel(MC_RUN) if lit_mc is not None else "none (file not present)",
+            "baseline_set_checked_against": "none (the 1.1-only baseline outputs of 107a75d have no 1.2 counterpart)",
+            "measured_Ru_catalysts_from": meas_src,
+        }
     out = {
         "workflow_run": {k: os.environ.get(k) for k in ("GITHUB_RUN_ID", "GITHUB_SHA", "GITHUB_REPOSITORY")},
         "platform": platform.platform(), "python": platform.python_version(), "numpy": np.__version__,
-        "validation": {"selfcheck_gate": "passed (require())",
-                       "baseline_fig3d_own_bed_rows_matched_to_committed_csv": n_cmp,
-                       "baseline_MC_matches_committed_summary": True,
-                       "committed_MC_summary_P": {n_: ref[n_]["P_Fe_cheaper"] for n_ in ("A", "A_bed", "B", "B0")}},
+        "validation": validation,
         "fixed": {"u_fig3d": U_MIN, "u_MC_loguniform": U_RANGE, "A_comm_w": W_COMM, "draws": N,
                   "Fe_main_loop": FE_COST, "Fe_KAAP_loop": fe_kaap, "measured_Ru_catalysts": len(meas)},
         "sets": {s: {k: v for k, v in c.items()} for s, c in SETS.items()},
         "fig3d_own_bed": fig3d, "benchmark_bed": bench, "monte_carlo": mc,
     }
-    (HERE / "summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    if not V11:
+        out["model"] = {"label": ANCHORS["label"], "run": ANCHORS["run"], "process_states": h.NSTATE,
+                        "F_CAL": ANCHORS["F_CAL"], "Fe_USD_t": FE_COST, "Ru_USD_t": RU_COST,
+                        "Fe_optimum_T_P_Tsep": ANCHORS["Fe_optimum"], "Ru_optimum_T_P_Tsep": ANCHORS["Ru_optimum"]}
+    (OUT / "summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
     for name, rows in (("fig3d_readings.csv", readings), ("mc_variants.csv", mc_rows)):
-        with (HERE / name).open("w", newline="", encoding="utf-8") as f:
+        with (OUT / name).open("w", newline="", encoding="utf-8") as f:
             wr = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
             wr.writeheader()
             wr.writerows(rows)
-    (HERE / "results_table.md").write_text(table(out), encoding="utf-8")
+    (OUT / "results_table.md").write_text(table(out), encoding="utf-8")
     print(table(out))
 
 
