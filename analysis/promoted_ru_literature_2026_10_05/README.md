@@ -33,3 +33,13 @@ unpromoted Ru on the same support is therefore like-for-like; a factor measured 
   surfaces, acidic Al₂O₃ references, terrace references) are in the CSV but are not plotted as intrinsic gains.
 - Commercial Ru catalysts (KAAP) are Ba/Cs/K-promoted Ru on graphitic carbon. The Fig. 2d actual-cost calculation
   credits only dispersion and recovery, not the promoter gain.
+
+## Parity band per model (`parity_band.py`, 2026-10-13)
+
+`parity_band.py` recomputes the band the strip is read against for the model selected by `NH3_MODEL`
+(`analysis/nh3_model.py`): baseline α\* and the preregistered 5,000-draw cost Monte Carlo α\* quantiles, then places
+each literature point. With `NH3_MODEL=1.1` it reproduces α\* = 201.22× and p05–p95 = 70.78–462.00× of
+`analysis/supervisor_2026_09_20/nh3_cost_mc_summary.json` (gate, 2 × 10⁻¹² relative) and writes `parity_band.json`,
+`literature_vs_parity.csv` and `alpha_star_draws.csv` here; with `NH3_MODEL=1.2` it writes the same files to
+`nh3_1_2/`, where `nh3_1_2/README.md` gives the NH3-FINAL-1.2 band (α\* 114.67×, p05–p95 43.52–262.28×) and the
+placement of every point. The measured gains themselves are model-independent.
