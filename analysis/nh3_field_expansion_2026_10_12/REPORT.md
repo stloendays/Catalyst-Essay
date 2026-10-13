@@ -3,6 +3,8 @@
 Protocol: `PROTOCOL.md`, committed before extraction (local commit a04c3e9; the branch was first pushed after the
 main-text result). Every number below is in `report_numbers.json`
 (`report_numbers.py` collects it from the run folders); per-group detail is in `runs/<set>/group_metrics_printed.csv`.
+All numbers in this report are on NH3-FINAL-1.1. The follow-up primary, its sensitivities and round 1 rescored on
+NH3-FINAL-1.2 (`NH3_MODEL=1.2`) are in `nh3_1_2/` (see `nh3_1_2/README.md`).
 
 ## Result (printed-value primary, frozen definition)
 

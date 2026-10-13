@@ -16,6 +16,10 @@ is used up). It narrows llm_route.ROUTES in this process only; llm_route.py itse
 
 The batch-2 list is batch2_candidates.txt (text) or the included rows of batch2_screening.csv (extract, normalize);
 B2_SCREEN=with_si takes the column with_si_decision (screening revisited with the SI, 2026-10-13) instead of decision.
+
+Model version: none of these steps loads the ammonia model, so NH3_MODEL (analysis/nh3_model.py) has no effect here and
+its outputs (out_batch2/, the SI manifests) serve both NH3-FINAL-1.1 and 1.2. The model enters only at scoring:
+score.py writes runs/ for NH3_MODEL=1.1 (default) and nh3_1_2/runs/ for NH3_MODEL=1.2, from the same records.
 """
 from __future__ import annotations
 

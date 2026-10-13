@@ -5,41 +5,61 @@ pooled (runs/pooled), and the sensitivities runs/batch2_corrected_units, runs/po
 the SI sets (runs/*_si*) and the verification follow-up (runs/*_vf*; primary with Qiu Ba-Ru SAs/S-1 at the printed
 0.23 wt%, the extracted 0.27 wt% kept as superseded sets *_extracted027).
 Cross-metal group: a scored group whose entries hold more than one metal (a fused-Fe reference counts as Fe).
+
+Model version (analysis/nh3_model.py; no harness is loaded): NH3_MODEL=1.1 (default) reads the runs in this folder
+(runs/, round 1 in analysis/nh3_field_2026_10_06) and writes report_numbers.json here, as before. NH3_MODEL=1.2 reads
+the NH3-FINAL-1.2 rescoring (score.py under NH3_MODEL=1.2: nh3_1_2/runs/, round 1 in
+analysis/nh3_field_2026_10_06/nh3_1_2) and writes nh3_1_2/report_numbers.json. On 1.2 only the sets of
+RESCORED_1_2 exist (the current follow-up primary, its sensitivities and the superseded Qiu 0.27 wt% pair); the
+model-independent counts (screening, extraction tokens, PDF checks, SI fetch, corrections) are the same in both files.
 """
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-SETS = {"round1": REPO / "analysis" / "nh3_field_2026_10_06", "batch2": HERE / "runs" / "batch2_corrected",
-        "pooled": HERE / "runs" / "pooled", "batch2_uncorrected": HERE / "runs" / "batch2",
-        "pooled_uncorrected": HERE / "runs" / "pooled_uncorrected",
-        "batch2_units": HERE / "runs" / "batch2_corrected_units", "pooled_units": HERE / "runs" / "pooled_units",
-        "pooled_single_chain": HERE / "runs" / "pooled_single_chain",
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402
+
+OUT = NM.out_dir(HERE)                                        # this folder (1.1) or nh3_1_2/ (1.2)
+RUNS = OUT / "runs"
+SETS = {"round1": NM.out_dir(REPO / "analysis" / "nh3_field_2026_10_06"), "batch2": RUNS / "batch2_corrected",
+        "pooled": RUNS / "pooled", "batch2_uncorrected": RUNS / "batch2",
+        "pooled_uncorrected": RUNS / "pooled_uncorrected",
+        "batch2_units": RUNS / "batch2_corrected_units", "pooled_units": RUNS / "pooled_units",
+        "pooled_single_chain": RUNS / "pooled_single_chain",
         # with Supporting Information (2026-10-13)
-        "batch2_si": HERE / "runs" / "batch2_si_corrected", "pooled_si": HERE / "runs" / "pooled_si",
-        "batch2_si_uncorrected": HERE / "runs" / "batch2_si", "pooled_si_uncorrected": HERE / "runs" / "pooled_si_uncorrected",
-        "batch2_si_units": HERE / "runs" / "batch2_si_corrected_units", "pooled_si_units": HERE / "runs" / "pooled_si_units",
-        "pooled_si_single_chain": HERE / "runs" / "pooled_si_single_chain",
+        "batch2_si": RUNS / "batch2_si_corrected", "pooled_si": RUNS / "pooled_si",
+        "batch2_si_uncorrected": RUNS / "batch2_si", "pooled_si_uncorrected": RUNS / "pooled_si_uncorrected",
+        "batch2_si_units": RUNS / "batch2_si_corrected_units", "pooled_si_units": RUNS / "pooled_si_units",
+        "pooled_si_single_chain": RUNS / "pooled_si_single_chain",
         # verification follow-up (2026-10-13): finding 1 alone, Qiu Ba-Ru SAs/S-1 at the printed 0.23 wt% (19 papers) ...
-        "batch2_vf_qiu": HERE / "runs" / "batch2_vf_qiu023", "pooled_vf_qiu": HERE / "runs" / "pooled_vf_qiu023",
+        "batch2_vf_qiu": RUNS / "batch2_vf_qiu023", "pooled_vf_qiu": RUNS / "pooled_vf_qiu023",
         # ... superseded: finding 1 alone with the extracted 0.27 wt%, and the follow-up primary with 0.27 wt% (commit
         # 249051f; reproduced byte for byte under the _qiu027 labels before the 0.23 correction was added)
-        "batch2_vf_qiu_extracted027": HERE / "runs" / "batch2_vf_corrected",
-        "pooled_vf_qiu_extracted027": HERE / "runs" / "pooled_vf",
-        "batch2_vf_extracted027": HERE / "runs" / "batch2_vf_screen_corrected_qiu027",
-        "pooled_vf_extracted027": HERE / "runs" / "pooled_vf_screen_qiu027",
+        "batch2_vf_qiu_extracted027": RUNS / "batch2_vf_corrected",
+        "pooled_vf_qiu_extracted027": RUNS / "pooled_vf",
+        "batch2_vf_extracted027": RUNS / "batch2_vf_screen_corrected_qiu027",
+        "pooled_vf_extracted027": RUNS / "pooled_vf_screen_qiu027",
         # ... and the screening revisited with the SI (finding 2; 22 included papers); primary: Qiu at 0.23 wt%
-        "batch2_vf": HERE / "runs" / "batch2_vf_screen_corrected", "pooled_vf": HERE / "runs" / "pooled_vf_screen",
-        "batch2_vf_uncorrected": HERE / "runs" / "batch2_vf_screen",
-        "pooled_vf_uncorrected": HERE / "runs" / "pooled_vf_screen_uncorrected",
-        "batch2_vf_units": HERE / "runs" / "batch2_vf_screen_corrected_units",
-        "pooled_vf_units": HERE / "runs" / "pooled_vf_screen_units",
-        "pooled_vf_single_chain": HERE / "runs" / "pooled_vf_screen_single_chain",
-        "batch2_vf_wu_pressure": HERE / "runs" / "batch2_vf_sens_wu_pressure",
-        "pooled_vf_wu_pressure": HERE / "runs" / "pooled_vf_sens_wu_pressure"}
+        "batch2_vf": RUNS / "batch2_vf_screen_corrected", "pooled_vf": RUNS / "pooled_vf_screen",
+        "batch2_vf_uncorrected": RUNS / "batch2_vf_screen",
+        "pooled_vf_uncorrected": RUNS / "pooled_vf_screen_uncorrected",
+        "batch2_vf_units": RUNS / "batch2_vf_screen_corrected_units",
+        "pooled_vf_units": RUNS / "pooled_vf_screen_units",
+        "pooled_vf_single_chain": RUNS / "pooled_vf_screen_single_chain",
+        "batch2_vf_wu_pressure": RUNS / "batch2_vf_sens_wu_pressure",
+        "pooled_vf_wu_pressure": RUNS / "pooled_vf_sens_wu_pressure"}
+# the sets rescored on NH3-FINAL-1.2 (nh3_1_2/README.md): round 1, the current follow-up primary and its sensitivities,
+# and the superseded Qiu 0.27 wt% pair
+RESCORED_1_2 = ("round1", "batch2_vf", "pooled_vf", "batch2_vf_uncorrected", "pooled_vf_uncorrected", "batch2_vf_units",
+                "pooled_vf_units", "pooled_vf_single_chain", "batch2_vf_wu_pressure", "pooled_vf_wu_pressure",
+                "batch2_vf_extracted027", "pooled_vf_extracted027")
+if NM.VERSION != "1.1":
+    SETS = {k: v for k, v in SETS.items() if k in RESCORED_1_2}
 CHAIN_KEYS = ("records_in", "papers_with_records", "mapped", "primary_with_cost", "flagged", "outside", "outside_reasons",
               "y_default_median", "primary_entries_after_dedup", "papers_with_primary", "removed_as_duplicate",
               "fused_reference_entries_primary", "primary_below_Fe")
@@ -84,7 +104,8 @@ def qiu_loading():
                metal_wt_pct={r.entry_label: dict(extracted=r.extracted, printed=r.corrected)
                              for r in cor[cor.field == "metal_wt_pct"].itertuples()})
     cols = ["cost_USD_t", "cost_recovery90", "cost_bed500", "cost_bed2500"]
-    for key in ("batch2_vf", "batch2_vf_extracted027", "batch2_vf_qiu", "batch2_vf_qiu_extracted027"):
+    for key in [k for k in ("batch2_vf", "batch2_vf_extracted027", "batch2_vf_qiu", "batch2_vf_qiu_extracted027")
+                if k in SETS]:
         cp = pd.read_csv(SETS[key] / "candidates_printed.csv")
         gm = pd.read_csv(SETS[key] / "group_metrics_printed.csv")
         q = cp[(cp.doi == QIU) & cp.group.notna()]
@@ -102,12 +123,14 @@ def main():
     scr = pd.read_csv(HERE / "batch2_screening.csv")
     out["screening"] = dict(screened=int(len(scr)), included=int((scr.decision == "include").sum()),
                             excluded={r.doi: r.reason for r in scr[scr.decision == "exclude"].itertuples()})
-    s2 = json.loads((SETS["batch2"] / "summary.json").read_text(encoding="utf-8"))
-    out["batch2_chain"] = {k: s2[k] for k in CHAIN_KEYS}
-    out["batch2_chain"]["all_entries_primary"] = brief(s2["primary"])
-    s3 = json.loads((SETS["batch2_si"] / "summary.json").read_text(encoding="utf-8"))
-    out["batch2_si_chain"] = {k: s3[k] for k in CHAIN_KEYS}
-    out["batch2_si_chain"]["all_entries_primary"] = brief(s3["primary"])
+    if "batch2" in SETS:            # not rescored on 1.2 (superseded by the follow-up)
+        s2 = json.loads((SETS["batch2"] / "summary.json").read_text(encoding="utf-8"))
+        out["batch2_chain"] = {k: s2[k] for k in CHAIN_KEYS}
+        out["batch2_chain"]["all_entries_primary"] = brief(s2["primary"])
+    if "batch2_si" in SETS:
+        s3 = json.loads((SETS["batch2_si"] / "summary.json").read_text(encoding="utf-8"))
+        out["batch2_si_chain"] = {k: s3[k] for k in CHAIN_KEYS}
+        out["batch2_si_chain"]["all_entries_primary"] = brief(s3["primary"])
     tok = pd.read_csv(REPO / "agent" / "nh3_field" / "out_batch2" / "token_usage.csv")
     g = tok.groupby("pass").agg(calls=("doi", "size"), prompt=("prompt_tokens", "sum"),
                                 output=("completion_tokens", "sum"), reasoning=("reasoning_tokens", "sum"),
@@ -156,7 +179,11 @@ def main():
     out["qiu_loading"] = qiu_loading()
     out["corrections"] = int(len(pd.read_csv(HERE / "batch2_corrections.csv")))
     out["unit_completions"] = int(len(pd.read_csv(HERE / "batch2_unit_completions.csv")))
-    (HERE / "report_numbers.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    if NM.VERSION != "1.1":          # the 1.1 file keeps its committed keys; later versions name their run
+        A = NM.anchors()
+        out = dict(model=dict(label=A["label"], run=A["run"], process_states=A["NSTATE"], F_CAL=A["F_CAL"],
+                              Fe_USD_t=A["Fe"]), **out)
+    (OUT / "report_numbers.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
     print(json.dumps({k: out[k]["primary"] for k in SETS}, indent=1, default=float))
 
 
