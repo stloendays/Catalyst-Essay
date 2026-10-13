@@ -80,7 +80,7 @@ def check(thermo, swap, domain=None):
             assert finite(row["RuC_benchmark_global_USD_t"])
     return modes
 
-def render(modes, swap, out):
+def render(modes, swap, domain, out):
     out.mkdir(parents=True, exist_ok=True)
     rows = []
     for name in ("frozen", "NIST", "GB"):
@@ -99,6 +99,14 @@ def render(modes, swap, out):
         w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
     headline = next(v for v in swap["variants"] if (v["states"], v["sizing"], v["scale"]) == ("GB", "plug", "source"))
     s = headline["Ru_C_supported"]
+    thermo_inversions = [mode for mode, x in modes.items()
+                         if x["model_inversion_Ru_Os_Fe_to_Fe_Ru_Os"]]
+    fe_better_benchmark = sum(v["Fe"]["cost"] < v["Ru_benchmark"]["cost"]
+                              for v in swap["variants"])
+    ru_supported_better_at_zero = sum(v["Ru_C_supported"]["cashflow 0% r 0.9555"]["Ru_minus_Fe_global"] < 0
+                                      for v in swap["variants"])
+    fe_better_at_twelve = sum(v["Ru_C_supported"]["cashflow 12% r 0.9555"]["Ru_minus_Fe_global"] > 0
+                              for v in swap["variants"])
     report = [
         "# NH3-FINAL-1.2 candidate | independent reconciliation",
         "",
@@ -112,13 +120,17 @@ def render(modes, swap, out):
         report.append(f'| {x["thermochemistry"]} / {x["kinetics"]} | {fmt(x["Fe_USD_t"])} | {fmt(x["Ru_USD_t"])} | {fmt(x["Os_USD_t"])} | {fmt(x["alpha_parity"])} |')
     report += [
         "",
-        "## Source-valid conclusion",
+        "## Scientific outcomes (computed, not hard-coded CI pass conditions)",
         "",
-        "- Atomistic-to-economic Fe/Ru/Os ranking inversion survives frozen, NIST and GB **descriptor-model** thermo references.",
-        "- A separately validated Fe/Ru kinetic-law swap changes the activity parity and operating conditions. It has **no Os or other 13-metal measured-law result**.",
-        "- GB thermochemistry with Rossetti's GB-based rate equation is the measured-pair consistent scenario. The measured-pair 'frozen' state variant is explicitly a mismatched thermo sensitivity, not the principal physical result.",
-        "- No NIST+Rossetti run is claimed: doing so requires a detailed-balance-consistent kinetic refit, not silently swapping equilibrium constants.",
-        "- Ru/C and the benchmark bulk-Ru formulation are distinct costing definitions; Ru/C recovery and financing must not be put in the no-recovery pure-metal leaderboard.",
+        f"- Fe/Ru/Os inversion found in {len(thermo_inversions)}/3 descriptor-based thermo-reference scenarios: {', '.join(thermo_inversions) or 'none'}.",
+        f"- Fe cheaper than bulk-Ru benchmark in {fe_better_benchmark}/8 measured-kinetic sensitivities.",
+        f"- Recovered supported Ru/C cheaper than Fe at 0%-financing in {ru_supported_better_at_zero}/8 scenarios; Fe cheaper at 12%/year in {fe_better_at_twelve}/8.",
+        "- A physically meaningful changed ranking is a valid research outcome, not an automatic CI failure; frozen-baseline, sample coverage and numerical accounting remain mandatory checks.",
+        "- Fe/Ru experimentally fitted pair has NO measured Os or other 13-metal kinetics; it cannot establish the 15-metal economic order.",
+        "- The GB gas standard-state conventions match across references, but the plant process uses an ideal-gas equilibrium while the kinetic rate employs Newton-Cooper fugacities. Their high-pressure equilibrium mismatch is quantified in SOURCE_DOMAIN.md.",
+        "- The frozen-state + measured-kinetics combination is an off-reference sensitivity, not the principal physical model.",
+        "- No NIST+Rossetti run is claimed: an equilibrium-consistent rate law would need independently verified modification.",
+        "- Ru/C and the benchmark bulk-Ru formulation are different catalyst/cost definitions; recoveries and DCF must not be merged into a pure-metal reference ordering.",
         "",
         "## Measured-pair GB/plug/source: financing test",
         "",
