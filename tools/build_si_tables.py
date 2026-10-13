@@ -28,11 +28,14 @@ CACHE = ROOT / "docs/SI_TABLES_crossref.json"
 EX = ROOT / "agent/extraction"
 NF = ROOT / "agent/nh3_field"
 INV = ROOT / "analysis/meoh_literature_inversion_2026_10_05"
-FIELD = ROOT / "analysis/nh3_field_2026_10_06"
 BENCH = ROOT / "analysis/meoh_plant_benchmark_2026_10_06"
-ALLOY = ROOT / "analysis/nh3_alloy_extension_2026_10_05"
-BRIDGE = ROOT / "analysis/fe_bridge_backward_2026_09_29"
+BRIDGE = ROOT / "analysis/fe_bridge_backward_2026_09_29"      # terrace-to-step bridge: Dataset S1 only, model-independent
 SUPP = ROOT / "agent/nh3_supported"
+# ammonia model NH3-FINAL-1.2: canonical run and the 1.2 outputs of the ammonia analyses
+NH3_RUN = ROOT / "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013"
+FIELD = ROOT / "analysis/nh3_field_2026_10_06/nh3_1_2"
+ALLOY = ROOT / "analysis/nh3_alloy_extension_2026_10_05"          # chain script (Dataset S1 terrace values)
+ALLOY_OUT = ALLOY / "nh3_1_2"                                     # its NH3-FINAL-1.2 results
 
 
 def rel(p):
@@ -351,7 +354,8 @@ def table3():
 
 # ---- Supplementary Table 3: bimetallic surface layers --------------------------------------------------------
 def table4():
-    s = json.loads((ALLOY / "summary.json").read_text(encoding="utf-8"))
+    s = json.loads((ALLOY_OUT / "summary.json").read_text(encoding="utf-8"))
+    states = json.loads((NH3_RUN / "results.json").read_text(encoding="utf-8"))["deterministic"]["process_state_count"]
     layers = [("Frozen 15-metal prices only", s),
               ("Transition metals (no sp metal, no group 3–5 element)", s["extended_excluding_sp_and_group3to5"]),
               ("+ group 3–5 elements", s["extended_transition_metals_only"]),
@@ -371,7 +375,7 @@ def table4():
                      num(len(d["pruning"]["false_prunes"]))])
     dc = s["domain_counts"]
     cal = s["calibration"]
-    cap = (f"From {rel(ALLOY / 'summary.json')}. {num(s['surfaces_fetched'])} surfaces ({num(s['sites_fetched'])} N* "
+    cap = (f"From {rel(ALLOY_OUT / 'summary.json')}. {num(s['surfaces_fetched'])} surfaces ({num(s['sites_fetched'])} N* "
            f"sites) were fetched; {num(s['not_costed_no_price'])} contain Tc, which has no market price, and are not "
            f"costed; the {num(s['extended_with_usgs_prices']['costed'])} costed surfaces are "
            f"{num(dc['transition_metal'])} transition-metal, {num(dc['contains_group3to5'])} with a group 3–5 element "
@@ -379,8 +383,9 @@ def table4():
            f"limit. Surfaces below Fe ({num(s['Fe_cost_USD_t'], 2)} USD/t NH₃) are listed in order of cost for the "
            f"global bridge (slope {num(cal['slope'], 3)}, R² {num(cal['r2'], 3)}, RMS {num(cal['rms_eV'], 2)} eV over "
            f"{len(cal['bridge_metals'])} pure metals) and with their cost (USD/t) for the element-anchored bridge. "
-           f"Pruned: candidates ruled out by the descriptor-only lower bound before the full 14,136-state "
-           f"optimization; false prunes: pruned candidates whose full optimization falls below Fe.")
+           f"Pruned: candidates ruled out by the descriptor-only lower bound before the full {num(states)}-state "
+           f"optimization ({rel(NH3_RUN / 'results.json')}); false prunes: pruned candidates whose full optimization "
+           f"falls below Fe.")
     hdr = ["Layer", "Costed", "Feasible, global", "Feasible, anchored", "Below Fe, global bridge",
            "Below Fe, element-anchored bridge", "Pruned", "False prunes"]
     return block(3, "Bimetallic surface layers of the ammonia screen", cap, hdr, rows)
@@ -392,6 +397,13 @@ def s1_terrace():
     node = next(n for n in ast.parse(src).body
                 if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "S1_TERRACE")
     return ast.literal_eval(node.value)
+
+
+def fe_sigma():
+    """Fe descriptor uncertainty of the descriptor Monte Carlo analysis, from the canonical run's resolved manifest."""
+    m = re.search(r"^\s*Fe_sigma_eV:\s*([-+0-9.eE]+)\s*$",
+                  (NH3_RUN / "manifest_resolved.yaml").read_text(encoding="utf-8"), re.M)
+    return float(m.group(1))
 
 
 def fit(x, y, x0):
@@ -417,7 +429,7 @@ def table5():
     assert np.allclose(g["loo"], d.LOO_predicted_eV, atol=1e-4)
     err = d.error_obs_minus_pred_eV.to_numpy()
     g.update(mae=np.abs(err).mean(), rmse=math.sqrt((err ** 2).mean()))
-    assert abs(g["se"] - 0.2271258177356984) < 1e-9          # the frozen Fe_sigma_eV of NH3-FINAL-1.1
+    assert abs(g["se"] - fe_sigma()) < 1e-9                  # the Fe_sigma_eV of the NH3-FINAL-1.2 run
     strong = (x <= -0.5)
     b = fit(x[strong], y[strong], fe)
     rows = [[r.metal, num(r.terrace_E_N_eV, 4), num(r.step_E_N_observed_eV, 4), num(r.LOO_predicted_eV, 4),
