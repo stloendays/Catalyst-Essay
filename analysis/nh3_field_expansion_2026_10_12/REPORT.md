@@ -1,6 +1,7 @@
-# Ammonia within-paper field sample, batch 2: pre-registered, out-of-sample (2026-10-12)
+# Ammonia within-paper field sample, batch 2: protocol committed before extraction, out-of-sample (2026-10-12)
 
-Protocol: `PROTOCOL.md` (commit a04c3e9, before any extraction). Every number below is in `report_numbers.json`
+Protocol: `PROTOCOL.md`, committed before extraction (local commit a04c3e9; the branch was first pushed after the
+main-text result). Every number below is in `report_numbers.json`
 (`report_numbers.py` collects it from the run folders); per-group detail is in `runs/<set>/group_metrics_printed.csv`.
 
 ## Result (printed-value primary, frozen definition)
@@ -257,9 +258,177 @@ report_numbers.py
 `agent/nh3_field/out_batch2/records_normalized.csv` now holds the merge with SI. The main-text-only records used by
 the runs above stay staged under `runs/batch2*/agent/nh3_field/out/` and in git history (commit 8a55444).
 
+## Verification follow-up (2026-10-13)
+
+Protocol: committed before extraction (local commit a04c3e9; the branch was first pushed after the main-text result).
+
+An independent verification of PR #78 raised two findings, both now closed:
+1. A Qiu 2019 correction wrongly blanked a printed Ru loading.
+2. The screening had not been revisited with the SI.
+
+Before rescoring, round 1 was rerun through the wrapper (`runs/round1_regression_fix/`): 7/33 again. The six output
+files are byte-identical to the frozen ones; the self-check CSV differs exactly as described above.
+
+### Result (printed-value primary, frozen definition)
+
+| | Batch 2 with SI (above) | **Batch 2, follow-up** | Pooled with SI (above) | **Pooled, follow-up** |
+|---|---:|---:|---:|---:|
+| Papers screened / included | 25 / 19 | **25 / 22** | 55 / 49 | **55 / 52** |
+| Papers with ≥ 1 scored group | 6 | **8** | 29 | **31** |
+| Groups scored (entries) | 9 (35) | **11 (40)** | 42 (174) | **44 (179)** |
+| **Laboratory leader ≠ plant-cost leader** | 4 (44.4 %) | **5 (45.5 %)** | 11 (26.2 %) | **12 (27.3 %)** |
+| 95 % CI (paper-cluster bootstrap) | 12.5–77.8 % | **12.5–77.8 %** | 12.8–40.9 % | **14.3–41.7 %** |
+| Mismatches with regret > 5 % (papers) | 4 (3) | 4 (3) | 8 (6) | 8 (6) |
+| Papers contributing disagreements | 3 | 4 | 9 | 10 |
+| Paper-weighted share (CI) | 38.9 % (5.6–72.2 %) | 41.7 % (12.5–75.0 %) | 23.9 % (10.1–39.7 %) | 25.5 % (11.8–40.9 %) |
+| Regret of mismatched groups, median / max | 13.6 % / 25.4 % | 7.6 % / 25.4 % | 10.0 % / 31.5 % | 8.8 % / 31.5 % |
+| Cross-metal groups (papers); of them mismatched | 4 (2); 3 | 4 (2); 3 | 8 (5); 7 | 8 (5); 7 |
+| Mismatch kinds: different metal / fused-Fe reference / same metal and content / different content | 0 / 3 / 1 / 0 | 0 / 3 / 2 / 0 | 3 / 5 / 2 / 1 | 3 / 5 / 3 / 1 |
+| **Commercial fused-Fe references removed** | 1/9 (1/6), 0–42.9 % | **2/11 (2/8), 0–50.0 %** | 6/42 (5/29), 2.9–26.7 % | **7/44 (6/31), 5.0–28.0 %** |
+
+Round 1 alone stays at 7/33, or 5/33 with the fused-Fe references removed (CI 3.2–29.0 %).
+
+The two findings act separately:
+- **Finding 1 alone** (`runs/batch2_vf_corrected`, `runs/pooled_vf`) leaves the counts at 4/9 and 11/42.
+- **Finding 2** adds Lu 2018 and Wu 2020 as scored papers, and one disagreement.
+
+### Finding 1: Qiu 2019 Ru loading
+
+`batch2_si_corrections.csv` had blanked the Ru loading of Ba-Ru SAs/S-1 (two entries, 648 K and 673 K) as "not
+printed". That correction came from the main-text check (`batch2_pdf_check.csv` id 20), but SI Table S2 (p26) prints
+0.23 wt% (ICP-MS) for this catalyst.
+
+Both rows were removed from `batch2_si_corrections.csv` and `batch2_si_corrections_plus_units.csv`; the other
+corrections stay. `batch2_corrections.csv`, the main-text-only file, is unchanged: without the SI the loading was indeed
+not printed.
+
+The entries now carry the extracted 0.27 wt%, and the Qiu 375 °C group grows from 2 to 3 entries. Ba-Ru SAs/S-1 leads
+both rankings (24.74 USD/t), so there is no disagreement. With the printed 0.23 wt% instead, Ba-Ru SAs/S-1 still leads
+both rankings (25.21 USD/t; sensitivity `runs/batch2_vf_qiu023`). Batch 2 stays at 4/9 either way.
+
+### Finding 2: screening revisited with the SI
+
+The pre-registered inclusion rule (PROTOCOL.md section 2) was re-applied, exactly as written, to the four excluded
+papers whose exclusion depended on the SI. Each decision is in `batch2_screening.csv` in the new columns
+`with_si_decision`, `with_si_reason` and `with_si_screened_from`. The other 21 rows are unchanged and marked "not
+revisited".
+
+| Paper | Main-text decision | With SI | Reason (one line) | SI route |
+|---|---|---|---|---|
+| Hasegawa 2018 (10.1021/acs.chemmater.8b01819) | exclude | **include** | SI p5 states H₂/N₂ = 3 (60 mL/min, 0.1 g), 5 wt% Ru, rates recalculated to 0.1 MPa; main Fig. 3b compares Ru@C12A7 and Ru@re-C12A7 against temperature | ACS SI, public Figshare mirror (10.1021/acs.chemmater.8b01819.s001) |
+| Lu 2018 (10.1021/acscatal.8b03743) | exclude | **include** | SI Table S2 p16: four Ru(10 wt%)/Y₅Si₃ catalysts, r(340 °C) at 0.1 MPa with "H₂ : N₂ = 1 : 3" stated | ACS SI, public Figshare mirror (10.1021/acscatal.8b03743.s001) |
+| Wu 2020 (10.1039/c9cc07385j) | exclude | **include** | ESI p2: Ru ≈ 3 wt% (impregnation); ESI Table S4 p11: rates of Ru/Ti-Ce-E, Ru/Ti-Ce-S, Ru/CeO₂ and Ru/TiO₂ at 1 MPa, 400 °C; main Fig. 4 caption: H₂/N₂ 3:1, 36,000 mL g⁻¹ h⁻¹ | RSC ESI through nus-fetch (EZproxy) |
+| Luz 2020 (10.1039/c9cy01303b) | exclude | exclude | ESI Table S3 gives two BaCs-RuC catalysts (Ru 58.5 and 23.1 wt%) with rates at 300/400 °C and 95 bar, but the H₂/N₂ ratio of the test feed is stated in neither the article nor the ESI (only the 75 % H₂/25 % N₂ reduction gas) | RSC ESI through nus-fetch (EZproxy) |
+
+**SI fetch** (`b2.py si-fetch-screen`; `batch2_screening_si_manifest.json`, `fetch_si_batch2_screen.log`):
+- The two RSC ESI files came through the nus-fetch browser profile.
+- For the two ACS papers the profile was in use by another session's batch download. A direct request to the
+  publisher pages returned a bot check, which was not retried. The SI PDFs were instead taken from ACS's public
+  Figshare deposit, with Figshare `resource_doi` equal to the article DOI.
+- SHA-256 of the two ACS files:
+  - `10_1021_acs_chemmater_8b01819__si1.pdf`: 93f9db88…c2b17;
+  - `10_1021_acscatal_8b03743__si1.pdf`: 5706f88a…cd5.
+- Batch 2 now has 25 screened and 22 included papers.
+
+**Extraction** of the three new papers: four passes (`out_batch2/extract_*_vf*.log`), same prompts, schema and model
+settings, `B2_SCREEN=with_si`. Records per paper:
+- Hasegawa: main 26, figures 16, si 0.
+- Lu: main 13, figures 9, si 5, si_figures 16.
+- Wu: main 32, figures 24, si 6.
+
+The pass selector found no SI figure with data for Hasegawa or Wu, so neither had an si_figures call.
+
+**Normalisation:** 792 entries merge from 22 papers.
+
+**Chain** (`runs/batch2_vf_screen_corrected`):
+- 333 entries mapped and 459 outside;
+- 247 primary entries with a cost and 85 flagged;
+- after deduplication, 206 primary entries from 18 papers;
+- the set's median NH₃ fraction is 0.097 %.
+
+The two new scored groups:
+
+| Group | n | Paper leader (USD/t) | Plant leader (USD/t) | Regret | Kind | Source |
+|---|---:|---|---|---:|---|---|
+| Lu 2018, 340 °C, 0.1 MPa | 2 | Ru(10 wt%)/Y₅Si₃-NPs (22.23) | Ru(10 wt%)/Y₅Si₃ bulk (21.77) | 2.1 % | same metal and metal content | main text p3 |
+| Wu 2020, 400 °C, 1 MPa | 2 | Ru/CeO₂ | same (22.22) | 0 | – | ESI Table S4 |
+
+- **Hasegawa 2018** contributes no scored group: all of its rates are plot readings. It stays counted as included,
+  as PROTOCOL.md section 2 requires.
+- **Wu 2020:** the merge filled the printed Table S4 rates of Ru/Ti-Ce-E and Ru/Ti-Ce-S into the main-text Fig. 4a
+  entries. It did not fill the pressure, which the Fig. 4 caption does not give, so these two entries fall outside
+  ("no T or P").
+  - Sensitivity `runs/batch2_vf_sens_wu_pressure` (file `batch2_vf_sens_wu_pressure.csv`) sets 1 MPa from Table S4.
+  - The printed primary is unchanged, because the temperature of these entries is a Fig. 4a plot reading.
+  - Counts stay at 5/11 and 12/44.
+- **Lu 2018:** the extraction left H₂/N₂ blank, and the frozen chain used its default of 3.
+
+### Accuracy check of the new papers (AI-assisted)
+
+`batch2_vf_pdf_check.csv`: 10 values per newly included paper (`pdf_check_sample_vf.py`, seed 20261013). It uses the
+population and lookup of `pdf_check_sample.py` on the uncorrected run `runs/batch2_vf_screen`.
+
+- **Lu 2018:** 10 printed primary values.
+- **Wu 2020:** all 10 of its printed primary values.
+- **Hasegawa 2018:** it has no printed primary value, so its 10 come from its primary entries in the all-entries run.
+  These are plot readings, judged correct within ±5 % of the point read from the figure rendered at 6×.
+
+**29/30 correct** (Lu 10/10, Wu 10/10, Hasegawa 9/10). The wrong value is a plot reading in Hasegawa Fig. 3b
+(Ru@C12A7 at 360 °C): 3.2 extracted, 3.45 mmol g⁻¹ h⁻¹ read. It was corrected in `batch2_si_corrections.csv` (3 field
+rows). It is not a printed value, so it does not enter the primary.
+
+### Sensitivities
+
+All give 5/11 for batch 2 and 12/44 pooled:
+- uncorrected records (`runs/batch2_vf_screen`, `runs/pooled_vf_screen_uncorrected`);
+- unparsed units converted (`runs/batch2_vf_screen_corrected_units`, `runs/pooled_vf_screen_units`);
+- one chain run over the concatenated records (`runs/pooled_vf_screen_single_chain`);
+- the Wu pressure fill (`runs/batch2_vf_sens_wu_pressure`, `runs/pooled_vf_sens_wu_pressure`).
+
+### Variants, follow-up: groups with a different winner / groups (papers with one / papers), CI
+
+| Variant | Batch 2, follow-up | Pooled, follow-up |
+|---|---|---|
+| Rate per g catalyst | 5/11 (4/8), 12.5–77.8 % | 12/44 (10/31), 14.3–41.7 % |
+| Rate per g metal | 6/11 (5/8), 25.0–87.5 % | 16/44 (12/31), 20.9–52.1 % |
+| 90 % Ru recovery | 3/11 (3/8), 10.0–46.2 % | 10/44 (9/31), 11.3–35.0 % |
+| Bed density 500 kg m⁻³ | 5/11 (4/8) | 12/44 (10/31) |
+| Bed density 2,500 kg m⁻³ | 6/11 (5/8) | 11/44 (9/31) |
+| Commercial fused-Fe references removed | 2/11 (2/8), 0–50.0 % | 7/44 (6/31), 5.0–28.0 % |
+| Measured at ≥ 5 MPa | 0/1 (0/1) | 1/5 (1/5), 0–60 % |
+| Without the paper with the most groups | 4/8 (3/7) | 11/40 (9/30) |
+| All entries (plot readings included) | 11/53 (7/15), 6.8–45.0 % | 55/177 (20/43), 17.8–45.3 % |
+
+### Tokens and route (follow-up)
+
+- 10 calls and 274,511 tokens (177,062 prompt, 97,449 output), USD 3.81 at USD 5 / 30 per M.
+- The batch-2 log now totals 2,590,674 tokens, within the protocol's 5 M cap.
+- All calls went through API-YES (`NH3_API_YES_ONLY=1`), and API-YES did not run out.
+- At most two streams ran at once, with about 4.9 GB of RAM free.
+
+Commands (with `D:\Research\CatalystForge\.venv\Scripts\python.exe`; nus-fetch interpreter for the fetch):
+
+```
+score.py chain round1_regression_fix ../../agent/nh3_field/out/records_normalized.csv
+score.py chain batch2_vf_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set.txt --corrections batch2_si_corrections.csv   # finding 1 only (19-paper records)
+score.py pool pooled_vf ../nh3_field_2026_10_06 runs/batch2_vf_corrected
+nus-fetch python: b2.py si-fetch-screen 10.1039/c9cc07385j 10.1039/c9cy01303b   # ACS SI: Figshare (see above)
+b2.py si-text
+NH3_API_YES_ONLY=1 B2_SCREEN=with_si b2.py extract --pass main|figures|si|si_figures --api-yes --token-cap 5000000 --doi ...
+B2_SCREEN=with_si b2.py normalize
+score.py chain batch2_vf_screen ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt
+score.py chain batch2_vf_screen_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set_vf.txt --corrections batch2_si_corrections.csv
+score.py pool pooled_vf_screen ../nh3_field_2026_10_06 runs/batch2_vf_screen_corrected
+pdf_check_sample_vf.py
+report_numbers.py
+```
+
+The finding-1 runs (`runs/batch2_vf_corrected*`, `runs/pooled_vf*` without `_screen`) used the 19-paper records. They
+are staged in each run folder. `agent/nh3_field/out_batch2/records_normalized.csv` now holds the 22-paper merge.
+
 ## Files
 
-- `PROTOCOL.md` (pre-registration)
+- `PROTOCOL.md` (protocol committed before extraction)
 - `batch2_candidates.txt`, `batch2_screening.csv`, `batch2_paper_set.txt`
 - `b2.py`: pipeline wrapper (paper list and output directory only)
 - `score.py`: wrapper around the frozen scoring code (input records and output folder only; applies a corrections file)
@@ -267,6 +436,9 @@ the runs above stay staged under `runs/batch2*/agent/nh3_field/out/` and in git 
 - `unit_completions.py`, `batch2_unit_completions.csv`, `batch2_corrections_plus_units.csv`
 - `runs/<set>/`: the frozen outputs of each run, and the staged input records under `agent/nh3_field/out/`
 - `report_numbers.py`, `report_numbers.json`
+- Follow-up: `batch2_screening_si_manifest.json`, `fetch_si_batch2_screen.log`, `batch2_paper_set_vf.txt`,
+  `pooled_paper_set_vf.txt`, `pdf_check_sample_vf.py`, `batch2_vf_pdf_check_sample.csv`, `batch2_vf_pdf_check.csv`,
+  `batch2_vf_sens_wu_pressure.csv`, `batch2_vf_sens_qiu023.csv`
 - Logs: `runs_*.log`, `fetch_si_batch2.log`, `agent/nh3_field/out_batch2/extract_*.log`
 
 Commands, run with `D:\Research\CatalystForge\.venv\Scripts\python.exe`:

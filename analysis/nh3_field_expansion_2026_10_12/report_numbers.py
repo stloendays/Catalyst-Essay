@@ -1,7 +1,8 @@
 """Collect every number of REPORT.md from the run folders -> report_numbers.json (no new computation beyond counting).
 
 Sets: round 1 (frozen, analysis/nh3_field_2026_10_06), batch 2 (runs/batch2_corrected; uncorrected runs/batch2),
-pooled (runs/pooled), and the sensitivities runs/batch2_corrected_units, runs/pooled_units, runs/pooled_single_chain.
+pooled (runs/pooled), and the sensitivities runs/batch2_corrected_units, runs/pooled_units, runs/pooled_single_chain;
+the SI sets (runs/*_si*) and the verification follow-up (runs/*_vf*).
 Cross-metal group: a scored group whose entries hold more than one metal (a fused-Fe reference counts as Fe).
 """
 import json
@@ -20,7 +21,18 @@ SETS = {"round1": REPO / "analysis" / "nh3_field_2026_10_06", "batch2": HERE / "
         "batch2_si": HERE / "runs" / "batch2_si_corrected", "pooled_si": HERE / "runs" / "pooled_si",
         "batch2_si_uncorrected": HERE / "runs" / "batch2_si", "pooled_si_uncorrected": HERE / "runs" / "pooled_si_uncorrected",
         "batch2_si_units": HERE / "runs" / "batch2_si_corrected_units", "pooled_si_units": HERE / "runs" / "pooled_si_units",
-        "pooled_si_single_chain": HERE / "runs" / "pooled_si_single_chain"}
+        "pooled_si_single_chain": HERE / "runs" / "pooled_si_single_chain",
+        # verification follow-up (2026-10-13): Qiu loading correction removed (finding 1) ...
+        "batch2_vf_qiu": HERE / "runs" / "batch2_vf_corrected", "pooled_vf_qiu": HERE / "runs" / "pooled_vf",
+        # ... and the screening revisited with the SI (finding 2; 22 included papers)
+        "batch2_vf": HERE / "runs" / "batch2_vf_screen_corrected", "pooled_vf": HERE / "runs" / "pooled_vf_screen",
+        "batch2_vf_uncorrected": HERE / "runs" / "batch2_vf_screen",
+        "pooled_vf_uncorrected": HERE / "runs" / "pooled_vf_screen_uncorrected",
+        "batch2_vf_units": HERE / "runs" / "batch2_vf_screen_corrected_units",
+        "pooled_vf_units": HERE / "runs" / "pooled_vf_screen_units",
+        "pooled_vf_single_chain": HERE / "runs" / "pooled_vf_screen_single_chain",
+        "batch2_vf_wu_pressure": HERE / "runs" / "batch2_vf_sens_wu_pressure",
+        "pooled_vf_wu_pressure": HERE / "runs" / "pooled_vf_sens_wu_pressure"}
 CHAIN_KEYS = ("records_in", "papers_with_records", "mapped", "primary_with_cost", "flagged", "outside", "outside_reasons",
               "y_default_median", "primary_entries_after_dedup", "papers_with_primary", "removed_as_duplicate",
               "fused_reference_entries_primary", "primary_below_Fe")
@@ -88,6 +100,27 @@ def main():
     out["si_fetch"] = dict(status={k: int(v) for k, v in pd.Series([r["status"] for r in sim]).value_counts().items()},
                            none=[r["doi"] for r in sim if r["status"] != "ok"])
     out["si_corrections"] = int(len(pd.read_csv(HERE / "batch2_si_corrections.csv")))
+    # verification follow-up (2026-10-13)
+    out["screening_with_si"] = dict(
+        included=int((scr.with_si_decision == "include").sum()),
+        changed={r.doi: dict(decision=r.with_si_decision, reason=r.with_si_reason, source=r.with_si_screened_from)
+                 for r in scr[scr.with_si_screened_from != "not revisited"].itertuples()})
+    ssm = json.loads((HERE / "batch2_screening_si_manifest.json").read_text(encoding="utf-8"))
+    out["screening_si_fetch"] = {r["doi"]: dict(status=r["status"], route=r["route"]) for r in ssm}
+    chk3 = pd.read_csv(HERE / "batch2_vf_pdf_check.csv")
+    out["vf_pdf_check"] = dict(n=int(len(chk3)), verdicts=chk3.verdict.value_counts().to_dict(),
+                               by_paper={d: g.verdict.value_counts().to_dict() for d, g in chk3.groupby("doi")},
+                               by_field=chk3.field.value_counts().to_dict())
+    s4 = json.loads((SETS["batch2_vf"] / "summary.json").read_text(encoding="utf-8"))
+    out["batch2_vf_chain"] = {k: s4[k] for k in CHAIN_KEYS}
+    vf = tok.timestamp >= "2026-10-13T14"
+    out["tokens_vf_task"] = dict(calls=int(vf.sum()), total=int(tok[vf].total_tokens.sum()),
+                                 prompt=int(tok[vf].prompt_tokens.sum()), output=int(tok[vf].completion_tokens.sum()),
+                                 by_doi_pass=tok[vf].groupby(["doi", "pass"]).total_tokens.sum().astype(int)
+                                 .rename(lambda x: x, level=0).to_dict(), route="api-yes only",
+                                 cost_usd_at_5_30_per_M=round(tok[vf].prompt_tokens.sum() / 1e6 * 5
+                                                              + tok[vf].completion_tokens.sum() / 1e6 * 30, 2))
+    out["tokens_vf_task"]["by_doi_pass"] = {f"{d} {p_}": v for (d, p_), v in out["tokens_vf_task"]["by_doi_pass"].items()}
     out["corrections"] = int(len(pd.read_csv(HERE / "batch2_corrections.csv")))
     out["unit_completions"] = int(len(pd.read_csv(HERE / "batch2_unit_completions.csv")))
     (HERE / "report_numbers.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")

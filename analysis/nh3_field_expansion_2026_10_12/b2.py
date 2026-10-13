@@ -8,11 +8,14 @@ other definition come from the imported, unmodified agent modules.
     python b2.py extract --pass main --api-yes [--doi ...]   # extract_records.py -> out_batch2/raw*/
     python b2.py normalize                # normalize.py -> out_batch2/records_normalized.csv
     nus-fetch python: b2.py si-fetch      # fetch_si.py on the included papers; manifest -> batch2_si_manifest.json
+    nus-fetch python: b2.py si-fetch-screen DOI ...   # SI of excluded papers for the screening revisit (PROTOCOL 2);
+                                          # manifest -> batch2_screening_si_manifest.json
 
 NH3_API_YES_ONLY=1 restricts extract to the API-YES route (no fallback to the advisor key; the run stops when API-YES
 is used up). It narrows llm_route.ROUTES in this process only; llm_route.py itself is unchanged.
 
-The batch-2 list is batch2_candidates.txt (text) or the included rows of batch2_screening.csv (extract, normalize).
+The batch-2 list is batch2_candidates.txt (text) or the included rows of batch2_screening.csv (extract, normalize);
+B2_SCREEN=with_si takes the column with_si_decision (screening revisited with the SI, 2026-10-13) instead of decision.
 """
 from __future__ import annotations
 
@@ -33,8 +36,11 @@ def candidates() -> dict[str, str]:
 
 
 def included() -> dict[str, str]:
+    """B2_SCREEN=with_si selects the screening revisited with the SI (column with_si_decision); default: decision."""
+    import os
+    col = "with_si_decision" if os.environ.get("B2_SCREEN") == "with_si" else "decision"
     with (HERE / "batch2_screening.csv").open(encoding="utf-8") as f:
-        return {r["doi"].lower(): "batch2" for r in csv.DictReader(f) if r["decision"] == "include"}
+        return {r["doi"].lower(): "batch2" for r in csv.DictReader(f) if r[col] == "include"}
 
 
 def run_text(si: bool):
@@ -49,6 +55,13 @@ def run_si_fetch(argv):
     import fetch_si as F
     F.MANIFEST = HERE / "batch2_si_manifest.json"
     sys.argv = [sys.argv[0]] + [a for d in included() for a in ("--doi", d)] + argv
+    F.main()
+
+
+def run_si_fetch_screen(dois):
+    import fetch_si as F
+    F.MANIFEST = HERE / "batch2_screening_si_manifest.json"
+    sys.argv = [sys.argv[0]] + [a for d in dois for a in ("--doi", d)]
     F.main()
 
 
@@ -96,6 +109,8 @@ if __name__ == "__main__":
         run_text(True)
     elif cmd == "si-fetch":
         run_si_fetch(rest)
+    elif cmd == "si-fetch-screen":
+        run_si_fetch_screen(rest)
     elif cmd == "extract":
         run_extract(rest)
     elif cmd == "normalize":
