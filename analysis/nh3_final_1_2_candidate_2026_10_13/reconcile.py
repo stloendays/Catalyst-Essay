@@ -122,7 +122,7 @@ def check_gbnc(eq):
     return eq
 
 
-def render(modes, swap, domain, out):
+def render(modes, swap, domain, gbnc, out):
     out.mkdir(parents=True, exist_ok=True)
     rows = []
     for name in ("frozen", "NIST", "GB"):
@@ -194,6 +194,21 @@ def render(modes, swap, domain, out):
         "- The fitted catalyst is 3.2 wt% Ru/C; the assumed constant rate per kg Ru at 8 wt% is additional unvalidated extrapolation.",
         "- Full pressure profile and all eight scenarios: SOURCE_DOMAIN.md and source_domain.csv in the kinetics artifact.",
         "",
+        "## Controlled GB ideal -> Newton-Cooper reactor-equilibrium reoptimization",
+        "",
+        "**Identical 50-300 bar pressure grid, measured Fe/Ru rates and process-cost parameters. This corrects reaction-equilibrium fugacity only; not a nonideal industrial EOS.**",
+        "",
+        "| Quantity | GB ideal loop | GB fugacity-closed reaction |",
+        "|---|---:|---:|",
+        f'| Fe model minimum (USD/t) | {gbnc["rows"]["Fe"]["ideal"]["cost"]:.3f} | {gbnc["rows"]["Fe"]["NC_equilibrium"]["cost"]:.3f} |',
+        f'| Benchmark Ru model minimum (USD/t) | {gbnc["rows"]["Ru_benchmark"]["ideal"]["cost"]:.3f} | {gbnc["rows"]["Ru_benchmark"]["NC_equilibrium"]["cost"]:.3f} |',
+        f'| Ru/C vs Fe, 95.55% recovery, 0%-finance (USD/t) | {gbnc["rows"]["supported_cashflow 0% r 0.9555"]["ideal_Ru_minus_Fe_global"]:+.3f} | {gbnc["rows"]["supported_cashflow 0% r 0.9555"]["NC_Ru_minus_Fe_global"]:+.3f} |',
+        f'| Ru/C vs Fe, 95.55% recovery, 12%-finance (USD/t) | {gbnc["rows"]["supported_cashflow 12% r 0.9555"]["ideal_Ru_minus_Fe_global"]:+.3f} | {gbnc["rows"]["supported_cashflow 12% r 0.9555"]["NC_Ru_minus_Fe_global"]:+.3f} |',
+        "",
+        f'- GB ideal process states: {gbnc["states_ideal"]}; fugacity-reaction-equilibrium states: {gbnc["states_NC"]}.',
+        "- Finance and ranking signs are computed and could flip in other physically justified models; no economic winner is hard-coded in CI.",
+        "- Fitted pressure range, supported-catalyst activity scaling, condensation, compressor EOS and real heat-transfer limitations remain unvalidated.",
+        "",
         "## Publication gates (NOT satisfied by CI)",
         "",
         "1. Supervisor/author choose thermochemical convention and sign off a single consistent NH3-FINAL-1.2 core.",
@@ -211,11 +226,13 @@ def main():
     p.add_argument("--thermo", type=Path,required=True)
     p.add_argument("--kinetics", type=Path,required=True)
     p.add_argument("--domain", type=Path,required=True)
+    p.add_argument("--gbnc", type=Path,required=True)
     p.add_argument("--out", type=Path,required=True)
     a=p.parse_args()
     domain=load(a.domain)
+    gbnc=check_gbnc(load(a.gbnc))
     modes=check(load(a.thermo),load(a.kinetics),domain)
-    lines=render(modes,load(a.kinetics),domain,a.out)
+    lines=render(modes,load(a.kinetics),domain,gbnc,a.out)
     print("\n".join(lines))
 
 if __name__ == "__main__":
