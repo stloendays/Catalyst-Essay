@@ -125,6 +125,138 @@ None of the checked papers says whether a pressure above 0.1 MPa is gauge or abs
   - Two calls left no usage record, so their usage is unknown: the call refused for lack of credit, and one figures
     stream (Zhang 2019) that ended without a completion event. The figures stream was rerun successfully.
 
+## With Supporting Information (2026-10-13)
+
+Protocol step 1 foresaw SI, but the first batch-2 run had to use the main text only because the NUS proxy was logged
+out. Once the session was valid again, the SI of the 19 included papers was fetched and the frozen pipeline repeated:
+the `si` and `si_figures` passes (same prompts, schema and model settings), `normalize.py` and the frozen scoring
+through the same wrappers. Before batch 2 was rescored, round 1 was rerun through the wrapper
+(`runs/round1_regression_si/`): 7/33, and all six output files are byte-identical to the frozen ones. The screening
+decisions were not revisited.
+
+### Result (printed-value primary, frozen definition)
+
+| | Round 1 (frozen) | Batch 2, main text only | **Batch 2 with SI** | Pooled, main text only | **Pooled with SI** |
+|---|---:|---:|---:|---:|---:|
+| Papers with ≥ 1 scored group | 23 | 3 | **6** | 26 | **29** |
+| Groups scored (entries) | 33 (139) | 5 (16) | **9 (35)** | 38 (155) | **42 (174)** |
+| **Laboratory leader ≠ plant-cost leader** | 7 (21.2 %) | 2 (40 %) | **4 (44.4 %)** | 9 (23.7 %) | **11 (26.2 %)** |
+| 95 % CI (paper-cluster bootstrap) | 7.1–36.7 % | 0–100 % | **12.5–77.8 %** | 11.1–37.8 % | **12.8–40.9 %** |
+| Mismatches with regret > 5 % (papers) | 4 (3) | 2 (2) | 4 (3) | 6 (5) | 8 (6) |
+| Papers contributing disagreements | 6 | 2 | 3 | 8 | 9 |
+| Paper-weighted share (CI) | 19.9 % (5.8–36.2 %) | 44.4 % (0–100 %) | 38.9 % (5.6–72.2 %) | 22.8 % (8.7–39.1 %) | 23.9 % (10.1–39.7 %) |
+| Regret of mismatched groups, median / max | 10.0 % / 31.5 % | 15.4 % / 25.4 % | 13.6 % / 25.4 % | 10.0 % / 31.5 % | 10.0 % / 31.5 % |
+| Cross-metal groups (papers); of them mismatched | 4 (3); 4 | 2 (1); 1 | 4 (2); 3 | 6 (4); 5 | 8 (5); 7 |
+| Mismatch kinds: different metal / fused-Fe reference / same metal and content / different content | 3 / 2 / 1 / 1 | 0 / 1 / 1 / 0 | 0 / 3 / 1 / 0 | 3 / 3 / 2 / 1 | 3 / 5 / 2 / 1 |
+
+Same CI method as above (10,000 paper resamples, seed 20261006). Sensitivities, all at 4/9 for batch 2 and 11/42 for
+the pool:
+- uncorrected records (`runs/batch2_si`, `runs/pooled_si_uncorrected`);
+- the unparsed units converted (`runs/batch2_si_corrected_units`, `runs/pooled_si_units`);
+- one chain run over the concatenated records (`runs/pooled_si_single_chain`).
+
+### The nine batch-2 groups with SI
+
+| Group | n | Paper leader (USD/t) | Plant leader (USD/t) | Regret | Kind | Source |
+|---|---:|---|---|---:|---|---|
+| Zheng 2019 (10.1002/anie.201907171), 459 °C, 1 MPa | 3 | Ba-Ru-Li/AC, 4.8 wt% Ru (22.16) | Mittasch's Fe (17.67) | 25.4 % | fused-Fe reference vs supported catalyst | main text |
+| Hattori 2020 (Nat. Commun., 10.1038/s41467-020-15868-8), 340 °C, 0.1 MPa | 8 | Ru (10%)/Ba-Ca(NH₂)₂ (16.95) | commercial Fe catalyst (14.18) | 19.5 % | fused-Fe reference vs supported catalyst | SI Tables 2–4 |
+| Hattori 2020, 300 °C, 0.1 MPa | 7 | Ru (12%)/CaFH (15.30) | commercial Fe catalyst (14.21) | 7.6 % | fused-Fe reference vs supported catalyst | SI Table 2 |
+| Abe 2017 (10.1021/acs.jpcc.7b07268), 340 °C, 0.1 MPa | 2 | Ru/Ca₂NH, 0.1 wt% (27.18) | Ru/CaNH, 0.1 wt% (25.79) | 5.4 % | same metal and metal content | main text |
+| Zheng 2019, 400 °C, 1 MPa | 2 | Ba-Ru-Li/AC | same | 0 | – | main text |
+| Zheng 2019, 459 °C, 5 MPa | 4 | Ru-Li/MgO | same | 0 | – | main text |
+| Ogura 2018 (10.1021/acssuschemeng.8b04683), 400 °C, 1 MPa | 5 | Ru/La₀.₅Pr₀.₅O₁.₇₅_650red | same | 0 | – | main text |
+| Qiu 2019 (10.1021/acs.chemmater.9b03099), 375 °C, 0.1 MPa | 2 | Ru SAs/S-1 | same | 0 | – | SI Table S2 |
+| Ye 2020 (10.1021/jacs.0c06624), 400 °C, 0.9 MPa | 2 | Ni/CeN NPs | same | 0 | – | SI Table S2 |
+
+The five main-text groups are unchanged. The SI adds four groups from three papers. Two of them disagree, and in both
+the commercial fused-Fe reference in Hattori 2020 is the plant-cost leader. At 340 °C the paper's highest printed rate,
+Ru/CaFH (15,000 µmol g⁻¹ h⁻¹), is excluded by the frozen "outlet near equilibrium" flag, so Ru (10%)/Ba-Ca(NH₂)₂ leads
+that group.
+
+### Variants with SI: groups with a different winner / groups (papers with one / papers), CI
+
+| Variant | Batch 2 with SI | Pooled with SI |
+|---|---|---|
+| Rate per g catalyst | 4/9 (3/6), 12.5–77.8 % | 11/42 (9/29), 12.8–40.9 % |
+| Rate per g metal | 5/9 (4/6), 25.0–88.9 % | 15/42 (11/29), 20.0–52.1 % |
+| 90 % Ru recovery | 3/9 (3/6), 12.5–57.1 % | 10/42 (9/29), 11.6–37.0 % |
+| Bed density 500 kg m⁻³ | 4/9 (3/6) | 11/42 (9/29) |
+| Bed density 2,500 kg m⁻³ | 4/9 (3/6) | 9/42 (7/29) |
+| Commercial fused-Fe references removed | 1/9 (1/6), 0–42.9 % | 6/42 (5/29), 2.9–26.7 % |
+| Measured at ≥ 5 MPa | 0/1 (0/1) | 1/5 (1/5), 0–60 % |
+| Without the paper with the most groups | 3/6 (2/5) | 10/38 (8/28) |
+| All entries (plot readings included) | 6/47 (5/12), 3.4–32.3 % | 50/171 (18/40), 15.8–43.6 % |
+
+### Pipeline counts with SI
+
+- **SI fetch** (`fetch_si.py` through `b2.py si-fetch`, nus-fetch browser profile, read-only; `batch2_si_manifest.json`,
+  `fetch_si_batch2_si.log`):
+  - ok for 17 papers;
+  - no SI link on the publisher page for 2 papers, Tarka 2015 (10.1002/cctc.201500309) and Raróg-Pilecka 2011
+    (10.1007/s10562-011-0564-8);
+  - 0 failures and no bot check.
+
+  One Word SI (Zhao 2017) was exported with `si_docx2pdf.ps1`. One Nature Communications file was the peer-review file,
+  which was moved to `si/_not_si/` as in round 1.
+- **Extraction** (`out_batch2/raw_si/`, `raw_si_figures/`):
+  - si: 17 calls, 279 records;
+  - si_figures: 11 calls, 176 records;
+  - 7 calls returned no records (characterisation-only SI or figures).
+
+  With the main-text records, 677 entries merge from 19 papers: main 336, figures 163, SI 149, SI figures 29; 76 entries
+  carry fields filled from another pass.
+- **Chain** (`runs/batch2_si_corrected`):
+  - 290 entries mapped and 387 outside: 363 without a metal content, 174 without a rate per g catalyst, 47 without a
+    single model metal, 16 without T or P;
+  - 204 primary entries with a cost and 85 flagged;
+  - after deduplication, 186 primary entries from 15 papers;
+  - the set's median NH₃ fraction is 0.078 %.
+- **Unparsed units:** only two new values, both "normalized NH₃ synthesis rate" (Zhang 2019, SI Fig. S3), correctly left
+  unparsed. `batch2_si_corrections_plus_units.csv` is therefore the main-text units file plus the SI correction below.
+
+### Accuracy check of the SI-derived values (AI-assisted)
+
+`batch2_si_pdf_check.csv` is a new random sample (`pdf_check_sample_si.py`, seed 20261013) of 20 of the 108 printed
+values that come from the SI (source pass `si` after the merge) and enter the batch-2 primary. As in
+`pdf_check_sample.py`, the sample was drawn from the uncorrected run (`runs/batch2_si`). It holds 5 rates, 5 P, 4 WHSV,
+4 metal wt% and 2 T values. Each value was checked against the cited SI or main-text page.
+
+**19/20 correct (0.95, 95 % CI 0.75–1.00, Clopper–Pearson).** The wrong value comes from Zheng 2019. The SI prints
+"63.0 mmol g⁻¹ h⁻¹" for Ba-Ru/AC at 0 % Li in main-text Fig. 1a, which was measured at 5 MPa (Fig. 1a caption). The
+extraction took 1 MPa from the Fig. S11 caption, and the merge attached the value to the 10-bar point of Fig. S3b.
+`batch2_si_corrections.csv` (the two main-text corrections plus 5 field rows for this entry) restores that point's own
+plot reading, about 16,000. The entry then leaves the printed primary, and Ba-Ru-Li/AC is again the paper leader of
+that group. The disagreement count does not change: Mittasch's Fe is the plant leader before and after the correction,
+and the regret is 24.5 % before and 25.4 % after.
+
+### Tokens and route (SI task)
+
+- 28 calls and 807,563 tokens (496,070 prompt, 311,493 output). This is 27 % of the task's 3 M cap and USD 11.83 at
+  USD 5 / 30 per M.
+- The batch-2 log now totals 2,316,163 tokens, within the protocol's 5 M cap.
+- All calls went through API-YES. `NH3_API_YES_ONLY=1` (in `b2.py`) removed the fallback to the advisor key for this
+  run, and `llm_route.py` is unchanged. API-YES did not run out.
+- The calls ran on one stream (2.5–3 GB free RAM).
+
+Commands (in addition to those below):
+
+```
+nus-fetch python: b2.py si-fetch ; pwsh -File agent/nh3_field/si_docx2pdf.ps1
+b2.py si-text
+NH3_API_YES_ONLY=1 b2.py extract --pass si|si_figures --api-yes --token-cap 4508600
+b2.py normalize
+score.py chain round1_regression_si ../../agent/nh3_field/out/records_normalized.csv
+score.py chain batch2_si_corrected ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set.txt --corrections batch2_si_corrections.csv
+score.py chain batch2_si ../../agent/nh3_field/out_batch2/records_normalized.csv --paper-set batch2_paper_set.txt
+score.py pool pooled_si ../nh3_field_2026_10_06 runs/batch2_si_corrected
+pdf_check_sample_si.py
+report_numbers.py
+```
+
+`agent/nh3_field/out_batch2/records_normalized.csv` now holds the merge with SI. The main-text-only records used by
+the runs above stay staged under `runs/batch2*/agent/nh3_field/out/` and in git history (commit 8a55444).
+
 ## Files
 
 - `PROTOCOL.md` (pre-registration)
