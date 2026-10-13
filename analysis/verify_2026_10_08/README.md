@@ -45,6 +45,7 @@ python analysis/verify_2026_10_08/meoh_decomposition.py          # ~5 min on 4 w
 python analysis/verify_2026_10_08/meoh_conversion_sensitivity.py # ~30 min on 4 workers
 python analysis/verify_2026_10_08/reversal_kinds.py
 NH3_HARNESS=<harness root> python analysis/verify_2026_10_08/nh3_printed.py
+NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 harness root> python analysis/verify_2026_10_08/nh3_printed.py   # -> nh3_1_2/
 python analysis/verify_2026_10_08/errata_classification.py
 python analysis/verify_2026_10_08/errata_adjudication.py
 python analysis/verify_2026_10_08/leave_one_paper_out.py
