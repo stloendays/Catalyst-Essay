@@ -36,6 +36,46 @@ BOOT_N, BOOT_SEED = 10_000, 20261006       # frozen bootstrap (meoh_candidates.b
 NEW_SEED = 20261013                        # resamples of the new batch (PREREGISTRATION.md section 4)
 
 
+NEW_RECORDS = HERE / "out" / "records_normalized.csv"
+CORRECTIONS = HERE / "corrections.csv"
+
+
+def _isnum(s) -> bool:
+    try:
+        float(s)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def load_new_records(corrected: bool = True, log: list | None = None) -> pd.DataFrame:
+    """The new batch's normalized records (frozen read_records convention); with corrected=True the PDF-check
+    corrections (corrections.csv: doi, entry_label, field, extracted, corrected, source, note) replace single fields,
+    each of which must match exactly one record."""
+    from meoh_candidates import read_records
+    rec = read_records(NEW_RECORDS)
+    if not corrected or not CORRECTIONS.exists():
+        return rec
+    cor = pd.read_csv(CORRECTIONS, keep_default_na=False, na_values=[""], dtype=str)
+    rec = rec.copy()
+    for r in cor.to_dict("records"):
+        m = (rec.doi == r["doi"]) & (rec.entry_label == r["entry_label"])
+        if m.sum() != 1:
+            raise SystemExit(f"correction does not match exactly one record: {r}")
+        new = r["corrected"]
+        old = rec.loc[m, r["field"]].iloc[0]
+        rec[r["field"]] = rec[r["field"]].astype(object)
+        rec.loc[m, r["field"]] = (float(new) if _isnum(new) else new) if new not in ("", None) else np.nan
+        if log is not None:
+            log.append(dict(doi=r["doi"], entry_label=r["entry_label"], field=r["field"], before=old, after=new))
+    for c in set(cor["field"]):      # restore the numeric dtype of a corrected numeric column
+        if rec[c].dtype == object:
+            conv = pd.to_numeric(rec[c], errors="coerce")
+            if conv.notna().sum() == rec[c].notna().sum():
+                rec[c] = conv
+    return rec
+
+
 def group_table(cand: pd.DataFrame, scen: str) -> pd.DataFrame:
     """One row per scored group (frozen convention: entries with a finite cost in the scenario's column; groups with
     at least two of them). Leaders as meoh_candidates.group_metrics scores them (a tied STY lead counts as the
