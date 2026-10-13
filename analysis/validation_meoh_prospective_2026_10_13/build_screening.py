@@ -40,7 +40,10 @@ def main():
             else:
                 st = si[r.doi]["status"]
                 row.update(s4=st, s4_files=len(si[r.doi].get("files", [])))
-                if st != "ok":
+                deferred = st == "fail" and "not logged in" in str(si[r.doi].get("note", ""))
+                if deferred:          # DEVIATIONS.md D1: session expired, criterion 5 deferred (PR #78 precedent)
+                    row["s4"] = "deferred (EZproxy session expired)"
+                if st != "ok" and not deferred:
                     row.update(decision="exclude", reason=f"criterion 5: SI not retrieved ({st}; {si[r.doi].get('note', '')})")
                 elif n_inc >= MAX_INCLUDED:
                     row.update(decision="not counted", reason="below the 40th inclusion")
