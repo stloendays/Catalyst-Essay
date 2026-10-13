@@ -2,6 +2,8 @@
 
 `run_mc_ru_actual.py` writes `draws.csv` (5,000 rows) and `summary.json`.
 
+Model switch (2026-10-13): `NH3_MODEL=1.1` (default) writes the files of this folder, byte-identical to the committed ones; `NH3_MODEL=1.2` writes NH3-FINAL-1.2 outputs to `nh3_1_2/` (command, re-derivations and the 1.1 → 1.2 table in `nh3_1_2/README.md`).
+
 ## Literature parameters (2026-10-07) — current outputs
 
 `draws.csv` and `summary.json` now use the literature-checked inputs (author decision 2026-10-07; primary-literature
