@@ -1,10 +1,15 @@
 # NH3 Fe–Ru Catalyst Metal Lifecycle DCF Audit (2026-10-12)
 
-> **Editorial hold (2026-10-12, author decision).** Ruthenium metal recovery is optional, not mandatory. The baseline 15-metal Fe–Ru comparison uses no recovered-metal credit; promoted/supported Ru/C with 90–95.55% recovery is an explicitly opt-in scenario. The lifecycle financing/discounted cash-flow sensitivity is **deferred from the active manuscript**, Discussion, Methods and Supplementary Information, and should not be presented as eliminating the baseline atomic-to-economic ranking inversion.
+> **Manuscript status (supervisor decision, 2026-10-12).** The supervisor decided that both accounting conventions for the Ru inventory are reported wherever the KAAP comparison appears ([docs/SUPERVISOR_FEEDBACK_2026-10-12.md](SUPERVISOR_FEEDBACK_2026-10-12.md), item 3): the benchmark convention, which charges the Ru inventory only for the metal lost at each replacement, and the lifecycle cash flow of this note, which finances the inventory at the 12% equipment rate (Ru 21.79 against 19.14 US dollars per tonne for Fe in the KAAP-type loop; parity below 0.56% per year). The lifecycle financing is therefore no longer deferred from the manuscript. Ruthenium recovery stays optional: the baseline 15-metal Fe–Ru comparison uses no recovered-metal credit, promoted/supported Ru/C with 90–95.55% recovery is an opt-in scenario, and neither convention removes the baseline atomic-to-economic ranking inversion. The manuscript reports the two conventions in:
 >
-> **Future-use reminder.** Preserve the DCF code, numerical outputs and provenance below as exploratory analysis. Reintroduce only with **author approval** and a separately labeled recovery-assisted scenario, clarifying metal ownership versus leasing/consignment, gross salt recovery versus saleable Ru, recovery timing and settlement, realization yield, financing basis and same-loop Fe comparator. Optional recovery does not mean inventory carrying cost is mathematically irrelevant when claiming recovered-Ru cost parity. Do not change frozen datasets, figures, S5 or the published-value gold standard solely because of this note.
+> - **Abstract and Discussion:** the staged converter (fused iron upstream, Ru/C downstream) is the least-cost design over a range of Ru financing rates that contains the disclosed platinum-group catalyst-metal lease rates.
+> - **Results, "Metal price and process optimization decide the Fe–Ru ranking"** (`docs/MANUSCRIPT_MAIN_TEXT.md`): recovered-Ru costs under the benchmark convention, the same inventory financed at 12%, the financing-rate parity and the gaps at the disclosed lease rates; supported Ru/C with measured kinetics without and with financing; the staged converter.
+> - **Methods, "Ammonia synthesis":** the lifecycle cash-flow variant (purchases at 0, 10 and 20 years, recovered Ru credited at replacement and at closure, metal-specific rate 0–12% per year).
+> - **Supplementary Note 6** (`docs/SUPPLEMENTARY_INFORMATION.md`) and the **Fig. 3d caption** (`docs/MAIN_FIGURE_CAPTIONS.md`).
+>
+> **Scope.** The financed numbers come from this analysis (PR #57, merged) and its reproduction with the documented lease contracts in `analysis/nh3_ru_metal_financing_evidence_2026_10_12` (PR #70, merged); `tools/audit_live_manuscript_truth.py` checks them against both. The items under "Open items" below (metal ownership versus leasing/consignment, gross salt recovery versus saleable Ru, recovery timing and settlement, realization yield) remain open and are not claimed in the manuscript. Do not change frozen datasets, figures, S5 or the published-value gold standard solely because of this note.
 
-**Status:** Derived, exploratory, independent of frozen NH3-FINAL-1.1. PR [#57](https://github.com/stloendays/Catalyst-Essay/pull/57) remains a draft.
+**Status:** Derived, independent of frozen NH3-FINAL-1.1; reported in the manuscript as the financed convention (supervisor decision of 2026-10-12). PR [#57](https://github.com/stloendays/Catalyst-Essay/pull/57) is merged.
 
 ## Cloud provenance and verification
 
@@ -64,8 +69,8 @@ The newer 25-year DCF sensitivity demonstrates that recovery and catalyst turnov
 2. Fe satisfying a 90-bar KAAP model mask does not confirm it can replace the Ru beds in an actual KAAP converter. Isothermal finite-grid feasibility is only a first modeling check.
 3. Ru/Fe results cover catalyst-responsive cost contributions rather than full ammonia production costs; gas feed, tax and metal-price paths are outside the extension.
 4. Final partially used Ru bed was recovered optimistically; equipment decommissioning and resale cash flows require validation.
-5. No original frozen model, SI table, official figure, abstract or manuscript conclusion was replaced.
+5. No original frozen model or dataset was replaced; the manuscript reports the financed convention alongside the frozen benchmark convention.
 
-## Before manuscript adoption
+## Open items
 
 Obtain real Ru supply/lease terms, recycling contract and metal-return settlement dates; independently check the chemistry of converting recovered salts into saleable metal; assess end-of-project metal residual value and genuine engineering feasibility of Fe in the low-pressure loop. Treat all current DCF values as model-conditioned sensitivity results. Reproduce from GitHub Actions workflow nh3-ru-net-recovery-boundary.yml (PR #57).
