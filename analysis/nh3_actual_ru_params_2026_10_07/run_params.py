@@ -30,36 +30,33 @@ Readings (same code as figures/composite/fig2/fig2_ru_actual_cost.py):
     run_mc_ru_actual.py, which is checked against its committed summary.json.
 
 Model: NH3_MODEL=1.1 (default; NH3-FINAL-1.1, outputs in this folder) or NH3_MODEL=1.2 (NH3-FINAL-1.2, outputs in
-nh3_1_2/), through analysis/nh3_model.py. Model quantities are taken from the selected model, never from 1.1 constants:
+nh3_1_2/), through analysis/nh3_model.py. Model quantities come from the selected model, never from 1.1 constants:
   * Fe and Ru reference costs: the selected run's results.json (nh3_model.anchors()), reproduced before anything else;
-  * parity price of the Fig. 2d sweep: recomputed with the bisection of figures/composite/fig2/fig2_model.py (1.1: equal
-    to the last row of fig2_ru_price_sweep.csv, which is used; 1.2: checked against nh3_1_2/fig2_ru_price_sweep.csv when
-    that file exists);
-  * measured Ru catalysts (variants B, B0): 1.1 reads analysis/nh3_supported_2026_10_06/supported_candidates.csv; 1.2
-    re-derives E_eff, alpha_res and plant feasibility on the same definition by running that folder's
-    run_supported_chain.main() unchanged on the 1.2 harness (as analysis/nh3_mc_ru_actual_2026_10_06 does) and checks
-    them against nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv when that file exists.
-Checks against committed outputs: 1.1 reproduces the baseline set of 107a75d (Fig. 3d own-bed rows and Monte Carlo) as
-before; for both models the R_all set must reproduce the selected model's fig2_ru_bed_sensitivity.csv (R_all corners)
-and analysis/nh3_mc_ru_actual_2026_10_06 summary (A, A_bed = A_comm, B, B0) when those files exist.
+  * parity price of the Fig. 2d sweep: the last row of the selected model's fig2_ru_price_sweep.csv
+    (figures/composite/fig2/ for 1.1, figures/composite/fig2/nh3_1_2/ for 1.2), recomputed here with the bisection of
+    figures/composite/fig2/fig2_model.py and asserted equal to 1e-9;
+  * measured Ru catalysts (variants B, B0): the primary Ru rows with a cost of the selected model's
+    supported_candidates.csv (analysis/nh3_supported_2026_10_06/ for 1.1, .../nh3_1_2/ for 1.2; under 1.2 also asserted
+    equal to analysis/nh3_mc_ru_actual_2026_10_06/nh3_1_2/measured_ru_catalysts.csv).
+Checks against committed outputs of the selected model, for both models: the benchmark-bed readings at r = 0.90 and
+0.9555 and Fe in the KAAP loop reproduce fig2_ru_actual_cost_points.csv; the R_all own-bed corners reproduce
+fig2_ru_bed_sensitivity.csv (24 rows); the R_all Monte Carlo reproduces analysis/nh3_mc_ru_actual_2026_10_06 (summary.json
+or nh3_1_2/summary.json: base, A, A_bed = A_comm here, B, B0). 1.1 also reproduces the baseline set of 107a75d (the 8
+Fig. 3d own-bed rows and the Monte Carlo), which has no 1.2 counterpart.
 
 Needs a harness root with the cached response columns (build_harness_root.py, 1.1 only) or the full cached response
 surface; the response surface is not rebuilt.
 
     NH3_HARNESS=<root> python run_params.py   -> summary.json, fig3d_readings.csv, mc_variants.csv, results_table.md
     NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 root> NH3_HARNESS=<1.1 root, for the self-check gate> python run_params.py
-                                              -> the same files in nh3_1_2/, plus measured_ru_catalysts.csv
+                                              -> the same four files in nh3_1_2/
 """
-import contextlib
 import csv
-import importlib.util
-import io
 import json
 import math
 import os
 import platform
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -85,10 +82,9 @@ FIG2 = REPO / "figures" / "composite" / "fig2"
 FIG2_RUN = FIG2 if V11 else FIG2 / "nh3_1_2"           # Fig. 2 model tables of the selected model
 MC_BASE = REPO / "analysis" / "nh3_mc_ru_actual_2026_10_06" / "summary.json"
 MC_RUN = MC_BASE if V11 else MC_BASE.parent / "nh3_1_2" / "summary.json"
+MC_MEAS_1_2 = MC_BASE.parent / "nh3_1_2" / "measured_ru_catalysts.csv"
 SUPPORTED_DIR = REPO / "analysis" / "nh3_supported_2026_10_06"
-SUPPORTED = SUPPORTED_DIR / "supported_candidates.csv"
-SUPPORTED_1_2 = SUPPORTED_DIR / "nh3_1_2" / "supported_candidates.csv"
-MEAS_KEYS = ("id", "catalyst", "metal_wt_pct", "T_C", "P_MPa", "E_eff_eV", "log10_alpha_res", "status", "cost_USD_t")
+SUPPORTED = SUPPORTED_DIR / "supported_candidates.csv" if V11 else SUPPORTED_DIR / "nh3_1_2" / "supported_candidates.csv"
 
 ANCHORS = NM.anchors()
 FE_COST = ANCHORS["Fe"]
@@ -112,42 +108,16 @@ def is_measured_ru(x):
     return x["status"].startswith("primary") and x["active_metals"] == "Ru" and x["cost_USD_t"] != ""
 
 
-def derive_supported(h, response):
-    """Rows of analysis/nh3_supported_2026_10_06/supported_candidates.csv for the selected model: that folder's
-    run_supported_chain.main(), unchanged, on this harness and response surface, writing to a temporary folder
-    (the same route as analysis/nh3_mc_ru_actual_2026_10_06/run_mc_ru_actual.py)."""
-    spec = importlib.util.spec_from_file_location("run_supported_chain", SUPPORTED_DIR / "run_supported_chain.py")
-    rsc = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(rsc)
-    rsc.hc, rsc.HARNESS, rsc.RUN = hc, HARNESS, RUN
-    rsc.load_harness = lambda: (h, response)
-    rsc.require = lambda: None  # the gate has already passed in main()
-    with tempfile.TemporaryDirectory() as tmp:
-        rsc.HERE = Path(tmp)
-        with contextlib.redirect_stdout(io.StringIO()):
-            rsc.main()
-        with (Path(tmp) / "supported_candidates.csv").open(encoding="utf-8") as f:
-            return list(csv.DictReader(f))
-
-
-def measured_ru(h, response):
-    """The measured Ru catalysts drawn by variants B and B0, for the selected model."""
-    if V11:
-        return [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8")) if is_measured_ru(x)], SUPPORTED.name
-    meas = [x for x in derive_supported(h, response) if is_measured_ru(x)]
-    src = "run_supported_chain.main() on this model"
-    if SUPPORTED_1_2.exists():  # the 1.2 port of the supported chain: same catalysts, same model quantities
-        port = [x for x in csv.DictReader(SUPPORTED_1_2.open(encoding="utf-8")) if is_measured_ru(x)]
-        assert [x["id"] for x in port] == [x["id"] for x in meas], "measured Ru catalysts differ from the 1.2 port"
-        for x, y in zip(meas, port):
+def measured_ru():
+    """The measured Ru catalysts drawn by variants B and B0: the selected model's supported_candidates.csv."""
+    meas = [x for x in csv.DictReader(SUPPORTED.open(encoding="utf-8")) if is_measured_ru(x)]
+    if not V11:  # the 1.2 actual-Ru Monte Carlo re-derived the same rows on 1.2: they must agree
+        mc_meas = list(csv.DictReader(MC_MEAS_1_2.open(encoding="utf-8")))
+        assert [x["id"] for x in mc_meas] == [x["id"] for x in meas], "measured Ru catalysts differ from the MC port"
+        for x, y in zip(meas, mc_meas):
             for c in ("E_eff_eV", "log10_alpha_res", "metal_wt_pct", "cost_USD_t"):
-                assert abs(float(x[c]) - float(y[c])) < 1e-9, (x["id"], c, x[c], y[c])
-        src += " (agrees with nh3_supported_2026_10_06/nh3_1_2/supported_candidates.csv)"
-    with (OUT / "measured_ru_catalysts.csv").open("w", newline="", encoding="utf-8") as f:
-        wr = csv.DictWriter(f, fieldnames=list(MEAS_KEYS), extrasaction="ignore", lineterminator="\n")
-        wr.writeheader()
-        wr.writerows(meas)
-    return meas, src
+                assert abs(float(x[c]) - float(y[c])) <= 1e-9 * max(1.0, abs(float(y[c]))), (x["id"], c, x[c], y[c])
+    return meas
 
 
 def parity_price(ru_cost_at, fe_cost):
@@ -216,16 +186,12 @@ def main():
     i_fe = int(np.argmin(np.where((V_fe <= h.V_CAP) & kaap, t_fe, np.inf)))
     fe_kaap = float(t_fe[i_fe])
     loops = {"main": (None, FE_COST), "KAAP": (kaap, fe_kaap)}
-    # parity price of the Fig. 2d sweep (Ru reoptimized at its metal price = Fe), recomputed on the selected model
-    p_parity_calc = parity_price(lambda p: optimum(p)["cost"], FE_COST)
+    # parity price of the Fig. 2d sweep of the selected model (Ru reoptimized at its metal price = Fe), checked against
+    # the same bisection here
     sweep = FIG2_RUN / "fig2_ru_price_sweep.csv"
-    p_parity_file = (float(list(csv.DictReader(open(sweep, encoding="utf-8")))[-1]["price_USD_kg"])
-                     if sweep.exists() else None)
-    if V11:
-        assert p_parity_file is not None, sweep
-    if p_parity_file is not None:
-        assert abs(p_parity_calc - p_parity_file) < 1e-9 * p_parity_file, (p_parity_calc, p_parity_file)
-    p_parity = p_parity_file if V11 else p_parity_calc  # 1.1 keeps the committed value (equal to the recomputation)
+    p_parity = float(list(csv.DictReader(open(sweep, encoding="utf-8")))[-1]["price_USD_kg"])
+    p_parity_calc = parity_price(lambda p: optimum(p)["cost"], FE_COST)
+    assert abs(p_parity_calc - p_parity) < 1e-9 * p_parity, (p_parity_calc, p_parity)
 
     readings = []
     for s, cfg in SETS.items():
@@ -251,6 +217,24 @@ def main():
                                  alpha_star=alpha_star(pe, mask, 1.0, ref), T_C=o["T_C"], P_bar=o["P_bar"],
                                  Tsep_C=o["Tsep_C"], V_m3=o["V_m3"]))
 
+    # the benchmark-bed readings at r = 0.90 and R_HI and Fe in the KAAP loop reproduce the selected model's Fig. 3d
+    # points (figures/composite/fig2/fig2_ru_actual_cost.py)
+    points_csv = FIG2_RUN / "fig2_ru_actual_cost_points.csv"
+    pts = {c["key"]: c for c in csv.DictReader(open(points_csv, encoding="utf-8"))}
+    key_pt = {("main", 0.90): "supp_rec90", ("main", R_HI): "supp_rec_hi", ("KAAP", 0.90): "kaap90",
+              ("KAAP", R_HI): "kaap_hi"}
+    n_pts = 0
+    for x in readings:
+        if x["set"] == "benchmark_bed" and (x["loop"], x["recovery"]) in key_pt:
+            c = pts[key_pt[(x["loop"], x["recovery"])]]
+            assert float(c["recovery"]) == x["recovery"] and abs(float(c["p_eff_USD_kg"]) - x["p_eff_USD_kg"]) < 1e-9
+            assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
+            assert abs(float(c["Fe_same_loop_cost"]) - x["Fe_reference_cost"]) < 1e-9, (c, x)
+            assert (float(c["T_C"]), float(c["P_bar"]), float(c["Tsep_C"])) == (x["T_C"], x["P_bar"], x["Tsep_C"]), (c, x)
+            n_pts += 1
+    assert n_pts == 4, n_pts
+    assert abs(float(pts["fe_kaap"]["cost"]) - fe_kaap) < 1e-9, (pts["fe_kaap"]["cost"], fe_kaap)
+
     import subprocess
     from io import StringIO
     n_cmp = 0
@@ -270,24 +254,19 @@ def main():
                 assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
                 n_cmp += 1
         assert n_cmp == 8
-    # the R_all own-bed corners reproduce the Fig. 3d literature series of the selected model, when it exists
+    # the R_all own-bed corners reproduce the Fig. 3d literature series of the selected model
     bed_csv = FIG2_RUN / "fig2_ru_bed_sensitivity.csv"
-    if V11:
-        assert bed_csv.exists(), bed_csv
+    lit = list(csv.DictReader(open(bed_csv, encoding="utf-8")))
     n_rall = 0
-    if bed_csv.exists():
-        lit = list(csv.DictReader(open(bed_csv, encoding="utf-8")))
-        key_lit = {("main", 0.90): "supp_rec90", ("main", R_HI): "supp_rec_hi", ("KAAP", 0.90): "kaap90",
-                   ("KAAP", R_HI): "kaap_hi"}
-        for x in readings:
-            if x["set"] == "R_all":
-                c = next(c for c in lit if c["key"] == key_lit[(x["loop"], x["recovery"])]
-                         and float(c["w_Ru"]) == x["w_Ru"] and float(c["rho_bed_kg_m3"]) == x["rho_bed_kg_m3"])
-                assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
-                assert abs(float(c["Fe_reference_cost"]) - x["Fe_reference_cost"]) < 1e-9, (c, x)
-                assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
-                n_rall += 1
-        assert n_rall == 24, n_rall
+    for x in readings:
+        if x["set"] == "R_all":
+            c = next(c for c in lit if c["key"] == key_pt[(x["loop"], x["recovery"])]
+                     and float(c["w_Ru"]) == x["w_Ru"] and float(c["rho_bed_kg_m3"]) == x["rho_bed_kg_m3"])
+            assert abs(float(c["cost"]) - x["cost"]) < 1e-9, (c, x)
+            assert abs(float(c["Fe_reference_cost"]) - x["Fe_reference_cost"]) < 1e-9, (c, x)
+            assert abs(float(c["alpha_star_supported_bed"]) - x["alpha_star"]) < 1e-6 * x["alpha_star"], (c, x)
+            n_rall += 1
+    assert n_rall == 24, n_rall
 
     def span(rows):
         c = [x["cost"] for x in rows]
@@ -338,7 +317,7 @@ def main():
     U_u, U_r, U_bed = rng2.random(N), rng2.random(N), rng2.random(N)
     lo, hi = math.log(U_RANGE[0]), math.log(U_RANGE[1])
     u = np.exp(lo + (hi - lo) * U_u)
-    meas, meas_src = measured_ru(h, response)
+    meas = measured_ru()
     kk = rng2.integers(0, len(meas), N)
     U_w = np.random.default_rng(20261007).random(N)
     w_comm = W_COMM[0] + (W_COMM[1] - W_COMM[0]) * U_w
@@ -362,14 +341,13 @@ def main():
             capture_output=True, check=True, text=True, encoding="utf-8").stdout)
         assert float(np.mean(base - fe > 0)) == ref["base_reproduced"]["P_Fe_cheaper"] == 1.0
         assert abs(float((base - fe).min()) - ref["base_reproduced"]["min_gap_USD_t"]) < 1e-9
-    # the actual-Ru Monte Carlo of the selected model (literature ranges = set R_all), when it exists
-    if V11:
-        assert MC_RUN.exists(), MC_RUN
-    lit_mc = json.loads(MC_RUN.read_text(encoding="utf-8")) if MC_RUN.exists() else None
-    if lit_mc is not None:
-        assert float(np.mean(base - fe > 0)) == lit_mc["base_reproduced"]["P_Fe_cheaper"]
-        assert abs(float((base - fe).min()) - lit_mc["base_reproduced"]["min_gap_USD_t"]) < 1e-9
-        assert lit_mc["ranges"]["measured_Ru_catalysts"] == len(meas)
+    # the actual-Ru Monte Carlo of the selected model (literature ranges = set R_all)
+    lit_mc = json.loads(MC_RUN.read_text(encoding="utf-8"))
+    assert float(np.mean(base - fe > 0)) == lit_mc["base_reproduced"]["P_Fe_cheaper"]
+    assert abs(float((base - fe).min()) - lit_mc["base_reproduced"]["min_gap_USD_t"]) < 1e-9
+    assert lit_mc["ranges"]["measured_Ru_catalysts"] == len(meas)
+    assert (tuple(lit_mc["ranges"]["r"]) == SETS["R_all"]["r"]
+            and tuple(lit_mc["ranges"]["bed_density_kg_m3"]) == SETS["R_all"]["rho"]), lit_mc["ranges"]
 
     def ci95(k, n):
         return [float(beta_dist.ppf(0.025, k, n - k + 1)) if k > 0 else 0.0,
@@ -408,7 +386,7 @@ def main():
                 assert mc[s][name]["P_Fe_cheaper"] == ref[name]["P_Fe_cheaper"], (name, mc[s][name], ref[name])
                 for q, v in ref[name]["gap_quantiles_USD_t"].items():
                     assert abs(mc[s][name]["gap_quantiles_USD_t"][q] - v) < 1e-9, (name, q)
-        if s == "R_all" and lit_mc is not None:  # literature ranges: run_mc_ru_actual.py's A_bed is A_comm here
+        if s == "R_all":  # literature ranges: run_mc_ru_actual.py's A_bed is A_comm here
             for name, other in (("A", "A"), ("A_comm", "A_bed"), ("B", "B"), ("B0", "B0")):
                 assert mc[s][name]["P_Fe_cheaper"] == lit_mc[other]["P_Fe_cheaper"], (name, mc[s][name], lit_mc[other])
                 for q, v in lit_mc[other]["gap_quantiles_USD_t"].items():
@@ -424,14 +402,14 @@ def main():
         rel = lambda p: p.relative_to(REPO).as_posix()  # noqa: E731
         validation = {
             "selfcheck_gate": "passed (require())",
-            "deterministic_Fe_Ru_reproduced_from": f"{rel(RUN)}/results.json (|diff| < 1e-9 USD/t)",
-            "parity_price_recomputed": p_parity_calc,
-            "parity_price_checked_against": rel(sweep) if p_parity_file is not None else "none (file not present)",
-            "R_all_fig3d_rows_matched": (f"{n_rall} rows of {rel(bed_csv)}" if n_rall
-                                         else "none (file not present)"),
-            "R_all_MC_matches": rel(MC_RUN) if lit_mc is not None else "none (file not present)",
+            "deterministic_Fe_Ru_reproduced_from":
+                f"<NH3_HARNESS_1_2>/outputs/{RUN.name}/results.json (|diff| < 1e-9 USD/t)",
+            "parity_price_from": f"{rel(sweep)} (last row; recomputed by bisection {p_parity_calc!r}, rel. diff < 1e-9)",
+            "benchmark_bed_and_Fe_KAAP_rows_matched": f"{n_pts} rows + fe_kaap of {rel(points_csv)}",
+            "R_all_fig3d_rows_matched": f"{n_rall} rows of {rel(bed_csv)}",
+            "R_all_MC_matches": f"{rel(MC_RUN)} (base, A, A_bed = A_comm, B, B0: P exact, gap quantiles < 1e-9)",
+            "measured_Ru_catalysts_from": f"{rel(SUPPORTED)} (= {rel(MC_MEAS_1_2)})",
             "baseline_set_checked_against": "none (the 1.1-only baseline outputs of 107a75d have no 1.2 counterpart)",
-            "measured_Ru_catalysts_from": meas_src,
         }
     out = {
         "workflow_run": {k: os.environ.get(k) for k in ("GITHUB_RUN_ID", "GITHUB_SHA", "GITHUB_REPOSITORY")},
