@@ -176,3 +176,9 @@ own pressure.
 
 Run: `D:\Research\CatalystForge\.venv\Scripts\python.exe run_field_chain.py` (about 3 min on one core; `--workers N`
 parallelises the mapping when the machine has memory to spare — each worker loads the 130 MB response surface).
+
+NH3-FINAL-1.2: `NH3_MODEL=1.2 NH3_HARNESS_1_2=<1.2 source_harness with its cache/>` runs the same chain, then
+`run_printed_primary.py`, on the 1.2 model and writes the same files into `nh3_1_2/` (key numbers 1.1 → 1.2 in
+`nh3_1_2/README.md`). Without `NH3_MODEL` the scripts run NH3-FINAL-1.1 and reproduce `candidates.csv`, `group_metrics.csv`,
+`summary.json` and the printed files of this folder; `selfcheck_supported.csv` then picks up the 10% Fe/C row that
+commit 7e96397 changed in the supported chain after this folder was committed (still a 0 difference).

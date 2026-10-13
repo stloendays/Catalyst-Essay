@@ -11,6 +11,9 @@ the committed 44/124. Then it keeps only the entries whose values that enter the
 
 Groups are those of the committed run; a group is scored when at least two printed entries remain.
 Outputs: nh3_printed_summary.json, nh3_printed_groups.csv.
+
+Model version (analysis/nh3_model.py): NH3_MODEL=1.1 (default) reads the field run in analysis/nh3_field_2026_10_06 and
+writes into this folder; NH3_MODEL=1.2 reads its nh3_1_2/ run and writes the same files into nh3_1_2/ here.
 """
 import json
 import sys
@@ -26,15 +29,17 @@ sys.path.insert(0, str(FIELD))
 _argv, sys.argv = sys.argv, sys.argv[:1]
 import run_field_chain as F  # noqa: E402
 sys.argv = _argv
+FIELD_RUN = F.OUT                 # the field run of the selected model (FIELD for 1.1, FIELD/nh3_1_2 for 1.2)
+OUT = F.NM.out_dir(HERE)
 
 PLOT_SRC = ("plot", "SI-plot")
 
 
 def main():
-    c = pd.read_csv(FIELD / "candidates.csv", keep_default_na=False, na_values=[""])
+    c = pd.read_csv(FIELD_RUN / "candidates.csv", keep_default_na=False, na_values=[""])
     prim = c[c.status.str.startswith("primary") & c.cost_USD_t.notna() & c.duplicate_in_group.isna()].copy()
     _, ref = F.aggregate(prim, label="primary (rebuilt from candidates.csv)")
-    committed = json.loads((FIELD / "summary.json").read_text(encoding="utf-8"))["primary"]
+    committed = json.loads((FIELD_RUN / "summary.json").read_text(encoding="utf-8"))["primary"]
     assert (ref["groups"], ref["top1_mismatch_groups"]) == (committed["groups"], committed["top1_mismatch_groups"]), \
         (ref["groups"], ref["top1_mismatch_groups"])
 
@@ -70,8 +75,8 @@ def main():
     out["entries"] = dict(primary=int(len(p)), printed=int(p.printed.sum()), rate_printed=int(rate_ok.sum()),
                           T_printed=int(t_ok.sum()), outlet_used=int(uses_outlet.sum()),
                           outlet_used_printed=int((uses_outlet & outlet_ok).sum()))
-    (HERE / "nh3_printed_summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
-    gm_pr.to_csv(HERE / "nh3_printed_groups.csv", index=False, float_format="%.6g")
+    (OUT / "nh3_printed_summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    gm_pr.to_csv(OUT / "nh3_printed_groups.csv", index=False, float_format="%.6g")
     print(json.dumps(out, indent=1, default=float))
 
 
