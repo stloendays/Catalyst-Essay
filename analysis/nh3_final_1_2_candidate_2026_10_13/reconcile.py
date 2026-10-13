@@ -88,6 +88,40 @@ def check(thermo, swap, domain=None):
             assert finite(row["RuC_benchmark_global_USD_t"])
     return modes
 
+def check_gbnc(eq):
+    """Assert same-mask model closure and arithmetic, never a desired sign."""
+    assert eq["pressure_range_bar"] == [50.0, 300.0]
+    assert eq["status"].startswith("UNFROZEN")
+    assert eq["states_ideal"] > 1000 and eq["states_NC"] > 1000
+    modes = eq["full_results"]
+    assert set(modes) == {"GB_ideal_loop", "GB_NC_reaction_equilibrium"}
+    independent = eq["independent_gb_equilibrium_check_90bar_425C"]
+    assert abs(independent["NC_from_extent"] -
+               independent["NC_from_published_Ka"]) < 1e-9
+    for name in ("Fe", "Ru_benchmark"):
+        rec = eq["rows"][name]
+        a, b = modes["GB_ideal_loop"][name], modes["GB_NC_reaction_equilibrium"][name]
+        assert finite(a["cost"]) and finite(b["cost"])
+        assert abs(rec["ideal"]["cost"] - a["cost"]) < 1e-9
+        assert abs(rec["NC_equilibrium"]["cost"] - b["cost"]) < 1e-9
+        assert abs(rec["delta_cost_USD_t"] - (b["cost"]-a["cost"])) < 1e-9
+    for kind in ("cashflow 0% r 0.9555", "cashflow 12% r 0.9555"):
+        rec = eq["rows"]["supported_"+kind]
+        for prefix, mode in (("ideal", "GB_ideal_loop"),
+                             ("NC", "GB_NC_reaction_equilibrium")):
+            obj = modes[mode]["Ru_C_supported"][kind]
+            for suffix, key in (("global", "Ru_minus_Fe_global"),
+                                ("KAAP", "Ru_minus_Fe_KAAP")):
+                value = rec[f"{prefix}_Ru_minus_Fe_{suffix}"]
+                assert abs(value-obj[key]) < 1e-9, f"{mode}: stale finance gap"
+                if suffix == "global":
+                    delta = obj["Ru_C_global"]["cost"] - obj["Fe_global"]["cost"]
+                else:
+                    delta = obj["Ru_C_KAAP"]["cost"] - obj["Fe_KAAP"]["cost"]
+                assert abs(delta-obj[key]) < 2e-5, f"{mode}: finance arithmetic"
+    return eq
+
+
 def render(modes, swap, domain, out):
     out.mkdir(parents=True, exist_ok=True)
     rows = []
