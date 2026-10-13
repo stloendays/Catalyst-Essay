@@ -141,7 +141,16 @@ def render(modes, swap, domain, out):
         a=s[f"cashflow 0% r {r}"]["Ru_minus_Fe_global"]
         b=s[f"cashflow 12% r {r}"]["Ru_minus_Fe_global"]
         report.append(f"| {r:.2%} | {a:+.3f} | {b:+.3f} |")
+    eq = domain["fugacity_convention_check"][0]
     report += [
+        "",
+        "## Pressure fit-domain and equilibrium-convention diagnostics",
+        "",
+        f'- Optimized Ru/C pressure lies outside the 50-100 bar original fit for {domain["ru_opt_zero_finance_outside_fitted_pressure_count"]}/8 zero-finance scenarios and {domain["ru_opt_12pct_finance_outside_fitted_pressure_count"]}/8 12%-finance scenarios.',
+        f'- At {eq["T_C"]:.0f} C, {eq["P_bar"]:.0f} bar: GB ideal yNH3={eq["ideal_yNH3"]:.4f}, GB+Newton-Cooper fugacity yNH3={eq["newton_cooper_yNH3"]:.4f}, a {eq["difference_percentage_points"]:+.2f} percentage-point difference.',
+        f'- Reproducing {domain["rossetti_fit_points_n"]} published Ru/C source-fit measurements gives mean absolute relative error {domain["rossetti_125_fit_points_MARE"]:.1%}. These are NOT independent held-out plant data.',
+        "- The fitted catalyst is 3.2 wt% Ru/C; the assumed constant rate per kg Ru at 8 wt% is additional unvalidated extrapolation.",
+        "- Full pressure profile and all eight scenarios: SOURCE_DOMAIN.md and source_domain.csv in the kinetics artifact.",
         "",
         "## Publication gates (NOT satisfied by CI)",
         "",
@@ -159,10 +168,12 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--thermo", type=Path,required=True)
     p.add_argument("--kinetics", type=Path,required=True)
+    p.add_argument("--domain", type=Path,required=True)
     p.add_argument("--out", type=Path,required=True)
     a=p.parse_args()
-    modes=check(load(a.thermo),load(a.kinetics))
-    lines=render(modes,load(a.kinetics),a.out)
+    domain=load(a.domain)
+    modes=check(load(a.thermo),load(a.kinetics),domain)
+    lines=render(modes,load(a.kinetics),domain,a.out)
     print("\n".join(lines))
 
 if __name__ == "__main__":
