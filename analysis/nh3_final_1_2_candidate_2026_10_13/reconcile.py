@@ -19,41 +19,65 @@ def load(path):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
-def check(thermo, swap):
+def check(thermo, swap, domain=None):
+    """Integrity and cost-arithmetic checks; science outcomes are not hard-coded."""
     assert thermo["workbook_sha256"] == EXPECTED_SHA, "workbook hash drift"
     modes = thermo["results"]
     assert set(modes) == {"frozen", "NIST", "GB"}, "thermodynamic scenarios missing"
     assert modes["frozen"]["number_process_states"] == 14136
     assert len(swap["variants"]) == 8, "eight kinetics variants required"
+    base = modes["frozen"]
+    for metal, number in (("Fe", 15.291704676621144),
+                          ("Ru", 22.03059478781101), ("Os", 25.83179725613286)):
+        assert abs(base[f"{metal}_cost_USD_t"] - number) < 2e-7, f"frozen {metal} drift"
+    assert abs(base["Ru_activity_parity_multiplier"] - 201.2234429878984) < 0.03
     for name, x in modes.items():
-        assert x["model_inversion_Ru_Os_Fe_to_Fe_Ru_Os"] is True, f"{name}: metal-ranking inversion changed"
-        assert x["Fe_Ru_Os_order_matches_frozen"] is True, f"{name}: metal ranking changed"
-        for k in ["Fe_cost_USD_t", "Ru_cost_USD_t", "Os_cost_USD_t", "Ru_activity_parity_multiplier"]:
+        order = x["intrinsic_order"]
+        economic = x["feasible_economic_order"]
+        assert len(order) == 15 and len(x["metals"]) == 15, f"{name}: incomplete metal cohort"
+        assert len(set(order)) == 15 and {"Fe", "Ru", "Os"}.issubset(economic)
+        assert isinstance(x["number_process_states"], int) and x["number_process_states"] > 1000
+        for k in ("Fe_cost_USD_t", "Ru_cost_USD_t", "Os_cost_USD_t",
+                  "Ru_activity_parity_multiplier"):
             assert finite(x[k]) and x[k] > 0, f"{name}: invalid {k}"
-        assert x["Ru_cost_USD_t"] > x["Fe_cost_USD_t"]
-    assert modes["frozen"]["Ru_activity_parity_multiplier"] > modes["NIST"]["Ru_activity_parity_multiplier"]
-    assert modes["frozen"]["Ru_activity_parity_multiplier"] > modes["GB"]["Ru_activity_parity_multiplier"]
+        expected_inversion = (order[:3] == ["Ru", "Os", "Fe"] and
+                              economic[:3] == ["Fe", "Ru", "Os"])
+        expected_economic = economic[:3] == ["Fe", "Ru", "Os"]
+        assert x["model_inversion_Ru_Os_Fe_to_Fe_Ru_Os"] == expected_inversion, f"{name}: stale inversion flag"
+        assert x["Fe_Ru_Os_order_matches_frozen"] == expected_economic, f"{name}: stale ordering flag"
+        assert abs(x["Ru_minus_Fe_USD_t"] -
+                   (x["Ru_cost_USD_t"] - x["Fe_cost_USD_t"])) < 1e-7, f"{name}: cost gap arithmetic"
     keys = set()
     for v in swap["variants"]:
         key = (v["states"], v["sizing"], v["scale"])
+        assert key not in keys, f"duplicate kinetics scenario {key}"
         keys.add(key)
+        assert v["n_states"] == modes["GB" if v["states"] == "GB" else "frozen"]["number_process_states"]
         assert finite(v["Fe"]["cost"]) and finite(v["Ru_benchmark"]["cost"])
-        assert v["Ru_benchmark"]["cost"] > v["Fe"]["cost"], f"{key}: Ru benchmark became cheaper"
-        assert finite(v["Ru_activity_multiple_for_parity"])
+        assert finite(v["Ru_activity_multiple_for_parity"]) and v["Ru_activity_multiple_for_parity"] > 0
         supported = v["Ru_C_supported"]
         for recovery in (0.90, 0.9555):
             for fin in (0, 12):
                 item = supported[f"cashflow {fin}% r {recovery}"]
                 gap = item["Ru_minus_Fe_global"]
                 assert finite(gap)
-                if fin == 0:
-                    assert gap < 0, f"{key}: zero-finance sign changed"
-                else:
-                    assert gap > 0, f"{key}: 12%-finance sign changed"
-    assert len(keys) == 8
-    # GB process states are calculated in PR75 with source-consistent published
-    # Rossetti kinetics. No NIST+Rossetti combined scenario is asserted here.
-    assert {k[0] for k in keys} == {"frozen", "GB"}
+                reference = item["Ru_C_global"]["cost"] - item["Fe_global"]["cost"]
+                assert abs(gap - reference) < 2e-5, f"{key}: supported Ru/C gap arithmetic"
+                gap_k = item["Ru_minus_Fe_KAAP"]
+                reference_k = item["Ru_C_KAAP"]["cost"] - item["Fe_KAAP"]["cost"]
+                assert abs(gap_k - reference_k) < 2e-5, f"{key}: KAAP gap arithmetic"
+    expected_keys = {(a, b, c) for a in ("frozen", "GB")
+                     for b in ("inlet", "plug") for c in ("FCAL", "source")}
+    assert keys == expected_keys, "kinetics matrix incomplete or mislabelled"
+    if domain is not None:
+        assert domain["n_variants"] == 8 and len(domain["variants"]) == 8
+        assert domain["rossetti_fit_points_n"] == 125
+        assert len(domain["fugacity_convention_check"]) >= 1
+        for row in domain["variants"]:
+            key = (row["states"], row["sizing"], row["scale"])
+            assert key in keys
+            assert finite(row["Fe_global_USD_t"])
+            assert finite(row["RuC_benchmark_global_USD_t"])
     return modes
 
 def render(modes, swap, out):
