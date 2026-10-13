@@ -96,10 +96,12 @@ class LCGNormal:
         return math.sqrt(-2.0*math.log(u))*math.cos(2.0*math.pi*v)
 
 out=[]
+order_freq={}  # all six full orders per rho; printed only (the committed CSV keeps its six columns)
 for rho in (0.0,0.25,0.5,0.75,0.9):  # 0.0, not 0: the committed table prints the first cell as 0.0
     rng=LCGNormal(20260929+round(rho*1000))
     n=100000
     cnt={"Ru":0,"Os":0,"Fe":0}; full=0
+    orders={}
     sr,si=math.sqrt(rho),math.sqrt(1-rho)
     for _ in range(n):
         g0=rng.normal()
@@ -112,6 +114,8 @@ for rho in (0.0,0.25,0.5,0.75,0.9):  # 0.0, not 0: the committed table prints th
         order=sorted(E,key=lambda m:interp(E[m]),reverse=True)
         cnt[order[0]]+=1
         full+=order==["Ru","Os","Fe"]
+        key=" > ".join(order); orders[key]=orders.get(key,0)+1
+    order_freq[rho]={k:v/n for k,v in sorted(orders.items(),key=lambda t:(-t[1],t[0]))}
     out.append({
         "latent_pairwise_correlation":rho,"n_draws":n,
         "P_canonical_Ru_gt_Os_gt_Fe":full/n,
@@ -121,6 +125,8 @@ for rho in (0.0,0.25,0.5,0.75,0.9):  # 0.0, not 0: the committed table prints th
 with (OUT/"descriptor_correlation_sensitivity.csv").open("w",encoding="utf-8",newline="") as f:
     w=csv.DictWriter(f,fieldnames=list(out[0])); w.writeheader(); w.writerows(out)
 print(json.dumps(out,indent=2))
+print("Full-order frequencies on the same stream (most frequent first):")
+print(json.dumps({str(r):f for r,f in order_freq.items()},indent=2))
 
 
 # ---- NH3 rows of the remaining non-figure tables (written for 1.2, checked against the committed files for 1.1) ----

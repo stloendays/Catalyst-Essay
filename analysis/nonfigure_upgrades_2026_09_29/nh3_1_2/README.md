@@ -44,9 +44,25 @@ Carlo re-optimizes the Fe and Ru state vectors at their canonical E_N over all 1
 | Peak of the 673 K one-descriptor volcano (0.005 eV grid) | −1.18 eV | −1.15 eV |
 | MeOH R / χ; Au/TiO2 R / χ | 1.93 % / +0.0149; 0 / −1.0000 | unchanged |
 
-At ρ = 0, Ru and Os are equally likely atomistic winners on the 1.2 volcano. A 10⁷-draw numpy check of the same
-marginals gives Ru 45.15 % and Os 45.33 % (1.1: 46.03 % and 43.15 %). The volcano peak moved from −1.18 to −1.15 eV,
-between Ru (−1.1333 eV) and Os (−1.1095 eV). The canonical full order Ru > Os > Fe is still the most frequent order.
+The 673 K volcano peak moved from −1.18 to −1.15 eV, which puts it between Ru (−1.1333 eV) and Os (−1.1095 eV). Two
+consequences follow.
+
+- **Atomistic top-1 at ρ = 0.** Ru and Os are nearly tied, with Os marginally ahead: Os 45.50 % against Ru 44.99 % on the
+  committed 10⁵-draw stream. A 10⁷-draw numpy check of the same marginals (`default_rng(20261013)`) gives Os 45.37 % against
+  Ru 45.11 %, a 0.26 pp gap (about 9 SE). In 1.1, Ru led clearly: 46.00 % against 43.18 % on the same check.
+- **Most frequent full order.** This is now Os > Ru > Fe, not the canonical Ru > Os > Fe:
+
+  | Stream | Os > Ru > Fe | Ru > Os > Fe |
+  |---|---:|---:|
+  | Committed stream, ρ = 0 | 41.10 % | 40.64 % |
+  | 10⁷-draw numpy check, ρ = 0 | 40.87 % | 40.71 % (gap 0.16 pp, about 5.5 SE) |
+  | Committed stream, ρ = 0.9 | 43.03 % | 36.23 % |
+
+  On the committed stream, Os > Ru > Fe is the most frequent order at every ρ from 0 to 0.9. In 1.1, Ru > Os > Fe led at
+  ρ = 0 (40.40 % against 38.40 %) and ρ = 0.25 (39.10 % against 38.21 %); Os > Ru > Fe led from ρ = 0.5.
+
+`reproduce_nonfigure_upgrades.py` prints the frequencies of all six full orders for each ρ on the committed stream.
+The CSV keeps its six 1.1 columns.
 
 ## What was re-derived and how
 
