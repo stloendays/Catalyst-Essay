@@ -4,6 +4,11 @@
 The calculation reuses the merged PR #57 owned-metal cash flow and the PR #61 supplier-lease algebra unchanged.
 Sources are in `EVIDENCE.md` (S01–S25).
 
+**NH3-FINAL-1.2:** `run_documented_rates.py` takes `NH3_MODEL=1.1|1.2` (`analysis/nh3_model.py`; default 1.1, which
+writes the committed files here and the numbers below). 1.2 outputs and the 1.1 → 1.2 table are in `nh3_1_2/`; under
+1.2 the parity thresholds are 12.33 %/y (owned) and 12.31 %/y (lease), above every documented rate except the ≈30 %
+Pt lease of 2025.
+
 ## Numbers first
 
 KAAP-type loop (90 bar, −20 °C separation), 8 wt % Ru/C, 490 kg/m³, 95.55 % gross Ru recovery, 10-year Ru life,

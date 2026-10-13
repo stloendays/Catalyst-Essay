@@ -6,7 +6,9 @@ script rescores the frozen S5 and S6 costs with that paper's leaderboard per gra
 fraction) and every other paper unchanged. Plant costs are the frozen ones (literature_candidates.csv); nothing is
 re-optimized.
 
-Output: metal_basis_summary.json.
+Output: metal_basis_summary.json (NH3_MODEL=1.1, the default) or nh3_1_2/metal_basis_summary.json (NH3_MODEL=1.2).
+The methanol rescoring does not use the ammonia model, so both files carry the same numbers; the switch only keeps
+the per-model output layout of the ammonia analyses (analysis/nh3_model.py).
 """
 import json
 import sys
@@ -19,8 +21,10 @@ REPO = HERE.parents[1]
 INV = REPO / "analysis" / "meoh_literature_inversion_2026_10_05"
 sys.path.insert(0, str(REPO / "data" / "meoh"))
 sys.path.insert(0, str(INV))
+sys.path.append(str(REPO / "analysis"))
 import meoh_candidates as M  # noqa: E402
 from mismatch_kinds import classify  # noqa: E402
+import nh3_model as NM  # noqa: E402
 
 DOI = "10.1021/acscatal.5c05984"
 COLS = {"S5": "cost_recycled_opt", "S6": "cost_recycled_opt_inlet"}
@@ -53,7 +57,7 @@ def main():
                                             "regret_per_g_Re": float(g1.set_index("group").at[k, "regret"]),
                                             "plant_winner": g1.set_index("group").at[k, "economic_winner"]}
                                         for k in groups}}
-    (HERE / "metal_basis_summary.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    (NM.out_dir(HERE) / "metal_basis_summary.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     for tag in COLS:
         a, b = out[tag]["per_g_catalyst"], out[tag]["paper_basis"]
         print(tag, f"{a['different_winner']}/{a['groups']} -> {b['different_winner']}/{b['groups']}; other catalyst "
