@@ -1,0 +1,93 @@
+# Measured rate laws, thermodynamics and economic inputs of the staged-converter analysis.
+# Every number carries its source (paper, table/equation, page). Nothing here is fitted in this analysis.
+
+thermo:
+  equilibrium_constant:
+    form: "log10 Ka = -2.691122 log10 T - 5.519265e-5 T + 1.848863e-7 T^2 + 2001.6/T + 2.6899 (Ka in atm^-1, 1/2 N2 + 3/2 H2 = NH3, activities)"
+    source: "Gillespie & Beattie, Phys. Rev. 36, 743 (1930), as printed in Rossetti et al., Ind. Eng. Chem. Res. 45, 4150 (2006), eq 4, p. 4151"
+  fugacity_coefficients:
+    form: "Newton-Cooper correlations, T in K, P in atm (Rossetti 2006 eqs 5-7, p. 4151, citing Dyson & Simon 1968)"
+    N2: [0.93431737, 0.3101804e-3, 0.295896e-3, -0.2707279e-6, 0.4775207e-6]   # c0 + c1 T + c2 P + c3 T^2 + c4 P^2
+    NH3: [0.1438996, 0.2028538e-2, -0.4487672e-3, -0.1142945e-5, 0.2761216e-6]
+    H2: "exp{exp(-3.8402 T^0.125 + 0.541) P - exp(-0.1263 T^0.5 - 15.980) P^2 + 300 exp(-0.011901 T - 5.941) (exp(-P/300) - 1)}"
+  heat_capacity_enthalpy:
+    form: "NIST Chemistry WebBook Shomate equations, ideal gas (N2 500-2000 K, H2 298-1000 K, NH3 298-1400 K, CH4 298-1300 K, Ar 298-6000 K)"
+    note: "Real-gas enthalpy departure neglected; checked against the 14-15 K per 1 % NH3 adiabatic rise of industrial converters (Gramatica & Pernicone 1991, p. 245)"
+
+kinetics:
+  Fe_DysonSimon:
+    catalyst: "Topsoe KM1 fused iron (magnetite) industrial catalyst, data of Nielsen"
+    form: "r_NH3 = 2 k [Ka^2 a_N2 (a_H2^3/a_NH3^2)^alpha - (a_NH3^2/a_H2^3)^(1-alpha)], kmol NH3 m^-3(cat) h^-1, activities in atm"
+    k0: 8.849e+14
+    E_cal_mol: 40765.0
+    alpha: 0.5
+    source: "Dyson & Simon, Ind. Eng. Chem. Fundam. 7, 605 (1968), doi:10.1021/i160028a013. Original not accessed in this session; parameters taken from two independent open reproductions that cite it: (i) Yancy-Caballero, Biegler & Guirardello, Chem. Eng. Trans. 43, 1297 (2015), eq 5, p. 1298 (k0 = 8.849e14, Ea = 170,560 kJ/kmol, alpha = 0.5, factor 2); (ii) Tripodi, Compagnoni, Bahadori & Rossetti, J. Ind. Eng. Chem. 66, 176 (2018), accepted manuscript (air.unimi.it/handle/2434/618294), Table 1 'KM iron-based' column, p. 22 (Ea 40.76 kcal/mol, k0 1.72e8 kmol s^-1 kg^-1 = 2 x 8.849e14 / 3600 / 2.85 kg L^-1)"
+    bulk_density_kg_m3: 2850.0
+    bulk_density_source: "Tripodi et al. 2018 AAM, p. 8 (magnetite 2.8-2.9 g cm^-3)"
+    validity: "Nielsen's KM1 data: 330-495 C, 149-309 atm (Hansen 1995 in Nielsen (ed.) Ammonia: Catalysis and Manufacture, p. 168); use at 90 bar is an extrapolation"
+  Fe_wustite_Tripodi:
+    catalyst: "commercial wustite-based (Fe1-xO) catalyst, micropilot-plant fit"
+    form: "r = k [Ka^2 a_N2 a_H2^2.25/a_NH3^1.5 - a_NH3^0.5/a_H2^0.75], kmol (reaction 1/2N2+3/2H2->NH3) s^-1 kg^-1, activities in atm"
+    k0: 7.47e+8
+    E_cal_mol: 45000.0
+    alpha: 0.75
+    source: "Tripodi et al. 2018 AAM, eq 5 p. 6 and Table 1 p. 22 (Aspen LHHW form; Kfor/Krev coefficients carry only the Pa-to-atm conversion and Gillespie-Beattie Ka^2, checked in validate_kinetics.py)"
+    bulk_density_kg_m3: 3250.0
+    bulk_density_source: "Tripodi et al. 2018 AAM, p. 8"
+  Fe_magnetite_Tripodi:
+    catalyst: "commercial magnetite-based catalyst, micropilot-plant fit"
+    form: "as Fe_wustite_Tripodi"
+    k0: 3.23e+9
+    E_cal_mol: 47500.0
+    alpha: 0.75
+    source: "Tripodi et al. 2018 AAM, eq 5 p. 6 and Table 1 p. 22; reverse-reaction activation energy 47.5 kcal/mol also in Rossetti et al. 2006, p. 4154"
+    bulk_density_kg_m3: 2850.0
+  Fe_Gramatica_industrial:
+    catalyst: "industrial prereduced fused-iron catalyst (Montecatini/Ausimont), crushed 0.5 mm"
+    form: "r = k2 [Keq^2 a_N (a_H^3/a_A^2)^alpha - (a_A^2/a_H^3)^(1-alpha)], kmol NH3 h^-1 t^-1(cat); k2 = k20 exp[-E2/R (1/T - 1/T0)]"
+    k20: 85.0           # 80-90 for prereduced catalysts; midpoint
+    k20_range: [80.0, 90.0]
+    T0_K: 723.2
+    E_cal_mol: 40500.0
+    alpha: 0.75
+    source: "Gramatica & Pernicone, in Jennings (ed.) Catalytic Ammonia Synthesis, Plenum 1991, eqs 6.82, 6.86-6.87, pp. 247-248 (cross-check only)"
+  Ru_C_Rossetti:
+    catalyst: "promoted Ru/C (Ba/Ru 0.6, Cs/Ru 1, K/Ru 3.5 mol/mol), 3.2 wt% Ru, dispersion 11 %"
+    form: "deta/dtau = kf lambda(q) [a_N2^0.5 a_H2^0.375/a_NH3^0.25 - (1/Ka) a_NH3^0.75/a_H2^1.125] / (1 + K_H2 a_H2^0.3 + K_NH3 a_NH3^0.2), mol (N2 at H2/N2 = 3) h^-1 L^-1(cat); K_i = exp(dS_i/R - dH_i/(R T))"
+    A: 9.02e+8
+    Ea_cal_mol: 23000.0
+    dH_H2_cal_mol: -9000.0
+    dS_H2_cal_molK: -13.6
+    dH_NH3_cal_mol: -7000.0
+    dS_NH3_cal_molK: -8.3
+    lambda_q3: 1.0
+    lambda_q1p5: 3.0
+    source: "Rossetti, Pernicone, Ferrero & Forni, Ind. Eng. Chem. Res. 45, 4150 (2006), eq 14 and Table 3, p. 4153; catalyst p. 4150; K_i convention confirmed by Tripodi et al. 2018 AAM eqs 3-4, p. 5"
+    ru_wt_frac: 0.032
+    catalyst_density_kg_L: 0.59
+    catalyst_density_source: "Tripodi et al. 2018 AAM, p. 8 ('0.59 g cm^-3, as experimentally determined for the Ru/C material')"
+    validity: "370-460 C, 50-100 bar, H2/N2 1.5 and 3 (Rossetti 2006, Table 1, p. 4151)"
+
+process:
+  production_tpd: 1000.0          # NH3-FINAL-1.1 plant
+  H2_N2: 3.0
+  inerts_typical: 0.08            # converter inlet; Topsoe 140-bar loop (Dybkjaer 1995, Table 6.1, p. 226)
+  separator_C: -20.0
+  loops_bar: [90.0, 150.0, 200.0]
+  pressure_sweep_bar: [60.0, 75.0, 90.0, 105.0, 120.0, 150.0, 180.0, 200.0]
+  T_min_C: 350.0                  # minimum bed temperature, fresh active catalyst (Gramatica & Pernicone 1991, p. 245)
+  T_max_Fe_C: 530.0               # fused iron sinters above 540 C (Gramatica & Pernicone 1991, p. 244)
+  T_max_Ru_C: 460.0               # top of the measured Ru/C range (Rossetti 2006, Table 1)
+  T_max_Ru_C_sensitivity: 500.0   # methanation limit of the carbon support (Tripodi et al. 2018 AAM, p. 4)
+
+economics:
+  Fe_catalyst_USD_kg: 8.0         # same number as the NH3-FINAL-1.1 Fe price, here per kg of fused-iron catalyst
+  Fe_catalyst_USD_kg_range: [4.0, 16.0]
+  Ru_USD_kg: 53852.5              # NH3-FINAL-1.1 PRICE['Ru']
+  Ru_wt_frac_commercial: 0.08     # commercial KAAP-type Ru/C (manuscript ref. 41)
+  Ru_C_bed_density_kg_m3: 490.0   # 430-550 (analysis/nh3_actual_ru_params_2026_10_07)
+  Ru_C_support_USD_kg: 8.0        # non-recoverable support/promoter/fabrication charge per kg Ru/C (assumption, negligible)
+  Ru_recovery: [0.90, 0.9555]
+  catalyst_life_y: 10.0
+  metal_financing_rate: [0.0, 0.12]
+  equipment_rate: 0.12            # NH3-FINAL-1.1 discount_rate
