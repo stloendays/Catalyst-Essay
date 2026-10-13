@@ -5,6 +5,9 @@ Dyson & Simon (1968) fused-iron (KM1) Temkin rate with fugacities; Ru kinetics: 
 Temkin rate with H₂ and NH₃ adsorption terms. Every parameter and its source is in `parameters.yaml` and the table in
 section 3.
 
+NH3-FINAL-1.2 (2026-10-13): the same scripts with `NH3_MODEL=1.2` write to `nh3_1_2/`; results and the 1.1 → 1.2 table in
+`nh3_1_2/README.md` (the staged converter is model-invariant, the kinetics swap changes).
+
 ## 1. Kinetics swap in NH3-FINAL-1.1 (primary)
 
 Only the Fe and Ru catalyst masses change. The 14,136 process states (350–450 °C, 10–1000 bar, separator −40 to 30 °C,
@@ -265,6 +268,8 @@ benchmark optimum (325 bar) are extrapolations in pressure; the Fe optimum (110�
 | `converter.py`, `run_staged.py` | section 2 → `arrangements.csv`, `sensitivities.csv`, `design_library.csv`, `envelope_checks.csv`, `summary.json` |
 | `boundary.py`, `plot_staged.py` | maps → `boundary_*.csv`, `boundary_summary.json`, `staged_converter.png` |
 | `test_staged.py`, `check_regression.py` | unit checks against NH3-FINAL-1.1; comparison of a rerun with the committed outputs |
+| `manuscript_numbers.py` | the quoted numbers (financing windows, savings, shares, kinetics-swap headline) → `manuscript_numbers.json` |
+| `staged_invariance_1_2.py`, `nh3_1_2/` | NH3-FINAL-1.2 (`NH3_MODEL=1.2`; `nh3_1_2/README.md`) |
 
     pip install -r requirements.txt pyyaml
     cd analysis/nh3_staged_converter_2026_10_12

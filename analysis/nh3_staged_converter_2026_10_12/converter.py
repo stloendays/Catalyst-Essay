@@ -28,13 +28,25 @@ import kinetics as K
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-sys.path.insert(0, str(REPO / "provenance" / "discover_v1" / "source_harness"))
+sys.path.insert(0, str(REPO / "analysis"))
+import nh3_model as NM  # noqa: E402  (NH3_MODEL=1.1 default | 1.2)
+
+if NM.VERSION == "1.1":
+    sys.path.insert(0, str(REPO / "provenance" / "discover_v1" / "source_harness"))
 sys.path.insert(0, str(REPO / "analysis" / "nh3_ru_net_recovery_boundary_2026_10_12"))
-from harness_core import MW_NH3_KG_MOL, NH3Harness  # noqa: E402
+if NM.VERSION == "1.1":
+    from harness_core import MW_NH3_KG_MOL, NH3Harness  # noqa: E402
+    MANIFEST = REPO / "provenance" / "discover_v1" / "source_harness" / "outputs" / "nh3_final_20260905T134204Z" / "manifest_resolved.yaml"
+else:
+    # NH3-FINAL-1.2 core and manifest. The converter reads only the economic controls and cost functions, which 1.2 leaves
+    # as in 1.1 (only the calibration factor and the thermo block differ; checked in test_staged.py and
+    # staged_invariance_1_2.py), so every converter cost is bit-identical under the two models.
+    MW_NH3_KG_MOL, NH3Harness = NM.core().MW_NH3_KG_MOL, NM.core().NH3Harness
+    MANIFEST = NM.run_dir() / "manifest_resolved.yaml"
 from lifecycle_cashflow import MetalCashflow, annualized_metal_multiplier  # noqa: E402
 
-MANIFEST = REPO / "provenance" / "discover_v1" / "source_harness" / "outputs" / "nh3_final_20260905T134204Z" / "manifest_resolved.yaml"
 CFG = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+OUT = NM.out_dir(HERE)               # where run_staged.py and boundary.py write (this folder for 1.1, nh3_1_2/ for 1.2)
 H = NH3Harness.__new__(NH3Harness)   # economic constants and cost functions only; no process library is built
 H.cfg = CFG
 H._init_controls()
