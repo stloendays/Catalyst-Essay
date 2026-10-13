@@ -457,6 +457,14 @@ LEDGER_STATUS = {"paper without printed values": "dropped: no printed values in 
                  "fewer than 2 printed entries": "dropped: fewer than two printed entries"}
 
 
+def _inlet_limit():
+    """The model's reactor-inlet limit on CO + CH4 + N2 (data/meoh/meoh_general_model.NONREACTIVE_MAX)."""
+    import sys
+    sys.path.insert(0, str(ROOT / "data" / "meoh"))
+    import meoh_general_model as G
+    return float(G.NONREACTIVE_MAX)
+
+
 def _verdict(differs, regret):
     if differs is None or (isinstance(differs, float) and math.isnan(differs)):
         return "–"
@@ -506,6 +514,9 @@ def table_ledger(cr, fm):
                  f"dropped**", f"**{tot['p6']} of {len(kept)}**", f"**{tot['p5']} of {len(kept)}**",
                  f"**{tot['a6']} of {tot['a6n']}**", f"**{tot['a5']} of {len(led)}**"])
     pr = s["papers_dropped_by_reason"]
+    few = led[led.reason_not_scored == "fewer than 2 printed entries"].printed_entries.astype(int)
+    n_none, n_one = int((few == 0).sum()), int((few == 1).sum())
+    assert n_none + n_one == gr["fewer than 2 printed entries"]
     cap = (f"One row per comparison group of the all-entries cohort (entries of one paper at the same pressure, H₂/CO₂ "
            f"ratio and space velocity, plot readings included), from {rel(LEDGER / 'group_ledger.csv')}; counts checked "
            f"against {rel(LEDGER / 'ledger_summary.json')}. Entries: all entries of the group / entries with printed "
@@ -513,9 +524,9 @@ def table_ledger(cr, fm):
            f"{pp['groups']} groups ({num(pp['entries'])} entries, {pp['papers']} papers); "
            f"{gr['paper without printed values']} groups come from {pr['paper without printed values']} papers without "
            f"printed values and {gr['fewer than 2 printed entries']} have fewer than two printed entries "
-           f"({s['groups_dropped_by_printed_entries']['0']} with none, {s['groups_dropped_by_printed_entries']['1']} with "
-           f"one). Verdict columns: whether the space-time-yield leader of the group is not its plant-cost leader, with "
-           f"the regret where it is not; inlet limit, CO, methane and N₂ at most 6.86% of the reactor inlet (primary); "
+           f"({n_none} with none, {n_one} with one). Verdict columns: whether the space-time-yield leader of the group is not its plant-cost leader, with "
+           f"the regret where it is not; inlet limit, CO, methane and N₂ at most {100 * _inlet_limit():.2f}% of the reactor inlet "
+           f"(primary); "
            f"no limit, the loop without it. Printed values: the primary analysis, from "
            f"{rel(INV / 'group_metrics_inlet_limit.csv')} and {rel(INV / 'group_metrics.csv')}. All entries: the "
            f"sensitivity with plot readings, from the ledger; under the inlet limit one group keeps fewer than two "
