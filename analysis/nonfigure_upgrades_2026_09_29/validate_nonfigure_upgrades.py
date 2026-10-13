@@ -105,12 +105,10 @@ assert (HERE / "reproduce_nh3_cost_mc.py").exists()
 
 # ---- pairwise transfer index ------------------------------------------------
 tr = {r["system"]: r for r in rows(OUT / "pairwise_inversion_index.csv")}
-if VERSION == "1.1":
-    fig1 = {r["metal"]: r for r in rows(ROOT / "figures/composite/fig1/fig1_metals.csv")}
-    s_nh3 = 10 ** (float(fig1["Ru"]["logTOF_673K"]) - float(fig1["Fe"]["logTOF_673K"]))
-else:  # the atomic-reference logTOF at 673 K of the 1.2 run (fig1_metals.csv logTOF_673K is this column for 1.1)
-    m12 = res["deterministic"]["metals"]
-    s_nh3 = 10 ** (float(m12["Ru"]["activity_logTOF"]) - float(m12["Fe"]["activity_logTOF"]))
+# the atomic-reference logTOF at 673 K of the selected run (figures/composite/fig1/fig1_metals.csv carries the same
+# column for the model the figures show, now 1.2, so it is not read here)
+m_run = res["deterministic"]["metals"]
+s_nh3 = 10 ** (float(m_run["Ru"]["activity_logTOF"]) - float(m_run["Fe"]["activity_logTOF"]))
 chi_nh3 = math.log(ru / fe) / math.log(s_nh3)
 assert close(tr["NH3"]["pairwise_transfer_index_chi"], chi_nh3, 1e-12)
 
