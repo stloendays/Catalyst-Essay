@@ -3,6 +3,7 @@
 183 mm wide pages, Arial 5.3-9 pt, ticks in, the pastel blue/green palette with one red
 for the element each panel is about, live text in the SVG and TrueType in the PDF.
 """
+import contextlib
 import os
 
 import matplotlib
@@ -82,3 +83,29 @@ def boxed(ax):
 
 def fmt_minus(s):
     return s.replace("-", "−")
+
+
+@contextlib.contextmanager
+def scripts_at_least(pt=5.3):
+    """Inside this block, mathtext sub- and superscripts are set at max(0.7 x base size, pt) instead of 0.7 x base
+    size, so that a 5.3 pt label keeps 5.3 pt scripts. The shrink factor is set per string while it is parsed, so
+    glyphs, kerns and boxes shrink together. Text is laid out when the figure is saved: wrap pg.save()."""
+    from matplotlib import _mathtext as mt
+    from matplotlib.mathtext import MathTextParser
+
+    orig, factor = mt.Parser.parse, mt.SHRINK_FACTOR
+
+    def parse(self, s, fonts_object, fontsize, dpi):
+        mt.SHRINK_FACTOR = max(factor, min(1.0, pt / fontsize))
+        try:
+            return orig(self, s, fonts_object, fontsize, dpi)
+        finally:
+            mt.SHRINK_FACTOR = factor
+
+    MathTextParser._parse_cached.cache_clear()
+    mt.Parser.parse = parse
+    try:
+        yield
+    finally:
+        mt.Parser.parse = orig
+        MathTextParser._parse_cached.cache_clear()

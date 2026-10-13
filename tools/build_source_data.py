@@ -161,27 +161,27 @@ def fig1():
 def fig2():
     b = Book("SourceData_Fig2.xlsx", "Fig. 2 (laboratory leaderboards vs plant-cost leaderboards; renderer "
              "figures/composite/fig_field/make_fig_field.py)")
-    lit = js("analysis/meoh_literature_inversion_2026_10_05/summary.json")
-    st = js("analysis/meoh_main_result_stats_2026_10_06/summary.json")
     nh3 = js("analysis/nh3_field_2026_10_06/summary.json")
     b.panel("a", [("ACSA workflow", None, "schematic", "")])
-    P, V = lit["primary"], lit["variants"]
-    rows = [("STY", P), ("X*S", V["leaderboard_X_times_S"]), ("X", V["leaderboard_X"]),
-            ("S_MeOH", V["leaderboard_S_MeOH"])]
-    tb = pd.DataFrame([dict(leaderboard=k, mismatch_groups=x["top1_mismatch_groups"], groups=x["groups"],
-                            papers=x["papers"], fraction=x["top1_mismatch_fraction"]) for k, x in rows])
-    ci = st["cluster_bootstrap"]
-    b.panel("b", [("leader changes by paper leaderboard (recycled CO)", tb,
-                   "analysis/meoh_literature_inversion_2026_10_05/summary.json (primary, variants.leaderboard_*)", ""),
-                  ("marker: STY leaderboard with inert CO", kv({"inert CO, mismatch groups":
-                                                                V["inert_opt"]["top1_mismatch_groups"],
-                                                                "inert CO, fraction":
-                                                                V["inert_opt"]["top1_mismatch_fraction"]}),
-                   "analysis/meoh_literature_inversion_2026_10_05/summary.json (variants.inert_opt)", ""),
-                  ("error bar on STY: paper-cluster bootstrap", kv({"resamples": ci["resamples"],
-                                                                    "CI95 low": ci["fraction_ci95"][0],
-                                                                    "CI95 high": ci["fraction_ci95"][1]}),
-                   "analysis/meoh_main_result_stats_2026_10_06/summary.json (cluster_bootstrap)", "")])
+    # panels b, d, e: the renderer's own tables (frozen scoring code, inert-limited loop and the loop without the limit)
+    sys.path.insert(0, os.path.join(REPO, "figures", "composite", "fig_field"))
+    import make_fig_field as FF  # noqa: E402
+    lb = FF.meoh_leaderboards().reset_index()
+    lb["label"] = lb.label.str.replace("S$_{MeOH}$", "S_MeOH", regex=False)
+    kd = FF.lit["variants"]["inlet_limit_6.86pct"]["kinds"]
+    b.panel("b", [("leader changes by paper leaderboard: inert-limited loop (primary) and STY without the limit", lb,
+                   "analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (cost_column) scored with "
+                   "meoh_candidates.aggregate; CI95: analysis/meoh_s6_robustness_2026_10_13/stats_s6/summary.json "
+                   "(STY) and analysis/meoh_main_result_stats_2026_10_06/summary.json (STY_no_limit), "
+                   "cluster_bootstrap.fraction_ci95",
+                   "bar height = fraction; hatched height = regret_gt5pct / groups"),
+                  ("STY disagreements by kind, inert-limited loop",
+                   kv({"other catalyst": kd["other_catalyst"]["groups"],
+                       "comparisons with at least two catalysts": kd["other_catalyst"]["of"],
+                       "same catalyst, other temperature": kd["other_temperature"]["groups"],
+                       "comparisons with a temperature series": kd["other_temperature"]["of"]}),
+                   "analysis/meoh_literature_inversion_2026_10_05/summary.json (variants.inlet_limit_6.86pct.kinds)",
+                   "")])
     pr, nv = nh3["primary"], nh3["variants"]
     cases = [("rate per g catalyst (primary)", pr), ("rate per g metal", nv["per_g_metal_leaderboard"]),
              ("rate per g catalyst, 90 % Ru recovery", nv["Ru_recovery_90pct"])]
@@ -204,15 +204,12 @@ def fig2():
                   ("what the mismatched comparisons differ by (primary)", kinds,
                    "analysis/nh3_field_2026_10_06/summary.json (primary.mismatch_kinds); plant-winner metal from "
                    "group_metrics.csv + candidates.csv", "")])
-    lc = csv("analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv")
-    for sheet, g in (("d", "10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h"),
-                     ("e", "10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 10.6 NL/g/h")):
-        t = lc[lc.group == g][["entry", "catalyst", "T_C", "X", "SMeOH", "SCH4", "STY", "cost_recycled_opt"]].copy()
-        t["STY_leader"] = t.STY == t.STY.max()
-        t["plant_cost_leader"] = t.cost_recycled_opt == t.cost_recycled_opt.min()
+    for sheet, (g, _, byp, _) in zip("de", FF.MEOH_GROUPS):
+        t = FF.meoh_group(g, byp)
         b.panel(sheet, [("comparison group " + g, t, "analysis/meoh_literature_inversion_2026_10_05/"
-                         "literature_candidates.csv", "x = STY (g_MeOH g_cat-1 h-1), y = cost_recycled_opt (EUR/t), "
-                         "marker area ~ SCH4")])
+                         "literature_candidates.csv", "x = STY (g_MeOH g_cat-1 h-1); filled y = cost_recycled_opt_inlet "
+                         "(EUR/t, inert-limited loop; purge_recycled_opt_inlet, fraction of loop gas); open y = "
+                         "cost_recycled_opt (no limit); marker area ~ %s; leaders of the inert-limited loop" % byp)])
     g = "10.1002/aenm.201801772 | 400 C | 5 MPa | H2/N2 3 | 6.6e+04 mL/g/h"
     t = cand[cand.group == g][["catalyst", "metal", "metal_wt_pct", "paper_rate", "cost_USD_t"]].copy()
     t["rate_mmol_gcat_h"] = t.paper_rate / 1000.0
