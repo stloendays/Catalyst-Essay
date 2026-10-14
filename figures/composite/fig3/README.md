@@ -4,14 +4,14 @@ Backward design now separates four logically distinct operations: the activity-o
 
 183 × 122 mm, four panels: `Fig3.{svg,pdf,png}`.
 
-Render status: **rebuilt and committed on 2026-09-29 from the four-layer renderer; render manifest current**.
+Render status: **rebuilt on 2026-10-14 on NH3-FINAL-1.2 (canonical run `nh3_final_1_2_20261013`, `nh3_1_2/` analysis outputs); render manifest `../FIG3_RENDER_SHA256.txt` current**.
 
 | Panel | Content | Source |
 |---|---|---|
-| a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=201.22x`; cost-side uncertainty p05–p95 = 70.78–462.00x; strict-scaling headroom shown only as a reference band. Bottom strip: measured activity gains of promoted, support-modified and confined Ru over a reference Ru catalyst on the same axis | FINAL-1.1 `breakeven_sweep.csv`, 5,000-draw cost MC, `analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv` |
-| b | Lowest feasible Ru cost along the strict `E_N` scaling line; minimum 21.397873 USD/t at `E_N=-1.215 eV`, still above Fe 15.291705 USD/t | FINAL-1.1 `scaling_reachability.csv` |
-| c | Conservative direct-activity / lifetime / recovery target curves. At 99% recovery: <=2.41794x (10 y), <=1.74213x (15 y), <=1.40129x (20 y) | `activity_lifecycle_certified_boundary.csv`, `activity_lifecycle_target_keypoints.csv` |
-| d | Exact strict-scaling lifecycle boundary over all 14,136 process states. Tested box `L<=20 y, recovery<=99%` misses parity by 0.07078 USD/t at its best corner; parity requires 99.1186% recovery at 20 y or 22.69 y at 99% recovery | `scaling_lifecycle_exact_global_boundary.csv`, `scaling_lifecycle_exact_summary.json` |
+| a | Full-process Ru cost versus direct activity multiplier; baseline `alpha*=114.67x`; cost-side uncertainty p05–p95 = 43.52–262.28x; strict-scaling headroom shown only as a reference band. Bottom strip: measured activity gains of promoted, support-modified and confined Ru over a reference Ru catalyst on the same axis | FINAL-1.2 `breakeven_sweep.csv`, 5,000-draw cost MC (`analysis/supervisor_2026_09_20/nh3_1_2/`), `analysis/promoted_ru_literature_2026_10_05/nh3_1_2/fig3_literature_points.csv` |
+| b | Lowest feasible Ru cost along the strict `E_N` scaling line; minimum 16.454819 USD/t at `E_N=-1.180 eV`, still 4.939 above Fe 11.515784 USD/t | FINAL-1.2 `scaling_reachability.csv` |
+| c | Conservative direct-activity / lifetime / recovery target curves. At 99% recovery: <=1.29065x (10 y), <=0.90397x (15 y), <=0.71009x (20 y); left of alpha = 1 no activity gain is needed | `nh3_1_2/activity_lifecycle_certified_boundary.csv`, `nh3_1_2/activity_lifecycle_target_keypoints.csv` |
+| d | Exact strict-scaling lifecycle boundary over all 14,510 process states. Tested box `L<=20 y, recovery<=99%` reaches parity: its best corner is 0.3167 USD/t (2.75%) below Fe; parity requires 98.3498% recovery at 20 y or 12.12 y at 99% recovery | `nh3_1_2/scaling_lifecycle_exact_global_boundary.csv`, `nh3_1_2/scaling_lifecycle_exact_summary.json` |
 
 ## Scientific reading order
 
@@ -27,7 +27,7 @@ strict-scaling joint reachability
 
 The important distinction is **target versus reachability**. Panel c reports the catalyst-property combinations economics asks for; Panel d independently tests whether the strict scaling-constrained materials space reaches those requirements.
 
-The value **2.524565x** remains a state-specific maximum activity gain and is never treated as a uniform multiplier in the joint reachability calculation.
+The value **1.575275x** remains a state-specific maximum activity gain and is never treated as a uniform multiplier in the joint reachability calculation.
 
 ## Build
 

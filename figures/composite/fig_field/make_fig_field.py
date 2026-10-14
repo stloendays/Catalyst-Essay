@@ -2,13 +2,19 @@
 
 Composite, 183 mm wide.
   a  ACSA workflow (schematic, as Fig. 6a of the earlier numbering)
-  b  methanol, leader changes by leaderboard metric: analysis/meoh_literature_inversion_2026_10_05/summary.json,
-     paper-cluster bootstrap CI on STY: analysis/meoh_main_result_stats_2026_10_06/summary.json
-  c  ammonia, leader changes by rate basis and plant treatment, and what the winners differ by:
-     analysis/nh3_field_2026_10_06/summary.json, group_metrics.csv, candidates.csv
+  b  methanol, leader changes by leaderboard metric in the inert-limited loop (primary; frozen column
+     cost_recycled_opt_inlet: reactor-inlet CH4 + CO + N2 <= 6.86 %), and by STY without the limit (frozen column
+     cost_recycled_opt), scored with the frozen code meoh_candidates.aggregate on
+     analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv and checked against summary.json and
+     analysis/meoh_s6_robustness_2026_10_13/results.json; paper-cluster bootstrap CIs on STY:
+     analysis/meoh_s6_robustness_2026_10_13/stats_s6/summary.json and analysis/meoh_main_result_stats_2026_10_06/
+     summary.json
+  c  ammonia (NH3-FINAL-1.2), leader changes by rate basis and plant treatment, and what the winners differ by:
+     analysis/nh3_field_2026_10_06/nh3_1_2/summary_printed.json, group_metrics_printed.csv, candidates.csv
   d  methanol group, Re/TiO2 at 100 bar: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv
-  e  methanol group, Cu/Al2O3 (K, Ba) at 10 MPa: same file
-  f  ammonia group, BaTiO3-xHx supports at 5 MPa: analysis/nh3_field_2026_10_06/candidates.csv
+     (cost_recycled_opt_inlet filled, cost_recycled_opt open)
+  e  methanol group, InNi3C0.5 on m-, t-, a-ZrO2 and SiO2 at 4 MPa (Meng et al. 2021, 24 NL/g/h): same file
+  f  ammonia group, BaTiO3-xHx supports at 5 MPa: analysis/nh3_field_2026_10_06/nh3_1_2/candidates_printed.csv
 
     pur_bridge_env/python make_fig_field.py            -> FigField.{svg,pdf,png}
 """
@@ -19,14 +25,23 @@ import sys
 from collections import Counter
 
 import numpy as np
+import pandas as pd
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from style import DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed  # noqa: E402
+from style import (DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
+                   scripts_at_least)
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+INV = "analysis/meoh_literature_inversion_2026_10_05/"
+S6R = "analysis/meoh_s6_robustness_2026_10_13/"
+sys.path.insert(0, os.path.join(REPO, "data", "meoh"))
+sys.path.insert(0, os.path.join(REPO, INV))
+from meoh_candidates import aggregate  # noqa: E402  (frozen scoring code)
+
+S6, S5 = "cost_recycled_opt_inlet", "cost_recycled_opt"     # inert-limited loop (primary), loop without the limit
 
 
 def read_csv(rel):
@@ -37,23 +52,81 @@ def read_json(rel):
     return json.load(open(os.path.join(REPO, rel), encoding="utf-8"))
 
 
-lit = read_json("analysis/meoh_literature_inversion_2026_10_05/summary.json")
-stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")
-cand = read_csv("analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv")
-nh3_run = read_json("analysis/nh3_field_2026_10_06/summary.json")
-nh3 = read_json("analysis/nh3_field_2026_10_06/summary_printed.json")          # frozen primary: printed values
-nh3_groups = read_csv("analysis/nh3_field_2026_10_06/group_metrics_printed.csv")
-nh3_cand = read_csv("analysis/nh3_field_2026_10_06/candidates.csv")
-nh3_pcand = read_csv("analysis/nh3_field_2026_10_06/candidates_printed.csv")
+lit = read_json(INV + "summary.json")
+stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")      # bootstrap, loop without limit
+stats6 = read_json(S6R + "stats_s6/summary.json")                                  # bootstrap, inert-limited loop
+s6res = read_json(S6R + "results.json")
+cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
+NH3F = "analysis/nh3_field_2026_10_06/nh3_1_2/"                                 # ammonia model NH3-FINAL-1.2
+nh3_run = read_json(NH3F + "summary.json")
+nh3 = read_json(NH3F + "summary_printed.json")                                   # primary: printed values
+nh3_groups = read_csv(NH3F + "group_metrics_printed.csv")
+nh3_cand = read_csv(NH3F + "candidates.csv")
+nh3_pcand = read_csv(NH3F + "candidates_printed.csv")
+assert nh3_run["model"]["label"] == "NH3-FINAL-1.2" and nh3_run["model"]["process_states"] == 14510
 assert lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
 assert stats["point_estimate"]["groups"] == lit["primary"]["top1_mismatch_groups"]
 assert stats["groups"] == lit["primary"]["groups"]
+assert stats6["point_estimate"]["groups"] == lit["variants"]["inlet_limit_6.86pct"]["top1_mismatch_groups"]
+assert np.allclose(stats6["cluster_bootstrap"]["fraction_ci95"], lit["variants"]["inlet_limit_6.86pct"]["bootstrap"]["ci95"])
 assert nh3_run["selfcheck_supported_chain"]["pass_"]
 
-MEOH_GROUPS = [("10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h", "Re/TiO$_2$, 100 bar"),
-               ("10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 10.6 NL/g/h", "Cu/Al$_2$O$_3$ (K, Ba), 10 MPa")]
+# (group, panel title, by-product whose selectivity sets the marker area)
+MEOH_GROUPS = [("10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h", "Re/TiO$_2$, 100 bar", "SCH4", "CH$_4$"),
+               ("10.1126/sciadv.abi6012 | 40 bar | H2/CO2 3 | 24 NL/g/h", "InNi$_3$C$_{0.5}$ on four supports, 4 MPa",
+                "SCO", "CO")]
 NH3_GROUP = ("10.1002/aenm.201801772 | 400 C | 5 MPa | H2/N2 3 | 6.6e+04 mL/g/h",
              "Ru, Fe, Co on BaTiO$_{3-x}$H$_x$, 5 MPa")
+
+
+def meoh_leaderboards():
+    """Panel b: comparisons whose paper leader is not the plant-cost leader, by paper leaderboard, in the inert-limited
+    loop, and by STY without the limit; scored with the frozen meoh_candidates.aggregate (X*S as in
+    run_literature_inversion.py) and checked against the frozen summaries."""
+    c = cand.assign(XS=cand.X * cand.SMeOH)
+    rows = []
+    for key, label, col, up in (("STY", "STY", S6, "STY"), ("XS", "X·S", S6, "XS"), ("X", "X", S6, "X"),
+                                ("SMeOH", "S$_{MeOH}$", S6, "SMeOH"), ("STY_no_limit", "STY", S5, "STY")):
+        gm, s_ = aggregate(c, col, up_col=up)
+        m = gm[gm.top1_mismatch]
+        rows.append(dict(key=key, label=label, loop="inert-limited (primary)" if col == S6 else "no inlet limit",
+                         cost_column=col, leaderboard=up, groups=s_["groups"], papers=s_["papers"],
+                         mismatch_groups=s_["top1_mismatch_groups"], fraction=s_["top1_mismatch_fraction"],
+                         regret_gt5pct=int((m.regret > 0.05).sum()), papers_with_mismatch=s_["papers_with_mismatch"],
+                         regret_median_mismatched=s_["regret_median_mismatched"]))
+    t = pd.DataFrame(rows).set_index("key")
+    v6, p5 = lit["variants"]["inlet_limit_6.86pct"], lit["primary"]
+    f6, f5 = s6res["frozen_columns"]["S6"], s6res["frozen_columns"]["S5"]
+    assert (t.loc["STY", "mismatch_groups"], t.loc["STY", "regret_gt5pct"]) == (
+        v6["top1_mismatch_groups"], v6["regret_bins"]["gt5pct"]["groups"]) == (28, 22)
+    assert (t.loc["STY_no_limit", "mismatch_groups"], t.loc["STY_no_limit", "regret_gt5pct"]) == (
+        p5["top1_mismatch_groups"], p5["regret_bins"]["gt5pct"]["groups"]) == (15, 7)
+    for k, r in (("X", "leaderboard_X"), ("SMeOH", "leaderboard_SMeOH")):
+        assert (t.loc[k, "mismatch_groups"], t.loc[k, "regret_gt5pct"]) == (f6[r]["disagreements"], f6[r]["gt5pct"])
+    assert t.loc["XS", "mismatch_groups"] >= 0 and f5["primary"]["disagreements"] == 15
+    ci = {"STY": stats6["cluster_bootstrap"]["fraction_ci95"], "STY_no_limit": stats["cluster_bootstrap"]["fraction_ci95"]}
+    t["CI95_low"] = [ci[k][0] if k in ci else np.nan for k in t.index]
+    t["CI95_high"] = [ci[k][1] if k in ci else np.nan for k in t.index]
+    return t
+
+
+def meoh_group(g, byp):
+    """Panels d, e: the entries of one comparison group with both loops' costs and purges."""
+    cols = ["entry", "catalyst", "T_C", "X", "SMeOH", "SCO", "SCH4", "STY", S6, "purge_recycled_opt_inlet", S5,
+            "purge_recycled_opt"]
+    t = cand[cand.group == g][cols].copy().reset_index(drop=True)
+    assert len(t) >= 2, g
+    t["STY_leader"] = t.STY == t.STY.max()
+    t["plant_cost_leader"] = t[S6] == t[S6].min()
+    t["plant_cost_leader_no_limit"] = t[S5] == t[S5].min()
+    t.attrs["byproduct"] = byp
+    return t
+
+
+def support_name(catalyst):
+    """'InNi3C0.5/m-ZrO2 [Fig. 2B, ...]' -> 'm-ZrO$_2$'."""
+    sup = catalyst.split(" [")[0].split("/")[-1]
+    return sup.replace("O2", "O$_2$")
 
 
 def pct(x):
@@ -95,49 +168,47 @@ if __name__ == "__main__":
         a.add_patch(FancyBboxPatch((x - w / 2, 5), w, 15, boxstyle="round,pad=0,rounding_size=1.4", fc=fc, ec=INK,
                                    lw=0.55))
         a.text(x, 15.8, t, ha="center", va="center", fontsize=6.4, fontweight="bold")
-        a.text(x, 10.0, sub, ha="center", va="center", fontsize=5.2, color=INK, linespacing=1.15)
+        a.text(x, 10.0, sub, ha="center", va="center", fontsize=5.3, color=INK, linespacing=1.15)
     for x0, x1 in ((31.2, 35.8), (66.2, 72.8), (103.2, 108.8), (145.2, 148.8)):
         a.add_patch(FancyArrowPatch((x0, 12.5), (x1, 12.5), arrowstyle="-|>", mutation_scale=6, lw=0.6, color=INK))
     a.text(88, 1.8, "scientific models unchanged; the agent supplies scale", ha="center", va="center", fontsize=5.3,
            color=INK)
     pg.letter("a", 2, 148)
 
-    # ---- b: methanol leaderboards -----------------------------------------------------------------------------
+    # ---- b: methanol leaderboards, inert-limited loop (primary) and STY without the limit ------------------------
     b = pg.ax(14, 70, 40, 38)
-    P0, V = lit["primary"], lit["variants"]
-    cases = [("STY", P0), ("X·S", V["leaderboard_X_times_S"]), ("X", V["leaderboard_X"]),
-             ("S$_{MeOH}$", V["leaderboard_S_MeOH"])]
-    lo, hi = stats["cluster_bootstrap"]["fraction_ci95"]
-    for i, (lab, x) in enumerate(cases):
-        f = x["top1_mismatch_fraction"]
-        col = RED if lab.startswith("S$") else (RU if lab == "STY" else PALE_B)
-        b.bar(i, f, 0.62, color=col, ec=INK, lw=0.4, zorder=2)
-        g5 = x["regret_bins"]["gt5pct"]["groups"] / x["groups"]
-        b.bar(i, g5, 0.62, color="none", ec=INK, lw=0.4, hatch="//////", zorder=2.5)
-        ytxt = (hi if i == 0 else f) + 0.035
-        b.text(i, ytxt, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), ha="center", va="bottom", fontsize=5.0)
-    b.errorbar([0], [P0["top1_mismatch_fraction"]], yerr=[[P0["top1_mismatch_fraction"] - lo],
-                                                          [hi - P0["top1_mismatch_fraction"]]],
-               fmt="none", ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
-    b.scatter([0], [V["inert_opt"]["top1_mismatch_fraction"]], marker="_", s=60, c=INK, lw=0.9, zorder=4)
-    kd = P0["kinds"]
-    b.text(0.03, 0.97, "bar on STY: 95 %% CI\n(paper-cluster bootstrap)\ntick: recycled CO as inert\n"
-           "hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d,\nsame catalyst, other T %d/%d" % (
-               kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"], kd["other_temperature"]["groups"],
-               kd["other_temperature"]["of"]),
-           transform=b.transAxes, fontsize=5.0,
-           ha="left", va="top", color=INK)
-    b.set_xticks(range(len(cases)))
-    b.set_xticklabels([l for l, _ in cases], fontsize=5.6)
+    lb = meoh_leaderboards()
+    xb = {"STY": 0.0, "XS": 1.0, "X": 2.0, "SMeOH": 3.0, "STY_no_limit": 4.55}
+    fill = {"STY": RU, "XS": PALE_B, "X": PALE_B, "SMeOH": PALE_B, "STY_no_limit": "white"}
+    for k, r in lb.iterrows():
+        x = xb[k]
+        b.bar(x, r.fraction, 0.62, color=fill[k], ec=INK, lw=0.4, zorder=2)
+        b.bar(x, r.regret_gt5pct / r.groups, 0.62, color="none", ec=INK, lw=0.4, hatch="//////", zorder=2.5)
+        top = r.fraction
+        if np.isfinite(r.CI95_low):
+            b.errorbar([x], [r.fraction], yerr=[[r.fraction - r.CI95_low], [r.CI95_high - r.fraction]], fmt="none",
+                       ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
+            top = r.CI95_high
+        b.text(x, top + 0.03, "%d/%d" % (r.mismatch_groups, r.groups), ha="center", va="bottom", fontsize=5.3)
+    b.axvline(3.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
+    b.text(1.5, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
+    b.text(xb["STY_no_limit"], 0.985, "no limit", ha="center", va="top", fontsize=5.3)
+    kd = lit["variants"]["inlet_limit_6.86pct"]["kinds"]
+    pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 %% CI; hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d, "
+                "other temperature %d/%d" % (kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"],
+                                             kd["other_temperature"]["groups"], kd["other_temperature"]["of"]),
+                fontsize=5.3, va="top", ha="left", linespacing=1.2)
+    b.set_xticks([xb[k] for k in lb.index])
+    b.set_xticklabels(list(lb.label), fontsize=5.6)
     b.set_ylim(0, 1.0)
-    b.set_xlim(-0.55, 3.55)
+    b.set_xlim(-0.55, 5.1)
     b.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     b.set_yticklabels(["0", "25", "50", "75", "100"])
     b.set_ylabel("leader changes (% of comparisons)")
     b.set_xlabel("paper leaderboard")
     boxed(b)
     pg.letter("b", 2, 117)
-    pg.title("Methanol: %d comparisons, %d papers" % (P0["groups"], P0["papers"]), 14, 117)
+    pg.title("Methanol: %d comparisons, %d papers" % (lb.groups.iloc[0], lb.papers.iloc[0]), 14, 117)
 
     # ---- c: ammonia leaderboards ------------------------------------------------------------------------------
     c1 = pg.ax(74, 70, 34, 38)
@@ -154,15 +225,15 @@ if __name__ == "__main__":
         c1.errorbar([i], [f], yerr=[[f - l], [h - f]], fmt="none", ecolor=INK, elinewidth=0.6, capsize=1.8,
                     capthick=0.6, zorder=3)
         c1.text(i, h + 0.035, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), ha="center", va="bottom",
-                fontsize=5.0)
+                fontsize=5.3)
     c1.set_xticks(range(len(ncases)))
-    c1.set_xticklabels([l for l, _, _ in ncases], fontsize=5.2)
+    c1.set_xticklabels([l for l, _, _ in ncases], fontsize=5.3)
     c1.set_xlim(-0.55, 2.55)
     c1.set_ylim(0, 1.0)
     c1.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     c1.set_yticklabels(["0", "25", "50", "75", "100"])
     c1.set_ylabel("leader changes (% of comparisons)")
-    c1.text(0.04, 0.97, "bars: 95 % CI\nhatched: cost gap > 5 %", transform=c1.transAxes, fontsize=5.0, va="top",
+    c1.text(0.04, 0.97, "bars: 95 % CI\nhatched: cost gap > 5 %", transform=c1.transAxes, fontsize=5.3, va="top",
             color=INK)
     boxed(c1)
 
@@ -177,51 +248,67 @@ if __name__ == "__main__":
         v = kinds[k]
         y = len(korder) - 1 - j
         c2.barh(y, v["groups"], 0.42, color=col, ec=INK, lw=0.4)
-        c2.text(0.35, y + 0.25, lab % v["groups"] if "%d" in lab else lab, fontsize=5.0, va="bottom", ha="left",
+        c2.text(0.35, y + 0.25, lab % v["groups"] if "%d" in lab else lab, fontsize=5.3, va="bottom", ha="left",
                 linespacing=1.05)
         c2.text(v["groups"] + 0.4, y, "%d (%d paper%s); regret %s %%" % (
             v["groups"], v["papers"], "" if v["papers"] == 1 else "s", pct(v["regret_median"])),
-            fontsize=5.0, va="center", ha="left")
+            fontsize=5.3, va="center", ha="left")
     c2.set_ylim(-0.4, len(korder) - 0.05 + 0.55)
-    c2.set_xlim(0, nmax * 1.75)
+    c2.set_xlim(0, nmax * 1.95)
     c2.set_yticks([])
     c2.set_xlabel("mismatched comparisons (of %d)" % pr["top1_mismatch_groups"])
     boxed(c2)
     c2.text(0.99, 0.985, "regret: median cost penalty of\nbuilding the paper's leader", transform=c2.transAxes,
-            fontsize=5.0, ha="right", va="top")
+            fontsize=5.3, ha="right", va="top")
     pg.letter("c", 64, 117)
     pg.title("Ammonia: %d comparisons, %d papers" % (pr["groups"], pr["papers"]), 74, 117)
 
-    # ---- d, e: methanol groups --------------------------------------------------------------------------------
-    for k, (g, title) in enumerate(MEOH_GROUPS):
-        rows = [r for r in cand if r["group"] == g]
-        assert rows, g
+    # ---- d, e: methanol groups in the inert-limited loop (filled) and without the limit (open) ------------------
+    for k, (g, title, byp, byp_tex) in enumerate(MEOH_GROUPS):
+        t = meoh_group(g, byp)
         e = pg.ax(14 + k * 59, 11, 45, 40)
-        sty = np.array([float(r["STY"]) for r in rows])
-        cost = np.array([float(r["cost_recycled_opt"]) for r in rows])
-        sch4 = np.array([float(r["SCH4"]) for r in rows])
-        e.scatter(sty, cost, s=8 + 100 * sch4, c=PALE_B, ec=INK, lw=0.35, zorder=2)
+        sty, cost, cost5 = t.STY.to_numpy(), t[S6].to_numpy(), t[S5].to_numpy()
+        purge = t.purge_recycled_opt_inlet.to_numpy()
+        size = 8 + 160 * t[byp].to_numpy()
+        for x, y0, y1 in zip(sty, cost5, cost):
+            e.plot([x, x], [y0, y1], color=MID, lw=0.35, zorder=1)
+        e.scatter(sty, cost5, s=size, facecolor="white", ec=MID, lw=0.4, zorder=1.5)
+        e.scatter(sty, cost, s=size, c=PALE_B, ec=INK, lw=0.35, zorder=2)
         iu, ie = int(np.argmax(sty)), int(np.argmin(cost))
-        e.scatter([sty[iu]], [cost[iu]], s=36, facecolor="none", ec=RED, lw=0.9, zorder=3)
-        e.scatter([sty[ie]], [cost[ie]], s=36, facecolor="none", ec=DARK_G, lw=0.9, zorder=3)
-        e.annotate("STY leader", (sty[iu], cost[iu]), xytext=(-2, 8), textcoords="offset points", fontsize=5.0,
-                   color=RED, ha="right")
-        left = sty[ie] < sty.min() + 0.25 * (sty.max() - sty.min())
-        e.annotate("plant-cost\nleader", (sty[ie], cost[ie]), xytext=(6 if left else -4, 6),
-                   textcoords="offset points", fontsize=5.0, color=DARK_G, ha="left" if left else "right")
+        assert t.STY_leader[iu] and t.plant_cost_leader[ie] and iu != ie
+        e.scatter([sty[iu]], [cost[iu]], s=size[iu] + 28, facecolor="none", ec=RED, lw=0.9, zorder=3)
+        e.scatter([sty[ie]], [cost[ie]], s=size[ie] + 28, facecolor="none", ec=DARK_G, lw=0.9, zorder=3)
+        names = [support_name(c) if k == 1 else "" for c in t.catalyst]
+        xr = sty.max() - sty.min()
+        for i, nm in enumerate(names):
+            if nm:
+                right = sty[i] > sty.min() + 0.5 * xr
+                e.annotate(nm, (sty[i], cost[i]), xytext=(-5 if right or i == ie else 5, 0),
+                           textcoords="offset points", fontsize=5.3, ha="right" if right or i == ie else "left",
+                           va="center")
         e.set_xlabel("STY (g$_{MeOH}$ g$_{cat}^{-1}$ h$^{-1}$)")
         e.set_ylabel("net cost (EUR t$^{-1}$)")
-        # log axis: a few entries cost tens of times the leaders and would flatten them on a linear axis
-        e.set_yscale("log")
-        e.set_ylim(cost.min() / 1.25, cost.max() * 1.9)
+        allc = np.concatenate([cost, cost5])
         plain = FuncFormatter(lambda v, _: "{:,.0f}".format(v))
+        if allc.max() / allc.min() > 2:
+            # log axis: a few entries cost several times the leaders and would flatten them on a linear axis
+            e.set_yscale("log")
+            e.set_ylim(allc.min() / 1.25, allc.max() * 4.2)
+            e.yaxis.set_minor_formatter(FuncFormatter(lambda v, _: "{:,.0f}".format(v) if str(int(round(v)))[0] in "25"
+                                                      else ""))
+        else:
+            span = allc.max() - allc.min()
+            e.set_ylim(allc.min() - 0.12 * span, allc.max() + 0.95 * span)
         e.yaxis.set_major_formatter(plain)
-        e.yaxis.set_minor_formatter(FuncFormatter(lambda v, _: "{:,.0f}".format(v) if str(int(round(v)))[0] in "25" else ""))
-        xr = sty.max() - sty.min()
-        e.set_xlim(sty.min() - 0.08 * xr, sty.max() + 0.08 * xr)
+        e.set_xlim(sty.min() - 0.2 * xr, sty.max() + 0.1 * xr)
         e.text(0.03, 0.96, title, transform=e.transAxes, fontsize=5.6, va="top", fontweight="bold")
-        if k == 0:
-            e.text(0.03, 0.86, "marker area: CH$_4$ selectivity", transform=e.transAxes, fontsize=5.0, va="top")
+        key = ["marker area: %s selectivity" % byp_tex, "filled: inert-limited loop; open: no limit"]
+        for j, line in enumerate(key):
+            e.text(0.03, 0.86 - 0.075 * j, line, transform=e.transAxes, fontsize=5.3, va="top")
+        for j, (i, lab, col) in enumerate(((iu, "STY leader", RED), (ie, "plant-cost leader", DARK_G))):
+            e.text(0.03, 0.86 - 0.075 * (len(key) + j), "%s%s: %.1f %% purge" % (
+                lab, (", " + names[i]) if names[i] else "", 100 * purge[i]), transform=e.transAxes, fontsize=5.3,
+                va="top", color=col)
         boxed(e)
     pg.letter("d", 2, 57)
     pg.letter("e", 61, 57)
@@ -243,18 +330,19 @@ if __name__ == "__main__":
     fax.scatter([rate[ie]], [cost[ie]], s=40, facecolor="none", ec=DARK_G, lw=0.9, zorder=3)
     fax.annotate("rate leader\n%s, %s wt%%" % (rows[iu]["catalyst"].replace("BaTiO2.5H0.5", "BaTiO$_{2.5}$H$_{0.5}$"),
                                                rows[iu]["metal_wt_pct"].rstrip("0").rstrip(".")),
-                 (rate[iu], cost[iu]), xytext=(-2, 7), textcoords="offset points", fontsize=5.0, color=RED,
+                 (rate[iu], cost[iu]), xytext=(-2, 7), textcoords="offset points", fontsize=5.3, color=RED,
                  ha="right")
     fax.annotate("plant-cost leader\nFe, 1 wt%% (regret %.0f %%)" % (100 * float(gm["regret"])), (rate[ie], cost[ie]),
-                 xytext=(7, -1), textcoords="offset points", fontsize=5.0, color=DARK_G, ha="left", va="center")
+                 xytext=(7, -1), textcoords="offset points", fontsize=5.3, color=DARK_G, ha="left", va="center")
     assert rows[ie]["metal"] == "Fe" and float(rows[ie]["metal_wt_pct"]) == 1.0
     fax.set_xlabel("rate (mmol g$_{cat}^{-1}$ h$^{-1}$)")
     fax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
     fax.set_xlim(-2.5, 55)
-    fax.set_ylim(14.5, 46)
-    fax.legend(loc="upper right", fontsize=5.0, handletextpad=0.1, borderaxespad=0.3, labelspacing=0.3)
+    fax.set_ylim(11.5, 34.5)
+    fax.legend(loc="upper right", fontsize=5.3, handletextpad=0.1, borderaxespad=0.3, labelspacing=0.3)
     fax.text(0.03, 0.96, NH3_GROUP[1], transform=fax.transAxes, fontsize=5.6, va="top", fontweight="bold")
     boxed(fax)
     pg.letter("f", 121, 57)
 
-    pg.save(HERE, "FigField")
+    with scripts_at_least(5.3):          # sub- and superscripts at >= 5.3 pt
+        pg.save(HERE, "FigField")

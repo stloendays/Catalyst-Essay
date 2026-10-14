@@ -2,11 +2,13 @@
 
 # Figure 3 — NH3 descriptor uncertainty + cost-side Monte Carlo
 # 2026-09-20 supervisor extension. Rendering only; no scientific values are recomputed.
+# Ammonia model NH3-FINAL-1.2: the NH3 tables are read from analysis/supervisor_2026_09_20/nh3_1_2/ (canonical run
+# nh3_final_1_2_20261013); the MeOH rank matrix is model-independent and stays in the parent folder.
 
 args <- commandArgs(trailingOnly = TRUE)
 root <- if (length(args) >= 1) args[[1]] else "."
-summary_file <- file.path(root, "analysis", "supervisor_2026_09_20", "f3_panel_summary.csv")
-hist_file <- file.path(root, "analysis", "supervisor_2026_09_20", "nh3_cost_mc_histogram.csv")
+summary_file <- file.path(root, "analysis", "supervisor_2026_09_20", "nh3_1_2", "f3_panel_summary.csv")
+hist_file <- file.path(root, "analysis", "supervisor_2026_09_20", "nh3_1_2", "nh3_cost_mc_histogram.csv")
 meoh_file <- file.path(root, "analysis", "supervisor_2026_09_20", "meoh_rank_probability_matrix.csv")
 out_dir <- file.path(root, "figures", "nh3")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -22,8 +24,9 @@ need <- c("Fe_feasible_descriptor_MC", "Fe_economic_top1_descriptor_MC",
           "median_Ru_minus_Fe_cost_MC", "alpha_star_p05",
           "alpha_star_median", "alpha_star_p95", "alpha_star_canonical")
 if (!all(need %in% names(val))) stop("F3 summary metrics incomplete")
-if (abs(val[["Fe_economic_top1_descriptor_MC"]] - 0.681) > 1e-12) stop("Fe economic Top-1 anchor changed")
-if (abs(val[["top1_survival_descriptor_MC"]] - 0.282) > 1e-12) stop("Top-1 survival anchor changed")
+if (abs(val[["Fe_economic_top1_descriptor_MC"]] - 0.653) > 1e-12) stop("Fe economic Top-1 anchor changed")
+if (abs(val[["top1_survival_descriptor_MC"]] - 0.271) > 1e-12) stop("Top-1 survival anchor changed")
+if (abs(val[["alpha_star_canonical"]] - 114.66712547049676) > 1e-9) stop("canonical alpha* anchor changed")
 if (abs(val[["P_C_Fe_lt_C_Ru_cost_MC"]] - 1.0) > 1e-12) stop("Cost-MC Fe/Ru preference anchor changed")
 
 ink <- "#111111"; blue <- "#315A8A"; orange <- "#B45F3B"; grey <- "#666666"; light <- "#E6E6E6"
@@ -41,8 +44,8 @@ render <- function(device = c("svg", "pdf", "png")) {
   par(family = "serif", fg = ink, col.axis = ink, col.lab = ink, col.main = ink,
       mgp = c(2.2, 0.7, 0), tcl = -0.25, las = 1)
 
-  # a — descriptor endpoints
-  par(mar = c(4.1, 7.2, 2.7, 1.0))
+  # a — descriptor endpoints (left margin wide enough for the two-line category labels)
+  par(mar = c(4.1, 9.8, 2.7, 1.0))
   x <- c(val[["Fe_feasible_descriptor_MC"]], val[["Fe_economic_top1_descriptor_MC"]],
          val[["top1_survival_descriptor_MC"]], val[["Fe_top3_actionable_descriptor_MC"]])
   labs <- c("Fe feasible", "Fe economic Top-1", "Atomic -> economic\nTop-1 survival", "Fe Top-3 actionable")
@@ -56,7 +59,9 @@ render <- function(device = c("svg", "pdf", "png")) {
   box(bty = "l")
   text(x + 0.018, yy, sprintf("%.1f%%", 100 * x), adj = 0, cex = 0.86)
   mtext("a   Descriptor uncertainty separates distinct decision endpoints", side = 3, adj = 0, line = 0.8, font = 2, cex = 0.95)
-  mtext("68.1% = P(Fe economic Top-1); 28.2% = P(atomic Top-1 = economic Top-1)", side = 3, adj = 0, line = -0.35, cex = 0.70)
+  mtext(sprintf("%.1f%% = P(Fe economic Top-1); %.1f%% = P(atomic Top-1 = economic Top-1)",
+                100 * val[["Fe_economic_top1_descriptor_MC"]], 100 * val[["top1_survival_descriptor_MC"]]),
+        side = 3, adj = 0, line = -0.35, cex = 0.70)
 
   # b — Ru-Fe cost gap histogram
   par(mar = c(4.1, 4.5, 2.7, 1.0))
@@ -70,7 +75,7 @@ render <- function(device = c("svg", "pdf", "png")) {
   abline(v = val[["median_Ru_minus_Fe_cost_MC"]], col = blue, lwd = 1.3)
   axis(1); axis(2); box(bty = "l")
   legend("topright", legend = c("P(C_Fe < C_Ru) = 5,000/5,000",
-                                sprintf("minimum gap = %.2f USD/t", val[["min_Ru_minus_Fe_cost_MC"]]),
+                                sprintf("minimum gap = %.3f USD/t", val[["min_Ru_minus_Fe_cost_MC"]]),
                                 sprintf("median gap = %.2f USD/t", val[["median_Ru_minus_Fe_cost_MC"]])),
          bty = "o", bg = "white", box.col = "#B0B0B0", cex = 0.72)
   mtext("b   Joint cost uncertainty does not reverse Fe versus Ru", side = 3, adj = 0, line = 0.8, font = 2, cex = 0.95)

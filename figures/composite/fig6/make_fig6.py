@@ -3,7 +3,8 @@
 Composite, 183 mm wide.
   a  ACSA workflow (schematic)
   b  extraction accuracy by source: agent/extraction/eval/field_accuracy_by_source.csv
-  c  bimetallic surfaces, transition-metal layer: analysis/nh3_alloy_extension_2026_10_05/alloy_chain_results.csv
+  c  bimetallic surfaces, transition-metal layer (NH3-FINAL-1.2):
+     analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/alloy_chain_results.csv, Fe benchmark from nh3_1_2/summary.json
   d  published methanol comparisons, leader changes by leaderboard: analysis/meoh_literature_inversion_2026_10_05/summary.json
   e  two comparison groups, STY against plant cost: analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv
 
@@ -24,7 +25,6 @@ sys.path.insert(0, os.path.dirname(HERE))
 from style import DARK_G, FE, INK, MID, OTHER, PALE_B, PALE_G, RED, RU, TINT_B, TINT_G, Page, boxed  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-FE_COST = 15.291704676621144
 
 
 def read_csv(rel):
@@ -32,10 +32,13 @@ def read_csv(rel):
 
 
 acc = {(r["source_type"], r["field"]): r for r in read_csv("agent/extraction/eval/field_accuracy_by_source.csv")}
-alloy = read_csv("analysis/nh3_alloy_extension_2026_10_05/alloy_chain_results.csv")
+alloy = read_csv("analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/alloy_chain_results.csv")
+FE_COST = json.load(open(os.path.join(REPO, "analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/summary.json"),
+                         encoding="utf-8"))["Fe_cost_USD_t"]
+assert abs(FE_COST - 11.515783597179267) < 1e-12
 lit = json.load(open(os.path.join(REPO, "analysis/meoh_literature_inversion_2026_10_05/summary.json"), encoding="utf-8"))
 cand = read_csv("analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv")
-assert all(-7.6 < float(r["logTOF_673K"]) and float(r["cost_USD_t"]) < 15000 for r in alloy
+assert all(-7.6 < float(r["logTOF_673K"]) < -2.1 and float(r["cost_USD_t"]) < 15000 for r in alloy
            if r["domain"] == "transition_metal" and r["feasible"] == "True")
 assert lit["selfcheck"]["max_abs_diff_eur_t"] < 1e-12
 
@@ -112,15 +115,18 @@ below = sorted([r for r in tm if float(r["cost_USD_t"]) < FE_COST], key=lambda r
 c.text(-5.6, 5.8, "%d below Fe, all cheap 3d + Cr/Mo/W" % len(below), fontsize=5.0, color=DARK_G, va="bottom")
 top = max(tm, key=lambda r: float(r["logTOF_673K"]))
 c.scatter([float(top["logTOF_673K"])], [float(top["cost_USD_t"])], s=16, facecolor="none", ec=RED, lw=0.8, zorder=4)
-c.annotate("%s: most active,\neconomic rank 43" % top["surface"], (float(top["logTOF_673K"]), float(top["cost_USD_t"])),
+top_rank = sorted(float(r["cost_USD_t"]) for r in tm).index(float(top["cost_USD_t"])) + 1
+assert all(r in fam for r in below)
+c.annotate("%s: most active,\neconomic rank %d" % (top["surface"], top_rank),
+           (float(top["logTOF_673K"]), float(top["cost_USD_t"])),
            xytext=(-6, 60), textcoords="offset points", fontsize=5.0, color=RED, ha="right",
            arrowprops=dict(arrowstyle="-", color=RED, lw=0.5))
 c.set_yscale("log")
 c.set_ylim(5, 15000)
-c.set_xlim(-7.6, -3.1)
+c.set_xlim(-7.6, -2.1)
 c.yaxis.set_minor_formatter(NullFormatter())
-c.set_yticks([15, 100, 1000, 10000])
-c.set_yticklabels(["15", "100", "10$^3$", "10$^4$"])
+c.set_yticks([10, 100, 1000, 10000])
+c.set_yticklabels(["10", "100", "10$^3$", "10$^4$"])
 c.set_xlabel("log$_{10}$ TOF at 673 K (s$^{-1}$)")
 c.set_ylabel("cost (USD t$^{-1}$ NH$_3$)")
 c.scatter([], [], s=9, c=FE, ec=INK, lw=0.25, label="cheap 3d + Cr/Mo/W")

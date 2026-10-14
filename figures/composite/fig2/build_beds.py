@@ -1,6 +1,6 @@
 """Catalyst beds drawn to scale at each case's optimum, rendered in OVITO.
 
-Bed volume V comes from fig2_pressure_envelopes.csv (the case optimum). Each bed is a
+Bed volume V comes from nh3_1_2/fig2_pressure_envelopes.csv (the case optimum on NH3-FINAL-1.2). Each bed is a
 cylinder with the converter's L/D = 3 (the vessel costing basis) filled with pellets of
 one common, illustrative size, and all three are rendered with the same orthographic
 camera and field of view so their sizes in the figure stay proportional.
@@ -29,7 +29,7 @@ def hex_rgb(h):
 
 
 def optimum_volumes():
-    rows = list(csv.DictReader(open(os.path.join(HERE, "fig2_pressure_envelopes.csv"), encoding="utf-8")))
+    rows = list(csv.DictReader(open(os.path.join(HERE, "nh3_1_2", "fig2_pressure_envelopes.csv"), encoding="utf-8")))
     out = {}
     for case in CASES:
         best = min((r for r in rows if r["case"] == case), key=lambda r: float(r["cost"]))

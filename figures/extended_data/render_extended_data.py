@@ -3,6 +3,7 @@
     pur_bridge_env/python render_extended_data.py          -> EDFig{N}_{slug}.{svg,pdf,png}
     pur_bridge_env/python render_extended_data.py 3 5      -> only ED Figs 3 and 5
 """
+import contextlib
 import os
 import re
 import sys
@@ -15,7 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "composite"))
 import ed_data as E  # noqa: E402
-from style import DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, TINT_B, Page, boxed  # noqa: E402
+from style import (DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, TINT_B, Page, boxed,  # noqa: E402
+                   scripts_at_least)
 
 # Numbered in the order the manuscript first cites them (2026-10-07 restructure); the panel functions keep the
 # names of the first numbering (ed2 = bimetallic, ed4 = measured NH3, ed5 = actual Ru, ed6 = benchmark, ed7 = pruning).
@@ -121,137 +123,149 @@ def ed2():
 
 
 # ---------------------------------------------------------------------------------------------- ED Fig. 3
+LOOP_STYLE = {"inlet_limited": dict(fc=RU, label="inert-limited loop (primary)"),
+              "no_limit": dict(fc="white", label="no limit")}
+FS = 5.3            # smallest text size in ED Figs 3 and 8
+
+
 def ed3():
     d = E.edfig3()
-    a, b, c, dd = (d[k][0] for k in "abcd")
+    a, b, c, dd, ee = (d[k][0] for k in "abcde")
     ng = a.attrs["groups"]
+    loops = ("inlet_limited", "no_limit")
     pg = Page(183.0, 182.0)
     up = 62.0                     # panels a-d sit above panel e
-    # a bootstrap
+    # a bootstrap distributions of both loops, with the observed share and the 95 % CI as a bracket
     ax = pg.ax(14, 70 + up, 70, 40)
-    ax.bar(a.bin_low_fraction, a.resamples, width=a.bin_high_fraction - a.bin_low_fraction, align="edge",
-           color=PALE_B, ec=INK, lw=0.3)
-    lo, hi = a.attrs["ci"]
-    for v in (lo, hi):
-        ax.axvline(v, color=INK, lw=0.6, ls="--")
-    ax.axvline(a.attrs["point"], color=RED, lw=0.9)
-    top = a.resamples.max() * 1.22
-    ax.set_ylim(0, top)
-    ax.text(a.attrs["point"] - 0.008, top * 0.97, "observed %d/%d\n(%.1f %%)" % (
-        round(a.attrs["point"] * ng), ng, 100 * a.attrs["point"]), color=RED, fontsize=5.4, va="top", ha="right")
-    ax.text(hi + 0.008, top * 0.75, "95 %% CI\n%.1f–%.1f %%" % (100 * lo, 100 * hi), fontsize=5.4,
-            va="top")
-    # x range from the populated bins (a 10 % margin), so the histogram fills the panel
-    occ = a[a.resamples > 0]
-    x0, x1 = max(0.0, float(occ.bin_low_fraction.min()) - 0.05), min(1.0, float(occ.bin_high_fraction.max()) + 0.05)
-    ax.set_xlim(x0, x1)
-    ticks = [t / 10 for t in range(0, 11) if x0 <= t / 10 <= x1]
+    w = a.bin_high_fraction - a.bin_low_fraction
+    hist = {"inlet_limited": RU, "no_limit": PALE_B}
+    hmax = float(max(a.resamples_no_limit.max(), a.resamples_inlet_limited.max()))
+    for j, loop in enumerate(("no_limit", "inlet_limited")):
+        at = a.attrs[loop]
+        lo, hi = at["ci"]
+        ax.bar(a.bin_low_fraction, a["resamples_" + loop], width=w, align="edge", color=hist[loop], ec=INK, lw=0.3,
+               alpha=0.9 if loop == "inlet_limited" else 1.0, zorder=2,
+               label="%s: %d/%d (%.1f %%), 95 %% CI %.1f–%.1f %%" % (at["name"], at["mismatched"], ng,
+                                                                    100 * at["point"], 100 * lo, 100 * hi))
+        y = hmax * (1.10 + 0.12 * j)
+        ax.errorbar([at["point"]], [y], xerr=[[at["point"] - lo], [hi - at["point"]]], fmt="o", ms=2.6,
+                    color=INK, mfc=LOOP_STYLE[loop]["fc"], mec=INK, mew=0.4, elinewidth=0.7, capsize=1.8, zorder=4,
+                    label="observed share and 95 % CI" if loop == "inlet_limited" else None)
+    ax.set_ylim(0, hmax * 1.75)
+    h, lab = ax.get_legend_handles_labels()
+    order = [lab.index(x) for x in sorted(lab, key=lambda s: (not s.startswith("inert"), s.startswith("observed")))]
+    ax.legend([h[i] for i in order], [lab[i] for i in order], loc="upper left", fontsize=FS, borderaxespad=0.3,
+              handletextpad=0.4, handlelength=1.2)
+    ax.set_xlim(0, 1.0)
+    ticks = [t / 10 for t in range(0, 11)]
     ax.set_xticks(ticks)
     ax.set_xticklabels(["%d" % round(100 * t) for t in ticks])
     ax.set_xlabel("comparisons whose STY leader is not the plant-cost leader (%)")
     ax.set_ylabel("bootstrap resamples")
     boxed(ax)
     pg.letter("a", 2, 117 + up)
-    pg.title("Paper-cluster bootstrap, %s resamples of the papers" % format(a.attrs["n"], ","), 14, 117 + up)
-    # b regret threshold
+    pg.title("Paper-cluster bootstrap, %s resamples of the %d papers" % (format(a.attrs["n"], ","), a.attrs["papers"]),
+             14, 117 + up)
+    # b regret threshold, both loops
     bx = pg.ax(108, 70 + up, 70, 40)
     th = b.threshold.to_numpy()
-    xs = np.where(th == 0, 0.0003, th)
-    bx.plot(xs * 100, b.groups, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3)
-    for x, g, p in zip(xs, b.groups, b.papers):
-        bx.text(x * 100 * 1.08, g + 0.8, "%d (%d)" % (g, p), fontsize=5.0, va="bottom")
+    xs = np.where(th == 0, 0.0003, th) * 100
+    for loop in loops:
+        bx.plot(xs, b["groups_" + loop], color=RU, lw=0.9, marker="o", ms=2.8, mec=INK, mew=0.3,
+                mfc=LOOP_STYLE[loop]["fc"], label=LOOP_STYLE[loop]["label"])
+        for x, g, p in zip(xs, b["groups_" + loop], b["papers_" + loop]):
+            bx.text(x * 1.08, g + 0.9, "%d (%d)" % (g, p), fontsize=FS, va="bottom")
     bx.set_xscale("log")
     bx.set_xlim(0.02, 20)
     bx.set_xticks([0.03, 0.1, 0.5, 1, 2, 5, 10])
     bx.set_xticklabels(["0", "0.1", "0.5", "1", "2", "5", "10"])
     bx.xaxis.set_minor_formatter(NullFormatter())
-    btop = int(5 * np.ceil(1.3 * float(b.groups.max()) / 5))
+    btop = int(5 * np.ceil(1.3 * float(b.groups_inlet_limited.max()) / 5))
     bx.set_ylim(0, btop)
-    bx.set_yticks(range(0, btop + 1, 5))          # counts: integer ticks
+    bx.set_yticks(range(0, btop + 1, 5))
     bx.set_xlabel("regret at least (%)")
     bx.set_ylabel("mismatched comparisons")
-    bx.text(0.97, 0.95, "labels: comparisons (papers)", transform=bx.transAxes, fontsize=5.0, ha="right", va="top")
+    bx.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.3, handlelength=1.6)
+    bx.text(0.03, 0.04, "labels: comparisons (papers)", transform=bx.transAxes, fontsize=FS, va="bottom")
     boxed(bx)
     pg.letter("b", 96, 117 + up)
     pg.title("Size of the disagreements", 108, 117 + up)
-    # c noise scenarios
+    # c measurement resampling, both loops, and the noise floor
     cx = pg.ax(14, 12 + up, 70, 40)
-    y = np.arange(len(c))[::-1]
-    cx.errorbar(c.mismatch_groups_mean, y + 0.13, xerr=[c.mismatch_groups_mean - c.mismatch_groups_q025,
-                                                        c.mismatch_groups_q975 - c.mismatch_groups_mean],
-                fmt="o", ms=3, color=RU, mec=INK, mew=0.3, elinewidth=0.7, capsize=1.5, label="mismatched comparisons")
-    cx.errorbar(c.noise_floor_mean, y - 0.13, xerr=[c.noise_floor_mean - c.noise_floor_q025,
-                                                    c.noise_floor_q975 - c.noise_floor_mean],
+    scen = ["meas_k1", "meas_k2", "meas_k4"]
+    y0 = np.arange(len(scen))[::-1].astype(float)
+    for loop, dy in (("inlet_limited", 0.22), ("no_limit", 0.0)):
+        r = c[c.loop == loop].set_index("scenario").loc[scen]
+        cx.errorbar(r.mismatch_groups_mean, y0 + dy, xerr=[r.mismatch_groups_mean - r.mismatch_groups_q025,
+                                                           r.mismatch_groups_q975 - r.mismatch_groups_mean],
+                    fmt="o", ms=3, color=RU, mfc=LOOP_STYLE[loop]["fc"], mec=INK, mew=0.4, elinewidth=0.7,
+                    capsize=1.5, label="mismatched, " + LOOP_STYLE[loop]["label"])
+        cx.plot([r.observed.iloc[0]] * 2, [-1.05, len(scen) - 0.45], color=RED if loop == "inlet_limited" else INK,
+                lw=0.7, ls="--", zorder=1)
+        cx.text(r.observed.iloc[0] + 0.6, -0.78, "observed %d" % r.observed.iloc[0], fontsize=FS, va="center",
+                ha="left", color=RED if loop == "inlet_limited" else INK)
+    r = c[c.loop == "inlet_limited"].set_index("scenario").loc[scen]
+    cx.errorbar(r.noise_floor_mean, y0 - 0.22, xerr=[r.noise_floor_mean - r.noise_floor_q025,
+                                                     r.noise_floor_q975 - r.noise_floor_mean],
                 fmt="s", ms=2.6, color=OTHER, mec=INK, mew=0.3, elinewidth=0.7, capsize=1.5,
                 label="noise floor (STY leader changes)")
-    cx.axvline(c.attrs["observed"], color=RED, lw=0.8, ls="--")
-    cx.text(c.attrs["observed"] + 0.8, -0.75, "observed %d" % c.attrs["observed"], color=RED, fontsize=5.2,
-            va="center", ha="left")
-    cx.set_yticks(y)
-    short = {"meas_k1": "error ×1", "meas_k2": "error ×2", "meas_k4": "error ×4",
-             "meas_k1_plus_extraction": "×1 + plot\nreadings"}
-    cx.set_yticklabels([short[k] for k in c.scenario], fontsize=5.6)
-    cx.set_ylim(-1.05, len(c) + 0.75)
-    cx.set_xlim(0, max(ng, 10 * np.ceil(1.15 * float(c.mismatch_groups_q975.max()) / 10)))
+    cx.set_yticks(y0)
+    cx.set_yticklabels(["error ×1", "error ×2", "error ×4"], fontsize=5.6)
+    cx.set_ylim(-1.05, len(scen) + 1.0)
+    cx.set_xlim(0, ng)
     cx.set_xlabel("comparisons (of %d), mean and\n95 %% range over %s draws" % (ng, format(c.attrs["draws"], ",")))
-    cx.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
+    cx.legend(loc="upper left", fontsize=FS, borderaxespad=0.3, handletextpad=0.3, ncol=1)
     boxed(cx)
     pg.letter("c", 2, 59 + up)
-    pg.title("Measurement resampling" if "meas_k1_plus_extraction" not in set(c.scenario)
-             else "Measurement and plot-reading resampling", 14, 59 + up)
-    # d per-group persistence
+    pg.title("Measurement resampling", 14, 59 + up)
+    # d per-group persistence, both loops
     dx = pg.ax(108, 12 + up, 70, 40)
-    xg = np.arange(len(dd)) + 1
-    dx.bar(xg, dd.p_mismatch_meas_k1, 0.75, color=[RU if p >= 0.9 else PALE_B for p in dd.p_mismatch_meas_k1],
-           ec=INK, lw=0.25, label="error ×1")
-    if "p_mismatch_meas_k1_plus_extraction" in dd:
-        dx.scatter(xg, dd.p_mismatch_meas_k1_plus_extraction, s=5, marker="_", c=INK, lw=0.7, zorder=3,
-                   label="×1 + plot-reading errors")
+    pos = 0.0
+    for loop in loops:
+        g = dd[dd.loop == loop].reset_index(drop=True)
+        xg = pos + np.arange(len(g)) + 1
+        dx.bar(xg, g.p_mismatch_meas_k1, 0.75, color=[RU if p >= 0.9 else PALE_B for p in g.p_mismatch_meas_k1],
+               ec=INK, lw=0.25, zorder=2)
+        ni = g.near_infeasible.to_numpy(bool)
+        if ni.any():
+            dx.scatter(xg[ni], g.p_mismatch_meas_k1[ni] + 0.05, s=4, marker="v", c=INK, lw=0, zorder=3)
+        nrob = int((g.p_mismatch_meas_k1 >= 0.9).sum())
+        lab = "%s:\n%d of %d in ≥ 90 %%" % (LOOP_STYLE[loop]["label"].replace(" (primary)", ""), nrob, len(g))
+        if ni.any():
+            lab += "\n\u25bc near-infeasible: %d" % int(ni.sum())
+        dx.text(xg.mean(), 1.13, lab, fontsize=FS, ha="center", va="bottom", linespacing=1.15)
+        pos = xg[-1] + 2.5
     dx.axhline(0.9, color=INK, lw=0.5, ls=":")
-    nrob = int((dd.p_mismatch_meas_k1 >= 0.9).sum())
-    dx.text(len(dd) + 0.4, 1.02, "%d of %d stay in ≥ 90 %% of draws" % (nrob, len(dd)), fontsize=5.2, ha="right",
-            va="bottom")
-    dx.set_xlim(0.3, len(dd) + 0.7)
-    pct_axis(dx, 1.3)
-    dx.set_xlabel("observed mismatched comparison (sorted)")
-    dx.set_ylabel("draws still mismatched (%)")
-    dx.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3, ncol=2)
+    dx.set_xlim(0.2, pos - 1.8)
+    pct_axis(dx, 1.5)
+    dx.set_xticks([])
+    dx.set_xlabel("observed disagreements, sorted by persistence")
+    dx.set_ylabel("draws still mismatched at error ×1 (%)")
     boxed(dx)
     pg.letter("d", 96, 59 + up)
     pg.title("Persistence of each observed disagreement", 108, 59 + up)
-    # e limit on the reactor-inlet non-H2/CO2 fraction
-    e = d["e"][0]
+    # e every robustness check, both loops
     ex = pg.ax(14, 12, 164, 40)
-    fin = e[np.isfinite(e.limit)]
-    xmax = 0.36
-    lit = e.attrs.get("literature")
-    if lit:
-        ex.axvspan(lit[0] * 100, lit[1] * 100, color=PALE_G, alpha=0.45, lw=0, zorder=0)
-        ex.text((lit[0] + lit[1]) * 50, 0.97, "published CO$_2$-to-methanol\nreactor inlets (%d designs)" % lit[2],
-                fontsize=5.0, ha="center", va="top", color=DARK_G)
-    ex.plot(fin.limit * 100, fin.share, color=RU, lw=0.9, marker="o", ms=2.6, mec=INK, mew=0.3,
-            label="all comparisons")
-    ex.plot(fin.limit * 100, fin.iso_share, color=FE, lw=0.9, marker="s", ms=2.4, mec=INK, mew=0.3,
-            label="isothermal catalyst comparisons")
-    nl = e[~np.isfinite(e.limit)].iloc[0]
-    ex.scatter([xmax * 100], [nl.share], s=10, c=RU, ec=INK, lw=0.3, zorder=3, clip_on=False)
-    ex.scatter([xmax * 100], [nl.iso_share], s=9, c=FE, marker="s", ec=INK, lw=0.3, zorder=3, clip_on=False)
-    ref = e.attrs["reference"]
-    r = e[np.isclose(e.limit, ref)].iloc[0]
-    ex.axvline(ref * 100, color=RED, lw=0.7, ls="--")
-    ex.text(ref * 100 + 0.4, 0.06, "workbook limit %.2f %% (sensitivity): %d/%d (%.0f %%); isothermal %d/%d (%.0f %%)" % (
-        100 * ref, r.mismatched, r.groups, 100 * r.share, r.iso_mismatched, r.iso_groups, 100 * r.iso_share),
-        color=RED, fontsize=5.2, va="bottom")
-    ex.set_xlim(0, xmax * 100 + 1.5)
-    ex.set_xticks([0, 5, 10, 15, 20, 25, 30, xmax * 100])
-    ex.set_xticklabels(["0", "5", "10", "15", "20", "25", "30", "no limit"])
+    keys = list(dict.fromkeys(ee.key))
+    for i, k in enumerate(keys):
+        for loop, dxo in (("inlet_limited", -0.19), ("no_limit", 0.19)):
+            r = ee[(ee.key == k) & (ee.loop == loop)].iloc[0]
+            ex.bar(i + dxo, r.fraction, 0.36, color=LOOP_STYLE[loop]["fc"], ec=INK, lw=0.4, zorder=2,
+                   label=LOOP_STYLE[loop]["label"] if i == 0 else None)
+            ex.bar(i + dxo, r.regret_gt5pct / r.groups, 0.36, color="none", ec=INK, lw=0.4, hatch="//////",
+                   zorder=2.5, label="cost gap > 5 %" if (i == 0 and loop == "no_limit") else None)
+            ex.text(i + dxo, r.fraction + 0.02, "%d/%d" % (r.disagreements, r.groups), ha="center", va="bottom",
+                    fontsize=FS)
+    ex.set_xticks(range(len(keys)))
+    ex.set_xticklabels([ee[ee.key == k].label.iloc[0] for k in keys], fontsize=5.6, linespacing=1.1)
+    ex.tick_params(axis="x", length=0)
+    ex.set_xlim(-0.6, len(keys) - 0.4)
     pct_axis(ex, 1.0)
-    ex.set_xlabel("limit on the reactor-inlet content of species other than H$_2$ and CO$_2$ (mol%)")
     ex.set_ylabel("STY leader \u2260 plant-cost leader (%)")
-    ex.legend(loc="upper right", fontsize=5.0, borderaxespad=0.3, handletextpad=0.3)
+    ex.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.4, ncol=3)
     boxed(ex)
     pg.letter("e", 2, 59)
-    pg.title("Inlet-composition limit of the loop", 14, 59)
+    pg.title("Every robustness check in both loops", 14, 59)
     return pg
 
 
@@ -276,7 +290,7 @@ def ed4():
     ax.set_xscale("log")
     ax.set_xlabel("laboratory rate (mmol g$_{metal}^{-1}$ h$^{-1}$)")
     ax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
-    ax.set_ylim(13, t.cost_USD_t.max() + 1.5)
+    ax.set_ylim(min(fe, t.cost_USD_t.min()) - 2.4, t.cost_USD_t.max() + 1.5)
     ax.legend(loc="upper right", fontsize=5.4, handletextpad=0.2, borderaxespad=0.4)
     boxed(ax)
     pg.letter("a", 2, 78)
@@ -504,7 +518,7 @@ def ed7():
     for m, col, lab, z in ((fb.pruned, OTHER, "excluded by the bound (%d)" % fb.pruned.sum(), 2),
                            (~fb.pruned, RU, "optimized in full (%d)" % (~fb.pruned).sum(), 3)):
         bx.scatter(fb.cost_USD_t[m], fb.lower_bound_USD_t[m], s=4, c=col, ec=INK, lw=0.2, zorder=z, label=lab)
-    lim = (8, 2e4)
+    lim = (6, 2e4)
     bx.plot(lim, lim, color=INK, lw=0.5)
     bx.axhline(fe, color=DARK_G, lw=0.6, ls="--")
     bx.axvline(fe, color=DARK_G, lw=0.6, ls="--")
@@ -556,7 +570,7 @@ def ed7():
 # ---------------------------------------------------------------------------------------------- ED Fig. 8
 TREAT_COL = {"canonical": RU, "extended": PALE_B, "limit_published_max": PALE_G, "limit_anchor": FE,
              "limit_published_min": DARK_G}
-TREAT_TICK = {"canonical": "S5\n0.5–40 %", "extended": "S5\nfrom 10$^{-4}$ %", "limit_published_max": "inlet\n≤ %.2f %%",
+TREAT_TICK = {"canonical": "no limit\n0.5–40 %", "extended": "no limit\nfrom 10$^{-4}$ %", "limit_published_max": "inlet\n≤ %.2f %%",
               "limit_anchor": "inlet\n≤ %.2f %%", "limit_published_min": "inlet\n≤ %.2f %%"}
 
 
@@ -583,7 +597,7 @@ def _strip(ax, c, col, keys, rng):
 def ed8():
     d = E.edfig8()
     a, b, c, dd, e, f = (d[k][0] for k in "abcdef")
-    keys = list(e.key)
+    keys = list(f.key)
     lim = {"limit_published_min": b.attrs["published"][0], "limit_anchor": b.attrs["anchor"],
            "limit_published_max": b.attrs["published"][1]}
     ticks = [TREAT_TICK[k] % (100 * lim[k]) if k in lim else TREAT_TICK[k] for k in keys]
@@ -607,11 +621,11 @@ def ed8():
     ax.yaxis.set_minor_formatter(NullFormatter())
     ax.set_ylabel("cost / cost at %.1f %% purge" % floor)
     below = int((opt.purge < a.attrs["purge_floor"] - 1e-12).sum())
-    ax.text(floor * 1.15, 0.062, "S5 grid\n(0.5–40 %)", color=RED, fontsize=5.0, va="bottom")
+    ax.text(floor * 1.15, 0.062, "frozen grid\n(0.5–40 %)", color=RED, fontsize=FS, va="bottom")
     ax.text(0.03, 0.04, "optimum below %.1f %%: %d of %d entries\nmedian optimum %.3f %% purge" % (
-        floor, below, len(opt), 100 * float(np.median(opt.purge))), transform=ax.transAxes, fontsize=5.0,
+        floor, below, len(opt), 100 * float(np.median(opt.purge))), transform=ax.transAxes, fontsize=FS,
         va="bottom")
-    ax.legend(loc="upper left", fontsize=5.0, borderaxespad=0.3, handlelength=1.4, markerscale=2.5)
+    ax.legend(loc="upper left", fontsize=FS, borderaxespad=0.3, handlelength=1.4, markerscale=2.5)
     boxed(ax)
     pg.letter("a", 2, 175)
     pg.title("Cost along the purge grid, every scored entry", 14, 175)
@@ -631,7 +645,7 @@ def ed8():
     bx.set_ylabel("reactor inlet, not H$_2$ or CO$_2$ (mol%)")
     # just above the band at the lowest purges, where the curves sit near 100 % and the optima do not reach
     bx.text(1.3e-4, 100 * hi + 0.8, "shaded: %d published\nloop designs, %.2f–%.2f %%\ndashed: anchor loop %.2f %%" % (
-        nlit, 100 * lo, 100 * hi, 100 * b.attrs["anchor"]), fontsize=5.0, ha="left", va="bottom", color=DARK_G)
+        nlit, 100 * lo, 100 * hi, 100 * b.attrs["anchor"]), fontsize=FS, ha="left", va="bottom", color=DARK_G)
     boxed(bx)
     pg.letter("b", 96, 175)
     pg.title("Reactor-inlet content other than H$_2$ and CO$_2$", 108, 175)
@@ -655,7 +669,7 @@ def ed8():
     _strip(dx, dd, "recycle_ratio", keys, rng)
     ar = dd.attrs["anchor_recycle_ratio"]
     dx.axhline(ar, color=DARK_G, lw=0.6, ls="--", zorder=1)
-    dx.text(-0.5, ar * 0.85, "anchor loop %.2f" % ar, color=DARK_G, fontsize=5.0, ha="left", va="top")
+    dx.text(-0.5, ar * 0.85, "anchor loop %.2f" % ar, color=DARK_G, fontsize=FS, ha="left", va="top")
     dx.set_ylim(0.5, 1e4)
     dx.set_yticks([1, 10, 100, 1000, 10000])
     dx.set_yticklabels(["1", "10", "100", "1,000", "10,000"])
@@ -666,27 +680,45 @@ def ed8():
     boxed(dx)
     pg.letter("d", 96, 117)
     pg.title("Recycle ratio at the optimum (bars: median)", 108, 117)
-    # e comparisons with a different winner
+    # e comparisons with a different winner against the inlet limit, for both definitions of the limited species
     ex = pg.ax(14, 12, 70, 40)
-    y = np.arange(len(e))[::-1].astype(float)
-    ng = int(e.groups.max())
-    ex.barh(y - 0.12, e.different_winner, 0.4, color=[TREAT_COL[k] for k in e.key], ec=INK, lw=0.35)
-    ex.barh(y - 0.12, e.regret_gt5pct, 0.4, color="none", ec=INK, lw=0.35, hatch="//////")
-    for yi, r in zip(y, e.itertuples()):
-        ex.text(0.3, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
-        ex.text(r.different_winner + 0.6, yi - 0.12, "%d / %d (%d > 5 %%)" % (r.different_winner, r.groups,
-                                                                            r.regret_gt5pct),
-                fontsize=5.0, va="center")
-    ex.set_yticks([])
-    ex.set_ylim(-0.55, len(e) - 0.3)
-    ex.set_xlim(0, ng)
-    ex.set_xticks(range(0, ng + 1, 10))
-    ex.set_xlabel("comparisons, STY leader ≠ plant-cost leader (of %d)" % ng)
+    xnl = 35.0                                         # position of the loop without a limit
+    ex.axvspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
+    anc = 100 * e.attrs["anchor"]
+    ex.axvline(anc, color=RED, lw=0.7, ls="--", zorder=1)
+    defs = (("CH4 + CO + N2", "CH$_4$ + CO + N$_2$ (primary)", RU, "o"), ("CH4 + N2", "CH$_4$ + N$_2$ only", FE, "s"))
+    for key, lab, col, mk in defs:
+        t = e[e.definition == key]
+        ex.plot(t.limit * 100, t.different_leader, color=col, lw=0.9, marker=mk, ms=2.8, mec=INK, mew=0.3,
+                label=lab + ": all", zorder=3)
+        ex.plot(t.limit * 100, t.gt5pct, color=col, lw=0.8, ls=(0, (2.5, 1.5)), marker=mk, ms=2.6, mfc="white",
+                mec=col, mew=0.6, label=lab + ": cost gap > 5 %", zorder=3)
+    nl = e[~np.isfinite(e.limit)].set_index("definition")
+    fz, xt = nl.iloc[0], nl.iloc[1]
+    for v, filled in ((fz.different_leader, True), (fz.gt5pct, False)):
+        ex.scatter([xnl], [v], s=14, marker="D", c=INK if filled else "white", ec=INK, lw=0.6, zorder=4,
+                   clip_on=False)
+    ex.axhline(fz.different_leader, color=INK, lw=0.4, ls=":", zorder=1)
+    ex.text(xnl - 0.9, 5.6, "no limit: %d (%d > 5 %%)\npurge grid from 10$^{-4}$ %%: %d (%d > 5 %%)"
+            % (fz.different_leader, fz.gt5pct, xt.different_leader, xt.gt5pct), fontsize=FS, ha="right", va="top",
+            linespacing=1.2, zorder=5)
+    ex.text(anc + 0.5, 1.2, "%.2f %%" % anc, color=RED, fontsize=FS, ha="left", va="bottom")
+    ex.text(anc + 0.4, 39.0, "published\nloops", color=DARK_G, fontsize=FS, ha="left", va="top", linespacing=1.1)
+    ex.set_xlim(0, xnl + 1.5)
+    ex.set_xticks([0, 5, 10, 15, 20, 25, 30, xnl])
+    ex.set_xticklabels(["0", "5", "10", "15", "20", "25", "30", "no\nlimit"])
+    ex.set_ylim(0, 40)
+    ex.set_yticks(range(0, 41, 10))
+    ex.set_xlabel("limit on the reactor-inlet fraction (mol%)")
+    ex.set_ylabel("STY leader ≠ plant-cost leader (of %d)" % int(e.groups.max()))
+    ex.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.3, handlelength=2.2,
+              labelspacing=0.25)
     boxed(ex)
     pg.letter("e", 2, 59)
-    pg.title("Comparisons with a different winner (hatched: regret > 5 %)", 14, 59)
+    pg.title("Different winner against the inlet limit", 14, 59)
     # f mean inlet CO, CH4, N2 at the optimum
     fx = pg.ax(108, 12, 70, 40)
+    y = np.arange(len(f))[::-1].astype(float)
     fx.axvspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
     left = np.zeros(len(f))
     for sp, colr in (("CO", OS), ("CH4", OTHER), ("N2", PALE_B)):
@@ -694,8 +726,8 @@ def ed8():
                 label={"CO": "CO", "CH4": "CH$_4$", "N2": "N$_2$"}[sp])
         left += 100 * f[sp].to_numpy()
     for yi, r in zip(y, f.itertuples()):
-        fx.text(0.4, yi + 0.13, r.treatment, fontsize=5.0, ha="left", va="bottom")
-        fx.text(100 * r.nonreactive + 0.8, yi - 0.12, "%.1f %%" % (100 * r.nonreactive), fontsize=5.0, va="center")
+        fx.text(0.4, yi + 0.13, r.treatment, fontsize=FS, ha="left", va="bottom")
+        fx.text(100 * r.nonreactive + 0.8, yi - 0.12, "%.1f %%" % (100 * r.nonreactive), fontsize=FS, va="center")
     fx.set_yticks([])
     fx.set_ylim(-0.55, len(f) - 0.3)
     fx.set_xlim(0, 50)
@@ -703,7 +735,7 @@ def ed8():
     h, lab = fx.get_legend_handles_labels()
     h.append(Patch(color=PALE_G, alpha=0.6, lw=0))
     lab.append("published designs")
-    fx.legend(h, lab, loc="lower right", fontsize=5.0, borderaxespad=0.3, handlelength=1.2, ncol=2)
+    fx.legend(h, lab, loc="lower right", fontsize=FS, borderaxespad=0.3, handlelength=1.2, ncol=2)
     boxed(fx)
     pg.letter("f", 96, 59)
     pg.title("Reactor-inlet CO, CH$_4$ and N$_2$ at the optimum", 108, 59)
@@ -762,47 +794,67 @@ def write_captions():
     assert set(fam[fam.below_Fe].family_3d_group6) == {True}
 
     d = E.edfig3()
-    a, b, c, dd = (d[k][0] for k in "abcd")
-    e = d["e"][0]
-    cc = c.set_index("scenario")
+    a, b, c, dd, ee = (d[k][0] for k in "abcde")
     bc = b.set_index("threshold")
-    st = E.rjson(E.STATS + "summary.json")
+    cc = c.set_index(["loop", "scenario"])
+    A6, A5 = a.attrs["inlet_limited"], a.attrs["no_limit"]
+    k1_6, k1_5 = cc.loc[("inlet_limited", "meas_k1")], cc.loc[("no_limit", "meas_k1")]
+    d6, d5 = dd[dd.loop == "inlet_limited"], dd[dd.loop == "no_limit"]
+    ni = d6[d6.near_infeasible]
+    kept_ni = int((ni.p_mismatch_meas_k1 >= 0.9).sum())
+    persist_ni = "all" if kept_ni == len(ni) else "%d of them" % kept_ni
+    chk = {k: g.set_index("loop") for k, g in ee.groupby("key", sort=False)}
+    names = {"primary": "as published", "without_bansode": "without the study that supplies most comparisons",
+             "all_entries": "with plot-read entries added",
+             "closure_ge95": "entries whose reported product selectivities (methanol, CO, CH$_4$) sum to at least 95 %",
+             "split_all_CO": "unreported CO–CH$_4$ split set to all CO",
+             "split_all_CH4": "unreported CO–CH$_4$ split set to all CH$_4$",
+             "inert_co": "recycled CO treated as inert",
+             "catalyst_priced": "each catalyst priced from its composition, replacement over three years",
+             "conversion_raised": "each catalyst loading more catalyst to raise its conversion to at most 95 % of "
+                                  "equilibrium at constant selectivity"}
+
+    def pair(k):
+        g = chk[k]
+        return "%s %d/%d (%d) and %d/%d (%d)" % (
+            names[k], g.loc["inlet_limited", "disagreements"], g.loc["inlet_limited", "groups"],
+            g.loc["inlet_limited", "regret_gt5pct"], g.loc["no_limit", "disagreements"], g.loc["no_limit", "groups"],
+            g.loc["no_limit", "regret_gt5pct"])
+
     out += ["## Extended Data Fig. 3 | Robustness of the methanol leader changes", "",
-            "**a**, Share of the %d published comparisons whose STY leader is not the "
-            "plant-cost leader, over %s paper-cluster bootstrap resamples of the %d papers: "
-            "observed %s %%, 95 %% CI %s–%s %%. **b**, Mismatched "
-            "comparisons whose regret (cost penalty of building the STY leader) is at least the threshold: %d at 0, "
-            "%d at 1 %% (%d papers), %d at 5 %%, %d at 10 %%. **c**, Mean and 95 %% range over %s draws of the number "
-            "of mismatched comparisons when every entry is re-measured with the error the papers' own data imply (×1, "
-            "×2, ×4; circles), against the noise floor, the number of comparisons whose reported STY leader changes "
-            "under re-measurement alone (squares): ×1 %.1f (%d–%d) against a floor of %.1f (%d–%d); dashed, observed "
-            "%d. **d**, Share of draws in which each observed mismatch persists at ×1; %d of %d persist in at least "
-            "90 %% of draws. Source: `%s`." % (
-                st["groups"], format(a.attrs["n"], ","), st["papers"], _p(a.attrs["point"]), _p(a.attrs["ci"][0]),
-                _p(a.attrs["ci"][1]), bc.loc[0.0, "groups"], bc.loc[0.01, "groups"], bc.loc[0.01, "papers"], bc.loc[0.05, "groups"],
-                bc.loc[0.1, "groups"], format(c.attrs["draws"], ","),
-                cc.loc["meas_k1", "mismatch_groups_mean"], cc.loc["meas_k1", "mismatch_groups_q025"],
-                cc.loc["meas_k1", "mismatch_groups_q975"], cc.loc["meas_k1", "noise_floor_mean"],
-                cc.loc["meas_k1", "noise_floor_q025"], cc.loc["meas_k1", "noise_floor_q975"], c.attrs["observed"],
-                int((dd.p_mismatch_meas_k1 >= 0.9).sum()), len(dd), E.STATS)]
-    fin = e[np.isfinite(e.limit)]
-    span = fin[(fin.limit >= 0.05 - 1e-9) & (fin.limit <= 0.10 + 1e-9)]
-    nl = e[~np.isfinite(e.limit)].iloc[0]
-    ref = e[np.isclose(e.limit, e.attrs["reference"])].iloc[0]
-    lit = e.attrs.get("literature")
-    out[-1] = out[-1].replace(" Source: `%s`." % E.STATS, "")
-    out[-1] += (" **e**, Share of comparisons whose STY leader is not the plant-cost leader against the limit on the "
-                "reactor-inlet content of species other than H$_2$ and CO$_2$ (all comparisons, circles; isothermal "
-                "comparisons of at least two catalysts, squares; right edge, no limit). Dashed, the calibrated reference "
-                "loop (%s %%): %d / %d (%s %%) and %d / %d (%s %%). Shaded, the reactor inlets of %d published "
-                "CO$_2$-to-methanol loop designs (%.1f–%.1f %%). Between 5 %% and 10 %%: %s–%s %% and %s–%s %%; no limit: "
-                "%s %% and %s %%. Source: `%s`; `%s` (summary.json limit_sweep, isothermal; inlet_inert_literature.csv)."
-                % (_p(e.attrs["reference"], 2), ref.mismatched, ref.groups, _p(ref.share), ref.iso_mismatched,
-                   ref.iso_groups, _p(ref.iso_share), lit[2], 100 * lit[0], 100 * lit[1],
-                   _p(min(span.share.min(), ref.share)), _p(max(span.share.max(), ref.share)),
-                   _p(min(span.iso_share.min(), ref.iso_share)), _p(max(span.iso_share.max(), ref.iso_share)),
-                   _p(nl.share), _p(nl.iso_share), E.STATS, E.INV))
-    out += [""]
+            "Two loops throughout: the inert-limited loop of the primary analysis (reactor-inlet CO, CH$_4$ and "
+            "N$_2$ ≤ 6.86 %%; filled) and the loop without the limit (open). **a**, Share of the %d published "
+            "comparisons whose STY leader is not the plant-cost leader, over %s paper-cluster bootstrap resamples of "
+            "the %d papers: inert-limited loop %d/%d (%s %%), 95 %% CI %s–%s %%; no limit %d/%d (%s %%), %s–%s %%. "
+            "**b**, Mismatched comparisons whose regret (cost penalty of building the STY leader) is at least the "
+            "threshold: inert-limited loop %d at 0, %d at 1 %% (%d papers), %d at 5 %% and %d at 10 %%; no limit %d, "
+            "%d (%d papers), %d and %d. **c**, Mean and 95 %% range over %s draws of the number of mismatched "
+            "comparisons when every entry is re-measured with the error the papers' own data imply (×1, ×2, ×4; "
+            "circles), against the noise floor, the number of comparisons whose reported STY leader changes under "
+            "re-measurement alone (squares): at ×1, %.1f (%d–%d) and %.1f (%d–%d) against a floor of %.1f (%d–%d); "
+            "dashed, observed %d and %d. **d**, Share of draws at ×1 in which each observed disagreement persists: "
+            "%d of %d in the inert-limited loop and %d of %d without the limit persist in at least 90 %% of draws. "
+            "Triangles, the %d near-infeasible disagreements of the inert-limited loop (the paper leader costs more "
+            "than twice its cost without the limit, or the regret exceeds 100 %%); %s persist. **e**, "
+            "Comparisons whose STY leader is not the plant-cost leader under each robustness check, inert-limited "
+            "loop and no limit (in parentheses and hatched, cost gap > 5 %%): %s. Source: `%s`, `%s` (bootstrap, "
+            "regret curve, noise), `%s` (s6_groups.csv; results.json), `%s` (summary.json, "
+            "conversion_sensitivity_summary.json) and `%s`." % (
+                a.attrs["groups"], format(a.attrs["n"], ","), a.attrs["papers"],
+                A6["mismatched"], a.attrs["groups"], _p(A6["point"]), _p(A6["ci"][0]), _p(A6["ci"][1]),
+                A5["mismatched"], a.attrs["groups"], _p(A5["point"]), _p(A5["ci"][0]), _p(A5["ci"][1]),
+                bc.loc[0.0, "groups_inlet_limited"], bc.loc[0.01, "groups_inlet_limited"],
+                bc.loc[0.01, "papers_inlet_limited"], bc.loc[0.05, "groups_inlet_limited"],
+                bc.loc[0.1, "groups_inlet_limited"], bc.loc[0.0, "groups_no_limit"], bc.loc[0.01, "groups_no_limit"],
+                bc.loc[0.01, "papers_no_limit"], bc.loc[0.05, "groups_no_limit"], bc.loc[0.1, "groups_no_limit"],
+                format(c.attrs["draws"], ","),
+                k1_6.mismatch_groups_mean, k1_6.mismatch_groups_q025, k1_6.mismatch_groups_q975,
+                k1_5.mismatch_groups_mean, k1_5.mismatch_groups_q025, k1_5.mismatch_groups_q975,
+                k1_6.noise_floor_mean, k1_6.noise_floor_q025, k1_6.noise_floor_q975, k1_6.observed, k1_5.observed,
+                int((d6.p_mismatch_meas_k1 >= 0.9).sum()), len(d6), int((d5.p_mismatch_meas_k1 >= 0.9).sum()), len(d5),
+                len(ni), persist_ni, "; ".join(pair(k) for k in chk),
+                E.STATS6, E.STATS, E.S6R, E.INV, E.CONV6), ""]
+    assert abs(k1_6.noise_floor_mean - k1_5.noise_floor_mean) < 0.01 and k1_6.noise_floor_q025 == k1_5.noise_floor_q025
 
     d = E.edfig4()
     t, bm = d["a"][0], d["b"][0].set_index("metal")
@@ -871,37 +923,49 @@ def write_captions():
                 cat["catalyst_repl_95.24EURkg_1y"], pf_aligned, E.BENCH), ""]
 
     d = E.edfig8()
-    e8, f8 = d["e"][0].set_index("key"), d["f"][0].set_index("key")
+    e8, f8 = d["e"][0], d["f"][0].set_index("key")
     pb = E.rjson(E.INV + "purge_boundary_summary.json")
     bd, ext = pb["boundary"], pb["boundary"]["at_extended_optimum"]
     lim = pb["limits"]
     n_pub = d["b"][0].attrs["published"][2]
-    row = lambda k: "%d / %d (%d with regret > 5 %%)" % (e8.loc[k, "different_winner"], e8.loc[k, "groups"],  # noqa: E731
-                                                       e8.loc[k, "regret_gt5pct"])
     lab = [("canonical", "frozen grid"), ("extended", "extended grid"),
            ("limit_published_max", "≤ %.2f %%" % (100 * lim["published_max"])),
            ("limit_anchor", "≤ %.2f %%" % (100 * lim["anchor"])),
            ("limit_published_min", "≤ %.2f %%" % (100 * lim["published_min"]))]
+    fin = e8[np.isfinite(e8.limit)]
+    co, ti = fin[fin.definition == "CH4 + CO + N2"], fin[fin.definition == "CH4 + N2"]
+    assert list(co.limit) == list(ti.limit)
+    nl = e8[~np.isfinite(e8.limit)].reset_index(drop=True)
+    lims = ", ".join("%g" % (100 * x) for x in co.limit)
+    ints = lambda s: ", ".join("%d" % v for v in s)  # noqa: E731
     out += ["## Extended Data Fig. 8 | Purge boundary and inlet-constrained methanol loops", "",
-            "**a**, Net production cost along the purge grid for each of the %d scored methanol entries (S5 model), "
-            "relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, dashed); the grid is "
-            "extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below 0.5 %% for %d of %d "
-            "entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above it. **b**, "
-            "Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the inlets of "
-            "%d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the cost model "
-            "(%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; dashed, anchor "
-            "loop %.2f) for the frozen grid, the extended grid (median recycle ratio %.0f) and with the inlet content "
-            "limited to %.2f, %.2f and %.2f %% on the extended grid (bars, median). **e**, Comparisons whose STY "
-            "leader is not the plant-cost leader: %s. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each optimum, "
-            "mean over the scored entries (total: %s). Source: `%s` (purge_boundary_summary.json, "
-            "purge_boundary_entries.csv, purge_boundary_curves.csv)." % (
+            "**a**, Net production cost along the purge grid for each of the %d scored methanol entries in the loop "
+            "without an inlet limit, relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, "
+            "dashed); the grid is extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below "
+            "0.5 %% for %d of %d entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above "
+            "it. **b**, Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the "
+            "inlets of %d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the "
+            "cost model (%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; "
+            "dashed, anchor loop %.2f) without the limit on the frozen grid and on the extended grid (median recycle "
+            "ratio %.0f), and with the inlet content limited to %.2f, %.2f and %.2f %% on the extended grid (bars, "
+            "median). **e**, Comparisons whose STY leader is not the plant-cost leader against the limit on the "
+            "reactor-inlet fraction, when the limit counts CO, CH$_4$ and N$_2$ (circles; the definition of the "
+            "primary analysis) or CH$_4$ and N$_2$ only (squares); filled, all disagreements; open and dashed, cost "
+            "gap > 5 %%. At limits of %s %%: CO, CH$_4$ and N$_2$ %s of 40 (%s above 5 %%); CH$_4$ and N$_2$ only %s "
+            "(%s above 5 %%). Dashed red line, %s %% (the anchor loop; primary); shaded, the %d published loop "
+            "designs; diamonds and dotted line, no limit: %d (%d above 5 %%) on the frozen purge grid and %d (%d "
+            "above 5 %%) with the grid extended to 10$^{-4}$ %%. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each "
+            "optimum, mean over the scored entries (total: %s). Source: `%s` (purge_boundary_summary.json, "
+            "purge_boundary_entries.csv, purge_boundary_curves.csv); `%s` (definition_scan.csv)." % (
                 pb["entries"], bd["extended_optimum_below_0p5pct"], pb["entries"], 100 * ext["purge"]["median"],
                 _p(bd["cost_at_0p5pct_above_extended_optimum"]["median"]), n_pub,
                 100 * lim["published_min"], 100 * lim["published_max"], _p(lim["anchor"], 2),
                 pb["anchor_loop"]["recycle_ratio"], ext["recycle_ratio"]["median"], 100 * lim["published_max"],
                 100 * lim["anchor"], 100 * lim["published_min"],
-                "; ".join("%s %s" % (t, row(k)) for k, t in lab),
-                "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab), E.INV), ""]
+                lims, ints(co.different_leader), ints(co.gt5pct), ints(ti.different_leader), ints(ti.gt5pct),
+                _p(e8.attrs["anchor"], 2), n_pub, nl.different_leader[0], nl.gt5pct[0], nl.different_leader[1],
+                nl.gt5pct[1], "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab), E.INV,
+                E.IDEF), ""]
 
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
@@ -935,6 +999,9 @@ if __name__ == "__main__":
     which = [int(x) for x in sys.argv[1:]] or sorted(FIGS)
     for n in which:
         pg = FIGS[n]()
-        pg.save(HERE, "EDFig%d_%s" % (n, SLUGS[n]))
+        # ED Figs 3 and 8 (revised 2026-10-13) set sub- and superscripts at >= 5.3 pt; the others keep their
+        # rendering until they are next revised
+        with scripts_at_least(5.3) if n in (3, 8) else contextlib.nullcontext():
+            pg.save(HERE, "EDFig%d_%s" % (n, SLUGS[n]))
     if not sys.argv[1:]:
         write_captions()

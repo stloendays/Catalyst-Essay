@@ -1,12 +1,12 @@
 """Figure 5 — coupling topology decides whether an upstream ranking reshapes or survives.
 
 Composite, 183 mm wide.
-  a  pathway graphs drawn from the two frozen models: NH3 cost pools from
-     analysis/supervisor_2026_09_20/nh3_cost_decomposition.csv; MeOH module drivers from
+  a  pathway graphs drawn from the two models: NH3 cost pools (NH3-FINAL-1.2) from
+     analysis/supervisor_2026_09_20/nh3_1_2/nh3_cost_decomposition.csv; MeOH module drivers from
      data/meoh/meoh_d01_v3.json and leverages from data/meoh/meoh_candidate_ranking_D01v3.csv
   b  renders/Au_TiO2_2to6nm.png (build_au_tio2.py)
   c-e data/rank_preservation_control_v1_1.csv, data/rank_preservation_semiopen_v1_3_summary.csv
-  f  rank correlations reported for the three systems (NH3-FINAL-1.1, MEOH-D01-v3, control V1.1/V1.3)
+  f  rank correlations reported for the three systems (NH3-FINAL-1.2 results.json, MEOH-D01-v3, control V1.1/V1.3)
 
     pur_bridge_env/python make_fig5.py            -> Fig5.{svg,pdf,png}
 """
@@ -33,14 +33,19 @@ def read_csv(path):
 
 
 decomp = {r["cost_pool"]: float(r["Ru_minus_Fe_USD_t"]) for r in
-          read_csv(os.path.join(REPO, "analysis/supervisor_2026_09_20/nh3_cost_decomposition.csv"))}
+          read_csv(os.path.join(REPO, "analysis/supervisor_2026_09_20/nh3_1_2/nh3_cost_decomposition.csv"))}
+NH3_RES = json.load(open(os.path.join(REPO, "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013/"
+                                            "results.json"), encoding="utf-8"))["deterministic"]
+NH3_RHO_ALL = NH3_RES["raw_global_spearman"]
+NH3_RHO_TOP3 = next(r["rho_raw"] for r in NH3_RES["rolling"] if r["K"] == 3)
 d01 = json.load(open(os.path.join(REPO, "data/meoh/meoh_d01_v3.json"), encoding="utf-8"))
 modules = {m["name"]: m["driven_by"] for m in d01["economic_modules"]}
 c55 = {r["candidate"]: r for r in read_csv(os.path.join(REPO, "data/meoh/meoh_candidate_ranking_D01v3.csv"))}["5 wt% Re | 250 C"]
 au = read_csv(os.path.join(REPO, "data/rank_preservation_control_v1_1.csv"))
 semi = read_csv(os.path.join(REPO, "data/rank_preservation_semiopen_v1_3_summary.csv"))
 meta = json.load(open(os.path.join(HERE, "renders", "Au_TiO2_2to6nm.json"), encoding="utf-8"))
-assert abs(decomp["TOTAL"] - 6.738890111189871) < 1e-9
+assert abs(decomp["TOTAL"] - 5.11696576172354) < 1e-9
+assert abs(NH3_RHO_ALL - 0.9107142857142855) < 1e-12 and NH3_RHO_TOP3 == -0.5
 assert modules["H2_feed"][:3] == ["S_CH4", "S_MeOH", "purge_fraction"]
 assert "recycle_flow" in modules["compression"] and "catalyst_mass" in modules["equipment_ACC"]
 assert [float(r["diameter_nm"]) for r in au] == [2, 3, 4, 5, 6]
@@ -250,8 +255,8 @@ _met = json.load(open(os.path.join(REPO, "data/meoh/meoh_candidate_ranking_D01v3
 MEOH_RHO = _met[[k for k in _met if k.startswith("STY_per_gRe")][0]]["spearman"]
 _prho = [float(r["spearman"]) for r in read_csv(os.path.join(REPO, "data/meoh/meoh_purge_robustness_D01v3.csv"))]
 MEOH_RHO_RANGE = (min(_prho), max(_prho))
-rows = [("NH$_3$, all 15 metals", 0.929, None, INK),
-        ("NH$_3$, frontier top 3", -0.50, None, RED),
+rows = [("NH$_3$, all 15 metals", NH3_RHO_ALL, None, INK),
+        ("NH$_3$, frontier top 3", NH3_RHO_TOP3, None, RED),
         ("MeOH, 4 states", MEOH_RHO, MEOH_RHO_RANGE, INK),
         ("Au/TiO$_2$, 5 sizes", 1.000, None, INK),
         ("Au, semi-open mean", 0.99214, None, MID)]

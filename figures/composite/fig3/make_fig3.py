@@ -5,10 +5,10 @@ Four-panel composite, 183 x 122 mm.
 a  Activity-only backward target after full process reoptimization.
 b  Activity-only reachability on the strict E_N scaling manifold.
 c  Joint direct-activity / lifetime / recovery economic target region.
-d  Exact strict-scaling x lifecycle reachability boundary over all 14,136 process states.
+d  Exact strict-scaling x lifecycle reachability boundary over all 14,510 process states.
 
-Every numerical value is read from pinned NH3-FINAL-1.1 provenance or audited
-2026-09-29 derived outputs. No scientific calculation is performed here.
+Every numerical value is read from the pinned NH3-FINAL-1.2 canonical run (nh3_final_1_2_20261013) or the
+audited NH3-FINAL-1.2 derived outputs (analysis/*/nh3_1_2/). No scientific calculation is performed here.
 
     python make_fig3.py  -> Fig3.{svg,pdf,png}
 """
@@ -18,7 +18,7 @@ import os
 import sys
 
 import numpy as np
-from matplotlib.ticker import FixedLocator, LogLocator, MultipleLocator, NullFormatter
+from matplotlib.ticker import FixedLocator, FuncFormatter, LogLocator, MultipleLocator, NullFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
@@ -28,11 +28,12 @@ from style import (DARK_B, DARK_G, FE, GRID, INK, MID, OS, RED, RU,  # noqa: E40
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 RUN = os.path.join(
     REPO,
-    "provenance/nh3_final_1_1/source_harness/outputs/nh3_final_20260905T134204Z",
+    "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013",
 )
 CL = os.path.join(RUN, "closure")
-SUP = os.path.join(REPO, "analysis", "supervisor_2026_09_20")
-BWD = os.path.join(REPO, "analysis", "fe_bridge_backward_2026_09_29")
+SUP = os.path.join(REPO, "analysis", "supervisor_2026_09_20", "nh3_1_2")
+BWD = os.path.join(REPO, "analysis", "fe_bridge_backward_2026_09_29", "nh3_1_2")
+LITP = os.path.join(REPO, "analysis", "promoted_ru_literature_2026_10_05", "nh3_1_2", "fig3_literature_points.csv")
 
 
 def read_csv(path):
@@ -61,12 +62,13 @@ RU_COST = float(results["deterministic"]["metals"]["Ru"]["feasible"]["total_cost
 P05, P50, P95 = float(mc["p05"]), float(mc["p50"]), float(mc["p95"])
 QCRIT = float(strict_summary["critical_lifecycle_factor_q_per_y"])
 
-assert abs(A_STAR - 201.2234429878984) < 1e-9
-assert abs(GALL - 2.5245651130943445) < 1e-12
-assert abs(BEST_C - 21.397872966049547) < 1e-8
-assert abs(BEST_E - (-1.215)) < 1e-12
-assert strict_summary["tested_lifecycle_envelope"]["intersects_strict_scaling_manifold"] is False
-assert abs(QCRIT - 0.00044068345398945024) < 1e-12
+assert abs(A_STAR - 114.66712547049676) < 1e-9
+assert abs(GALL - 1.575275488957531) < 1e-12
+assert abs(BEST_C - 16.454818591158695) < 1e-8
+assert abs(BEST_E - (-1.18)) < 1e-12
+assert strict_summary["process_states"] == results["deterministic"]["process_state_count"] == 14510
+assert strict_summary["tested_lifecycle_envelope"]["intersects_strict_scaling_manifold"] is True
+assert abs(QCRIT - 0.0008251028617208592) < 1e-12
 
 pg = Page(183.0, 122.0)
 
@@ -95,28 +97,28 @@ a.plot(A_STAR, FE_COST, "o", ms=4.0, mfc=RED, mec=INK, mew=0.5, zorder=6)
 
 a.text(1.22, ru_cost[i1] + 0.25, "current Ru\n%.2f" % RU_COST,
        fontsize=5.8, color=DARK_B, va="bottom", ha="left")
-a.text(A_STAR * 1.08, FE_COST + 0.35, r"$\alpha^*$ = %.1f×" % A_STAR,
+a.text(A_STAR * 1.08, FE_COST + 0.35, r"$\alpha^*$ = %.2f×" % A_STAR,
        fontsize=6.2, color=RED, fontweight="bold", va="bottom", ha="left")
-a.text(1.05, 15.6, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
+a.text(1.05, FE_COST + 0.45, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
        fontsize=5.3, color=DARK_G, fontweight="bold", va="bottom", ha="left")
-a.text(P05 / 1.12, 22.9, "economic uncertainty\np05–p95: %.1f×–%.0f×" % (P05, P95),
+a.text(P05 / 1.12, 18.8, "economic uncertainty\np05–p95: %.2f×–%.0f×" % (P05, P95),
        fontsize=5.5, color=RED, ha="right", va="top")
-a.text(12.0, FE_COST + 0.2, "Fe %.2f" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="bottom")
+a.text(14.0, FE_COST - 0.25, "Fe %.2f" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="top")
 
 a.set_xscale("log")
 a.set_xlim(0.3, 800)
-a.set_ylim(14.4, 23.2)
+a.set_ylim(10.0, 19.0)
 a.xaxis.set_major_locator(LogLocator(base=10, numticks=5))
 a.xaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10), numticks=20))
 a.xaxis.set_minor_formatter(NullFormatter())
-a.yaxis.set_major_locator(FixedLocator([15, 19, 23]))
+a.yaxis.set_major_locator(FixedLocator([10, 13, 16, 19]))
 a.yaxis.set_minor_locator(MultipleLocator(1.0))
 a.set_ylabel("Ru cost\n(USD t$^{-1}$ NH$_3$)")
 a.tick_params(axis="x", labelbottom=False)
 
 # literature: measured activity gains of promoted, support-modified and confined Ru over a reference Ru catalyst,
 # on the same multiplier axis (analysis/promoted_ru_literature_2026_10_05/fig3_literature_points.csv)
-LIT = read_csv(os.path.join(REPO, "analysis", "promoted_ru_literature_2026_10_05", "fig3_literature_points.csv"))
+LIT = read_csv(LITP)
 ROW = {"promoter": 2, "support": 1, "confinement": 0}
 lit.axvspan(1.0, GALL, color=TINT_G, lw=0, zorder=0)
 lit.axvspan(P05, P95, color="#F8DADA", lw=0, zorder=0)
@@ -165,26 +167,22 @@ b.fill_between(cE, FE_COST, cC, where=cC >= FE_COST, color="#F8DADA", alpha=0.7,
 
 ib = int(np.argmin(cC))
 b.plot(cE[ib], cC[ib], "o", ms=4.0, mfc=RU, mec=INK, mew=0.5, zorder=5)
-b.annotate(
-    "best %.3f\nat %s eV" % (cC[ib], fmt_minus("%.3f" % cE[ib])),
-    xy=(cE[ib], cC[ib]), xytext=(-1.51, 23.7),
-    fontsize=5.8, va="top", ha="left",
-    arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
-)
-b.text(0.97, 0.91, "still +%.3f USD t$^{-1}$ above Fe" % (BEST_C - FE_COST),
-       transform=b.transAxes, fontsize=5.6, color=RED, ha="right", va="top",
-       fontweight="bold")
-b.text(0.97, 0.78, "673 K headroom %.3f×\nstate-specific max %.3f×" % (G673, GALL),
-       transform=b.transAxes, fontsize=5.4, color=DARK_G, ha="right", va="top")
+assert abs(cC[ib] - BEST_C) < 1e-9 and abs(cE[ib] - BEST_E) < 1e-12
+b.text(cE[ib], cC[ib] - 0.9, "best %.3f\nat %s eV" % (cC[ib], fmt_minus("%.3f" % cE[ib])),
+       fontsize=5.8, va="top", ha="center")
+b.text(-1.115, 25.6, "still +%.3f USD t$^{-1}$ above Fe" % (BEST_C - FE_COST),
+       fontsize=5.6, color=RED, ha="center", va="top", fontweight="bold")
+b.text(-1.115, 24.3, "673 K headroom %.3f×\nstate-specific max %.3f×" % (G673, GALL),
+       fontsize=5.4, color=DARK_G, ha="center", va="top")
 b.text(0.97, 0.08, "Fe %.3f" % FE_COST, transform=b.transAxes,
        fontsize=5.6, color=DARK_G, ha="right", va="bottom")
 
 b.set_xlim(-1.62, -0.62)
-b.set_ylim(14.4, 28.0)
+b.set_ylim(10.6, 26.0)
 b.xaxis.set_major_locator(FixedLocator([-1.5, -1.25, -1.0, -0.75]))
 b.set_xticklabels([fmt_minus(x) for x in ("-1.5", "-1.25", "-1.0", "-0.75")])
 b.xaxis.set_minor_locator(MultipleLocator(0.05))
-b.yaxis.set_major_locator(FixedLocator([15, 18, 21, 24, 27]))
+b.yaxis.set_major_locator(FixedLocator([12, 16, 20, 24]))
 b.yaxis.set_minor_locator(MultipleLocator(1))
 b.set_xlabel(r"Ru descriptor $E_\mathrm{N}$ on strict scaling line (eV)")
 b.set_ylabel(r"Lowest Ru cost (USD t$^{-1}$ NH$_3$)")
@@ -198,7 +196,7 @@ c = pg.ax(13.0, 13.0, 74.0, 39.0)
 boxed(c)
 
 da = np.array([float(r["alpha"]) for r in direct_boundary])
-m = da <= 3.000001
+m = da <= 2.300001
 da = da[m]
 curves = {
     10: np.array([100.0 * float(r["required_recovery_at_10y"]) for r in direct_boundary])[m],
@@ -215,6 +213,10 @@ for life in (10, 15, 20):
     c.plot(da, curves[life], color=col, lw=1.15, ls=ls, label=lab)
 
 c.axhline(99.0, color=MID, lw=0.8, ls=(0, (3, 1.8)))
+# the target curves start at the current Ru activity (alpha = 1); left of it, parity needs no activity gain
+c.axvspan(0.6, 1.0, color="#F3F3F3", lw=0, zorder=0)
+c.axvline(1.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=1)
+c.text(0.8, 99.78, "no activity\ngain needed", fontsize=5.3, color=MID, ha="center", va="top", linespacing=1.05)
 for r in direct_keys:
     life = int(float(r["catalyst_life_y"]))
     rec = float(r["Ru_recovery_fraction"])
@@ -223,20 +225,19 @@ for r in direct_keys:
     aa = float(r["certified_upper_bound_required_direct_activity_multiplier"])
     col = line_style[life][0]
     c.plot(aa, 99.0, "o", ms=3.8, mfc=col, mec=INK, mew=0.45, zorder=5)
-    c.text(aa, 98.82, "%.3f×" % aa, fontsize=5.2, color=col,
-           ha="center", va="top")
+    c.text(aa, 99.12, "%.3f×" % aa, fontsize=5.2, color=col, ha="center", va="bottom")
 
-c.text(0.03, 0.08, "curves = conservative direct-activity targets\n(not physical reachability)",
-       transform=c.transAxes, fontsize=5.3, color=MID, ha="left", va="bottom")
-c.text(0.97, 0.92, "99% recovery", transform=c.transAxes,
-       fontsize=5.4, color=MID, ha="right", va="top")
-c.legend(loc="lower left", bbox_to_anchor=(0.02, 0.28), fontsize=5.5, handlelength=2.2)
+c.text(2.27, 99.95, "curves = conservative direct-activity targets\n(not physical reachability)",
+       fontsize=5.3, color=MID, ha="right", va="top")
+c.text(2.27, 99.12, "99% recovery", fontsize=5.4, color=MID, ha="right", va="bottom")
+c.legend(loc="lower left", bbox_to_anchor=(0.01, 0.26), fontsize=5.5, handlelength=2.2)
 
-c.set_xlim(0.95, 3.02)
-c.set_ylim(97.4, 100.02)
-c.xaxis.set_major_locator(FixedLocator([1.0, 1.5, 2.0, 2.5, 3.0]))
-c.xaxis.set_minor_locator(MultipleLocator(0.1))
-c.yaxis.set_major_locator(FixedLocator([98, 99, 100]))
+c.set_xlim(0.6, 2.3)
+c.set_ylim(96.0, 100.02)
+c.xaxis.set_major_locator(FixedLocator([0.75, 1.0, 1.5, 2.0]))
+c.xaxis.set_major_formatter(FuncFormatter(lambda v, _: "%g" % v))
+c.xaxis.set_minor_locator(MultipleLocator(0.05))
+c.yaxis.set_major_locator(FixedLocator([96, 97, 98, 99, 100]))
 c.yaxis.set_minor_locator(MultipleLocator(0.2))
 c.set_xlabel(r"Direct Ru activity multiplier $\alpha$")
 c.set_ylabel("Ru recovery required for Fe parity (%)")
@@ -253,8 +254,9 @@ life = np.array([float(r["life_y"]) for r in strict_boundary])
 req = np.array([float(r["required_recovery_percent"]) for r in strict_boundary])
 
 # Region above boundary reaches parity under strict scaling; tested box is life<=20, recovery<=99%.
-d.fill_between(life, req, 100.2, color=TINT_B, alpha=0.8, zorder=0)
-d.fill_between([5, 20], [97.4, 97.4], [99.0, 99.0], color=TINT_G, alpha=0.9, zorder=0)
+D_Y0 = 95.5
+d.fill_between([5, 20], [D_Y0, D_Y0], [99.0, 99.0], color=TINT_G, alpha=0.9, zorder=0)
+d.fill_between(life, req, 100.2, color="#C9D0E3", alpha=0.6, zorder=0.5)
 d.plot(life, req, color=RU, lw=1.35, zorder=3, label="Fe-parity boundary")
 d.axhline(99.0, color=MID, lw=0.75, ls=(0, (3, 1.8)))
 d.axvline(20.0, color=MID, lw=0.75, ls=(0, (3, 1.8)))
@@ -269,30 +271,38 @@ d.plot(20.0, 99.0, "o", ms=4.0, mfc=FE, mec=INK, mew=0.5, zorder=5)
 d.plot(20.0, boundary20, "o", ms=4.0, mfc=RU, mec=INK, mew=0.5, zorder=5)
 d.plot(life99, 99.0, "o", ms=3.7, mfc=RU, mec=INK, mew=0.5, zorder=5)
 
+assert corner_margin < 0 and life99 < 20.0 and boundary20 < 99.0
 d.annotate(
-    "tested corner\n20 y + 99%%\n+%.3f USD t$^{-1}$" % corner_margin,
-    xy=(20.0, 99.0), xytext=(26.2, 99.55),
+    "tested corner\n20 y + 99%%\n%s USD t$^{-1}$ vs Fe" % fmt_minus("%+.3f" % corner_margin),
+    xy=(20.0, 99.0), xytext=(29.0, 98.75),
     fontsize=5.4, va="top", ha="left",
     arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
 )
 d.annotate(
-    "parity at 20 y:\n%.4f%%" % boundary20,
-    xy=(20.0, boundary20), xytext=(7.0, 99.70),
-    fontsize=5.4, va="top", ha="left", color=DARK_B,
+    "parity at 20 y: %.3f%%" % boundary20,
+    xy=(20.0, boundary20), xytext=(22.0, 96.7),
+    fontsize=5.4, va="center", ha="left", color=DARK_B,
     arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
 )
-d.text(0.97, 0.10, r"$q^*=(1-r)/L=4.4068\times10^{-4}$ y$^{-1}$",
-       transform=d.transAxes, fontsize=5.3, ha="right", va="bottom")
-d.text(0.03, 0.08, "tested box", transform=d.transAxes,
+d.annotate(
+    "parity at 99%%: %.2f y" % life99,
+    xy=(life99, 99.0), xytext=(6.0, 97.6),
+    fontsize=5.4, va="center", ha="left", color=DARK_B,
+    arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
+)
+q_mant, q_exp = ("%.4e" % QCRIT).split("e")
+d.text(0.97, 0.84, r"$q^*=(1-r)/L=%s\times10^{%d}$ y$^{-1}$" % (q_mant, int(q_exp)),
+       transform=d.transAxes, fontsize=5.3, ha="right", va="top")
+d.text(0.03, 0.04, "tested box", transform=d.transAxes,
        fontsize=5.3, color=DARK_G, fontweight="bold", ha="left", va="bottom")
-d.text(0.97, 0.92, "strict-scaling parity region", transform=d.transAxes,
+d.text(0.97, 0.95, "strict-scaling parity region", transform=d.transAxes,
        fontsize=5.3, color=DARK_B, fontweight="bold", ha="right", va="top")
 
 d.set_xlim(5, 50)
-d.set_ylim(97.4, 100.05)
+d.set_ylim(D_Y0, 100.05)
 d.xaxis.set_major_locator(FixedLocator([10, 20, 30, 40, 50]))
 d.xaxis.set_minor_locator(MultipleLocator(5))
-d.yaxis.set_major_locator(FixedLocator([98, 99, 100]))
+d.yaxis.set_major_locator(FixedLocator([96, 97, 98, 99, 100]))
 d.yaxis.set_minor_locator(MultipleLocator(0.2))
 d.set_xlabel("Catalyst lifetime (y)")
 d.set_ylabel("Ru recovery required for Fe parity (%)")
