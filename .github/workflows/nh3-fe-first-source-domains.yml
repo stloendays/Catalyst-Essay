@@ -1,0 +1,75 @@
+name: NH3 Fe-first source-pressure-window reoptimization
+
+on:
+  push:
+    branches:
+      - research/nh3-fe-first-domain-window-2026-10-14
+    paths:
+      - ".github/workflows/nh3-fe-first-source-domains.yml"
+      - "analysis/nh3_fe_first_domain_v1/**"
+  pull_request:
+    paths:
+      - ".github/workflows/nh3-fe-first-source-domains.yml"
+      - "analysis/nh3_fe_first_domain_v1/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nh3-fe-first-domain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing pinned numerical environment
+        run: python -m pip install "numpy==2.3.5" "scipy==1.17.0" "pyyaml==6.0.2"
+      - name: Protocol/physics invariants; science result cannot be hardcoded to Fe
+        run: python -m unittest discover -s analysis/nh3_fe_first_domain_v1 -p 'test_*.py' -v
+      - name: Build exactly the existing PR93 common-output parent cold grid
+        run: python analysis/nh3_kinetic_cost_coupling_v1/run_study.py --out-dir artifacts/nh3-domain/base
+      - name: Retry any previous numerical budget cases without relabeling
+        run: python analysis/nh3_kinetic_cost_coupling_v1/run_study.py --out-dir artifacts/nh3-domain/base --retry-unresolved
+      - name: Require all 32 parent cold states to be accounted for
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/nh3-domain/base/cold_cache.json'
+          d=json.load(open(p))
+          assert len(d.get('designs',[])) == 32, len(d.get('designs',[]))
+          PY
+      - name: Reoptimize Fe and Ru/C separately within published source kinetic pressures
+        run: python analysis/nh3_fe_first_domain_v1/source_domains.py --baseline-dir artifacts/nh3-domain/base --out-dir artifacts/nh3-domain/pressure-window
+      - name: Confirm scientific score has no unexplained cost terms
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/nh3-domain/pressure-window/summary.json'
+          x=json.load(open(p))
+          assert x['source_pressure_overlap'] is False
+          assert x['max_inlet_inerts_pct'] == 15.
+          assert x['original_canonical_score_unchanged'] == '32/64'
+          assert len(x['finance_recovery_H2_scenarios']) == 45
+          if x['gap_Ru_minus_Fe_USD_t'] is not None:
+              assert abs(sum(x['Ru_minus_Fe_components'].values())-x['gap_Ru_minus_Fe_USD_t']) < 3e-7
+          PY
+      - name: Protect archived science, reference ledger, and manuscript
+        run: git diff --exit-code -- docs/ provenance/ data/ analysis/validation_nh3_plant_2026_10_13/ analysis/nh3_kinetic_cost_coupling_v1/
+      - name: Upload both favorable and unfavorable results plus all numerical failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-fe-first-experimental-pressure-domain
+          path: artifacts/nh3-domain/
+          retention-days: 90
