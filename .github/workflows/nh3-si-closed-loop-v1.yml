@@ -1,0 +1,38 @@
+name: SI-based NH3 operable closed loop
+on:
+  pull_request:
+    paths:
+      - 'analysis/nh3_si_closed_loop_v1/**'
+      - '.github/workflows/nh3-si-closed-loop-v1.yml'
+  push:
+    branches:
+      - 'research/nh3-si-closed-loop-v1'
+    paths:
+      - 'analysis/nh3_si_closed_loop_v1/**'
+      - '.github/workflows/nh3-si-closed-loop-v1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  closed-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install numerical dependencies
+        run: python -m pip install 'numpy==2.3.5' 'scipy==1.17.0'
+      - name: Check physical equations and process operability
+        run: python -m unittest discover -s analysis/nh3_si_closed_loop_v1 -p 'test_*.py' -v
+      - name: Run SI-to-loop-to-utility engineering scenarios
+        run: python analysis/nh3_si_closed_loop_v1/run_research.py --out-dir artifacts/nh3-si-loop
+      - name: Preserve canonical manuscript and source calculations
+        run: git diff --exit-code -- docs/ data/ provenance/ analysis/validation_nh3_plant_2026_10_13/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-si-closed-loop-v1
+          path: artifacts/nh3-si-loop/
+          retention-days: 90
