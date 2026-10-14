@@ -40,6 +40,8 @@ jobs:
           python-version: "3.12"
       - name: Audit source and baseline pins, judge 64 metrics independently
         run: python analysis/nh3_industrial_validation_2026_10_14/audit_industrial.py --out-dir artifacts/nh3-industrial-triage
+      - name: Source-conditioned S-200 bed-specific mismatch
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_bed_profile.py --out-dir artifacts/nh3-bed-profiles
       - name: Falsification tests
         run: python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_*.py' -v
       - name: Upload report (not an industrial validation certificate)
@@ -48,6 +50,13 @@ jobs:
         with:
           name: nh3-industrial-triage
           path: artifacts/nh3-industrial-triage/
+          retention-days: 90
+      - name: Upload S-200 bed mismatch diagnostic (not refitted)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-s200-bed-mismatch
+          path: artifacts/nh3-bed-profiles/
           retention-days: 90
       - name: Assert frozen inputs and manuscript untouched
         run: git diff --exit-code -- provenance/ docs/ data/ analysis/validation_nh3_plant_2026_10_13/
