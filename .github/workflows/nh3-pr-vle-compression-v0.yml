@@ -44,3 +44,26 @@ jobs:
           name: nh3-no-fit-pr-vle-and-compression
           path: artifacts/nh3-pr-screen/
           retention-days: 90
+
+  helmholtz-library-probe:
+    name: Check high-fidelity Helmholtz EOS pair coverage (no pair fabrication)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install unmodified published CoolProp library
+        run: python -m pip install "CoolProp==7.2.0"
+      - name: Inspect all ten required source-mixture binary parameter pairs
+        run: python analysis/nh3_pr_vle_compression_v0/probe_helmholtz_mixtures.py --out-dir artifacts/nh3-pr-helmholtz-probe
+      - name: Upload exact library provenance and missing-pair barriers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-helmholtz-source-mixture-pair-coverage
+          path: artifacts/nh3-pr-helmholtz-probe/
+          retention-days: 90
