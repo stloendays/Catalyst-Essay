@@ -193,6 +193,15 @@ def source_observation_reconstruction() -> dict:
     # The source-based production estimate uses only 1 and 4, not observed
     # production totals, and does NOT establish independently predictive kinetics.
     converted_tpd=full_extent*MW["NH3"]*24.0/1000.0
+    # Independent stoichiometric reconstruction using ONLY F_in and the two
+    # printed mole fractions; differs from the component-flux estimate because
+    # all source flows and compositions were rounded independently.
+    via_total_flow_extent=(
+        st[1]["flow_kmol_h"]*
+        (st[4]["y"]["NH3"]-st[1]["y"]["NH3"])/
+        (1.0+st[4]["y"]["NH3"])
+    )
+    via_total_flow_tpd=via_total_flow_extent*MW["NH3"]*24.0/1000.0
     product_total_tpd=st[8]["source_nh3_liquid_t_h"]*24.0
     product_component_tpd=liquid[1]["computed_NH3_component_t_h"]*24.0
     return {
@@ -200,6 +209,8 @@ def source_observation_reconstruction() -> dict:
         "status":"INDUSTRIAL_OBSERVATION_CONSTRAINED_STEADY_STATE_SIMULATION__NOT_INDEPENDENT_KINETICS",
         "source_DOI":DOI,"printed_page":211,"figure":"Figure 57",
         "reactor_converted_NH3_tpd":converted_tpd,
+        "reactor_NH3_tpd_from_total_flow_stoichiometry":via_total_flow_tpd,
+        "rounding_basis_difference_tpd":via_total_flow_tpd-converted_tpd,
         "industrial_reported_liquid_NH3_tpd":product_total_tpd,
         "reactor_vs_reported_product_relative_pct":100.0*(converted_tpd/product_total_tpd-1.0),
         "liquid_NH3_component_based_tpd":product_component_tpd,
@@ -244,6 +255,8 @@ def write_report(record: dict, directory: Path) -> None:
         f"Literature: Max Appl (2011), Ullmann, Ammonia 2, Fig. 57 p. 211, doi:{DOI}.",
         "",
         f"Converter NH3 production calculated from stream1 and stream4: **{record['reactor_converted_NH3_tpd']:.2f} t/d**; "
+        f"independent total-flow stoichiometric estimate **{record['reactor_NH3_tpd_from_total_flow_stoichiometry']:.2f} t/d** "
+        f"(difference **{record['rounding_basis_difference_tpd']:.2f} t/d** from independently rounded source columns); ",
         f"published stream8 NH3 liquid: **{record['industrial_reported_liquid_NH3_tpd']:.2f} t/d** "
         f"(signed difference **{record['reactor_vs_reported_product_relative_pct']:+.3f}%**).",
         f"From all five species in postreactor stream4 minus first condensed liquid stream7, "
