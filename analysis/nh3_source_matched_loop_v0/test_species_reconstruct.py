@@ -36,7 +36,7 @@ class FullUhdeFigure57(unittest.TestCase):
 
     def test_no_nh3_mass_made_up_for_liquid_impurities(self):
         l={v["stream"]:v for v in self.report["reconstructed_liquid_NH3_component"]}
-        self.assertEqual(set(l),(7,8,9))
+        self.assertEqual(set(l),{7,8,9})
         self.assertAlmostEqual(l[7]["source_printed_NH3_liquid_t_h"],51.36)
         self.assertAlmostEqual(l[8]["source_printed_NH3_liquid_t_h"],62.51)
         self.assertAlmostEqual(l[9]["source_printed_NH3_liquid_t_h"],.01)
@@ -85,7 +85,7 @@ class FullUhdeFigure57(unittest.TestCase):
                          "component_balance_9.csv","component_residuals_45.csv"):
                 self.assertTrue((output/name).is_file())
             report=(output/"REPORT.md").read_text(encoding="utf-8")
-            self.assertIn("source observations",report)
+            self.assertIn("industrial observations",report)
             self.assertIn("five species",report)
             with (output/"component_residuals_45.csv").open(encoding="utf-8") as f:
                 self.assertEqual(len(f.readlines())-1,45)
