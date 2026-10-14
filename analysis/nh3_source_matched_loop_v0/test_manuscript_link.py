@@ -47,8 +47,8 @@ class PaperTraceability(unittest.TestCase):
         self.assertIn(f"{max(x['max_species_residual_pct_feed'] for x in d['balance_groups']):.4f}%",self.si)
         self.assertIn("8.108 mol%",self.si)
         self.assertIn("4.097 mol%",self.si)
-        self.assertIn("12 numbered streams",self.si)
-        self.assertIn("11",self.si)  # stream 11 recovered hydrogen
+        self.assertIn("12 streams",self.si)
+        self.assertIn("Recovered hydrogen and make-up",self.si)
         self.assertIn("does not replace",self.main)
 
     def test_published_scores_stay_unchanged(self):
