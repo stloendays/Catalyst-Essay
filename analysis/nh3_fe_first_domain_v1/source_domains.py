@@ -87,9 +87,15 @@ def candidate_rows(states):
                     rejected.append({"source_state":state["state_id"],"catalyst":c,"T_C":T,"why":type(exc).__name__+":"+str(exc)[:180]})
                     continue
                 r["state_id"]=state["state_id"]
-                r["source_TP_checked"]=bool(r.get("rate_T_inside_source_range") and r.get("rate_P_inside_source_range"))
-                if not r["source_TP_checked"]:
-                    raise AssertionError("Source-domain parameter discrepancy")
+                # size_bed returns only {feasible:false, reason:...} for
+                # equilibrium-infeasible states; source flags exist only on
+                # a successfully integrated bed. Do not recast these expected
+                # physical exclusions as pressure-domain software failures.
+                r["source_TP_checked"]=ensure_source_domain(c,T,P)
+                if r.get("feasible") and not (
+                    r.get("rate_T_inside_source_range") and r.get("rate_P_inside_source_range")
+                ):
+                    raise AssertionError("Feasible bed contradicts pinned kinetic source domain")
                 r["inert_bound_pct"]=MAX_INERT_PCT
                 r["passes_inert_bound"]=float(r.get("inlet_inerts_pct",float("inf")))<=MAX_INERT_PCT+1e-10
                 r["eligible"]=bool(r.get("feasible") and r["passes_inert_bound"])
