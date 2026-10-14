@@ -1,0 +1,43 @@
+name: NH3 source-matched stream closure (noncanonical)
+on:
+  push:
+    branches:
+      - research/nh3-source-matched-loop-2026-10-14
+    paths:
+      - ".github/workflows/nh3-source-matched-loop.yml"
+      - "analysis/nh3_source_matched_loop_v0/**"
+  pull_request:
+    paths:
+      - ".github/workflows/nh3-source-matched-loop.yml"
+      - "analysis/nh3_source_matched_loop_v0/**"
+      - "analysis/validation_nh3_plant_2026_10_13/reference_values.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-accounting:
+    name: Image-checked figure stream ledger and conservation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reconstruct source-matched three converters and Uhde two separators
+        run: python analysis/nh3_source_matched_loop_v0/source_matched.py --out-dir artifacts/nh3-source-matched
+      - name: Test conservation invariants, source boundaries, aliases and counterfactual topology
+        run: python -m unittest discover -s analysis/nh3_source_matched_loop_v0 -p 'test_*.py' -v
+      - name: Assert all frozen scientific and literature inputs unmodified
+        run: git diff --exit-code -- provenance/ docs/ data/ analysis/validation_nh3_plant_2026_10_13/
+      - name: Upload source-traceable results (not plant model validation)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-source-matched-stream-closure
+          path: artifacts/nh3-source-matched/
+          retention-days: 90
