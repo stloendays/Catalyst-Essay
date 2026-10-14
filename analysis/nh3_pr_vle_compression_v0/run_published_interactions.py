@@ -12,9 +12,9 @@ import json
 import math
 from pathlib import Path
 
+from run_screen import ACCEPTANCE, report_saturation, dry_ratio
 from diagnose_separator_vle import grid_from_printed_sources
 from species_reconstruct import load_streams
-from run_screen import ACCEPTANCE, report_saturation, dry_ratio
 from thermo_published_bip import (
     PUBLISHED_BIP, PROVENANCE_URL, SOURCE_SCOPE, MISSING_PAIR_POLICY,
     external_nh3_vapor_over_pure_liquid
