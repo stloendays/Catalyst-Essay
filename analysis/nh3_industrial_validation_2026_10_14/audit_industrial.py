@@ -203,10 +203,10 @@ def verify_recomputed(registered: list[dict], recomputed_path: Path) -> dict:
             "recompute_status": "reproduced within preregistered-adjacent numerical replay tolerance"}
 
 
-def audit(snapshot: Path | None = None, recomputed: Path | None = None) -> tuple[dict, list[dict]]:
+def audit(snapshot: Path | None = None, recomputed: Path | None = None, summary_snapshot: Path | None = None) -> tuple[dict, list[dict]]:
     for name, digest in PINS.items():
         enforce_pin(SRC / name, digest)
-    enforce_pin(V12 / "summary.json", SUMMARY_BLOB)
+    enforce_pin(summary_snapshot or V12 / "summary.json", SUMMARY_BLOB)
     baseline = snapshot or V12 / "results_metrics.csv"
     enforce_pin(baseline, SNAPSHOT_BLOB)
 
@@ -328,7 +328,24 @@ def audit(snapshot: Path | None = None, recomputed: Path | None = None) -> tuple
         },
     }
     if recomputed is not None:
+        if summary_snapshot is None:
+            raise AssertionError("A full model rerun must preserve the original summary separately")
         summary["replay"] = verify_recomputed(observed, recomputed)
+        regenerated = json.loads((V12 / "summary.json").read_text(encoding="utf-8"))
+        historical = json.loads(summary_snapshot.read_text(encoding="utf-8"))
+        if (regenerated.get("n_metrics"), regenerated.get("n_pass")) != (64, 32):
+            raise AssertionError("The rebuilt benchmark summary changed registered score totals")
+        if regenerated.get("by_table") != historical.get("by_table"):
+            raise AssertionError("The rebuilt 64-metric by-table score changed")
+        for field in ("frozen_Fe", "frozen_Ru"):
+            if abs(float(regenerated["anchors"][field]) - float(historical["anchors"][field])) > 1e-6:
+                raise AssertionError(f"Canonical 1.2 anchor drift: {field}")
+        if abs(float(regenerated["anchors"]["measured_Fe"]["cost"]) -
+               float(historical["anchors"]["measured_Fe"]["cost"])) > 1e-5:
+            raise AssertionError("Measured-Fe anchor drift")
+        summary["replay"]["summary_science_counts_and_anchors_preserved"] = True
+        summary["replay"]["operational_seconds_not_pinned"] = True
+        summary["replay"]["pr77_diagnostic_is_uncounted"] = True
     return summary, output
 
 
@@ -393,10 +410,13 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--snapshot", type=Path, default=None,
                         help="Preserved original 1.2 metrics file for replay after model rerun")
+    parser.add_argument("--summary-snapshot", type=Path, default=None,
+                        help="Git-blob-pinned original summary saved before source model rewrites its timing fields")
     parser.add_argument("--recomputed", type=Path, default=None,
                         help="Optional recomputed 1.2 metrics file; only compare against the preserved snapshot")
     args = parser.parse_args()
-    summary, output = audit(snapshot=args.snapshot, recomputed=args.recomputed)
+    summary, output = audit(snapshot=args.snapshot, recomputed=args.recomputed,
+                            summary_snapshot=args.summary_snapshot)
     emit_report(summary, output, args.out_dir)
     print(f"PASS: 64 registered metrics, 32 passing, 32 failing; "
           f"source pins OK; triage report at {args.out_dir}")
