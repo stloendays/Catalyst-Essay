@@ -74,11 +74,9 @@ jobs:
           mkdir -p /tmp/nh3-registered-snapshot
           cp analysis/validation_nh3_plant_2026_10_13/nh3_1_2/results_metrics.csv /tmp/nh3-registered-snapshot/results_metrics.csv
       - name: Reproduce canonical optima first
-        working-directory: analysis/validation_nh3_plant_2026_10_13
-        run: python -m unittest test_reproduce -v
+        run: python analysis/nh3_industrial_validation_2026_10_14/bootstrap_replay.py test
       - name: Recompute industrial benchmark on NH3-FINAL-1.2
-        working-directory: analysis/validation_nh3_plant_2026_10_13
-        run: python run_benchmark.py --workers 2
+        run: python analysis/nh3_industrial_validation_2026_10_14/bootstrap_replay.py benchmark --workers 2
       - name: Audit recomputation against preserved committed 64 verdicts
         run: |
           python analysis/nh3_industrial_validation_2026_10_14/audit_industrial.py --out-dir artifacts/nh3-industrial-replay --snapshot /tmp/nh3-registered-snapshot/results_metrics.csv --recomputed analysis/validation_nh3_plant_2026_10_13/nh3_1_2/results_metrics.csv
