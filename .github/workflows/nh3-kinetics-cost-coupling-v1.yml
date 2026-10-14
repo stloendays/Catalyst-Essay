@@ -1,0 +1,48 @@
+name: NH3 kinetic cold-loop and equal-product economic coupling
+on:
+  pull_request:
+    paths:
+      - 'analysis/nh3_kinetic_cost_coupling_v1/**'
+      - '.github/workflows/nh3-kinetics-cost-coupling-v1.yml'
+  push:
+    branches: ['research/nh3-kinetics-cost-coupling-v1']
+    paths:
+      - 'analysis/nh3_kinetic_cost_coupling_v1/**'
+      - '.github/workflows/nh3-kinetics-cost-coupling-v1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nh3-kinetic-cost-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  kinetic-cost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install numerical dependencies
+        run: python -m pip install 'numpy==2.3.5' 'scipy==1.17.0' 'pyyaml==6.0.2'
+      - name: Rates, reactor, feedback, units and non-duplicated costs
+        run: python -m unittest discover -s analysis/nh3_kinetic_cost_coupling_v1 -p 'test_*.py' -v
+      - name: Run common-capacity engineering comparison
+        run: python analysis/nh3_kinetic_cost_coupling_v1/run_study.py --out-dir artifacts/nh3-kinetic-cost
+      - name: Retry unresolved computational cases without hiding them
+        run: python analysis/nh3_kinetic_cost_coupling_v1/run_study.py --out-dir artifacts/nh3-kinetic-cost --retry-unresolved
+      - name: Check completed search coverage
+        run: python -c "import json; s=json.load(open('artifacts/nh3-kinetic-cost/summary.json'))['stats']; assert s['cold_states']==32 and s['cold_failures']==0 and s['candidate_rows']==192, s"
+      - name: Preserve archived science and paper
+        run: git diff --exit-code -- docs/ data/ provenance/ analysis/nh3_si_closed_loop_v1/ analysis/nh3_staged_converter_2026_10_12/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-kinetics-cost-coupling-v1
+          path: artifacts/nh3-kinetic-cost/
+          retention-days: 90
