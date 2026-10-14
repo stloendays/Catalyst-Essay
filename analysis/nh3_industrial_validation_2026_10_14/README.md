@@ -26,3 +26,24 @@ Push or PR executes the independent forensic audit (Python standard library only
 
 ## Interpretation gate
 Never infer that the 32/64 benchmark proves absolute industrial plant-cost accuracy. Scientifically defensible ranking, backward design and sensitivity results remain conditional on the model. Industrial validation only advances if source-matched physical predictions improve under **separately preregistered inputs and unchanged, prospective acceptance rules**.
+
+
+## Source-grounded separator/VLE follow-up
+
+`diagnose_separator_vle.py` is a **noncanonical read-only physical sensitivity**, not an engineering calibration.
+It reconstructs Ullmann/BASF Table 5 from 28 source-fact rows for N₂:H₂ = 1:3, at seven temperatures (−30 to 30 °C)
+and four pressures (10, 15, 20, 30 MPa), pins the original NH3-FINAL-1.2 comparison, and evaluates:
+
+- Why `p_sat(T)/P` cannot be repaired over the industrial pressure range by a single multiplier, even at one temperature.
+- Piecewise bilinear interpolation **strictly inside** the printed table (no extrapolation, no regression).
+- Five reactor-inlet **vapor proxies** versus reported plant inlets. Vapor after the separator is not identical
+  to a mixed reactor inlet; these proxy values are never rescored as plant validation.
+- A gated one-factor *counterfactual*: temporarily substitute the tabulated separator vapor into the original
+  NH3-FINAL-1.2 loop state solver, preserve equilibrium, catalyst and economic equations exactly, rerun each
+  inlet case through its full loop balance and measured-Fe plug-flow sizing, then restore the source function.
+
+The Actions job `separator-vle` generates `saturation_28.csv`, `plant_inlet_proxy_5.csv`,
+`conditional_model_inlet_5.csv`, `REPORT.md` and `summary.json`. Missing source composition and
+equipment details, inert dilution, fugacity/activity consistency and high-pressure mixture VLE must be
+reviewed before any such correction could be proposed for a new model version. **All registered scores
+remain exactly 32/64, including five failed inlet-NH3 comparisons and V01.**
