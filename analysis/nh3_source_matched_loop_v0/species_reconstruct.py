@@ -20,6 +20,7 @@ import math
 from pathlib import Path
 
 from source_matched import load_source_ledger, field
+from diagnose_separator_vle import grid_from_printed_sources, source_interpolation
 
 HERE = Path(__file__).resolve().parent
 FILE = HERE / "figure57_streams.csv"
@@ -190,6 +191,24 @@ def source_observation_reconstruction() -> dict:
         })
     if max(abs(v["computed_minus_printed_t_h"]) for v in liquid)>.035:
         raise AssertionError("NH3 component liquid product not aligned with printed output")
+    # Compare saturated vapor at the *printed Figure57 gas-stream* P and T,
+    # distinct from the old ledger's secondary liquid-pressure assumption.
+    # This is a cross-mixture external reference, NOT a 5-component EOS.
+    source_grid=grid_from_printed_sources()
+    separator_thermo=[]
+    for stream_id in (5,6):
+        v=st[stream_id]
+        table=source_interpolation(source_grid,v["T_C"],v["P_MPa"]*10.0)
+        source=100.0*v["y"]["NH3"]
+        separator_thermo.append({
+            "stream":stream_id,
+            "temperature_C":v["T_C"],
+            "pressure_bar_from_printed_gas_stream":v["P_MPa"]*10.0,
+            "observed_plant_NH3_molpct":source,
+            "BASF_in_domain_1to3_N2H2_vapor_NH3_molpct":table,
+            "relative_source_minus_BASF_pct":100.0*(source/table-1.0),
+            "reference_mixture_scope":"BASF H2:N2=3:1 gas mixture vs plant CH4/Ar-bearing stream; not a validated industrial multicomponent EOS",
+        })
     # The source-based production estimate uses only 1 and 4, not observed
     # production totals, and does NOT establish independently predictive kinetics.
     converted_tpd=full_extent*MW["NH3"]*24.0/1000.0
@@ -222,6 +241,7 @@ def source_observation_reconstruction() -> dict:
         "reconstructed_liquid_NH3_component":liquid,
         "stream6_stream1_NH3_pct":(st[6]["y"]["NH3"]*100,st[1]["y"]["NH3"]*100),
         "documented_loop_pressure_difference_bar":(st[1]["P_MPa"]-st[6]["P_MPa"])*10.0,
+        "source_stage_vle_crossmixture_reference":separator_thermo,
         "full_streams_n":len(st),
         "components":list(NAMES),
         "independent_source_units_n":1,
@@ -275,6 +295,18 @@ def write_report(record: dict, directory: Path) -> None:
         "and stream 8 at **3678 kmol/h, 99.82 mol% NH3**. The source's 'NH3 liquid, t/h' "
         "values are consistent with **NH3-component** masses. Modeling either entire "
         "liquid stream as pure NH3 is unnecessary and would bias component accounting.",
+        "",
+        "",
+        "Source-matched saturation comparator (published gas-stream temperatures and pressures):",
+        "",
+        "| Printed gas stream | T (C) | P (bar) | Published NH3 mol% | BASF 1:3 reference mol% | Relative difference |",
+        "|---|---:|---:|---:|---:|---:|",
+        *[f"| {v['stream']} | {v['temperature_C']:.1f} | {v['pressure_bar_from_printed_gas_stream']:.1f} | "
+          f"{v['observed_plant_NH3_molpct']:.2f} | "
+          f"{v['BASF_in_domain_1to3_N2H2_vapor_NH3_molpct']:.3f} | "
+          f"{v['relative_source_minus_BASF_pct']:+.2f}% |"
+          for v in record["source_stage_vle_crossmixture_reference"]],
+        "The BASF 1:3 N2/H2 vapor reference is not an EOS validated for the plant inert-bearing mixtures.",
         "",
         f"Stream6 to stream1 pressure rise is **{record['documented_loop_pressure_difference_bar']:.1f} bar** "
         "(source-derived equipment boundary); this script calculates no compressor power, VLE coefficients, "
