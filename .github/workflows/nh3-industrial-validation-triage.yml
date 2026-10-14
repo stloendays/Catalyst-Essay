@@ -77,6 +77,8 @@ jobs:
         run: pip install "numpy==2.3.5" "scipy==1.18.0" "pandas>=2.0" "pyyaml>=6" "openpyxl>=3.1"
       - name: Reconstruct 28 Ullmann/BASF source data and propagate separator vapor without refitting
         run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_separator_vle.py --out-dir artifacts/nh3-separator-vle --propagate
+      - name: Invert the source loop balance for the five plant inlet targets (diagnostic only)
+        run: python analysis/nh3_industrial_validation_2026_10_14/invert_separator_requirement.py --out-dir artifacts/nh3-separator-vle/inverse
       - name: Unit tests for source-only interpolation and falsification
         run: python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_vle_diagnostic.py' -v
       - name: Upload conditional outputs (not revised registered scores)
