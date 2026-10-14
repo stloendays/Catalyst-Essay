@@ -105,6 +105,20 @@ class SourceMatchedConverter(unittest.TestCase):
         self.assertGreater(u["counterfactual_after_final_sep_shortfall_pct_points"], 1.0)
         self.assertIn("only rules out THAT assumed connection", u["counterfactual_qualification"])
 
+    def test_reported_precision_bounds_and_product_purity_sensitivity(self):
+        u = self.uhde
+        lo, hi = u["converter_NH3_tpd_printed_rounding_interval"]
+        self.assertLess(lo, 1499.611135695)
+        self.assertGreater(hi, 1499.611135695)
+        self.assertTrue(u["printed_rounding_intervals_overlap_pure_NH3_assumption"])
+        self.assertEqual(u["final_product_NH3_purity_note_molpct"], 99.82)
+        product_lo, product_hi = u["hypothetical_product_NH3_tpd_impurity_MW_H2_to_Ar"]
+        self.assertLess(product_lo, product_hi)
+        self.assertLess(product_hi, u["final_product_assumed_pure_tpd"])
+        self.assertTrue(1490 < product_lo < product_hi < 1501)
+        with self.assertRaises(ValueError):
+            S.ammonia_product_tpd_given_unknown_impurity(62.51, 1.02, 2.016)
+
     def test_source_wording_and_missing_information_preserved(self):
         self.assertIn("99.82", self.db["R0002"]["note"])
         self.assertIn("17.88 MPa", self.db["R0015"]["note"])
