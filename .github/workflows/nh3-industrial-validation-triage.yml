@@ -52,6 +52,34 @@ jobs:
       - name: Assert frozen inputs and manuscript untouched
         run: git diff --exit-code -- provenance/ docs/ data/ analysis/validation_nh3_plant_2026_10_13/
 
+  separator-vle:
+    name: NH3 source-grounded separator vapor test (noncanonical)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PYTHONIOENCODING: utf-8
+      NH3_MODEL: "1.2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install benchmark-source physics dependencies
+        run: pip install "numpy==2.3.5" "scipy==1.18.0" "pandas>=2.0" "pyyaml>=6" "openpyxl>=3.1"
+      - name: Reconstruct 28 Ullmann/BASF source data and propagate separator vapor without refitting
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_separator_vle.py --out-dir artifacts/nh3-separator-vle --propagate
+      - name: Unit tests for source-only interpolation and falsification
+        run: python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_vle_diagnostic.py' -v
+      - name: Upload conditional outputs (not revised registered scores)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-separator-vle-conditional
+          path: artifacts/nh3-separator-vle/
+          retention-days: 90
+      - name: Check canonical science inputs unchanged
+        run: git diff --exit-code -- provenance/ docs/ data/ analysis/validation_nh3_plant_2026_10_13/
+
   full-recompute:
     name: Recompute NH3-FINAL-1.2 on source model and compare all 64 metrics
     if: github.event_name == 'workflow_dispatch' && inputs.full_recompute == true
