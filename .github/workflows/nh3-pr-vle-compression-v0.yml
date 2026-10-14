@@ -1,0 +1,44 @@
+name: NH3 PR78 high-pressure VLE and compressor screening (no fitting)
+
+on:
+  push:
+    branches:
+      - research/nh3-pr-vle-compression-v0-2026-10-14
+    paths:
+      - ".github/workflows/nh3-pr-vle-compression-v0.yml"
+      - "analysis/nh3_pr_vle_compression_v0/**"
+      - "analysis/nh3_source_matched_loop_v0/**"
+  pull_request:
+    paths:
+      - ".github/workflows/nh3-pr-vle-compression-v0.yml"
+      - "analysis/nh3_pr_vle_compression_v0/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pr-physics-screen:
+    name: Source-pinned zero-fit EOS, 28 BASF tests and compressor boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unfitted PR78 independent high-pressure and source-plant checks
+        run: python analysis/nh3_pr_vle_compression_v0/run_screen.py --out-dir artifacts/nh3-pr-screen
+      - name: Test cubic roots, fugacities, source integrity and no fitted parameters
+        run: python -m unittest discover -s analysis/nh3_pr_vle_compression_v0 -p 'test_*.py' -v
+      - name: Validate canonical/primary data untouched
+        run: git diff --exit-code -- docs/ data/ provenance/ analysis/validation_nh3_plant_2026_10_13/
+      - name: Record even failed external physics screening
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-no-fit-pr-vle-and-compression
+          path: artifacts/nh3-pr-screen/
+          retention-days: 90
