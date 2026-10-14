@@ -110,7 +110,7 @@ class SourceMatchedConverter(unittest.TestCase):
         self.assertIn("17.88 MPa", self.db["R0015"]["note"])
         self.assertIn("recovered H2", self.db["R0017"]["note"])
         self.assertIn("converter feed", self.db["R0015"]["note"])
-        self.assertIn("source converter", self.cases[2]["scope"])
+        self.assertIn("source reactor", self.cases[2]["scope"])
 
     def test_report_files_and_no_main_or_provenance_writes(self):
         with tempfile.TemporaryDirectory() as temp:
