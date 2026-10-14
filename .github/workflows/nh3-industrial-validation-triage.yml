@@ -42,6 +42,8 @@ jobs:
         run: python analysis/nh3_industrial_validation_2026_10_14/audit_industrial.py --out-dir artifacts/nh3-industrial-triage
       - name: Source-conditioned S-200 bed-specific mismatch
         run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_bed_profile.py --out-dir artifacts/nh3-bed-profiles
+      - name: Independent source-flow NH3 stoichiometric bound
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_source_flow_bound.py --out-dir artifacts/nh3-source-flow
       - name: Falsification tests
         run: python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_*.py' -v
       - name: Upload report (not an industrial validation certificate)
@@ -50,6 +52,13 @@ jobs:
         with:
           name: nh3-industrial-triage
           path: artifacts/nh3-industrial-triage/
+          retention-days: 90
+      - name: Upload source flow consistency bound (conditional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-source-flow-conditional-bound
+          path: artifacts/nh3-source-flow/
           retention-days: 90
       - name: Upload S-200 bed mismatch diagnostic (not refitted)
         if: always()
