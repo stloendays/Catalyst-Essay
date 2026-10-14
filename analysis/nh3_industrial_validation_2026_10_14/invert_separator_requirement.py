@@ -17,8 +17,6 @@ import json
 import math
 from pathlib import Path
 
-from scipy.optimize import brentq
-
 from audit_industrial import SRC, V12, PINS, enforce_pin, rows
 from diagnose_separator_vle import (
     INLETS, CASE_PIN, grid_from_printed_sources, source_interpolation, psat_nh3_bar,
@@ -38,6 +36,7 @@ def reactor_inlet_fraction(ysep: float, x: float) -> float:
 
 
 def inverse_diagnostics():
+    from scipy.optimize import brentq  # only required for optional full source-model inverse run
     # Pin the exact registered comparison targets, case operating points, and
     # original 1.2 model output before doing ANY inverse diagnostic.
     enforce_pin(SRC / "benchmark_metrics.csv", PINS["benchmark_metrics.csv"])
