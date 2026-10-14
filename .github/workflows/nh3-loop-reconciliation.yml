@@ -1,0 +1,67 @@
+name: NH3 loop reconciliation (preregistered T1-T5)
+
+on:
+  push:
+    branches:
+      - analysis/nh3-loop-reconciliation-2026-10-14
+    paths:
+      - ".github/workflows/nh3-loop-reconciliation.yml"
+      - "analysis/nh3_loop_reconciliation_2026_10_14/**"
+  pull_request:
+    paths:
+      - ".github/workflows/nh3-loop-reconciliation.yml"
+      - "analysis/nh3_loop_reconciliation_2026_10_14/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nh3-loop-reconciliation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONIOENCODING: utf-8
+      NH3_MODEL: "1.2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the pinned numerical environment (requirements.txt pins)
+        run: python -m pip install "numpy==2.3.5" "scipy==1.18.0" "pyyaml" "openpyxl" "pytest"
+      - name: Only the new folder and this workflow differ from main (no edit to frozen science, docs or data)
+        run: |
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -v -E '^(analysis/nh3_loop_reconciliation_2026_10_14/|\.github/workflows/nh3-loop-reconciliation\.yml$)' changed.txt; then
+            echo "Files outside the allowed boundary changed"; exit 1
+          fi
+      - name: Unit and output checks
+        run: python -m pytest analysis/nh3_loop_reconciliation_2026_10_14 -v -p no:cacheprovider
+      - name: Rerun every preregistered stage into a fresh directory
+        env:
+          NH3_RECON_OUT: ${{ github.workspace }}/ci_outputs
+        run: python analysis/nh3_loop_reconciliation_2026_10_14/run_all.py --stage all --workers 4
+      - name: Fresh run reproduces the committed reported quantities
+        run: python analysis/nh3_loop_reconciliation_2026_10_14/check_regression.py --fresh ci_outputs
+      - name: Frozen science, docs and data untouched after the run
+        run: git diff --exit-code -- docs/ data/ provenance/ figures/ source_data/ analysis/nh3_si_closed_loop_v1/ analysis/nh3_kinetic_cost_coupling_v1/ analysis/nh3_fe_first_domain_v1/ analysis/nh3_staged_converter_2026_10_12/
+      - name: Upload fresh outputs and upstream reruns
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-loop-reconciliation
+          path: |
+            ci_outputs/
+            analysis/nh3_loop_reconciliation_2026_10_14/work/
+          retention-days: 90
