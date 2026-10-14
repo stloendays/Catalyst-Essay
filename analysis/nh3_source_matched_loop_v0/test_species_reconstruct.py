@@ -58,6 +58,17 @@ class FullUhdeFigure57(unittest.TestCase):
         for name,y in v["first_separator_pred_all_5_species_pct"].items():
             self.assertLess(abs(y-self.st[5]["y"][name]*100),.05)
 
+    def test_separators_at_printed_gas_stream_pressures(self):
+        values=self.report["source_stage_vle_crossmixture_reference"]
+        self.assertEqual([v["stream"] for v in values],[5,6])
+        self.assertAlmostEqual(values[0]["pressure_bar_from_printed_gas_stream"],180.2)
+        self.assertAlmostEqual(values[1]["pressure_bar_from_printed_gas_stream"],178.8)
+        self.assertAlmostEqual(values[0]["temperature_C"],21.0)
+        self.assertAlmostEqual(values[1]["temperature_C"],0.0)
+        self.assertAlmostEqual(values[0]["BASF_in_domain_1to3_N2H2_vapor_NH3_molpct"],8.10782,places=4)
+        self.assertAlmostEqual(values[1]["BASF_in_domain_1to3_N2H2_vapor_NH3_molpct"],4.0968,places=4)
+        self.assertTrue(all(v["relative_source_minus_BASF_pct"]<6.0 for v in values))
+
     def test_stream6_stream1_pressure_and_mixture(self):
         self.assertAlmostEqual(self.report["documented_loop_pressure_difference_bar"],9.2)
         self.assertEqual(self.report["stream6_stream1_NH3_pct"],(4.18,4.18))
