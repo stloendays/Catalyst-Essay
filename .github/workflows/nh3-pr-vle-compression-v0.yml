@@ -31,6 +31,8 @@ jobs:
           python-version: "3.12"
       - name: Run unfitted PR78 independent high-pressure and source-plant checks
         run: python analysis/nh3_pr_vle_compression_v0/run_screen.py --out-dir artifacts/nh3-pr-screen
+      - name: Evaluate independently published Table8 kij without fitting to BASF or Uhde
+        run: python analysis/nh3_pr_vle_compression_v0/run_published_interactions.py --out-dir artifacts/nh3-pr-screen/external-kij
       - name: Test cubic roots, fugacities, source integrity and no fitted parameters
         run: python -m unittest discover -s analysis/nh3_pr_vle_compression_v0 -p 'test_*.py' -v
       - name: Validate canonical/primary data untouched
