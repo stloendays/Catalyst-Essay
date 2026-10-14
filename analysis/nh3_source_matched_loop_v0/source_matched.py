@@ -206,6 +206,23 @@ def stage_liquid_from_gas(f_in: float, y_in_pct: float, y_vap_pct: float) -> flo
     return f_in * (y_in_pct / 100.0 - y_vap_pct / 100.0) / (1.0 - y_vap_pct / 100.0)
 
 
+def formation_printing_precision_interval_tpd(fin: float, yin_pct: float, yout_pct: float) -> tuple[float, float]:
+    """Endpoint bounds for 1 kmol/h and 0.01 mol% printed resolution; not instrument uncertainty."""
+    low = ammonia_formed_kmol_h(fin - 0.5, (yin_pct + 0.005)/100.0, (yout_pct - 0.005)/100.0)
+    high = ammonia_formed_kmol_h(fin + 0.5, (yin_pct - 0.005)/100.0, (yout_pct + 0.005)/100.0)
+    factor = MW_NH3_KG_PER_KMOL * 24.0 / 1000.0
+    return low*factor, high*factor
+
+
+def ammonia_product_tpd_given_unknown_impurity(liquid_t_h: float, nh3_mol_fraction: float,
+                                                impurity_MW_kg_per_kmol: float) -> float:
+    """Sensitivity to unknown minor impurity identity, NOT source-measured composition."""
+    if not (liquid_t_h > 0 and 0 < nh3_mol_fraction <= 1 and impurity_MW_kg_per_kmol > 0):
+        raise ValueError("Invalid conditional product purity inputs")
+    mixture_mw = nh3_mol_fraction*MW_NH3_KG_PER_KMOL + (1.0-nh3_mol_fraction)*impurity_MW_kg_per_kmol
+    return liquid_t_h*24.0 * nh3_mol_fraction*MW_NH3_KG_PER_KMOL/mixture_mw
+
+
 def uhde_stream_closure(db: dict, conv: dict) -> dict:
     if conv["case_id"] != "UHDE188":
         raise AssertionError("Only the Uhde plant has source-resolved separator streams")
@@ -246,6 +263,11 @@ def uhde_stream_closure(db: dict, conv: dict) -> dict:
     product_t_h = float(m_product.group(1))
     if abs(product_t_h*24.0 - field(db,"R0002","capacity_tpd",allow_derived=True)) > 0.05:
         raise AssertionError("Product-8 mass unit conversion changed")
+    product_note = evidence(db, "R0002", "capacity_tpd", allow_derived=True)["note"]
+    m_purity = re.search(r"(\d+(?:\.\d+)?)\s*mol% NH3", product_note)
+    if m_purity is None:
+        raise AssertionError("Source stream-8 molar purity note absent")
+    product_purity_molpct = float(m_purity.group(1))
     l8_tot = nh3_liquid_kmol_h(product_t_h)
     l8_increment = l8_tot-l7
     fuel9 = field(db,"R0023","other")
@@ -254,6 +276,15 @@ def uhde_stream_closure(db: dict, conv: dict) -> dict:
     unspecified_outflow = (f5 + (raw10+h211)) - (f6_note + l8_increment)
     potential_exit = fuel9 + h211
     gross_formation = conv["new_NH3_kmol_h"]
+    formed_print_low, formed_print_high = formation_printing_precision_interval_tpd(
+        conv["inlet_total_kmol_h"], conv["inlet_yNH3_pct"], conv["outlet_yNH3_pct"]
+    )
+    liquid_total_precision_tpd = ((product_t_h - .005)*24.0, (product_t_h + .005)*24.0)
+    purity_fraction = product_purity_molpct/100.0
+    impurity_product_tpd_bounds = [
+        ammonia_product_tpd_given_unknown_impurity(product_t_h, purity_fraction, 39.948),
+        ammonia_product_tpd_given_unknown_impurity(product_t_h, purity_fraction, 2.016),
+    ]
     apparent_outer_balance = raw10 - gross_formation - l8_tot - fuel9
 
     # Thermodynamic comparator: BASF 1:3 N2/H2 gas mixture; Uhde feeds have
@@ -302,7 +333,15 @@ def uhde_stream_closure(db: dict, conv: dict) -> dict:
         "first_stage_gas_relative_difference_pct": (y5_fwd/y5 - 1.0)*100.0,
         "first_stage_gas_kmol_h": f5,
         "final_product_source_t_h": product_t_h,
-        "final_product_NH3_purity_note_molpct": 99.82,
+        "final_product_NH3_purity_note_molpct":product_purity_molpct,
+        "converter_NH3_tpd_printed_rounding_interval":[formed_print_low,formed_print_high],
+        "liquid_total_mass_tpd_printed_rounding_interval":list(liquid_total_precision_tpd),
+        "printed_rounding_intervals_overlap_pure_NH3_assumption":(
+            max(formed_print_low,liquid_total_precision_tpd[0]) <=
+            min(formed_print_high,liquid_total_precision_tpd[1])
+        ),
+        "hypothetical_product_NH3_tpd_impurity_MW_H2_to_Ar":[*impurity_product_tpd_bounds],
+        "purity_sensitivity_caveat":"Unknown gas impurity identity; H2/Ar molecular masses bound illustrative 0.18 mol% impurity only.",
         "final_product_assumed_pure_tpd": product_t_h*24.0,
         "converter_formation_minus_liquid_product_tpd": conv["new_NH3_tpd"] - product_t_h*24.0,
         "makeup_stream_10_kmol_h": raw10,
@@ -375,6 +414,15 @@ def build_report(converters: list[dict], uhde: dict) -> str:
         f"**{uhde['first_stage_gas_NH3_predicted_pct']:.3f}%**, against source **{uhde['source_stage1_vapor_NH3_pct']:.2f}%**.",
         f"- Conversely, using source gas 5 NH3, inferred first condensate: "
         f"**{uhde['first_liquid_inferred_from_gas_t_h']:.3f} t/h** versus reported **51.36 t/h**.",
+        f"- With only nearest-digit rounding, source converter output is "
+        f"**{uhde['converter_NH3_tpd_printed_rounding_interval'][0]:.2f}–{uhde['converter_NH3_tpd_printed_rounding_interval'][1]:.2f} t/d**; "
+        f"liquid total-mass output **{uhde['liquid_total_mass_tpd_printed_rounding_interval'][0]:.2f}–"
+        f"{uhde['liquid_total_mass_tpd_printed_rounding_interval'][1]:.2f} t/d**. "
+        "These are printed-resolution bounds, not measurement confidence intervals.",
+        f"- Stream8 purity is **{uhde['final_product_NH3_purity_note_molpct']:.2f} mol% NH3**. "
+        f"Unknown H2-to-Ar illustrative impurity identity gives **{uhde['hypothetical_product_NH3_tpd_impurity_MW_H2_to_Ar'][0]:.2f}–"
+        f"{uhde['hypothetical_product_NH3_tpd_impurity_MW_H2_to_Ar'][1]:.2f} t/d** NH3 product mass, "
+        "not exactly the total-liquid product mass.",
         f"- Total-source bookkeeping (stream10 raw 7667; stream11 recovered H2 374; "
         f"stream12 8041; stream9 fuel 320 kmol/h): outer molar residual "
         f"**{uhde['raw_makeup_external_closure_pct']:+.3f}%** of raw makeup; conditional on boundary/purity approximations.",
