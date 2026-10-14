@@ -92,10 +92,10 @@ def field(db: dict, row_id: str, quantity: str | None = None, *,
     return x
 
 
-def printed_note(db: dict, row_id: str, pattern: str) -> tuple[float, ...]:
+def printed_note(db: dict, row_id: str, pattern: str, *, allow_derived: bool = False) -> tuple[float, ...]:
     # The note is a separately reviewable source-annotator extraction, not
     # newly verified figure pixels. The literal row ID remains in every report.
-    note = evidence(db, row_id)["note"]
+    note = evidence(db, row_id, allow_derived=allow_derived)["note"]
     m = re.search(pattern, note)
     if m is None:
         raise AssertionError(f"Source-note pattern not present at {row_id}: {pattern}")
@@ -152,10 +152,6 @@ def all_converters(db: dict) -> list[dict]:
         if case_name == "UHDE188":
             # Ledger R0016's source flow was 28,344 kmol/h, subsequently
             # converted to 635,302 Nm3/h and rounded in the frozen ledger.
-            f_printed, = printed_note(
-                db, "R0016", r"(\d+)\s*kmol/h\s*\(stream 1\)"
-            ) if re.search(r"(\d+)\s*kmol/h\s*\(stream 1\)",
-                            evidence(db, "R0016", allow_derived=True)["printed_value_and_unit"]) else (None,)
             # The exact 28,344 value is in R0016's printed field, not the note.
             txt = evidence(db, "R0016", allow_derived=True)["printed_value_and_unit"]
             m = re.search(r"(\d+)\s*kmol/h", txt)
@@ -220,7 +216,7 @@ def uhde_stream_closure(db: dict, conv: dict) -> dict:
         db, "R0015", r"\((\d+(?:\.\d+)?)\s*MPa,\s*(\d+(?:\.\d+)?)\s*mol% NH3,\s*(\d+)\s*kmol/h"
     )
     raw10, h211 = printed_note(
-        db, "R0017", r"stream 10,\s*(\d+)\s*kmol/h.*stream 11,\s*(\d+)\s*kmol/h"
+        db, "R0017", r"stream 10,\s*(\d+)\s*kmol/h.*stream 11,\s*(\d+)\s*kmol/h", allow_derived=True
     )
     makeup12 = field(db, "R0017", "makeup_flow_Nm3_h", allow_derived=True)
     # R0017 derived Nm3/h is rounded to the nearest whole Nm3/h.
@@ -243,9 +239,13 @@ def uhde_stream_closure(db: dict, conv: dict) -> dict:
         raise AssertionError("Source first-separator flow infeasible")
     y5_fwd = 100.0 * (a4-l7) / f5
     l7_inferred = stage_liquid_from_gas(f4, conv["outlet_yNH3_pct"], y5)
-    product_t_h = field(db,"R0002","capacity_tpd", allow_derived=True) / 24.0
-    if abs(product_t_h - 62.51) > 0.01:
-        raise AssertionError("Source product mass flow 62.51 t/h changed")
+    product_printed = evidence(db, "R0002", "capacity_tpd", allow_derived=True)["printed_value_and_unit"]
+    m_product = re.search(r"(\d+(?:\.\d+)?)\s*t/h", product_printed)
+    if m_product is None:
+        raise AssertionError("Missing printed product-8 liquid flow")
+    product_t_h = float(m_product.group(1))
+    if abs(product_t_h*24.0 - field(db,"R0002","capacity_tpd",allow_derived=True)) > 0.05:
+        raise AssertionError("Product-8 mass unit conversion changed")
     l8_tot = nh3_liquid_kmol_h(product_t_h)
     l8_increment = l8_tot-l7
     fuel9 = field(db,"R0023","other")
