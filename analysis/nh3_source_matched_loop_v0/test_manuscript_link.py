@@ -31,7 +31,7 @@ class PaperTraceability(unittest.TestCase):
                 self.assertIn(metric,self.main)
 
     def test_manuscript_refs_and_method_scope(self):
-        self.assertIn("65. Appl, M. Ammonia, 2. Production Processes.",self.main)
+        self.assertIn("32. Appl, M. Ammonia, 2. Production Processes.",self.main)
         self.assertIn("doi:10.1002/14356007.o02_o11",self.main)
         self.assertIn("source-resolved plant data",self.main)
         self.assertIn("five-component steady-state process simulation",self.main)
