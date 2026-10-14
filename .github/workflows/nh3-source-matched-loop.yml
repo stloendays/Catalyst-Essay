@@ -30,6 +30,8 @@ jobs:
           python-version: "3.12"
       - name: Reconstruct source-matched three converters and Uhde two separators
         run: python analysis/nh3_source_matched_loop_v0/source_matched.py --out-dir artifacts/nh3-source-matched
+      - name: Reconstruct 12 streams, nine unit boundaries and 45 component balances
+        run: python analysis/nh3_source_matched_loop_v0/species_reconstruct.py --out-dir artifacts/nh3-source-matched/species
       - name: Test conservation invariants, source boundaries, aliases and counterfactual topology
         run: python -m unittest discover -s analysis/nh3_source_matched_loop_v0 -p 'test_*.py' -v
       - name: Assert all frozen scientific and literature inputs unmodified
