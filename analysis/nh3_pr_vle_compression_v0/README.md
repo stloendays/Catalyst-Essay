@@ -1,0 +1,28 @@
+# NH3-PR-SCREEN-V0: source-constrained physical simulation without parameter fitting
+
+This experiment tests whether a first-principles-form **Peng–Robinson 1976 cubic-EOS baseline** can describe high-pressure ammonia condensation in a real NH3 synthesis loop, and whether source-aligned compressibility changes work estimates. It **does not** revise the frozen NH3-FINAL-1.2, its original 32/64 benchmark, or any Fe/Ru/Os economic ranking. Source: [Ullmann / Appl ammonia Figure 57](https://doi.org/10.1002/14356007.o02_o11), 12-stream data pinned and examined in stacked [PR #89](https://github.com/stloendays/Catalyst-Essay/pull/89).
+
+## Physical input — independent of the industrial outcomes
+
+PR78 equation of state: Peng & Robinson, *Ind. Eng. Chem. Fund.* **15**, 59–64 (1976), DOI [10.1021/i160057a011](https://doi.org/10.1021/i160057a011). Pure critical-point temperatures/pressures and acentric factors from [CoolProp Nitrogen](https://coolprop.org/fluid_properties/fluids/Nitrogen.html), [Hydrogen](https://coolprop.org/fluid_properties/fluids/Hydrogen.html), [Methane](https://coolprop.org/fluid_properties/fluids/Methane.html), [Argon](https://coolprop.org/fluid_properties/fluids/Argon.html), [Ammonia](https://coolprop.org/fluid_properties/fluids/Ammonia.html). These data are traced directly in `thermo_pr.py`.
+
+**All ten binary interaction parameters are fixed at `k_ij=0`.** This is a *zero-fit* scientific baseline, not a literature-recommended multi-component ammonia mixture model. With strong hydrogen and NH3 interactions, the resulting high-pressure phase equilibrium may be inaccurate. Such failure must be published as evidence rather than retrofitted with hand-selected `k_ij`.
+
+## Source-held-out / conditional tests
+
+1. **28 BASF/Ullmann table entries**: all temperature–pressure observations (−30 to 30°C, 10/15/20/30 MPa) are stored in the separately pinned original `reference_values.csv` ledger; the model takes only T, P and H₂:N₂=3:1 gas dilution as inputs. It solves equality of the NH3 fugacity in PR vapor and pure, pressurized liquid ammonia. The model **neglects dissolved H₂/N₂** in the liquid, so it is a screening approximation, not a rigorous mixture flash. No values in the BASF table are used to determine EOS parameters.
+2. **Uhde industrial gas streams 5 and 6**: from Figure57, T/P and ratios of *non-NH3 species* at a source-conditioned upstream gas state determine a NH₃ saturation prediction; observed stage NH3 is held out for scoring. The plant dry-gas composition is observed, so this is not full independent flowsheet prediction. Stage 5 uses feed 4 dry ratios; stage 6 uses reactor-inlet 1 dry ratios, because the actual second-stage separator **feed topology is still unresolved**.
+3. **Full TP-flash attempt**: use only source first separator feed 4 composition, T of gas 5 and P of gas 5. PR φ–φ liquid/vapor K iteration and Rachford–Rice split return a computed candidate, or an explicit phase-bracket/nonconvergence failure. Stream 5 and stream 7 observed compositions and flow splits are **excluded** from model input. A two-phase root without Gibbs stability analysis is only a screening candidate.
+4. **Source-aligned compression energy**: three *hypothetical fixed-T compression paths* are defined by source pressure/flow boundaries: raw makeup 10→12, recovered H₂ 11→12 and cold recycle 6→1. Integrate Z_PR RT dlnP for each, sum reversible isothermal reference work, compare with ideal gas at the same T and source flow. Report η=0.65–0.85 **illustrative** gross shaft scenarios, clearly distinct from actual vendor compressor maps. The **13 MW E01** external benchmark is from another source plant and must not be compared as a claimed Uhde duty. Material pressure boundaries are documented; the actual casing/intercooler arrangement is not.
+
+## Preregistered qualitative gate
+
+This gate is coded explicitly in `run_screen.py` **before** evaluating PR output: at least **24/28** BASF points must be within 20% of the independently measured vapor NH3, **and both** Uhde stage saturated NH3 values must be within 20%. If not: `FAIL__DO_NOT_PROMOTE_MODEL`. The tolerance is a provisional engineering *screening threshold*, not a retrospective recalibration of any original 64-case metric. CI should still be green for a properly recorded failed physics gate.
+
+## Reproducibility and promotion rule
+
+Run: `python analysis/nh3_pr_vle_compression_v0/run_screen.py --out-dir artifacts/nh3-pr-screen`
+Unit tests: `python -m unittest discover -s analysis/nh3_pr_vle_compression_v0 -p 'test_*.py' -v`.
+The independent GitHub workflow `.github/workflows/nh3-pr-vle-compression-v0.yml` writes pinned records: `BASF_28_PR_no_fit.csv`, `uhde_2_sep_PR_no_fit.csv`, `source_first_sep_TP_flash.json`, `source_compression_Z_integral.json`, `summary.json` and `REPORT.md`.
+
+**Model promotion remains blocked** until externally sourced mixture-interaction parameters or a more suitable mixture EOS have been selected without seeing evaluation targets, held-out separator and compressor measurements are reproduced, the complete industrial stream/topology is source-matched and a new candidate is separately preregistered. Then Fe/Ru/Os must be re-optimized on matched feasible states under that new physical model with explicit comparison to the frozen original. Stacked upstream PR #87 and PR #89 remain separate.
