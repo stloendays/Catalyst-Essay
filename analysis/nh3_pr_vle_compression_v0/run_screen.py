@@ -283,6 +283,20 @@ def run(outdir:Path)->dict:
         "No target was fitted and no result was relabeled to pass.",
         ""
     ]
+    if flash["full_candidate"].get("screening_accepted"):
+        offset=lines.index("## Source-aligned compression references")
+        details=[
+            "### Unfitted five-component flash numeric source comparison",
+            f"Vapor NH3 predicted **{flash['predicted_vapor_NH3_molpct']:.3f} mol%** "
+            f"versus source stream5 **{flash['observed_vapor_NH3_molpct']:.3f} mol%**.",
+            f"Liquid NH3 predicted **{flash['predicted_liquid_NH3_molpct']:.3f} mol%** "
+            f"versus source stream7 **{flash['observed_liquid_NH3_molpct']:.3f} mol%**.",
+            f"Vapor fraction predicted **{flash['full_candidate']['beta_vapor']:.4f}** "
+            f"versus source stream5/feed4 **{flash['observed_vapor_fraction']:.4f}**.",
+            "PR phi-phi equilibrium convergence is NOT thermodynamic global stability or plant prediction validation.",
+            "",
+        ]
+        lines[offset:offset]=details
     report="\n".join(lines)
     (outdir/"REPORT.md").write_text(report,encoding="utf-8")
     print(report)
