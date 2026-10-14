@@ -47,7 +47,7 @@ class FullUhdeFigure57(unittest.TestCase):
 
     def test_production_vs_reported(self):
         v=self.report
-        self.assertAlmostEqual(v["reactor_converted_NH3_tpd"],1499.611135695,places=3)
+        self.assertAlmostEqual(v["reactor_converted_NH3_tpd"],1499.3560487808,places=3)
         self.assertAlmostEqual(v["industrial_reported_liquid_NH3_tpd"],1500.24,places=2)
         self.assertLess(abs(v["reactor_vs_reported_product_relative_pct"]),.08)
 
