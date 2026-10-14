@@ -54,9 +54,7 @@ jobs:
 
   full-recompute:
     name: Recompute NH3-FINAL-1.2 on source model and compare all 64 metrics
-    if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.full_recompute == true) ||
-      (github.event_name == 'pull_request' && github.head_ref == 'audit/nh3-industrial-failure-triage-2026-10-14')
+    if: github.event_name == 'workflow_dispatch' && inputs.full_recompute == true
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
