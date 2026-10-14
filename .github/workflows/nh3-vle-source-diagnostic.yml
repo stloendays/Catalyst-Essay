@@ -1,0 +1,44 @@
+name: NH3 source-only VLE and conditional loop diagnostic
+on:
+  push:
+    branches:
+      - audit/nh3-industrial-failure-triage-2026-10-14
+    paths:
+      - .github/workflows/nh3-vle-source-diagnostic.yml
+  pull_request:
+    paths:
+      - .github/workflows/nh3-vle-source-diagnostic.yml
+      - analysis/nh3_industrial_validation_2026_10_14/diagnose_separator_vle.py
+      - analysis/nh3_industrial_validation_2026_10_14/test_vle_diagnostic.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PYTHONIOENCODING: utf-8
+      NH3_MODEL: "1.2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install numerical dependencies of original 1.2 harness
+        run: pip install "numpy==2.3.5" "scipy==1.18.0" "pandas>=2.0" "pyyaml>=6" "openpyxl>=3.1"
+      - name: Test 28 BASF source values, in-domain interpolation and falsification
+        run: python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_vle_diagnostic.py' -v
+      - name: Propagate tabulated separator vapor through original NH3 1.2 loop
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_separator_vle.py --out-dir artifacts/nh3-separator-source --propagate
+      - name: Check canonical model and source files unchanged
+        run: git diff --exit-code -- provenance/ docs/ data/ analysis/validation_nh3_plant_2026_10_13/
+      - name: Upload source and conditional loop evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-vle-no-fit-industrial-inlet-check
+          path: artifacts/nh3-separator-source/
+          retention-days: 90
