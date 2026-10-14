@@ -2,6 +2,62 @@
 
 **Project status:** observation-constrained, non-calibrated *material balance and stream-boundary audit*. It is **not** a complete new process simulator, a ranking model, or an improvement to the original 64-case validation score. No original manuscript or NH3-FINAL-1.2 files are modified.
 
+## Full five-component industrial steady-state reconstruction (preferred analysis)
+
+The source-matched **NH3-STREAM-V0.2** method uses the full *printed* industrial
+Krupp-Uhde Figure 57 from Appl, *Ammonia, 2. Production Processes* (2011),
+doi:10.1002/14356007.o02_o11, p. 211, comprising **12 numbered streams**,
+their molar flow, temperature, pressure and **N2/H2/CH4/Ar/NH3** mole percentages.
+Every row is pinned in `figure57_streams.csv`; its overlapping numbers are
+also independently cross-checked against the existing frozen literature ledger.
+
+`species_reconstruct.py` applies the reaction stoichiometry and component-flow
+conservation to **nine steady-state control volumes**, reporting **45 species
+residuals**. It reproduces, using direct component-flow differences:
+
+- **1499.36 t/d** NH3 generation from converter stream 1 -> 4 compared with
+  **1500.24 t/d** recorded NH3 liquid product in stream 8: **-0.059%**.
+  The prior total-flow/equilibrium-stoichiometry method gives 1499.61 t/d;
+  their **0.26 t/d** difference follows from independently rounded printed values.
+- First separator stream 5 NH3 **8.502 mol%** reconstructed from all five
+  species of stream 4 minus separated liquid stream 7, versus **8.51 mol%** source.
+- The largest absolute species residual among 9 boundaries is **0.0489% of
+  the feed flow to the corresponding unit/control volume**. This is a source
+  internal balance test, not a new engineering accuracy claim.
+- Source liquid stream 7 is **3060 kmol/h at 98.55 mol% NH3**, and stream 8
+  **3678 kmol/h at 99.82 mol% NH3**. The printed **51.36 and 62.51 t/h**
+  are close to the directly calculated *NH3-component* liquid mass rates;
+  they should not be interpreted as unqualified pure-stream total masses.
+- Both separate source gas temperatures/pressures are now directly read
+  from the **full printed gas rows**: gas 5 **21 C, 180.2 bar** and gas 6
+  **0 C, 178.8 bar**. BASF 1:3 N2/H2 source table interpolation at these
+  conditions gives **8.108%** versus 8.51% source and **4.097%** versus 4.18%
+  source. The real mixture contains inerts; these data are not a validated
+  five-component EOS.
+- The source stream 6 -> 1 pressure difference is **9.2 bar**.
+  Neither fresh-gas compression nor staged recycle compressor performance
+  can be inferred solely from that two-point pressure difference.
+
+Source-based **steady-state process reconstruction** is the appropriate term
+for this calculation. Inputs are printed industrial streams, the outputs are
+conservation-implied cross-stream quantities, and catalyst kinetics, true
+multi-component VLE, heat exchanger duty, equipment efficiency and plant cost
+are **not fitted or independently predicted**. It therefore does not supersede
+the NH3-FINAL-1.2 32/64 industrial benchmark.
+
+The earlier `source_matched.py` is retained as the simpler NH3-only
+projection for reproducibility of the first feasibility audit.
+Its pure-NH3-liquid approximation must not be conflated with the preferred
+five-species calculation.
+
+Run:
+`python analysis/nh3_source_matched_loop_v0/species_reconstruct.py --out-dir artifacts/nh3-source-matched/species`
+
+Primary artifacts: `species/REPORT.md`, `species/component_balance_9.csv`,
+`species/component_residuals_45.csv`, `species/species_summary.json`.
+
+---
+
 ## Scope and evidence hierarchy
 
 The frozen industrial ledger lives at `analysis/validation_nh3_plant_2026_10_13/reference_values.csv`. The new solver enforces source blob hashes, loads every numeric input from its original row ID, and distinguishes source observations from calculations and conditional routing assumptions.
