@@ -61,7 +61,11 @@ def source():
 def selections(groups, boundary):
     outputs={}
     for group, entries in groups.items():
-        lab = max(entries, key=lambda r:(num(r["STY"]),num(r["SMeOH"]),r["catalyst"]))
+        # Preserve the frozen upstream winner and its tie-breaking convention exactly.
+        lab_name = boundary[("S5",group)]["lab_leader"]
+        matched = [r for r in entries if r["catalyst"] == lab_name]
+        require(len(matched)==1,f"frozen STY winner missing or ambiguous {group}")
+        lab = matched[0]
         choices={}
         for scenario in ALL:
             col=COLUMNS[scenario]
