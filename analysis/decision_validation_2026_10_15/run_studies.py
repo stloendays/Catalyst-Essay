@@ -99,7 +99,7 @@ def stable(choices,scenarios):
       "best_regret":min(choices[s]["regret"] for s in scenarios)}
 
 def extra_model(data):
-    rows=load("analysis/meoh_inlet_definition_2026_10_12/entry_costs.csv")
+    rows=[r for r in load("analysis/meoh_inlet_definition_2026_10_12/entry_costs.csv") if r["group"] in data]
     index={(r["group"],r["entry"]):r for r in rows}
     require(len(index)==len(rows),"duplicate alternative entries")
     require(sum(len(x["entries"]) for x in data.values())==len(rows),"alternative model lacks cohort entries")
