@@ -267,6 +267,18 @@ def study_decision(out, scored,bygroup,old,costs,winners):
         summary[label+"_risk"]=dict(
           n_finite=len(v),median=percentile(v),
           n_worst_le_5pct=sum(r[label+"_risk"]!="INF" and float(r[label+"_risk"])<=.05+1e-12 for r in records))
+    # Descriptive examples only; no change to the preregistered scenario sets or minimax choice.
+    summary["illustrative_form_information_groups"] = [
+        {"group":r["group"],"doi":r["doi"],
+         "model_identity_risk_reduction":float(r["form_knowledge_reduction"]),
+         "full_robust_material":r["augmented_six_material"],
+         "canonical_only_material":r["canonical_five_material"],
+         "full_worst_regret":float(r["worst_regret_full"])}
+        for r in sorted(records,key=lambda row:
+          -(float(row["form_knowledge_reduction"]) if row["form_knowledge_reduction"]!="INF" else -1))
+        if r["form_knowledge_reduction"]!="INF"
+           and float(r["form_knowledge_reduction"])>.05
+    ][:6]
     require(all((float(r["worst_regret_full"]) +1e-9>=
           float(r["worst_regret_cap_only"])) for r in records
           if r["worst_regret_full"]!="INF" and r["worst_regret_cap_only"]!="INF"),
@@ -369,6 +381,15 @@ def study_paths(out,scored,bygroup,old,costs,winners):
         point_reentrant_without_Bansode=sum(r["reentrant_point"] for r in records if r["doi"]!=BANSODE),
         material_reentrant_without_Bansode=sum(r["reentrant_material"] for r in records if r["doi"]!=BANSODE),
         by_cap_interval=interval)
+    summary["material_reentrant_examples"]=[
+        {"group":r["group"],"doi":r["doi"],
+         "material_path":r["sequence_materials"],
+         "point_path":r["sequence_point_ids"],
+         "material_switches":r["n_material_switches"],
+         "switches_gt1pct":r["switches_with_regret_gt1pct"],
+         "switches_gt5pct":r["switches_with_regret_gt5pct"]}
+        for r in records if r["reentrant_material"]
+    ]
     (out/"summary.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     lines=["# Candidate-specific optimal-cost monotonicity versus winner switching", "",
        "The existing five nested cap optimizations have been verified point-by-point for all 310 candidate entries.",
