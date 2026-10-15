@@ -1,6 +1,6 @@
 # Supplementary Information
 
-Process economics reorder catalyst rankings across computed and published catalysts
+Laboratory catalyst leaders are often not the industrial optimum
 
 ## Supplementary Notes
 
