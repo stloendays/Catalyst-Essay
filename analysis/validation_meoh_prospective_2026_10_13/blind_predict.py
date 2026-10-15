@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from meoh_candidates import build_candidates
-from pv_common import HERE, RULES, choice_set, load_new_records
+from pv_common import HERE, RULES, choice_set, load_new_records  # first: puts the frozen modules on sys.path
+from meoh_candidates import build_candidates  # noqa: E402
 
 RULE_OF = {"S6": "S", "S5": "STY"}
 
