@@ -69,6 +69,9 @@ def write_status(state: str, attention: list[str], finished: bool, interval: int
     }, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+ROUTE_ARGS = ["--api-yes"]       # --advisor-key: call the advisor key directly (extract_records.py without --api-yes)
+
+
 def sweep() -> tuple[bool, str]:
     """Run every pass once. Returns (all_complete, last_stop_reason)."""
     reason = ""
@@ -78,7 +81,7 @@ def sweep() -> tuple[bool, str]:
         with LOG.open("a", encoding="utf-8") as log:
             log.write(f"\n=== {dt.datetime.now():%Y-%m-%d %H:%M:%S} pass {p} (done {before}) ===\n")
             log.flush()
-            r = subprocess.run([PY, str(HERE / "pv.py"), "extract", "--pass", p, "--api-yes", *CAPS],
+            r = subprocess.run([PY, str(HERE / "pv.py"), "extract", "--pass", p, *ROUTE_ARGS, *CAPS],
                                cwd=HERE, env=env, stdout=log, stderr=subprocess.STDOUT,
                                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         text = LOG.read_text(encoding="utf-8", errors="replace").splitlines()[-30:]
@@ -99,7 +102,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--loop", action="store_true")
     ap.add_argument("--interval", type=int, default=30, help="minutes between retries")
+    ap.add_argument("--advisor-key", action="store_true",
+                    help="skip API-YES (its ChatGPT-account route rejects gpt-5.5 with HTTP 400, which the router does "
+                         "not treat as exhausted) and call the advisor key directly")
     a = ap.parse_args()
+    if a.advisor_key:
+        ROUTE_ARGS.clear()
     while True:
         write_status("抽取进行中", [], False, a.interval)
         complete, reason = sweep()

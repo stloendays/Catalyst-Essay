@@ -23,3 +23,15 @@ Recorded when they occurred, before any extraction output or plant-model output 
 - (Superseded) Consequence while D1 was in force: the 40 included papers are the first 40 S3-passing candidates in rank order after these 4
   exclusions. The si and si_figures extraction passes run for the papers whose SI was retrieved; the others are
   extracted from the main text (main and figures passes), as in PR #78's first batch-2 run.
+
+## D2. si_figures pass completed on the advisor key directly (2026-10-15)
+
+- Section 5 fixes the route as API-YES first, then the advisor key. On 2026-10-15 the API-YES gateway still listed
+  gpt-5.5 but its only OpenAI credential (a ChatGPT-account login) rejected every call with HTTP 400 ("'gpt-5.5' model
+  is not supported when using Codex with a ChatGPT account"). `llm_route.Router` switches routes only on exhaustion
+  (402/429/503, connection, auth or quota errors), so a 400 did not move it to the advisor key and each paper failed
+  without output (`extraction_driver.log`, 14:51 run; no record written).
+- The remaining si_figures papers (37 of 40; 2 were done on 2026-10-14 and 1 on 2026-10-15 as a single-paper probe)
+  are extracted with `extract_records.py` without `--api-yes`, which calls the advisor key directly
+  (`run_extraction_passes.py --advisor-key`). Model (gpt-5.5, medium effort), prompts, schema, caps and the paper list
+  are unchanged; only the transport differs. Recorded before any plant-model output of the new batch existed.
