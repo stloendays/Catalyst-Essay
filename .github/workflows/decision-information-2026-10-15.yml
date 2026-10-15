@@ -1,0 +1,62 @@
+name: MeOH minimax decision + inlet-limit switching (exploratory)
+on:
+  push:
+    paths:
+      - "analysis/decision_information_2026_10_15/**"
+      - ".github/workflows/decision-information-2026-10-15.yml"
+  pull_request:
+    paths:
+      - "analysis/decision_information_2026_10_15/**"
+      - ".github/workflows/decision-information-2026-10-15.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  decision-information:
+    name: Independent study ${{ matrix.study }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        study: ["decision", "paths"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Protect scientific frozen sources, previous PRs and manuscript
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/decision_information_2026_10_15/|\.github/workflows/decision-information-2026-10-15\.yml$)' changed.txt; then
+            echo "Unexpected changes outside exploratory study branch"
+            exit 1
+          fi
+      - name: Synthetic mathematical falsification tests
+        run: python -m unittest discover -s analysis/decision_information_2026_10_15 -p 'test_contract.py' -v
+      - name: Run source-pinned model-condition study
+        run: |
+          python analysis/decision_information_2026_10_15/run.py --study ${{ matrix.study }} --out artifacts/decision-information-${{ matrix.study }}
+      - name: Independent result contract and source anchors
+        run: |
+          python analysis/decision_information_2026_10_15/test_contract.py --study ${{ matrix.study }} --out artifacts/decision-information-${{ matrix.study }}
+      - name: Publish complete result summary in job logs
+        if: success()
+        run: |
+          cat artifacts/decision-information-${{ matrix.study }}/summary.json
+          cat artifacts/decision-information-${{ matrix.study }}/REPORT.md
+      - name: Save CSV JSON and Markdown including failed-study artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: decision-information-${{ matrix.study }}-${{ github.sha }}
+          path: artifacts/decision-information-${{ matrix.study }}/
+          retention-days: 90
