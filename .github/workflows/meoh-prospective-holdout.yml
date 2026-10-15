@@ -1,0 +1,93 @@
+name: MeOH prospective hold-out (pre-registered)
+
+# Reruns analysis/validation_meoh_prospective_2026_10_13 from the committed extraction records:
+#   - the predictions from the frozen set (asserts the frozen anchors S5 15/40, S6 28/40 and their intervals);
+#   - the commit order of the pre-registration and of the blind per-group predictions (git history);
+#   - the blind predictions, regenerated from the committed records and corrections, must equal the committed ones;
+#   - the scoring (regression on the frozen set first, then the new batch with the latest model), whose outputs must
+#     equal the committed ones.
+# The LLM extraction itself is not rerun here: it ran locally through agent/extraction/llm_route.py (API-YES first,
+# then the advisor key), exactly as PR #78 did; the repository has no LLM secret.
+
+on:
+  pull_request:
+    paths:
+      - "analysis/validation_meoh_prospective_2026_10_13/**"
+      - ".github/workflows/meoh-prospective-holdout.yml"
+  push:
+    branches: ["validation/meoh-prospective-holdout-2026-10-13"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meoh-prospective-holdout-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONIOENCODING: utf-8
+      PV_WORKERS: "4"
+      D: analysis/validation_meoh_prospective_2026_10_13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Keep a copy of the committed outputs
+        run: |
+          mkdir -p /tmp/committed
+          for f in prediction_frozen.json blind_predictions.csv blind_rankings.csv results.json scored_groups.csv; do
+            if [ -f $D/$f ]; then cp $D/$f /tmp/committed/; fi
+          done
+      - name: Commit order (pre-registration, blind predictions)
+        run: python $D/check_order.py
+      - name: Predictions from the frozen set (asserts the frozen anchors)
+        run: cd $D && python predict_from_frozen.py && python compare_json.py prediction_frozen.json /tmp/committed/prediction_frozen.json
+      - name: Blind predictions regenerated from the committed records
+        if: hashFiles('analysis/validation_meoh_prospective_2026_10_13/blind_predictions.csv') != ''
+        run: |
+          cd $D && python blind_predict.py
+          cmp blind_predictions.csv /tmp/committed/blind_predictions.csv
+          cmp blind_rankings.csv /tmp/committed/blind_rankings.csv
+      - name: Scoring (frozen regression first, then the new batch)
+        if: hashFiles('analysis/validation_meoh_prospective_2026_10_13/results.json') != ''
+        run: |
+          cd $D && python score.py
+          python compare_json.py results.json /tmp/committed/results.json
+
+
+  prospective-readiness:
+    name: Full 40-paper preblind experiment COMPLETE (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build exact 40 DOI and four-pass extraction manifest (non-mutating)
+        run: |
+          python analysis/validation_meoh_prospective_2026_10_13/readiness.py --out artifacts/prospective-readiness
+      - name: Require actual blinded prospective test, not merely frozen anchor regression
+        run: |
+          python analysis/validation_meoh_prospective_2026_10_13/readiness.py --out artifacts/prospective-readiness --strict
+      - name: Upload ranked blocked-DOI / source-completeness audit regardless of status
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr80-prospective-readiness-${{ github.sha }}
+          path: artifacts/prospective-readiness/
+          retention-days: 90
