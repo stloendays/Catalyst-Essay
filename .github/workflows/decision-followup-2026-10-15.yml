@@ -1,0 +1,116 @@
+name: No-oracle MeOH transfer and NH3 physical closure (read-only)
+on:
+  push:
+    paths:
+      - "analysis/decision_followup_2026_10_15/**"
+      - ".github/workflows/decision-followup-2026-10-15.yml"
+  pull_request:
+    paths:
+      - "analysis/decision_followup_2026_10_15/**"
+      - ".github/workflows/decision-followup-2026-10-15.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: decision-followup-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meoh-surrogate:
+    name: 28-paper heldout S5 to S6 model transfer (no S6 oracle)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Protect frozen science and earlier research
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/decision_followup_2026_10_15/|\.github/workflows/decision-followup-2026-10-15\.yml$)' changed.txt; then
+            echo "Changed scientific baseline or unrelated files; refusing to run"
+            exit 1
+          fi
+      - name: Fit all 28 heldout-paper folds and produce decisions
+        run: python analysis/decision_followup_2026_10_15/meoh_proxy.py --out artifacts/meoh-transfer
+      - name: Independently validate saved blind per-paper predictions
+        run: python analysis/decision_followup_2026_10_15/validate_outputs.py --study meoh --out artifacts/meoh-transfer
+      - name: Print scientific summary including negative results
+        if: success()
+        run: |
+          cat artifacts/meoh-transfer/summary.json
+          cat artifacts/meoh-transfer/REPORT.md
+      - name: Upload every study artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meoh-no-oracle-surrogate
+          path: artifacts/meoh-transfer/
+          retention-days: 90
+
+  nh3-engineering:
+    name: Re-execute NH3 plant VLE, source flow and converter physical closure
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      PYTHONIOENCODING: utf-8
+      NH3_MODEL: "1.2"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install source compatible scientific numerical libraries
+        run: pip install "numpy==2.3.5" "scipy==1.18.0" "pandas>=2.0" "pyyaml>=6" "openpyxl>=3.1"
+      - name: Protect frozen science and old analyses
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/decision_followup_2026_10_15/|\.github/workflows/decision-followup-2026-10-15\.yml$)' changed.txt; then
+            echo "Non-experimental source modification is forbidden"
+            exit 1
+          fi
+      - name: Reaudit original preregistered 64 plant metrics from pinned evidence
+        run: python analysis/nh3_industrial_validation_2026_10_14/audit_industrial.py --out-dir artifacts/nh3-source/audit
+      - name: Reconstruct source-only three-plant flow bounds
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_source_flow_bound.py --out-dir artifacts/nh3-source/flow
+      - name: Independently replay Liu S-200 two-bed source profiles
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_bed_profile.py --out-dir artifacts/nh3-source/bed
+      - name: Recalculate full loop for tabulated source vapor counterfactual
+        run: python analysis/nh3_industrial_validation_2026_10_14/diagnose_separator_vle.py --out-dir artifacts/nh3-source/vle --propagate
+      - name: Compute source-loop inverse separator requirements (diagnostic not validation)
+        run: python analysis/nh3_industrial_validation_2026_10_14/invert_separator_requirement.py --out-dir artifacts/nh3-source/inverse
+      - name: Join plant source contracts; compute no-single-scalar closure certificate
+        run: python analysis/decision_followup_2026_10_15/nh3_closure.py --sources artifacts/nh3-source --out artifacts/nh3-closure
+      - name: Independently validate the physical audit contract
+        run: |
+          python analysis/decision_followup_2026_10_15/validate_outputs.py --study nh3 --out artifacts/nh3-closure
+          python -m unittest discover -s analysis/nh3_industrial_validation_2026_10_14 -p 'test_*.py' -v
+      - name: Confirm source and manuscript remain completely unchanged
+        run: git diff --exit-code -- docs/ data/ provenance/ analysis/validation_nh3_plant_2026_10_13/ analysis/nh3_industrial_validation_2026_10_14/
+      - name: Print engineering findings and interpretation caveats
+        if: success()
+        run: |
+          cat artifacts/nh3-closure/summary.json
+          cat artifacts/nh3-closure/REPORT.md
+      - name: Upload source replay and joined diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-source-closure-no-fit
+          path: |
+            artifacts/nh3-source/
+            artifacts/nh3-closure/
+          retention-days: 90
