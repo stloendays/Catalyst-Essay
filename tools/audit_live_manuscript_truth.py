@@ -612,6 +612,13 @@ tokens(
     f"{_chi['MeOH']:+.3f}",
     f"{_chi['AuTiO2']:+.2f}",
 )
+tokens("Discussion: transfer index read as the share of the upstream advantage that reaches the objective", discussion,
+       f"an {float(transfer['AuTiO2']['upstream_metric_ratio_sA_over_sB']):.1f}-fold mass-activity advantage",
+       f"an {1 / float(transfer['AuTiO2']['downstream_objective_ratio_JA_over_JB']):.1f}-fold smaller catalyst requirement",
+       f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold space-time-yield advantage ends as a "
+       f"{(float(transfer['MeOH']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.1f}% higher production cost",
+       f"a {float(transfer12['NH3']['upstream_metric_ratio_sA_over_sB']):.0f}-fold intrinsic turnover advantage of Ru over Fe "
+       f"ends as a {(float(transfer12['NH3']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.0f}% higher")
 _t12 = transfer12["NH3"]
 ok(
     "pairwise transfer-index source signs",
@@ -1542,9 +1549,11 @@ tokens("Discussion: field-level shares", main_section_h2("Discussion"),
        f"in {pc(FP['top1_mismatch_fraction'])}% of ammonia comparisons and, depending on whether the recycle loop limits "
        f"the species that build up at the reactor inlet, in {s5pc}–{s6pc}% of methanol comparisons ({gt5_5} and {gt5_6} "
        f"of {g6} with a cost gap above 5%)",
-       f"in the inert-limited loop ranking by conversion disagrees in {lX6['disagreements']} of {lX6['groups']} "
-       f"comparisons and ranking by selectivity in {lS6['disagreements']}, with larger misses, and without the limit "
-       f"selectivity is the worst proxy ({lS5['disagreements']} of {lS5['groups']})")
+       "ranking by conversion or by selectivity fails as well, with larger misses")
+tokens("Results: single-metric proxies in the methanol field", m_field,
+       f"ranking by conversion disagrees almost as often as ranking by space-time yield ({lX6['disagreements']} of "
+       f"{lX6['groups']}) and ranking by methanol selectivity in {lS6['disagreements']} of {lS6['groups']}",
+       f"without the limit selectivity is the worst proxy ({lS5['disagreements']} of {lS5['groups']})")
 
 # Response-surface validation of both noise results (S6 primary and S5) against exact runs of complete replicates
 pb = json.loads((ROOT / "analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json").read_text(encoding="utf-8"))
@@ -1799,7 +1808,7 @@ ok("NH3 measured kinetics: Ru's best 100-200 bar state lies in that range and co
            - (kb100["cost"] - kh["Ru_benchmark"]["cost"])) < 1e-4,
    f"max excess {_bo_dev:.3f} USD/t over {_bo_lo:.0f}-{_bo_hi:.0f} bar")
 tokens("Abstract: measured rate laws lower the Ru activity requirement", main_section_h2("Abstract"),
-       f"with descriptor kinetics Ru would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain",
+       f"with descriptor kinetics it would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain",
        f"Measured rate laws for the two frontier catalysts lower that requirement to "
        f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold")
 tokens("Main text: measured Fe and Ru/C rate laws for the frontier pair", m_feru2,
