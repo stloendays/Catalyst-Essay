@@ -103,6 +103,11 @@ def extra_model(data):
     index={(r["group"],r["entry"]):r for r in rows}
     require(len(index)==len(rows),"duplicate alternative entries")
     require(sum(len(x["entries"]) for x in data.values())==len(rows),"alternative model lacks cohort entries")
+    # This separate model uses the original independent ledger's own tie conventions.
+    ledger=[r for r in load("analysis/meoh_inlet_definition_2026_10_12/scan_groups.csv")
+            if r["definition"]=="true_inert" and r["limit"]=="6.86"]
+    byid={r["group"]:r for r in ledger}
+    require(len(byid)==40 and len(ledger)==40, "missing published true-inert ledger")
     for group,b in data.items():
         finite=[]
         for r in b["entries"]:
@@ -111,10 +116,15 @@ def extra_model(data):
             cost=num(index[k]["cost_true_inert_6.86"])
             if math.isfinite(cost):finite.append((cost,r))
         require(finite,f"no finite alternative choices {group}")
-        cost,p=min(finite,key=lambda z:(z[0],z[1]["catalyst"]))
+        require(group in byid,f"missing true-inert published group {group}")
+        old=byid[group]
+        selected=[(cost,r) for cost,r in finite if r["catalyst"]==old["plant_leader"]]
+        require(len(selected)==1,f"true-inert winner not uniquely present {group}")
+        cost,p=selected[0]
+        require(cost<=min(x[0] for x in finite)+max(.01,1e-6*cost),"true-inert optimum contradicts ledger")
         lab_cost=num(index[(group,b["lab"]["entry"])]["cost_true_inert_6.86"])
         b["choices"]["true_inert_S6"]={"winner":p["catalyst"],"winner_material":p["catalyst_key"],
-          "cost":cost,"lab_cost":lab_cost,"mismatch":p["catalyst"]!=b["lab"]["catalyst"],
+          "cost":cost,"lab_cost":lab_cost,"mismatch":old["mismatch"].lower()=="true",
           "regret":max(0.,lab_cost/cost-1) if math.isfinite(lab_cost) else math.inf,
           "lab_feasible":math.isfinite(lab_cost)}
     total=sum(x["choices"]["true_inert_S6"]["mismatch"] for x in data.values())
