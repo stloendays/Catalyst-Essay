@@ -1,0 +1,63 @@
+name: NH3 source-data VLE CV and physical applicability (unfrozen)
+on:
+  push:
+    paths:
+      - "analysis/nh3_validation_extension_2026_10_15/**"
+      - ".github/workflows/nh3-source-cv-2026-10-15.yml"
+  pull_request:
+    paths:
+      - "analysis/nh3_validation_extension_2026_10_15/**"
+      - ".github/workflows/nh3-source-cv-2026-10-15.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-evidence:
+    name: ${{ matrix.study }} - source-pinned validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        study: ["vle", "energy"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Assert no registered source, models or manuscript changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/nh3_validation_extension_2026_10_15/|\.github/workflows/nh3-source-cv-2026-10-15\.yml$)' changed.txt; then
+            echo "Frozen model, source or manuscript modification forbidden"
+            exit 1
+          fi
+      - name: Test predeclared model parameter and leakage contracts
+        run: |
+          python -m unittest discover -s analysis/nh3_validation_extension_2026_10_15 -p 'test_validation.py' -v
+      - name: Evaluate NH3 independent literature-source uncertainty and applicability
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/${{ matrix.study == 'vle' && 'vle_cv' || 'energy_domain' }}.py --out artifacts/nh3-${{ matrix.study }}
+      - name: Independent source / table / inference scope checks
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/test_validation.py --study ${{ matrix.study }} --out artifacts/nh3-${{ matrix.study }}
+      - name: Publish result and limitations
+        if: success()
+        run: |
+          cat artifacts/nh3-${{ matrix.study }}/summary.json
+          cat artifacts/nh3-${{ matrix.study }}/REPORT.md
+      - name: Upload sources and prediction artifacts even on failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-validation-${{ matrix.study }}-${{ github.sha }}
+          path: artifacts/nh3-${{ matrix.study }}/
+          retention-days: 90
