@@ -123,10 +123,19 @@ def audit():
     evidence["pdf_check_manifest"]="pdf_check_40.csv"
     present={k:(HERE/v).exists() for k,v in evidence.items()}
     pdf_evidence_present=present["pdf_corrections_or_check_log"] or present["pdf_check_manifest"]
+    # PREREGISTRATION section 5: the 8 M total token cap is binding. A pass that the extraction driver stopped at that
+    # cap (STOP line in extraction_driver.log, at least 98 % of the cap spent) is complete as registered; its papers
+    # without output are reported, not blocking.
+    log=HERE/"extraction_driver.log"
+    cap_stop=(log.exists() and "STOP: token cap" in log.read_text(encoding="utf-8",errors="replace")
+              and total>=0.98*LIMITS["max_total_tokens"])
+    stopped_at_cap={}
     blockers=[]
     for stage in PASSES:
-        if missing[stage] or invalid[stage]:
+        if invalid[stage] or (missing[stage] and not (cap_stop and stage==PASSES[-1])):
             blockers.append(f"extract_{stage}: {len(missing[stage])} DOI not present; {len(invalid[stage])} invalid records")
+        elif missing[stage]:
+            stopped_at_cap[stage]=len(missing[stage])
     if not present["normalized_records"]:blockers.append("normalized_records: missing")
     if not pdf_evidence_present:blockers.append("PDF printed-value accuracy audit: missing")
     for name in ("blind_predictions","blind_rankings","industrial_results","scored_groups","costed_candidates"):
@@ -144,6 +153,7 @@ def audit():
                         "remaining_at_registered_8M":total_left},
            final_stage_files=present,
            readiness_blockers=blockers,
+           stopped_at_registered_token_cap=stopped_at_cap,
            hard_rules={"gpt_model":"gpt-5.5","max_total_tokens":LIMITS["max_total_tokens"],
                        "max_per_pass_tokens":LIMITS["max_per_pass"],
                        "predictions_before_costing":True,"new_papers":40,
