@@ -2130,6 +2130,32 @@ ok("no compute-budget Agent section in the manuscript",
    "Adaptive calculation selection makes the multiscale analysis repeatedly executable" not in raw_text
    and "5,000-CU" not in raw_text)
 
+# ----- NH3 loop checks (PR #95): recycle-rise sensitivity and the independent five-component loop -----------------
+_LR = "analysis/nh3_loop_reconciliation_2026_10_14/outputs/"
+_t1 = {(r["metal"], float(r["recycle_pressure_rise_bar"])): r for r in rows(_LR + "t1_metals.csv")}
+_t1_92 = [_t1[(m, 9.2)] for m in ("Fe", "Ru", "Os")]
+_t1_60 = [_t1[(m, 6.0)] for m in ("Fe", "Ru", "Os")]
+ok("NH3 loop check T1: the 3 bar replay equals the frozen Fe/Ru/Os costs",
+   all(abs(float(_t1[(m, 3.0)]["cost_USD_t"]) - float(_t1[(m, 3.0)]["frozen_cost_USD_t"])) < 1e-9 for m in ("Fe", "Ru", "Os")))
+ok("NH3 loop check T1: rank order of all 15 metals unchanged at 6.0 and 9.2 bar",
+   all(r["censored_rank"] == r["frozen_censored_rank"] and r["raw_rank"] == r["frozen_raw_rank"]
+       for k, r in _t1.items()) and len({k[0] for k in _t1}) == 15)
+tokens("Main text: recycle-rise sensitivity costs", raw_text,
+       *[f"{float(r['cost_USD_t']):.2f}" for r in _t1_92])
+tokens("SI Note 6: recycle-rise sensitivity costs", s2_full,
+       *[f"{float(r['cost_USD_t']):.3f}" for r in _t1_92 + _t1_60],
+       f"{float(_t1[('Ru', 9.2)]['cost_USD_t']) - float(_t1[('Fe', 9.2)]['cost_USD_t']):.2f} US dollars per tonne above Fe")
+_t3 = {(r["pair"], r["model_basis"], r["catalyst"]): float(r["total_USD_t"]) for r in rows(_LR + "t3_points.csv")}
+_cl = _t3[("c93_closed_220bar", "closed B93", "Ru")] - _t3[("c93_closed_220bar", "closed B93", "Fe")]
+_cn = _t3[("c93_closed_220bar", "canonical r0.9555_12pct_dp3", "Ru")] - _t3[("c93_closed_220bar", "canonical r0.9555_12pct_dp3", "Fe")]
+tokens("Main text and SI Note 6: independent loop Ru/C minus Fe at 220 bar against the loop model", raw_text + s2_full,
+       f"{_cl:.2f} US dollars per tonne above fused iron", f"against {_cn:.2f}",
+       f"fused iron {_t3[('c93_closed_220bar', 'closed B93', 'Fe')]:.3f} and Ru/C {_t3[('c93_closed_220bar', 'closed B93', 'Ru')]:.3f}")
+_up = _j(_LR + "upstream_93_94.json")
+ok("NH3 loop check: the independent loop rerun reproduces PR #93 (Fe 47.245, Ru 49.484)",
+   abs(_t3[("c93_closed_220bar", "closed B93", "Fe")] - 47.245) < 5e-4 and abs(_t3[("c93_closed_220bar", "closed B93", "Ru")] - 49.484) < 5e-4,
+   str(list(_up)[:4]))
+
 # ----- References: numbered 1..N by first citation in the main body; caption-only references after them ------------
 _body, _reflist = raw_text.split("## Working references", 1)
 _ref_ids = [int(x) for x in re.findall(r"^(\d+)\.\s", _reflist, re.M)]
