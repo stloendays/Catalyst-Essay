@@ -63,3 +63,31 @@ jobs:
         run: |
           cd $D && python score.py
           python compare_json.py results.json /tmp/committed/results.json
+
+
+  prospective-readiness:
+    name: Full 40-paper preblind experiment COMPLETE (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build exact 40 DOI and four-pass extraction manifest (non-mutating)
+        run: |
+          python analysis/validation_meoh_prospective_2026_10_13/readiness.py --out artifacts/prospective-readiness
+      - name: Require actual blinded prospective test, not merely frozen anchor regression
+        run: |
+          python analysis/validation_meoh_prospective_2026_10_13/readiness.py --out artifacts/prospective-readiness --strict
+      - name: Upload ranked blocked-DOI / source-completeness audit regardless of status
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr80-prospective-readiness-${{ github.sha }}
+          path: artifacts/prospective-readiness/
+          retention-days: 90
