@@ -110,3 +110,57 @@ jobs:
           name: nh3-validation-five-plant-transfer-${{ github.sha }}
           path: artifacts/nh3-transfer/
           retention-days: 90
+
+
+  uhde-separator-gas:
+    name: BASF-source vapor curve vs 2 independent Uhde separator GAS streams
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify frozen model/manuscript unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/nh3_validation_extension_2026_10_15/|\.github/workflows/nh3-source-cv-2026-10-15\.yml$)' changed.txt; then
+            echo "Original model or source cannot be rewritten"
+            exit 1
+          fi
+      - name: Fetch independent 12-stream primary source from stacked PR 90
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/uhde-external
+          git fetch --no-tags origin paper/nh3-uhde-stream-simulation-2026-10-14
+          git show FETCH_HEAD:analysis/nh3_source_matched_loop_v0/figure57_streams.csv > artifacts/uhde-external/figure57_streams.csv
+          test "$(git hash-object artifacts/uhde-external/figure57_streams.csv)" = "7d511a788895d1f3ab825f9db9a3f0929db44460"
+      - name: Apply frozen BASF source-only fits to two real published separator gas compositions
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/uhde_vapor.py --streams artifacts/uhde-external/figure57_streams.csv --out artifacts/uhde-cross-source
+      - name: Independently verify 2 gas streams are one plant, and no industrial re-score
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/test_validation.py --study uhde --out artifacts/uhde-cross-source
+      - name: Publish source-to-source limitations and numerical outcomes
+        if: success()
+        run: |
+          cat artifacts/uhde-cross-source/summary.json
+          cat artifacts/uhde-cross-source/REPORT.md
+      - name: Upload pinned published source and comparator result including failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-source-cross-uhde-vapor-${{ github.sha }}
+          path: |
+            artifacts/uhde-external/
+            artifacts/uhde-cross-source/
+          retention-days: 90
