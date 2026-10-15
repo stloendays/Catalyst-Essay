@@ -433,7 +433,7 @@ One row per source paper with a confirmed error. A root cause is one mechanism i
 | Humphreys 2021 (ref. 81) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | 3 | – | nominal Ru loading 1 wt% instead of the measured 0.86 wt%; Co rate 5.7 instead of the printed 5.5 mmol g⁻¹ h⁻¹; space velocity of the Ru row 36,000 (66,000 for the paper's Fe and Co rows). |
 | Humphreys 2021 (ref. 200) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | 1 | – | Co loading 3.4 instead of the ICP-AES 3.73 wt%. |
 | Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | 1 | – | rate of 5Ni10Sn/10InZrO₂ assigned to the Sn-free catalyst. |
-| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 3a series assigned one temperature step low. |
+| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 4a series assigned one temperature step low. |
 | Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 1 | 1 | 0 (+ 8 rows) | – | rows at 533 and 573 K, which the paper did not test. |
 | Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 1 | 2 | 2 | – | two 300 °C STY values assigned to the wrong samples (Ir/In₂O₃-5, pristine In₂O₃). |
 | TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 1 | 1 | 19 | 16 | GHSV 3.6 stored as 36.2 NL g⁻¹ h⁻¹ (×10); STY derived from it. |

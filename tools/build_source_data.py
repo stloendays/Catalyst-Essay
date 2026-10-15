@@ -6,12 +6,12 @@ Each workbook has a first sheet README naming the source file of every sheet, th
 plots several arrays gets several titled blocks on its sheet. Every number is read from the CSV/JSON files the
 renderers read, with the same filters and arithmetic (quoted in the block notes); nothing is typed in.
 
-Figure numbering (manuscript of 2026-10-07):
+Figure numbering (manuscript of 2026-10-15; functions fig3/fig4/fig5 keep their 2026-10-07 names):
   Fig. 1  ammonia ranking reversal                    figures/composite/fig1/make_fig1.py
   Fig. 2  laboratory vs plant-cost leaderboards       figures/composite/fig_field/make_fig_field.py
-  Fig. 3  metal price and process optimization        figures/composite/fig2/make_fig2.py
-  Fig. 4  backward design                             figures/composite/fig3/make_fig3.py
-  Fig. 5  methanol Re/TiO2 mechanism                  figures/composite/fig4/make_fig4.py
+  Fig. 3  methanol Re/TiO2 mechanism                  figures/composite/fig4/make_fig4.py   (function fig5)
+  Fig. 4  metal price and process optimization        figures/composite/fig2/make_fig2.py   (function fig3)
+  Fig. 5  backward design                             figures/composite/fig3/make_fig3.py   (function fig4)
   Fig. 6  process routes and Au/TiO2 control          figures/composite/fig5/make_fig5.py
   ED Figs 1-8                                         figures/extended_data/render_extended_data.py (tables: ed_data.py)
 
@@ -261,7 +261,7 @@ def fig2():
 
 # ============================================================================== Fig. 3 (price and process)
 def fig3():
-    b = Book("SourceData_Fig3.xlsx", "Fig. 3 (metal price and process optimization; renderer "
+    b = Book("SourceData_Fig4.xlsx", "Fig. 4 (metal price and process optimization; renderer "
              "figures/composite/fig2/make_fig2.py)")
     env = csv(F2M + "/fig2_pressure_envelopes.csv")
     opt = env.loc[env.groupby("case").cost.idxmin()].reset_index(drop=True)
@@ -325,7 +325,7 @@ def fig3():
 
 # ============================================================================== Fig. 4 (backward design)
 def fig4():
-    b = Book("SourceData_Fig4.xlsx", "Fig. 4 (backward design; renderer figures/composite/fig3/make_fig3.py)")
+    b = Book("SourceData_Fig5.xlsx", "Fig. 5 (backward design; renderer figures/composite/fig3/make_fig3.py)")
     sw = csv(RUN + "/closure/breakeven_sweep.csv")
     sr = csv(RUN + "/closure/scaling_reachability.csv")
     res = js(RUN + "/results.json")
@@ -386,7 +386,7 @@ def fig4():
 
 # ============================================================================== Fig. 5 (methanol Re/TiO2)
 def fig5():
-    b = Book("SourceData_Fig5.xlsx", "Fig. 5 (methanol Re/TiO2 mechanism; renderer figures/composite/fig4/make_fig4.py)")
+    b = Book("SourceData_Fig3.xlsx", "Fig. 3 (methanol Re/TiO2 mechanism; renderer figures/composite/fig4/make_fig4.py)")
     cand = csv("data/meoh/meoh_candidate_ranking_D01v3.csv")
     purge = csv("data/meoh/meoh_purge_robustness_D01v3.csv")
     rp = csv(MC4 + "/mc_rank_probability_matrix.csv")

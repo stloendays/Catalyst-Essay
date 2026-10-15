@@ -280,12 +280,12 @@ tokens(
     "Main text: ammonia ranking reversal, regret and its annual value",
     main_section("Process economics reverse the leading ammonia ranking"),
     f"over {det['process_state_count']:,} process states",
-    f"at {m['Fe']['feasible']['total_cost']:.3f}, {m['Ru']['feasible']['total_cost']:.3f} and "
-    f"{m['Os']['feasible']['total_cost']:.3f} US dollars per tonne of NH₃",
+    f"at {m['Fe']['feasible']['total_cost']:.2f}, {m['Ru']['feasible']['total_cost']:.2f} and "
+    f"{m['Os']['feasible']['total_cost']:.2f} US dollars per tonne of NH₃",
     f"The Spearman correlation across all 15 metals remains {det['raw_global_spearman']:.3f}, whereas among the three "
-    f"leaders Spearman rho is {head['top3_spearman']:.2f}",
+    f"leaders ρ = {head['top3_spearman']:.2f}",
     f"would raise the catalyst-dependent cost by {100 * R_NH3:.1f}%",
-    f"The {GAP_NH3:.3f} US dollars per tonne difference",
+    f"The difference of {GAP_NH3:.2f} US dollars per tonne",
     f"{GAP_NH3 * ANNUAL_T / 1e6:.2f} million US dollars per year for a {_yaml_num(manifest, 'production_tpd'):,.0f} t/d plant",
 )
 
@@ -430,7 +430,7 @@ _r_at = lambda life: 1 - P_STAR * life / (L_REF * P_RU0)          # recovery nee
 L99 = L_REF * P_RU0 * (1 - R_MAX) / P_STAR                        # lifetime needed at the recovery bound
 _lp = {float(r_["lifetime_y"]): float(r_["required_recovery_fraction"]) for r_ in life_parity}
 tokens(
-    "NH3 lifecycle parity at the current Ru activity (SI Note 7)",
+    "NH3 lifecycle parity at the current Ru activity (SI Note 8)",
     s3,
     f"At the baseline Ru price of {P_RU0:,.1f} US dollars per kilogram, this requires approximately "
     f"{100 * _r_at(L_REF):.2f}% recovery for a {L_REF:.0f}-year lifetime, {100 * _r_at(L_MAX):.2f}% for a "
@@ -507,18 +507,18 @@ m_bw = main_section("Backward design separates the required catalyst-property re
 tokens(
     "Main text: backward design, scaling reach and the lifecycle closure on the strict-scaling manifold",
     m_bw,
-    f"Ru reaches the Fe cost only after a {bw['Ru_activity_break_even_multiplier']:.2f}-fold increase; the 5th–95th "
-    f"percentile requirement under economic uncertainty is {a['p05']:.2f}–{a['p95']:.0f}-fold",
-    f"at most {bw['Ru_scaling_max_gain_673K']:.3f}-fold at 673 K and {bw['Ru_scaling_max_gain_all_states']:.3f}-fold "
-    f"across all process conditions, and the lowest strict-scaling Ru cost, {bw['Ru_best_scaling_cost_USD_t']:.3f} US "
+    f"Ru reaches the Fe cost only after a {bw['Ru_activity_break_even_multiplier']:.0f}-fold increase; the 5th–95th "
+    f"percentile requirement under economic uncertainty is {a['p05']:.0f}–{a['p95']:.0f}-fold",
+    f"at most {bw['Ru_scaling_max_gain_673K']:.2f}-fold at 673 K and {bw['Ru_scaling_max_gain_all_states']:.2f}-fold "
+    f"across all process conditions, and the lowest strict-scaling Ru cost, {bw['Ru_best_scaling_cost_USD_t']:.2f} US "
     f"dollars per tonne at *E*_N = {bw['Ru_best_scaling_EN_eV']:.3f} eV, remains above the Fe cost",
-    f"at 99% recovery, a 10-year lifetime needs at most a {t10:.3f}-fold gain and a 20-year lifetime none",
+    f"at 99% recovery, a 10-year lifetime needs at most a {t10:.2f}-fold gain and a 20-year lifetime none",
     f"across all {SJ['process_states']:,} process states",
-    f"\\(q^*={_q / 10 ** _qe:.4f}\\times10^{{{_qe}}}\\ \\mathrm{{y}}^{{-1}}\\)",
+    f"\\(q^*={_q / 10 ** _qe:.2f}\\times10^{{{_qe}}}\\ \\mathrm{{y}}^{{-1}}\\)",
     f"At a {_cor['life_y']:.0f}-year lifetime and {100 * _cor['recovery_fraction']:.0f}% recovery the best strict-scaling "
-    f"state costs {_cor['best_strict_scaling_cost_USD_t']:.3f} US dollars per tonne, "
-    f"{abs(_cor['margin_vs_Fe_USD_t']):.3f} US dollars per tonne below Fe, and parity requires "
-    f"{100 * _bx['required_recovery_at_20y']:.3f}% recovery at 20 years or a "
+    f"state costs {_cor['best_strict_scaling_cost_USD_t']:.2f} US dollars per tonne, "
+    f"{abs(_cor['margin_vs_Fe_USD_t']):.2f} below Fe, and parity requires "
+    f"{100 * _bx['required_recovery_at_20y']:.2f}% recovery at 20 years or a "
     f"{_bx['required_life_at_99pct_recovery_y']:.2f}-year lifetime at 99% recovery",
 )
 ok("Main text: strict-scaling Ru minimum above Fe (activity alone cannot reach parity)",
@@ -604,15 +604,17 @@ discussion = raw_text[raw_text.index("## Discussion"):raw_text.index("## Methods
 _chi = {"NH3": float(transfer12["NH3"]["pairwise_transfer_index_chi"]),          # NH3-FINAL-1.2
         "MeOH": float(transfer["MeOH"]["pairwise_transfer_index_chi"]),
         "AuTiO2": float(transfer["AuTiO2"]["pairwise_transfer_index_chi"])}
+# the transfer index is defined in the last Results subsection since 2026-10-15 (the Discussion only uses it)
+m_chi = main_section("A monotonic catalyst-to-process mapping preserves the ranking")
 tokens(
     "pairwise transfer-index interpretation",
-    discussion,
+    m_chi,
     "χ_AB",
-    f"{_chi['NH3']:+.3f} for Ru versus Fe",
-    f"{_chi['MeOH']:+.3f}",
-    f"{_chi['AuTiO2']:+.2f}",
+    f"χ = {_chi['NH3']:+.3f}",
+    f"χ = {_chi['MeOH']:+.3f}",
+    f"χ ≈ {_chi['AuTiO2']:.2f}",
 )
-tokens("Discussion: transfer index read as the share of the upstream advantage that reaches the objective", discussion,
+tokens("Results: transfer index read as the share of the upstream advantage that reaches the objective", m_chi,
        f"an {float(transfer['AuTiO2']['upstream_metric_ratio_sA_over_sB']):.1f}-fold mass-activity advantage",
        f"an {1 / float(transfer['AuTiO2']['downstream_objective_ratio_JA_over_JB']):.1f}-fold smaller catalyst requirement",
        f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold space-time-yield advantage ends as a "
@@ -673,19 +675,26 @@ ok("NH3 actual-catalyst: parity without an activity gain at the upper recovery b
    float(ac["supp_rec_hi"]["alpha_star"]) < 1 < float(ac["supp_rec90"]["alpha_star"])
    and abs(float(ac["pure"]["cost"]) - m["Ru"]["feasible"]["total_cost"]) < 1e-12
    and abs(float(ac["fe_kaap"]["cost"]) - _fe_kaap_swap["cost"]) < 1e-5)
+# since 2026-10-15 the main text gives the supported catalyst on its own bed (8 wt% Ru, 430–550 kg m-3, 90–95.55 %
+# recovery) and Table 1; the benchmark-bed reading of the price sweep is in Supplementary Note 7 (check above)
+_bed = [r for r in rows(f"figures/composite/fig2/{V12}/fig2_ru_bed_sensitivity.csv") if float(r["w_Ru"]) == 0.08]
+_bs = [float(r["cost"]) for r in _bed if r["key"] in ("supp_rec_hi", "supp_rec90")]
+_bk = [float(r["cost"]) for r in _bed if r["key"] in ("kaap_hi", "kaap90")]
+_bg = [float(r["gap_to_Fe_reference"]) for r in _bed if r["key"] in ("supp_rec_hi", "supp_rec90")]
+_m_feru = main_section("Metal price and process optimization decide the Fe–Ru ranking")
 tokens(
-    "Main text: actual-catalyst reading of the price sweep (Fig. 3d)",
-    main_section("Metal price and process optimization decide the Fe–Ru ranking"),
-    f"Read at the effective Ru price p(1 - r)/u, {float(ac['supp_rec_hi']['p_eff_USD_kg']):.0f}–"
-    f"{float(ac['supp_rec90']['p_eff_USD_kg']):.0f} US dollars per kilogram, Ru costs "
-    f"{float(ac['supp_rec_hi']['cost']):.2f}–{float(ac['supp_rec90']['cost']):.2f} US dollars per tonne of NH₃, from "
-    f"{abs(float(ac['supp_rec_hi']['gap_to_Fe'])):.2f} below to {float(ac['supp_rec90']['gap_to_Fe']):.2f} above Fe, and "
-    f"reaches parity without any activity gain at {pc(float(ac['supp_rec_hi']['recovery']), 2)}% recovery "
-    f"({float(ac['supp_rec_hi']['alpha_star']):.1f}–{float(ac['supp_rec90']['alpha_star']):.1f}-fold across the recovery "
-    f"range",
-    f"it costs {float(ac['kaap_hi']['cost']):.2f}–{float(ac['kaap90']['cost']):.2f} in the benchmark reading",
-    f"against {float(ac['fe_kaap']['cost']):.2f} for fused iron in that loop",
+    "Main text: supported Ru/C on its own bed with recovery, benchmark and KAAP-type loops",
+    _m_feru,
+    f"supported Ru costs {min(_bs):.2f}–{max(_bs):.2f} US dollars per tonne, from {abs(min(_bg)):.2f} below to "
+    f"{max(_bg):.2f} above Fe",
+    f"{min(_bk):.2f}–{max(_bk):.2f} against {float(ac['fe_kaap']['cost']):.2f} for fused iron",
+    f"| {m['Fe']['feasible']['total_cost']:.2f} | {min(_bs):.2f}–{max(_bs):.2f} |",
+    f"| {float(ac['fe_kaap']['cost']):.2f} | {min(_bk):.2f}–{max(_bk):.2f} |",
 )
+ok("supported Ru/C own bed: below Fe at the upper recovery bound, below Fe in the KAAP loop at every bed",
+   min(_bg) < 0 < max(_bg) and max(_bk) < float(ac["fe_kaap"]["cost"])
+   and all(abs(float(r["Fe_reference_cost"]) - m["Fe"]["feasible"]["total_cost"]) < 1e-9
+           for r in _bed if r["key"].startswith("supp")))
 lit = {r["id"]: r for r in rows(f"analysis/promoted_ru_literature_2026_10_05/{V12}/fig3_literature_points.csv")}
 tokens(
     "NH3 literature activity gains (Fig. 3a)",
@@ -701,7 +710,7 @@ tokens(
 _band = _j(f"analysis/promoted_ru_literature_2026_10_05/{V12}/parity_band.json")
 _prom = [lit[k] for k in ("P01", "P02", "P03", "P04")]
 tokens(
-    "NH3 literature gains against the 1.2 parity band (SI Note 7)",
+    "NH3 literature gains against the 1.2 parity band (SI Note 8)",
     s3,
     f"all four lie within the {a['p05']:.2f}–{a['p95']:.0f}-fold parity band, and the "
     f"{float(lit['P04']['factor_high']):.0f}-fold Cs–Ru/MgO gain exceeds the {bw['Ru_activity_break_even_multiplier']:.2f}-fold "
@@ -1160,8 +1169,8 @@ ok("MeOH 83 -> 40 ledger: identical grouping rule, every dropped group accounted
    and pp["groups"] + gr["paper without printed values"] + gr["fewer than 2 printed entries"] == ae["groups"]
    and (pp["groups"], pp["entries"], pp["papers"]) == (P0["groups"], P0["entries"], P0["papers"]))
 tokens("Main text: 83 -> 40 comparison groups", m_field,
-       f"giving {pp['groups']} comparisons with {pp['entries']} entries in {pp['papers']} papers; with plot-read values "
-       f"the same rule gives {ae['groups']} comparisons in {ae['papers']} papers")
+       f"{pp['groups']} comparisons with {pp['entries']} entries in {pp['papers']} papers ({ae['groups']} comparisons in "
+       f"{ae['papers']} papers when plot-read values are included")
 # the per-group ledger table of the Supplementary Information (tools/build_si_tables.py, from group_ledger.csv)
 SIT = (ROOT / "docs/SI_TABLES.md").read_text(encoding="utf-8")
 _lt = re.search(r"^### Supplementary Table (\d+) \| The (\d+) methanol comparison groups and the (\d+) of the primary "
@@ -1216,7 +1225,8 @@ ok("MeOH published loops: the anchor loop has no methane, so its limited species
 
 # main text: field result
 tokens("Main text: methanol field result, inlet-limited loop (S6) primary and S5 alongside", m_field,
-       f"{lit['candidates']} operating points from {lit['papers_with_candidates']} studies",
+       f"{lit['papers_with_candidates']} print the conversion, selectivity, temperature, pressure and H₂/CO₂ ratio of "
+       f"{lit['candidates']} operating points",
        f"CO, methane and N₂ together are limited to {pc(LIM, 2)}% of the reactor inlet, the cost model's limit for the "
        f"loop that anchors it ({dfmt(dsum(_anchor, CMN), 2)}% CO and N₂ in that loop's stream table",
        f"not the plant-cost leader in {n6} of {g6} comparisons ({s6pc}%; 95% confidence interval "
@@ -1224,7 +1234,7 @@ tokens("Main text: methanol field result, inlet-limited loop (S6) primary and S5
        f"{S6['papers_with_mismatch']} of the {S6['papers']} papers, and {inv6[0]:,} of {inv6[1]:,} pairwise orderings "
        f"({pc(S6['pairwise_inversion_fraction'])}%) invert",
        f"the leaders differ in {n5} of {g5} comparisons ({s5pc}%), {gt5_5} of them above 5%",
-       f"the laboratory leader is not the plant-cost leader in {s5pc}–{s6pc}% of comparisons")
+       f"so the rise from {n5} to {n6} comes from CO build-up")
 
 
 def _scan(defn, lim):
@@ -1253,7 +1263,7 @@ ok("MeOH S6 kinds recomputed from the frozen group metrics",
    and len({r["doi"] for r in _sT5}) == sT6["gt5pct_papers"])
 lS6, lX6, lS5, lX5 = F6["leaderboard_SMeOH"], F6["leaderboard_X"], F5["leaderboard_SMeOH"], F5["leaderboard_X"]
 tokens("Main text: other laboratory metrics (conversion and selectivity in both loops)", m_field,
-       f"in the inert-limited loop ranking by conversion disagrees almost as often as ranking by space-time yield "
+       f"ranking by conversion disagrees almost as often as ranking by space-time yield "
        f"({lX6['disagreements']} of {lX6['groups']}) and ranking by methanol selectivity in {lS6['disagreements']} of "
        f"{lS6['groups']}, with larger misses (median regret {pc(lS6['median_regret_disagreements'])}%); without the limit "
        f"selectivity is the worst proxy ({lS5['disagreements']} of {lS5['groups']})")
@@ -1308,7 +1318,7 @@ tokens("Main text: S6 robustness (sampling, measurement, near-infeasibility, sen
        f"priced from its composition ({cc6['disagreements']} of {cc6['groups']})",
        f"raise its conversion towards equilibrium ({cr6['top1_mismatch_groups']} of {cr6['groups']}, {cr6['gt5pct']} "
        f"above 5%, from {cr6['gt5pct_papers']} papers)",
-       f"Limiting methane and N₂ alone and leaving CO unlimited gives {co6['disagreements']} of {co6['groups']}, "
+       f"limiting methane and N₂ alone and leaving CO unlimited gives {co6['disagreements']} of {co6['groups']}, "
        f"{co6['gt5pct']} above 5%")
 _nb = bnd["scenarios"]["S6"]["near_infeasibility"]
 ok("MeOH S6 near-infeasible: every one meets the twofold-cost rule (as the text describes them)",
@@ -1541,14 +1551,17 @@ ok("Methods: near-infeasibility rule is the merged rule (regret > 1 or > 2x the 
    and abs(bnd["published_range"][1] - max(float(r["non_h2co2_pct"]) for r in _pub) / 100) < 1e-4)
 
 # Abstract and Discussion
-tokens("Abstract headline numbers", text, f"{ext_all['costed']:,} alloy and metal surfaces",
-       f"{lit['papers_with_candidates']} methanol studies and {fd['papers_in_set']} ammonia studies",
-       f"in {pc(FP['top1_mismatch_fraction'])}% of ammonia cases and in {s5pc}–{s6pc}% of methanol cases",
-       f"({gt5_5} and {gt5_6} of {g6} with a cost gap above 5%)")
+# since 2026-10-15 the abstract and Discussion lead with the inlet-limited loop (S6, approved primary) and give the
+# unlimited loop (S5) in the Discussion and Results; the alloy count is reported in the Results only
+tokens("Abstract headline numbers", main_section_h2("Abstract"),
+       f"in {n6} of {g6} methanol comparisons ({s6pc}%) and {FP['top1_mismatch_groups']} of {FP['groups']} ammonia "
+       f"comparisons ({pc(FP['top1_mismatch_fraction'])}%)")
+tokens("Results: alloy count and field counts", text, f"{ext_all['costed']:,} priced surfaces",
+       f"ACSA extracted {fd['papers_in_set']} primary ammonia-synthesis papers")
 tokens("Discussion: field-level shares", main_section_h2("Discussion"),
-       f"in {pc(FP['top1_mismatch_fraction'])}% of ammonia comparisons and, depending on whether the recycle loop limits "
-       f"the species that build up at the reactor inlet, in {s5pc}–{s6pc}% of methanol comparisons ({gt5_5} and {gt5_6} "
-       f"of {g6} with a cost gap above 5%)",
+       f"not the plant-cost leader in {s6pc}% of methanol comparisons, {gt5_6} of {g6} with a cost gap above 5% "
+       f"({s5pc}%, {gt5_5} of {g5}, when the loop places no limit on the species that build up at the reactor inlet), "
+       f"and in {pc(FP['top1_mismatch_fraction'])}% of ammonia comparisons",
        "ranking by conversion or by selectivity fails as well, with larger misses")
 tokens("Results: single-metric proxies in the methanol field", m_field,
        f"ranking by conversion disagrees almost as often as ranking by space-time yield ({lX6['disagreements']} of "
@@ -1587,18 +1600,24 @@ _repl = {k: float(_layer[k]["annualized_replacement_cost_USD_t_NH3"]) for k in (
 _ru_win = sum(r["economic_winner"] == "Ru" for r in draws)
 tokens("Main text: layer-wise reversal, process optimization moves the gap into compression, descriptor winners", m_feru,
        f"annualized metal replacement of {_repl['Fe']:.3f} US dollars per tonne for Fe against {_repl['Ru']:.2f} for Ru",
-       f"Setting the Ru price equal to the Fe value of {r8['price_USD_kg']:.0f} US dollars per kilogram and reoptimizing "
-       f"makes Ru the cheaper catalyst ({r8['total_cost_USD_t']:.3f} against {fe['total_cost']:.3f} US dollars per tonne)",
-       f"places Fe–Ru parity at {float(parity['price_USD_kg']):.2f} US dollars per kilogram",
+       f"At the Fe price of {r8['price_USD_kg']:.0f} US dollars per kilogram, reoptimized Ru is the cheaper catalyst "
+       f"({r8['total_cost_USD_t']:.2f} against {fe['total_cost']:.2f} US dollars per tonne)",
+       f"places Fe–Ru parity at {float(parity['price_USD_kg']):.0f} US dollars per kilogram",
        "Process optimization does not close the gap but moves it into compression",
        f"Ru moves to about {ru['T_C']:.0f} °C and {ru['P_bar']:.0f} bar, where a small bed holds little metal, while Fe "
        f"operates near {fe['T_C']:.0f} °C and {fe['P_bar']:.0f} bar",
-       f"The {gap:.3f} US dollars per tonne at the two optima comes mainly from fresh-feed compression "
+       f"The {gap:.2f} US dollars per tonne at the two optima comes mainly from fresh-feed compression "
        f"(+{_pools['fresh_compression_electricity']:.3f}), metal inventory (+{_pools['metal_inventory']:.3f}) and "
        f"compressor capital (+{_pools['compressor_CAPEX']:.3f}), partly offset by vessel, recycle-compression and reactor terms",
-       f"Fe ranks first economically in {100 * fe_win / len(draws):.1f}% and Ru in {100 * _ru_win / len(draws):.1f}%, in most "
-       f"of the latter because the Fe bed exceeds the {_yaml_num(manifest, 'max_catalyst_bed_m3'):.0f} m³ limit")
-tokens("SI Note 6: layer-wise check, replacement cost at the common reference against the total gap", s2_full,
+       f"Fe first in {100 * fe_win / len(draws):.1f}% of {len(draws):,} descriptor samples and Ru in "
+       f"{100 * _ru_win / len(draws):.1f}%, in most of the latter because the Fe bed exceeds the "
+       f"{_yaml_num(manifest, 'max_catalyst_bed_m3'):.0f} m³ limit")
+_cmin = min(float(r["Ru_minus_Fe_USD_t"]) for r in cmc_draws)
+tokens("Main text: economic Monte Carlo, Fe cheaper in every draw and the smallest difference", m_feru,
+       f"In {len(cmc_draws):,} preregistered draws of metal prices, capital cost, electricity price and catalyst lifetime",
+       f"Fe is cheaper in every draw, with a minimum difference of {_cmin:.2f} US dollars per tonne")
+ok("NH3 economic Monte Carlo: Ru dearer than Fe in every draw", _cmin > 0)
+tokens("SI Note 7: layer-wise check, replacement cost at the common reference against the total gap", s2_full,
        f"the annualized metal replacement is {_repl['Fe']:.3f} US dollars per tonne of NH₃ for Fe, {_repl['Ru']:.2f} for Ru "
        f"and {_repl['Os']:.2f} for Os",
        f"leaves Ru less costly than Fe ({r8['total_cost_USD_t']:.3f} versus {fe['total_cost']:.3f} US dollars per tonne of NH₃)",
@@ -1754,12 +1773,13 @@ ok("Fe-Ru KAAP financing: Ru below Fe (owned and leased) at both ends of the dis
    and pbf["pbf_max"] / 100 < fin["regressions"]["lease_parity_rent"] < _hurdle
    and all(abs(hl[k]["owned_gap_USD_t"] - (hl[k]["owned_Ru_USD_t"] - hl[k]["owned_Fe_USD_t"])) < 1e-12
            for k in ("pbf_min", "pbf_max")))
+# the owned / leased gaps at the disclosed lease rates are in Supplementary Note 7 since 2026-10-15 (check below)
 tokens("Main text: KAAP financing parity and documented lease rates", m_feru2,
        f"Ru stays cheaper at any metal financing rate below {pc(_hurdle, 1)}% per year",
-       f"at the {pbf['pbf_min']:.2f}–{pbf['pbf_max']:.2f}% per year that one refiner disclosed for {pbf['n']} platinum-group "
-       f"catalyst-metal leases, Ru is {_ag_own[0]:.2f}–{_ag_own[1]:.2f} below Fe ({_ag_lease[0]:.2f}–"
-       f"{_ag_lease[1]:.2f} if leased")
-tokens("SI Note 6: financing parity, lease contracts and owned / leased gaps", s2_full,
+       f"| always, if the inventory is financed below {pc(_hurdle, 1)}% per year |",
+       f"The {pbf['pbf_min']:.2f}–{pbf['pbf_max']:.2f}% per year that one refiner disclosed for {pbf['n']} platinum-group "
+       f"catalyst-metal leases falls inside this window")
+tokens("SI Note 7: financing parity, lease contracts and owned / leased gaps", s2_full,
        f"Ru stays cheaper at any metal financing rate below {pc(_hurdle, 2)}% per year "
        f"(a lease rent below {pc(fin['regressions']['lease_parity_rent'], 2)}% per year for a supplier-owned lease without "
        f"deposit)",
@@ -1807,29 +1827,31 @@ ok("NH3 measured kinetics: Ru's best 100-200 bar state lies in that range and co
    and abs(fsw["3_Ru_price_parity_benchmark"]["Ru_benchmark_best_100_200_bar_minus_optimum"]
            - (kb100["cost"] - kh["Ru_benchmark"]["cost"])) < 1e-4,
    f"max excess {_bo_dev:.3f} USD/t over {_bo_lo:.0f}-{_bo_hi:.0f} bar")
-tokens("Abstract: measured rate laws lower the Ru activity requirement", main_section_h2("Abstract"),
-       f"with descriptor kinetics it would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain",
-       f"Measured rate laws for the two frontier catalysts lower that requirement to "
-       f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold")
+# since 2026-10-15 the abstract gives the descriptor requirement only; the measured-kinetics requirement is in Results
+# and Table 1, with the Ru cost restricted to 100-200 bar first and the unconstrained optimum second
+tokens("Abstract: descriptor-kinetics Ru activity requirement", main_section_h2("Abstract"),
+       f"Ru would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain")
 tokens("Main text: measured Fe and Ru/C rate laws for the frontier pair", m_feru2,
-       f"against {ru_o['H2']:+.1f} and {ru_o['NH3']:+.1f} for promoted Ru/C, whose hydrogen adsorption lowers but does "
-       f"not reverse the hydrogen order",
+       f"against {ru_o['H2']:+.1f} and {ru_o['NH3']:+.1f} for promoted Ru/C",
        f"in NH₃ against {fe_o['NH3']:.1f} measured",
-       f"Fe costs {kh['Fe']['cost']:.2f} US dollars per tonne at {kh['Fe']['T_C']:.0f} °C and {kh['Fe']['P_bar']:.0f} bar; "
-       f"Ru costs {kh['Ru_benchmark']['cost']:.2f} at a broad optimum around {kh['Ru_benchmark']['P_bar']:.0f} bar, and "
-       f"{kb100['cost']:.2f} at best in the 100–200 bar range, and would need a "
+       f"Fe costs {kh['Fe']['cost']:.2f} US dollars per tonne at {kh['Fe']['T_C']:.0f} °C and {kh['Fe']['P_bar']:.0f} bar, "
+       f"whereas Ru costs {kb100['cost']:.2f} at best in the 100–200 bar range and {kh['Ru_benchmark']['cost']:.2f} at its "
+       f"unconstrained optimum around {kh['Ru_benchmark']['P_bar']:.0f} bar, and would need a "
        f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold activity gain for parity "
-       f"({min(_mult_all):.0f}–{max(_mult_all):.0f}-fold across bed-sizing and calibration variants), against "
-       f"{bw['Ru_activity_break_even_multiplier']:.0f}-fold with the descriptor kinetics",
-       f"For supported Ru/C the measured kinetics move the decision to the financing of the Ru inventory. Its optimum is "
-       f"at {rc0['Ru_C_global']['P_bar']:.0f} bar",
+       f"({min(_mult_all):.0f}–{max(_mult_all):.0f}-fold across bed-sizing and calibration variants)",
+       f"| {kh['Fe']['cost']:.2f} | {kb100['cost']:.2f} (100–200 bar) | activity rises "
+       f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold |",
+       f"| activity rises {bw['Ru_activity_break_even_multiplier']:.0f}-fold, or Ru costs "
+       f"{float(parity['price_USD_kg']):.0f} US dollars per kilogram or less |",
+       f"For supported Ru/C the measured kinetics place the decision on the financing of the Ru inventory: at its optimum "
+       f"of {rc0['Ru_C_global']['P_bar']:.0f} bar",
        f"Ru/C is held to {_ynum('T_max_Ru_C'):.0f} °C, the top of its measured range",
        f"the Ru/C rate advantage per kilogram grows from {_rr_lo:.0f}-fold at 2% to {_rr_hi:.0f}-fold at 14% NH₃")
 ok("NH3 measured kinetics: the 1.2 port has the sizing x calibration variants only (no equilibrium variant)",
    {(v["sizing"], v["scale"]) for v in ksw["variants"]} == {("plug", "source"), ("plug", "FCAL"), ("inlet", "source"),
                                                             ("inlet", "FCAL")} and len(ksw["variants"]) == 4
    and min(_mult_all) == kh["Ru_activity_multiple_for_parity"])
-tokens("SI Note 6: measured rate laws, validation and costs", s2_full,
+tokens("SI Note 7: measured rate laws, validation and costs", s2_full,
        f"(apparent orders N₂ {fe_o['N2']:+.2f}, H₂ {fe_o['H2']:+.2f}, NH₃ {fe_o['NH3']:+.2f})",
        f"reproduces the {_ruv['n']} measured points of its source with a mean error of {pc(_ruv['mean_abs_rel_err'], 1)}%",
        f"the pair gives Fe {kh['Fe']['cost']:.2f} US dollars per tonne at {kh['Fe']['T_C']:.0f} °C, {kh['Fe']['P_bar']:.0f} "
@@ -1843,7 +1865,7 @@ tokens("SI Note 6: measured rate laws, validation and costs", s2_full,
        f"{pc(r_hi, 2)}% recovery) has its optimum at {rc0['Ru_C_global']['P_bar']:.0f} bar",
        f"from {_rr_lo:.0f}-fold at 2% to {_rr_hi:.0f}-fold at 14% NH₃ (90 bar, 400 °C)",
        f"the fused-iron law was fitted at {fe_rng[0]}–{fe_rng[1]} atm and the Ru/C law at {ru_rng[0]}–{ru_rng[1]} bar")
-tokens("SI Note 6: apparent orders of the Ru/C rate law", s2_full,
+tokens("SI Note 7: apparent orders of the Ru/C rate law", s2_full,
        f"(N₂ {ru_o['N2']:+.2f}, H₂ {ru_o['H2']:+.2f}, NH₃ {ru_o['NH3']:+.2f})")
 tokens("Methods: measured rate laws and the staged converter", methods,
        f"the Ru/C law reproduces the {_ruv['n']} measured points of its source with a mean error of "
@@ -1866,7 +1888,7 @@ _be_g90, _be_k90 = _be[f"r {r_lo} global"]["rate"], _be[f"r {r_lo} KAAP"]["rate"
 tokens("Main text: measured-kinetics break-even financing rates", m_feru2,
        f"it stays cheaper than Fe up to a financing rate of {pc(_be_g, 1)}% per year, and in the KAAP-type loop up to "
        f"{pc(_be_k, 1)}% per year, above the disclosed lease rates")
-tokens("SI Note 6: measured-kinetics break-even financing rates", s2_full,
+tokens("SI Note 7: measured-kinetics break-even financing rates", s2_full,
        f"It stays cheaper than Fe up to a metal financing rate of {pc(_be_g, 2)}% per year, and in the KAAP-type loop up "
        f"to {pc(_be_k, 2)}% per year ({pc(_be_g90, 2)}% and {pc(_be_k90, 2)}% at {pc(r_lo)}% recovery)")
 ok("Measured-kinetics break-even: Ru/C and Fe cost the same there, both rates exceed the disclosed lease rates, and the "
@@ -1891,7 +1913,7 @@ def _rb_count(col, sign):
 _be_rng = {lp: sorted(r_[f"breakeven_{lp}"] for r_ in _rb if r_[f"breakeven_{lp}"] != "") for lp in ("global", "KAAP")}
 _fe12_exc = [r_["case"] for r_ in _rb if r_["gap_12_global"] < 0]
 _fe_inf_k = [r_["case"] for r_ in _rb if r_["gap_12_KAAP"] == float("-inf")]
-tokens("SI Note 6: measured-kinetics robustness cases", s2_full,
+tokens("SI Note 7: measured-kinetics robustness cases", s2_full,
        f"Across {len(_rb)} cases that vary",
        f"Ru/C is cheaper than Fe without metal financing in all {len(_rb)} in both loops",
        f"the break-even financing rate spans {pc(_be_rng['global'][0], 2)}–{pc(_be_rng['global'][-1], 2)}% per year in the "
@@ -1922,9 +1944,9 @@ _do12, _doc = _do["1.2"], _do["condition"]
 _dru, _dfe = _do12["orders"]["Ru"]["central"], _do12["orders"]["Fe"]["central"]
 _dcond = f"{_doc['P_bar']:.0f} bar, {_doc['T_C']:.0f} °C and {pc(_doc['y_NH3'])}%"
 tokens("Main text: apparent orders of the descriptor kinetics for Ru and fused iron", m_feru2,
-       f"at {_dcond} ammonia they give apparent orders of {_dru['H2']:+.1f} in H₂ and {_dru['NH3']:+.1f} in NH₃",
+       f"at {_dcond} ammonia they give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and {_dru['NH3']:+.1f} in NH₃",
        f"and fused iron {_dfe['NH3']:+.1f} in NH₃ against {fe_o['NH3']:.1f} measured")
-tokens("SI Note 6: apparent orders of the descriptor kinetics", s2_full,
+tokens("SI Note 7: apparent orders of the descriptor kinetics", s2_full,
        f"At {_dcond} NH₃ the descriptor kinetics give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and "
        f"{_dru['NH3']:+.1f} in NH₃ and fused iron {_dfe['NH3']:+.1f} in NH₃")
 ok("Descriptor apparent orders: the 1.2 model of the canonical run; Ru H2 order above the measured Ru/C order; fused-iron "
@@ -2082,15 +2104,15 @@ ok("Staged converter: a Ru/C-first converter is optimal in no case tested",
    _order and all(not re.search(r"R.*F", b) for b in _order) and not w150["all_ru_below"] and not w200["all_ru_below"])
 _lease_rng = f"{pbf['pbf_min']:.2f}–{pbf['pbf_max']:.2f}% per year"
 tokens("Abstract and Discussion: staged converter at financing rates that contain the disclosed lease rates", text,
-       f"is the least-cost design at {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year, a range that contains the disclosed "
-       f"lease rates for platinum-group catalyst metal",
+       "is the least-cost design at the disclosed lease rates for platinum-group catalyst metal",
+       f"| least-cost design at {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year |",
        "at metal-financing rates that contain the disclosed lease rates for platinum-group catalyst metal")
 tokens("Main text: staged converter window and savings", m_feru2,
        f"three-bed converter at {KAAP[0] / 10:.0f} MPa",
        f"for Ru financing rates of {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year",
        "all-Ru/C wins below that range, all-Fe above it, and a converter with Ru/C first is never optimal",
-       f"The {_lease_rng} disclosed for platinum-group catalyst-metal leases falls inside this window, where staging saves "
-       f"{min(_save):.2f}–{max(_save):.2f} US dollars per tonne over an all-Fe converter")
+       f"The {_lease_rng} that one refiner disclosed for {pbf['n']} platinum-group catalyst-metal leases falls inside "
+       f"this window")
 # Ru/C share of the least-cost converter across the window, as the committed boundary output gives it on its 0.5-point
 # financing grid: at the first grid rate inside the window, and the share of the staged design that all-Fe replaces at
 # the upper edge (the envelope ported above gives the same 0.0444 just below the edge). Exactly at the lower edge a 56 %
@@ -2105,19 +2127,19 @@ ok("Staged converter: the optimal Ru/C share falls across the window; grid and e
    all(a >= b for a, b in zip(_sh_seq, _sh_seq[1:])) and w95["lo"] < float(_bk_in[0]["fin_rate"])
    and float(_bk_in[-1]["fin_rate"]) < w95["hi"] < float(_bk_fe["fin_rate"])
    and abs(_decide(KAAP, P_RU, r_hi, w95["hi"] - 1e-7)["best_frac"] - _sh_hi) < 1e-6)
-tokens("SI Note 6: staged converter, Ru/C share across the window", s2_full,
+tokens("SI Note 7: staged converter, Ru/C share across the window", s2_full,
        f"the Ru/C share of the catalyst volume falls from {pc(_sh_lo)}% to about {pc(_sh_hi)}% across the window",
        "a converter with Ru/C first is optimal in no case tested")
-tokens("SI Note 6: staged-converter window edges (2 decimals)", s2_full,
+tokens("SI Note 7: staged-converter window edges (2 decimals)", s2_full,
        f"all-Ru/C for Ru financing rates of 0–{pc(w95['lo'], 2)}% per year",
        f"for {pc(w95['lo'], 2)}–{pc(w95['hi'], 2)}% per year", f"all-Fe above {pc(w95['hi'], 2)}% per year")
-tokens("SI Note 6: staged window at 90 % recovery and at Ru price -30 % / +30 %", s2_full,
+tokens("SI Note 7: staged window at 90 % recovery and at Ru price -30 % / +30 %", s2_full,
        f"The window moves with recovery ({pc(w90['lo'], 2)}–{pc(w90['hi'], 2)}% per year at {pc(r_lo)}%)",
        f"({pc(wm30['lo'], 2)}–{pc(wm30['hi'], 2)}% at -30%, {pc(wp30['lo'], 2)}–{pc(wp30['hi'], 2)}% at +30%)")
-tokens("SI Note 6: staging savings at the documented lease rates", s2_full,
+tokens("SI Note 7: staging savings at the documented lease rates", s2_full,
        f"staging saves {_and(f'{s:.2f}' for s in _save)} US dollars per tonne over an all-Fe converter at "
        f"{_and(f'{x:.2f}' for x in _lease3)}% per year")
-tokens("SI Note 6: staged converter at 150 and 200 bar, all-Ru/C never wins", s2_full,
+tokens("SI Note 7: staged converter at 150 and 200 bar, all-Ru/C never wins", s2_full,
        f"in the {C150[0]:.0f} and {C200[0]:.0f} bar loops with a {C150[1]:.0f} °C separator the staged converter is optimal "
        f"up to {pc(w150['hi'], 2)}% and {pc(w200['hi'], 2)}% per year and all-Ru/C never wins")
 ok("Staged converter: the 150 and 200 bar loops share one separator temperature", C150[1] == C200[1])
@@ -2149,16 +2171,17 @@ ok("NH3 loop check T1: the 3 bar replay equals the frozen Fe/Ru/Os costs",
 ok("NH3 loop check T1: rank order of all 15 metals unchanged at 6.0 and 9.2 bar",
    all(r["censored_rank"] == r["frozen_censored_rank"] and r["raw_rank"] == r["frozen_raw_rank"]
        for k, r in _t1.items()) and len({k[0] for k in _t1}) == 15)
-tokens("Main text: recycle-rise sensitivity costs", raw_text,
-       *[f"{float(r['cost_USD_t']):.2f}" for r in _t1_92])
-tokens("SI Note 6: recycle-rise sensitivity costs", s2_full,
+tokens("Main text (Table 1): recycle-rise sensitivity costs", raw_text,
+       f"| Descriptor | Benchmark, 9.2 bar recycle rise | Benchmark bed | {float(_t1_92[0]['cost_USD_t']):.2f} | "
+       f"{float(_t1_92[1]['cost_USD_t']):.2f} | – (order of all 15 metals unchanged) |")
+tokens("SI Note 7: recycle-rise sensitivity costs", s2_full,
        *[f"{float(r['cost_USD_t']):.3f}" for r in _t1_92 + _t1_60],
        f"{float(_t1[('Ru', 9.2)]['cost_USD_t']) - float(_t1[('Fe', 9.2)]['cost_USD_t']):.2f} US dollars per tonne above Fe")
 _t3 = {(r["pair"], r["model_basis"], r["catalyst"]): float(r["total_USD_t"]) for r in rows(_LR + "t3_points.csv")}
 _cl = _t3[("c93_closed_220bar", "closed B93", "Ru")] - _t3[("c93_closed_220bar", "closed B93", "Fe")]
 _cn = _t3[("c93_closed_220bar", "canonical r0.9555_12pct_dp3", "Ru")] - _t3[("c93_closed_220bar", "canonical r0.9555_12pct_dp3", "Fe")]
-tokens("Main text and SI Note 6: independent loop Ru/C minus Fe at 220 bar against the loop model", raw_text + s2_full,
-       f"{_cl:.2f} US dollars per tonne above fused iron", f"against {_cn:.2f}",
+tokens("SI Note 7: independent loop Ru/C minus Fe at 220 bar against the loop model", s2_full,
+       f"a difference of {_cl:.2f}, against {_cn:.2f} in the loop model at the same operating points",
        f"fused iron {_t3[('c93_closed_220bar', 'closed B93', 'Fe')]:.3f} and Ru/C {_t3[('c93_closed_220bar', 'closed B93', 'Ru')]:.3f}")
 _up = _j(_LR + "upstream_93_94.json")
 ok("NH3 loop check: the independent loop rerun reproduces PR #93 (Fe 47.245, Ru 49.484)",
@@ -2230,7 +2253,7 @@ _cob = _j("analysis/meoh_co_conversion_bound_2026_10_13/summary.json")
 _hi, _hn = _cob["results"]["high"]["6.86"], _cob["results"]["high"]["none"]
 _si_flat = re.sub(r"\s+", " ", raw_si)
 tokens("MeOH: recycled CO converted up to CO-hydrogenation equilibrium, main text and Methods (PR #84)", text,
-       f"converted per pass up to CO-hydrogenation equilibrium, the upper end of its thermodynamic window "
+       f"converted per pass up to CO-hydrogenation equilibrium "
        f"({_hi['disagreements']} of {_hi['groups']}, {_hi['gt5pct']} above 5%)",
        "recycled CO converted up to CO-hydrogenation equilibrium are reported as sensitivities")
 tokens("SI Note 3: recycled CO converted up to CO-hydrogenation equilibrium (PR #84)", _si_flat,
