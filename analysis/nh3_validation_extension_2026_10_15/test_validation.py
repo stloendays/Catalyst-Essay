@@ -94,13 +94,40 @@ def check_energy(folder):
     print("PASS: three original failed compression cases and disjoint measured kinetic source-pressure windows preserved")
 
 
+def check_transfer(folder):
+    s=json.loads((folder/"summary.json").read_text(encoding="utf-8"))
+    rows_=csvread(folder/"01_five_industrial_inlet_transfer.csv")
+    require(len(rows_)==20,"five published industrial test points x four models missing")
+    require(len({(r["metric_id"],r["method"]) for r in rows_})==20,"duplicate industrial comparator")
+    require({r["metric_id"] for r in rows_}=={"A01","A04","A07","A14","A16"},
+            "source original fixed plant cases changed")
+    require(s["industrial_targets_used_for_fitting"] is False and
+            s["original_64_case_registered_score_unchanged"]=="32/64",
+            "unregistered industrial fitting or score change")
+    require(s["fixed_policies"]["M0_frozen"]["within_20pct"]==0,
+            "canonical VLE baseline falsely altered")
+    require(s["fixed_policies"]["BASF_bilinear"]["within_20pct"]==1,
+            "original source-only 1/5 transfer replaced")
+    for m in ("M0_frozen","BASF_bilinear","M1_source_fit","M2_source_fit"):
+        subset=[r for r in rows_ if r["method"]==m]
+        require(len(subset)==5,"missing candidate plant inlet model")
+        success=sum(r["within_original_20pct"]=="1" for r in subset)
+        require(success==s["fixed_policies"][m]["within_20pct"],
+                "conditional cross-source pass count table mismatch")
+        require(all(r["original_64_case_verdict"]=="FAIL" for r in subset),
+                "unregistered original plant scores changed")
+    require((folder/"REPORT.md").exists(),"source transfer report missing")
+    print("PASS: no-fit-to-plant transfer over all five original, still-failing industrial benchmark cases")
+
+
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--study",choices=("vle","energy"),required=True)
+    p.add_argument("--study",choices=("vle","energy","transfer"),required=True)
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
     if a.study=="vle":check_vle(a.out)
-    else:check_energy(a.out)
+    elif a.study=="energy":check_energy(a.out)
+    else:check_transfer(a.out)
 
 
 if __name__=="__main__":
