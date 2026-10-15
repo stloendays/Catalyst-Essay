@@ -175,6 +175,39 @@ def heading(text, level):
     return p
 
 
+def table(lines):
+    """A Markdown pipe table (header, separator, rows) as a gridded Word table at 10 pt."""
+    cells = [[c.strip() for c in ln.strip().strip("|").split("|")] for ln in lines if not re.match(r"^\|[\s|:-]+\|$", ln.strip())]
+    tab = doc.add_table(rows=len(cells), cols=len(cells[0]))
+    tab.style = "Table Grid"
+    tab.autofit = False
+    # column widths (16 cm in total): each column first gets room for its longest word at 10 pt (about 0.2 cm per
+    # character plus cell padding); the remainder is shared in proportion to the longest entry of each column
+    word = [max(len(w_) for row in cells for w_ in (row[c].replace("*", "").split() or [""])) for c in range(len(cells[0]))]
+    entry = [max(len(row[c]) for row in cells) for c in range(len(cells[0]))]
+    base = [0.2 * n + 0.45 for n in word]
+    spare = max(0.0, 16.0 - sum(base))
+    widths = [b + spare * e / sum(entry) for b, e in zip(base, entry)]
+    widths = [w * 16.0 / sum(widths) for w in widths]
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tab._tbl.tblPr.append(layout)
+    for c, w in enumerate(widths):
+        tab.columns[c].width = Cm(w)
+        for cell in tab.columns[c].cells:
+            cell.width = Cm(w)
+    for tr in tab.rows:                                     # a row is never cut across a page break
+        tr._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
+    for r, row in enumerate(cells):
+        for c, val in enumerate(row):
+            par = tab.cell(r, c).paragraphs[0]
+            par.paragraph_format.line_spacing = 1.0
+            runs(par, f"**{val}**" if r == 0 else val, 10)
+            par.paragraph_format.keep_with_next = r < len(cells) - 1   # the table stays on one page with its caption
+    tab.rows[0]._tr.get_or_add_trPr().append(OxmlElement("w:tblHeader"))
+    doc.add_paragraph()
+
+
 def para(text, size=12, indent=True):
     p = doc.add_paragraph()
     if indent:
@@ -195,6 +228,10 @@ for block in re.split(r"\n\s*\n", body_md.strip()):
         p = heading(block[2:], 1)
         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         para("Author list and affiliations to be confirmed by the corresponding author.", indent=False)
+    elif all(ln.strip().startswith("|") for ln in block.splitlines()):
+        table(block.splitlines())
+    elif block.startswith("**Table "):
+        para(" ".join(block.splitlines()), indent=False).paragraph_format.keep_with_next = True
     else:
         para(" ".join(block.splitlines()))
 
@@ -210,8 +247,9 @@ caps = {int(m.group(1)): (m.group(2).strip(), m.group(3).strip())
         for m in re.finditer(r"^## Figure (\d) \| (.+?)\n\n(.+?)(?=\n## |\n---|\Z)", CAPS, re.M | re.S)}
 assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
 # manuscript figure number -> rendered composite (renumbered 2026-10-07: the field-level figure is Fig. 2)
-FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig2/Fig2.png", 4: "fig3/Fig3.png",
-                5: "fig4/Fig4.png", 6: "fig5/Fig5.png"}
+# reordered 2026-10-15: the methanol mechanism (renderer fig4) follows the field-level figure as Fig. 3
+FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig4/Fig4.png", 4: "fig2/Fig2.png",
+                5: "fig3/Fig3.png", 6: "fig5/Fig5.png"}
 for n in range(1, 7):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()

@@ -1,14 +1,14 @@
 # Source Data
 
-One workbook per figure, in the manuscript numbering of 2026-10-07:
+One workbook per figure, in the manuscript numbering of 2026-10-15:
 
 | Workbook | Figure | Renderer |
 |---|---|---|
 | `SourceData_Fig1.xlsx` | Fig. 1, ammonia ranking reversal | `figures/composite/fig1/make_fig1.py` |
 | `SourceData_Fig2.xlsx` | Fig. 2, laboratory leaderboards vs plant-cost leaderboards | `figures/composite/fig_field/make_fig_field.py` |
-| `SourceData_Fig3.xlsx` | Fig. 3, metal price and process optimization | `figures/composite/fig2/make_fig2.py` |
-| `SourceData_Fig4.xlsx` | Fig. 4, backward design | `figures/composite/fig3/make_fig3.py` |
-| `SourceData_Fig5.xlsx` | Fig. 5, methanol Re/TiO2 mechanism | `figures/composite/fig4/make_fig4.py` |
+| `SourceData_Fig3.xlsx` | Fig. 3, methanol Re/TiO2 mechanism | `figures/composite/fig4/make_fig4.py` |
+| `SourceData_Fig4.xlsx` | Fig. 4, metal price and process optimization | `figures/composite/fig2/make_fig2.py` |
+| `SourceData_Fig5.xlsx` | Fig. 5, backward design | `figures/composite/fig3/make_fig3.py` |
 | `SourceData_Fig6.xlsx` | Fig. 6, process routes and Au/TiO2 control | `figures/composite/fig5/make_fig5.py` |
 | `SourceData_EDFig1.xlsx` … `SourceData_EDFig7.xlsx` | Extended Data Figs 1–7 | `figures/extended_data/render_extended_data.py` |
 
