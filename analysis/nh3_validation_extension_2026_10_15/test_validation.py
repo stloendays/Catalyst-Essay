@@ -120,14 +120,38 @@ def check_transfer(folder):
     print("PASS: no-fit-to-plant transfer over all five original, still-failing industrial benchmark cases")
 
 
+def check_uhde(folder):
+    s=json.loads((folder/"summary.json").read_text(encoding="utf-8"))
+    rs=csvread(folder/"01_uhde_two_gas_separators.csv")
+    require(len(rs)==8 and len({(x["stream_id"],x["method"]) for x in rs})==8,
+            "source 2 separators times 4 original/independent source models incomplete")
+    require(s["count_independent_plants"]==1 and s["count_gas_streams"]==2,
+            "artificially multiplied independent industrial sample size")
+    require(s["source_source_git_blob"]=="7d511a788895d1f3ab825f9db9a3f0929db44460",
+            "source Figure 57 pin changed")
+    require(s["original_registered_industrial_NH3_score"]=="32/64 unchanged",
+            "illegal promotion of VLE transfer into industrial metric")
+    for m in ("M0_ideal","BASF_interpolated","M1_source_fit","M2_source_fit"):
+        x=[r for r in rs if r["method"]==m]
+        require(len(x)==2 and {r["stream_id"] for r in x}=={"5","6"},
+                "source vapor rows changed")
+        require(s["outcomes"][m]["within_20pct"]==sum(z["within_20pct"]=="1" for z in x),
+                "vapor source comparison count drift")
+        require(all(0<float(z["predicted_vapor_NH3_molpct"])<100 for z in x),
+                "nonphysical source gas vapor fraction")
+    require((folder/"REPORT.md").exists(),"no source caveats")
+    print("PASS: two Git-blob-pinned UHDE gas-phase source streams remain ONE plant, and original 32/64 unchanged")
+
+
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--study",choices=("vle","energy","transfer"),required=True)
+    p.add_argument("--study",choices=("vle","energy","transfer","uhde"),required=True)
     p.add_argument("--out",type=Path,required=True)
     a=p.parse_args()
     if a.study=="vle":check_vle(a.out)
     elif a.study=="energy":check_energy(a.out)
-    else:check_transfer(a.out)
+    elif a.study=="transfer":check_transfer(a.out)
+    else:check_uhde(a.out)
 
 
 if __name__=="__main__":
