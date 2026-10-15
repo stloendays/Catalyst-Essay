@@ -48,7 +48,9 @@ import pandas as pd
 
 SRC = Path(__file__).resolve().parent
 REPO = SRC.parents[1]
-HERE = SRC / "_smoke" if os.environ.get("STATS_SMOKE") == "1" else SRC
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+HERE = SRC / "_smoke" if os.environ.get("STATS_SMOKE") == "1" else FS.out_dir("stats_s5", SRC)
 HERE.mkdir(exist_ok=True)
 INV = REPO / "analysis" / "meoh_literature_inversion_2026_10_05"
 sys.path.insert(0, str(REPO / "data" / "meoh"))
@@ -185,15 +187,32 @@ def cmd_merge(parts):
 
 
 # ---------------------------------------------------------------- data ---------------------------------------
-def load():
-    c = pd.read_csv(INV / "literature_candidates.csv")
-    c = c[np.isfinite(c.cost_recycled_opt)]          # infeasible candidates are in no leaderboard
+def scored_groups(cost_col, anchor):
+    """FS.candidates() restricted to the entries with a finite cost in cost_col and to groups with at least two of
+    them, cost_col copied to cost_recycled_opt (the column this script scores), and the group metrics the point
+    estimate is checked against. On the combined set the first-set part must reproduce anchor (disagreements,
+    groups) through meoh_candidates.aggregate."""
+    c = FS.candidates()
+    c = c[np.isfinite(c[cost_col])]                  # infeasible candidates are in no leaderboard
     n = c.groupby("group").size()
     c = c[c.group.isin(n[n >= 2].index)].reset_index(drop=True)
+    c["cost_recycled_opt"] = c[cost_col]
+    if not FS.COMBINED:
+        return c, None
+    sys.path.insert(0, str(INV))
+    from meoh_candidates import aggregate
+    _, s1 = aggregate(FS.first_part(c), "cost_recycled_opt")
+    assert (s1["top1_mismatch_groups"], s1["groups"]) == anchor, ("first-set anchor", cost_col, s1, anchor)
+    return c, aggregate(c, "cost_recycled_opt")[0]
+
+
+def load():
+    c, gm = scored_groups("cost_recycled_opt", (15, 40))
     if SMOKE:
         c = c[c.group.isin(c.group.unique()[:4])].reset_index(drop=True)
     c["sty_printed_basis"] = c.sty_basis.str.startswith("printed STY")
-    gm = pd.read_csv(INV / "group_metrics.csv")
+    if gm is None:
+        gm = pd.read_csv(INV / "group_metrics.csv")
     return c, gm
 
 
@@ -472,7 +491,8 @@ def main():
     pg.to_csv(HERE / "group_noise_probabilities.csv", index=False, float_format="%.6g")
 
     summary = dict(
-        input=str(INV.relative_to(REPO)).replace("\\", "/"),
+        input=(str(INV.relative_to(REPO)).replace("\\", "/") if not FS.COMBINED
+               else "analysis/meoh_field_pooled_2026_10_15/field_set.py (combined)"),
         groups=int(ng), papers=int(len(papers)), entries=int(len(c)),
         plot_read_entries=int(c.plot_read.sum()), printed_sty_entries=int(c.sty_printed_basis.sum()),
         surface_f0_max_rel_diff_vs_frozen=float(base_diff),

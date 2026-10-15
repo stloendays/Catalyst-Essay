@@ -23,6 +23,10 @@ Disagreements are split by kind (mismatch_kinds.classify).
 
 Outputs (this folder): conversion_sensitivity_summary.json, conversion_sensitivity_groups.csv,
 conversion_sensitivity_points.csv.
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs both cohorts on the groups of both
+extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/conversion_s5/; the first-set groups of the
+printed cohort must reproduce the first-set result (laboratory 15 of 40).
 """
 import json
 import os
@@ -42,6 +46,12 @@ sys.path.insert(0, str(HERE))
 import meoh_general_model as G  # noqa: E402
 from meoh_candidates import ROW_KEYS, aggregate  # noqa: E402
 from mismatch_kinds import classify  # noqa: E402
+
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("conversion_s5", HERE)
+FIRST_SET_ANCHORS = {"printed|lab": (15, 40)}
 
 WORKERS = int(os.environ.get("INV_WORKERS", "4"))
 F_PRIMARY, F_VARIANTS = 0.95, (0.90, 0.99)
@@ -161,9 +171,24 @@ def evaluate(job):
     return key, out
 
 
+def check_first_set(groups, pts, anchors=None):
+    """Counts of the first-set groups in the combined run (disagreements, groups, > 5 %, > 5 % papers) for every
+    cohort x cost column; stops when an anchor (cohort|column -> (disagreements, groups)) is not reproduced."""
+    first = set(FS.first_part(pts).group)
+    out = {}
+    for (mode, col), g in groups[groups.group.isin(first)].groupby(["mode", "cost_col"]):
+        m = g[g.top1_mismatch]
+        out[f"{mode}|{col}"] = dict(disagreements=int(len(m)), groups=int(len(g)), gt5pct=int((m.regret > 0.05).sum()),
+                                    gt5pct_papers=int(m[m.regret > 0.05].doi.nunique()))
+    for k, exp in (FIRST_SET_ANCHORS if anchors is None else anchors).items():
+        got = (out[k]["disagreements"], out[k]["groups"])
+        if got != exp:
+            sys.exit(f"STOP: first-set anchor {k}: {got} != {exp}")
+    return out
+
+
 def main():
-    sets = {"printed": pd.read_csv(HERE / "literature_candidates.csv"),
-            "all": pd.read_csv(HERE / "literature_candidates_all_entries.csv")}
+    sets = {"printed": FS.candidates(), "all": FS.candidates_all_entries()}
     jobs = {}
     for f in sets.values():
         for r in f.itertuples(index=False):
@@ -194,15 +219,19 @@ def main():
         f["raised"] = f[f"m_f{F_PRIMARY:g}"] > 1.0
         rows.append(f.assign(mode=mode))
     pts = pd.concat(rows)
+    if FS.COMBINED:                     # the first-set groups of the combined run reproduce the first-set result
+        meta_first = check_first_set(pd.concat(groups), pts)
     meta = dict(x_eq_multiple_roots=int((pts.drop_duplicates(ROW_KEYS).x_eq_roots > 1).sum()),
                 laboratory_above_x_eq=int((pts.drop_duplicates(ROW_KEYS).u0 >= 1.0).sum()),
                 operating_points=len(jobs))
-    keep = ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
+    if FS.COMBINED:
+        meta["first_set"] = meta_first
+    keep = ["batch"] * FS.COMBINED + ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
             "cost_recycled_opt", *[c for c in pts.columns if c in ("lab", "x_eq", "x_eq_roots", "u0", "raised")
                                    or c.startswith(("cost_f", "m_f", "u_f", "cost_two", "m_two", "u_two"))]]
-    pts[keep].to_csv(HERE / "conversion_sensitivity_points.csv", index=False, float_format="%.10g")
-    pd.concat(groups).to_csv(HERE / "conversion_sensitivity_groups.csv", index=False, float_format="%.6g")
-    (HERE / "conversion_sensitivity_summary.json").write_text(
+    pts[keep].to_csv(OUT / "conversion_sensitivity_points.csv", index=False, float_format="%.10g")
+    pd.concat(groups).to_csv(OUT / "conversion_sensitivity_groups.csv", index=False, float_format="%.6g")
+    (OUT / "conversion_sensitivity_summary.json").write_text(
         json.dumps(dict(meta=meta, scenarios=summaries), indent=1, default=float) + "\n", encoding="utf-8")
     pd.set_option("display.width", 250)
     tab = pd.DataFrame([dict(scenario=k, groups=v["groups"], mismatch=v["top1_mismatch_groups"], gt5pct=v["gt5pct"],

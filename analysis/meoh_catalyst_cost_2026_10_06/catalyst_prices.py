@@ -612,8 +612,9 @@ def price_table(comp) -> dict:
                 price_eur_kg=mv + BASE_EUR_KG, price_pf_base_eur_kg=mv + BASE_PF_EUR_KG)
 
 
-def build(cand: pd.DataFrame) -> pd.DataFrame:
-    rec = read_records()
+def build(cand: pd.DataFrame, rec: pd.DataFrame = None) -> pd.DataFrame:
+    """One price row per candidate; rec: the records the candidates were built from (default: the frozen records)."""
+    rec = read_records() if rec is None else rec
     texts = {}
     for r in rec.itertuples():
         bits = [str(x) for x in (r.composition,) if pd.notna(x)]

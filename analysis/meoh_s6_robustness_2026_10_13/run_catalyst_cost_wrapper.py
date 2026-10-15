@@ -12,6 +12,11 @@ taken over:
 Checks: the catalyst term off reproduces the frozen cost column of each treatment and its group count (S5 15/40,
 S6 28/40); the S5 primary (composition price, 3-year life) reproduces the frozen 16/40 and candidate_costs.csv.
 Writes catalyst_cost.json (this folder).
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) adds the second extraction's candidates,
+rebuilt from its corrected records exactly as validation_meoh_prospective_2026_10_13/score.py builds them, priced by
+the same rules from those records, and writes to analysis/meoh_field_pooled_2026_10_15/robustness/catalyst_cost/; the
+checks above then apply to the first-set groups, plus the S6 primary of the first set (25 of 40).
 """
 import json
 import os
@@ -31,6 +36,11 @@ import run_catalyst_cost_inversion as CC  # noqa: E402
 G = CC.G
 WORKERS = int(os.environ.get("CATCOST_WORKERS", "4"))
 FROZEN_COL = {"S5": "cost_recycled_opt", "S6": "cost_recycled_opt_inlet"}
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("catalyst_cost", HERE)
+FIRST_SET_ANCHORS = {("S5", "off"): 15, ("S5", CC.PRIMARY): 16, ("S6", "off"): 28, ("S6", CC.PRIMARY): 25}
 
 
 def _one_s6(args):
@@ -57,10 +67,15 @@ def _one_s6(args):
 def main():
     cand = CC.build_candidates()
     frozen = pd.read_csv(CC.INV / "literature_candidates.csv")
+    rec = None
+    if FS.COMBINED:
+        second = CC.build_candidates(FS._pv().load_new_records(corrected=True))
+        cand = pd.concat([cand.assign(batch="first"), second.assign(batch="second")], ignore_index=True)
+        frozen, rec = FS.candidates(), FS.records()
     key = ["group", "entry"]
     b = frozen.set_index(key).sort_index()
     assert len(cand) == len(b) and (cand.set_index(key).sort_index().index == b.index).all()
-    prices = CC.CP.build(cand)
+    prices = CC.CP.build(cand, rec)
     rows = cand[CC.ROW_KEYS].to_dict("records")
     args = list(zip(rows, CC.charges_for(prices)))
     out = {}
@@ -89,15 +104,29 @@ def main():
                 gm_off, _ = CC.aggregate(f, "cost_off")
                 g, g0 = gm.set_index("group"), gm_off.set_index("group")
                 summ[name]["groups_flipped_vs_off"] = int((g.top1_mismatch != g0.loc[g.index, "top1_mismatch"]).sum())
+        if FS.COMBINED:                   # the same checks on the first-set groups
+            ff = FS.first_part(f)
+            first = {}
+            for name in CC.VARIANTS:
+                gm, s = CC.aggregate(ff, f"cost_{name}", label=name)
+                m = gm[gm.top1_mismatch]
+                first[name] = dict(groups=s["groups"], disagreements=s["top1_mismatch_groups"],
+                                   gt5pct=int((m.regret > 0.05).sum()))
+            for (t, name), exp in FIRST_SET_ANCHORS.items():
+                if t == treat:
+                    assert (first[name]["disagreements"], first[name]["groups"]) == (exp, 40), (t, name, first[name])
         if treat == "S5":
-            dev = float(np.nanmax(np.abs(a[f"cost_{CC.PRIMARY}"] / fz[f"cost_{CC.PRIMARY}"] - 1)))
+            dev = float(np.nanmax(np.abs(a.loc[fz.index, f"cost_{CC.PRIMARY}"] / fz[f"cost_{CC.PRIMARY}"] - 1)))
             assert dev < 1e-5, dev                    # candidate_costs.csv is written with 6 significant digits
-            assert summ[CC.PRIMARY]["disagreements"] == 16 and summ["off"]["disagreements"] == 15, summ
-        else:
+            if not FS.COMBINED:
+                assert summ[CC.PRIMARY]["disagreements"] == 16 and summ["off"]["disagreements"] == 15, summ
+        elif not FS.COMBINED:
             assert summ["off"]["disagreements"] == 28, summ["off"]
         out[treat] = dict(max_rel_diff_off_vs_frozen_column=dev_off, variants=summ)
+        if FS.COMBINED:
+            out[treat]["first_set"] = first
         print(treat, {k: (v["disagreements"], v["groups"], v["gt5pct"]) for k, v in summ.items()}, flush=True)
-    (HERE / "catalyst_cost.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    (OUT / "catalyst_cost.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

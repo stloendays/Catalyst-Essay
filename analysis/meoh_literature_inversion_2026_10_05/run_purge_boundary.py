@@ -22,6 +22,11 @@ Input: literature_candidates.csv (the frozen printed cohort; its cost_recycled_o
 reproduced on the canonical part of the grid). Outputs (this folder): purge_boundary_summary.json,
 purge_boundary_entries.csv (one row per scored entry and treatment), purge_boundary_curves.csv (cost and loop state
 along the purge grid, every scored entry).
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same tests on the scored entries
+of both extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/purge_boundary/; the first-set
+entries must reproduce the first-set purge-boundary result (optimum below 0.5 % for 309 of 310 entries, 14 of 40
+groups with a different leader on the extended grid, 2 above 5 %).
 """
 import json
 import os
@@ -54,6 +59,11 @@ LIMITS = {"published_min": float(LIT.non_h2co2_pct.min()) / 100.0,
           "anchor": float(G.NONREACTIVE_MAX),
           "published_max": float(LIT.non_h2co2_pct.max()) / 100.0}
 SWEEP = (0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40)
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("purge_boundary", HERE)
+FIRST_SET_ANCHOR = dict(entries=310, s5_at_0p5pct=310, below_0p5pct=309, groups=40, disagreements=14, gt5pct=2)
 FIELDS = ("cost_eur_t", "nonreactive_fraction", "co_inlet_fraction", "methane_fraction", "n2_inlet_fraction",
           "recycle_kmol_h", "carbon_efficiency", "fresh_h2_co2", "X_eff", "equilibrium_feasible", "x_co")
 
@@ -123,7 +133,7 @@ def at_optimum(e, tag):
 
 
 def main():
-    cand = pd.read_csv(HERE / "literature_candidates.csv")
+    cand = FS.candidates()
     n = cand.groupby("group").size()
     cand = cand[cand.group.isin(n[n >= 2].index)].reset_index(drop=True)      # the scored entries of the primary
     keys = sorted({tuple(float(r[k]) for k in ROW_KEYS) for r in cand[ROW_KEYS].to_dict("records")})
@@ -168,7 +178,9 @@ def main():
     # the canonical part of the grid reproduces the frozen primary
     dev = float(np.max(np.abs(e.canonical_cost - e.cost_recycled_opt)))
     assert dev < 1e-6, dev
-    assert (e.canonical_purge == G.PURGES[0]).all()
+    # every first-set S5 optimum sits at the 0.5 % floor; on the combined set the count is reported
+    # (boundary.canonical_optimum_at_0p5pct) instead of asserted
+    assert FS.COMBINED or (e.canonical_purge == G.PURGES[0]).all()
 
     s5_gm, s5 = scored(e, "canonical_cost", "S5 primary (canonical grid 0.5-40 %)", "canonical_purge")
     biggest = s5_gm.groupby("doi").size().idxmax()          # as run_literature_inversion.py
@@ -222,21 +234,34 @@ def main():
                        concentration=concentration(e, gm, f"{tag}_cost", biggest),
                        cost_increase_vs_s5={q: float((bind[f"{tag}_cost"] / bind.canonical_cost - 1).quantile(v))
                                             for q, v in (("median", 0.5), ("p90", 0.9), ("max", 1.0))})
-        gm.to_csv(HERE / f"group_metrics_purge_{k}.csv", index=False, float_format="%.6g")
+        gm.to_csv(OUT / f"group_metrics_purge_{k}.csv", index=False, float_format="%.6g")
     out["constrained"] = cons
+    if FS.COMBINED:                     # the first-set entries reproduce the first-set purge-boundary result
+        e1 = FS.first_part(e)
+        g1 = ext_gm[ext_gm.group.isin(set(e1.group))]
+        m1 = g1[g1.top1_mismatch]
+        got = dict(entries=int(len(e1)), s5_at_0p5pct=int((e1.canonical_purge == G.PURGES[0]).sum()),
+                   below_0p5pct=int((e1.extended_purge < G.PURGES[0] - 1e-12).sum()),
+                   groups=int(len(g1)), disagreements=int(len(m1)), gt5pct=int((m1.regret > 0.05).sum()))
+        assert got == FIRST_SET_ANCHOR, ("first-set purge-boundary anchor", got)
+        f1 = e1[e1.extended_feasible]
+        got.update(purge_median=float(f1.extended_purge.median()),
+                   nonreactive_median=float(f1.extended_nonreactive.median()),
+                   recycle_ratio_median=float(f1.extended_recycle_ratio.median()))
+        out["first_set"] = got
     out["limit_sweep_extended_grid"] = {
         f"{L * 100:g}%": {kk: v for kk, v in scored(e, f"limit_sweep_{L * 100:g}", f"limit {L * 100:g} %")[1].items()
                           if kk in ("groups", "top1_mismatch_groups", "candidates_infeasible",
                                     "groups_lost_to_infeasibility", "top1_mismatch_fraction")}
         for L in SWEEP}
 
-    ext_gm.to_csv(HERE / "group_metrics_purge_extended.csv", index=False, float_format="%.6g")
-    cols = ["group", "doi", "catalyst", "sty_basis", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCO", "SCH4", "STY",
+    ext_gm.to_csv(OUT / "group_metrics_purge_extended.csv", index=False, float_format="%.6g")
+    cols = ["batch"] * FS.COMBINED + ["group", "doi", "catalyst", "sty_basis", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCO", "SCH4", "STY",
             "cost_recycled_opt", "cost_at_0p5pct"] + [c for c in e.columns if c.split("_")[0] in
                                                      ("canonical", "extended", "limit")]
-    e[cols].to_csv(HERE / "purge_boundary_entries.csv", index=False, float_format="%.8g")
-    pd.concat(curves).to_csv(HERE / "purge_boundary_curves.csv", index=False, float_format="%.6g")
-    (HERE / "purge_boundary_summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n",
+    e[cols].to_csv(OUT / "purge_boundary_entries.csv", index=False, float_format="%.8g")
+    pd.concat(curves).to_csv(OUT / "purge_boundary_curves.csv", index=False, float_format="%.6g")
+    (OUT / "purge_boundary_summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n",
                                                       encoding="utf-8")
     b = out["boundary"]
     print(json.dumps(out, indent=1, default=float))

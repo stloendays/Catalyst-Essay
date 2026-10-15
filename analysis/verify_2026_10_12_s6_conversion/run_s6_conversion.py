@@ -13,6 +13,10 @@ state is infeasible (NaN), as in the frozen S6 scoring.
 
 Outputs (this folder): s6_conversion_summary.json, s6_conversion_groups.csv, s6_conversion_points.csv.
     INV_WORKERS=4 python run_s6_conversion.py
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs both cohorts on the groups of both
+extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/conversion_s6/; the first-set groups of the
+printed cohort must reproduce the first-set result (laboratory 28 of 40, raised conversion 23 of 40).
 """
 import json
 import os
@@ -34,6 +38,9 @@ from meoh_candidates import ROW_KEYS, aggregate  # noqa: E402
 from mismatch_kinds import classify  # noqa: E402
 
 WORKERS = int(os.environ.get("INV_WORKERS", "4"))
+FS = RC.FS                              # MEOH_FIELD_SET=first, the default, or combined
+OUT = FS.out_dir("conversion_s6", HERE)
+FIRST_SET_ANCHORS = {"printed|lab": (28, 40), f"printed|cost_f{RC.F_PRIMARY:g}": (23, 40)}
 F_PRIMARY, F_VARIANTS = RC.F_PRIMARY, RC.F_VARIANTS
 
 
@@ -87,8 +94,7 @@ def evaluate(job):
 
 
 def main():
-    sets = {"printed": pd.read_csv(INV / "literature_candidates.csv"),
-            "all": pd.read_csv(INV / "literature_candidates_all_entries.csv")}
+    sets = {"printed": FS.candidates(), "all": FS.candidates_all_entries()}
     jobs = {}
     for f in sets.values():
         for r in f.itertuples(index=False):
@@ -125,12 +131,14 @@ def main():
         f["raised"] = f[f"m_f{F_PRIMARY:g}"] > 1.0
         rows.append(f.assign(mode=mode))
     pts = pd.concat(rows)
-    keep = ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
+    first_set = RC.check_first_set(pd.concat(groups), pts, FIRST_SET_ANCHORS) if FS.COMBINED else None
+    keep = ["batch"] * FS.COMBINED + ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
             "cost_recycled_opt_inlet", *cols, "raised"]
-    pts[keep].to_csv(HERE / "s6_conversion_points.csv", index=False, float_format="%.10g")
-    pd.concat(groups).to_csv(HERE / "s6_conversion_groups.csv", index=False, float_format="%.6g")
-    (HERE / "s6_conversion_summary.json").write_text(
-        json.dumps(dict(nonreactive_max=G.NONREACTIVE_MAX, operating_points=len(jobs), scenarios=summaries),
+    pts[keep].to_csv(OUT / "s6_conversion_points.csv", index=False, float_format="%.10g")
+    pd.concat(groups).to_csv(OUT / "s6_conversion_groups.csv", index=False, float_format="%.6g")
+    extra = dict(first_set=first_set) if FS.COMBINED else {}
+    (OUT / "s6_conversion_summary.json").write_text(
+        json.dumps(dict(nonreactive_max=G.NONREACTIVE_MAX, operating_points=len(jobs), scenarios=summaries, **extra),
                    indent=1, default=float) + "\n", encoding="utf-8")
     for k, s in summaries.items():
         print(k, f"{s['top1_mismatch_groups']}/{s['groups']}", ">5%", s["gt5pct"], "papers", s["gt5pct_papers"],
