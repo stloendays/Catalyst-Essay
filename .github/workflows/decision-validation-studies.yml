@@ -47,6 +47,10 @@ jobs:
         if: success()
         run: |
           python analysis/decision_validation_2026_10_15/test_outputs.py --study ${{ matrix.study }} --out artifacts/study-${{ matrix.study }}
+      - name: Print machine-readable scientific summary
+        if: success()
+        run: |
+          cat artifacts/study-${{ matrix.study }}/summary.json
       - name: Publish output even on failed research gate
         uses: actions/upload-artifact@v4
         if: always()
