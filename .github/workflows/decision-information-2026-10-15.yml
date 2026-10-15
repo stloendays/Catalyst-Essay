@@ -60,3 +60,45 @@ jobs:
           name: decision-information-${{ matrix.study }}-${{ github.sha }}
           path: artifacts/decision-information-${{ matrix.study }}/
           retention-days: 90
+
+  crossed-factorial:
+    name: Fully crossed five cap levels x two CO-definition policies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preserve frozen model and manuscript source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/decision_information_2026_10_15/|\.github/workflows/decision-information-2026-10-15\.yml$)' changed.txt; then
+            echo "Unexpected source/model/manuscript change"
+            exit 1
+          fi
+      - name: Test full factorial source and mathematical evidence contracts
+        run: |
+          python -m unittest discover -s analysis/decision_information_2026_10_15 -p 'test_factorial.py' -v
+      - name: Reconcile original source costs and compute factorial minimax
+        run: python analysis/decision_information_2026_10_15/factorial.py --out artifacts/factorial-10
+      - name: Independently check anchors, full-cross set and conditional regret bounds
+        run: python analysis/decision_information_2026_10_15/test_factorial.py --out artifacts/factorial-10
+      - name: Display full scientific output and negative/limiting findings
+        if: success()
+        run: |
+          cat artifacts/factorial-10/summary.json
+          cat artifacts/factorial-10/REPORT.md
+      - name: Upload fully crossed source diagnostics even on failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: decision-factorial-ten-${{ github.sha }}
+          path: artifacts/factorial-10/
+          retention-days: 90
