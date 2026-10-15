@@ -64,9 +64,9 @@ COLS = {"lab": "laboratory conversion", f"cost_f{F_PRIMARY:g}": f"conversion up 
         "cost_two_sided": f"up to {F_PRIMARY:g} X_eq, or m = 0.5 / 0.25"}
 
 
-def equilibrium_roots(feed, T_C, P_bar):
+def equilibrium_roots(feed, T_C, P_bar, scale=1.0):
     """Every converged root of the simultaneous CO2-hydrogenation + RWGS equilibrium of a feed, from a grid of
-    starting points. Returns the total CO2 conversions."""
+    starting points (methanol extents g1 x scale of the CO2). Returns the total CO2 conversions."""
     T_K = T_C + 273.15
     n0 = {k: float(feed.get(k, 0.0)) for k in G.PR_CRIT}
 
@@ -87,11 +87,11 @@ def equilibrium_roots(feed, T_C, P_bar):
     roots = set()
     for g1 in (0.05, 0.25, 0.5, 0.8, 0.95):
         for g2 in (0.0, 0.01, 0.05):
-            if g1 + g2 >= 0.999 or 3 * g1 + g2 >= n0["H2"]:
+            if g1 * scale + g2 >= 0.999 or 3 * g1 * scale + g2 >= n0["H2"]:
                 continue
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                xi, _, ier, _ = fsolve(res, [g1 * n0["CO2"], g2 * n0["CO2"]], xtol=1e-12, full_output=True)
+                xi, _, ier, _ = fsolve(res, [g1 * scale * n0["CO2"], g2 * n0["CO2"]], xtol=1e-12, full_output=True)
             if ier != 1 or not np.all(np.isfinite(xi)):
                 continue
             n = comp(xi)
@@ -106,6 +106,11 @@ def x_eq_feed(h2_co2, y_co2, T_C, P_bar):
     inert = max(0.0, 1.0 - y_co2 * (1.0 + h2_co2))
     feed = dict(CO2=1.0, H2=h2_co2, N2=inert / y_co2 if inert > 1e-9 else 0.0)
     roots = equilibrium_roots(feed, T_C, P_bar)
+    if not roots and h2_co2 < 3.0:
+        # H2-lean feed (second extraction: H2/CO2 = 0.1 in 10.1021/acscatal.6c04842): every methanol extent of the
+        # CO2-based grid needs more H2 than the feed holds, so the grid is rescaled to the H2-limited extent
+        # (H2/CO2 / 3 of the CO2). No first-extraction feed reaches this branch.
+        roots = equilibrium_roots(feed, T_C, P_bar, scale=h2_co2 / 3.0)
     if not roots:
         raise RuntimeError(f"no equilibrium root for H2/CO2 {h2_co2}, y_CO2 {y_co2}, {T_C} C, {P_bar} bar")
     return roots[0], len(roots)
