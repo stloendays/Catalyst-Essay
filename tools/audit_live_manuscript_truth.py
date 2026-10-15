@@ -1352,7 +1352,7 @@ _maxdoi = [max(rows(f"analysis/meoh_literature_inversion_2026_10_05/{f}"), key=l
 ok("MeOH: the high-pressure Cu/Al2O3 study supplies the largest regret in both loops",
    _maxdoi == [_bd, _bd] and len(_bgm5) == bnd["bansode_groups"] and "c2cy20604h" in V["without_paper_with_most_groups"]["variant"])
 tokens("Main text: the high-pressure Cu/Al2O3 study", m_field,
-       f"supplies {bnd['bansode_groups']} of the {g6} comparisons[35] gives the largest regrets in both loops")
+       f"supplies {bnd['bansode_groups']} of the {g6} comparisons[36] gives the largest regrets in both loops")
 
 # main text: the four Re/TiO2 states of the hand-built case under the inlet limit. They are the Table 4 entries of the
 # extracted Gothe group at 100 bar, H2/CO2 4 and 10 NL/g/h whose conversion and selectivities equal the hand-built
