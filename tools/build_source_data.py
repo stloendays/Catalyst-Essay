@@ -203,19 +203,18 @@ def fig2():
     import make_fig_field as FF  # noqa: E402
     lb = FF.meoh_leaderboards().reset_index()
     lb["label"] = lb.label.str.replace("S$_{MeOH}$", "S_MeOH", regex=False)
-    kd = FF.lit["variants"]["inlet_limit_6.86pct"]["kinds"]
+    kd = FF.pool["S6"]["kinds"]
     b.panel("b", [("leader changes by paper leaderboard: inert-limited loop (primary) and STY without the limit", lb,
-                   "analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv (cost_column) scored with "
-                   "meoh_candidates.aggregate; CI95: analysis/meoh_s6_robustness_2026_10_13/stats_s6/summary.json "
-                   "(STY) and analysis/meoh_main_result_stats_2026_10_06/summary.json (STY_no_limit), "
-                   "cluster_bootstrap.fraction_ci95",
+                   "analysis/meoh_field_pooled_2026_10_15/pooled_candidates.csv (both extractions; cost_column) "
+                   "scored with meoh_candidates.aggregate; CI95: analysis/meoh_field_pooled_2026_10_15/summary.json "
+                   "(S6 / S5 primary.bootstrap_frozen_inversion.ci95)",
                    "bar height = fraction; hatched height = regret_gt5pct / groups"),
                   ("STY disagreements by kind, inert-limited loop",
                    kv({"other catalyst": kd["other_catalyst"]["groups"],
                        "comparisons with at least two catalysts": kd["other_catalyst"]["of"],
                        "same catalyst, other temperature": kd["other_temperature"]["groups"],
                        "comparisons with a temperature series": kd["other_temperature"]["of"]}),
-                   "analysis/meoh_literature_inversion_2026_10_05/summary.json (variants.inlet_limit_6.86pct.kinds)",
+                   "analysis/meoh_field_pooled_2026_10_15/summary.json (S6.kinds)",
                    "")])
     pr, nv = nh3["primary"], nh3["variants"]
     cases = [("rate per g catalyst (primary)", pr), ("rate per g metal", nv["per_g_metal_leaderboard"]),

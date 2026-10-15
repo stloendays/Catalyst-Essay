@@ -56,7 +56,11 @@ lit = read_json(INV + "summary.json")
 stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")      # bootstrap, loop without limit
 stats6 = read_json(S6R + "stats_s6/summary.json")                                  # bootstrap, inert-limited loop
 s6res = read_json(S6R + "results.json")
-cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
+cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
+# panel b since 2026-10-15: both extractions (40 + 41 groups), analysis/meoh_field_pooled_2026_10_15
+POOL = "analysis/meoh_field_pooled_2026_10_15/"
+pool = read_json(POOL + "summary.json")
+pcand = pd.read_csv(os.path.join(REPO, POOL, "pooled_candidates.csv"))
 NH3F = "analysis/nh3_field_2026_10_06/nh3_1_2/"                                 # ammonia model NH3-FINAL-1.2
 nh3_run = read_json(NH3F + "summary.json")
 nh3 = read_json(NH3F + "summary_printed.json")                                   # primary: printed values
@@ -83,7 +87,7 @@ def meoh_leaderboards():
     """Panel b: comparisons whose paper leader is not the plant-cost leader, by paper leaderboard, in the inert-limited
     loop, and by STY without the limit; scored with the frozen meoh_candidates.aggregate (X*S as in
     run_literature_inversion.py) and checked against the frozen summaries."""
-    c = cand.assign(XS=cand.X * cand.SMeOH)
+    c = pcand.assign(XS=pcand.X * pcand.SMeOH)
     rows = []
     for key, label, col, up in (("STY", "STY", S6, "STY"), ("XS", "X·S", S6, "XS"), ("X", "X", S6, "X"),
                                 ("SMeOH", "S$_{MeOH}$", S6, "SMeOH"), ("STY_no_limit", "STY", S5, "STY")):
@@ -95,16 +99,15 @@ def meoh_leaderboards():
                          regret_gt5pct=int((m.regret > 0.05).sum()), papers_with_mismatch=s_["papers_with_mismatch"],
                          regret_median_mismatched=s_["regret_median_mismatched"]))
     t = pd.DataFrame(rows).set_index("key")
-    v6, p5 = lit["variants"]["inlet_limit_6.86pct"], lit["primary"]
-    f6, f5 = s6res["frozen_columns"]["S6"], s6res["frozen_columns"]["S5"]
+    q6, q5 = pool["S6"], pool["S5"]
     assert (t.loc["STY", "mismatch_groups"], t.loc["STY", "regret_gt5pct"]) == (
-        v6["top1_mismatch_groups"], v6["regret_bins"]["gt5pct"]["groups"]) == (28, 22)
+        q6["primary"]["disagreements"], q6["primary"]["gt5pct"])
     assert (t.loc["STY_no_limit", "mismatch_groups"], t.loc["STY_no_limit", "regret_gt5pct"]) == (
-        p5["top1_mismatch_groups"], p5["regret_bins"]["gt5pct"]["groups"]) == (15, 7)
-    for k, r in (("X", "leaderboard_X"), ("SMeOH", "leaderboard_SMeOH")):
-        assert (t.loc[k, "mismatch_groups"], t.loc[k, "regret_gt5pct"]) == (f6[r]["disagreements"], f6[r]["gt5pct"])
-    assert t.loc["XS", "mismatch_groups"] >= 0 and f5["primary"]["disagreements"] == 15
-    ci = {"STY": stats6["cluster_bootstrap"]["fraction_ci95"], "STY_no_limit": stats["cluster_bootstrap"]["fraction_ci95"]}
+        q5["primary"]["disagreements"], q5["primary"]["gt5pct"])
+    for k, r in (("X", "leaderboard_X"), ("SMeOH", "leaderboard_SMeOH"), ("XS", "leaderboard_XS")):
+        assert (t.loc[k, "mismatch_groups"], t.loc[k, "regret_gt5pct"]) == (q6[r]["disagreements"], q6[r]["gt5pct"])
+    ci = {"STY": q6["primary"]["bootstrap_frozen_inversion"]["ci95"],
+          "STY_no_limit": q5["primary"]["bootstrap_frozen_inversion"]["ci95"]}
     t["CI95_low"] = [ci[k][0] if k in ci else np.nan for k in t.index]
     t["CI95_high"] = [ci[k][1] if k in ci else np.nan for k in t.index]
     return t
@@ -193,7 +196,7 @@ if __name__ == "__main__":
     b.axvline(3.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
     b.text(1.5, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
     b.text(xb["STY_no_limit"], 0.985, "no limit", ha="center", va="top", fontsize=5.3)
-    kd = lit["variants"]["inlet_limit_6.86pct"]["kinds"]
+    kd = pool["S6"]["kinds"]
     pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 %% CI; hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d, "
                 "other temperature %d/%d" % (kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"],
                                              kd["other_temperature"]["groups"], kd["other_temperature"]["of"]),

@@ -60,6 +60,54 @@ First author, year and journal from `agent/extraction/fetch_manifest.json` and C
 | Wang | 2020 | Mol. Catal. | 10.1016/j.mcat.2020.111105 | TheMeCat | 6 | 36 | 6 | yes (1) | 1 |
 | **Total** |  |  | **50 papers** |  | **762** | **1,488** | **740** | **50** | **351** |
 
+### Supplementary Table 1b | The 40 CO₂-to-methanol papers of the second extraction
+
+Papers published 2025-11-05 to 2026-10-13, taken in the rank order of the OpenAlex search of `analysis/validation_meoh_prospective_2026_10_13/search_query.json` and screened against the criteria of the first set (`analysis/validation_meoh_prospective_2026_10_13/screening.csv`). First author, year and journal from `analysis/validation_meoh_prospective_2026_10_13/fetch_manifest.json` and Crossref; extracted entries from `analysis/validation_meoh_prospective_2026_10_13/out/records_normalized.csv`; SI files from `analysis/validation_meoh_prospective_2026_10_13/si_manifest.json`; candidate operating points (printed values, PDF-checked) from `analysis/validation_meoh_prospective_2026_10_13/new_candidates_costed.csv`; comparison groups and groups whose space-time-yield leader is not the plant-cost leader (inert-limited loop) from `analysis/meoh_field_pooled_2026_10_15/groups_S6.csv`.
+
+| First author | Year | Journal | DOI | Extracted entries | SI obtained | Candidate operating points (printed values) | Comparison groups | Leader differs (inert-limited loop) |
+|---|---|---|---|---|---|---|---|---|
+| Ren | 2026 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.6c02654 | 24 | yes (1) | 5 | 1 | 1 |
+| Ren | 2026 | ACS Catal. | 10.1021/acscatal.6c04165 | 18 | yes (1) | 1 | – | – |
+| Herrmann | 2026 | J. Phys. Chem. C | 10.1021/acs.jpcc.6c03438 | 26 | yes (1) | – | – | – |
+| Chen | 2026 | J. Mater. Sci. | 10.1007/s10853-025-12085-w | 24 | yes (1) | – | – | – |
+| Jiang | 2026 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.6c02971 | 13 | yes (1) | 11 | 1 | 0 |
+| Yan | 2026 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.6c02734 | 9 | yes (1) | 9 | 1 | 1 |
+| Southall | 2026 | ACS Catal. | 10.1021/acscatal.6c01304 | 36 | yes (1) | 3 | 1 | 0 |
+| Zanganeh | 2026 | ACS Catal. | 10.1021/acscatal.6c03348 | 54 | yes (1) | – | – | – |
+| Jin | 2026 | ACS Appl. Mater. Interfaces | 10.1021/acsami.6c11826 | 15 | yes (1) | 1 | – | – |
+| Soriano | 2026 | ACS Catal. | 10.1021/acscatal.6c02907 | 71 | yes (1) | 69 | 10 | 7 |
+| Wang | 2026 | ACS Catal. | 10.1021/acscatal.6c03484 | 8 | yes (1) | – | – | – |
+| Zhang | 2026 | ACS Catal. | 10.1021/acscatal.6c06647 | 55 | yes (1) | 5 | 1 | 0 |
+| Liu | 2026 | J. Am. Chem. Soc. | 10.1021/jacs.6c13528 | 14 | yes (1) | 4 | – | – |
+| Chen | 2025 | Nat. Commun. | 10.1038/s41467-025-65929-z | 22 | yes (3) | 11 | 2 | 0 |
+| Liu | 2026 | Nat. Chem. | 10.1038/s41557-026-02104-x | 51 | yes (1) | 33 | 1 | 0 |
+| Tang | 2026 | ACS Catal. | 10.1021/acscatal.6c01275 | 67 | yes (1) | 2 | 1 | 1 |
+| Wang | 2026 | Nat. Commun. | 10.1038/s41467-026-76170-7 | 32 | yes (2) | 1 | – | – |
+| Tan | 2026 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.6c10107 | 37 | yes (1) | – | – | – |
+| Lam | 2026 | ACS Catal. | 10.1021/acscatal.6c02731 | 23 | yes (3) | – | – | – |
+| Li | 2026 | Energy Fuels | 10.1021/acs.energyfuels.6c02662 | 48 | yes (1) | 13 | 5 | 4 |
+| Peng | 2026 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.6c05638 | 31 | yes (1) | 3 | 1 | 0 |
+| Wang | 2026 | AIChE J. | 10.1002/aic.70528 | 5 | yes (1) | – | – | – |
+| Chiang | 2026 | Nat. Nanotechnol. | 10.1038/s41565-026-02135-y | 31 | yes (2) | 15 | 1 | 1 |
+| Zhang | 2026 | ACS Catal. | 10.1021/acscatal.6c06714 | 43 | yes (1) | 19 | 1 | 1 |
+| Fang | 2026 | ACS Sustain. Chem. Eng. | 10.1021/acssuschemeng.6c03564 | 24 | yes (1) | – | – | – |
+| Becker | 2026 | Nat. Commun. | 10.1038/s41467-026-72876-w | 11 | yes (2) | 5 | 1 | 0 |
+| Berretta | 2025 | Chem. Eng. J. | 10.1016/j.cej.2025.170755 | 22 | yes (1) | 18 | 3 | 0 |
+| Gómez | 2026 | ACS Catal. | 10.1021/acscatal.6c03987 | 51 | yes (1) | 47 | 2 | 2 |
+| He | 2026 | ACS Catal. | 10.1021/acscatal.6c04842 | 66 | yes (1) | 7 | 3 | 2 |
+| Mediavilla-Madrigal | 2026 | ACS Catal. | 10.1021/acscatal.6c03224 | 21 | yes (1) | – | – | – |
+| Zhang | 2026 | Sci. China Chem. | 10.1007/s11426-025-3299-6 | 34 | yes (1) | – | – | – |
+| Ling | 2026 | Ind. Eng. Chem. Res. | 10.1021/acs.iecr.6c02524 | 44 | yes (1) | – | – | – |
+| Cai | 2026 | Front. Chem. Sci. Eng. | 10.1007/s11705-026-2706-y | 33 | yes (1) | 1 | – | – |
+| Gao | 2026 | ACS Catal. | 10.1021/acscatal.6c05217 | 28 | yes (1) | 2 | 1 | 0 |
+| Wang | 2026 | ACS Catal. | 10.1021/acscatal.6c06780 | 33 | yes (1) | 5 | 1 | 0 |
+| Stryšovský | 2026 | Sci. Rep. | 10.1038/s41598-026-47757-3 | 60 | yes (1) | 1 | – | – |
+| Lawes | 2026 | ACS Catal. | 10.1021/acscatal.5c06703 | 36 | yes (1) | – | – | – |
+| Hong | 2026 | Sci. China Chem. | 10.1007/s11426-026-3904-1 | 12 | yes (1) | 2 | 1 | 1 |
+| Zhang | 2026 | Sci. Adv. | 10.1126/sciadv.aea7041 | 52 | yes (1) | 52 | 1 | 1 |
+| Liu | 2026 | Carbon Hydrogen | 10.1002/cbh2.70072 | 30 | yes (1) | 3 | 1 | 0 |
+| **Total** |  |  | **40 papers** | **1,314** | **40** | **348** | **41** | **22** |
+
 ### Supplementary Table 2 | The 30 primary ammonia-synthesis papers
 
 First author and year from `agent/nh3_field/fetch_manifest.json`, journal from Crossref; Humphreys 2021 reference number from `agent/nh3_field/paper_set.txt`; SI files from `agent/nh3_field/si_manifest.json`; extracted catalyst entries from `analysis/nh3_field_2026_10_06/nh3_1_2/candidates.csv`; printed-value primary entries (one per catalyst and comparison) and their metals from `analysis/nh3_field_2026_10_06/nh3_1_2/candidates_printed.csv`; comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost catalyst (primary leaderboard: rate per g catalyst, no metal recovery) from `analysis/nh3_field_2026_10_06/nh3_1_2/group_metrics_printed.csv`; totals checked against `analysis/nh3_field_2026_10_06/nh3_1_2/summary.json` and `analysis/nh3_field_2026_10_06/nh3_1_2/summary_printed.json`.
@@ -433,7 +481,7 @@ One row per source paper with a confirmed error. A root cause is one mechanism i
 | Humphreys 2021 (ref. 81) | Tang 2018, Adv. Energy Mater. | 10.1002/aenm.201801772 | 3 | 3 | 3 | – | nominal Ru loading 1 wt% instead of the measured 0.86 wt%; Co rate 5.7 instead of the printed 5.5 mmol g⁻¹ h⁻¹; space velocity of the Ru row 36,000 (66,000 for the paper's Fe and Co rows). |
 | Humphreys 2021 (ref. 200) | Wang 2020, Nat. Commun. | 10.1038/s41467-020-14287-z | 1 | 1 | 1 | – | Co loading 3.4 instead of the ICP-AES 3.73 wt%. |
 | Suvarna 2022 | Hengne 2018, ACS Omega | 10.1021/acsomega.8b00211 | 1 | 1 | 1 | – | rate of 5Ni10Sn/10InZrO₂ assigned to the Sn-free catalyst. |
-| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 4a series assigned one temperature step low. |
+| Suvarna 2022 | Karelovic 2015, Catal. Sci. Technol. | 10.1039/c4cy00848k | 2 | 4 | 35 | – | 7 bar stored as 7 MPa; rates of the Fig. 3a series assigned one temperature step low. |
 | Suvarna 2022 | Sharma 2021, ACS Appl. Mater. Interfaces | 10.1021/acsami.1c05586 | 1 | 1 | 0 (+ 8 rows) | – | rows at 533 and 573 K, which the paper did not test. |
 | Suvarna 2022 | Shen 2021, ACS Catal. | 10.1021/acscatal.0c05628 | 1 | 2 | 2 | – | two 300 °C STY values assigned to the wrong samples (Ir/In₂O₃-5, pristine In₂O₃). |
 | TheMeCat v1 | Bahruji 2016, J. Catal. | 10.1016/j.jcat.2016.03.017 | 1 | 1 | 19 | 16 | GHSV 3.6 stored as 36.2 NL g⁻¹ h⁻¹ (×10); STY derived from it. |
