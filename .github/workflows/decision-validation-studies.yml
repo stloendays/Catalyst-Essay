@@ -1,0 +1,54 @@
+name: Decision robustness + constraint activation + NH3 evidence (exploratory)
+on:
+  push:
+    paths:
+      - "analysis/decision_validation_2026_10_15/**"
+      - ".github/workflows/decision-validation-studies.yml"
+  pull_request:
+    paths:
+      - "analysis/decision_validation_2026_10_15/**"
+      - ".github/workflows/decision-validation-studies.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-studies:
+    name: Study ${{ matrix.study }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        study: ["2", "3", "4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Enforce immutable science and source scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          git diff --name-only origin/main...HEAD > changed.txt
+          cat changed.txt
+          if grep -Ev '^(analysis/decision_validation_2026_10_15/|\.github/workflows/decision-validation-studies\.yml$)' changed.txt; then
+            echo "Unexpected modification to frozen code, sources or manuscript"
+            exit 1
+          fi
+      - name: Execute independent study and locked anchors
+        run: |
+          python analysis/decision_validation_2026_10_15/run_studies.py --study ${{ matrix.study }} --out artifacts/study-${{ matrix.study }}
+      - name: Check output integrity
+        if: success()
+        run: |
+          python analysis/decision_validation_2026_10_15/test_outputs.py --study ${{ matrix.study }} --out artifacts/study-${{ matrix.study }}
+      - name: Publish output even on failed research gate
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: decision-study-${{ matrix.study }}-${{ github.sha }}
+          path: artifacts/study-${{ matrix.study }}/
+          retention-days: 90
