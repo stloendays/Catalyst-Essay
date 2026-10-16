@@ -1143,6 +1143,12 @@ PL = _j("analysis/meoh_field_pooled_2026_10_15/summary.json")
 PL6, PL5 = PL["S6"], PL["S5"]
 pl6, pl5 = PL6["primary"], PL5["primary"]
 plci6, plci5 = pl6["bootstrap_frozen_inversion"]["ci95"], pl5["bootstrap_frozen_inversion"]["ci95"]
+# since 2026-10-16 the robustness numbers of the main text are the combined-set reruns (first set reproduced in each)
+RB = _j("analysis/meoh_field_pooled_2026_10_15/robustness/summary.json")
+assert not RB["checks_failed"], RB["checks_failed"]
+_rn = RB["1_noise"]["S6"]["combined"]
+_rin = RB["2_inlet"]["combined"]
+_frac = lambda s: tuple(int(x) for x in s.split("/"))  # noqa: E731
 LIM = bnd["s6_limit"]
 n6, g6 = S6["top1_mismatch_groups"], S6["groups"]
 n5, g5 = P0["top1_mismatch_groups"], P0["groups"]
@@ -1250,7 +1256,9 @@ tokens("Main text: methanol field result, inlet-limited loop (S6) primary and S5
        f"{pl5['gt5pct']} of them above 5%",
        f"It appears in both extractions ({PL6['by_set']['first']['disagreements']} of {PL6['by_set']['first']['groups']} "
        f"and {PL6['by_set']['second']['disagreements']} of {PL6['by_set']['second']['groups']} comparisons)",
-       f"against {n5} without any limit and {n6} with it, so the rise comes from CO build-up")
+       f"limiting methane and N₂ alone and leaving CO unlimited gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]} "
+       f"of {_frac(_rin['co_excluded_6_86']['disagreements'])[1]}, {_rin['co_excluded_6_86']['gt5pct']} above 5%, so the "
+       f"rise from {pl5['disagreements']} to {pl6['disagreements']} comes from CO build-up")
 
 
 def _scan(defn, lim):
@@ -1258,11 +1266,14 @@ def _scan(defn, lim):
 
 
 _band = [_scan("frozen", L) for L in idf["limits_pct"] if L != "none" and 5 <= float(L) <= 10]
-tokens("Main text: 5-15 % stability of the inlet limit", m_field,
-       f"inlet limits of 5–10% ({min(s['different_leader'] for s in _band)}–{max(s['different_leader'] for s in _band)} "
-       f"of {g6}, {min(s['gt5pct'] for s in _band)}–{max(s['gt5pct'] for s in _band)} above 5%)",
-       f"weakens towards 15% ({_scan('frozen', '12')['different_leader']} and {_scan('frozen', '15')['different_leader']} "
-       f"of {g6} at 12% and 15%, {_scan('frozen', '12')['gt5pct']} and {_scan('frozen', '15')['gt5pct']} above 5%")
+_sw = _rin["sweep"]
+_bd5 = [_sw[k] for k in ("5", "6", "6.86", "8", "10")]
+tokens("Main text: 5-15 % stability of the inlet limit (combined set)", m_field,
+       f"inlet limits of 5–10% ({min(_frac(s['disagreements'])[0] for s in _bd5)}–"
+       f"{max(_frac(s['disagreements'])[0] for s in _bd5)} of {pl6['groups']}, {min(s['gt5pct'] for s in _bd5)}–"
+       f"{max(s['gt5pct'] for s in _bd5)} above 5%)",
+       f"weakens towards 15% ({_frac(_sw['12']['disagreements'])[0]} and {_frac(_sw['15']['disagreements'])[0]} of "
+       f"{pl6['groups']} at 12% and 15%, {_sw['12']['gt5pct']} and {_sw['15']['gt5pct']} above 5%")
 oc6, sT6, oT6 = k6["other_catalyst"], k6["cat_sameT"], k6["other_temperature"]
 _pk = PL6["kinds"]
 tokens("Main text: kinds of S6 disagreement (combined set)", m_field,
@@ -1324,10 +1335,13 @@ ok("MeOH S6 sensitivities agree across the merged analyses",
    and all((cvr[f"printed|{k}"]["top1_mismatch_groups"], cvr[f"printed|{k}"]["gt5pct"])
            == (cr6["top1_mismatch_groups"], cr6["gt5pct"]) for k in ("cost_f0.9", "cost_f0.99", "cost_two_sided")))
 tokens("Main text: S6 robustness (sampling, measurement, near-infeasibility, sensitivities)", m_field,
-       f"re-measuring every entry {st6['noise_model']['draws']:,} times",
-       f"keeps {km1_6['observed_mismatches_kept_in_ge_90pct']} of the {n6} disagreements in at least 90% of "
-       f"re-measurements, whereas measurement noise alone changes a paper's space-time-yield leader in "
-       f"{km1_6['sty_leader_differs_from_reported_mean']:.0f} comparisons (95% range {nfq[0]:.0f}–{nfq[1]:.0f})",
+       f"Re-measuring every entry {st6['noise_model']['draws']:,} times",
+       f"keeps {_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} disagreements in at "
+       f"least 90% of re-measurements, whereas measurement noise alone changes a paper's space-time-yield leader in "
+       f"{_rn['noise_only_sty_leader_changes']['mean']:.0f} comparisons (95% range "
+       f"{_rn['noise_only_sty_leader_changes']['range95'][0]:.0f}–{_rn['noise_only_sty_leader_changes']['range95'][1]:.0f})",
+       f"It appears in both extractions ({PL6['by_set']['first']['disagreements']} of {PL6['by_set']['first']['groups']} "
+       f"and {PL6['by_set']['second']['disagreements']} of {PL6['by_set']['second']['groups']} comparisons)",
        f"In {PL6['near_infeasibility']['near-infeasible']['groups']} of the {pl6['disagreements']} the paper leader meets "
        f"the inlet limit only with a large purge and costs more than twice its cost without the limit; the other "
        f"{PL6['near_infeasibility']['ordinary']['groups']}, {PL6['near_infeasibility']['ordinary']['gt5pct']} of them above "
@@ -1336,14 +1350,18 @@ tokens("Main text: S6 robustness (sampling, measurement, near-infeasibility, sen
        f"{PL6['without_bansode']['groups']}, {PL6['without_bansode']['gt5pct']} above 5%)",
        f"close to methanol, CO and methane ({PL6['closure_ge95']['disagreements']} of {PL6['closure_ge95']['groups']})",
        f"with recycled CO treated as inert ({PL6['inert_co']['disagreements']} of {PL6['inert_co']['groups']})",
-       f"In the {g6} comparisons of the first extraction (Extended Data Fig. 3), re-measuring",
-       f"when plot-read entries are added ({ae6['different_leader']} of {ae6['groups']} comparisons)",
-       f"set to either bound ({min(sp6)}–{max(sp6)} of {g6})",
-       f"priced from its composition ({cc6['disagreements']} of {cc6['groups']})",
-       f"raise its conversion towards equilibrium ({cr6['top1_mismatch_groups']} of {cr6['groups']}, {cr6['gt5pct']} "
-       f"above 5%, from {cr6['gt5pct_papers']} papers)",
-       f"in the first extraction, limiting methane and N₂ alone and leaving CO unlimited gives {co6['disagreements']} of "
-       f"{co6['groups']}, {co6['gt5pct']} above 5%")
+       f"when plot-read entries are added ({_frac(RB['7_all_entries']['S6']['combined']['disagreements'])[0]} of "
+       f"{_frac(RB['7_all_entries']['S6']['combined']['disagreements'])[1]} comparisons)",
+       f"set to either bound ({RB['6_split']['S6']['combined']['bounds'].replace('-', '–')} of {pl6['groups']})",
+       f"priced from its composition ({_frac(RB['5_catalyst']['S6']['combined']['composition_3y']['disagreements'])[0]} of "
+       f"{pl6['groups']})",
+       f"raise its conversion towards equilibrium "
+       f"({_frac(RB['4_conversion']['S6']['combined']['printed|cost_f0.95']['disagreements'])[0]} of {pl6['groups']}, "
+       f"{RB['4_conversion']['S6']['combined']['printed|cost_f0.95']['gt5pct']} above 5%, from "
+       f"{RB['4_conversion']['S6']['combined']['printed|cost_f0.95']['gt5pct_papers']} papers)")
+ok("MeOH combined robustness: every first-set anchor reproduced in the combined reruns",
+   all(RB[k][s]["first_set_anchor_reproduced"] for k in ("1_noise", "4_conversion", "5_catalyst", "6_split", "7_all_entries")
+       for s in ("S6", "S5")) and all(RB[k]["first_set_anchor_reproduced"] for k in ("2_inlet", "3_co_bound", "8_pruning")))
 _nb = bnd["scenarios"]["S6"]["near_infeasibility"]
 ok("MeOH S6 near-infeasible: every one meets the twofold-cost rule (as the text describes them)",
    _nb["by_criterion"]["lab_cost_gt2x_S5"] == ni["near-infeasible"]["groups"] == _nb["near_infeasible"]["groups"]
@@ -1353,7 +1371,7 @@ ok("MeOH S6 near-infeasible: every one meets the twofold-cost rule (as the text 
 mc6, mc5 = F6["mechanism"], F5["mechanism"]
 _none = _scan("frozen", "none")
 tokens("Main text: by-product mechanism of the S6 disagreements", m_field,
-       f"the reactor feed carries a median {pc(_none['co_share_median'], 1)}% CO",
+       f"the reactor feed carries a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% CO",
        f"against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in published loop designs",
        f"more selective to methanol than the paper leader in {PL6['mechanism']['plant_leader_more_selective']['count']} of "
        f"the {PL6['mechanism']['disagreements']} disagreements and makes less CO in "
@@ -1367,7 +1385,8 @@ _coq = _quantiles(_co_none, [0.1, 0.9])
 ok("MeOH S5 inlet CO: median of the 310 scored entries equals the merged summary",
    len(_ec) == P0["entries"] and abs(_quantiles(_co_none, [0.5])[0] - _none["co_share_median"]) < 1e-9)
 tokens("Main text: inlet CO without the limit, median and 90th percentile", m_field,
-       f"median {pc(_none['co_share_median'], 1)}% CO (90th percentile {pc(_coq[1])}%)")
+       f"median {pc(_rin['inlet_co_without_limit']['median'], 1)}% CO (90th percentile "
+       f"{pc(_rin['inlet_co_without_limit']['p90'])}%)")
 _cand = rows("analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv")
 _gm5 = {r["group"]: r for r in rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv")}
 _ex = []
@@ -2282,7 +2301,8 @@ _hi, _hn = _cob["results"]["high"]["6.86"], _cob["results"]["high"]["none"]
 _si_flat = re.sub(r"\s+", " ", raw_si)
 tokens("MeOH: recycled CO converted up to CO-hydrogenation equilibrium, main text and Methods (PR #84)", text,
        f"converted per pass up to CO-hydrogenation equilibrium "
-       f"({_hi['disagreements']} of {_hi['groups']}, {_hi['gt5pct']} above 5%)",
+       f"({_frac(RB['3_co_bound']['combined']['high|6.86']['disagreements'])[0]} of {pl6['groups']}, "
+       f"{RB['3_co_bound']['combined']['high|6.86']['gt5pct']} above 5%)",
        "recycled CO converted up to CO-hydrogenation equilibrium are reported as sensitivities")
 tokens("SI Note 3: recycled CO converted up to CO-hydrogenation equilibrium (PR #84)", _si_flat,
        f"gives {_hn['disagreements']} of {_hn['groups']} without the limit ({_hn['gt5pct']} above 5%) and "
