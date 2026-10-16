@@ -9,6 +9,10 @@ file, aggregate and classify) and swaps only the plant cost of one candidate:
 
 The convention variant must reproduce the frozen cost column of each treatment (cost_recycled_opt /
 cost_recycled_opt_inlet). Writes selectivity_split.json and selectivity_split_groups.csv (this folder).
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same analysis on the 81 groups of
+both extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/selectivity_split/; the first-set
+groups must reproduce the first-set counts (S5 15 / 14 / 18, S6 28 / 26 / 29 of 40).
 """
 import json
 import os
@@ -28,6 +32,11 @@ import run_selectivity_split as SS  # noqa: E402
 G = SS.G
 WORKERS = int(os.environ.get("INV_WORKERS", "4"))
 FROZEN_COL = {"S5": "cost_recycled_opt", "S6": "cost_recycled_opt_inlet"}
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("selectivity_split", HERE)
+FIRST_SET_S6 = {"convention": 28, "low": 26, "high": 29}
 
 
 def lab_cost_both(key):
@@ -44,7 +53,7 @@ def lab_cost_both(key):
 
 
 def main():
-    c = pd.read_csv(INV / "literature_candidates.csv")
+    c = FS.candidates()
     variants = {}
     for v in ("convention", "low", "high"):
         f = c.copy()
@@ -77,13 +86,23 @@ def main():
             groups.append(gm.assign(treatment=treat, variant=v))
         out[treat] = summary
     frozen = json.loads((INV / "selectivity_split_summary.json").read_text(encoding="utf-8"))["variants"]
+    chk = out
+    if FS.COMBINED:                     # the same checks on the first-set groups
+        g = pd.concat(groups)
+        g = g[g.group.isin(set(FS.first_part(c).group))]
+        chk = {t: {v: dict(disagreements=int(d.top1_mismatch.sum()), groups=int(len(d)),
+                           gt5pct=int((d.top1_mismatch & (d.regret > 0.05)).sum()))
+                   for v, d in gt.groupby("variant")} for t, gt in g.groupby("treatment")}
+        for v in ("low", "high"):
+            assert chk["S6"][v]["disagreements"] == FIRST_SET_S6[v], (v, chk["S6"][v])
+        out["first_set"] = chk
     for v in ("convention", "low", "high"):
-        assert out["S5"][v]["disagreements"] == frozen[v]["top1_mismatch_groups"], (v, out["S5"][v], frozen[v])
-        assert out["S5"][v]["gt5pct"] == frozen[v]["gt5pct"], v
-    assert out["S6"]["convention"]["disagreements"] == 28
-    (HERE / "selectivity_split.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
-    pd.concat(groups).to_csv(HERE / "selectivity_split_groups.csv", index=False, float_format="%.6g")
-    for t, s in out.items():
+        assert chk["S5"][v]["disagreements"] == frozen[v]["top1_mismatch_groups"], (v, chk["S5"][v], frozen[v])
+        assert chk["S5"][v]["gt5pct"] == frozen[v]["gt5pct"], v
+    assert chk["S6"]["convention"]["disagreements"] == 28
+    (OUT / "selectivity_split.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    pd.concat(groups).to_csv(OUT / "selectivity_split_groups.csv", index=False, float_format="%.6g")
+    for t, s in ((t, out[t]) for t in ("S5", "S6")):
         print(t, {v: (x["disagreements"], x["groups"], x["gt5pct"], x["infeasible_entries"]) for v, x in s.items()})
 
 

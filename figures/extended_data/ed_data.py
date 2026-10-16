@@ -31,6 +31,14 @@ S6R = "analysis/meoh_s6_robustness_2026_10_13/"
 STATS6 = S6R + "stats_s6/"
 IDEF = "analysis/meoh_inlet_definition_2026_10_12/"
 CONV6 = "analysis/verify_2026_10_12_s6_conversion/"
+# since 2026-10-16 the methanol Extended Data figures (2, 3 and 8) show the combined set of both extractions
+# (81 groups, 50 papers): analysis/meoh_field_pooled_2026_10_15 and its robustness/ reruns (same scripts, same formats)
+POOL = "analysis/meoh_field_pooled_2026_10_15/"
+CMB = POOL + "robustness/"
+STATS6_C, STATS5_C = CMB + "stats_s6/", CMB + "stats_s5/"
+PRUNE_C = CMB + "pruning/"
+IDEF_C = CMB + "inlet_definition/"
+PURGE_C = CMB + "purge_boundary/purge_boundary_"
 
 
 def path(rel):
@@ -98,7 +106,7 @@ def edfig2():
 # ------------------------------------------------------------------ ED Fig. 3: methanol robustness --------------
 # Both loops of the revised manuscript: the inert-limited loop (primary; reactor-inlet CH4 + CO + N2 <= 6.86 %, frozen
 # column cost_recycled_opt_inlet) and the loop without the limit (frozen column cost_recycled_opt).
-LOOPS = (("inlet_limited", "inert-limited loop", STATS6), ("no_limit", "no limit", STATS))
+LOOPS = (("inlet_limited", "inert-limited loop", STATS6_C), ("no_limit", "no limit", STATS5_C))
 
 
 def bootstrap_distribution(stats=STATS):
@@ -122,40 +130,40 @@ def bootstrap_distribution(stats=STATS):
 
 
 def robustness_checks():
-    """Leader changes under every robustness check of the methanol paragraph, in both loops."""
-    r = rjson(S6R + "results.json")
-    fc, ss, cc = r["frozen_columns"], r["selectivity_split"], r["catalyst_cost"]
-    lit = rjson(INV + "summary.json")["variants"]
-    conv6 = rjson(CONV6 + "s6_conversion_summary.json")["scenarios"]["printed|cost_f0.95"]
-    conv5 = rjson(INV + "conversion_sensitivity_summary.json")["scenarios"]["printed|cost_f0.95"]
+    """Leader changes under every robustness check of the methanol paragraph, in both loops (combined 81 groups)."""
+    pl = rjson(POOL + "summary.json")
+    ss = rjson(CMB + "selectivity_split/selectivity_split.json")
+    cc = rjson(CMB + "catalyst_cost/catalyst_cost.json")
+    ae = rjson(CMB + "all_entries/summary.json")
+    conv6 = rjson(CMB + "conversion_s6/s6_conversion_summary.json")["scenarios"]["printed|cost_f0.95"]
+    conv5 = rjson(CMB + "conversion_s5/conversion_sensitivity_summary.json")["scenarios"]["printed|cost_f0.95"]
 
-    def fr(d):          # entries of results.json (frozen_columns, selectivity_split, catalyst_cost)
+    def fr(d):
         return d["groups"], d["disagreements"], d["gt5pct"]
 
-    def sm(d):          # meoh_candidates summaries
+    def sm(d):
         gt5 = d["regret_bins"]["gt5pct"]["groups"] if "regret_bins" in d else d["gt5pct"]
         return d["groups"], d["top1_mismatch_groups"], gt5
 
     checks = [
-        ("as published", "primary", fr(fc["S6"]["primary"]), fr(fc["S5"]["primary"]),
-         S6R + "results.json (frozen_columns.S6/S5.primary)"),
-        ("without the study\nwith most comparisons", "without_bansode", fr(fc["S6"]["without_bansode"]),
-         fr(fc["S5"]["without_bansode"]), S6R + "results.json (frozen_columns.S6/S5.without_bansode)"),
-        ("plot-read entries\nadded", "all_entries", sm(lit["all_entries_inlet_limit"]), sm(lit["all_entries"]),
-         INV + "summary.json (variants.all_entries_inlet_limit / all_entries)"),
-        ("products close to\nMeOH, CO, CH$_4$", "closure_ge95", fr(fc["S6"]["closure_ge95"]),
-         fr(fc["S5"]["closure_ge95"]), S6R + "results.json (frozen_columns.S6/S5.closure_ge95)"),
+        ("as published", "primary", fr(pl["S6"]["primary"]), fr(pl["S5"]["primary"]), POOL + "summary.json (S6/S5.primary)"),
+        ("without the study\nwith most comparisons", "without_bansode", fr(pl["S6"]["without_bansode"]),
+         fr(pl["S5"]["without_bansode"]), POOL + "summary.json (S6/S5.without_bansode)"),
+        ("plot-read entries\nadded", "all_entries", fr(ae["S6"]["combined"]), fr(ae["S5"]["combined"]),
+         CMB + "all_entries/summary.json (S6/S5.combined)"),
+        ("products close to\nMeOH, CO, CH$_4$", "closure_ge95", fr(pl["S6"]["closure_ge95"]),
+         fr(pl["S5"]["closure_ge95"]), POOL + "summary.json (S6/S5.closure_ge95)"),
         ("unreported split:\nall CO", "split_all_CO", fr(ss["S6"]["low"]), fr(ss["S5"]["low"]),
-         S6R + "results.json (selectivity_split.S6/S5.low)"),
+         CMB + "selectivity_split/selectivity_split.json (S6/S5.low)"),
         ("unreported split:\nall CH$_4$", "split_all_CH4", fr(ss["S6"]["high"]), fr(ss["S5"]["high"]),
-         S6R + "results.json (selectivity_split.S6/S5.high)"),
-        ("recycled CO\nas inert", "inert_co", fr(fc["S6"]["inert_co"]), fr(fc["S5"]["inert_co"]),
-         S6R + "results.json (frozen_columns.S6/S5.inert_co)"),
+         CMB + "selectivity_split/selectivity_split.json (S6/S5.high)"),
+        ("recycled CO\nas inert", "inert_co", fr(pl["S6"]["inert_co"]), fr(pl["S5"]["inert_co"]),
+         POOL + "summary.json (S6/S5.inert_co)"),
         ("catalyst priced\nfrom composition", "catalyst_priced", fr(cc["S6"]["variants"]["composition_3y"]),
-         fr(cc["S5"]["variants"]["composition_3y"]),
-         S6R + "results.json (catalyst_cost.S6/S5.variants.composition_3y)"),
+         fr(cc["S5"]["variants"]["composition_3y"]), CMB + "catalyst_cost/catalyst_cost.json (S6/S5.variants.composition_3y)"),
         ("more catalyst,\nconversion raised", "conversion_raised", sm(conv6), sm(conv5),
-         CONV6 + "s6_conversion_summary.json / " + INV + "conversion_sensitivity_summary.json (printed|cost_f0.95)"),
+         CMB + "conversion_s6/s6_conversion_summary.json / conversion_s5/conversion_sensitivity_summary.json "
+         "(printed|cost_f0.95)"),
     ]
     rows = []
     for label, key, s6, s5, src in checks:
@@ -164,14 +172,24 @@ def robustness_checks():
                              groups=int(g), disagreements=int(d), regret_gt5pct=int(h), fraction=d / g, source=src))
     t = pd.DataFrame(rows)
     v = t.set_index(["key", "loop"])
-    # anchors of the revised text
-    assert tuple(v.loc[("primary", "inlet_limited"), ["disagreements", "regret_gt5pct"]]) == (28, 22)
-    assert tuple(v.loc[("primary", "no_limit"), ["disagreements", "regret_gt5pct"]]) == (15, 7)
-    assert tuple(v.loc[("conversion_raised", "inlet_limited"), ["disagreements", "regret_gt5pct"]]) == (23, 16)
-    assert tuple(v.loc[("conversion_raised", "no_limit"), ["disagreements", "regret_gt5pct"]]) == (14, 3)
-    assert tuple(v.loc[("all_entries", "inlet_limited"), ["groups", "disagreements"]]) == (82, 54)
-    assert tuple(v.loc[("without_bansode", "inlet_limited"), ["groups", "disagreements", "regret_gt5pct"]]) == (32, 21, 17)
+    assert tuple(v.loc[("primary", "inlet_limited"), ["groups", "disagreements", "regret_gt5pct"]]) == (81, 50, 42)
+    assert tuple(v.loc[("primary", "no_limit"), ["disagreements", "regret_gt5pct"]]) == (25, 10)
+    assert tuple(v.loc[("conversion_raised", "inlet_limited"), ["disagreements", "regret_gt5pct"]]) == (46, 36)
+    assert tuple(v.loc[("all_entries", "inlet_limited"), ["groups", "disagreements"]]) == (160, 101)
+    assert tuple(v.loc[("without_bansode", "inlet_limited"), ["groups", "disagreements", "regret_gt5pct"]]) == (73, 43, 37)
     return t
+
+
+def near_infeasible_classes():
+    """PR #69 near-infeasibility rule on the combined candidate table (run_frozen_columns.near_infeasibility)."""
+    import sys
+    sys.path.insert(0, path(S6R))
+    import run_frozen_columns as F
+    c = rcsv(POOL + "pooled_candidates.csv")
+    c["other_products"] = c.other_products.astype(str).str.lower().isin(["true", "1"])
+    gm, _ = F.treatment(c, "S6")
+    groups, _ = F.near_infeasibility(c, gm)
+    return groups.set_index("group").cls
 
 
 def edfig3():
@@ -211,7 +229,7 @@ def edfig3():
     c = pd.DataFrame(rows)
     c.attrs["draws"] = st0["noise_model"]["draws"]
     c.attrs["groups"] = st0["groups"]
-    cls = rcsv(S6R + "s6_groups.csv").set_index("group").cls
+    cls = near_infeasible_classes()
     d = []
     for loop, (_, st, name, stats) in parts.items():
         gp = rcsv(stats + "group_noise_probabilities.csv")
@@ -225,15 +243,15 @@ def edfig3():
                     "p_mismatch_meas_k4", "near_infeasible"]])
     d = pd.concat(d, ignore_index=True)
     s6 = d[d.loop == "inlet_limited"]
-    assert int(s6.near_infeasible.sum()) == 11 and int((s6.near_infeasible & (s6.p_mismatch_meas_k1 >= 0.9)).sum()) == 11
+    assert int(s6.near_infeasible.sum()) == 26 and int((s6.near_infeasible & (s6.p_mismatch_meas_k1 >= 0.9)).sum()) == 26
     e = robustness_checks()
     return {"a": (a, "%sgroup_noise_probabilities.csv and %sgroup_noise_probabilities.csv (observed_mismatch, doi) "
                   "re-drawn with the seed and resample count of each summary.json; 95 %% CIs checked against "
-                  "summary.json" % (STATS6, STATS)),
-            "b": (b, STATS6 + "regret_threshold_curve.csv, " + STATS + "regret_threshold_curve.csv"),
-            "c": (c, STATS6 + "summary.json, " + STATS + "summary.json (noise.*)"),
-            "d": (d, STATS6 + "group_noise_probabilities.csv, " + STATS + "group_noise_probabilities.csv "
-                  "(observed_mismatch == True); near-infeasible: " + S6R + "s6_groups.csv (cls)"),
+                  "summary.json" % (STATS6_C, STATS5_C)),
+            "b": (b, STATS6_C + "regret_threshold_curve.csv, " + STATS5_C + "regret_threshold_curve.csv"),
+            "c": (c, STATS6_C + "summary.json, " + STATS5_C + "summary.json (noise.*)"),
+            "d": (d, STATS6_C + "group_noise_probabilities.csv, " + STATS5_C + "group_noise_probabilities.csv "
+                  "(observed_mismatch == True); near-infeasible: PR #69 rule on " + POOL + "pooled_candidates.csv"),
             "e": (e, "see column source")}
 
 
@@ -431,9 +449,9 @@ def _prune_group(g, col, rel):
 
 
 def edfig7():
-    cb = rcsv(PRUNE + "candidate_bounds.csv")
-    gp = rcsv(PRUNE + "group_pruning.csv").set_index("group")
-    sm = rjson(PRUNE + "summary.json")
+    cb = rcsv(PRUNE_C + "candidate_bounds.csv")
+    gp = rcsv(PRUNE_C + "group_pruning.csv").set_index("group")
+    sm = rjson(PRUNE_C + "summary.json")
     for t, col in (("recycled_opt", "cost_recycled_opt"), ("inert_opt", "cost_inert_opt")):
         flag = np.zeros(len(cb), bool)
         for key, g in cb.groupby("group"):
@@ -469,10 +487,10 @@ def edfig7():
                  leader_missed=int(((c.pruned) & (c.cost_USD_t < fe)).sum()))]
     assert len(frozen) == s["costed"] and int(frozen.pruned.sum()) == s["pruning"]["pruned"]
     d = pd.DataFrame(rows)
-    return {"a": (a, PRUNE + "candidate_bounds.csv; evaluated/excluded re-derived with the agent rule of "
+    return {"a": (a, PRUNE_C + "candidate_bounds.csv; evaluated/excluded re-derived with the agent rule of "
                   "run_meoh_pruning.py and checked per group against group_pruning.csv"),
             "b": (c, ALLOY + " (lower_bound_USD_t, cost_USD_t, pruned); Fe " + ALLOY_SUM),
-            "c": (d, PRUNE + "summary.json, " + ALLOY_SUM + " (pruning) and " + ALLOY)}, fe
+            "c": (d, PRUNE_C + "summary.json, " + ALLOY_SUM + " (pruning) and " + ALLOY)}, fe
 
 
 # ------------------------------------------------------------------ ED Fig. 8: purge optimum and inlet composition
@@ -488,29 +506,29 @@ def definition_sweep_table(sm):
     the limit counts CH4 + CO + N2 (the frozen definition) or CH4 + N2 only (analysis/meoh_inlet_definition_2026_10_12,
     definition_scan.csv), with the loop without a limit on the frozen purge grid and on the grid extended to 1e-4 %
     (purge_boundary_summary.json). Checked against the frozen limit sweep of the literature summary."""
-    t = rcsv(IDEF + "definition_scan.csv")
+    t = rcsv(IDEF_C + "definition_scan.csv")
     t = t[t.limit_pct != "none"].copy()
     t["limit"] = (t.limit_pct.astype(float) / 100.0).round(6)
     t["definition"] = t.definition.map({"frozen": "CH4 + CO + N2", "true_inert": "CH4 + N2"})
     t["order"] = (t.definition == "CH4 + N2").astype(int)
     t = t.sort_values(["order", "limit"])[["definition", "limit", "groups", "different_leader", "fraction", "gt5pct",
                                            "near_infeasible", "papers_with_disagreement"]].reset_index(drop=True)
-    lit = rjson(INV + "summary.json")
+    pl = rjson(POOL + "summary.json")
+    sweep = rjson(CMB + "summary.json")["2_inlet"]["combined"]["sweep"]
     fr = t[t.definition == "CH4 + CO + N2"].set_index("limit")
-    for key, v in lit["limit_sweep"].items():
-        if not key.startswith("none"):
-            assert fr.loc[float(key.rstrip("%")) / 100.0, "different_leader"] == v["top1_mismatch_groups"], key
-    v6 = lit["variants"]["inlet_limit_6.86pct"]
+    for key, v in sweep.items():
+        if key != "none":
+            assert "%d/%d" % tuple(fr.loc[round(float(key) / 100.0, 6), ["different_leader", "groups"]]) == v["disagreements"], key
     r6 = fr[np.isclose(fr.index, 0.0686)].iloc[0]
-    assert (r6.different_leader, r6.gt5pct) == (v6["top1_mismatch_groups"], v6["regret_bins"]["gt5pct"]["groups"])
-    none = rcsv(IDEF + "definition_scan.csv").query("limit_pct == 'none'").iloc[0]
-    p, x = lit["primary"], sm["boundary"]["scored"]
-    assert (none.different_leader, none.gt5pct) == (p["top1_mismatch_groups"], p["regret_bins"]["gt5pct"]["groups"])
+    p6, p = pl["S6"]["primary"], pl["S5"]["primary"]
+    assert (r6.different_leader, r6.gt5pct) == (p6["disagreements"], p6["gt5pct"])
+    none = rcsv(IDEF_C + "definition_scan.csv").query("limit_pct == 'none'").iloc[0]
+    x = sm["boundary"]["scored"]
+    assert (none.different_leader, none.gt5pct) == (p["disagreements"], p["gt5pct"])
     t = pd.concat([t, pd.DataFrame([
         dict(definition="no limit, purge grid 0.5–40 %", limit=np.nan, groups=p["groups"],
-             different_leader=p["top1_mismatch_groups"], fraction=p["top1_mismatch_fraction"],
-             gt5pct=p["regret_bins"]["gt5pct"]["groups"], near_infeasible=0,
-             papers_with_disagreement=p["papers_with_mismatch"]),
+             different_leader=p["disagreements"], fraction=p["fraction"], gt5pct=p["gt5pct"], near_infeasible=0,
+             papers_with_disagreement=p["papers_with_disagreement"]),
         dict(definition="no limit, purge grid from 1e-4 %", limit=np.nan, groups=x["groups"],
              different_leader=x["top1_mismatch_groups"], fraction=x["top1_mismatch_fraction"],
              gt5pct=x["regret_bins"]["gt5pct"]["groups"], near_infeasible=0,
@@ -526,7 +544,7 @@ def edfig8():
     the extended purge grid for every scored entry; purge, recycle ratio and inlet CO / CH4 / N2 at the optimum of each
     treatment; comparisons with a different winner against the inlet limit for both definitions of the limited
     species (analysis/meoh_inlet_definition_2026_10_12)."""
-    src = INV + "purge_boundary_"
+    src = PURGE_C
     sm = rjson(src + "summary.json")
     ent = rcsv(src + "entries.csv")
     cur = rcsv(src + "curves.csv")
@@ -557,7 +575,7 @@ def edfig8():
             "b": (b, src + "curves.csv; limits " + src + "summary.json (" + INV + "inlet_inert_literature.csv)"),
             "c": (c, src + "entries.csv (<treatment>_purge)"),
             "d": (d, src + "entries.csv (<treatment>_recycle_ratio); anchor " + src + "summary.json anchor_loop"),
-            "e": (e, IDEF + "definition_scan.csv (limits 4-30 %); no limit: " + INV + "summary.json (primary) and "
+            "e": (e, IDEF_C + "definition_scan.csv (limits 4-30 %); no limit: " + POOL + "summary.json (S5.primary) and "
                   + src + "summary.json (boundary.scored)"),
             "f": (f, src + "entries.csv (<treatment>_CO, _CH4, _N2, _nonreactive), means over the scored entries")}
 

@@ -23,6 +23,10 @@ resamples, seed 20261006) and mismatch_kinds.classify.
 
 Writes entry_costs.csv, summary.json and results_table.md (this folder). Parallel over entries, COB_WORKERS
 processes (default 4).
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same analysis on the 81 groups of
+both extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/co_conversion_bound/; the first-set
+groups must reproduce the frozen anchors and the CO-to-equilibrium result with the limit (27 of 40).
 """
 import json
 import os
@@ -42,6 +46,12 @@ sys.path.insert(0, str(INV))
 import meoh_general_model as G  # noqa: E402
 from meoh_candidates import ROW_KEYS, aggregate, bootstrap  # noqa: E402
 from mismatch_kinds import classify  # noqa: E402
+
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("co_conversion_bound", HERE)
+FIRST_SET_ANCHORS = {("central", "none"): (15, 40, 7), ("central", "6.86"): (28, 40, 22), ("high", "6.86"): (27, 40)}
 
 WORKERS = int(os.environ.get("COB_WORKERS", "4"))
 RULES = {"central": "recycled_central", "equal_X": "recycled_equal_X", "high": "recycled_high"}
@@ -138,8 +148,10 @@ def table(results):
     """Markdown table rule x limit (results_table.md)."""
     name = {"central": "central (frozen)", "equal_X": "equal_X", "high": "high (CO-hyd. equilibrium)"}
     lab = {"none": "no limit", "6.86": "6.86 %", "5": "5 %", "8": "8 %", "10": "10 %", "15": "15 %"}
-    out = ["| x_CO rule | inlet limit | different leader | > 5 % | papers (> 5 %) | other catalyst / 32 (> 5 %) | "
-           "other T / 22 (> 5 %) | kinds with > 5 % | w/o Bansode 2013 (> 5 %) | median inlet CO | median purge | "
+    r0 = results["central"]["none"]          # denominators: groups with two catalysts / with a temperature series
+    out = ["| x_CO rule | inlet limit | different leader | > 5 % | papers (> 5 %) | other catalyst / "
+           f"{r0['other_catalyst']['of']} (> 5 %) | other T / {r0['other_temperature']['of']} (> 5 %) | "
+           "kinds with > 5 % | w/o Bansode 2013 (> 5 %) | median inlet CO | median purge | "
            "bootstrap 95 % CI | infeasible |", "|" + "---|" * 13]
     for tag, v in results.items():
         for l, r in v.items():
@@ -158,7 +170,7 @@ def table(results):
 
 def main():
     t0 = time.time()
-    c = pd.read_csv(INV / "literature_candidates.csv")
+    c = FS.candidates()
     rows = c[ROW_KEYS].to_dict("records")
     with Pool(WORKERS) as pool:
         res = pool.map(entry, rows, chunksize=4)
@@ -217,14 +229,26 @@ def main():
         infeasible_entries_in_scored_groups={tag: {l: int(ing[f"cost_{tag}_{l}"].isna().sum()) for l in LIMITS}
                                              for tag in RULES},
         inlet_limit=float(G.NONREACTIVE_MAX), runtime_s=round(time.time() - t0, 1), workers=WORKERS)
-    if not all(frozen_anchor.values()):
+    if FS.COMBINED:                     # the first-set groups of the combined run reproduce the first-set result
+        gr, first = pd.DataFrame(group_rows), set(FS.first_part(c).group)
+        got = {}
+        for (tag, lname), exp in FIRST_SET_ANCHORS.items():
+            g = gr[(gr.rule == tag) & (gr.limit == lname) & gr.group.isin(first)]
+            v = (int(g.disagreement.sum()), len(g), int((g.disagreement & (g.regret > 0.05)).sum()))[:len(exp)]
+            got[f"{tag}|{lname}"] = v
+            if v != exp:
+                sys.exit(f"STOP: first-set anchor {tag}|{lname}: {v} != {exp}")
+        summary["frozen_anchors"] = frozen_anchor = dict(first_set=got)
+    if not FS.COMBINED and not all(frozen_anchor.values()):
         print("WARNING frozen anchors:", frozen_anchor)
     keep = ["group", "doi", "entry", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCO", "SCH4", "STY",
             "cost_recycled_opt", "cost_recycled_opt_inlet"] + [col for col in res[0]]
-    c[keep].to_csv(HERE / "entry_costs.csv", index=False, float_format="%.10g")
-    pd.DataFrame(group_rows).to_csv(HERE / "group_results.csv", index=False, float_format="%.6g")
-    (HERE / "results_table.md").write_text(table(results), encoding="utf-8")
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
+    if FS.COMBINED:
+        keep.insert(0, "batch")
+    c[keep].to_csv(OUT / "entry_costs.csv", index=False, float_format="%.10g")
+    pd.DataFrame(group_rows).to_csv(OUT / "group_results.csv", index=False, float_format="%.6g")
+    (OUT / "results_table.md").write_text(table(results), encoding="utf-8")
+    (OUT / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     print(json.dumps({t: {l: (r["disagreements"], r["groups"], r["gt5pct"]) for l, r in v.items()}
                       for t, v in results.items()}))
     print("runtime", summary["runtime_s"])

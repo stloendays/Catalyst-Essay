@@ -23,6 +23,10 @@ Disagreements are split by kind (mismatch_kinds.classify).
 
 Outputs (this folder): conversion_sensitivity_summary.json, conversion_sensitivity_groups.csv,
 conversion_sensitivity_points.csv.
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs both cohorts on the groups of both
+extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/conversion_s5/; the first-set groups of the
+printed cohort must reproduce the first-set result (laboratory 15 of 40).
 """
 import json
 import os
@@ -43,6 +47,12 @@ import meoh_general_model as G  # noqa: E402
 from meoh_candidates import ROW_KEYS, aggregate  # noqa: E402
 from mismatch_kinds import classify  # noqa: E402
 
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("conversion_s5", HERE)
+FIRST_SET_ANCHORS = {"printed|lab": (15, 40)}
+
 WORKERS = int(os.environ.get("INV_WORKERS", "4"))
 F_PRIMARY, F_VARIANTS = 0.95, (0.90, 0.99)
 U_GRID = 30                     # raised states per candidate between X0/X_eq and 0.99
@@ -54,9 +64,9 @@ COLS = {"lab": "laboratory conversion", f"cost_f{F_PRIMARY:g}": f"conversion up 
         "cost_two_sided": f"up to {F_PRIMARY:g} X_eq, or m = 0.5 / 0.25"}
 
 
-def equilibrium_roots(feed, T_C, P_bar):
+def equilibrium_roots(feed, T_C, P_bar, scale=1.0):
     """Every converged root of the simultaneous CO2-hydrogenation + RWGS equilibrium of a feed, from a grid of
-    starting points. Returns the total CO2 conversions."""
+    starting points (methanol extents g1 x scale of the CO2). Returns the total CO2 conversions."""
     T_K = T_C + 273.15
     n0 = {k: float(feed.get(k, 0.0)) for k in G.PR_CRIT}
 
@@ -77,11 +87,11 @@ def equilibrium_roots(feed, T_C, P_bar):
     roots = set()
     for g1 in (0.05, 0.25, 0.5, 0.8, 0.95):
         for g2 in (0.0, 0.01, 0.05):
-            if g1 + g2 >= 0.999 or 3 * g1 + g2 >= n0["H2"]:
+            if g1 * scale + g2 >= 0.999 or 3 * g1 * scale + g2 >= n0["H2"]:
                 continue
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                xi, _, ier, _ = fsolve(res, [g1 * n0["CO2"], g2 * n0["CO2"]], xtol=1e-12, full_output=True)
+                xi, _, ier, _ = fsolve(res, [g1 * scale * n0["CO2"], g2 * n0["CO2"]], xtol=1e-12, full_output=True)
             if ier != 1 or not np.all(np.isfinite(xi)):
                 continue
             n = comp(xi)
@@ -96,6 +106,11 @@ def x_eq_feed(h2_co2, y_co2, T_C, P_bar):
     inert = max(0.0, 1.0 - y_co2 * (1.0 + h2_co2))
     feed = dict(CO2=1.0, H2=h2_co2, N2=inert / y_co2 if inert > 1e-9 else 0.0)
     roots = equilibrium_roots(feed, T_C, P_bar)
+    if not roots and h2_co2 < 3.0:
+        # H2-lean feed (second extraction: H2/CO2 = 0.1 in 10.1021/acscatal.6c04842): every methanol extent of the
+        # CO2-based grid needs more H2 than the feed holds, so the grid is rescaled to the H2-limited extent
+        # (H2/CO2 / 3 of the CO2). No first-extraction feed reaches this branch.
+        roots = equilibrium_roots(feed, T_C, P_bar, scale=h2_co2 / 3.0)
     if not roots:
         raise RuntimeError(f"no equilibrium root for H2/CO2 {h2_co2}, y_CO2 {y_co2}, {T_C} C, {P_bar} bar")
     return roots[0], len(roots)
@@ -161,9 +176,24 @@ def evaluate(job):
     return key, out
 
 
+def check_first_set(groups, pts, anchors=None):
+    """Counts of the first-set groups in the combined run (disagreements, groups, > 5 %, > 5 % papers) for every
+    cohort x cost column; stops when an anchor (cohort|column -> (disagreements, groups)) is not reproduced."""
+    first = set(FS.first_part(pts).group)
+    out = {}
+    for (mode, col), g in groups[groups.group.isin(first)].groupby(["mode", "cost_col"]):
+        m = g[g.top1_mismatch]
+        out[f"{mode}|{col}"] = dict(disagreements=int(len(m)), groups=int(len(g)), gt5pct=int((m.regret > 0.05).sum()),
+                                    gt5pct_papers=int(m[m.regret > 0.05].doi.nunique()))
+    for k, exp in (FIRST_SET_ANCHORS if anchors is None else anchors).items():
+        got = (out[k]["disagreements"], out[k]["groups"])
+        if got != exp:
+            sys.exit(f"STOP: first-set anchor {k}: {got} != {exp}")
+    return out
+
+
 def main():
-    sets = {"printed": pd.read_csv(HERE / "literature_candidates.csv"),
-            "all": pd.read_csv(HERE / "literature_candidates_all_entries.csv")}
+    sets = {"printed": FS.candidates(), "all": FS.candidates_all_entries()}
     jobs = {}
     for f in sets.values():
         for r in f.itertuples(index=False):
@@ -194,15 +224,19 @@ def main():
         f["raised"] = f[f"m_f{F_PRIMARY:g}"] > 1.0
         rows.append(f.assign(mode=mode))
     pts = pd.concat(rows)
+    if FS.COMBINED:                     # the first-set groups of the combined run reproduce the first-set result
+        meta_first = check_first_set(pd.concat(groups), pts)
     meta = dict(x_eq_multiple_roots=int((pts.drop_duplicates(ROW_KEYS).x_eq_roots > 1).sum()),
                 laboratory_above_x_eq=int((pts.drop_duplicates(ROW_KEYS).u0 >= 1.0).sum()),
                 operating_points=len(jobs))
-    keep = ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
+    if FS.COMBINED:
+        meta["first_set"] = meta_first
+    keep = ["batch"] * FS.COMBINED + ["mode", "group", "doi", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCH4", "SCO", "STY", "y_co2",
             "cost_recycled_opt", *[c for c in pts.columns if c in ("lab", "x_eq", "x_eq_roots", "u0", "raised")
                                    or c.startswith(("cost_f", "m_f", "u_f", "cost_two", "m_two", "u_two"))]]
-    pts[keep].to_csv(HERE / "conversion_sensitivity_points.csv", index=False, float_format="%.10g")
-    pd.concat(groups).to_csv(HERE / "conversion_sensitivity_groups.csv", index=False, float_format="%.6g")
-    (HERE / "conversion_sensitivity_summary.json").write_text(
+    pts[keep].to_csv(OUT / "conversion_sensitivity_points.csv", index=False, float_format="%.10g")
+    pd.concat(groups).to_csv(OUT / "conversion_sensitivity_groups.csv", index=False, float_format="%.6g")
+    (OUT / "conversion_sensitivity_summary.json").write_text(
         json.dumps(dict(meta=meta, scenarios=summaries), indent=1, default=float) + "\n", encoding="utf-8")
     pd.set_option("display.width", 250)
     tab = pd.DataFrame([dict(scenario=k, groups=v["groups"], mismatch=v["top1_mismatch_groups"], gt5pct=v["gt5pct"],

@@ -17,6 +17,12 @@ S6 swaps:
     recycled_central). Each run also records the unconstrained (S5) cost of the same sweep in s5_crosscheck.csv.gz,
     compared with the frozen S5 exact cache where the keys overlap.
 Outputs go to stats_s5/ or stats_s6/ next to this file.
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same analysis on the 81 groups of
+both extractions and writes to analysis/meoh_field_pooled_2026_10_15/robustness/stats_s5|stats_s6/. The first set keeps
+its entry order, so its response-surface grid and exact runs are taken from the committed stats_s6/ (S6) or the frozen
+cache (S5) and only the second set's runs are computed; the S5 runs recorded with the combined S6 runs
+(s5_crosscheck.csv.gz) are added to the S5 cache (the same sweep, see cache_check.json).
 """
 import os
 import shutil
@@ -39,7 +45,7 @@ import run_main_result_stats as R  # noqa: E402
 
 TREATMENT = sys.argv[1] if len(sys.argv) > 1 else "s6"
 assert TREATMENT in ("s5", "s6")
-OUT = HERE / f"stats_{TREATMENT}"
+OUT = R.FS.out_dir(f"stats_{TREATMENT}", HERE / f"stats_{TREATMENT}")
 OUT.mkdir(exist_ok=True)
 R.HERE = OUT
 R.CACHE_FILE = OUT / "exact_cache.csv.gz"
@@ -78,14 +84,33 @@ def _compute_s6(jobs):
 
 
 def load_s6():
-    c = pd.read_csv(R.INV / "literature_candidates.csv")
-    c = c[np.isfinite(c.cost_recycled_opt_inlet)]
-    n = c.groupby("group").size()
-    c = c[c.group.isin(n[n >= 2].index)].reset_index(drop=True)
-    c["cost_recycled_opt"] = c["cost_recycled_opt_inlet"]      # the column the frozen script scores
+    # cost_recycled_opt_inlet becomes cost_recycled_opt, the column the frozen script scores
+    c, gm = R.scored_groups("cost_recycled_opt_inlet", (28, 40))
     c["sty_printed_basis"] = c.sty_basis.str.startswith("printed STY")
-    gm = pd.read_csv(R.INV / "group_metrics_inlet_limit.csv")
+    if gm is None:
+        gm = pd.read_csv(R.INV / "group_metrics_inlet_limit.csv")
     return c, gm
+
+
+def seed_combined():
+    """Combined set: start from the committed grid and exact runs of the first set (entry indices and keys match)."""
+    if TREATMENT == "s6":
+        for f in ("grid_costs.csv", "exact_cache.csv.gz", "s5_crosscheck.csv.gz"):
+            if not (OUT / f).exists():
+                shutil.copy(HERE / "stats_s6" / f, OUT / f)
+        return
+    if not (OUT / "grid_costs.csv").exists():
+        shutil.copy(HERE / "stats_s5" / "grid_costs.csv", OUT / "grid_costs.csv")
+    if not R.CACHE_FILE.exists():
+        shutil.copy(FROZEN / "exact_cache.csv.gz", R.CACHE_FILE)
+    xc = R.FS.ROBUSTNESS / "stats_s6" / "s5_crosscheck.csv.gz"
+    if xc.exists():
+        cache = R.exact_cache()
+        t = pd.read_csv(xc, dtype={"key": str, "cost_s5": float})
+        new = {k: v for k, v in zip(t.key, t.cost_s5) if k not in cache}
+        cache.update(new)
+        R.save_cache()
+        print("S5 runs taken from the combined S6 run (same sweep):", len(new), flush=True)
 
 
 def save_crosscheck():
@@ -99,6 +124,8 @@ def save_crosscheck():
 
 
 if __name__ == "__main__":
+    if R.FS.COMBINED:
+        seed_combined()
     if TREATMENT == "s5":
         # the frozen cache holds every exact run of the frozen analysis; a run missing from it would be recomputed
         # with the frozen exact_cost (S5) and reported by the count below

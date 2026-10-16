@@ -23,11 +23,18 @@ seed 20261012, the same resamples for every scenario) of the fraction with a dif
 
 INLET_WORKERS processes (default 4). Outputs (this folder): entry_costs.csv, definition_scan.csv, stability_5_15.csv,
 scan_groups.csv, summary.json.
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same analysis on the 81 groups of
+both extractions (the bootstrap then resamples the papers of both) and writes to
+analysis/meoh_field_pooled_2026_10_15/robustness/inlet_definition/; the first-set groups must reproduce the frozen
+anchors, the 5-10 % band (24-28 of 40) and the CO-excluded 6.86 % result (18 of 40).
 """
 import json
 import os
 import time
 from multiprocessing import Pool
+
+import sys
 
 import numpy as np
 import pandas as pd
@@ -35,7 +42,14 @@ import pandas as pd
 from common import (ANCHORS, BANSODE, BOOT_N, BOOT_SEED, CANDIDATES, DEFINITIONS, FROZEN_COLUMNS, HERE, LIMITS_PCT,
                     NEAR_COST_RATIO, NEAR_REGRET, STABILITY_PCT, G, aggregate, classify, limit_value)
 
+sys.path.insert(0, str(HERE.parents[0] / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("inlet_definition", HERE)
 WORKERS = int(os.environ.get("INLET_WORKERS", "4"))
+FIRST_SET_ANCHORS = {("frozen", L): v for L, v in ANCHORS.items()}
+FIRST_SET_ANCHORS[("true_inert", "6.86")] = (18, 40)
+FIRST_SET_BAND = ((5, 6, "6.86", 8, 10), (24, 28))           # every limit of the 5-10 % band, frozen definition
 ROW_KEYS = ["X", "SMeOH", "SCH4", "SCO", "STY", "P_bar", "h2_co2", "T_C"]
 LABELS = ["none"] + [str(L) for L in LIMITS_PCT]
 REL_TOL = 1e-6
@@ -182,7 +196,7 @@ def bootstrap_all(tables, papers):
 
 def main():
     t0 = time.time()
-    cand = pd.read_csv(CANDIDATES)
+    cand = FS.candidates() if FS.COMBINED else pd.read_csv(CANDIDATES)
     cand, n_unique = entry_table(cand)
     repro = reproduce(cand)
 
@@ -242,8 +256,26 @@ def main():
         r = scan[(scan.definition == "frozen") & (scan.limit_pct == L)].iloc[0]
         anchors[L] = dict(expected=f"{dl}/{g}", got=f"{r.different_leader}/{r.groups}",
                           ok=bool(r.different_leader == dl and r.groups == g))
-    if not all(a["ok"] for a in anchors.values()):
+    if not FS.COMBINED and not all(a["ok"] for a in anchors.values()):
         raise SystemExit(f"STOP: reproduction anchors fail: {anchors}")
+    if FS.COMBINED:                     # the first-set groups of the combined tables reproduce the first-set result
+        first = set(FS.first_part(cand).group)
+        got = {}
+        for (d, L), exp in FIRST_SET_ANCHORS.items():
+            t = tables[f"{d}|{L}"]
+            t = t[t.group.isin(first)]
+            got[f"{d}|{L}"] = (int(t.mismatch.sum()), len(t))
+            if got[f"{d}|{L}"] != exp:
+                raise SystemExit(f"STOP: first-set anchor {d}|{L}: {got[f'{d}|{L}']} != {exp}")
+        lo, hi = FIRST_SET_BAND[1]
+        for L in FIRST_SET_BAND[0]:
+            t = tables[f"frozen|{L}"]
+            n = int(t[t.group.isin(first)].mismatch.sum())
+            got[f"frozen|{L}"] = (n, int(t.group.isin(first).sum()))
+            if not lo <= n <= hi:
+                raise SystemExit(f"STOP: first-set 5-10 % band, limit {L}: {n} outside {lo}-{hi}")
+        anchors = dict(first_set={k: f"{a}/{b}" for k, (a, b) in got.items()},
+                       combined={L: a["got"] for L, a in anchors.items()})
 
     stab = scan[scan.limit_pct.isin([str(L) for L in STABILITY_PCT])]
     stab = stab[["definition", "limit_pct", "groups", "different_leader", "fraction_ci_lo", "fraction_ci_hi", "gt5pct",
@@ -254,10 +286,12 @@ def main():
     keep = ["group", "doi", "entry", "catalyst", "T_C", "P_bar", "h2_co2", "X", "SMeOH", "SCO", "SCH4", "STY",
             *[f"{q}_{d}_{L}" for d in DEFINITIONS for L in LABELS
               for q in ("cost", "purge", "co", "true_inert", "nonreactive")]]
-    cand[keep].to_csv(HERE / "entry_costs.csv", index=False, float_format="%.10g")
-    scan.to_csv(HERE / "definition_scan.csv", index=False, float_format="%.6g")
-    stab.to_csv(HERE / "stability_5_15.csv", index=False, float_format="%.6g")
-    pd.concat(tables.values()).drop(columns=["lab_idx", "plant_idx"]).to_csv(HERE / "scan_groups.csv", index=False,
+    if FS.COMBINED:
+        keep.insert(0, "batch")
+    cand[keep].to_csv(OUT / "entry_costs.csv", index=False, float_format="%.10g")
+    scan.to_csv(OUT / "definition_scan.csv", index=False, float_format="%.6g")
+    stab.to_csv(OUT / "stability_5_15.csv", index=False, float_format="%.6g")
+    pd.concat(tables.values()).drop(columns=["lab_idx", "plant_idx"]).to_csv(OUT / "scan_groups.csv", index=False,
                                                                            float_format="%.6g")
     summary = dict(
         definitions=DEFINITIONS, limits_pct=LABELS, s6_limit_exact=float(G.NONREACTIVE_MAX),
@@ -265,12 +299,13 @@ def main():
         near_infeasibility_rule=f"regret > {NEAR_REGRET:g} or STY leader cost > {NEAR_COST_RATIO:g} x its S5 cost",
         entries=int(len(cand)), unique_operating_points=n_unique, scenarios=scen,
         runtime_s=round(time.time() - t0, 1))
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
+    (OUT / "summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     pd.set_option("display.width", 250)
     print(scan[["definition", "limit_pct", "groups", "different_leader", "gt5pct", "papers_with_disagreement",
                 "nobansode_different_leader", "nobansode_gt5pct", "ordinary", "near_infeasible",
                 "co_share_median", "true_inert_share_median"]].to_string(index=False))
-    print("reproduction", repro["max_relative_difference"], "anchors", {k: v["got"] for k, v in anchors.items()})
+    print("reproduction", repro["max_relative_difference"], "anchors",
+          anchors if FS.COMBINED else {k: v["got"] for k, v in anchors.items()})
 
 
 if __name__ == "__main__":

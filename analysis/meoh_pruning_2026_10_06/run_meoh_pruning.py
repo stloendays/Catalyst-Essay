@@ -32,6 +32,11 @@ so the pruned leader can be checked against the exhaustive one. Timing of one fu
 measured on this machine.
 
 Outputs: candidate_bounds.csv, group_pruning.csv, summary.json.
+
+MEOH_FIELD_SET=combined (analysis/meoh_field_pooled_2026_10_15/field_set.py) runs the same screen on the 81 groups of
+both extractions (full costs from the combined candidate table) and writes to
+analysis/meoh_field_pooled_2026_10_15/robustness/pruning/; the first-set groups must reproduce the first-set result
+(199 of 310 candidates spared under recycled CO, every plant-cost leader found).
 """
 import json
 import sys
@@ -52,6 +57,11 @@ M = G.M
 MAIN = REPO / "analysis" / "meoh_literature_inversion_2026_10_05"
 TREATMENTS = {"recycled_opt": "cost_recycled_opt", "inert_opt": "cost_inert_opt"}
 CSV_REL = 5e-6           # literature_candidates.csv stores costs to 6 significant digits
+sys.path.insert(0, str(REPO / "analysis" / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("pruning", HERE)
+FIRST_SET_ANCHOR = dict(full=310, evaluated=111, leader_missed=0)     # recycled_opt: 199 of 310 spared
 
 
 def bound_flows(X, SMeOH, SCH4, SCO, h2_co2, p):
@@ -118,7 +128,7 @@ def prune_group(g, cost_col):
 
 def main():
     require()            # ACSA scores new candidates only after reproducing all three hand-built cases
-    c = pd.read_csv(MAIN / "literature_candidates.csv")
+    c = FS.candidates()
     c["bound"] = [lower_bound(r.X, r.SMeOH, r.SCH4, r.SCO, r.STY, r.P_bar, r.h2_co2) for r in c.itertuples()]
     for t, col in TREATMENTS.items():
         f = np.isfinite(c[col])
@@ -143,6 +153,14 @@ def main():
             totals[t]["leader_missed"] += int(not ok)
         rows.append(row)
     gp = pd.DataFrame(rows)
+    if FS.COMBINED:                     # the first-set groups reproduce the first-set screen
+        g1 = gp[gp.group.isin(set(FS.first_part(c).group))]
+        first = {t: dict(groups=int(g1[f"candidates_{t}"].notna().sum()), full=int(g1[f"candidates_{t}"].sum()),
+                         evaluated=int(g1[f"evaluated_{t}"].sum()),
+                         leader_missed=int((g1[f"leader_found_{t}"] == False).sum()))  # noqa: E712
+                 for t in TREATMENTS}
+        got = {k: first["recycled_opt"][k] for k in FIRST_SET_ANCHOR}
+        assert got == FIRST_SET_ANCHOR, ("first-set pruning anchor", got)
 
     # timing: one full evaluation (central recycled-CO rule, 396 purge levels, eligible optimum) vs one bound,
     # median of 5 candidates
@@ -171,10 +189,16 @@ def main():
     tf, tb = summary["timing_s"]["full_median"], summary["timing_s"]["bound_median"]
     v = totals["recycled_opt"]
     summary["compute_fraction_recycled_opt"] = round((v["evaluated"] * tf + v["full"] * tb) / (v["full"] * tf), 4)
+    if FS.COMBINED:
+        for t, w in first.items():
+            w.update(excluded=w["full"] - w["evaluated"], excluded_fraction=round(1 - w["evaluated"] / w["full"], 4))
+        w = first["recycled_opt"]
+        first["compute_fraction_recycled_opt"] = round((w["evaluated"] * tf + w["full"] * tb) / (w["full"] * tf), 4)
+        summary["first_set"] = first
     c[["group", "doi", "entry", "STY", "bound", "cost_recycled_opt", "cost_inert_opt"]].to_csv(
-        HERE / "candidate_bounds.csv", index=False, float_format="%.6g")
-    gp.to_csv(HERE / "group_pruning.csv", index=False)
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
+        OUT / "candidate_bounds.csv", index=False, float_format="%.6g")
+    gp.to_csv(OUT / "group_pruning.csv", index=False)
+    (OUT / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=1))
 
 

@@ -182,7 +182,7 @@ def ed3():
     bx.xaxis.set_minor_formatter(NullFormatter())
     btop = int(5 * np.ceil(1.3 * float(b.groups_inlet_limited.max()) / 5))
     bx.set_ylim(0, btop)
-    bx.set_yticks(range(0, btop + 1, 5))
+    bx.set_yticks(range(0, btop + 1, 5 if btop <= 40 else 10))
     bx.set_xlabel("regret at least (%)")
     bx.set_ylabel("mismatched comparisons")
     bx.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.3, handlelength=1.6)
@@ -699,16 +699,17 @@ def ed8():
         ex.scatter([xnl], [v], s=14, marker="D", c=INK if filled else "white", ec=INK, lw=0.6, zorder=4,
                    clip_on=False)
     ex.axhline(fz.different_leader, color=INK, lw=0.4, ls=":", zorder=1)
-    ex.text(xnl - 0.9, 5.6, "no limit: %d (%d > 5 %%)\npurge grid from 10$^{-4}$ %%: %d (%d > 5 %%)"
+    etop = int(10 * np.ceil(float(e.groups.max()) / 10))
+    ex.text(xnl - 0.9, 0.52 * etop, "no limit: %d (%d > 5 %%)\npurge grid from 10$^{-4}$ %%: %d (%d > 5 %%)"
             % (fz.different_leader, fz.gt5pct, xt.different_leader, xt.gt5pct), fontsize=FS, ha="right", va="top",
             linespacing=1.2, zorder=5)
     ex.text(anc + 0.5, 1.2, "%.2f %%" % anc, color=RED, fontsize=FS, ha="left", va="bottom")
-    ex.text(anc + 0.4, 39.0, "published\nloops", color=DARK_G, fontsize=FS, ha="left", va="top", linespacing=1.1)
+    ex.text(anc + 0.4, 0.975 * etop, "published\nloops", color=DARK_G, fontsize=FS, ha="left", va="top", linespacing=1.1)
     ex.set_xlim(0, xnl + 1.5)
     ex.set_xticks([0, 5, 10, 15, 20, 25, 30, xnl])
     ex.set_xticklabels(["0", "5", "10", "15", "20", "25", "30", "no\nlimit"])
-    ex.set_ylim(0, 40)
-    ex.set_yticks(range(0, 41, 10))
+    ex.set_ylim(0, etop)
+    ex.set_yticks(range(0, etop + 1, 10 if etop <= 50 else 20))
     ex.set_xlabel("limit on the reactor-inlet fraction (mol%)")
     ex.set_ylabel("STY leader ≠ plant-cost leader (of %d)" % int(e.groups.max()))
     ex.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.3, handlelength=2.2,
@@ -838,8 +839,8 @@ def write_captions():
             "than twice its cost without the limit, or the regret exceeds 100 %%); %s persist. **e**, "
             "Comparisons whose STY leader is not the plant-cost leader under each robustness check, inert-limited "
             "loop and no limit (in parentheses and hatched, cost gap > 5 %%): %s. Source: `%s`, `%s` (bootstrap, "
-            "regret curve, noise), `%s` (s6_groups.csv; results.json), `%s` (summary.json, "
-            "conversion_sensitivity_summary.json) and `%s`." % (
+            "regret curve, noise), `%s` (summary.json; pooled_candidates.csv for the near-infeasibility rule) and `%s` "
+            "(selectivity_split, catalyst_cost, all_entries, conversion_s6, conversion_s5)." % (
                 a.attrs["groups"], format(a.attrs["n"], ","), a.attrs["papers"],
                 A6["mismatched"], a.attrs["groups"], _p(A6["point"]), _p(A6["ci"][0]), _p(A6["ci"][1]),
                 A5["mismatched"], a.attrs["groups"], _p(A5["point"]), _p(A5["ci"][0]), _p(A5["ci"][1]),
@@ -853,7 +854,7 @@ def write_captions():
                 k1_6.noise_floor_mean, k1_6.noise_floor_q025, k1_6.noise_floor_q975, k1_6.observed, k1_5.observed,
                 int((d6.p_mismatch_meas_k1 >= 0.9).sum()), len(d6), int((d5.p_mismatch_meas_k1 >= 0.9).sum()), len(d5),
                 len(ni), persist_ni, "; ".join(pair(k) for k in chk),
-                E.STATS6, E.STATS, E.S6R, E.INV, E.CONV6), ""]
+                E.STATS6_C, E.STATS5_C, E.POOL, E.CMB), ""]
     assert abs(k1_6.noise_floor_mean - k1_5.noise_floor_mean) < 0.01 and k1_6.noise_floor_q025 == k1_5.noise_floor_q025
 
     d = E.edfig4()
@@ -924,7 +925,7 @@ def write_captions():
 
     d = E.edfig8()
     e8, f8 = d["e"][0], d["f"][0].set_index("key")
-    pb = E.rjson(E.INV + "purge_boundary_summary.json")
+    pb = E.rjson(E.PURGE_C + "summary.json")
     bd, ext = pb["boundary"], pb["boundary"]["at_extended_optimum"]
     lim = pb["limits"]
     n_pub = d["b"][0].attrs["published"][2]
@@ -951,7 +952,7 @@ def write_captions():
             "median). **e**, Comparisons whose STY leader is not the plant-cost leader against the limit on the "
             "reactor-inlet fraction, when the limit counts CO, CH$_4$ and N$_2$ (circles; the definition of the "
             "primary analysis) or CH$_4$ and N$_2$ only (squares); filled, all disagreements; open and dashed, cost "
-            "gap > 5 %%. At limits of %s %%: CO, CH$_4$ and N$_2$ %s of 40 (%s above 5 %%); CH$_4$ and N$_2$ only %s "
+            "gap > 5 %%. At limits of %s %%: CO, CH$_4$ and N$_2$ %s of %d (%s above 5 %%); CH$_4$ and N$_2$ only %s "
             "(%s above 5 %%). Dashed red line, %s %% (the anchor loop; primary); shaded, the %d published loop "
             "designs; diamonds and dotted line, no limit: %d (%d above 5 %%) on the frozen purge grid and %d (%d "
             "above 5 %%) with the grid extended to 10$^{-4}$ %%. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each "
@@ -962,10 +963,10 @@ def write_captions():
                 100 * lim["published_min"], 100 * lim["published_max"], _p(lim["anchor"], 2),
                 pb["anchor_loop"]["recycle_ratio"], ext["recycle_ratio"]["median"], 100 * lim["published_max"],
                 100 * lim["anchor"], 100 * lim["published_min"],
-                lims, ints(co.different_leader), ints(co.gt5pct), ints(ti.different_leader), ints(ti.gt5pct),
+                lims, ints(co.different_leader), int(co.groups.max()), ints(co.gt5pct), ints(ti.different_leader), ints(ti.gt5pct),
                 _p(e8.attrs["anchor"], 2), n_pub, nl.different_leader[0], nl.gt5pct[0], nl.different_leader[1],
-                nl.gt5pct[1], "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab), E.INV,
-                E.IDEF), ""]
+                nl.gt5pct[1], "; ".join("%s %s %%" % (t, _p(f8.loc[k, "nonreactive"])) for k, t in lab),
+                E.CMB + "purge_boundary/", E.IDEF_C), ""]
 
     d, fe = E.edfig7()
     a, b, c = (d[k][0] for k in "abc")
