@@ -66,3 +66,25 @@ Required treatment:
 - The reader-facing MeOH rank-probability result is the committed performance-input Monte Carlo (`analysis/meoh_measurement_mc_2026_10_05/`, 5,000 draws, seed 20261005): economic winner first in 4,559/5,000 (91.2%), 5 wt% Re / 250 °C last in 5,000/5,000, ranks 2 and 3 exchanged in 1,054/5,000 (21.1%). The earlier ~97.0% / ~47.8% figures came from the uncorrected inputs and are not cited.
 
 This lock remains active unless the author explicitly reopens the MeOH uncertainty framing.
+
+## LOCK-06 — Methanol second cohort as a follow-up literature–computational experiment (2026-10-16)
+
+**Author-directed editorial decision, made after the second-cohort outcomes were known.** This lock changes how the finished paper organizes and interprets its evidence; it is not a retrospective amendment of the original pre-registered experiment. This instruction applies to Codex, AI writing agents, manuscript revisions, figure captions, SI summaries, and supervisor-facing reports.
+
+### Required reader-facing framing
+
+- Treat the later methanol literature cohort as an **independently assembled follow-up literature–computational replication experiment** that applies the same data-extraction, within-paper grouping, catalyst-specific process optimization, and economic scoring workflow. It is **not** a new laboratory experiment, nor independent measurement of industrial catalyst operating economics.
+- Assess its scientific contribution from the **observed data and mechanism**, not from an earlier binary P1/P2 label as an acceptance gate for whether to include this cohort in the paper. The paper's headline evidence is the combined **50/81** STY-versus-model-cost leader disagreements (61.7%, 42 with >5% regret) together with the disjoint-cohort counts **28/40** and **22/41**. Frame the difference between cohorts as observed heterogeneity, not proof of a fixed universal 70% inversion frequency.
+- Emphasize the repeated downstream mechanism, including the second cohort's **28/41** selectivity-rule matches to the model-cost leader and **21/22** inversion cases whose plant-cost leader has higher selectivity and lower CO. Describe the rule's demonstrated improvement over the **specified chance baseline**, but do **not** assert statistically proven superiority to the STY baseline where the paired uncertainty interval includes zero.
+- In the Abstract, Results, figures, and public-facing overview, **do not organize the scientific story around the internal labels `P1`, `P2`, `PASS`, `FAIL` or call the second cohort a wholesale failed experiment**. Report the underlying observations, economic regret, mechanisms, model-conditional scope and robustness. Internal success/failure labels need not be manuscript headings or figure annotations.
+- Manuscript wording should distinguish **model-derived plant-cost leader** from actual observed industrial catalyst adoption. Do not imply that two independent literature cohorts are two independent industrial field trials.
+
+### Evidence transparency and non-retroactivity (mandatory)
+
+- The original prospective pre-registration is historical provenance and **remains unchanged**: `analysis/validation_meoh_prospective_2026_10_13/PREREGISTRATION.md`, `DEVIATIONS.md`, `REPORT.md`, `results.json`, blind predictions, corrections, and commit-order evidence. Do not delete, rewrite, conceal or relabel a pre-specified result so it appears to have passed.
+- In the Methods or Supporting Information, preserve a concise, accessible account that the **originally specified S6 rate-interval criterion was narrowly unmet**: observed **22/41 = 53.7%** versus pre-specified lower bound **54.1%**; the separately specified selectivity rule beat its chance baseline (**28/41**). The detailed original binary assessment remains available in the unchanged analysis report. This disclosure can be expressed in normal scientific prose instead of foregrounding the labels in the main narrative.
+- The token-limit interruption affects the optional `si_figures` extraction (**24/40 completed**). The primary 41 printed-value comparisons were completed and scored. **Do not attribute the primary original criterion miss to incomplete computing** without specific evidence.
+- Do not retrospectively claim that the original prospective validation passed, discard a completed pre-registered endpoint, select only passing sensitivity sets, or silently replace the originally registered decision threshold. If writing a post-hoc pooled/exploratory interpretation, identify it as such where relevant.
+- The combined 81 comparisons and manuscript narrative may be emphasized as the current scientific synthesis **without reopening, refitting, or changing any frozen underlying experiment**, its saved numerical results, or original decision criteria.
+
+**Operational rule:** Future agents and editors should follow this lock as the *current manuscript presentation instruction* while keeping the original registered test and its actual result auditable. A new evaluation standard requires a genuinely new, clearly labeled study; it cannot be retroactively assigned to the earlier experiment.
