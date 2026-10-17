@@ -80,9 +80,19 @@ def candidates_all_entries() -> pd.DataFrame:
 
 
 def _pv():
+    """pv_common of the second extraction. Its rule module imports a sibling module named `common`; a caller that
+    already imported another analysis folder's `common` (e.g. analysis/meoh_inlet_definition_2026_10_12) would shadow
+    it, so that entry is set aside while pv_common loads and restored afterwards."""
+    if "pv_common" in sys.modules:
+        return sys.modules["pv_common"]
     if str(PV) not in sys.path:
         sys.path.insert(0, str(PV))
-    import pv_common  # noqa: E402  (puts data/meoh and the inversion folder on sys.path)
+    held = sys.modules.pop("common", None)
+    try:
+        import pv_common  # noqa: E402  (puts data/meoh and the inversion folder on sys.path)
+    finally:
+        if held is not None:
+            sys.modules["common"] = held
     return pv_common
 
 

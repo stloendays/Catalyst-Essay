@@ -39,6 +39,7 @@ TASK = "provenance/discover_v1/source_harness/DISCOVER_TASK_V1.json"
 SUP = "analysis/supervisor_2026_09_20/nh3_1_2"
 BWD = "analysis/fe_bridge_backward_2026_09_29/nh3_1_2"
 FIELD = "analysis/nh3_field_2026_10_06/nh3_1_2"
+NH3F = "analysis/nh3_field_expansion_2026_10_12/nh3_1_2/runs/pooled_vf_screen"   # Fig. 2c,f: both ammonia batches
 PROMO = "analysis/promoted_ru_literature_2026_10_05/nh3_1_2"
 MC4 = "analysis/meoh_measurement_mc_2026_10_05"
 F1, F2, F3, F4, F5 = ("figures/composite/fig%d" % i for i in range(1, 6))
@@ -196,7 +197,7 @@ def fig1():
 def fig2():
     b = Book("SourceData_Fig2.xlsx", "Fig. 2 (laboratory leaderboards vs plant-cost leaderboards; renderer "
              "figures/composite/fig_field/make_fig_field.py)")
-    nh3 = js(FIELD + "/summary_printed.json")            # the printed-values primary the renderer plots
+    nh3 = js(NH3F + "/summary_printed.json")            # the printed-values primary the renderer plots
     b.panel("a", [("ACSA workflow", None, "schematic", "")])
     # panels b, d, e: the renderer's own tables (frozen scoring code, inert-limited loop and the loop without the limit)
     sys.path.insert(0, os.path.join(REPO, "figures", "composite", "fig_field"))
@@ -225,19 +226,19 @@ def fig2():
                             CI95_high=x["bootstrap_papers"]["mismatch_fraction_ci95"][1],
                             regret_gt5pct_groups=x["regret_bins"]["gt5pct"]["groups"] if "regret_bins" in x else None)
                        for k, x in cases])
-    gm = csv(FIELD + "/group_metrics_printed.csv")
-    cand = csv(FIELD + "/candidates_printed.csv")
+    gm = csv(NH3F + "/group_metrics_printed.csv")
+    cand = csv(NH3F + "/candidates_printed.csv")
     dm = gm[gm.mismatch_kind == "different metal"]
     assert len(dm) == pr["mismatch_kinds"]["different metal"]["groups"]
     kinds = pd.DataFrame([dict(mechanism=k, groups=v["groups"], papers=v["papers"], regret_median=v["regret_median"],
                                regret_max=v["regret_max"]) for k, v in pr["mismatch_kinds"].items()])
     kinds["of_which_plant_winner_is_Fe"] = [int((dm.plant_winner_metal == "Fe").sum()) if k == "different metal"
                                             else None for k in kinds.mechanism]
-    b.panel("c", [("ammonia leader changes", tc, FIELD + "/summary_printed.json (primary, "
+    b.panel("c", [("ammonia leader changes", tc, NH3F + "/summary_printed.json (primary, "
                    "variants.per_g_metal_leaderboard, variants.Ru_recovery_90pct; bootstrap_papers, regret_bins)",
                    "bar height = fraction; hatched height = regret_gt5pct_groups / groups (primary only)"),
                   ("what the mismatched comparisons differ by (primary)", kinds,
-                   FIELD + "/summary_printed.json (primary.mismatch_kinds); plant-winner metal from "
+                   NH3F + "/summary_printed.json (primary.mismatch_kinds); plant-winner metal from "
                    "group_metrics_printed.csv (plant_winner_metal)", "")])
     for sheet, (g, _, byp, _) in zip("de", FF.MEOH_GROUPS):
         t = FF.meoh_group(g, byp)
@@ -252,7 +253,7 @@ def fig2():
     t["rate_mmol_gcat_h"] = t.paper_rate / 1000.0
     t["rate_leader"] = t.paper_rate == t.paper_rate.max()
     t["plant_cost_leader"] = t.cost_USD_t == t.cost_USD_t.min()
-    b.panel("f", [("comparison group " + g, t, FIELD + "/candidates_printed.csv",
+    b.panel("f", [("comparison group " + g, t, NH3F + "/candidates_printed.csv",
                    "paper_rate in umol g_cat-1 h-1; regret of the rate leader %.4f (group_metrics_printed.csv)"
                    % gr["regret"])])
     b.save()

@@ -919,7 +919,7 @@ def write_captions():
                 *sens.deviation_pct.iloc[:4], fom.model, tot.model, tot.reference, tot.deviation_pct, len(b),
                 rest.deviation_pct.min(), rest.deviation_pct.max(),
                 "; ".join("%s %.2f" % (r.metric.replace("$_2$", "2"), r.ratio) for r in c.itertuples()),
-                E.rjson(E.STATS + "summary.json")["groups"], len(dd), base,
+                int(dd.groups.max()), len(dd), base,
                 cat["catalyst_repl_95.24EURkg_6y"], cat["catalyst_repl_95.24EURkg_4y"],
                 cat["catalyst_repl_95.24EURkg_1y"], pf_aligned, E.BENCH), ""]
 
