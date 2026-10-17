@@ -1,0 +1,136 @@
+name: NH3 FINAL 1.2 candidate - thermo kinetics economics reconciliation
+on:
+  pull_request:
+    paths:
+      - "analysis/nh3_final_1_2_candidate_2026_10_13/**"
+      - "analysis/nh3_thermo_reference_audit_2026_10_12/**"
+      - ".github/workflows/nh3-final-1-2-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nh3-final12-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  thermo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install numpy scipy openpyxl pyyaml
+      - name: Reference tests and fixed workbook hash
+        run: |
+          python -m unittest discover -s analysis/nh3_thermo_reference_audit_2026_10_12 -p 'test_*.py' -v
+          echo 'fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx' | sha256sum -c -
+      - name: Recompute all 15 metals with original, NIST and GB thermo
+        run: |
+          python analysis/nh3_thermo_reference_audit_2026_10_12/run_audit.py --workers 4 --out /tmp/nh3-thermo-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-final12-thermo
+          path: /tmp/nh3-thermo-results/
+          retention-days: 90
+          if-no-files-found: error
+  kinetics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
+    defaults:
+      run:
+        working-directory: analysis/nh3_staged_converter_2026_10_12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies
+        working-directory: .
+        run: python -m pip install numpy scipy openpyxl pyyaml
+      - name: Source kinetics, thermodynamic closure and cost unit tests
+        run: |
+          python -m unittest test_staged -v
+          python validate_kinetics.py
+      - name: Recompute measured pair full 8-sensitivity cost optima
+        run: python kinetics_swap.py
+      - name: Source fit-domain and fugacity-closure diagnostic
+        run: |
+          python ../nh3_final_1_2_candidate_2026_10_13/audit_domain.py \
+            --kinetics kinetics_swap.json \
+            --profiles kinetics_swap_pressure_profiles.csv \
+            --validation validation_summary.json \
+            --out /tmp/nh3-source-domain
+      - name: Reoptimize the measured pair with GB + Newton-Cooper reaction-equilibrium closure
+        run: |
+          python ../nh3_final_1_2_candidate_2026_10_13/gb_fugacity_pair.py --out /tmp/nh3-GB-NC
+      - name: Export independent kinetics and scientific QA
+        run: |
+          mkdir -p /tmp/nh3-kinetics-results
+          cp kinetics_swap.json kinetics_swap_pressure_profiles.csv validation_summary.json /tmp/nh3-kinetics-results/
+          cp /tmp/nh3-source-domain/* /tmp/nh3-kinetics-results/
+          cp /tmp/nh3-GB-NC/* /tmp/nh3-kinetics-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-final12-kinetics
+          path: /tmp/nh3-kinetics-results/
+          retention-days: 90
+          if-no-files-found: error
+  reconcile:
+    needs: [thermo, kinetics]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: nh3-final12-thermo
+          path: /tmp/audit-thermo
+      - uses: actions/download-artifact@v4
+        with:
+          name: nh3-final12-kinetics
+          path: /tmp/audit-kinetics
+      - name: Independent result and falsification tests
+        run: |
+          python -m unittest discover -s analysis/nh3_final_1_2_candidate_2026_10_13 -p 'test_*.py' -v
+      - name: Fail-closed numeric audit with observational scientific verdict
+        run: |
+          python analysis/nh3_final_1_2_candidate_2026_10_13/reconcile.py \
+            --thermo /tmp/audit-thermo/summary.json \
+            --kinetics /tmp/audit-kinetics/kinetics_swap.json \
+            --domain /tmp/audit-kinetics/source_domain.json \
+            --gbnc /tmp/audit-kinetics/gb_nc_pair.json \
+            --out /tmp/nh3-final12-audit | tee /tmp/nh3-final12-report.log
+          cat /tmp/nh3-final12-audit/AUDIT.md >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/audit-kinetics/SOURCE_DOMAIN.md >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/audit-kinetics/GB_NC_PAIR.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify frozen source and manuscript match current main, not just a clean working tree
+        run: |
+          test -f provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json
+          git fetch origin main --quiet
+          git diff --exit-code origin/main -- provenance/ data/ docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md docs/MAIN_FIGURE_CAPTIONS.md figures/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/
+          git diff --exit-code -- provenance/ data/ docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md docs/MAIN_FIGURE_CAPTIONS.md figures/ analysis/nh3_ru_net_recovery_boundary_2026_10_12/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-final12-audit-report
+          path: /tmp/nh3-final12-audit/
+          retention-days: 90
+          if-no-files-found: warn
