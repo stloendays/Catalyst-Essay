@@ -1,0 +1,190 @@
+name: Methanol joint inventory-purge robustness
+
+# Branch-only independent analysis; never overwrite frozen S5/field outputs.
+on:
+  push:
+    branches: [analysis/joint-meoh-robustness-20261012]
+    paths:
+      - ".github/workflows/field-robustness-audit.yml"
+      - "analysis/field_robustness_2026_10_12/*.py"
+      - "analysis/field_robustness_2026_10_12/tests/**"
+  pull_request:
+    paths:
+      - ".github/workflows/field-robustness-audit.yml"
+      - "analysis/field_robustness_2026_10_12/*.py"
+      - "analysis/field_robustness_2026_10_12/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: methanol-joint-robustness-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUNBUFFERED: "1"
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+  SCRIPT: analysis/field_robustness_2026_10_12/joint_inventory_purge.py
+  AUDIT: analysis/field_robustness_2026_10_12/audit_inversion_robustness.py
+
+jobs:
+  verify:
+    name: Frozen audit, regression tests and joint smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install scientific dependencies
+        run: pip install -r requirements.txt
+      - name: Compile and unit-test
+        run: |
+          python -m py_compile "$SCRIPT" "$AUDIT" analysis/field_robustness_2026_10_12/tests/test_field_robustness.py
+          python -m unittest discover -s analysis/field_robustness_2026_10_12/tests -v
+      - name: Source-aligned independent audit
+        run: python "$AUDIT" --check-frozen --output /tmp/field_audit
+      - name: Joint m-p two-entry smoke
+        run: |
+          python "$SCRIPT" shard --index 0 --count 1 --max-entries 2 --out /tmp/smoke/shard_0.csv
+          python - <<'PY'
+          import pandas as pd
+          x = pd.read_csv('/tmp/smoke/shard_0.csv')
+          assert len(x) == 2 and x.states_tested.min() >= 1
+          print(x[['row_id','above_feed_eq','states_tested','open_feasible','inlet_6p86_feasible']].to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: joint-frozen-audit
+          path: |
+            /tmp/field_audit/
+          retention-days: 30
+
+  joint:
+    name: Joint m-p optimizer shard ${{ matrix.shard }}
+    needs: verify
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Per-catalyst loading-purge optimization
+        run: >
+          python "$SCRIPT" shard
+          --index ${{ matrix.shard }} --count 4
+          --out /tmp/shards/shard_${{ matrix.shard }}.csv
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: joint-shard-${{ matrix.shard }}
+          path: /tmp/shards/shard_${{ matrix.shard }}.csv
+          retention-days: 30
+
+  targeted:
+    name: Targeted loading-convergence and product-split checks
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/joint-meoh-robustness-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Verify the four surviving catalyst comparisons
+        run: python analysis/field_robustness_2026_10_12/targeted_boundary_check.py
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: targeted-boundary-results
+          path: analysis/field_robustness_2026_10_12/targeted_results/
+          retention-days: 60
+
+  report:
+    name: Assemble 310 entries and publish unfrozen results
+    needs: [verify, joint, targeted]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: analysis/joint-meoh-robustness-20261012
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: joint-shard-*
+          merge-multiple: true
+          path: /tmp/joint_shards
+      - uses: actions/download-artifact@v4
+        with:
+          name: joint-frozen-audit
+          path: /tmp/field_audit
+      - uses: actions/download-artifact@v4
+        with:
+          name: targeted-boundary-results
+          path: /tmp/targeted_reports
+      - name: Aggregate group rankings, regret and paper-bootstrap
+        run: |
+          python "$SCRIPT" aggregate --input-dir /tmp/joint_shards --output /tmp/joint_report
+          test -s /tmp/joint_report/joint_summary.json
+          test -s /tmp/joint_report/joint_candidates.csv
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/joint_report/joint_summary.json'))
+          assert p['candidate_entries'] == 310
+          assert set(p['joint_scenarios']) == {'open','inlet_4p92','inlet_6p86','inlet_10p25'}
+          print(json.dumps({k: {'groups':v.get('groups'),
+                                'mismatches':v.get('top1_mismatch_groups'),
+                                'regret_gt5':v.get('gt5pct')}
+                            for k,v in p['joint_scenarios'].items()}, indent=2))
+          PY
+      - name: Copy reproducible reports to separate analysis output
+        run: |
+          mkdir -p analysis/field_robustness_2026_10_12/results
+          cp /tmp/joint_report/joint*.csv /tmp/joint_report/joint_summary.json analysis/field_robustness_2026_10_12/results/
+          cp /tmp/field_audit/audit_summary.json /tmp/field_audit/cross_scenario_groups.csv analysis/field_robustness_2026_10_12/results/
+          cp /tmp/targeted_reports/targeted_* analysis/field_robustness_2026_10_12/results/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: joint-inventory-purge-results
+          path: analysis/field_robustness_2026_10_12/results/
+          retention-days: 60
+      - name: Commit results only to independent analysis branch
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add analysis/field_robustness_2026_10_12/results/
+          if git diff --cached --quiet; then
+            echo "Results unchanged"
+          else
+            git commit -m "CI: record independent joint m-p robustness analysis (${{ github.run_id }})"
+            for attempt in 1 2 3; do
+              git pull --rebase origin analysis/joint-meoh-robustness-20261012 &&
+              git push origin HEAD:analysis/joint-meoh-robustness-20261012 && exit 0
+              sleep 5
+            done
+            exit 1
+          fi
