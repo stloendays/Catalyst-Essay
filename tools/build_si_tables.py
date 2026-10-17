@@ -34,6 +34,8 @@ SUPP = ROOT / "agent/nh3_supported"
 # ammonia model NH3-FINAL-1.2: canonical run and the 1.2 outputs of the ammonia analyses
 NH3_RUN = ROOT / "provenance/nh3_final_1_2/source_harness/outputs/nh3_final_1_2_20261013"
 FIELD = ROOT / "analysis/nh3_field_2026_10_06/nh3_1_2"
+NH3X = ROOT / "analysis/nh3_field_expansion_2026_10_12"                # 25 later ammonia papers (22 included)
+NH3X_RUN = NH3X / "nh3_1_2/runs/batch2_vf_screen_corrected"            # their NH3-FINAL-1.2 primary
 ALLOY = ROOT / "analysis/nh3_alloy_extension_2026_10_05"          # chain script (Dataset S1 terrace values)
 ALLOY_OUT = ALLOY / "nh3_1_2"                                     # its NH3-FINAL-1.2 results
 
@@ -159,7 +161,7 @@ ISO4 = {
     "The Journal of Physical Chemistry C": "J. Phys. Chem. C", "Journal of Materials Science": "J. Mater. Sci.",
     "Energy & Fuels": "Energy Fuels", "AIChE Journal": "AIChE J.", "Nature Nanotechnology": "Nat. Nanotechnol.",
     "Science China Chemistry": "Sci. China Chem.", "ENGINEERING Chemical Engineering": "Front. Chem. Sci. Eng.",
-    "Scientific Reports": "Sci. Rep.", "Carbon and Hydrogen": "Carbon Hydrogen",
+    "Scientific Reports": "Sci. Rep.", "Chemistry of Materials": "Chem. Mater.", "Carbon and Hydrogen": "Carbon Hydrogen",
 }
 
 
@@ -300,6 +302,39 @@ def table2(cr):
     hdr = ["First author", "Year", "Journal", "DOI", "Humphreys 2021", "SI obtained", "Catalyst entries",
            "Printed-value entries", "Metals (printed)", "Comparison groups", "Groups with a different winner"]
     return block(2, "The 30 primary ammonia-synthesis papers", cap, hdr, rows)
+
+def table2b(cr):
+    ps = paper_set(NH3X / "batch2_paper_set_vf.txt")
+    fm, sm = manifest(NF / "fetch_manifest.json"), manifest(NH3X / "batch2_si_manifest.json")
+    cand = pd.read_csv(NH3X_RUN / "candidates.csv")
+    gm = pd.read_csv(NH3X_RUN / "group_metrics_printed.csv")
+    prim = pd.read_csv(NH3X_RUN / "candidates_printed.csv")
+    rows, tot = [], dict(rec=0, prim=0, grp=0, mis=0)
+    for doi, _ in ps:
+        author, year, journal = bib(doi, fm, cr)
+        c, p, g = cand[cand.doi == doi], prim[prim.doi == doi], gm[gm.doi == doi]
+        metals = ", ".join(sorted(p.metal.dropna().unique())) or "–"
+        si = sm.get(doi.lower(), {})
+        nsi = len(si.get("files", [])) if si.get("status") == "ok" else 0
+        mis = int(g.top1_mismatch.sum())
+        tot["rec"] += len(c); tot["prim"] += len(p); tot["grp"] += len(g); tot["mis"] += mis
+        rows.append([author, year, journal, doi, f"yes ({nsi})" if nsi else "no", num(len(c)), num(len(p)),
+                     metals, num(len(g)), num(mis)])
+    s = json.loads((NH3X_RUN / "summary.json").read_text(encoding="utf-8"))
+    sp = json.loads((NH3X_RUN / "summary_printed.json").read_text(encoding="utf-8"))
+    assert (tot["rec"], tot["prim"], tot["grp"], tot["mis"]) == (
+        s["records_in"], sp["entries"]["printed"], sp["primary"]["groups"], sp["primary"]["top1_mismatch_groups"])
+    rows.append(["**Total**", "", "", f"**{len(ps)} papers**", "", f"**{num(tot['rec'])}**",
+                 f"**{num(tot['prim'])}**", "", f"**{tot['grp']}**", f"**{tot['mis']}**"])
+    cap = (f"Papers screened and scored under the protocol of {rel(NH3X / 'PROTOCOL.md')} ({rel(NH3X / 'batch2_screening.csv')}; "
+           f"included set {rel(NH3X / 'batch2_paper_set_vf.txt')}). First author and year from "
+           f"{rel(NF / 'fetch_manifest.json')}, journal from Crossref; SI files from "
+           f"{rel(NH3X / 'batch2_si_manifest.json')}; extracted catalyst entries, printed-value primary entries and "
+           f"their metals, comparison groups and groups whose highest-rate catalyst is not the lowest-plant-cost "
+           f"catalyst from {rel(NH3X_RUN)}; totals checked against {rel(NH3X_RUN / "summary.json")} and {rel(NH3X_RUN / "summary_printed.json")}.")
+    hdr = ["First author", "Year", "Journal", "DOI", "SI obtained", "Catalyst entries", "Printed-value entries",
+           "Metals (printed)", "Comparison groups", "Groups with a different winner"]
+    return block("2b", f"The {len(ps)} later ammonia-synthesis papers", cap, hdr, rows)
 
 
 # ---- Supplementary Table 5: methanol plant benchmark ---------------------------------------------------------
@@ -513,7 +548,9 @@ def table5():
 # One row per comparison group of the all-entries cohort (plot readings included), from the ledger of
 # analysis/meoh_inlet_definition_2026_10_12/run_group_ledger.py; the printed-value verdicts of the 40 kept groups come
 # from the frozen group metrics of the primary analysis (inert-limited loop S6 and unlimited loop S5).
-LEDGER = ROOT / "analysis/meoh_inlet_definition_2026_10_12"
+# since 2026-10-17 the ledger covers both extractions (161 all-entries groups -> 81 printed-value groups):
+# run_group_ledger.py with MEOH_FIELD_SET=combined; verdicts from the combined scoring of meoh_field_pooled
+LEDGER = ROOT / "analysis/meoh_field_pooled_2026_10_15/robustness/group_ledger"
 LEDGER_STATUS = {"paper without printed values": "dropped: no printed values in the paper",
                  "fewer than 2 printed entries": "dropped: fewer than two printed entries"}
 
@@ -535,8 +572,8 @@ def _verdict(differs, regret):
 def table_ledger(cr, fm):
     led = pd.read_csv(LEDGER / "group_ledger.csv")
     s = json.loads((LEDGER / "ledger_summary.json").read_text(encoding="utf-8"))
-    g5 = pd.read_csv(INV / "group_metrics.csv").set_index("group")
-    g6 = pd.read_csv(INV / "group_metrics_inlet_limit.csv").set_index("group")
+    g5 = pd.read_csv(POOL / "groups_S5.csv").set_index("group")
+    g6 = pd.read_csv(POOL / "groups_S6.csv").set_index("group")
     kept = led[led.scored_in_printed_primary.astype(bool)]
     assert led.group.is_unique and set(kept.group) == set(g5.index) == set(g6.index)
     assert led.reason_not_scored.fillna("kept").isin(["kept", *LEDGER_STATUS]).all()
@@ -555,10 +592,10 @@ def table_ledger(cr, fm):
         a6 = _verdict(r.all_entries_S6_different_leader, r.all_entries_S6_regret)
         a5 = _verdict(r.all_entries_S5_different_leader, r.all_entries_S5_regret)
         tot["a6"] += a6.startswith("yes"); tot["a6n"] += a6 != "–"; tot["a5"] += a5.startswith("yes")
-        rows.append([f"{author} {year}", r.doi, cond, f"{num(r.entries)} / {num(r.printed_entries)}", status,
+        rows.append([f"{author} {year}", r.batch, r.doi, cond, f"{num(r.entries)} / {num(r.printed_entries)}", status,
                      p6, p5, a6, a5])
-    order = sorted(range(len(rows)), key=lambda i: (rows[i][0].lower(), rows[i][1], led.P_bar.iloc[i],
-                                                    led.h2_co2.iloc[i], rows[i][2]))
+    order = sorted(range(len(rows)), key=lambda i: (rows[i][1], rows[i][0].lower(), rows[i][2], led.P_bar.iloc[i],
+                                                    led.h2_co2.iloc[i], rows[i][3]))
     rows = [rows[i] for i in order]
     ae, pp, gr = s["all_entries"], s["printed_primary"], s["groups_dropped_by_reason"]
     res, split = s["all_entries_result"], s["all_entries_result_split"]
@@ -569,7 +606,7 @@ def table_ledger(cr, fm):
     assert (tot["a6"], tot["a6n"]) == (res["S6_6_86pct"]["different_leader"], res["S6_6_86pct"]["groups"])
     assert tot["p5"] == split["S5"]["printed_primary"]["different_leader"]
     assert tot["p6"] == int(g6.top1_mismatch.sum()) and tot["p5"] == int(g5.top1_mismatch.sum())
-    rows.append(["**Total**", f"**{ae['papers']} papers**", f"**{ae['groups']} groups**",
+    rows.append(["**Total**", "", f"**{ae['papers']} papers**", f"**{ae['groups']} groups**",
                  f"**{num(ae['entries'])} / {num(int(led.printed_entries.sum()))}**",
                  f"**{len(kept)} kept; {gr['paper without printed values']} + {gr['fewer than 2 printed entries']} "
                  f"dropped**", f"**{tot['p6']} of {len(kept)}**", f"**{tot['p5']} of {len(kept)}**",
@@ -589,10 +626,10 @@ def table_ledger(cr, fm):
            f"the regret where it is not; inlet limit, CO, methane and N₂ at most {100 * _inlet_limit():.2f}% of the reactor inlet "
            f"(primary); "
            f"no limit, the loop without it. Printed values: the primary analysis, from "
-           f"{rel(INV / 'group_metrics_inlet_limit.csv')} and {rel(INV / 'group_metrics.csv')}. All entries: the "
+           f"{rel(POOL / 'groups_S6.csv')} and {rel(POOL / 'groups_S5.csv')}. Set: first or second extraction. All entries: the "
            f"sensitivity with plot readings, from the ledger; under the inlet limit one group keeps fewer than two "
            f"entries that can meet the limit (–).")
-    hdr = ["Paper", "DOI", "Comparison group", "Entries (all / printed)", "Status",
+    hdr = ["Paper", "Set", "DOI", "Comparison group", "Entries (all / printed)", "Status",
            "Printed values, inlet limit", "Printed values, no limit", "All entries, inlet limit", "All entries, no limit"]
     return block(6, f"The {ae['groups']} methanol comparison groups and the {pp['groups']} of the primary analysis",
                  cap, hdr, rows)
@@ -665,12 +702,13 @@ def table7(cr, fms):
 def main():
     refresh = "--refresh" in sys.argv
     fm_ex, fm_nf = manifest(EX / "fetch_manifest.json"), manifest(NF / "fetch_manifest.json")
-    dois = [d for d, _ in paper_set(EX / "paper_set.txt")] + [d for d, _ in paper_set(NF / "paper_set.txt")] + second_set()
+    dois = ([d for d, _ in paper_set(EX / "paper_set.txt")] + [d for d, _ in paper_set(NF / "paper_set.txt")] + second_set()
+            + [d for d, _ in paper_set(NH3X / "batch2_paper_set_vf.txt")])
     cr = crossref(dois, refresh)
     parts = ["# Supplementary Tables", "",
              "<!-- Generated by tools/build_si_tables.py from the repository files named in each caption; do not edit "
              "by hand. -->", "",
-             table1(cr), table1b(cr), table2(cr), table4(), table5(), table3(), table_ledger(cr, fm_ex),
+             table1(cr), table1b(cr), table2(cr), table2b(cr), table4(), table5(), table3(), table_ledger(cr, {**fm_ex, **manifest(VAL / "fetch_manifest.json")}),
              table7(cr, (fm_ex, fm_nf))]
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")

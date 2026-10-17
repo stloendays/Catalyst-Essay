@@ -420,12 +420,12 @@ def edfig6():
           ("compression power (MWh/t)", "elec_MWh_t", "electricity_compressors_MWh_t")]
     c = pd.DataFrame([dict(metric=lab, model=m7[mk], reference=float(ref[rk]), ratio=m7[mk] / float(ref[rk]))
                       for lab, mk, rk in qs])
-    sj = rjson(BENCH + "sensitivity_summary.json")
+    sj = rjson(CMB + "plant_variants/sensitivity_summary.json")   # 81 combined groups (2026-10-17)
     ss = sj["variants"]
     d = pd.DataFrame([dict(variant=k, mismatch_groups=v["top1_mismatch_groups"], groups=v["groups"],
                            papers_with_mismatch=v["papers_with_mismatch"],
                            regret_median_mismatched=v["regret_median_mismatched"],
-                           knobs=json.dumps(v.get("knobs", {}))) for k, v in ss.items()])
+                           knobs=json.dumps(v.get("knobs", {}))) for k, v in ss.items() if "|" not in k])  # loop without the limit; the "|S6" variants are reported in the text
     d.attrs["pf_alignment"] = sj.get("pf_alignment", {})
     d = d.sort_values("mismatch_groups", kind="stable").reset_index(drop=True)
     d.insert(0, "key", np.arange(1, len(d) + 1))
@@ -433,7 +433,7 @@ def edfig6():
                   "analysis/review_pf_benchmark_2026_10_09/pf_benchmark_audit.py"),
             "b": (b, BENCH + "reconciliation_cost.csv (TOTAL and like-for-like rows)"),
             "c": (c, BENCH + "summary.json (model_cases M7) and reference_values.csv (ref_id PEREZFORTES16)"),
-            "d": (d, BENCH + "sensitivity_summary.json (variants)")}
+            "d": (d, CMB + "plant_variants/sensitivity_summary.json (variants)")}
 
 
 # ------------------------------------------------------------------ ED Fig. 7: compute saved by the bound -------

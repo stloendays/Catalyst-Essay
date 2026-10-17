@@ -28,12 +28,18 @@ import pandas as pd
 from common import BANSODE, CANDIDATES, CANDIDATES_ALL, HERE, aggregate, classify
 from meoh_candidates import build_candidates, read_records
 
+import sys  # noqa: E402
+sys.path.insert(0, str(HERE.parents[0] / "meoh_field_pooled_2026_10_15"))
+import field_set as FS  # noqa: E402  (MEOH_FIELD_SET=first, the default, or combined)
+
+OUT = FS.out_dir("group_ledger", HERE)
+
 REASONS = ("paper without printed values", "fewer than 2 printed entries", "other")
 
 
 def group_key(f):
     return (f.doi + " | " + f.P_bar.map("{:g} bar".format) + " | H2/CO2 " + f.h2_co2.map("{:.3g}".format) + " | "
-            + f.ghsv_key)
+            + f.ghsv_key.astype(object).where(f.ghsv_key.notna(), "nan"))   # a CSV round trip reads the key "nan" as NaN
 
 
 def scored_groups(f, col="cost_recycled_opt"):
@@ -49,7 +55,7 @@ def grouping_checks(p, a):
     out["printed_entries_found_in_all_entries"] = int(m.group_all.notna().sum())
     out["printed_entries"] = len(p)
     out["printed_entries_same_group_in_all_entries"] = int((m.group == m.group_all).sum())
-    rec = read_records()
+    rec = FS.records() if FS.COMBINED else read_records()
     for name, flag, frozen in (("printed", True, p), ("all", False, a)):
         b = build_candidates(rec, printed_only=flag)
         k = lambda f: set(zip(f.doi, f.entry, f.catalyst, f.group))  # noqa: E731
@@ -74,7 +80,8 @@ def result(f, col, groups=None):
 
 
 def main():
-    p, a = pd.read_csv(CANDIDATES), pd.read_csv(CANDIDATES_ALL)
+    p, a = (FS.candidates(), FS.candidates_all_entries()) if FS.COMBINED else (pd.read_csv(CANDIDATES),
+                                                                         pd.read_csv(CANDIDATES_ALL))
     checks = grouping_checks(p, a)
     A, P = scored_groups(a), scored_groups(p)
     if set(P.index) - set(A.index):
@@ -101,7 +108,8 @@ def main():
                          plot_read_entries=int(x.plot_read.sum()),
                          nonprinted_other_entries=int((~x.printed & ~x.plot_read).sum()),
                          catalysts=int(x.catalyst_key.nunique()), sty_basis_all_entries=x.sty_basis.iloc[0],
-                         scored_in_printed_primary=scored, reason_not_scored=reason))
+                         scored_in_printed_primary=scored, reason_not_scored=reason,
+                         **({"batch": x.batch.iloc[0]} if "batch" in x else {})))
     led = pd.DataFrame(rows).sort_values(["scored_in_printed_primary", "doi", "group"], ascending=[False, True, True])
 
     # all-entries result, frozen columns; split by groups kept / dropped in the printed primary
@@ -161,8 +169,8 @@ def main():
             all_entries_no_printed_yes=int((led.all_entries_S5_different_leader.eq(False)
                                             & led.printed_S5_different_leader.eq(True)).sum())),
     )
-    led.to_csv(HERE / "group_ledger.csv", index=False, float_format="%.6g")
-    (HERE / "ledger_summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
+    led.to_csv(OUT / "group_ledger.csv", index=False, float_format="%.6g")
+    (OUT / "ledger_summary.json").write_text(json.dumps(summary, indent=1, default=float) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in summary.items() if k != "papers_dropped_list"}, indent=1, default=float))
 
 

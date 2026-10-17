@@ -56,12 +56,14 @@ lit = read_json(INV + "summary.json")
 stats = read_json("analysis/meoh_main_result_stats_2026_10_06/summary.json")      # bootstrap, loop without limit
 stats6 = read_json(S6R + "stats_s6/summary.json")                                  # bootstrap, inert-limited loop
 s6res = read_json(S6R + "results.json")
-cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
-# panel b since 2026-10-15: both extractions (40 + 41 groups), analysis/meoh_field_pooled_2026_10_15
-POOL = "analysis/meoh_field_pooled_2026_10_15/"
-pool = read_json(POOL + "summary.json")
+cand = pd.read_csv(os.path.join(REPO, INV, "literature_candidates.csv"))
+# panel b since 2026-10-15: both extractions (40 + 41 groups), analysis/meoh_field_pooled_2026_10_15
+POOL = "analysis/meoh_field_pooled_2026_10_15/"
+pool = read_json(POOL + "summary.json")
 pcand = pd.read_csv(os.path.join(REPO, POOL, "pooled_candidates.csv"))
-NH3F = "analysis/nh3_field_2026_10_06/nh3_1_2/"                                 # ammonia model NH3-FINAL-1.2
+# ammonia since 2026-10-17: both extractions pooled (33 + 11 groups; the canonical pooled run of
+# analysis/nh3_field_expansion_2026_10_12, report_numbers.py "pooled_vf"); model NH3-FINAL-1.2
+NH3F = "analysis/nh3_field_expansion_2026_10_12/nh3_1_2/runs/pooled_vf_screen/"
 nh3_run = read_json(NH3F + "summary.json")
 nh3 = read_json(NH3F + "summary_printed.json")                                   # primary: printed values
 nh3_groups = read_csv(NH3F + "group_metrics_printed.csv")
@@ -73,7 +75,7 @@ assert stats["point_estimate"]["groups"] == lit["primary"]["top1_mismatch_groups
 assert stats["groups"] == lit["primary"]["groups"]
 assert stats6["point_estimate"]["groups"] == lit["variants"]["inlet_limit_6.86pct"]["top1_mismatch_groups"]
 assert np.allclose(stats6["cluster_bootstrap"]["fraction_ci95"], lit["variants"]["inlet_limit_6.86pct"]["bootstrap"]["ci95"])
-assert nh3_run["selfcheck_supported_chain"]["pass_"]
+assert read_json("analysis/nh3_field_2026_10_06/nh3_1_2/summary.json")["selfcheck_supported_chain"]["pass_"]   # the chain self-check of the first extraction
 
 # (group, panel title, by-product whose selectivity sets the marker area)
 MEOH_GROUPS = [("10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h", "Re/TiO$_2$, 100 bar", "SCH4", "CH$_4$"),
