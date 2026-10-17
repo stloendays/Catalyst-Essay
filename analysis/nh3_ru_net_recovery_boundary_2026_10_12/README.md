@@ -67,3 +67,34 @@ Run from a clean CI checkout after the frozen response cache is constructed:
     NH3_HARNESS=/tmp/nh3_harness python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py
 
 **Editorial gate:** Do not replace the canonical ranking or same-loop Figure 3 values until a domain expert validates the Ru metal inventory financing contract, final recovery yield, and genuine feasibility of Fe in the KAAP loop.
+
+
+## Supplier-owned Ru/C metal, leasing, consignment and buyback (new PR, 2026-10-12)
+
+The project rate is FIXED at 12% for all operator cash flows and unchanged Fe/Ru process optimization. Operator-owned Ru metal and Fe metal follow their dated 25-year purchase-and-salvage DCF. In hypothetical supplier-owned leasing/consignment, the customer does NOT pay the Ru metal principal upfront; instead it pays annual rent or per-loading service fees, optional refundable collateral, fine-Ru metal loss make-up at collection, and separate processing costs. **Metal principal cannot appear as both purchase and lease cost.** Customer-owned metal in a refinery **pool account is NOT treated as supplier-owned** merely because it is recorded in the provider's ledger.
+
+- Annual lease rates: 0, 0.5, 1, 2, 4, 8, 12% of frozen Ru spot value.
+- Consignment service fee per loading: 0, 0.5, 1, 2, 4% of Ru value.
+- Security deposit: either 0 or 25% of Ru value, refunded at year 25 (hypothetical).
+- Physical recovery: 90, 93.05, 95.55%; Ru/C loading 5/8/10 wt%, bed density 430/490/550 kg/m³; nominal metal life 10 years, fixed project life 25.
+- Refining stress: either perfect refining or an assumed 95% metallization yield, $500/kg gross collected Ru processing fee and a half-year metal-loss bill settlement delay. Delayed loss billing benefits the operator under DCF, and is therefore only a scenario, not an assumption about actual supplier practice.
+- Owned/guaranteed buyback: modeled as the original owner DCF with future sale payout fractions of 80, 90, 95 or 100% of certified fine Ru, not a confirmed commercial repurchase agreement.
+- All fee percentages, collateral provisions, fine-metal make-up liability, payment timing and buyback guarantees are **model inputs, not verified contract quotes**. Public documents establish available PGM trading mechanisms, not their Ru-ammonia process applicability or rates. See the source audit in docs/NH3_RU_COMMERCIAL_TERMS_SOURCE_AUDIT_2026-10-12.md.
+
+New workflow calls run_contract_structures.py after 25-year owned DCF, checks baseline identity, solves critical lease-rate thresholds and regenerates all 1,890 contract case rows and 162 thresholds with byte-for-byte repeatability. Figures and machine-readable outputs are available as Actions artifacts:
+
+- contract_terms_report.json
+- contract_cost_surface.csv
+- contract_parity_thresholds.csv
+- contract_structure_parity.png
+
+**Use this to test the importance of contractual metal ownership; never claim a market-available KAAP Ru metal lease at any of the modeled rates.**
+
+
+## Fe feasibility and hybrid-reactor model-domain gate (additive, PR #61)
+
+The same 90-bar / -20C Fe vs Ru comparison is a **single-metal whole-bed process-state counterfactual**. It does not simulate a KAAP multibed converter with Fe upstream and Ru downstream. Peer-reviewed literature (Tripodi et al. 2018, DOI 10.1016/j.jiec.2018.05.027; RSC 2024 DOI 10.1039/D4SE00254G) explicitly describes Fe+Ru multibed arrangements and gas-composition differences.
+
+The new read-only run_kaap_feasibility_audit.py records nominal Fe cost, feasible volume and temperature against the frozen 90 m3 catalyst-bed limit. It then probes an **unmeasured, hypothetical** Fe effective-TOF alpha factor 0.10–3 and a hypothetical assumed-bed-cap factor 0.5–1.5, while preserving the complete fixed 14,136-state Fe response, finances and validated Ru contract costs. Its cost-parity solver refuses to mistake the onset of geometric feasibility for genuine Fe/Ru cost equality. Its machine-readable report blocks any claim of validated industrial KAAP Fe replacement or modeled serial Fe–Ru beds.
+
+See docs/NH3_KAAP_FE_MIXED_BED_FEASIBILITY_GATE_2026-10-12.md. Outputs: kaap_fe_volume_alpha_sweep.csv, kaap_fe_contract_contingency.csv, kaap_fe_effectiveness_parity.csv, kaap_feasibility_gate_report.json and kaap_fe_model_feasibility_gate.png. Do not replace canonical manuscript figures or claims.
