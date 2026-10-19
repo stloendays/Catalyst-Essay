@@ -160,7 +160,9 @@ class SourceUnitsAndPhysics(unittest.TestCase):
         self.assertEqual(x["G2"]["status"],"BLOCKED")
         self.assertEqual(x["G3"]["status"],"BLOCKED_G2_REQUIRED")
         self.assertNotIn("cost",x)
-        self.assertFalse(x["G2"]["no_fitted_source_catalyst_factors"] is False)
+        self.assertTrue(x["G2"]["source_coefficients_taken_without_target_fitting"])
+        self.assertEqual(x["G2"]["source_SI_table8_parameter_gate"],"PASS_SOURCE_VERIFIED")
+        self.assertTrue(x["G2"]["no_adabatic_srk_replication"])
         self.assertTrue(x["original_manuscript_unchanged"])
 
 if __name__=="__main__":
