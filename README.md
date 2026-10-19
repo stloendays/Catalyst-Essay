@@ -159,16 +159,6 @@ The principal frozen source bundles are under [`provenance/`](provenance/). Curr
 
 Frozen provenance, audit files and Git history remain available for traceability.
 
-## Note on the methanol prospective test (2026-10-19)
-
-The pre-registered prospective methanol test is recorded unchanged in
-[`analysis/validation_meoh_prospective_2026_10_13/`](analysis/validation_meoh_prospective_2026_10_13/)
-(`PREREGISTRATION.md`, `DEVIATIONS.md`, `REPORT.md`, blind predictions). Its outcome: the selectivity-rule-versus-chance
-test passed (28/41), whereas the pre-specified S6 disagreement-rate criterion was narrowly not met (22/41, 53.7%, against
-a preset lower bound of 54.1%). The current manuscript reports the selectivity-rule result and not the S6 criterion.
-The paper will be released publicly from a separate repository; the editorial rule that required the S6 criterion in
-Methods/SI (LOCK-06) is archived (see [`docs/MANUSCRIPT_EDITORIAL_LOCKS.md`](docs/MANUSCRIPT_EDITORIAL_LOCKS.md)).
-
 ## Current production state
 
 The audited baseline comprises the **ammonia process–economics model, methanol recycle–economics model, Au/TiO₂ rank-preservation control and ACSA budget-boundary study**. The three supervisor-requested analyses from **2026-09-20 are complete**: Ru-price equalization/cost decomposition, joint cost-parameter Monte Carlo, and Agent oracle-CU normalization.

@@ -72,8 +72,7 @@ This lock remains active unless the author explicitly reopens the MeOH uncertain
 Archived locks are kept for the record and are no longer enforced on manuscript edits.
 
 **LOCK-06 was archived by author decision on 2026-10-19.** The paper will be released from a separate public repository.
-The prospective-test records it refers to remain unchanged in `analysis/validation_meoh_prospective_2026_10_13/`; see the
-note in the README.
+The prospective-test records it refers to remain unchanged in `analysis/validation_meoh_prospective_2026_10_13/`.
 
 ### LOCK-06 (archived 2026-10-19) — Present the unified methanol 81-comparison analysis, not two successive research rounds (2026-10-16)
 
