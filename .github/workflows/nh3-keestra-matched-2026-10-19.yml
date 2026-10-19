@@ -49,6 +49,13 @@ jobs:
           python analysis/nh3_keestra_matched_2026_10_19/run_audit.py \
             --out "$RUNNER_TEMP/keestra_matched_audit" --plot \
             | tee "$RUNNER_TEMP/keestra_matched_audit/STDOUT.log"
+      - name: Compute source-locked commercial Fe / Ru-Ba-K/C 100bar local kinetic crossover
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/commercial_frontier.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" \
+            | tee "$RUNNER_TEMP/keestra_matched_audit/COMMERCIAL_FRONTIER_STDOUT.json"
       - name: Assert source validation is blocked, not quietly marked passed
         shell: bash
         run: |
@@ -58,6 +65,11 @@ jobs:
           d=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_matched_audit'
           x=json.loads((d/'readiness.json').read_text())
           assert x["G0"]["status"]=="PASS"
+          assert x["G1b"]["status"]=="PASS_PUBLISHED_MODEL_D_FACTORS_LOCAL_IDEAL_GAS_SCREEN_ONLY"
+          assert x["G1b"]["bcat_Ru_Ba_K_C"]==76.25
+          assert x["G1b"]["bN_Ru_Ba_K_C"]==.8514
+          assert x["G1b"]["final_bed_inlet_ideal_gas_Ru_to_Fe_rate"]>1
+          assert x["G2"]["source_SI_table8_parameter_gate"]=="PASS_SOURCE_VERIFIED"
           assert x["G1"]["status"] in ("PASS_QUALITATIVE_IN_FAMILY_DIRECTION",
                                       "FAILED_QUALITATIVE_DIRECTION")
           assert x["G1"]["dataset_in_training"] is True
@@ -66,7 +78,13 @@ jobs:
           assert x["G0"]["uses_published_Keestra_modified_SRK"] is False
           assert all(r["Ru_formulation"].find("Ru/CeO2")>=0 for r in x["kinetic_rows"])
           assert len(list(csv.DictReader((d/'screen_80barg_preliminary.csv').open())))==3
-          for k in ('screen_80barg_preliminary.png','screen_80barg_preliminary.svg','REPORT.md'):
+          si=json.loads((d/'100bar_source_locked_kinetic_frontier_summary.json').read_text())
+          assert si["industrial_G2"]=="BLOCKED_FULL_MODIFIED_SRK_ADIABATIC_BED_REQUIRED"
+          assert abs(si["source_industrial_final_bed_inlet"]["Ru_over_Fe_local_rate"]-6.8891)<0.03
+          assert len(list(csv.DictReader((d/'100bar_source_locked_local_rate_grid.csv').open())))==305
+          for k in ('screen_80barg_preliminary.png','screen_80barg_preliminary.svg','REPORT.md',
+                    'SI_source_locked_100bar_local_kinetic_frontier.png',
+                    'SI_source_locked_100bar_local_kinetic_frontier.svg'):
               assert (d/k).stat().st_size>50,k
           print("Correctly blocked industrial G2/G3 despite completed rate tests")
           PY
@@ -144,7 +162,11 @@ jobs:
           root=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_source_probe'
           j=json.loads((root/'source_probe.json').read_text())
           assert len(j['all_attempts'])>=4
-          assert j['original_ru_ba_k_c_SI_exact_parameter_gate'].startswith('BLOCKED')
+          assert j['original_ru_ba_k_c_SI_exact_parameter_gate'].startswith('ACCESS_ONLY_')
+          approved=json.loads((root/'SI_SOURCE_INDEX.json').read_text())
+          assert approved["exact_Ru_Ba_K_C_factor_table_status"]=="PASS_SOURCE_SHA_AND_EXACT_MODEL_D_TABLE8_ROW"
+          assert approved["bcat_verified"]==76.25
+          assert approved["bN_verified"]==.8514
           assert j['do_not_fit_to_published_5p8_ratio'] is True
           print('SOURCE ACCESS AUDIT COMPLETE; scientific G2/G3 remain BLOCKED')
           PY
