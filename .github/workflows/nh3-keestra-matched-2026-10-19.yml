@@ -127,6 +127,14 @@ jobs:
           python analysis/nh3_keestra_matched_2026_10_19/source_probe.py \
             --out "$RUNNER_TEMP/keestra_source_probe" \
             | tee "$RUNNER_TEMP/keestra_source_probe/STDOUT.log"
+      - name: Inspect verified Elsevier Ru SI Model D formulation tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/inspect_si_table.py \
+            --out "$RUNNER_TEMP/keestra_source_probe" \
+            > "$RUNNER_TEMP/keestra_source_probe/SI_TABLE_EXTRACTION.log"
+          sed -n '1,220p' "$RUNNER_TEMP/keestra_source_probe/SI_TABLE_EXTRACTION.log"
       - name: Verify original Ru-Ba-K/C kinetic SI gate remains blocked
         shell: bash
         run: |
