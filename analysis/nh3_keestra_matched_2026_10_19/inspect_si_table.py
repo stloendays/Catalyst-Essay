@@ -70,9 +70,26 @@ def make_review(out:Path):
         for i,span in enumerate(x["excerpts"]):
             heads.extend([f"Candidate {i+1}: text position {span['index']}",
                           span["raw_source_excerpt"], ""])
+    # Pull the exact Model D block, not earlier A/B/C rows with different
+    # catalyst-specific parameters. The row is not yet approved to enter
+    # sources.json until the full source panel/table is audited.
+    mo=re.search(r"A-1-4\s+Model\s+D",body,re.IGNORECASE)
+    if mo:
+        nextmodel=re.search(r"A-1-5\s+Model\s+E",body[mo.end():],re.IGNORECASE)
+        end=mo.end()+nextmodel.start() if nextmodel else mo.start()+14000
+        model_d_text=body[mo.start():end][:14000]
+        (out/"SI_MODEL_D_PARAMETER_SECTION.txt").write_text(model_d_text,encoding="utf-8")
+        index["model_D_block_found"]=True
+        index["model_D_source_span"]=[mo.start(),end]
+        print("=== VERIFIED SOURCE MODEL D TABLE SECTION ===")
+        print(model_d_text[:11000])
+    else:
+        index["model_D_block_found"]=False
     text="\n".join(heads)
     (out/"SI_SOURCE_REVIEW_EXCERPTS.txt").write_text(text,encoding="utf-8")
-    print(text[:27000])
+    (out/"SI_SOURCE_INDEX.json").write_text(json.dumps(index,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+    print("=== OTHER SOURCE DISCOVERY EXCERPTS ===")
+    print(text[:3000])
     return index
 
 
