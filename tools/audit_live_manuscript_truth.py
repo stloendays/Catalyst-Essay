@@ -2209,10 +2209,33 @@ _order = [a.get("best", "") for a in ssum["arrangements"]] + [s.get("best", "") 
 ok("Staged converter: a Ru/C-first converter is optimal in no case tested",
    _order and all(not re.search(r"R.*F", b) for b in _order) and not w150["all_ru_below"] and not w200["all_ru_below"])
 _lease_rng = f"{pbf['pbf_min']:.2f}–{pbf['pbf_max']:.2f}% per year"
-tokens("Abstract and Discussion: staged converter at financing rates that contain the disclosed lease rates", text,
-       "is the least-cost design at the disclosed lease rates for platinum-group catalyst metal",
+_t3_ind = {(r_["pair"], r_["model_basis"], r_["catalyst"]): float(r_["total_USD_t"])
+           for r_ in rows("analysis/nh3_loop_reconciliation_2026_10_14/outputs/t3_points.csv")}
+_t3_ind_gap = (_t3_ind[("c93_closed_220bar", "closed B93", "Ru")]
+               - _t3_ind[("c93_closed_220bar", "closed B93", "Fe")])
+# since 2026-10-19 the abstract states the industrial result (Ru inventory financed at the 12 % equipment rate: fused iron
+# least-cost with measured kinetics in every loop and in the three-bed converter) and the financing window in which Ru
+# enters; the Discussion keeps the staged-converter / lease-rate statement
+tokens("Abstract and Discussion: industrial Fe result at 12 %/y and the Ru financing window", text,
+       f"its Ru inventory financed at the {pc(i_hi)}% rate applied to plant equipment, fused iron is the least-cost "
+       f"catalyst in a conventional and a KAAP-type loop, in an independent real-gas loop and in an optimized three-bed "
+       f"converter",
+       f"only when its metal is financed or leased below {pc(w95['hi'], 1)}% per year",
        f"| least-cost design at {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year |",
        "at metal-financing rates that contain the disclosed lease rates for platinum-group catalyst metal")
+ok("Industrial Fe result: at the 12 %/y equipment rate Ru/C is dearer than Fe with measured kinetics in both loops and in "
+   "the independent loop, and the three-bed optimum is all-Fe (upper window edge below 12 %/y)",
+   rc12["Ru_minus_Fe_global"] > 0 and rc12["Ru_minus_Fe_KAAP"] > 0 and w95["hi"] < i_hi
+   and _t3_ind_gap > 0)
+tokens("Main text: industrial Fe result at 12 %/y (Results)", m_feru2,
+       f"fused iron is cheaper than Ru/C by {rc12['Ru_minus_Fe_global']:.2f} US dollars per tonne in the benchmark loop "
+       f"and by {rc12['Ru_minus_Fe_KAAP']:.2f} in the KAAP-type loop",
+       f"stays cheaper in {_rb_count('gap_12_global', 1)} and {_rb_count('gap_12_KAAP', 1)} of {len(_rb)} cases",
+       f"fused iron {_t3_ind_gap:.2f} US dollars per tonne below Ru/C at 425 °C and 220 bar",
+       f"when the metal is financed or leased below {pc(w95['hi'], 1)}% per year Ru/C takes the downstream beds, and "
+       f"below {pc(w95['lo'], 1)}% the whole converter",
+       f"| Ru/C with recovery, inventory financed at {pc(i_hi)}% per year | – | – | never; Fe cheaper by "
+       f"{rc12['Ru_minus_Fe_global']:.2f} and {rc12['Ru_minus_Fe_KAAP']:.2f} |")
 tokens("Main text: staged converter window and savings", m_feru2,
        f"three-bed converter at {KAAP[0] / 10:.0f} MPa",
        f"for Ru financing rates of {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year",
