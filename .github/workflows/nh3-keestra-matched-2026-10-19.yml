@@ -189,3 +189,61 @@ jobs:
           path: ${{ runner.temp }}/keestra_source_probe/
           if-no-files-found: warn
           retention-days: 30
+
+
+  fe-si-eos-source-audit:
+    name: G2 retrieve Fe source SI SRK/PFR implementation requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check PDF text extraction
+        shell: bash
+        run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq poppler-utils
+          fi
+      - name: Fetch original Fe 2025 SI A5-A7 and create SHA/text audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_g2_fe_si"
+          python analysis/nh3_keestra_matched_2026_10_19/g2_fe_source_audit.py \
+            --out "$RUNNER_TEMP/keestra_g2_fe_si" > "$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_STDOUT.log"
+          sed -n '1,300p' "$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_STDOUT.log"
+      - name: Assert status is explicit; no pretend G2 readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"keestra_g2_fe_si"
+          v=json.loads((p/"source_audit.json").read_text())
+          assert v["no_kinetic_factor_refit"] is True
+          assert v["no_physics_gate_pass_inferred"] is True
+          assert v["probe_status"] in ("SOURCE_PDF_NOT_YET_VERIFIED","OFFICIAL_PDF_TEXT_VERIFIED")
+          if v["probe_status"]=="OFFICIAL_PDF_TEXT_VERIFIED":
+              assert len(v["sha256"])==64 and v["length_chars"]>1000
+          print("RETRIEVAL ONLY: no G2 industrial source reproduction is yet asserted")
+          PY
+          git diff --exit-code -- docs figures provenance source_data data
+      - name: Append original source access result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          p="$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_AUDIT.md"
+          if [ -f "$p" ]; then cat "$p" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload source-only Fe SI text and audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-fe-2025-si-thermo-pfr-source
+          path: ${{ runner.temp }}/keestra_g2_fe_si/
+          if-no-files-found: warn
+          retention-days: 14
