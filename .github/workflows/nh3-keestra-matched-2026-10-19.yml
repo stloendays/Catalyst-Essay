@@ -1,0 +1,100 @@
+name: Exploratory Keestra 2025 NH3 matched-domain kinetics
+
+on:
+  push:
+    paths:
+      - "analysis/nh3_keestra_matched_2026_10_19/**"
+      - ".github/workflows/nh3-keestra-matched-2026-10-19.yml"
+  pull_request:
+    paths:
+      - "analysis/nh3_keestra_matched_2026_10_19/**"
+      - ".github/workflows/nh3-keestra-matched-2026-10-19.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nh3-keestra-source-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-anchored-audit:
+    name: G0/G1 published rate tests; G2/G3 industrial blockers retained
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONIOENCODING: utf-8
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install plot dependency only
+        run: python -m pip install --disable-pip-version-check "matplotlib>=3.8,<4"
+      - name: Unit tests and source physical consistency
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_matched_audit"
+          python -m unittest discover -s analysis/nh3_keestra_matched_2026_10_19 \
+            -p 'test_*.py' -v 2>&1 | tee "$RUNNER_TEMP/keestra_matched_audit/TESTS.log"
+      - name: Run source-anchored 80 bar(g) screening and source readiness report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/run_audit.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" --plot \
+            | tee "$RUNNER_TEMP/keestra_matched_audit/STDOUT.log"
+      - name: Assert source validation is blocked, not quietly marked passed
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,csv
+          d=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_matched_audit'
+          x=json.loads((d/'readiness.json').read_text())
+          assert x["G0"]["status"]=="PASS"
+          assert x["G1"]["status"] in ("PASS_QUALITATIVE_IN_FAMILY_DIRECTION",
+                                      "FAILED_QUALITATIVE_DIRECTION")
+          assert x["G1"]["dataset_in_training"] is True
+          assert x["G2"]["status"]=="BLOCKED"
+          assert x["G3"]["status"]=="BLOCKED_G2_REQUIRED"
+          assert x["G0"]["uses_published_Keestra_modified_SRK"] is False
+          assert all(r["Ru_formulation"].find("Ru/CeO2")>=0 for r in x["kinetic_rows"])
+          assert len(list(csv.DictReader((d/'screen_80barg_preliminary.csv').open())))==3
+          for k in ('screen_80barg_preliminary.png','screen_80barg_preliminary.svg','REPORT.md'):
+              assert (d/k).stat().st_size>50,k
+          print("Correctly blocked industrial G2/G3 despite completed rate tests")
+          PY
+          set +e
+          python analysis/nh3_keestra_matched_2026_10_19/run_audit.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" --require-100bar-completion >/dev/null
+          code=$?
+          set -e
+          if [ "$code" -ne 2 ]; then
+            echo "FAIL: source-incomplete G2 did not fail closed with status 2 (got $code)"
+            exit 1
+          fi
+          git diff --exit-code -- docs figures source_data provenance data
+      - name: Publish explicitly limited scientific result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          f="$RUNNER_TEMP/keestra_matched_audit/REPORT.md"
+          if [ -f "$f" ]; then
+            head -n 56 "$f" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No kinetic result generated; inspect failure logs" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload source-verified rates, plot, blocked checklist and logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-source-audit
+          path: ${{ runner.temp }}/keestra_matched_audit/
+          if-no-files-found: warn
+          retention-days: 30
