@@ -607,20 +607,25 @@ _chi = {"NH3": float(transfer12["NH3"]["pairwise_transfer_index_chi"]),         
 # the transfer index is defined in the last Results subsection since 2026-10-15 (the Discussion only uses it)
 m_chi = main_section("A monotonic catalyst-to-process mapping preserves the ranking")
 tokens(
-    "pairwise transfer-index interpretation",
+    "pairwise realized-transfer diagnostic, not forecasting criterion",
     m_chi,
     "χ_AB",
-    f"χ = {_chi['NH3']:+.3f}",
-    f"χ = {_chi['MeOH']:+.3f}",
+    f"{_chi['NH3']:+.3f}",
+    f"{_chi['MeOH']:+.3f}",
     f"χ ≈ {_chi['AuTiO2']:.2f}",
+    "realized pairwise transfer index",
+    "Neither χ nor its magnitude predicts",
 )
-tokens("Results: transfer index read as the share of the upstream advantage that reaches the objective", m_chi,
-       f"an {float(transfer['AuTiO2']['upstream_metric_ratio_sA_over_sB']):.1f}-fold mass-activity advantage",
-       f"an {1 / float(transfer['AuTiO2']['downstream_objective_ratio_JA_over_JB']):.1f}-fold smaller catalyst requirement",
-       f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold space-time-yield advantage ends as a "
-       f"{(float(transfer['MeOH']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.1f}% higher production cost",
-       f"a {float(transfer12['NH3']['upstream_metric_ratio_sA_over_sB']):.0f}-fold intrinsic turnover advantage of Ru over Fe "
-       f"ends as a {(float(transfer12['NH3']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.0f}% higher")
+tokens(
+    "Results: preserve source-normalized upstream advantages and downstream economic effects",
+    m_chi,
+    f"approximately {float(transfer['AuTiO2']['upstream_metric_ratio_sA_over_sB']):.1f} times the mass activity",
+    f"require approximately {1 / float(transfer['AuTiO2']['downstream_objective_ratio_JA_over_JB']):.1f} times less catalyst",
+    f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold space-time-yield advantage corresponds to "
+    f"{(float(transfer['MeOH']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.1f}% *higher* modeled production cost",
+    f"approximately {float(transfer12['NH3']['upstream_metric_ratio_sA_over_sB']):.0f} times the intrinsic turnover frequency of Fe but "
+    f"{(float(transfer12['NH3']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.0f}% *higher* catalyst-dependent cost",
+)
 _t12 = transfer12["NH3"]
 ok(
     "pairwise transfer-index source signs",
