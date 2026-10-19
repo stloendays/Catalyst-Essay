@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import kinetics as k
 import run_audit as a
+import commercial_frontier as C
 
 
 class SourceUnitsAndPhysics(unittest.TestCase):
@@ -59,11 +60,21 @@ class SourceUnitsAndPhysics(unittest.TestCase):
         self.assertAlmostEqual(f["N2"],a.P80/4)
         self.assertAlmostEqual(f["H2"],a.P80*3/4)
 
-    def test_no_unproven_promoted_ru_identity(self):
+    def test_source_verified_promoted_ru_is_distinct_from_ru_ceo2(self):
+        promoted=k.KineticModel.from_locked("Ru_Ba_K_C")
+        self.assertEqual(promoted.bcat,76.25)
+        self.assertEqual(promoted.bN,.8514)
+        self.assertEqual(self.ru.bcat,1)
+        self.assertEqual(self.ru.bN,1)
+        self.assertNotEqual(promoted.bcat,self.ru.bcat)
+        self.assertEqual(promoted.kA,self.ru.kA)
+        self.assertEqual(promoted.NA,self.ru.NA)
+        si=k.CONFIG["referenceTarget100Bar"]["specific_ru_parameters_source"]
+        self.assertEqual(si["source_table"],"Table 8, Ru-Ba-K/C - Liu (2013) [4]")
+        self.assertEqual(si["source_sha256"],
+                         "a6137d61860d2c55905a12544d7792437592a02fcbed6b0d05c237d4a1569598")
         with self.assertRaises(ValueError):
-            k.KineticModel.from_locked("Ru_Ba_K_C")
-        self.assertIsNone(k.CONFIG["referenceTarget100Bar"]["Ru_Ba_K_C_bcat"])
-        self.assertIsNone(k.CONFIG["referenceTarget100Bar"]["Ru_Ba_K_C_bN"])
+            k.KineticModel.from_locked("Unverified_Ru_identity")
 
     def test_invalid_pressures_compositions_and_fugacities(self):
         with self.assertRaises(ValueError):
@@ -118,6 +129,31 @@ class SourceUnitsAndPhysics(unittest.TestCase):
         self.assertTrue(src["Kowalczyk1996"]["in_Keestra_Ru_training"])
         self.assertTrue(src["Cholewa2024"]["in_Keestra_Ru_training"])
         self.assertEqual(a.audit()["G4"]["all_external_sources_numerically_predicted"],False)
+
+    def test_published_ru_model_D_same_gas_comparison_100bar(self):
+        blank=C.point(400,0.0)
+        industrial=C.point(400,.11)
+        self.assertTrue(blank["forward_feasible"])
+        self.assertTrue(industrial["forward_feasible"])
+        self.assertLess(blank["Ru_over_Fe_local_rate"],1)
+        self.assertGreater(industrial["Ru_over_Fe_local_rate"],1)
+        self.assertAlmostEqual(industrial["Ru_over_Fe_local_rate"],6.8891,delta=.02)
+        self.assertEqual(industrial["eos_assumption"],
+                         "ideal fugacity fi=yi P; not Keestra corrected-SRK")
+        g=a.audit()["G1b"]
+        self.assertTrue(g["pre_existing_source_final_bed_GHSV_values_NOT_USED_IN_RATE_CALCULATION"])
+        self.assertFalse(g["full_adiabatic_reactor_replicated"])
+
+    def test_matched_pressure_kinetic_preference_crossover_brackets(self):
+        for T in C.TGRID:
+            root=C.crossover(T)
+            self.assertGreater(root,0)
+            self.assertLess(root,.05)
+            sample=C.point(T,root)
+            self.assertTrue(sample["forward_feasible"])
+            self.assertAlmostEqual(sample["Ru_over_Fe_local_rate"],1.,delta=1e-9)
+        # The root is not a cost or kinetic experiment boundary.
+        self.assertLess(C.crossover(450),C.crossover(350))
 
     def test_100bar_industrial_gate_really_blocked(self):
         x=a.audit()
