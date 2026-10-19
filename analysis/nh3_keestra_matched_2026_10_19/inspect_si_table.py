@@ -79,6 +79,23 @@ def make_review(out:Path):
         end=mo.end()+nextmodel.start() if nextmodel else mo.start()+14000
         model_d_text=body[mo.start():end][:14000]
         (out/"SI_MODEL_D_PARAMETER_SECTION.txt").write_text(model_d_text,encoding="utf-8")
+        # The registered commercial formulation is the Model D row, NOT the
+        # first Ru-Ba-K/C occurrence in source Model A/B/C.
+        row_start=model_d_text.find("Ru-Ba-K/C")
+        row=model_d_text[row_start:row_start+320] if row_start>=0 else ""
+        source_json=json.loads((Path(__file__).resolve().parent/"sources.json").read_text(encoding="utf-8"))
+        validated=(row_start>=0 and "Liu (2013)" in row and
+                   "7.625E+01" in row and "8.514E-01" in row and
+                   "3.561E-02" in row and "8.091E-03" in row and
+                   source_json["referenceTarget100Bar"]["Ru_Ba_K_C_bcat"]==76.25 and
+                   source_json["referenceTarget100Bar"]["Ru_Ba_K_C_bN"]==.8514 and
+                   source_json["referenceTarget100Bar"]["specific_ru_parameters_source"]["source_sha256"]==meta["sha256"] and
+                   meta["sha256"]=="a6137d61860d2c55905a12544d7792437592a02fcbed6b0d05c237d4a1569598")
+        if not validated:
+            raise AssertionError("Source SI Model D commercial catalyst row/sha does not match pinned factors; do not use!")
+        index["exact_Ru_Ba_K_C_factor_table_status"]="PASS_SOURCE_SHA_AND_EXACT_MODEL_D_TABLE8_ROW"
+        index["bcat_verified"]=76.25
+        index["bN_verified"]=.8514
         index["model_D_block_found"]=True
         index["model_D_source_span"]=[mo.start(),end]
         print("=== VERIFIED SOURCE MODEL D TABLE SECTION ===")
