@@ -134,7 +134,7 @@ def audit(paths=CANDIDATES):
                 all_attempts=found,
                 source_pdf_count=sum(x.get("sniffed")=="pdf" and "error" not in x for x in found),
                 source_docx_count=sum(x.get("sniffed")=="zip" and "error" not in x for x in found),
-                original_ru_ba_k_c_SI_exact_parameter_gate="BLOCKED_PENDING_HUMAN_SOURCE_TABLE_AUDIT",
+                original_ru_ba_k_c_SI_exact_parameter_gate="ACCESS_ONLY_NOT_THE_FACTOR_VALIDATOR__SEE_SI_SOURCE_INDEX",
                 do_not_fit_to_published_5p8_ratio=True)
 
 
@@ -148,7 +148,7 @@ def main():
     report=[
       "# Public primary-source retrieval audit — Keestra Ru CEJ 2025",
       "",
-      "This automatically checks explicitly labelled potential official source URLs. Guessed filenames are hypotheses, not citations. G2 is BLOCKED until the real Ru-Ba-K/C kinetic factors are verified in an authenticated primary-source table.",
+      "This automatically checks explicitly labelled potential official source URLs. Guessed filenames are hypotheses, not citations. Source-access detection alone does not verify catalyst-specific factors. A separate SHA- and SI Table 8 row-check now validates the factors. Full G2 industrial reactor reproduction remains blocked until corrected-SRK and adiabatic PFR physics are verified.",
       "",
       "| Candidate URL | Expected content | Retrieved content | Bytes | Outcome |",
       "|---|---|---|---:|---|"
