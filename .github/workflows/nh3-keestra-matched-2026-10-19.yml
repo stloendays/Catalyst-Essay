@@ -275,7 +275,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/keestra_g2_adiabatic"
           python -m unittest discover \
             -s analysis/nh3_keestra_matched_2026_10_19 \
-            -p "test_g2_adiabatic.py" -v 2>&1 \
+            -p "test_g2_*.py" -v 2>&1 \
             | tee "$RUNNER_TEMP/keestra_g2_adiabatic/TESTS.log"
       - name: Compute 100bar commercial Fe/Ru adiabatic bed WITHOUT source target fitting
         shell: bash
@@ -284,6 +284,13 @@ jobs:
           python analysis/nh3_keestra_matched_2026_10_19/g2_adiabatic.py \
             --out "$RUNNER_TEMP/keestra_g2_adiabatic" \
             | tee "$RUNNER_TEMP/keestra_g2_adiabatic/RESULTS.log"
+      - name: Forward-validate at authors' GHSV without parameter fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/g2_forward_diagnostic.py \
+            --out "$RUNNER_TEMP/keestra_g2_adiabatic" \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/FORWARD_DIAGNOSTIC_STDOUT.log"
       - name: Verify audit output contains actual predictions and complete-physics caution
         shell: bash
         run: |
@@ -311,6 +318,14 @@ jobs:
           assert len(list(csv.DictReader((p/"g2_adiabatic_scenario_results.csv").open())))==5
           assert (p/"g2_adiabatic_vs_published.png").stat().st_size>1000
           assert (p/"G2_REPORT.md").stat().st_size>500
+          q=json.loads((p/"g2_forward_source_GHSV_readiness.json").read_text())
+          assert q["source_GHSV_values_used_only_as_forward_inputs"] is True
+          assert q["all_source_parameters_unmodified"] is True
+          assert len(q["records"])==10
+          for item in q["records"]:
+              assert 0<item["model_forward_fraction_of_own_adiabatic_eq_extent"]<1
+              assert abs(item["model_energy_residual_J_per_inlet_mol"])<1e-3
+          assert (p/"G2_FORWARD_DIAGNOSTIC.md").stat().st_size>500
           print("G2 source-parameter adiabatic numerical exploratory result OK; exact Aspen reproduction NOT certified")
           PY
           git diff --exit-code -- docs figures data source_data provenance
