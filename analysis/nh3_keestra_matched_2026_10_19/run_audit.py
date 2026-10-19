@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse,csv,json,math
 from pathlib import Path
 import kinetics as K
+import commercial_frontier as F
 
 HERE=Path(__file__).resolve().parent
 SOURCE=K.CONFIG
@@ -34,9 +35,26 @@ def audit():
             predicted_initial_direction="Fe faster" if fr>rr else "Ru/CeO2 faster" if rr>fr else "tied",
             predicted_pfr_direction="Fe higher yNH3" if fbed["outlet_yNH3"]>rbed["outlet_yNH3"] else "Ru/CeO2 higher yNH3" if fbed["outlet_yNH3"]<rbed["outlet_yNH3"] else "tied"))
     target=SOURCE["referenceTarget100Bar"]
-    # Do not invoke source-promoted rate when no source-specific factors.
-    sufficient=target["Ru_Ba_K_C_bcat"] is not None and target["Ru_Ba_K_C_bN"] is not None
-    assert not sufficient,"Not ready to run promoted G2: EOS and adiabatic balance must also be audited"
+    # Original supplementary Table 8 factors recovered and SHA256-pinned;
+    # they are source parameters, NEVER fitted to published 5.8x bed output.
+    promoted=K.KineticModel.from_locked("Ru_Ba_K_C")
+    assert promoted.bcat==target["Ru_Ba_K_C_bcat"]==76.25
+    assert promoted.bN==target["Ru_Ba_K_C_bN"]==.8514
+    matched_industrial_inlet=F.point(400.0,.11)
+    matched_zero_ammonia=F.point(400.0,0.0)
+    g1b=dict(status="PASS_PUBLISHED_MODEL_D_FACTORS_LOCAL_IDEAL_GAS_SCREEN_ONLY",
+       catalyst_pair="Fe AmoMax10 versus 4wt% promoted Ru-Ba-K/C (Liu 2013)",
+       source_SI_model="Keestra Ru 2025 SI A-1-4 Model D Table 8",
+       source_sha256=target["specific_ru_parameters_source"]["source_sha256"],
+       bcat_Ru_Ba_K_C=promoted.bcat,bN_Ru_Ba_K_C=promoted.bN,
+       pressure_bar_abs=100,inlet_temperature_C=400,inlet_NH3_molfrac=.11,
+       inlet_H2_N2=2.25,
+       initial_ideal_gas_Ru_to_Fe_rate=matched_zero_ammonia["Ru_over_Fe_local_rate"],
+       final_bed_inlet_ideal_gas_Ru_to_Fe_rate=matched_industrial_inlet["Ru_over_Fe_local_rate"],
+       pre_existing_source_final_bed_GHSV_values_NOT_USED_IN_RATE_CALCULATION=True,
+       original_Keestra_SRK_model_replicated=False,full_adiabatic_reactor_replicated=False,
+       unrelated_Ru_CeO2_factors_NOT_USED=True)
+
     matching=all(x["predicted_initial_direction"]=="Fe faster" and
                  x["predicted_pfr_direction"]=="Fe higher yNH3" for x in results)
     g0=dict(status="PASS",source_equations="Keestra Fe Eq15 and Ru Eqs10-12",
@@ -65,11 +83,15 @@ def audit():
         never_independent_kinetic_prediction=True,
         not_used_as_input_to_any_kinetic_rate_fit=True)
     g2=dict(status="BLOCKED",material="4 wt% Ru-Ba-K/C",
+       source_SI_table8_parameter_gate="PASS_SOURCE_VERIFIED",
+       source_parameters_bcat=promoted.bcat,
+       source_parameters_bN=promoted.bN,
+       source_parameters_sha256=target["specific_ru_parameters_source"]["source_sha256"],
        source_output_arithmetic_check=table_g2a,
        missing=target["missing"],
        published_target_volume_ratio_Fe_div_Ru=5.8,
        published_target_mass_ratio_Fe_div_Ru=19,
-       no_fitted_source_catalyst_factors=True,
+       source_coefficients_taken_without_target_fitting=True,
        no_adabatic_srk_replication=True)
     g3=dict(status="BLOCKED_G2_REQUIRED",no_new_process_economics_or_phase_claim=True,
        original_PR111_unchanged=True)
@@ -81,7 +103,7 @@ def audit():
        interpretation="MODEL-CONDITIONAL ideal fugacity, isothermal, IN-FAMILY test ONLY",
        source_dois=["10.1016/j.cej.2025.164593","10.1016/j.cej.2025.168541","10.1039/D4SE00254G",
                     "10.1016/0926-860X(95)00251-0","10.1016/S1004-9541(11)60165-1"],
-       G0=g0,G1=g1,G2=g2,G3=g3,G4=g4,
+       G0=g0,G1=g1,G1b=g1b,G2=g2,G3=g3,G4=g4,
        experiment_geometry_class="source Cholewa 80bar(g) matched pressure; W/F illustrative",
        measured_absolute_rates_used=False,kinetic_rows=results,
        original_manuscript_unchanged=True,frozen_results_unchanged=True)
@@ -91,7 +113,7 @@ def print_report(x):
     s=[
       "# Keestra 2025 Fe/Ru pressure applicability — source-anchored study",
       "",
-      "**Status:** G0 verified source global rate equations; G1 qualitative source-anchor screening; G2 100bar promoted Ru-Ba-K/C final-bed replication **BLOCKED** for missing SI factors, source-modified SRK and adiabatic model; G3 economic decision atlas NOT executed.",
+      "**Status:** G0 source equations PASS; G1 historical Fe/Ru-CeO2 in-family direction PASS; **G1b source-specific Ru-Ba-K/C factors verified in original SI and ideal-fugacity 100bar local-rate screen completed**; G2 adiabatic 100bar industrial bed reproduction STILL BLOCKED by source-modified SRK/energy/design verification; G3 economic phase atlas NOT executed.",
       "",
       "## Source-matched same-pressure screen, NOT the 100bar commercial example",
       "",
@@ -112,7 +134,7 @@ def print_report(x):
         "",
         "Keestra Ru 2025 Table 4: 400C, 100bar(a), H2/N2=2.25, inlet 11mol% NH3, 4wt% Ru-Ba-K/C vs Fe AmoMax10, target 90% of adiabatic equilibrium. Authors report ~5.8x less Ru bed volume and ~19x less Ru bed mass. **We have not reproduced those values.**",
         "Table 4 internal OUTPUT audit: the published GHSV values are 22,250 h^-1 for Fe and 130,000 h^-1 for Ru. Their ratio 130000/22250 = %.4f reproduces the authors' rounded 5.8x bed-volume difference. Multiplying by the published densities 2500/750 gives %.4f, consistent with the rounded ~19x bed-mass difference. This is a dimensional consistency check on ALREADY PUBLISHED calculated bed outputs, NOT an independent kinetic, EOS, mass-transfer or adiabatic PFR prediction." % (x["G2"]["source_output_arithmetic_check"]["Fe_Ru_bed_volume_ratio_from_published_GHSV"],x["G2"]["source_output_arithmetic_check"]["Fe_Ru_bed_mass_ratio_from_published_GHSV_and_densities"]),
-        "The exact Ru-Ba-K/C bcat and bN correction factors in supporting information A-1 remain unavailable for independent transcription. Published Ru/CeO2 factors of 1 are not substitutes. The original modified SRK fugacities and adiabatic energy balance also need faithful implementation. G2 remains BLOCKED even though G0/G1 tests are green.",
+        "Source breakthrough: the genuine publisher SI PDF (SHA256 %s), Section A-1-4 Model D Table 8, Ru-Ba-K/C Liu (2013) supplies bcat=76.25 (+/-0.03561) and bN=0.8514 (+/-0.008091). G1b evaluates these SOURCE factors at the authors' 100bar(a), 400C, 11%% inlet NH3, H2/N2=2.25. Using ideal fugacity only, the local Ru/Fe kinetic rate ratio is %.4f (versus %.4f at the same T/P with zero inlet NH3). These rates are model estimates, NOT reported measurements, original SRK results or adiabatic bed sizes. G2 remains BLOCKED until the source-modified SRK, heat integration and exact source design are implemented; no cost map has been regenerated." % (x["G1b"]["source_sha256"],x["G1b"]["final_bed_inlet_ideal_gas_Ru_to_Fe_rate"],x["G1b"]["initial_ideal_gas_Ru_to_Fe_rate"]),
         "",
         "## Source provenance and independence",
         "",
@@ -170,7 +192,7 @@ def main():
         w=csv.DictWriter(f,fieldnames=list(rows[0]))
         w.writeheader();w.writerows(rows)
     if args.plot:make_plot(x,out)
-    print(json.dumps({k:v for k,v in x.items() if k in ("G0","G1","G2","G3","G4")},indent=2))
+    print(json.dumps({k:v for k,v in x.items() if k in ("G0","G1","G1b","G2","G3","G4")},indent=2))
     if args.require_100bar_completion and x["G2"]["status"]!="PASS":
         raise SystemExit(2)
 
