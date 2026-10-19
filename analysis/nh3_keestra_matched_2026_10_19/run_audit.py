@@ -52,7 +52,20 @@ def audit():
        not_experimental_quantitative_replication=True,
        literature_direction="Cholewa 2024 Fig 4, Fe faster than Ru/CeO2",
        experimental_concentration_traces_available=False)
+    # This is ONLY an arithmetic check against the authors' already published
+    # Table 4 reactor OUTPUT GHSV values; not an independent kinetic prediction.
+    published_Fe_GHSV=float(target["published_GHSV_Fe_per_h"])
+    published_Ru_GHSV=float(target["published_GHSV_Ru_per_h"])
+    V_Fe_over_Ru=published_Ru_GHSV/published_Fe_GHSV
+    M_Fe_over_Ru=V_Fe_over_Ru*float(target["bedDensityFe_kg_m3"])/float(target["bedDensityRu_kg_m3"])
+    table_g2a=dict(status="PASS_PUBLISHED_OUTPUT_ARITHMETIC_ONLY",
+        GHSV_h_Fe=published_Fe_GHSV,GHSV_h_Ru=published_Ru_GHSV,
+        Fe_Ru_bed_volume_ratio_from_published_GHSV=V_Fe_over_Ru,
+        Fe_Ru_bed_mass_ratio_from_published_GHSV_and_densities=M_Fe_over_Ru,
+        never_independent_kinetic_prediction=True,
+        not_used_as_input_to_any_kinetic_rate_fit=True)
     g2=dict(status="BLOCKED",material="4 wt% Ru-Ba-K/C",
+       source_output_arithmetic_check=table_g2a,
        missing=target["missing"],
        published_target_volume_ratio_Fe_div_Ru=5.8,
        published_target_mass_ratio_Fe_div_Ru=19,
@@ -60,9 +73,10 @@ def audit():
        no_adabatic_srk_replication=True)
     g3=dict(status="BLOCKED_G2_REQUIRED",no_new_process_economics_or_phase_claim=True,
        original_PR111_unchanged=True)
-    g4=dict(status="PARTIAL",Cholewa_2024_in_fit_cohort=True,
-       Kowalczyk_1996="source identity and training overlap not fully checked; no numerical claims",
-       Pan_2011="source identity and training overlap not fully checked; no numerical claims")
+    g4=dict(status="PARTIAL_SOURCE_DISAMBIGUATION",Cholewa_2024_in_fit_cohort=True,
+       Kowalczyk_1996="CONFIRMED_FIT_SOURCE: Kowalczyk 1996 is Keestra Ru 2025 source [27] in Figure 1; NOT INDEPENDENT",
+       Pan_2011="ABSTRACT_ONLY_EXTERNAL_MATERIAL_COMPARISON: A301 Fe versus active-carbon Ru at 100bar, 375-400C; 33.5-37.6 percent higher Ru activity reported in the source abstract. NOT a rate-law replication and not specifically Ru-Ba-K/C",
+       all_external_sources_numerically_predicted=False)
     return dict(study="source-anchored preliminary published-kinetics audit",
        interpretation="MODEL-CONDITIONAL ideal fugacity, isothermal, IN-FAMILY test ONLY",
        source_dois=["10.1016/j.cej.2025.164593","10.1016/j.cej.2025.168541","10.1039/D4SE00254G",
@@ -97,6 +111,7 @@ def print_report(x):
         "## Separate 100bar Keestra benchmark",
         "",
         "Keestra Ru 2025 Table 4: 400C, 100bar(a), H2/N2=2.25, inlet 11mol% NH3, 4wt% Ru-Ba-K/C vs Fe AmoMax10, target 90% of adiabatic equilibrium. Authors report ~5.8x less Ru bed volume and ~19x less Ru bed mass. **We have not reproduced those values.**",
+        "Table 4 internal OUTPUT audit: the published GHSV values are 22,250 h^-1 for Fe and 130,000 h^-1 for Ru. Their ratio 130000/22250 = %.4f reproduces the authors' rounded 5.8x bed-volume difference. Multiplying by the published densities 2500/750 gives %.4f, consistent with the rounded ~19x bed-mass difference. This is a dimensional consistency check on ALREADY PUBLISHED calculated bed outputs, NOT an independent kinetic, EOS, mass-transfer or adiabatic PFR prediction." % (x["G2"]["source_output_arithmetic_check"]["Fe_Ru_bed_volume_ratio_from_published_GHSV"],x["G2"]["source_output_arithmetic_check"]["Fe_Ru_bed_mass_ratio_from_published_GHSV_and_densities"]),
         "The exact Ru-Ba-K/C bcat and bN correction factors in supporting information A-1 remain unavailable for independent transcription. Published Ru/CeO2 factors of 1 are not substitutes. The original modified SRK fugacities and adiabatic energy balance also need faithful implementation. G2 remains BLOCKED even though G0/G1 tests are green.",
         "",
         "## Source provenance and independence",
@@ -104,8 +119,8 @@ def print_report(x):
         "- Fe: https://doi.org/10.1016/j.cej.2025.164593 (Table 2, Eq.15).",
         "- Ru: https://doi.org/10.1016/j.cej.2025.168541 (Table 3, Eqs.10-12).",
         "- Cholewa: https://doi.org/10.1039/D4SE00254G (Fe and FREA-AIST Ru/CeO2; 80bar is gauge).",
-        "- Kowalczyk 1996: https://doi.org/10.1016/0926-860X(95)00251-0 (promoted carbon-Ru formulation must be disambiguated).",
-        "- Pan 2011: https://doi.org/10.1016/S1004-9541(11)60165-1 (A301 Fe vs carbon-Ru).",
+        "- Kowalczyk 1996: https://doi.org/10.1016/0926-860X(95)00251-0. **Disqualified from held-out testing** because Keestra Ru 2025 Fig.1 lists Ref. [27] Kowalczyk 1996 among fitted training sources.",
+        "- Pan 2011: https://doi.org/10.1016/S1004-9541(11)60165-1. Published ABSTRACT reports 375–400C, 10MPa, H2/N2=3, GHSV=10000/h; active-carbon Ru has 33.5%–37.6% greater activity than an A301 Fe catalyst. This is not the Clariant AmoMax10 vs FREA Ru/CeO2 pair, nor specifically the Ru-Ba-K/C reference. No cross-source rate-factor prediction is made without formulation-specific parameters and raw full-text output.",
         "",
         "## Decision gate",
         "",
