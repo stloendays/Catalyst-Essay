@@ -98,3 +98,64 @@ jobs:
           path: ${{ runner.temp }}/keestra_matched_audit/
           if-no-files-found: warn
           retention-days: 30
+
+
+  public-source-probe:
+    name: Verify publicly accessible Keestra 2025 supplementary files
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check PDF text extraction tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq poppler-utils
+          fi
+      - name: Public-source checks (not a model validation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_source_probe"
+          python analysis/nh3_keestra_matched_2026_10_19/source_probe.py \
+            --out "$RUNNER_TEMP/keestra_source_probe" \
+            | tee "$RUNNER_TEMP/keestra_source_probe/STDOUT.log"
+      - name: Verify original Ru-Ba-K/C kinetic SI gate remains blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_source_probe'
+          j=json.loads((root/'source_probe.json').read_text())
+          assert len(j['all_attempts'])>=4
+          assert j['original_ru_ba_k_c_SI_exact_parameter_gate'].startswith('BLOCKED')
+          assert j['do_not_fit_to_published_5p8_ratio'] is True
+          print('SOURCE ACCESS AUDIT COMPLETE; scientific G2/G3 remain BLOCKED')
+          PY
+          git diff --exit-code -- docs figures provenance source_data data
+      - name: Report source access and bounded evidence
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          p="$RUNNER_TEMP/keestra_source_probe/SOURCE_PROBE.md"
+          if [ -f "$p" ]; then
+            cat "$p" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No source access report created; inspect logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive source availability manifest only (never unreviewed extracted SI factors)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-official-source-probe
+          path: ${{ runner.temp }}/keestra_source_probe/
+          if-no-files-found: warn
+          retention-days: 30
