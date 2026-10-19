@@ -99,6 +99,26 @@ class SourceUnitsAndPhysics(unittest.TestCase):
         self.assertAlmostEqual(lo["outlet_yNH3"],hi["outlet_yNH3"],delta=5e-5)
         self.assertTrue(0 < hi["outlet_yNH3"]<1)
 
+    def test_published_table4_dimensional_ratios_are_not_model_predictions(self):
+        result=a.audit()
+        a4=result["G2"]["source_output_arithmetic_check"]
+        self.assertEqual(a4["status"],"PASS_PUBLISHED_OUTPUT_ARITHMETIC_ONLY")
+        self.assertTrue(a4["never_independent_kinetic_prediction"])
+        self.assertTrue(a4["not_used_as_input_to_any_kinetic_rate_fit"])
+        self.assertAlmostEqual(a4["Fe_Ru_bed_volume_ratio_from_published_GHSV"],
+                               130000.0/22250.0, places=10)
+        self.assertAlmostEqual(a4["Fe_Ru_bed_mass_ratio_from_published_GHSV_and_densities"],
+                               (130000.0/22250.0)*(2500.0/750.0),places=10)
+        self.assertAlmostEqual(a4["Fe_Ru_bed_volume_ratio_from_published_GHSV"],5.8,delta=.1)
+        self.assertAlmostEqual(a4["Fe_Ru_bed_mass_ratio_from_published_GHSV_and_densities"],19.,delta=.6)
+        self.assertEqual(result["G2"]["status"],"BLOCKED")
+
+    def test_1996_training_overlap_is_explicit(self):
+        src=k.CONFIG["sourceTrainingOverlap"]
+        self.assertTrue(src["Kowalczyk1996"]["in_Keestra_Ru_training"])
+        self.assertTrue(src["Cholewa2024"]["in_Keestra_Ru_training"])
+        self.assertEqual(a.audit()["G4"]["all_external_sources_numerically_predicted"],False)
+
     def test_100bar_industrial_gate_really_blocked(self):
         x=a.audit()
         self.assertEqual(x["G2"]["status"],"BLOCKED")
