@@ -1,0 +1,92 @@
+name: Exploratory rank preservation and NH3 decision atlas
+
+on:
+  push:
+    paths:
+      - "analysis/rank_preservation_phase_2026_10_19/**"
+      - ".github/workflows/rank-preservation-phase-2026-10-19.yml"
+  pull_request:
+    paths:
+      - "analysis/rank_preservation_phase_2026_10_19/**"
+      - ".github/workflows/rank-preservation-phase-2026-10-19.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rank-preservation-phase-2026-10-19-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exploratory-atlas:
+    name: Formal conditions and source-pinned economic atlas
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONIOENCODING: utf-8
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install plotting-only dependency
+        run: |
+          python -m pip install --disable-pip-version-check "matplotlib>=3.8,<4"
+      - name: Exhaustive rank-preservation and immutable input tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nh3_decision_atlas"
+          python -m unittest discover \
+            -s analysis/rank_preservation_phase_2026_10_19 \
+            -p 'test_*.py' -v 2>&1 | tee "$RUNNER_TEMP/nh3_decision_atlas/UNIT_TESTS.log"
+      - name: Generate source-pinned 4,100-cell decision atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/rank_preservation_phase_2026_10_19/atlas.py \
+            --out "$RUNNER_TEMP/nh3_decision_atlas" \
+            | tee "$RUNNER_TEMP/nh3_decision_atlas/STDOUT.json"
+      - name: Verify all declared artifacts, phase classes and version firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, json, os, pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'nh3_decision_atlas'
+          names=['summary.json','REPORT.md','01_categorical_price_finance_4100.csv',
+            '02_nominal_price_rate_transitions.csv','03_price_slice_pattern_transitions.csv',
+            '04_binary_Fe_Ru_parity_brackets.csv',
+            '01_NH3_catalyst_decision_atlas.png','01_NH3_catalyst_decision_atlas.svg']
+          assert all((p/n).stat().st_size>40 for n in names),names
+          s=json.loads((p/'summary.json').read_text())
+          assert s['n_cells']==4100 and len(s['panels'])==4
+          assert sum(x['FFF']+x['FFR']+x['FRR']+x['RRR'] for x in s['panels'])==4100
+          with (p/'01_categorical_price_finance_4100.csv').open() as f:
+              assert sum(1 for _ in csv.DictReader(f))==4100
+          print('VALIDATED: 4,100 source-pinned cells and figure artifacts')
+          PY
+          git diff --exit-code -- docs figures provenance source_data data
+          echo "All upstream data, frozen models and main paper preserved."
+      - name: Append scientific caution and results
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          p="$RUNNER_TEMP/nh3_decision_atlas/REPORT.md"
+          if [ -f "$p" ]; then
+            head -n 42 "$p" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Exploratory run did not produce a scientific result; inspect logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive source-pinned output, including negative outcomes and logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rank-preservation-phase-4100
+          path: ${{ runner.temp }}/nh3_decision_atlas/
+          if-no-files-found: warn
+          retention-days: 30
