@@ -1659,10 +1659,7 @@ _bl = _j("analysis/validation_meoh_prospective_2026_10_13/results.json")["primar
 _bls = _bl["stats"]
 ok("MeOH blind rule: the committed predictions equal the rule on every comparison of the second set",
    _bl["rule"] == "S" and _bl["blind_predictions_equal_rule"] == _bls["rule_accuracy"]["denominator"] == 41)
-tokens("Results: blind selectivity-rule prediction", m_field,
-       f"it names the plant-cost leader in {_bl['rule_correct']} of those {_bls['rule_accuracy']['denominator']:.0f}, "
-       f"against {pc(_bls['chance_accuracy']['value'])}% for a random choice and "
-       f"{_bls['sty_accuracy']['numerator']:.0f} for the papers' own space-time-yield leaders")
+# 2026-10-19: the blind selectivity-rule prediction is no longer reported in the main text
 _cap = _j("analysis/meoh_field_pooled_2026_10_15/cap_robustness/summary.json")
 ok("MeOH inlet-limit robustness: 81 groups, caps 5-10%, 5% tolerance",
    _cap["groups"] == pl6["groups"] and _cap["caps_pct"] == ["5", "6", "6.86", "8", "10"] and _cap["tolerance"] == 0.05)
