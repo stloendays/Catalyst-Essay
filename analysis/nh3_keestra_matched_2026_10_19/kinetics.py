@@ -33,12 +33,26 @@ class KineticModel:
 
     @classmethod
     def from_locked(cls, name: str) -> "KineticModel":
-        if name not in ("Fe", "Ru_CeO2"):
-            raise ValueError("Only two source-anchored identities are permitted. Ru-Ba-K/C SI coefficients missing.")
+        if name not in ("Fe", "Ru_CeO2", "Ru_Ba_K_C"):
+            raise ValueError("Unknown catalyst identity: must use source-registered formulation")
         e = CONFIG["sourceFe"] if name == "Fe" else CONFIG["sourceRu"]
         p = e["parameters"]
+        if name=="Ru_Ba_K_C":
+            # Source-verified ORIGINAL SI A-1-4 Model D, Table 8, Liu (2013).
+            # These are not tuned to the 5.8x/19x published reactor outputs.
+            si = CONFIG["referenceTarget100Bar"]
+            bcat = si["Ru_Ba_K_C_bcat"]
+            bN = si["Ru_Ba_K_C_bN"]
+            if si["specific_ru_parameters_source"]["source_sha256"] != (
+                "a6137d61860d2c55905a12544d7792437592a02fcbed6b0d05c237d4a1569598"):
+                raise ValueError("Original SI source hash pin changed")
+            if bcat != 76.25 or bN != .8514:
+                raise ValueError("Ru-Ba-K/C SI correction factor transcription changed")
+        else:
+            bcat=e["bcat"]
+            bN=e.get("bN",1.0)
         return cls(name, p["k_A"], p["k_B_J_mol"], p["KN_A"], p["KN_B_J_mol"],
-                   p["sqrtKH_A"], p["sqrtKH_B_J_mol"],e["bcat"],e.get("bN", 1.0))
+                   p["sqrtKH_A"], p["sqrtKH_B_J_mol"],bcat,bN)
 
 
 def eq_constant(T_K: float) -> float:
