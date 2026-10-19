@@ -247,3 +247,84 @@ jobs:
           path: ${{ runner.temp }}/keestra_g2_fe_si/
           if-no-files-found: warn
           retention-days: 14
+
+
+  g2-adiabatic-pfr:
+    name: G2 exploratory source-locked SRK adiabatic final-bed falsification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PYTHONIOENCODING: utf-8
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install numeric solver and plot-only dependencies
+        run: |
+          python -m pip install --disable-pip-version-check "numpy>=2,<3" "scipy>=1.13,<2" "matplotlib>=3.8,<4"
+      - name: Test source exact SRK and independent adiabatic conservation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_g2_adiabatic"
+          python -m unittest discover \
+            -s analysis/nh3_keestra_matched_2026_10_19 \
+            -p "test_g2_adiabatic.py" -v 2>&1 \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/TESTS.log"
+      - name: Compute 100bar commercial Fe/Ru adiabatic bed WITHOUT source target fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/g2_adiabatic.py \
+            --out "$RUNNER_TEMP/keestra_g2_adiabatic" \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/RESULTS.log"
+      - name: Verify audit output contains actual predictions and complete-physics caution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,csv,math
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"keestra_g2_adiabatic"
+          j=json.loads((p/"g2_adiabatic_readiness.json").read_text())
+          assert j["status"]=="EXPLORATORY_NONIDENTICAL_THERMO_UNVERIFIED_G2"
+          assert j["G2_independent_complete_reproduction"] is False
+          assert j["G3_updated_economic_phase_map"] is False
+          assert j["parameter_fitting"].startswith("NONE")
+          assert len(j["scenarios"])==5
+          assert {(x["gas_model"],x["energy_model"]) for x in j["scenarios"]}=={
+            ("ideal","nist_ideal"),
+            ("literal_source","nist_ideal"),
+            ("literal_source","nist_plus_srk_residual"),
+            ("conventional","nist_ideal"),
+            ("conventional","nist_plus_srk_residual")}
+          for x in j["scenarios"]:
+            assert 0<x["predicted_GHSV_Fe_h"]<1e8
+            assert 0<x["predicted_GHSV_Ru_h"]<1e8
+            assert abs(x["max_energy_residual_J_per_feed_mol"])<1e-3
+            assert x["equilibrium_extent_N2_per_feed_mol"]>0
+          assert len(list(csv.DictReader((p/"g2_adiabatic_scenario_results.csv").open())))==5
+          assert (p/"g2_adiabatic_vs_published.png").stat().st_size>1000
+          assert (p/"G2_REPORT.md").stat().st_size>500
+          print("G2 source-parameter adiabatic numerical exploratory result OK; exact Aspen reproduction NOT certified")
+          PY
+          git diff --exit-code -- docs figures data source_data provenance
+      - name: Show numeric outcome with all caveats
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          f="$RUNNER_TEMP/keestra_g2_adiabatic/G2_REPORT.md"
+          if [ -f "$f" ]; then cat "$f" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Archive all G2 numerical results, profiles and failure logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-g2-adiabatic-pfr
+          path: ${{ runner.temp }}/keestra_g2_adiabatic/
+          if-no-files-found: warn
+          retention-days: 30
