@@ -67,11 +67,18 @@ Required treatment:
 
 This lock remains active unless the author explicitly reopens the MeOH uncertainty framing.
 
-## LOCK-06 — Present the unified methanol 81-comparison analysis, not two successive research rounds (2026-10-16)
+## Archived locks
+
+Archived locks are kept for the record and are no longer enforced on manuscript edits.
+
+**LOCK-06 was archived by author decision on 2026-10-19.** The paper will be released from a separate public repository.
+The prospective-test records it refers to remain unchanged in `analysis/validation_meoh_prospective_2026_10_13/`.
+
+### LOCK-06 (archived 2026-10-19) — Present the unified methanol 81-comparison analysis, not two successive research rounds (2026-10-16)
 
 **Author-directed editorial instruction, updated after the results were known.** Apply this to Codex, paper-writing assistants, the manuscript Abstract/Results/Discussion, main figures/captions, the repository overview and supervisor-facing scientific summaries. This is a PRESENTATION decision, not a retrospective amendment to pre-specified experiments.
 
-### Mandatory main-story presentation
+#### Mandatory main-story presentation
 
 - Present the published CO₂-to-methanol analyses as **one unified 81-group, 50-paper literature–computational comparison**. Use the pooled, consistently rescored dataset as the unit of the paper's scientific story.
 - In the Abstract, Results, Discussion, main figure panels/captions and headline summaries, **do not frame the result as "we did it twice," a "first versus second run/extraction," or "two rounds/two cohorts."** Do not foreground the split **28/40 versus 22/41**, successive collection dates, an independent-replication slogan, or a binary P1/P2 outcome as the main headline.
@@ -79,7 +86,7 @@ This lock remains active unless the author explicitly reopens the MeOH uncertain
 - Present 81 comparisons as the **pooled analysis**, not as "81 independently measured industrial plants" or a single uniform prospective sample. The model-derived industrial ranking must not be confused with actual industrial catalyst adoption.
 - Remove internal labels `P1`, `P2`, `PASS`, `FAIL` from the narrative and captions when they do not add scientific meaning; do not use an old pass/fail label as a gate that invalidates presenting an otherwise correctly computed pooled analysis.
 
-### Provenance, Methods/SI and non-retroactivity (required)
+#### Provenance, Methods/SI and non-retroactivity (required)
 
 - **Do not falsely claim all 81 groups were gathered in one uninterrupted extraction, one original preregistered cohort, or one prospective trial.** Methods and/or Supporting Information must preserve the actual separately assembled source windows, sampling and inclusion procedures, independent paper identities, printed-value corrections and validation chronology at the level necessary to reproduce the work.
 - Keep the original prospective registration and completed report auditable **without editing or removing their original verdict**: `analysis/validation_meoh_prospective_2026_10_13/PREREGISTRATION.md`, `DEVIATIONS.md`, `REPORT.md`, `results.json`, blind predictions, corrections and commit-order evidence.
