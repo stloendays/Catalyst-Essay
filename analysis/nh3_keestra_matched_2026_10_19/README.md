@@ -1,11 +1,11 @@
 # Keestra 2025 matched-pressure, formulation-explicit NH3 kinetic audit
 
-**Exploratory study, 2026-10-19.** G0 **PASS** (source equations and equilibrium tests); G1 **PASS, in-family qualitative direction only**; G2 **BLOCKED** (commercial 100bar Ru-Ba-K/C model not reproduced); G3 **BLOCKED** (no new Fe/Ru phase economics); G4 **partial** (source training overlap). Does not modify the canonical main manuscript, original NH3-FINAL-1.2, earlier results or PR #111.
+**Exploratory study, 2026-10-19; see [SOURCE_SI_ADDENDUM.md](SOURCE_SI_ADDENDUM.md).** G0 **PASS** (source equations and equilibrium tests); G1 **PASS, in-family qualitative direction only**; **G1b PASS, published commercial Ru-Ba-K/C Model D factors independently source-verified and local 100bar ideal-fugacity screening completed**; G2 **BLOCKED** (the original commercial 100bar corrected-SRK adiabatic reactor has NOT been reproduced); G3 **BLOCKED** (no new economic phases); G4 **partial** (training overlap). Does not change the main manuscript, NH3-FINAL-1.2, prior results or PR #111.
 
 ## Literature and source labels
 
 - Keestra et al., Fe, Chemical Engineering Journal 518 (2025) 164593: https://doi.org/10.1016/j.cej.2025.164593 — Table 2 and Eq. 15, Fe AmoMax 10 with b_cat=1.
-- Keestra et al., Ru, Chemical Engineering Journal 523 (2025) 168541: https://doi.org/10.1016/j.cej.2025.168541 — Table 3 and Eqs. 10-12, FREA-AIST Ru/CeO2 with b_cat=b_N=1. Commercial 4wt% Ru-Ba-K/C requires distinct coefficients from SI A-1.
+- Keestra et al., Ru, Chemical Engineering Journal 523 (2025) 168541: https://doi.org/10.1016/j.cej.2025.168541 — Table 3 and Eqs. 10-12, FREA-AIST Ru/CeO2 with b_cat=b_N=1. The original commercial Ru-Ba-K/C Model D factors have now been verified in the publisher's SI A-1-4 Table 8 (b_cat 76.25, b_N 0.8514), independently of Ru/CeO2.
 - Cholewa et al., Sustainable Energy & Fuels (2024): https://doi.org/10.1039/D4SE00254G — Clariant Fe and FREA-AIST Ru/CeO2, 10/45/80bar **gauge**, 350-450C, training source for Keestra Fe/Ru.
 - Kowalczyk et al., Applied Catalysis A (1996): https://doi.org/10.1016/0926-860X(95)00251-0 — active-carbon supported Ru; **included among Keestra Ru training sources**: Figure 1 says fits refs [1,19,23-27], and Kowalczyk is ref [27]. Not independent.
 - Pan et al., Chinese Journal of Chemical Engineering (2011): https://doi.org/10.1016/S1004-9541(11)60165-1 — A301 Fe vs carbon-supported Ru; different formulations from Keestra's reference samples.
@@ -30,7 +30,7 @@ Keestra Ru 2025 Table 4 presents authors' own *modeled* single adiabatic PFR fin
 
 An **arithmetical source-table check**, not an independent kinetic model prediction, follows directly from two printed Table 4 output GHSV values: 22,250 h-1 Fe and 130,000 h-1 Ru. Under the same inlet flow, bed volume scales as 1/GHSV. Thus Fe/Ru bed volume ratio = 130000/22250 = **5.8427**; multiplying by bulk density ratio 2500/750 yields Fe/Ru catalyst bed mass ratio **19.4757**. This independently verifies the *arithmetic consistency of the paper's two already-computed outputs*, not the rate-derived physics, real bed geometry, or external measurements.
 
-**G2 remains BLOCKED** because the exact source-specific b_cat and b_N for the promoted 4wt% Ru-Ba-K/C Model D appear only in unverified/unavailable Ru paper Supporting Information A-1, and because the modified-SRK EOS and adiabatic PFR engineering reproduce neither from our simplified ideal-isothermal model. NEVER backfit b_cat/b_N to the published 5.8x output or substitute Ru/CeO2 b_cat=b_N=1.
+**Source-factor obstacle resolved, but G2 remains BLOCKED.** The verified publisher SI [PDF](https://ars.els-cdn.com/content/image/1-s2.0-S1385894725093830-mmc1.pdf), exact SHA256 pinned in [SOURCE_SI_ADDENDUM.md](SOURCE_SI_ADDENDUM.md), yields Ru-Ba-K/C Model D Table 8 **b_cat=76.25** and **b_N=0.8514**, while Ru/CeO2 remains b_cat=b_N=1. The new ideal-fugacity 100bar, 400C local comparison gives Ru/Fe ~**0.554** with 0% inlet NH3 and ~**6.889** with 11% inlet NH3. These are **model predictions at a single local gas state**, not measured rates or a full reactor. A source-faithful corrected-SRK fugacity model, adiabatic PFR and material-specific applicability/error assessment remain incomplete. Never backfit these factors to the source 5.8x bed-size target.
 
 ## G4: External literature evidence discipline
 
@@ -44,12 +44,12 @@ The opposite Fe-vs-Ru direction between Cholewa 2024 and Pan 2011 is scientifica
 
 ## Reproduction and gate status
 
-GitHub Actions runs Python3.12 and 14 formal tests, uploads model-screen CSV, PNG/SVG, REPORT and machine-readable readiness. The **industrial G2 requirement must explicitly exit with code 2** even if all numerical G0/G1 tests pass. No expensive new optimization or manuscript changes.
+GitHub Actions runs Python3.12 and 16 formal tests (once the latest source-audit CI is green), uploads Fe/Ru-CeO2 and commercial Ru-Ba-K/C local-rate CSV/PNG/SVG, exact source PDF-row hash checks, REPORT and machine-readable readiness. The **industrial G2 requirement must explicitly exit with code 2** even if all numerical G0/G1 tests pass. No expensive new optimization or manuscript changes.
 
     python -m unittest discover -s analysis/nh3_keestra_matched_2026_10_19 -p 'test_*.py' -v
     python analysis/nh3_keestra_matched_2026_10_19/run_audit.py --out /tmp/nh3_keestra --plot
     python analysis/nh3_keestra_matched_2026_10_19/run_audit.py --out /tmp/nh3_keestra --require-100bar-completion
 
-Last command expected exit 2 until the full source-specific catalyst parameters, modified SRK and adiabatic bed model pass an **independently calibrated** check.
+The last command intentionally exits 2 until original-source corrected-SRK gas properties, the adiabatic full-bed reactor and formulation-level applicability checks pass; the catalyst-specific SI parameters are now available and pinned.
 
-**Next physical science gate:** obtain the original Ru 2025 Supporting Information A-1 with exact model-D factors for 4wt% Ru-Ba-K/C; source the pure/binary modified-SRK parameters; build adiabatic PFR with source mass/heat integration; independently replicate the authors' 100bar final-bed design without fitting the published target. Only after this should the new matched-formulation process cost and previous PR #111 decision map be recomputed. The combined dataset's 1-200bar pressure span alone does not establish a selected formulation's individual experimentally validated window.
+**Next physical science gate:** source the original authors' modified-SRK pure/binary and property parameters; implement a dimensionally and thermodynamically validated adiabatic PFR; reproduce the authors' 100bar final-bed design independently with the now-pinned commercial Model D factors, without fitting published target outputs. Only after this should the new matched-formulation process cost and previous PR #111 decision map be recomputed. The combined dataset's 1-200bar pressure span alone does not establish a selected formulation's individual experimentally validated window.
