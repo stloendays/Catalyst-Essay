@@ -202,9 +202,11 @@ def fig2():
     # panels b, d, e: the renderer's own tables (frozen scoring code, inert-limited loop and the loop without the limit)
     sys.path.insert(0, os.path.join(REPO, "figures", "composite", "fig_field"))
     import make_fig_field as FF  # noqa: E402
-    lb = FF.meoh_leaderboards().reset_index()
+    lb = FF.meoh_leaderboards().drop(index="XS").reset_index()   # single-pass yield is in the caption only
     lb["label"] = lb.label.str.replace("S$_{MeOH}$", "S_MeOH", regex=False)
-    kc = js("analysis/meoh_catalyst_level_2026_10_19/summary.json")["cat_primary"]["comparison"]
+    kj = js("analysis/meoh_catalyst_level_2026_10_19/summary.json")
+    kc = kj["cat_primary"]["comparison"]
+    kr = kj["conversion_raised"]["cost_f0.95"]["cat_primary"]
     b.panel("b", [("leader changes by paper leaderboard: inert-limited loop (primary) and STY without the limit", lb,
                    "analysis/meoh_field_pooled_2026_10_15/pooled_candidates.csv (both extractions; cost_column) "
                    "scored with meoh_candidates.aggregate; CI95: analysis/meoh_field_pooled_2026_10_15/summary.json "
@@ -217,7 +219,15 @@ def fig2():
                        "of which cost gap above 5 %": kc["gt5pct"],
                        "CI95 low (paper bootstrap)": kc["ci95"][0], "CI95 high (paper bootstrap)": kc["ci95"][1]}),
                    "analysis/meoh_catalyst_level_2026_10_19/summary.json (cat_primary.comparison)",
-                   "")])
+                   "second bar (cat., lab. X)"),
+                  ("STY leader changes catalyst against catalyst, each entry free to raise its conversion to 0.95 X_eq "
+                   "with catalyst amount (primary count), inert-limited loop",
+                   kv({"comparisons with at least two catalysts": kr["groups_2plus_catalysts"],
+                       "leader is another catalyst": kr["changed"],
+                       "of which cost gap above 5 %": kr["gt5pct"], "papers": kr["papers_changed"],
+                       "CI95 low (paper bootstrap)": kr["ci95"][0], "CI95 high (paper bootstrap)": kr["ci95"][1]}),
+                   "analysis/meoh_catalyst_level_2026_10_19/summary.json (conversion_raised.cost_f0.95.cat_primary); "
+                   "per group: groups_catalyst_level_conversion_raised.csv", "first bar (cat., X raised)")])
     pr, nv = nh3["primary"], nh3["variants"]
     cases = [("rate per g catalyst (primary)", pr), ("rate per g metal", nv["per_g_metal_leaderboard"]),
              ("rate per g catalyst, 90 % Ru recovery", nv["Ru_recovery_90pct"])]
@@ -291,10 +301,8 @@ def fig3():
     b.panel("d", [("Ru price sweep (upper: cost; lower: alpha* for parity)", sw, F2M + "/fig2_ru_price_sweep.csv + "
                    + F2M + "/fig2_ru_alpha_sweep.csv", "last row of each file is the parity point, listed below"),
                   ("parity", sweep.iloc[[-1]][["price_USD_kg", "cost", "P_bar"]], F2M + "/fig2_ru_price_sweep.csv", ""),
-                  ("actual Ru catalyst points", pts, F2M + "/fig2_ru_actual_cost_points.csv", ""),
-                  ("Ru/C catalyst's own bed (squares: 8 wt% Ru, 490 kg m-3; bars: 5-10 wt% Ru, 430-550 kg m-3)",
-                   csv(F2M + "/fig2_ru_bed_sensitivity.csv"), F2M + "/fig2_ru_bed_sensitivity.csv",
-                   "lower panel: alpha_star_supported_bed"),
+                  ("marked points: model Ru price and Ru priced as Fe", pts[pts.key == "pure"],
+                   F2M + "/fig2_ru_actual_cost_points.csv", "Ru priced as Fe: the 8 USD/kg row of the sweep"),
                   ("Fe optimum", kv({"Fe cost USD/t": o.loc["Fe", "cost"]}), F2M + "/fig2_pressure_envelopes.csv", "")])
     order = ["fresh_compression_electricity", "metal_inventory", "compressor_CAPEX", "refrigeration_electricity",
              "vessel_pressure_premium", "recycle_compression_electricity", "reactor_base"]
@@ -326,7 +334,7 @@ def fig3():
 
 # ============================================================================== Fig. 4 (backward design)
 def fig4():
-    b = Book("SourceData_Fig5.xlsx", "Fig. 5 (backward design; renderer figures/composite/fig3/make_fig3.py)")
+    b = Book("SourceData_Fig6.xlsx", "Fig. 6 (backward design; renderer figures/composite/fig3/make_fig3.py)")
     sw = csv(RUN + "/closure/breakeven_sweep.csv")
     sr = csv(RUN + "/closure/scaling_reachability.csv")
     res = js(RUN + "/results.json")
@@ -426,54 +434,44 @@ def fig5():
     b.save()
 
 
-# ============================================================================== Fig. 6 (routes and control)
-def fig6():
-    b = Book("SourceData_Fig6.xlsx", "Fig. 6 (process routes and Au/TiO2 control; renderer "
-             "figures/composite/fig5/make_fig5.py)")
-    dec = csv(SUP + "/nh3_cost_decomposition.csv")
-    cand = csv("data/meoh/meoh_candidate_ranking_D01v3.csv").set_index("candidate")
-    au = csv("data/rank_preservation_control_v1_1.csv")
-    semi = csv("data/rank_preservation_semiopen_v1_3_summary.csv")
-    meta = js(F5 + "/renders/Au_TiO2_2to6nm.json")
-    roll = fig1_tables()[1].set_index("K").rho_raw
-    prov = js("data/meoh/meoh_candidate_ranking_D01v3_provenance.json")["metrics"]
-    met = prov[next(k for k in prov if k.startswith("STY_per_gRe"))]
-    purge = csv("data/meoh/meoh_purge_robustness_D01v3.csv")
-    lev = cand.loc["5 wt% Re | 250 C", ["L_CH4_suppression", "L_conversion", "L_STY"]].astype(float)
-    levt = pd.DataFrame({"driver": ["S_CH4", "X_CO2", "STY"], "leverage": lev.values,
-                         "edge_width_pt": 0.45 + 2.2 * (np.log10(lev.values) + 3.0) / 2.6})
-    d = dec[["cost_pool", "Ru_minus_Fe_USD_t"]].copy()
-    d["edge_width_pt"] = np.where(d.cost_pool == "TOTAL", np.nan, 0.35 + 0.55 * d.Ru_minus_Fe_USD_t.abs())
-    b.panel("a", [("NH3: Ru - Fe by cost pool (edge widths)", d, SUP + "/nh3_cost_decomposition.csv", ""),
-                  ("MeOH: local leverage at 5 wt% Re, 250 C (edge widths)", levt,
-                   "data/meoh/meoh_candidate_ranking_D01v3.csv", "")])
-    b.panel("b", [("Au/TiO2 particles (render)", pd.DataFrame({"diameter_nm": meta["diameters_nm"],
-                                                              "Au_atoms": meta["au_atoms"]}),
-                   F5 + "/renders/Au_TiO2_2to6nm.json", "labels only; the image is a render")])
-    b.panel("c", [("activity rank vs catalyst-burden rank", au[["diameter_nm", "mass_activity_umol_CO_gcat_s",
-                                                               "procurement_burden_vs_best"]],
-                   "data/rank_preservation_control_v1_1.csv", "ranks 1-5 in file order on both sides")])
-    b.panel("d", [("mass activity and required catalyst vs diameter", au[["diameter_nm", "mass_activity_umol_CO_gcat_s",
-                                                                         "required_catalyst_mass_mg"]],
-                   "data/rank_preservation_control_v1_1.csv", "")])
-    e = semi[["window", "stress", "full_preservation_fraction"]].copy()
-    e["percent"] = 100 * e.full_preservation_fraction
-    b.panel("e", [("exact order kept, semi-open extension", e, "data/rank_preservation_semiopen_v1_3_summary.csv", "")])
-    semi_mod = semi[(semi.window == "primary_273_293K") & (semi.stress == "moderate")].mean_spearman_rho.iloc[0]
-    f = pd.DataFrame([
-        dict(system="NH3, all 15 metals", rho=roll.loc[15], source=F1_ROLL + " (K = 15)"),
-        dict(system="NH3, frontier top 3", rho=roll.loc[3], source=F1_ROLL + " (K = 3)"),
-        dict(system="MeOH, 4 states, 2 % purge", rho=met["spearman"],
-             source="data/meoh/meoh_candidate_ranking_D01v3_provenance.json"),
-        dict(system="MeOH, min over purge 0.5-40 %", rho=purge.spearman.min(),
-             source="data/meoh/meoh_purge_robustness_D01v3.csv"),
-        dict(system="MeOH, max over purge 0.5-40 %", rho=purge.spearman.max(),
-             source="data/meoh/meoh_purge_robustness_D01v3.csv"),
-        dict(system="Au/TiO2, 5 sizes", rho=1.0, source="docs/RANK_PRESERVATION_CONTROL_V1_1_RESULT.md (rho = 1.000; "
-             "the ranks in data/rank_preservation_control_v1_1.csv are identical)"),
-        dict(system="Au/TiO2, semi-open moderate, mean", rho=semi_mod,
-             source="data/rank_preservation_semiopen_v1_3_summary.csv (primary_273_293K, moderate)")])
-    b.panel("f", [("upstream-to-downstream Spearman rho", f, "see column source", "")])
+# ============================================================================== Fig. 5 (Ru/C against fused iron, measured kinetics)
+CONS = "analysis/nh3_keestra_consolidation_2026_10_20"
+INR = "analysis/nh3_fe_inrange_kinetics_2026_10_19"
+
+
+def frontier():
+    b = Book("SourceData_Fig5.xlsx", "Fig. 5 (supported Ru/C against fused iron with measured rate laws; renderer "
+             "figures/composite/fig_frontier/make_fig_frontier.py)")
+    fc = csv(CONS + "/financing_curves.csv")
+    leases = csv("analysis/nh3_ru_metal_financing_evidence_2026_10_12/pbf_catalyst_lease_contracts.csv")
+    sm = js(CONS + "/summary.json")
+    b.panel("a", [("Ru/C - Fe against the Ru financing rate", fc[["financing_rate_pct", "KAAP_RuC_minus_Fe",
+                                                                  "benchmark_RuC_minus_Fe"]],
+                   CONS + "/financing_curves.csv", "USD/t NH3; KAAP-type loop solid, each at own optimum dashed"),
+                  ("break-even rates (owned metal and supplier lease)", kv({k: v for k, v in sm["D"]["breakevens"].items() if v is not None}),
+                   CONS + "/summary.json", ""),
+                  ("disclosed catalyst-metal leases (shaded range; median = reference rate)", leases,
+                   "analysis/nh3_ru_metal_financing_evidence_2026_10_12/pbf_catalyst_lease_contracts.csv", "")])
+    b.panel("b", [("three-bed converter at 9 MPa: best design of each arrangement", fc[[
+        "financing_rate_pct", "staged_all_Fe", "staged_all_RuC", "staged_Ru_first", "staged_Ru_first_pattern",
+        "staged_Fe_first", "staged_Fe_first_pattern", "staged_optimal", "staged_optimal_cost"]],
+        CONS + "/financing_curves.csv", "Fe-first window from " + INR + "/staged_KM1R_1964_summary.json "
+        "(window_keestra.staged_beats_all_Fe_below)")])
+    sys.path.insert(0, os.path.join(REPO, "analysis", "nh3_staged_converter_2026_10_12"))
+    import boundary as BD  # noqa: E402
+    lib = csv(INR + "/staged_KM1R_1964_design_library.csv")
+    lib = lib[(lib.P_bar == 90.0) & (lib.Tsep_C == -20.0)].copy()
+    c_ru, c_fe, c_sup = BD.charges(53852.5, 0.9555, 0.021)
+    lib["cost_at_2p10"] = lib.noncatalyst + (c_ru * lib.Ru_metal_kg + c_fe * lib.mass_Fe_kg
+                                             + c_sup * lib.mass_Ru_cat_kg) / BD.C.H.annual_output_t
+    best = lib.loc[[lib.cost_at_2p10.idxmin()], ["pattern", "cost_at_2p10", "V_m3", "Ru_volume_fraction",
+                                                 "beds_volume_m3", "beds_T_in_out_C", "beds_y_NH3_out"]]
+    b.panel("c", [("least-cost converter at 2.10 % per year", best, INR + "/staged_KM1R_1964_design_library.csv "
+                   "(costed with analysis/nh3_staged_converter_2026_10_12/boundary.charges)", "")])
+    val = js(INR + "/validation.json")["rate_ratio_90bar_Keestra"]
+    rr = pd.DataFrame([dict(y_NH3=float(k.split("_")[-1]), **v) for k, v in val.items()]).sort_values("y_NH3")
+    b.panel("d", [("Ru/C (8 wt%) to fused-iron rate ratio, 90 bar, 400 C", rr, INR + "/validation.json "
+                   "(rate_ratio_90bar_Keestra)", "")])
     b.save()
 
 
@@ -481,12 +479,28 @@ def fig6():
 # numbered in first-citation order (2026-10-07); E.edfigN keep the names of the first numbering
 ED_TITLES = {1: "Extraction accuracy", 2: "Compute saved by the lower bound", 3: "Robustness of the methanol result",
              4: "Methanol plant benchmark", 5: "Measured ammonia catalysts", 6: "Bimetallic surfaces",
-             7: "Actual-Ru-catalyst Monte Carlo", 8: "Methanol purge optimum and reactor-inlet composition"}
+             7: "Supported Ru/C against fused iron with measured rate laws: robustness",
+             8: "Au/TiO2 rank preservation and the catalyst-life channel", 9: "Ru against Ni in CO2 methanation",
+             10: "Methanol purge optimum and reactor-inlet composition"}
 
 
 def ed():
+    import ed_new_2026_10_21 as N  # noqa: E402
+    au, sab = N.au_data(), N.sab_data()
+    rob = N.frontier_data()
     tables = {1: E.edfig1(), 2: E.edfig7()[0], 3: E.edfig3(), 4: E.edfig6(), 5: E.edfig4(), 6: E.edfig2()[0],
-              7: E.edfig5(), 8: E.edfig8()}
+              7: {"a": (rob[["case", "gap_0_global", "gap_12_global", "gap_0_KAAP", "gap_12_KAAP"]], N.INR + "robustness.csv"),
+                  "b": (rob[["case", "breakeven_global", "breakeven_KAAP"]], N.INR + "robustness.csv")},
+              8: {"a": (pd.DataFrame({"diameter_nm": N.SIZES, "catalyst_required_rel_2nm": au["burden"]}),
+                        N.AU + "summary.json"),
+                  "b": (au["mc"], N.AU + "mc_v2_per_candidate.csv"),
+                  "c": (au["map"], N.AU + "l2_boundary_map_q_vs_nm.csv (column q is the life exponent lambda)"),
+                  "d": (au["comb"], N.AU + "l2_l3_combined_273_293K_moderate.csv (column q is lambda)")},
+              9: {"a": (sab["central"][["scale_mw", "diff_ru_minus_ni_usd_mwh"]], N.SAB + "central_sweep.csv"),
+                  "a_mc": (sab["mc"], N.SAB + "mc_summary.csv"),
+                  "b": (sab["mc"][["scale_mw", "p_ru_cheaper"]], N.SAB + "mc_summary.csv"),
+                  "c": (sab["lev"], N.SAB + "leverage_decomposition.csv")},
+              10: E.edfig8()}
     _, fe2 = E.edfig2()
     for n, t in tables.items():
         b = Book("SourceData_EDFig%d.xlsx" % n, "Extended Data Fig. %d (%s; renderer "
@@ -510,5 +524,5 @@ def ed():
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    for f in (fig1, fig2, fig3, fig4, fig5, fig6, ed):
+    for f in (fig1, fig2, fig3, frontier, fig4, fig5, ed):
         f()

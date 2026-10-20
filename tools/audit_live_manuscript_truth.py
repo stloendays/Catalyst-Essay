@@ -1788,6 +1788,28 @@ ok("NH3 benchmark perturbation: no single deviation reverses descriptor Fe-Ru, n
    len(_d_rf) == 28 and min(_d_rf) > 0 and _wc > 0
    and _psum["comparisons"]["descriptor Ru - Fe"]["n_single_flips"] == 0
    and _psum["comparisons"]["measured benchmark Ru - Fe (unconstrained)"]["n_single_flips"] == 0)
+# descriptor branch at the Keestra-upgraded magnitudes (analysis/nh3_keestra_consolidation_2026_10_20, 2026-10-21)
+_pdd = _j("analysis/nh3_keestra_consolidation_2026_10_20/perturbation_descriptor_summary.json")["comparisons"]["descriptor Ru - Fe"]
+_pdr = rows("analysis/nh3_keestra_consolidation_2026_10_20/perturbation_descriptor_results.csv")
+_pdmag = _j("analysis/nh3_keestra_consolidation_2026_10_20/perturbation_magnitudes.json")["KIN"]
+_pdps = [float(r_["gap_Ru_minus_Fe"]) for r_ in _pdr if r_["comparison"] == "descriptor Ru - Fe"
+         and r_["scenario"] == "KIN_Fe + max_plant_sizing"]
+_pdrev = [r_ for r_ in _pdr if r_["comparison"] == "descriptor Ru - Fe" and r_["kind"] == "corner"
+          and r_["magnitude"] == "max" and float(r_["gap_Ru_minus_Fe"]) < 0]
+tokens("NH3 descriptor perturbation at the upgraded magnitudes: margins, reversing corners and the bed factors",
+       raw_si,
+       f"smallest margin +{_pdd['min_finite_single']['gap']:.2f} US dollars per tonne",
+       f"(smallest margin +{_pdd['worst_corner']['typical']['gap']:.2f})",
+       f"by +{_pdd['joint_Ru_favouring']['typical']['gap']:.2f} when each moves",
+       f"that combination leaves +{_pdd['joint_Ru_favouring']['max']['gap']:.2f}",
+       f"{_pdd['worst_corner']['max']['n_flipped']} of 64 sign combinations reverse",
+       f"multiplied by {_pdmag['max']:.2f}", f"(×{_pdmag['max_plant_sizing']:.2f}) the margin is +{_pdps[0]:.2f}")
+tokens("Main text: descriptor perturbation margins at the upgraded magnitudes", raw_text,
+       f"with a smallest margin of {_pdd['min_finite_single']['gap']:.2f} US dollars per tonne",
+       f"(smallest margin {_pdd['worst_corner']['typical']['gap']:.2f}; Supplementary Note 7)")
+ok("NH3 descriptor perturbation: every reversing corner at the largest deviations has the largest catalyst-amount factor",
+   len(_pdrev) == _pdd["worst_corner"]["max"]["n_flipped"]
+   and all(abs(float(r_["catalyst_amount_factor"]) - _pdmag["max"]) < 5e-4 for r_ in _pdrev))
 _flow = [float(_g(k)["typical_abs_dev_pct"]) for k in ("converter flow and feed/make-up", "space velocity",
                                                       "bed volume, plant conditions")]
 ok("Plant benchmark: the metric table reproduces the 1.2 summary and anchors to the canonical run",

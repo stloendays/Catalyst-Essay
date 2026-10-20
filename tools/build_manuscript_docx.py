@@ -250,7 +250,7 @@ assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
 # manuscript figure number -> rendered composite (renumbered 2026-10-07: the field-level figure is Fig. 2)
 # reordered 2026-10-15: the methanol mechanism (renderer fig4) follows the field-level figure as Fig. 3
 FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig4/Fig4.png", 4: "fig2/Fig2.png",
-                5: "fig3/Fig3.png", 6: "fig5/Fig5.png"}
+                5: "fig_frontier/FigFrontier.png", 6: "fig3/Fig3.png"}   # 2026-10-21: measured-kinetics Fig. 5
 for n in range(1, 7):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()
