@@ -84,6 +84,20 @@ savings shrink because the all-Fe converter gets cheaper (18.31 against 18.67 US
 the benchmark case: the adiabatic Fe beds run up to 530 °C, where the Keestra rate is higher), while the Ru/C
 arrangements barely move (all-Ru/C 17.355 in both).
 
+## 4. Robustness cases, window variants and the quantities the text quotes
+
+- `robustness_inrange.py` → `robustness.json/.csv`: the 16 cases of `frontier_swap.py` with each catalyst in range.
+  Fe is cheaper at 12 %/y in 15 of 16 in both loops (all but a halved Fe effectiveness, which in the KAAP-type loop
+  leaves no Fe bed within 90 m³); Ru/C is cheaper at 0 %/y in 16 (main) and 15 (KAAP-type; all but inlet-rate sizing);
+  break-even 1.23–15.65 %/y (main), 0.71–8.43 %/y (KAAP-type).
+- `staged_window_variants.py` → `staged_window_variants.json`: Fe-first window 0–4.92 %/y at 90 % recovery,
+  0.12–8.21 %/y at a 30 % lower Ru price (all-Ru/C below 0.12), 0–4.03 %/y at +30 %. The committed Dyson–Simon
+  library gives the SI's 0.13–6.14, 1.42–9.98 and 0.50–4.92 with the same code.
+- `fe_inrange.py` also gives the parity multiple across the four sizing × calibration variants (15.68–45.39) and the
+  break-even rates at 90 % recovery (5.98 %/y main, 4.00 %/y KAAP-type); `validate_fe.py` the apparent orders at
+  90 bar, 400 °C, 2 % NH₃ (Keestra Fe: N₂ +1.00, H₂ +0.71, NH₃ −0.89) and the Ru/C (8 wt%) to Fe rate ratio per kg
+  (9 at 2 % NH₃, 62 at 14 %).
+
 ## Files
 
 | File | Content |
