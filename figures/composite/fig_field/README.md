@@ -1,12 +1,12 @@
 # Figure 2 — published laboratory leaderboards against plant-cost leaderboards
 
 Within published comparisons, the paper's own leader is often not the plant-cost leader, in methanol and in ammonia.
-183 × 150 mm, six panels: `FigField.{svg,pdf,png}`. In the manuscript numbering of 2026-10-07 this is Fig. 2. Panels a, d
+183 × 189 mm, six panels: `FigField.{svg,pdf,png}`. In the manuscript numbering of 2026-10-07 this is Fig. 2. Panels a, d
 and e come from the agent figure `../fig6` (its panels a, d, e); that directory is left unchanged.
 
 | Panel | Content | Source |
 |---|---|---|
-| a | ACSA workflow: publications → extraction → self-check → full chain (bound first) → leaderboards | schematic |
+| a | literature → ACSA (extract, self-check, cost bound) → multiscale chain (active site, supported particle, pellet, packed bed, synthesis loop, cost) → leaderboards | schematic; flat thumbnails `glyphs.py`; atomistic renders `build_atoms.py` (OVITO, `assets/surface.png`, `assets/nanoparticle.png`); pellet, bed and loop are generated transparent images (`assets/pellet.png`, `assets/bed.png`, `assets/loop.png`; ChatGPT image generation, 2026-10-21) |
 | b | methanol: share of the 81 within-paper comparisons (50 papers, both extractions, printed values) whose paper leader is not the plant-cost leader. First bar: catalyst against catalyst, each at its best measured point, 26/63 (19 > 5 %, CI 29.4–53.3 %); then every operating point in the inert-limited loop by leaderboard metric (STY 50/81, X·S 50/81, X 54/81, S_MeOH 30/81; > 5 %: 42, 42, 49, 19) and STY without the limit (25/81, 10 > 5 %) | `analysis/meoh_field_pooled_2026_10_15/` (scored at render time with the frozen `meoh_candidates.aggregate`, checked against the pooled summary); first bar: `analysis/meoh_catalyst_level_2026_10_19/summary.json` (`cat_primary.comparison`) |
 | c, left | ammonia (NH3-FINAL-1.2, printed values): share of the 33 within-paper comparisons (23 papers) with a different winner, ranked by rate per g catalyst (the papers' basis), per g metal, and per g catalyst with 90 % Ru recovery; bars are paper-cluster bootstrap 95 % CIs | `analysis/nh3_field_2026_10_06/nh3_1_2/summary_printed.json` (`primary`, `variants.per_g_metal_leaderboard`, `variants.Ru_recovery_90pct`, `bootstrap_papers`) |
 | c, right | what the 7 mismatched ammonia comparisons differ by, with papers and median regret; for "different metal", how many the same-support Fe catalyst wins | `summary.json` (`primary.mismatch_kinds`); plant-winner metal from `nh3_1_2/group_metrics_printed.csv` + `candidates_printed.csv` |

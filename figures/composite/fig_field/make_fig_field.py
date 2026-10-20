@@ -25,14 +25,17 @@ import sys
 from collections import Counter
 
 import numpy as np
+from PIL import Image
 import pandas as pd
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from style import (DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
-                   scripts_at_least)
+from matplotlib.patches import Polygon, Rectangle  # noqa: E402
+import glyphs  # noqa: E402
+from style import (DARK_B, DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
+                   crop_rgba, scripts_at_least)
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 INV = "analysis/meoh_literature_inversion_2026_10_05/"
@@ -157,28 +160,132 @@ def nh3_example():
 
 
 if __name__ == "__main__":
-    pg = Page(183.0, 150.0)
+    pg = Page(183.0, 189.0)
 
-    # ---- a: workflow ------------------------------------------------------------------------------------------
-    a = pg.canvas(4, 124, 176, 22)
-    boxes = [
-        (16, "Publications + SI", "databases", "white"),
-        (51, "Extract", "value · unit · table/figure · page", TINT_B),
-        (88, "Self-check", "reproduce the frozen cases", TINT_G),
-        (127, "Full chain", "kinetics → process opt. → cost\nbound first, full optimization if needed", TINT_B),
-        (162, "Leaderboards", "laboratory vs plant cost", "white"),
-    ]
-    for x, t, sub, fc in boxes:
-        w = {"Full chain": 36, "Leaderboards": 26}.get(t, 30)
-        a.add_patch(FancyBboxPatch((x - w / 2, 5), w, 15, boxstyle="round,pad=0,rounding_size=1.4", fc=fc, ec=INK,
-                                   lw=0.55))
-        a.text(x, 15.8, t, ha="center", va="center", fontsize=6.4, fontweight="bold")
-        a.text(x, 10.0, sub, ha="center", va="center", fontsize=5.3, color=INK, linespacing=1.15)
-    for x0, x1 in ((31.2, 35.8), (66.2, 72.8), (103.2, 108.8), (145.2, 148.8)):
-        a.add_patch(FancyArrowPatch((x0, 12.5), (x1, 12.5), arrowstyle="-|>", mutation_scale=6, lw=0.6, color=INK))
-    a.text(88, 1.8, "scientific models unchanged; the agent supplies scale", ha="center", va="center", fontsize=5.3,
-           color=INK)
-    pg.letter("a", 2, 148)
+    # ---- a: literature -> ACSA -> multiscale chain -> leaderboards (U-shaped flow) --------------------------------
+    # flat thumbnails: glyphs.py; atomistic renders: build_atoms.py (OVITO); pellet, bed and loop: single generated
+    # images with transparent background (assets/pellet.png, bed.png, loop.png)
+    a = pg.canvas(5, 122, 176, 64)
+    AS = os.path.join(HERE, "assets")
+    SOFT = (0.62, 0.72, 0.88, 0.55)                     # broad translucent flow arrows
+
+    def place(name, cx, cy, h, z=2):
+        im_ = Image.open(os.path.join(AS, name + ".png")).convert("RGBA")
+        im_ = im_.crop(im_.getbbox())
+        img = np.asarray(im_) / 255.0
+        w = h * img.shape[1] / img.shape[0]
+        ext = [cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2]
+        a.imshow(img, extent=ext, zorder=z, interpolation="lanczos")
+        return ext
+
+    def flow(p0, p1, rad=0.0, lw=7.0):
+        a.add_patch(FancyArrowPatch(p0, p1, connectionstyle="arc3,rad=%.2f" % rad, arrowstyle="simple,head_width=1.6,"
+                                    "head_length=1.2,tail_width=0.75", mutation_scale=lw, fc=SOFT, ec="none",
+                                    zorder=0.6))
+
+    def tile(x, y, w, h, fc):
+        a.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=1.2", fc=fc, ec="none",
+                                   zorder=1.1))
+        return (x + 0.7, y + 0.7, w - 1.4, h - 1.4)
+
+    ty, th_ = 45.0, 18.0
+    # literature
+    a.add_patch(FancyBboxPatch((0, ty), 31, th_, boxstyle="round,pad=0,rounding_size=1.6", fc="white", ec="#9AA0AA",
+                               lw=0.55, zorder=1))
+    glyphs.papers(a, *tile(1.3, ty + 1.3, 11.5, th_ - 2.6, TINT_B), INK, PALE_B, RU, FE)
+    a.text(14.5, ty + th_ - 3.6, "Literature", fontsize=6.3, fontweight="bold", va="center")
+    a.text(14.5, ty + 6.2, "papers + SI:\n90 methanol,\n52 ammonia", fontsize=5.0, va="center", linespacing=1.2)
+    # ACSA with its three steps; the language model is used for extraction only
+    ax0, ax1 = 37.0, 133.0
+    a.add_patch(FancyBboxPatch((ax0, ty - 1.0), ax1 - ax0, th_ + 2.0, boxstyle="round,pad=0,rounding_size=2.0",
+                               fc=TINT_B, ec="#9AA0AA", lw=0.55, zorder=0.9))
+    a.text(ax0 + 1.8, ty + th_ - 0.6, "ACSA", fontsize=6.6, fontweight="bold", va="top", ha="left", color=DARK_B)
+    steps = [("Extract", "value, unit, page", "language model", RU, "table"),
+             ("Self-check", "hand-built cases\nreproduced first", "code", DARK_G, "selfcheck"),
+             ("Bound", "full optimization\nonly where needed", "code", DARK_G, "bound")]
+    cw, cg = 28.0, 2.6
+    for k, (tt, sub, who, wc, g) in enumerate(steps):
+        cx0 = ax0 + 8.6 + k * (cw + cg)
+        a.add_patch(FancyBboxPatch((cx0, ty + 0.8), cw, th_ - 3.6, boxstyle="round,pad=0,rounding_size=1.2",
+                                   fc="white", ec="none", zorder=1))
+        tl = tile(cx0 + 0.8, ty + 1.6, 11.0, th_ - 5.2, TINT_G if k else TINT_B)
+        if g == "table":
+            glyphs.table(a, *tl, INK, PALE_B, "#E3C16F")
+        elif g == "selfcheck":
+            glyphs.selfcheck(a, *tl, INK, DARK_G)
+        else:
+            glyphs.bound(a, *tl, INK, "white", FE)
+        a.text(cx0 + 13.0, ty + th_ - 5.6, tt, fontsize=6.0, fontweight="bold", va="center")
+        a.text(cx0 + 13.0, ty + 6.0, sub, fontsize=4.9, va="center", linespacing=1.15)
+        a.text(cx0 + cw - 0.8, ty + th_ - 3.4, who, fontsize=4.2, va="center", ha="right", color="white",
+               bbox=dict(boxstyle="round,pad=0.22,rounding_size=0.7", fc=wc, ec="none"), zorder=6)
+        if k < 2:
+            a.add_patch(FancyArrowPatch((cx0 + cw + 0.2, ty + th_ / 2 - 0.9), (cx0 + cw + cg - 0.2, ty + th_ / 2 - 0.9),
+                                        arrowstyle="-|>", mutation_scale=5, lw=0.6, color=INK, zorder=3))
+    # leaderboards (output)
+    a.add_patch(FancyBboxPatch((139, ty), 37, th_, boxstyle="round,pad=0,rounding_size=1.6", fc="white",
+                               ec="#9AA0AA", lw=0.55, zorder=1))
+    glyphs.bump(a, *tile(140.3, ty + 1.3, 11.5, th_ - 2.6, TINT_G), INK, PALE_B, RED, DARK_G)
+    a.text(153.5, ty + th_ - 3.6, "Leaderboards", fontsize=6.3, fontweight="bold", va="center")
+    a.text(153.5, ty + 6.2, "laboratory leader\nvs plant-cost\nleader (b, c)", fontsize=5.0, va="center",
+           linespacing=1.2)
+    # broad flow arrows (U-shaped): literature -> ACSA -> chain -> leaderboards
+    flow((31.2, ty + th_ / 2), (36.8, ty + th_ / 2))
+    flow((ax0 + 6.0, ty - 1.2), (12.0, 36.4), rad=-0.22)
+    flow((168.0, 36.6), (160.0, ty - 0.2), rad=-0.25)
+    a.text(30.0, 40.6, "every candidate", fontsize=5.0, style="italic", ha="center", va="center", color=DARK_B)
+    a.text(151.0, 40.6, "plant cost", fontsize=5.0, style="italic", ha="center", va="center", color=DARK_B)
+    # bottom band: the unchanged multiscale chain (soft vertical gradient, as in multiscale-catalysis schematics)
+    band = FancyBboxPatch((0, 0), 176, 36.0, boxstyle="round,pad=0,rounding_size=1.8", fc="none", ec="#9AA0AA",
+                          lw=0.55, zorder=0.3)
+    a.add_patch(band)
+    grad = np.linspace(0.93, 1.0, 64)[:, None, None] * np.ones((64, 2, 3))
+    gi = a.imshow(grad, extent=[0, 176, 0, 36.0], aspect="auto", zorder=0.2, origin="lower")
+    gi.set_clip_path(band)
+    boxes = {}
+    for key, cx, h in (("surface", 15, 12.5), ("nanoparticle", 42, 12.5), ("pellet", 67, 10.5), ("bed", 90, 19.0),
+                       ("loop", 127, 19.0)):
+        boxes[key] = place(key, cx, 19.5, h)
+    for k1, k2, fx, fy in (("surface", "nanoparticle", 0.45, 0.80), ("nanoparticle", "pellet", 0.40, 0.55),
+                           ("pellet", "bed", 0.45, 0.62)):
+        e1, e2 = boxes[k1], boxes[k2]
+        sx, sy = e2[0] + fx * (e2[1] - e2[0]), e2[2] + fy * (e2[3] - e2[2])
+        r = 0.9
+        a.add_patch(Rectangle((sx - r, sy - r), 2 * r, 2 * r, fc="none", ec=INK, lw=0.5, zorder=3))
+        fx0 = e1[1] - 1.2
+        a.add_patch(Polygon([(fx0, e1[3] - 1.2), (sx - r, sy + r), (sx - r, sy - r), (fx0, e1[2] + 1.2)],
+                            closed=True, fc=(0.47, 0.54, 0.72, 0.10), ec=(0.3, 0.32, 0.36, 0.45), lw=0.3, zorder=1))
+    # what passes between the model layers (labelled arrows)
+    for x1, x2, lab in ((101.0, 113.5, "catalyst mass,\nbed volume"), (141.0, 151.0, "duties,\nflows")):
+        a.add_patch(FancyArrowPatch((x1, 19.5), (x2, 19.5), arrowstyle="-|>", mutation_scale=7, lw=0.9, color=INK,
+                                    zorder=3))
+        a.text((x1 + x2) / 2, 23.2, lab, fontsize=4.8, ha="center", va="center", linespacing=1.1)
+    # catalyst-dependent cost: flat stacked bars in the colours of the cost pools
+    bx0, by0 = 156.5, 12.5
+    a.plot([bx0 - 2.0, bx0 - 2.0, bx0 + 14.0], [by0 + 15.0, by0, by0], color=INK, lw=0.5, zorder=3)
+    for xb_, parts in ((bx0, ((4.0, RU), (2.5, FE), (1.5, "#E3C16F"))),
+                       (bx0 + 6.8, ((7.0, RU), (3.8, FE), (2.4, "#E3C16F")))):
+        yy = by0
+        for hh, c in parts:
+            a.add_patch(Rectangle((xb_, yy), 4.6, hh, fc=c, ec=INK, lw=0.35, zorder=3))
+            yy += hh
+    a.text(bx0 + 2.3, by0 - 1.4, "cat. 1", fontsize=4.6, ha="center", va="center")
+    a.text(bx0 + 9.1, by0 - 1.4, "cat. 2", fontsize=4.6, ha="center", va="center")
+    # labels in white boxes and scale bars, after the multiscale-catalysis convention
+    for lab, x in (("active site", 15), ("supported particle", 42), ("catalyst pellet", 67), ("loaded bed", 90),
+                   ("synthesis loop", 127), ("cost per tonne", 162)):
+        a.text(x, 32.6, lab, ha="center", va="center", fontsize=5.5, zorder=6,
+               bbox=dict(boxstyle="round,pad=0.3,rounding_size=0.9", fc="white", ec="#C9CDD3", lw=0.4))
+    for txt, x in (("1 nm", 15), ("10 nm", 42), ("5 mm", 67), ("1 m", 90), ("10 m", 127)):
+        a.plot([x - 3.0, x + 3.0], [9.3, 8.5], color="#3A3D42", lw=1.6, solid_capstyle="butt", zorder=3)
+        a.text(x, 6.9, "~" + txt, ha="center", va="center", fontsize=5.3, fontweight="bold")
+    for x1, x2, txt, col in ((3, 100, "kinetics: descriptor turnover or measured rate law", RU),
+                             (102, 148, "process optimization: T, P, separator, purge", FE),
+                             (150, 173, "catalyst-dependent cost", "#C9A54A")):
+        a.add_patch(FancyBboxPatch((x1, 1.2), x2 - x1, 3.4, boxstyle="round,pad=0,rounding_size=1.0", fc=col,
+                                   ec="none", alpha=0.32, zorder=1))
+        a.text((x1 + x2) / 2, 2.9, txt, ha="center", va="center", fontsize=5.0, zorder=2)
+    pg.letter("a", 2, 187)
 
     # ---- b: methanol leaderboards, inert-limited loop (primary) and STY without the limit ------------------------
     # first bar since 2026-10-20: catalyst against catalyst, each at its best measured point (identity rules committed
