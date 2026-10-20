@@ -25,14 +25,17 @@ import sys
 from collections import Counter
 
 import numpy as np
+from PIL import Image
 import pandas as pd
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from style import (DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
-                   scripts_at_least)
+from matplotlib.patches import Polygon, Rectangle  # noqa: E402
+import glyphs  # noqa: E402
+from style import (DARK_B, DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
+                   crop_rgba, scripts_at_least)
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 INV = "analysis/meoh_literature_inversion_2026_10_05/"
@@ -157,28 +160,14 @@ def nh3_example():
 
 
 if __name__ == "__main__":
-    pg = Page(183.0, 150.0)
+    pg = Page(183.0, 194.0)
 
-    # ---- a: workflow ------------------------------------------------------------------------------------------
-    a = pg.canvas(4, 124, 176, 22)
-    boxes = [
-        (16, "Publications + SI", "databases", "white"),
-        (51, "Extract", "value · unit · table/figure · page", TINT_B),
-        (88, "Self-check", "reproduce the frozen cases", TINT_G),
-        (127, "Full chain", "kinetics → process opt. → cost\nbound first, full optimization if needed", TINT_B),
-        (162, "Leaderboards", "laboratory vs plant cost", "white"),
-    ]
-    for x, t, sub, fc in boxes:
-        w = {"Full chain": 36, "Leaderboards": 26}.get(t, 30)
-        a.add_patch(FancyBboxPatch((x - w / 2, 5), w, 15, boxstyle="round,pad=0,rounding_size=1.4", fc=fc, ec=INK,
-                                   lw=0.55))
-        a.text(x, 15.8, t, ha="center", va="center", fontsize=6.4, fontweight="bold")
-        a.text(x, 10.0, sub, ha="center", va="center", fontsize=5.3, color=INK, linespacing=1.15)
-    for x0, x1 in ((31.2, 35.8), (66.2, 72.8), (103.2, 108.8), (145.2, 148.8)):
-        a.add_patch(FancyArrowPatch((x0, 12.5), (x1, 12.5), arrowstyle="-|>", mutation_scale=6, lw=0.6, color=INK))
-    a.text(88, 1.8, "scientific models unchanged; the agent supplies scale", ha="center", va="center", fontsize=5.3,
-           color=INK)
-    pg.letter("a", 2, 148)
+    # ---- a: workflow and multiscale chain, laid out in Fig2a.pptx (build_fig2a_pptx.py, hand-adjustable);
+    # its WPS/PowerPoint PDF export is rendered to Fig2a_from_pptx.png at 600 dpi and placed here
+    a = pg.ax(0, 119, 183, 74)
+    a.imshow(np.asarray(Image.open(os.path.join(HERE, "Fig2a_from_pptx.png")).convert("RGB")), interpolation="lanczos")
+    a.axis("off")
+    pg.letter("a", 1, 193.5)
 
     # ---- b: methanol leaderboards, inert-limited loop (primary) and STY without the limit ------------------------
     # first bar since 2026-10-20: catalyst against catalyst, each at its best measured point (identity rules committed
