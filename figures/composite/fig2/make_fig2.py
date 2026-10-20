@@ -230,9 +230,9 @@ c.set_ylabel(r"Lowest cost (USD t$^{-1}$ NH$_3$)")
 c.xaxis.set_minor_locator(MultipleLocator(100))
 c.yaxis.set_minor_locator(MultipleLocator(1))
 
-# ---- d: Ru at its actual catalyst cost, and the activity it needs at each price -------------------
-# x is the effective Ru price p (1 - r) / u: the benchmark price p, divided by the dispersion gain u of a
-# supported catalyst over fused iron and multiplied by the unrecovered fraction 1 - r (fig2_ru_actual_cost.py)
+# ---- d: Ru price sweep with full reoptimization at every price, and the activity it needs at each price ----------
+# Descriptor kinetics only (2026-10-21, supervisor: no descriptor-kinetics readings of the supported Ru/C catalyst next
+# to the measured-kinetics results; the Ru/C comparison is Fig. 5). Markers: the model Ru price and Ru priced as Fe.
 pg.letter("d", 62.0, RY0 + RH + 7.0)
 d1 = pg.ax(75.0, RY0 + 13.0, 42.0, RH - 13.0)
 d2 = pg.ax(75.0, RY0, 42.0, 11.5, sharex=d1)
@@ -240,68 +240,26 @@ boxed(d1)
 boxed(d2)
 pr = np.array([float(r["price_USD_kg"]) for r in sweep])
 co = np.array([float(r["cost"]) for r in sweep])
-Popt = np.array([float(r["P_bar"]) for r in sweep])
 fe_cost = OPT["Fe"]["cost"]
 p_star = float(parity["price_USD_kg"])
 assert abs(float(PTS["pure"]["cost"]) - OPT["Ru"]["cost"]) < 1e-9
 d1.axvspan(1.0, p_star, color=TINT_B, lw=0, zorder=0)
 d2.axvspan(1.0, P_REACH, color=PALE_G, lw=0, zorder=0)
 d1.axhline(fe_cost, color=FE, lw=0.9, ls=(0, (3, 1.6)), zorder=2)
-d1.text(2.2e5, fe_cost + 0.3, "Fe %.2f" % fe_cost, fontsize=5.8, color=DARK_G, ha="right", va="bottom",
+d1.text(2.2e5, fe_cost - 0.3, "Fe %.2f" % fe_cost, fontsize=5.8, color=DARK_G, ha="right", va="top",
         fontweight="bold")
 d1.plot(pr, co, color=RU, lw=1.2, zorder=3)
 d1.text(1.4, 20.3, "Ru cheaper", fontsize=5.6, color=DARK_B, va="top")
-
-
-def pt(key):
-    r = PTS[key]
-    return float(r["p_eff_USD_kg"]), float(r["cost"])
-
-
-x0, y0_ = pt("pure")
-x1, y1 = pt("supported")
-x9, y9 = pt("supp_rec90")
-x4, y4 = pt("supp_rec_hi")
-d1.plot([x4, x9], [y4, y9], color=INK, lw=2.2, solid_capstyle="butt", zorder=5)
-for x_, y_ in ((x0, y0_), (x1, y1), (x4, y4), (x9, y9)):
+x0, y0_ = float(PTS["pure"]["p_eff_USD_kg"]), float(PTS["pure"]["cost"])
+i8 = int(np.argmin(np.abs(pr - 8.0)))
+assert abs(pr[i8] - 8.0) < 1e-9 and abs(co[i8] - 10.237) < 5e-4, (pr[i8], co[i8])
+for x_, y_ in ((x0, y0_), (8.0, co[i8])):
     d1.plot(x_, y_, "o", ms=3.4, mfc=RU, mec=INK, mew=0.5, zorder=6)
-# the commercial Ru/C catalyst's own bed instead of the benchmark formulation: at 95.55% and 90% recovery a square at
-# 8 wt% Ru and 490 kg m-3 (centre of 430-550) and a bar over 5-10 wt% and 430-550 kg m-3 (fig2_ru_bed_sensitivity.csv)
-BEDROWS = read_csv(os.path.join(DATA, "fig2_ru_bed_sensitivity.csv"))
-
-
-def bed_bars(ax, k_hi, k90, field="cost"):
-    mid, lo, hi = [], [], []
-    for k in (k_hi, k90):
-        rr = [r for r in BEDROWS if r["key"] == k]
-        assert len(rr) == 9
-        mid.append(float(next(r for r in rr if float(r["w_Ru"]) == 0.08 and float(r["rho_bed_kg_m3"]) == 490.0)[field]))
-        lo.append(min(float(r[field]) for r in rr))
-        hi.append(max(float(r[field]) for r in rr))
-    for x_, m_, l_, h_ in zip((x4, x9), mid, lo, hi):
-        ax.plot([x_, x_], [l_, h_], color=DARK_B, lw=1.4, solid_capstyle="butt", zorder=6)
-        ax.plot(x_, m_, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
-    return mid, lo, hi
-
-
-bed_bars(d1, "supp_rec_hi", "supp_rec90")
-bed_bars(d1, "kaap_hi", "kaap90")
+d1.text(x0 / 1.35, y0_ + 0.35, "Ru %.2f" % y0_, fontsize=5.6, ha="right", va="bottom")
+d1.text(9.0, co[i8] + 2.0, "Ru priced as Fe"+chr(10)+"%.2f" % co[i8], fontsize=5.6, ha="center", va="bottom", linespacing=1.05)
 d1.plot(p_star, fe_cost, "o", ms=3.6, mfc=RED, mec=INK, mew=0.5, zorder=7)
-d1.text(p_star / 3.2, fe_cost + 0.3, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
-        ha="right", va="bottom")
-# point labels sit above-left of their markers, on the empty side of the rising curve
-d1.text(x0 / 1.35, y0_ + 0.35, "pure Ru", fontsize=5.6, ha="right", va="bottom")
-d1.text(x1 / 1.3, y1 + 0.2, "Ru/C", fontsize=5.6, ha="right", va="bottom")   # left of the marker, above the curve
-d1.text(x9 * 1.3, fe_cost - 0.3, "Ru/C + recovery", fontsize=5.6, ha="left", va="top", fontweight="bold")
-d1.plot(1.7, 14.2, "s", ms=2.6, mfc=PALE_B, mec=DARK_B, mew=0.6, zorder=7)
-d1.text(2.3, 14.2, "own Ru/C bed", fontsize=5.4, ha="left", va="center", color=DARK_B)
-# KAAP loop: Ru/C with recovery against fused iron at the same 90 bar, -20 C separator
-k9, k4, kf = (float(PTS[k]["cost"]) for k in ("kaap90", "kaap_hi", "fe_kaap"))
-d1.plot([x4 / 1.6, x9 * 1.6], [kf, kf], color=FE, lw=1.0, zorder=5)
-d1.plot([x4, x9], [k4, k9], "D", ms=2.8, mfc="white", mec=RU, mew=0.8, zorder=6)
-d1.text(x4 / 1.8, (k4 + kf) / 2, "KAAP loop\n90 bar", fontsize=5.4, ha="right", va="center", color=DARK_B,
-        linespacing=1.05)
-d1.text(x9 * 1.6, kf + 0.35, "Fe", fontsize=5.4, ha="right", va="bottom", color=DARK_G)   # above the line end
+d1.text(p_star * 1.3, fe_cost - 0.35, "parity %d" % round(p_star), fontsize=5.6, color=RED, fontweight="bold",
+        ha="left", va="top")
 d1.set_xscale("log")
 d1.set_xlim(1.0, 3e5)
 d1.set_ylim(9.6, 20.6)
@@ -314,18 +272,9 @@ ap = np.array([float(r["alpha_star"]) for r in alpha_sweep])
 d2.axhline(1.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=2)
 d2.text(1.4, 40, "parity within\nstrict scaling", fontsize=5.2, color=DARK_G, va="bottom", linespacing=1.05)
 d2.plot(pr, ap, color=INK, lw=0.9, zorder=3)
-for key in ("pure", "supported", "supp_rec90", "supp_rec_hi"):
-    d2.plot(float(PTS[key]["p_eff_USD_kg"]), float(PTS[key]["alpha_star"]), "o", ms=3.0, mfc=RU, mec=INK,
-            mew=0.5, zorder=5)
+d2.plot(x0, float(PTS["pure"]["alpha_star"]), "o", ms=3.0, mfc=RU, mec=INK, mew=0.5, zorder=5)
 d2.text(x0 / 1.3, float(PTS["pure"]["alpha_star"]), "%d×" % round(float(PTS["pure"]["alpha_star"])),
         fontsize=5.5, ha="right", va="center")
-d2.text(x1 / 1.3, float(PTS["supported"]["alpha_star"]), "%d×" % round(float(PTS["supported"]["alpha_star"])),
-        fontsize=5.5, ha="right", va="center")
-d2.text(x9 * 1.5, 0.28, "%.1f–%.1f×" % (float(PTS["supp_rec_hi"]["alpha_star"]), float(PTS["supp_rec90"]["alpha_star"])),
-        fontsize=5.5, ha="left", va="center", fontweight="bold")
-amid, alo, ahi = bed_bars(d2, "supp_rec_hi", "supp_rec90", field="alpha_star_supported_bed")
-d2.text(x4 / 1.3, 8.0, "own bed\n%.1f–%.1f×" % (min(amid), max(amid)), fontsize=5.5, ha="right", va="center",
-        color=DARK_B, linespacing=1.0)
 d2.set_yscale("log")
 d2.set_ylim(0.08, 3000)
 d2.yaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))
@@ -336,7 +285,7 @@ d2.set_xscale("log")
 d2.xaxis.set_major_locator(LogLocator(base=10, numticks=8))
 d2.xaxis.set_minor_locator(LogLocator(base=10, subs=np.arange(2, 10), numticks=12))
 d2.xaxis.set_minor_formatter(NullFormatter())
-d2.set_xlabel(r"Effective Ru price $p(1-r)/u$ (USD kg$^{-1}$)")
+d2.set_xlabel(r"Ru metal price (USD kg$^{-1}$)")
 
 # ---- e: where the canonical gap sits, and the equal-price intervention ---------------------------
 pg.letter("e", 121.0, RY0 + RH + 7.0)

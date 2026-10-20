@@ -14,7 +14,7 @@ import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import NullFormatter
 
-from style import DARK_B, FE, INK, MID, PALE_B, RED, RU, Page, boxed  # noqa: F401
+from style import DARK_B, DARK_G, FE, INK, MID, PALE_B, RED, RU, Page, boxed  # noqa: F401
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -277,3 +277,86 @@ def captions():
 
 def _pc(x):
     return "%.1f" % (100 * float(x))
+
+
+# ------------------------------------------------------------------------------------------------- ED Fig. 7
+# Replaces the descriptor-kinetics Monte Carlo of the actual Ru catalyst (supervisor, 2026-10-20: one kinetic
+# generation for the Ru/C - Fe comparison): the 16 robustness cases with measured rate laws, each in its fitted range.
+INR = "analysis/nh3_fe_inrange_kinetics_2026_10_19/"
+LEASES = (1.35, 2.10, 5.10)
+
+
+def frontier_data():
+    t = _csv(INR + "robustness.csv")
+    b = t.set_index("case").loc["base"]
+    assert (round(b.gap_0_global, 2), round(b.gap_12_global, 2), round(100 * b.breakeven_global, 2)) == (-3.83, 2.13, 6.49)
+    assert (round(b.gap_0_KAAP, 2), round(b.gap_12_KAAP, 2), round(100 * b.breakeven_KAAP, 2)) == (-1.21, 1.95, 4.57)
+    return t
+
+
+def ed_frontier():
+    t = frontier_data()
+    n = len(t)
+    pg = Page(183.0, 92.0)
+    yy = np.arange(n)[::-1]
+    a = pg.ax(48, 10, 60, 72)
+    a.axvline(0, color=INK, lw=0.5)
+    for col, mk, fc, lab in (("gap_0_global", "o", RU, "own optima, 0 %/y"), ("gap_12_global", "o", "white", "own optima, 12 %/y"),
+                             ("gap_0_KAAP", "D", DARK_B, "KAAP-type, 0 %/y"), ("gap_12_KAAP", "D", "white", "KAAP-type, 12 %/y")):
+        v = t[col].astype(float).values
+        ok = np.isfinite(v)
+        off = -0.15 if "global" in col else 0.15
+        a.plot(v[ok], yy[ok] + off, mk, ms=3.0, mfc=fc, mec=RU if "global" in col else DARK_B, mew=0.7, ls="none",
+               label=lab)
+    a.set_yticks(yy)
+    a.set_yticklabels(t.case.str.replace("x", "×", regex=False).str.replace("kg/m3", "kg m$^{-3}$", regex=False), fontsize=5.6)
+    a.set_ylim(-0.8, n - 0.2)
+    a.set_xlim(-8, 7.5)
+    a.set_xlabel("Ru/C $-$ Fe (USD t$^{-1}$ NH$_3$)")
+    a.text(-7.7, n - 0.6, "Ru/C cheaper", fontsize=5.3, color=DARK_B, va="center")
+    a.text(7.2, n - 0.6, "Fe cheaper", fontsize=5.3, color=DARK_G, ha="right", va="center")
+    a.legend(frameon=False, fontsize=5.0, loc="upper right", bbox_to_anchor=(1.0, 0.50), handlelength=0.6, handletextpad=0.3, borderaxespad=0.2)
+    boxed(a)
+    pg.letter("a", 2, 88)
+
+    b = pg.ax(124, 10, 54, 72)
+    b.axvspan(LEASES[0], LEASES[2], color=PALE_B, alpha=0.45, lw=0)
+    b.axvline(LEASES[1], color=RED, lw=0.7)
+    for col, mk, fc, lab, off in (("breakeven_global", "o", RU, "own optima", -0.15),
+                                  ("breakeven_KAAP", "D", DARK_B, "KAAP-type loop", 0.15)):
+        v = 100 * pd.to_numeric(t[col], errors="coerce").values
+        ok = np.isfinite(v)
+        b.plot(v[ok], yy[ok] + off, mk, ms=3.0, mfc=fc, mec=INK, mew=0.4, ls="none", label=lab)
+        for yv, case in zip(yy[~ok], t.case.values[~ok]):
+            note = "no Fe bed within 90 m$^3$" if case.startswith("Fe effectiveness") else "Ru/C never cheaper"
+            b.text(0.2, yv + off, note, fontsize=4.8, va="center", color=DARK_B)
+    b.set_yticks(yy)
+    b.set_yticklabels([])
+    b.set_ylim(-0.8, n - 0.2)
+    b.set_xlim(0, 16.5)
+    b.set_xlabel("break-even Ru financing rate (% per year)")
+    b.text(LEASES[1] + 0.25, n - 0.6, "reference 2.10", fontsize=5.0, color=RED, va="center")
+    b.legend(frameon=False, fontsize=5.0, loc="lower right", handletextpad=0.3, borderaxespad=0.2)
+    boxed(b)
+    pg.letter("b", 112, 88)
+    return pg
+
+
+def frontier_caption():
+    t = frontier_data().set_index("case")
+    g, k = t.breakeven_global.astype(float), pd.to_numeric(t.breakeven_KAAP, errors="coerce")
+    return ["## Extended Data Fig. 7 | Supported Ru/C against fused iron with measured rate laws: robustness", "",
+            "Fused iron (Keestra et al. Model 3 with the Topsoe KM1R activity, fitted at 1–324 bar) and promoted Ru/C "
+            "(Rossetti et al., 50–100 bar), each optimized only inside its fitted pressure range; Ru/C with its own bed "
+            "(8 wt%% Ru, 490 kg m$^{-3}$) and 95.55 %% recovery, metal purchases and credits dated over the 25-year plant "
+            "life. **a**, Ru/C − Fe at metal financing rates of 0 and 12 %% per year for the base case and 15 variants, at "
+            "each catalyst's own optimum (circles) and in the KAAP-type loop at 90 bar and −20 °C (diamonds); base case "
+            "%.2f / +%.2f and %.2f / +%.2f US dollars per tonne. A halved Fe effectiveness leaves no Fe bed within the "
+            "90 m$^3$ limit in the KAAP-type loop. **b**, Financing rate at which the two catalysts cost the same: "
+            "%.2f–%.2f %% per year at the own optima and %.2f–%.2f %% per year in the KAAP-type loop (base %.2f and %.2f); "
+            "with inlet-rate sizing Ru/C is not cheaper in the KAAP-type loop at any rate. Shaded, the 32 disclosed "
+            "catalyst-metal lease rates (1.35–5.10 %% per year); red, the reference rate 2.10 %% per year. Source: `%s` "
+            "(robustness.csv, robustness_inrange.py)." % (
+                t.loc["base", "gap_0_global"], t.loc["base", "gap_12_global"], t.loc["base", "gap_0_KAAP"],
+                t.loc["base", "gap_12_KAAP"], 100 * g.min(), 100 * g.max(), 100 * k.min(), 100 * k.max(),
+                100 * g["base"], 100 * k["base"], INR), ""]

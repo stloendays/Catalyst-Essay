@@ -24,7 +24,7 @@ from style import (DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, 
 # 2026-10-21: ED Figs 8 (Au/TiO2 life channel) and 9 (Sabatier Ru vs Ni) added from ed_new_2026_10_21.py; the
 # methanol purge/inlet figure, cited only in Methods and SI, moves from 8 to 10.
 SLUGS = {1: "extraction_accuracy", 2: "bound_pruning", 3: "methanol_robustness", 4: "meoh_plant_benchmark",
-         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc", 8: "au_tio2_life_boundary",
+         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ruc_fe_measured", 8: "au_tio2_life_boundary",
          9: "sabatier_ru_ni", 10: "meoh_purge_inlet"}
 METAL_COL = {"Ru": RU, "Fe": FE, "Co": OTHER, "Ni": PALE_G}
 
@@ -748,7 +748,7 @@ def ed8():
 
 import ed_new_2026_10_21 as N  # noqa: E402
 
-FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5, 8: N.ed_au, 9: N.ed_sab, 10: ed8}
+FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: N.ed_frontier, 8: N.ed_au, 9: N.ed_sab, 10: ed8}
 
 
 # ---------------------------------------------------------------------------------------------- captions
@@ -995,8 +995,10 @@ def write_captions():
     for col in ("cost_recycled_opt", "cost_inert_opt"):
         fin = np.isfinite(a[col])
         assert (a.bound[fin] <= a[col][fin] * (1 + 5e-6)).all(), col
-    out += [""] + N.captions()
+    out += [""] + N.captions() + [""] + N.frontier_caption()
     head, *blocks = "\n".join(out).split("\n## Extended Data Fig. ")
+    # the descriptor-kinetics Ru/C Monte Carlo (ed5) is no longer an Extended Data figure (2026-10-21)
+    blocks = [b for b in blocks if not b.startswith("7 | Fe against the actual Ru catalyst")]
     blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
     text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))
     open(os.path.join(HERE, "ED_CAPTIONS.md"), "w", encoding="utf-8").write(text)
