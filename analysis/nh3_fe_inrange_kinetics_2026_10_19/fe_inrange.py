@@ -49,6 +49,9 @@ def run_variant(h, st, m, fe_rate, mfe):
     KS.rate_fe_m3 = fe_rate
     try:
         M = FR.Variant(h, st, "plug", "source", None)
+        _, V0, _, _ = h.cost_arrays("Fe", h.frozen_state_logtof(h_c.EN0_CANON["Fe"]))
+        j0 = next(i for i in range(h.NSTATE) if (h.state_T[i], h.state_P[i], h.state_Tsep[i]) == KS.CAL_STATE)
+        variants = [FR.Variant(h, st, s, c, float(V0[j0])) for s in ("plug", "inlet") for c in ("source", "FCAL")]
     finally:
         KS.rate_fe_m3 = DS_RATE
     mru = m["Ru_P"]
@@ -59,6 +62,7 @@ def run_variant(h, st, m, fe_rate, mfe):
     d["a"] = FR.pair(M, M.fe_bench(), M.rub(), mfe, mru)
     d["a_common_50_100"] = FR.pair(M, M.fe_bench(), M.rub(), both, both)
     d["parity"] = FR.parity_multiple(M, mfe, mru)
+    d["parity_variants"] = {v.name: FR.parity_multiple(v, mfe, mru) for v in variants}
     d["bench_price_parity"] = FR.bench_price_parity(M, mfe, mru)
     for i in (0.0, 0.12):
         k = int(100 * i)
@@ -69,6 +73,13 @@ def run_variant(h, st, m, fe_rate, mfe):
         if (mfe & kaap).any():
             d[f"e_ruc_price_{k}_KAAP"] = FR.ruc_price_parity(M, i, mfe & kaap, mru & kaap)
     d["b_breakeven"] = FR.breakeven_fin(M, mfe, mru)
+    FR.R = 0.90                                              # 90 % recovery (fitted_range.R is read at call time)
+    try:
+        d["b_breakeven_r90"] = FR.breakeven_fin(M, mfe, mru)
+        if (mfe & kaap).any():
+            d["c_breakeven_KAAP_r90"] = FR.breakeven_fin(M, mfe & kaap, mru & kaap)
+    finally:
+        FR.R = FR.FS.R_HEAD
     if both.any():
         d["b_breakeven_common_50_100"] = FR.breakeven_fin(M, both, both)
     if (mfe & kaap).any():

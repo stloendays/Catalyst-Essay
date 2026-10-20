@@ -46,6 +46,20 @@ def main():
                  "Keestra KM1R_1999 vs wustite": mp["Keestra KM1R_1999"] / 12.5 - 1,
                  "Keestra AmoMax10 vs wustite": mp["Keestra AmoMax10_2024"] / 12.5 - 1})
 
+    # 4. apparent orders at 90 bar, 400 C, 2 % NH3 (kinetics.apparent_orders) and the Ru/C (8 wt%) / Fe rate ratio along
+    #    the converter, as in validate_kinetics.py (Fe there: Dyson-Simon per kg at 2,850 kg m^-3)
+    out["apparent_orders_90bar_400C_2pct"] = dict(
+        Fe_Keestra_KM1R1964=K.apparent_orders(lambda T, P, a, b, c: KF.rate(T, P, a, b, c), 673.15, 90.0, 0.02),
+        Fe_DysonSimon=K.apparent_orders(K.rate_fe_dyson_simon, 673.15, 90.0, 0.02),
+        Ru_C_Rossetti=K.apparent_orders(K.rate_ru_rossetti, 673.15, 90.0, 0.02))
+    ratios = {}
+    for yA in (0.02, 0.06, 0.10, 0.14):
+        yN = (1 - yA) / 4
+        fe_ = float(KF.rate(673.15, 90.0, yN, 3 * yN, yA))
+        ru_ = float(K.rate_ru_rossetti(673.15, 90.0, yN, 3 * yN, yA, ru_wt_frac=0.08))
+        ratios[f"400C_yNH3_{yA}"] = dict(Ru_over_Fe_per_kg=ru_ / fe_, Ru_over_Fe_per_m3=ru_ * 490 / (fe_ * KF.BED_DENSITY))
+    out["rate_ratio_90bar_Keestra"] = ratios
+
     h = KS.build(False)
     st = KS.state_arrays(h)
     ds = KS.amount(st, KS.rate_fe_m3, h, "plug")
