@@ -1782,6 +1782,16 @@ sbnd = _j(SC12 + "boundary_summary.json")
 _par = (ROOT / SC / "parameters.yaml").read_text(encoding="utf-8")
 fsw = _j(f"analysis/nh3_frontier_provenance_2026_10_13/{V12}/frontier_swap.json")
 fsw_rob = rows(f"analysis/nh3_frontier_provenance_2026_10_13/{V12}/frontier_swap_robustness.csv")
+# supervisor 2026-10-19: each catalyst optimized only inside the pressure range its rate law was fitted on. Fused iron:
+# Keestra et al. 2025 Model 3 (1-324 bar, KM1R-1964 activity), Ru/C: Rossetti 2006 (50-100 bar); the manuscript's
+# measured-kinetics numbers come from analysis/nh3_fe_inrange_kinetics_2026_10_19 (Dyson-Simon outputs above stay the
+# provenance the in-range scripts reproduce first)
+IRD = "analysis/nh3_fe_inrange_kinetics_2026_10_19/"
+_ir_all = _j(IRD + "results.json")
+IR = _ir_all["Fe_Keestra"]["Keestra KM1R-1964, source Kf"]
+IRV = _j(IRD + "validation.json")
+IRR = _j(IRD + "robustness.json")
+IRS = _j(IRD + "staged_KM1R_1964_summary.json")
 ok("Fe-Ru financing and frontier sources are the NH3-FINAL-1.2 ports",
    fin["model"]["label"] == "NH3-FINAL-1.2" and fin["model"]["run"] == RUN.name
    and ksw["frozen_anchor_check"]["model"]["run"] == RUN.name and fsw["model"]["run"] == RUN.name
@@ -1833,23 +1843,25 @@ ok("NH3 measured kinetics: frozen Fe and Ru optima reproduced before the swap",
 
 # both financing conventions (replaces the 2026-10-12 check that no lifecycle-financing claim appears)
 m_feru2 = main_section("Metal price and process optimization decide the Fe–Ru ranking")
+KAAP_P = IR["c_0_KAAP"]["Ru"]["P_bar"]
 _conv = {
     "main": (m_feru2, [
         "they charge the Ru inventory, as the benchmark model does, only for the metal lost at each replacement",
         f"at the {pc(i_hi)}% rate applied to equipment brings Ru to parity with Fe in the KAAP-type loop "
         f"({f12['Ru_USD_t']:.2f} against {f12['Fe_same_loop_USD_t']:.2f} US dollars per tonne)",
-        f"it costs {-rc0['Ru_minus_Fe_global']:.2f} US dollars per tonne less than Fe when the Ru inventory carries no "
-        f"financing charge and {rc12['Ru_minus_Fe_global']:.2f} more at {pc(i_hi)}% per year (in the KAAP-type loop "
-        f"{-rc0['Ru_minus_Fe_KAAP']:.2f} less and {rc12['Ru_minus_Fe_KAAP']:.2f} more)"]),
+        f"it costs {-IR['b_0']['gap']:.2f} US dollars per tonne less than Fe when the Ru inventory carries no "
+        f"financing charge and {IR['b_12']['gap']:.2f} more at {pc(i_hi)}% per year (in the KAAP-type loop at "
+        f"{KAAP_P / 10:.0f} MPa, inside both fitted ranges, {-IR['c_0_KAAP']['gap']:.2f} less and "
+        f"{IR['c_12_KAAP']['gap']:.2f} more)"]),
     "SI": (s2_full, [
         "These readings charge the Ru inventory, as the benchmark model does, only for the metal lost at each replacement",
         f"gives the same result when nothing is discounted ({f0['gap_Ru_minus_Fe_USD_t']:.2f} US dollars per tonne against "
         f"Fe in the KAAP-type loop at {pc(geo['w'])} wt% Ru, {geo['rho']:.0f} kg m⁻³ and {pc(geo['physical_r'], 2)}% recovery)",
         f"Financing the inventory at the {pc(i_hi)}% rate applied to equipment puts Ru at {f12['Ru_USD_t']:.2f} against "
         f"{f12['Fe_same_loop_USD_t']:.2f} for Fe in that loop",
-        f"costs {-rc0['Ru_minus_Fe_global']:.2f} US dollars per tonne less than Fe without metal financing and "
-        f"{rc12['Ru_minus_Fe_global']:.2f} more at {pc(i_hi)}% per year (KAAP-type loop: {-rc0['Ru_minus_Fe_KAAP']:.2f} less "
-        f"and {rc12['Ru_minus_Fe_KAAP']:.2f} more)"]),
+        f"costs {-IR['b_0']['gap']:.2f} US dollars per tonne less than Fe without metal financing and "
+        f"{IR['b_12']['gap']:.2f} more at {pc(i_hi)}% per year (KAAP-type loop, inside both fitted ranges: "
+        f"{-IR['c_0_KAAP']['gap']:.2f} less and {IR['c_12_KAAP']['gap']:.2f} more)"]),
 }
 _miss = [f"{where}: {n}" for where, (hay, needles) in _conv.items() for n in needles if n not in hay]
 # 1.2 direction: with descriptor kinetics, financing at the 12 % equipment rate brings Ru to parity in the KAAP-type loop
@@ -1857,8 +1869,8 @@ _miss = [f"{where}: {n}" for where, (hay, needles) in _conv.items() for n in nee
 # measured kinetics Ru/C is cheaper at 0 % and dearer at 12 %
 _hurdle = dcf["financing_hurdle_rate"]
 ok("Fe-Ru: both Ru-inventory financing conventions reported (no financing charge and 12 % per year), main text and SI",
-   not _miss and rc0["Ru_minus_Fe_global"] < 0 < rc12["Ru_minus_Fe_global"]
-   and rc0["Ru_minus_Fe_KAAP"] < 0 < rc12["Ru_minus_Fe_KAAP"]
+   not _miss and IR["b_0"]["gap"] < 0 < IR["b_12"]["gap"] and IR["c_0_KAAP"]["gap"] < 0 < IR["c_12_KAAP"]["gap"]
+   and IR["c_0_KAAP"]["Fe"]["P_bar"] == IR["c_0_KAAP"]["Ru"]["P_bar"] == KAAP_P
    and f0["gap_Ru_minus_Fe_USD_t"] < f12["Ru_USD_t"] - f12["Fe_same_loop_USD_t"] < 0
    and abs(f12["gap_Ru_minus_Fe_USD_t"] - (f12["Ru_USD_t"] - f12["Fe_same_loop_USD_t"])) < 1e-12
    and _hurdle > i_hi and round(100 * _hurdle) == round(100 * i_hi),
@@ -1904,140 +1916,124 @@ ok("Methods: recovered Ru is credited at each replacement and at closure",
 
 # measured frontier kinetics
 _mult_all = [v["Ru_activity_multiple_for_parity"] for v in ksw["variants"]]
-fe_o, ru_o = val["apparent_orders_90bar"]["Fe_DysonSimon_400C"], val["apparent_orders_90bar"]["Ru_C_Rossetti_400C"]
+ru_o = val["apparent_orders_90bar"]["Ru_C_Rossetti_400C"]
+fe_o = IRV["apparent_orders_90bar_400C_2pct"]["Fe_Keestra_KM1R1964"]
 _ruv = val["Ru_C_Rossetti2006_Table2"]["all_points_N2_basis"]
-_rr = val["rate_ratio_90bar"]
+_rr = IRV["rate_ratio_90bar_Keestra"]
 fe_rng, ru_rng = _yrange("Fe_DysonSimon", "atm"), _yrange("Ru_C_Rossetti", "bar")
 ru_trng = _yrange("Ru_C_Rossetti", "C")
-kb100 = kh["Ru_benchmark_best_100_200_bar"]
 _rr_lo, _rr_hi = _rr["400C_yNH3_0.02"]["Ru_over_Fe_per_kg"], _rr["400C_yNH3_0.14"]["Ru_over_Fe_per_kg"]
-# Ru benchmark pressure profile of the headline variant (plug flow, measured rates, 1.2 states): the "broad optimum" is
-# the largest excess over the optimum inside the pressure interval the SI names, printed as an upper bound
-_prof = [r_ for r_ in rows(SC12 + "kinetics_swap_pressure_profiles.csv")
-         if (r_["states"], r_["sizing"], r_["scale"]) == (_states12, kh["sizing"], kh["scale"])]
-_prof_opt = min(float(r_["Ru_benchmark"]) for r_ in _prof)
-_bo = re.search(r"broad optimum around (\d+) bar, within [\d.]+ of it from (\d+) to (\d+) bar", s2_full)
-_bo_lo, _bo_hi = (float(_bo.group(2)), float(_bo.group(3))) if _bo else (0.0, 0.0)
-_bo_dev = max((float(r_["Ru_benchmark"]) - _prof_opt for r_ in _prof if _bo_lo <= float(r_["P_bar"]) <= _bo_hi),
-              default=float("inf"))
-ok("NH3 measured kinetics: Ru's best 100-200 bar state lies in that range and costs more than its optimum; the optimum "
-   "lies outside 100-200 bar inside the broad-optimum interval; Ru/C keeps a positive H2 order; Ru/C is held to the top of "
-   "its measured temperature range",
-   100 <= kb100["P_bar"] <= 200 and kb100["cost"] > kh["Ru_benchmark"]["cost"]
-   and not 100 <= kh["Ru_benchmark"]["P_bar"] <= 200 and ru_o["H2"] > 0 and _ynum("T_max_Ru_C") == ru_trng[1]
-   and _bo is not None and _bo_lo <= kh["Ru_benchmark"]["P_bar"] <= _bo_hi
-   and abs(_prof_opt - kh["Ru_benchmark"]["cost"]) < 1e-5
-   and abs(fsw["3_Ru_price_parity_benchmark"]["Ru_benchmark_best_100_200_bar_minus_optimum"]
-           - (kb100["cost"] - kh["Ru_benchmark"]["cost"])) < 1e-4,
-   f"max excess {_bo_dev:.3f} USD/t over {_bo_lo:.0f}-{_bo_hi:.0f} bar")
-# since 2026-10-15 the abstract gives the descriptor requirement only; the measured-kinetics requirement is in Results
-# and Table 1, with the Ru cost restricted to 100-200 bar first and the unconstrained optimum second
+_irr = _ir_all["ranges"]
+fe_irng, ru_irng = _irr["Fe_Keestra"]["P"], _irr["Ru_C_Rossetti"]["P"]
+ia = IR["a"]
+_mult_ir = list(IR["parity_variants"].values())
+_mp = IRV["micropilot_430C_100bar_30000h"]
+_bvr = IRV["bed_volume_Keestra_KM1R1964_over_DysonSimon, 155-310 bar (Dyson-Simon range)"]
+ok("NH3 measured kinetics in range: the Dyson-Simon in-range numbers are reproduced first; every optimum lies inside its "
+   "law's fitted pressure range; Ru/C keeps a positive H2 order; Ru/C is held to the top of its measured temperature range",
+   all(fe_irng[0] <= x["Fe"]["P_bar"] <= fe_irng[1] and ru_irng[0] <= x["Ru"]["P_bar"] <= ru_irng[1]
+       for x in (IR["a"], IR["b_0"], IR["b_12"], IR["c_0_KAAP"], IR["c_12_KAAP"]))
+   and ru_o["H2"] > 0 and _ynum("T_max_Ru_C") == ru_trng[1]
+   and abs(_ir_all["Fe_DysonSimon_in_range"]["a"]["Fe"]["cost"] - 15.08) < 0.005
+   and min(_mult_ir) == IR["parity"] and abs(IR["parity_variants"]["plug/source"] - IR["parity"]) < 1e-9)
 tokens("Abstract: descriptor-kinetics Ru activity requirement", main_section_h2("Abstract"),
        f"Ru would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain")
 tokens("Main text: measured Fe and Ru/C rate laws for the frontier pair", m_feru2,
        f"against {ru_o['H2']:+.1f} and {ru_o['NH3']:+.1f} for promoted Ru/C",
        f"in NH₃ against {fe_o['NH3']:.1f} measured",
-       f"Fe costs {kh['Fe']['cost']:.2f} US dollars per tonne at {kh['Fe']['T_C']:.0f} °C and {kh['Fe']['P_bar']:.0f} bar, "
-       f"whereas Ru costs {kb100['cost']:.2f} at best in the 100–200 bar range and {kh['Ru_benchmark']['cost']:.2f} at its "
-       f"unconstrained optimum around {kh['Ru_benchmark']['P_bar']:.0f} bar, and would need a "
-       f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold activity gain for parity "
-       f"({min(_mult_all):.0f}–{max(_mult_all):.0f}-fold across bed-sizing and calibration variants)",
-       f"| {kh['Fe']['cost']:.2f} | {kb100['cost']:.2f} (100–200 bar) | activity rises "
-       f"{kh['Ru_activity_multiple_for_parity']:.0f}-fold |",
+       f"a law fitted to commercial fused-iron data from {fe_irng[0]:.0f} to {fe_irng[1]:.0f} bar",
+       f"the kinetics of a promoted Ru/C catalyst fitted at {ru_irng[0]:.0f}–{ru_irng[1]:.0f} bar",
+       f"Fe costs {ia['Fe']['cost']:.2f} US dollars per tonne at {ia['Fe']['T_C']:.0f} °C and {ia['Fe']['P_bar']:.0f} bar, "
+       f"whereas Ru costs {ia['Ru']['cost']:.2f} at {ia['Ru']['P_bar']:.0f} bar and would need a "
+       f"{IR['parity']:.0f}-fold activity gain for parity "
+       f"({min(_mult_ir):.0f}–{max(_mult_ir):.0f}-fold across bed-sizing and calibration variants)",
+       f"| {ia['Fe']['cost']:.2f} | {ia['Ru']['cost']:.2f} ({ia['Ru']['P_bar']:.0f} bar) | activity rises "
+       f"{IR['parity']:.0f}-fold |",
        f"| activity rises {bw['Ru_activity_break_even_multiplier']:.0f}-fold, or Ru costs "
        f"{float(parity['price_USD_kg']):.0f} US dollars per kilogram or less |",
-       f"For supported Ru/C the measured kinetics place the decision on the financing of the Ru inventory: at its optimum "
-       f"of {rc0['Ru_C_global']['P_bar']:.0f} bar",
+       f"For supported Ru/C the measured kinetics place the decision on the financing of the Ru inventory: at "
+       f"{IR['b_0']['Ru']['P_bar']:.0f} bar",
        f"Ru/C is held to {_ynum('T_max_Ru_C'):.0f} °C, the top of its measured range",
        f"the Ru/C rate advantage per kilogram grows from {_rr_lo:.0f}-fold at 2% to {_rr_hi:.0f}-fold at 14% NH₃")
-ok("NH3 measured kinetics: the 1.2 port has the sizing x calibration variants only (no equilibrium variant)",
-   {(v["sizing"], v["scale"]) for v in ksw["variants"]} == {("plug", "source"), ("plug", "FCAL"), ("inlet", "source"),
-                                                            ("inlet", "FCAL")} and len(ksw["variants"]) == 4
-   and min(_mult_all) == kh["Ru_activity_multiple_for_parity"])
 tokens("SI Note 7: measured rate laws, validation and costs", s2_full,
+       f"fitted from {fe_irng[0]:.0f} to {fe_irng[1]:.0f} bar",
        f"(apparent orders N₂ {fe_o['N2']:+.2f}, H₂ {fe_o['H2']:+.2f}, NH₃ {fe_o['NH3']:+.2f})",
        f"reproduces the {_ruv['n']} measured points of its source with a mean error of {pc(_ruv['mean_abs_rel_err'], 1)}%",
-       f"the pair gives Fe {kh['Fe']['cost']:.2f} US dollars per tonne at {kh['Fe']['T_C']:.0f} °C, {kh['Fe']['P_bar']:.0f} "
-       f"bar and a {kh['Fe']['Tsep_C']:.0f} °C separator and Ru in the benchmark formulation "
-       f"{kh['Ru_benchmark']['cost']:.2f} at a broad optimum around {kh['Ru_benchmark']['P_bar']:.0f} bar, within "
-       f"{ceil2(_bo_dev)} of it from {_bo_lo:.0f} to {_bo_hi:.0f} bar ({kb100['cost']:.2f} at best between 100 and 200 bar); "
-       f"the activity multiple for parity is {kh['Ru_activity_multiple_for_parity']:.2f} "
-       f"({min(_mult_all):.2f}–{max(_mult_all):.2f} across",
+       f"the fused-iron law gives {_mp['model_pct']['Keestra KM1R_1964']:.1f}% NH₃ against "
+       f"{_mp['measured_pct']['magnetite']:.0f}% measured",
+       f"it requires {_bvr['min']:.2f}–{_bvr['max']:.1f} times their bed",
+       f"(fused iron {fe_irng[0]:.0f}–{fe_irng[1]:.0f} bar, Ru/C {ru_irng[0]:.0f}–{ru_irng[1]:.0f} bar), the pair gives Fe "
+       f"{ia['Fe']['cost']:.2f} US dollars per tonne at {ia['Fe']['T_C']:.0f} °C, {ia['Fe']['P_bar']:.0f} bar and a "
+       f"{ia['Fe']['Tsep_C']:.0f} °C separator and Ru in the benchmark formulation {ia['Ru']['cost']:.2f} at "
+       f"{ia['Ru']['P_bar']:.0f} bar; the activity multiple for parity is {IR['parity']:.2f} "
+       f"({min(_mult_ir):.2f}–{max(_mult_ir):.2f} across",
        f"against {bw['Ru_activity_break_even_multiplier']:.2f} with the descriptor kinetics",
        f"Supported Ru/C ({pc(_ynum('Ru_wt_frac_commercial'))} wt% Ru, {_ynum('Ru_C_bed_density_kg_m3'):.0f} kg m⁻³, "
-       f"{pc(r_hi, 2)}% recovery) has its optimum at {rc0['Ru_C_global']['P_bar']:.0f} bar",
-       f"from {_rr_lo:.0f}-fold at 2% to {_rr_hi:.0f}-fold at 14% NH₃ (90 bar, 400 °C)",
-       f"the fused-iron law was fitted at {fe_rng[0]}–{fe_rng[1]} atm and the Ru/C law at {ru_rng[0]}–{ru_rng[1]} bar")
+       f"{pc(r_hi, 2)}% recovery) has its optimum at {IR['b_0']['Ru']['P_bar']:.0f} bar",
+       f"from {_rr_lo:.0f}-fold at 2% to {_rr_hi:.0f}-fold at 14% NH₃ (90 bar, 400 °C)")
+ok("SI Note 7: fused-iron law checks (micropilot within 16 %, bed ratio to Dyson-Simon from 1.05 in its range)",
+   abs(_mp["rel_err"]["Keestra KM1R_1964 vs magnetite"]) < 0.165 and 1.0 < _bvr["min"] < _bvr["max"])
 tokens("SI Note 7: apparent orders of the Ru/C rate law", s2_full,
        f"(N₂ {ru_o['N2']:+.2f}, H₂ {ru_o['H2']:+.2f}, NH₃ {ru_o['NH3']:+.2f})")
 tokens("Methods: measured rate laws and the staged converter", methods,
+       f"fitted to data from {fe_irng[0]:.0f} to {fe_irng[1]:.0f} bar, with the activity factor (0.350) of the Topsoe "
+       f"KM1R catalyst",
        f"the Ru/C law reproduces the {_ruv['n']} measured points of its source with a mean error of "
-       f"{pc(_ruv['mean_abs_rel_err'])}%.",
-       f"The fused-iron law was fitted at {fe_rng[0]}–{fe_rng[1]} atm and the Ru/C law at {ru_rng[0]}–{ru_rng[1]} bar",
+       f"{pc(_ruv['mean_abs_rel_err'])}%, and the fused-iron law the outlet of a commercial magnetite catalyst at 100 bar "
+       f"within {100 * _mp['rel_err']['Keestra KM1R_1964 vs magnetite']:.0f}%",
+       f"fused iron {fe_irng[0]:.0f}–{fe_irng[1]:.0f} bar and Ru/C {ru_irng[0]:.0f}–{ru_irng[1]:.0f} bar, so every "
+       f"measured-kinetics comparison, including the {KAAP_P / 10:.0f} MPa loop and the staged converter, lies inside both fits",
        f"each filled with fused iron (up to {_ynum('T_max_Fe_C'):.0f} °C) or Ru/C (up to {_ynum('T_max_Ru_C'):.0f} °C, the "
        f"top of its measured range), at {_ylist('loops_bar')[0] / 10:.0f} MPa with a {_ynum('separator_C'):.0f} °C separator "
-       f"and {pc(_ynum('inerts_typical'))}% inerts",
-       f"so the Fe optimum at {kh['Fe']['P_bar']:.0f} bar and the {_ylist('loops_bar')[0] / 10:.0f} MPa loop extrapolate the "
-       f"former, and every Ru optimum above {ru_rng[1]} bar the latter")
-ATM_BAR = 1.01325                                                  # bar per atm (definition)
-ok("Methods: the Fe optimum and the 9 MPa loop lie below the fitted fused-iron pressure range",
-   kh["Fe"]["P_bar"] < fe_rng[0] * ATM_BAR and _ylist("loops_bar")[0] < fe_rng[0] * ATM_BAR
-   and kh["Ru_benchmark"]["P_bar"] > ru_rng[1] and kb100["P_bar"] > ru_rng[1])
+       f"and {pc(_ynum('inerts_typical'))}% inerts")
+ok("Methods: the 9 MPa loop lies inside both fitted pressure ranges",
+   fe_irng[0] <= _ylist("loops_bar")[0] <= fe_irng[1] and ru_irng[0] <= _ylist("loops_bar")[0] <= ru_irng[1]
+   and KAAP_P == _ylist("loops_bar")[0])
 
 # measured kinetics: break-even metal financing rate of supported Ru/C against Fe (frontier provenance, 1.2)
-_be = fsw["1_breakeven_financing_rate"]
-_be_g, _be_k = _be[f"r {r_hi} global"]["rate"], _be[f"r {r_hi} KAAP"]["rate"]
-_be_g90, _be_k90 = _be[f"r {r_lo} global"]["rate"], _be[f"r {r_lo} KAAP"]["rate"]
+_be_g, _be_k = IR["b_breakeven"]["rate"], IR["c_breakeven_KAAP"]["rate"]
+_be_g90, _be_k90 = IR["b_breakeven_r90"]["rate"], IR["c_breakeven_KAAP_r90"]["rate"]
 tokens("Main text: measured-kinetics break-even financing rates", m_feru2,
        f"it stays cheaper than Fe up to a financing rate of {pc(_be_g, 1)}% per year, and in the KAAP-type loop up to "
-       f"{pc(_be_k, 1)}% per year, above the disclosed lease rates")
+       f"{pc(_be_k, 1)}% per year.")
 tokens("SI Note 7: measured-kinetics break-even financing rates", s2_full,
        f"It stays cheaper than Fe up to a metal financing rate of {pc(_be_g, 2)}% per year, and in the KAAP-type loop up "
        f"to {pc(_be_k, 2)}% per year ({pc(_be_g90, 2)}% and {pc(_be_k90, 2)}% at {pc(r_lo)}% recovery)")
-ok("Measured-kinetics break-even: Ru/C and Fe cost the same there, both rates exceed the disclosed lease rates, and the "
-   "rates bracket the 0 %/y and 12 %/y signs",
-   all(abs(_be[k]["Ru_C"]["cost"] - _be[k]["Fe"]["cost"]) < 1e-5 for k in _be)
-   and min(_be_g, _be_k) > pbf["pbf_max"] / 100 and i_lo < _be_k < _be_g < i_hi
-   and _be_g90 < _be_g and _be_k90 < _be_k
-   and abs(fsw["reproduced_headline"]["RuC_minus_Fe"][f"cashflow {i_lo * 100:.0f}% r {r_hi}"]["global_"]
-           - rc0["Ru_minus_Fe_global"]) < 1e-5
-   and abs(fsw["reproduced_headline"]["RuC_minus_Fe"][f"cashflow {i_hi * 100:.0f}% r {r_hi}"]["KAAP"]
-           - rc12["Ru_minus_Fe_KAAP"]) < 1e-5,
+ok("Measured-kinetics break-even (in range): Ru/C and Fe cost the same there and the rates bracket the 0 %/y and "
+   "12 %/y signs",
+   all(abs(IR[k]["Ru"]["cost"] - IR[k]["Fe"]["cost"]) < 1e-5
+       for k in ("b_breakeven", "c_breakeven_KAAP", "b_breakeven_r90", "c_breakeven_KAAP_r90"))
+   and i_lo < _be_k < _be_g < i_hi and _be_g90 < _be_g and _be_k90 < _be_k,
    f"{100 * _be_g:.2f} / {100 * _be_k:.2f} %/y")
-# the 16 robustness cases (frontier_swap_robustness.csv); an infeasible Fe bed is -inf and counts as a Ru/C win
-_rb = [{k: float(x) if x not in ("", None) and k != "case" else x for k, x in r_.items()} for r_ in fsw_rob]
-_rbs = fsw["5_robustness"]["summary"]
+# the 16 robustness cases, each catalyst in its fitted range (robustness_inrange.py); an infeasible Fe bed is -inf
+_rb = IRR["cases"]
+_rbs = IRR["summary"]
 
 
 def _rb_count(col, sign):
-    return sum((r_[col] > 0) if sign > 0 else (r_[col] < 0) for r_ in _rb)
+    return sum(((r_[col] if r_[col] is not None else -math.inf) > 0) if sign > 0
+               else ((r_[col] if r_[col] is not None else -math.inf) < 0) for r_ in _rb)
 
 
-_be_rng = {lp: sorted(r_[f"breakeven_{lp}"] for r_ in _rb if r_[f"breakeven_{lp}"] != "") for lp in ("global", "KAAP")}
-_fe12_exc = [r_["case"] for r_ in _rb if r_["gap_12_global"] < 0]
-_fe_inf_k = [r_["case"] for r_ in _rb if r_["gap_12_KAAP"] == float("-inf")]
 tokens("SI Note 7: measured-kinetics robustness cases", s2_full,
        f"Across {len(_rb)} cases that vary",
-       f"Ru/C is cheaper than Fe without metal financing in all {len(_rb)} in both loops",
-       f"the break-even financing rate spans {pc(_be_rng['global'][0], 2)}–{pc(_be_rng['global'][-1], 2)}% per year in the "
-       f"main loop and {pc(_be_rng['KAAP'][0], 2)}–{pc(_be_rng['KAAP'][-1], 2)}% per year in the KAAP-type loop",
-       f"At {pc(i_hi)}% per year Fe is cheaper in {_rb_count('gap_12_global', 1)} of the {len(_rb)} cases in the main loop",
-       f"and in {_rb_count('gap_12_KAAP', 1)} of {len(_rb)} in the KAAP-type loop")
-ok("Measured-kinetics robustness: counts recomputed from the 16 cases equal the summary; the main-loop exceptions at 12 %/y "
-   "are a halved Fe effectiveness and a doubled converter premium; in the KAAP-type loop a halved Fe effectiveness leaves "
-   "no Fe bed",
-   len(_rb) == _rbs["global"]["n_cases"] == _rbs["KAAP"]["n_cases"]
-   and _rb_count("gap_0_global", -1) == _rbs["global"]["RuC_ahead_at_0"] == len(_rb)
-   and _rb_count("gap_0_KAAP", -1) == _rbs["KAAP"]["RuC_ahead_at_0"] == len(_rb)
-   and _rb_count("gap_12_global", 1) == _rbs["global"]["Fe_ahead_at_12"]
-   and _rb_count("gap_12_KAAP", 1) == _rbs["KAAP"]["Fe_ahead_at_12"]
-   and sorted(_fe12_exc) == sorted(_rbs["global"]["exceptions_12"]) == ["Fe effectiveness 0.5", "converter premium x2"]
-   and _fe_inf_k == _rbs["KAAP"]["Fe_infeasible"] == ["Fe effectiveness 0.5"]
-   and next(r_ for r_ in _rb if r_["case"] == "base")["breakeven_global"] == round(_be_g, 6),
-   "; ".join(_fe12_exc))
+       f"Ru/C is cheaper than Fe without metal financing in all {_rb_count('gap_0_global', -1)} in the main loop and in "
+       f"{_rb_count('gap_0_KAAP', -1)} in the KAAP-type loop, all but inlet-rate sizing",
+       f"the break-even financing rate spans {pc(_rbs['global']['breakeven_range'][0], 2)}–"
+       f"{pc(_rbs['global']['breakeven_range'][1], 2)}% per year in the main loop and "
+       f"{pc(_rbs['KAAP']['breakeven_range'][0], 2)}–{pc(_rbs['KAAP']['breakeven_range'][1], 2)}% per year in the "
+       f"KAAP-type loop",
+       f"At {pc(i_hi)}% per year Fe is cheaper in {_rbs['global']['Fe_ahead_at_12']} of the {len(_rb)} cases in both loops, "
+       f"all but a halved Fe effectiveness")
+ok("Measured-kinetics robustness (in range): base case equals the headline; exceptions at 12 %/y are a halved Fe "
+   "effectiveness only; in the KAAP-type loop a halved Fe effectiveness leaves no Fe bed",
+   len(_rb) == 16 and _rbs["global"]["Fe_ahead_at_12"] == _rbs["KAAP"]["Fe_ahead_at_12"] == 15
+   and _rbs["global"]["exceptions_12"] == _rbs["KAAP"]["exceptions_12"] == ["Fe effectiveness 0.5"]
+   and _rbs["KAAP"]["infeasible"] == ["Fe effectiveness 0.5"] and _rbs["KAAP"]["exceptions_0"] == ["inlet-rate sizing"]
+   and abs(next(r_ for r_ in _rb if r_["case"] == "base")["breakeven_global"] - _be_g) < 1e-6)
 tokens("Discussion: financing threshold of supported Ru in the KAAP-type loop, measured and descriptor kinetics",
        main_section_h2("Discussion"),
-       f"as long as its inventory is financed below {100 * _be_k:.0f}–{100 * _hurdle:.0f}% per year, depending on the kinetics",
+       f"as long as its inventory is financed below {pc(_be_k, 1)}–{100 * _hurdle:.0f}% per year, depending on the kinetics",
        f"Ru would need a {bw['Ru_activity_break_even_multiplier']:.0f}-fold activity gain, far beyond the "
        f"{bw['Ru_scaling_max_gain_all_states']:.1f}-fold reachable along its scaling relation")
 
@@ -2121,6 +2117,10 @@ for r in rows(SC12 + "design_library.csv"):
     _ann.append((_cat, (float(r["c_Ru"]) * float(r["Ru_metal_kg"]) + float(r["c_Fe"]) * float(r["mass_Fe_kg"])
                         + float(r["c_Fe"]) * P_SUP / P_FE * float(r["mass_Ru_cat_kg"])) / _cat if _cat > 0 else 0.0))
 ANNUAL = max(_ann)[1]          # annual NH3 output, from the library row with the largest catalyst term
+_libK = {}                      # KAAP-type loop, Keestra fused iron and Rossetti Ru/C (both inside their fitted ranges)
+for r in rows(IRD + "staged_KM1R_1964_design_library.csv"):
+    _libK.setdefault((float(r["P_bar"]), float(r["Tsep_C"]), r["pattern"]), []).append(
+        tuple(float(r[c]) for c in ("noncatalyst", "Ru_metal_kg", "mass_Fe_kg", "mass_Ru_cat_kg", "Ru_volume_fraction")))
 _mcache = {}
 
 
@@ -2134,13 +2134,14 @@ def _mult(acc, rec, i):
     return _mcache[(rec, i)]
 
 
-def _decide(loop, p_ru, rec, i, acc="dcf"):
+def _decide(loop, p_ru, rec, i, acc="dcf", lib=None):
+    lib = _lib if lib is None else lib
     m0 = _mult(acc, 0.0, i)
     c_ru, c_fe, c_sup = p_ru * _mult(acc, rec, i) / LIFE, P_FE * m0 / LIFE, P_SUP * m0 / LIFE
     res = {}
     for pat in PATS:
         best = None
-        for nc, ru, fe, rcat, frac in _lib[(loop[0], loop[1], pat)]:
+        for nc, ru, fe, rcat, frac in lib[(loop[0], loop[1], pat)]:
             c = nc + (c_ru * ru + c_fe * fe + c_sup * rcat) / ANNUAL
             if best is None or c < best[0]:
                 best = (c, frac)
@@ -2150,22 +2151,22 @@ def _decide(loop, p_ru, rec, i, acc="dcf"):
     return {"best": best, "best_frac": res[best][1], "staged_minus_Fe": res[staged][0] - res["FFF"][0]}
 
 
-def _cls(loop, p_ru, rec, i):
-    b = _decide(loop, p_ru, rec, i)["best"]
+def _cls(loop, p_ru, rec, i, lib=None):
+    b = _decide(loop, p_ru, rec, i, lib=lib)["best"]
     return "ru" if b == "RRR" else "fe" if b == "FFF" else "st"
 
 
-def _window(loop, p_ru, rec, top=0.20, step=0.0005):
+def _window(loop, p_ru, rec, top=0.20, step=0.0005, lib=None):
     """Financing-rate window in which a Fe-first staged design is the optimum: all-Ru/C below, all-Fe above."""
     xs = [k * step for k in range(int(round(top / step)) + 1)]
-    cl = [_cls(loop, p_ru, rec, x) for x in xs]
+    cl = [_cls(loop, p_ru, rec, x, lib) for x in xs]
     if not re.fullmatch(r"(ru,)*(st,)+(fe,)+", ",".join(cl) + ","):
         return None
 
     def edge(a, b, right):
         for _ in range(60):
             mid = (a + b) / 2
-            a, b = (a, mid) if _cls(loop, p_ru, rec, mid) == right else (mid, b)
+            a, b = (a, mid) if _cls(loop, p_ru, rec, mid, lib) == right else (mid, b)
         return (a + b) / 2
 
     j_st, j_fe = cl.index("st"), cl.index("fe")
@@ -2189,6 +2190,12 @@ w95 = _window(KAAP, P_RU, r_hi)
 w90 = _window(KAAP, P_RU, r_lo)
 w150, w200 = _window(C150, P_RU, r_hi), _window(C200, P_RU, r_hi)
 wm30, wp30 = _window(KAAP, 0.7 * P_RU, r_hi), _window(KAAP, 1.3 * P_RU, r_hi)
+wK = {k: _window(KAAP, p_, r_, lib=_libK) for k, p_, r_ in (("95", P_RU, r_hi), ("90", P_RU, r_lo),
+                                                             ("m30", 0.7 * P_RU, r_hi), ("p30", 1.3 * P_RU, r_hi))}
+ok("Staged converter (both laws in range): windows exist and match the in-range summary",
+   None not in wK.values() and abs(wK["95"]["hi"] - IRS["window_keestra"]["staged_beats_all_Fe_below"]) < 2e-4
+   and not wK["95"]["all_ru_below"] and IRS["Ru_first_never_optimal"]
+   and IRS["envelope_check"]["max_envelope_minus_direct"] < 0.01)
 _crit = {(c["P_bar"], c["Tsep_C"], c["recovery"], c["p_Ru"]): c["staged_beats_Fe_below"]
          for c in sbnd["critical_financing_rate"]}
 _pres = {(c["P_bar"], c["Tsep_C"]): c["staged_beats_Fe_below_rate"] for c in sbnd["pressure"]}
@@ -2199,75 +2206,66 @@ ok("Staged converter: windows exist and their upper edges match boundary_summary
    and abs(w150["hi"] - _pres[C150]) < 2e-4 and abs(w200["hi"] - _pres[C200]) < 2e-4)
 lease_lo, lease_hi = pbf["pbf_min"] / 100, pbf["pbf_max"] / 100
 _lease3 = [hl[k]["rate_pct"] for k in ("pbf_min", "pbf_median", "pbf_max")]
-_save = [-_decide(KAAP, P_RU, r_hi, x / 100)["staged_minus_Fe"] for x in _lease3]
-ok("Staged converter: the documented lease rates lie inside the Fe-first window, where staging saves cost",
-   w95["lo"] < lease_lo and lease_hi < w95["hi"] and w95["all_ru_below"] and min(_save) > 0)
+_save = [-_decide(KAAP, P_RU, r_hi, x / 100, lib=_libK)["staged_minus_Fe"] for x in _lease3]
+ok("Staged converter (in range): the documented lease rates lie inside the Fe-first window, where staging saves cost",
+   wK["95"]["lo"] < lease_lo and lease_hi < wK["95"]["hi"] and min(_save) > 0)
 _order = [a.get("best", "") for a in ssum["arrangements"]] + [s.get("best", "") for s in ssum["sensitivities"]]
 ok("Staged converter: a Ru/C-first converter is optimal in no case tested",
    _order and all(not re.search(r"R.*F", b) for b in _order) and not w150["all_ru_below"] and not w200["all_ru_below"])
 _lease_rng = f"{pbf['pbf_min']:.2f}–{pbf['pbf_max']:.2f}% per year"
-_t3_ind = {(r_["pair"], r_["model_basis"], r_["catalyst"]): float(r_["total_USD_t"])
-           for r_ in rows("analysis/nh3_loop_reconciliation_2026_10_14/outputs/t3_points.csv")}
-_t3_ind_gap = (_t3_ind[("c93_closed_220bar", "closed B93", "Ru")]
-               - _t3_ind[("c93_closed_220bar", "closed B93", "Fe")])
 # since 2026-10-19 the abstract states the industrial result (Ru inventory financed at the 12 % equipment rate: fused iron
 # least-cost with measured kinetics in every loop and in the three-bed converter) and the financing window in which Ru
 # enters; the Discussion keeps the staged-converter / lease-rate statement
 tokens("Abstract and Discussion: industrial Fe result at 12 %/y and the Ru financing window", text,
        f"its Ru inventory financed at the {pc(i_hi)}% rate applied to plant equipment, fused iron is the least-cost "
-       f"catalyst in a conventional and a KAAP-type loop, in an independent real-gas loop and in an optimized three-bed "
-       f"converter",
-       f"only when its metal is financed or leased below {pc(w95['hi'], 1)}% per year",
-       f"| least-cost design at {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year |",
+       f"catalyst in a conventional and a KAAP-type loop and in an optimized three-bed converter, with each rate law used "
+       f"only at the pressures it was fitted on",
+       f"only when its metal is financed or leased below {pc(wK['95']['hi'], 1)}% per year",
+       f"| least-cost design up to {pc(wK['95']['hi'], 1)}% per year |",
        "at metal-financing rates that contain the disclosed lease rates for platinum-group catalyst metal")
-ok("Industrial Fe result: at the 12 %/y equipment rate Ru/C is dearer than Fe with measured kinetics in both loops and in "
-   "the independent loop, and the three-bed optimum is all-Fe (upper window edge below 12 %/y)",
-   rc12["Ru_minus_Fe_global"] > 0 and rc12["Ru_minus_Fe_KAAP"] > 0 and w95["hi"] < i_hi
-   and _t3_ind_gap > 0)
+ok("Industrial Fe result: at the 12 %/y equipment rate Ru/C is dearer than Fe with measured kinetics in both loops, and "
+   "the three-bed optimum is all-Fe (upper window edge below 12 %/y)",
+   IR["b_12"]["gap"] > 0 and IR["c_12_KAAP"]["gap"] > 0 and wK["95"]["hi"] < i_hi
+   and _decide(KAAP, P_RU, r_hi, i_hi, lib=_libK)["best"] == "FFF")
 tokens("Main text: industrial Fe result at 12 %/y (Results)", m_feru2,
-       f"fused iron is cheaper than Ru/C by {rc12['Ru_minus_Fe_global']:.2f} US dollars per tonne in the benchmark loop "
-       f"and by {rc12['Ru_minus_Fe_KAAP']:.2f} in the KAAP-type loop",
-       f"stays cheaper in {_rb_count('gap_12_global', 1)} and {_rb_count('gap_12_KAAP', 1)} of {len(_rb)} cases",
-       f"fused iron {_t3_ind_gap:.2f} US dollars per tonne below Ru/C at 425 °C and 220 bar",
-       f"when the metal is financed or leased below {pc(w95['hi'], 1)}% per year Ru/C takes the downstream beds, and "
-       f"below {pc(w95['lo'], 1)}% the whole converter",
+       f"with the measured rate laws inside their fitted pressure ranges",
+       f"fused iron is cheaper than Ru/C by {IR['b_12']['gap']:.2f} US dollars per tonne in the benchmark loop "
+       f"and by {IR['c_12_KAAP']['gap']:.2f} in the KAAP-type loop",
+       f"stays cheaper in {_rbs['global']['Fe_ahead_at_12']} of {len(_rb)} cases in each loop",
+       "The optimized three-bed converter is all fused iron.",
+       f"when the metal is financed or leased below {pc(wK['95']['hi'], 1)}% per year Ru/C takes the downstream beds",
        f"| Ru/C with recovery, inventory financed at {pc(i_hi)}% per year | – | – | never; Fe cheaper by "
-       f"{rc12['Ru_minus_Fe_global']:.2f} and {rc12['Ru_minus_Fe_KAAP']:.2f} |")
+       f"{IR['b_12']['gap']:.2f} and {IR['c_12_KAAP']['gap']:.2f} |")
 tokens("Main text: staged converter window and savings", m_feru2,
        f"three-bed converter at {KAAP[0] / 10:.0f} MPa",
-       f"for Ru financing rates of {pc(w95['lo'], 1)}–{pc(w95['hi'], 1)}% per year",
-       "all-Ru/C wins below that range, all-Fe above it, and a converter with Ru/C first is never optimal",
+       f"for Ru financing rates up to {pc(wK['95']['hi'], 1)}% per year",
+       "all-Fe wins above that rate, and a converter with Ru/C first is never optimal",
        f"The {_lease_rng} that one refiner disclosed for {pbf['n']} platinum-group catalyst-metal leases falls inside "
        f"this window")
-# Ru/C share of the least-cost converter across the window, as the committed boundary output gives it on its 0.5-point
-# financing grid: at the first grid rate inside the window, and the share of the staged design that all-Fe replaces at
-# the upper edge (the envelope ported above gives the same 0.0444 just below the edge). Exactly at the lower edge a 56 %
-# design is optimal over 0.01 percentage points only (0.83-0.84 % per year), below the grid's resolution.
-_bk = sorted((r for r in _bp if (float(r["P_bar"]), float(r["Tsep_C"])) == KAAP and r["accounting"] == "dcf"
-              and float(r["recovery"]) == r_hi and float(r["p_Ru"]) == P_RU), key=lambda r: float(r["fin_rate"]))
-_bk_in = [r for r in _bk if r["best"] in ("FFR", "FRR")]
-_bk_fe = next(r for r in _bk if r["best"] == "FFF")
-_sh_lo, _sh_hi = float(_bk_in[0]["best_Ru_volume_fraction"]), float(_bk_fe["staged_Ru_volume_fraction"])
-_sh_seq = [float(r["best_Ru_volume_fraction"]) for r in _bk_in]
-ok("Staged converter: the optimal Ru/C share falls across the window; grid and envelope agree at the upper edge",
-   all(a >= b for a, b in zip(_sh_seq, _sh_seq[1:])) and w95["lo"] < float(_bk_in[0]["fin_rate"])
-   and float(_bk_in[-1]["fin_rate"]) < w95["hi"] < float(_bk_fe["fin_rate"])
-   and abs(_decide(KAAP, P_RU, r_hi, w95["hi"] - 1e-7)["best_frac"] - _sh_hi) < 1e-6)
+def _lo0(w):
+    """Lower window edge as printed: '0' when the Fe-first design is already optimal at 0 %/y."""
+    return "0" if w["lo"] == 0.0 else pc(w["lo"], 2)
+
+
+# Ru/C share of the least-cost (Fe-first) converter across the in-range window: at 0 %/y and just below the upper edge
+_sh_lo = _decide(KAAP, P_RU, r_hi, 0.0, lib=_libK)["best_frac"]
+_sh_hi = _decide(KAAP, P_RU, r_hi, wK["95"]["hi"] - 1e-7, lib=_libK)["best_frac"]
+ok("Staged converter (in range): the optimal Ru/C share falls across the window",
+   _sh_lo > _sh_hi > 0 and _decide(KAAP, P_RU, r_hi, 0.0, lib=_libK)["best"] in ("FFR", "FRR"))
 tokens("SI Note 7: staged converter, Ru/C share across the window", s2_full,
-       f"the Ru/C share of the catalyst volume falls from {pc(_sh_lo)}% to about {pc(_sh_hi)}% across the window",
-       "a converter with Ru/C first is optimal in no case tested")
+       f"the Ru/C share of the catalyst volume falls from {pc(_sh_lo)}% to {pc(_sh_hi)}% across the window",
+       "a converter with Ru/C first is optimal in no case tested",
+       "with both rate laws inside their fitted pressure ranges")
 tokens("SI Note 7: staged-converter window edges (2 decimals)", s2_full,
-       f"all-Ru/C for Ru financing rates of 0–{pc(w95['lo'], 2)}% per year",
-       f"for {pc(w95['lo'], 2)}–{pc(w95['hi'], 2)}% per year", f"all-Fe above {pc(w95['hi'], 2)}% per year")
+       f"fused iron upstream with Ru/C downstream for Ru financing rates of 0–{pc(wK['95']['hi'], 2)}% per year",
+       f"all-Fe above {pc(wK['95']['hi'], 2)}% per year")
 tokens("SI Note 7: staged window at 90 % recovery and at Ru price -30 % / +30 %", s2_full,
-       f"The window moves with recovery ({pc(w90['lo'], 2)}–{pc(w90['hi'], 2)}% per year at {pc(r_lo)}%)",
-       f"({pc(wm30['lo'], 2)}–{pc(wm30['hi'], 2)}% at -30%, {pc(wp30['lo'], 2)}–{pc(wp30['hi'], 2)}% at +30%)")
+       f"The window moves with recovery ({_lo0(wK['90'])}–{pc(wK['90']['hi'], 2)}% per year at {pc(r_lo)}%)",
+       f"({_lo0(wK['m30'])}–{pc(wK['m30']['hi'], 2)}% at -30%, with all-Ru/C cheapest below "
+       f"{pc(wK['m30']['lo'], 2)}%; {_lo0(wK['p30'])}–{pc(wK['p30']['hi'], 2)}% at +30%)")
 tokens("SI Note 7: staging savings at the documented lease rates", s2_full,
        f"staging saves {_and(f'{s:.2f}' for s in _save)} US dollars per tonne over an all-Fe converter at "
        f"{_and(f'{x:.2f}' for x in _lease3)}% per year")
-tokens("SI Note 7: staged converter at 150 and 200 bar, all-Ru/C never wins", s2_full,
-       f"in the {C150[0]:.0f} and {C200[0]:.0f} bar loops with a {C150[1]:.0f} °C separator the staged converter is optimal "
-       f"up to {pc(w150['hi'], 2)}% and {pc(w200['hi'], 2)}% per year and all-Ru/C never wins")
 ok("Staged converter: the 150 and 200 bar loops share one separator temperature", C150[1] == C200[1])
 _mb = json.loads((ROOT / "analysis/verify_2026_10_12_metal_basis/metal_basis_summary.json").read_text(encoding="utf-8"))
 _pb6 = _mb["S6"]["paper_basis"]
