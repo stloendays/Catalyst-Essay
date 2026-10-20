@@ -187,9 +187,145 @@ From `analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/summary.json`. 1,796 surfa
 | + group 3–5 elements | 912 | 222 | 232 | 18: Cu3V, Fe3V, Cu3Cr, Fe3Mo, Cu3Nb, Fe3Ti, Fe3Nb, Cu3Ta, Fe3La, Cu3La, Ni3W, Fe3W, Cu3Mo, Co3Zr, Fe3Zr, Co3Mo, Co3W, Ni3Mo | 20: Fe3Ti 9.98, Fe3Zr 10.02, Cu3V 10.03, Fe3V 10.05, Fe3La 10.08, Fe3Y 10.11, Cu3Cr 10.13, Fe3Nb 10.16, Cu3Nb 10.24, Cu3Mo 10.28, CuMo 10.44, MoNi 10.47, Fe3Ta 10.79, Cu3Ta 10.80, CoMo 10.81, Cu3La 10.84, CoW 11.00, Fe3Mo 11.07, Ni3W 11.09, Fe3W 11.15 | 774 (84.9 %) | 0 |
 | + sp metals (all priced surfaces) | 1,695 | 406 | 421 | 74: Al3Ti, Al3Cu, AlCr, Al, Al3Zr, Al3La, Al3Y, Zn3V, CrZn, Cu3V, Al3Pb, Zn3Nb, Fe3V, Cu3Cr, Cd3V, Al3Ni, Fe3Mo, SnTi, Cu3Nb, Fe3Ti, Cr3Pb, AlMo, Al3Bi, Al3Cd, Cd3Mo, LaSn, SnY, Zn3Mo, Fe3Nb, CdMo, PbY, SnZr, Cd3Cr, MoZn, Cd3Nb, Zn3Cr, Al3In, CrSn, NbSn, BiV, HgY, Cu3Ta, Fe3La, Cu3La, Ni3W, Al3Sn, Pb3Cr, NbPb, Fe3W, Cu3Mo, BiZr, Co3Zr, Bi3Nb, CrPb, Al3Ta, Hg3W, Fe3Zr, BiLa, InNb, Co3Mo, Zn3Ti, BiNb, Sn3W, LaPb, GaNb, BiTi, Co3W, Pb3Nb, GaV, Fe3Al, BiY, PbTi, Ni3Mo, Fe3Zn | 79: Al3Ti 9.41, Al3Cu 9.51, AlCr 9.71, Al 9.72, Al3Zr 9.72, Al3La 9.73, Al3Y 9.80, Zn3V 9.93, CrZn 9.97, Fe3Ti 9.98, Fe3Zr 10.02, Cu3V 10.03, Al3Pb 10.04, Fe3V 10.05, Zn3Nb 10.06, Fe3La 10.08, Fe3Y 10.11, Cu3Cr 10.13, Cd3V 10.14, Al3Ni 10.14, Fe3Nb 10.16, SnTi 10.22, Cu3Nb 10.24, Cu3Mo 10.28, Cr3Pb 10.29, Al3Bi 10.35, Al3Cd 10.35, Cd3Mo 10.37, LaSn 10.41, CuMo 10.44, SnY 10.46, MoNi 10.47, PbY 10.49, SnZr 10.51, Cd3Cr 10.56, Cd3Nb 10.64, Zn3Cr 10.65, Al3In 10.68, Mo3Pb 10.69, Mo3Sn 10.70, CrSn 10.76, NbSn 10.76, BiV 10.77, Fe3Ta 10.79, HgY 10.80, Cu3Ta 10.80, CoMo 10.81, Zn3Mo 10.83, Cu3La 10.84, AlMo 10.86, Al3Sn 10.87, CdMo 10.88, Pb3Cr 10.91, NbPb 10.92, Zn3W 10.94, AlW 10.94, BiZr 10.99, CoW 11.00, Bi3Nb 11.01, CrPb 11.04, Al3Ta 11.06, Fe3Mo 11.07, Ni3W 11.09, BiLa 11.13, InNb 11.13, Fe3W 11.15, Zn3Ti 11.16, WZn 11.16, BiW 11.16, BiNb 11.18, MoZn 11.18, LaPb 11.20, Hg3W 11.22, GaNb 11.26, BiTi 11.30, Pb3Nb 11.33, GaV 11.35, BiY 11.41, PbTi 11.45 | 1,399 (82.5 %) | 0 |
 
-### Supplementary Table 4a | Leave-one-out validation of the Fe terrace-to-step bridge
+### Supplementary Table 4a | Deviations of the ammonia model from industrial plants
 
-Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and the step value predicted with that metal left out, from `analysis/fe_bridge_backward_2026_09_29/fe_bridge_loo.csv`; the Fe terrace value is the Dataset S1 entry used by `analysis/nh3_alloy_extension_2026_10_05/run_alloy_chain.py`. Statistics in Supplementary Table 4b are recomputed from these rows.
+The 64 comparisons of the ammonia model with industrial synthesis loops and converters, by quantity (`analysis/nh3_benchmark_error_table_2026_10_19/error_summary.csv`; every item in Supplementary Table 4c). Deviation: (model − industrial)/industrial for point values, the difference in °C for temperatures, and the distance to the nearer edge for published ranges (0 inside the range). Typical: median absolute deviation of the items of a quantity; largest: their maximum, with the item. Within tolerance: items whose deviation lies within the tolerance listed with them (32 of 64). Four logical items (Fe/Ru choice and staging) have no numeric deviation. Component: the model component perturbed in Supplementary Table 4b for the failing items of the quantity.
+
+| Quantity | Items | Within tolerance | Typical deviation | Largest deviation (item) | Direction | Component perturbed |
+|---|---|---|---|---|---|---|
+| converter inlet NH3 | 5 | 0 | 62.9% | 72.6% (A04) | model low | separator vapour |
+| separator vapour NH3 | 1 | 0 | 39.8% | 39.8% (V01) | model low | separator vapour |
+| outlet / net NH3, loop states | 13 | 8 | 14.6% | 167.5% (A26) | both | approach to equilibrium |
+| outlet NH3, converter forward runs | 2 | 2 | 7.9% | 8.0% (B07) | model low | – |
+| outlet NH3, cost-optimal converter designs | 4 | 0 | 45.8% | 49.3% (B13) | model low | approach to equilibrium |
+| outlet NH3, Fe optimum | 1 | 1 | 0.0% | 0.0% (C06) | inside range | – |
+| converter flow and feed/make-up | 4 | 4 | 16.4% | 23.2% (A06) | model low | – |
+| space velocity | 6 | 6 | 34.4% | 57.1% (A19) | both | – |
+| compressor power | 3 | 0 | 42.3% | 77.4% (E03) | model low | compression power |
+| bed volume, plant conditions | 4 | 4 | 17.9% | 40.4% (A28) | both | catalyst amount |
+| bed volume, cost-optimal designs and Fe optimum | 4 | 1 | 62.6% | 82.2% (B15) | model low | catalyst amount |
+| bed outlet temperature, forward runs | 4 | 0 | 25.5 °C | 35.9 °C (B05) | both | bed temperature |
+| bed-1 inlet temperature, cost-optimal designs | 3 | 0 | 54.3 °C | 57.5 °C (B11) | model high | bed temperature |
+| Fe optimum loop pressure | 2 | 1 | 4.8% | 9.7% (C02) | model low | – |
+| Fe optimum temperature | 1 | 1 | 0.0 °C | 0.0 °C (C03) | inside range | – |
+| Fe optimum separator temperature | 1 | 0 | 22.5 °C | 22.5 °C (C04) | model high | – |
+| Fe/Ru choice and staging | 6 | 4 | 27.9% | 55.8% (B19) | model low | – |
+| All 64 | 64 | 32 | 31.7%; 32.2 °C | 167.5% (A26); 57.5 °C (B11) | both | – |
+
+### Supplementary Table 4b | The Fe–Ru order under the benchmark deviations
+
+Catalyst-dependent cost difference at the reoptimized optima, US dollars per tonne of NH₃ (positive: Fe cheaper), with each model component perturbed by the deviations of Supplementary Table 4a (`analysis/nh3_benchmark_error_table_2026_10_19/perturbation_results.csv`; `analysis/nh3_benchmark_error_table_2026_10_19/perturbation_summary.json`). Typical and largest: the typical and the largest deviation of the component's failing items; largest at plant conditions: the largest bed-volume deviation at plant conditions. Each perturbation is applied in both directions (28 single cases), and Fe, Ru and Os are reoptimized over the perturbed library of 14,510 states within the 90 m³ limit. Descriptor: the canonical model. Measured: the fused-iron law of Dyson and Simon over the full pressure range and the Ru/C law of Rossetti et al.; Ru/C on its own bed with 95.55% recovery and its inventory financed at 0 or 12% per year. Single cases that reverse the order: Ru − Fe, descriptor 0, Os − Fe, descriptor 0, Ru − Fe, measured 0, Ru/C − Fe, measured, 0%/y 0, Ru/C − Fe, measured, 12%/y 4. Combinations: every component at the same size; towards Ru, each in the direction that alone narrows the gap most; least favourable, the smallest gap over all 2⁵ sign combinations and both forms of the catalyst-amount perturbation.
+
+| Perturbation | Setting | Ru − Fe, descriptor | Os − Fe, descriptor | Ru − Fe, measured | Ru/C − Fe, measured, 0%/y | Ru/C − Fe, measured, 12%/y |
+|---|---|---|---|---|---|---|
+| baseline | – | +5.12 | +8.23 | +18.14 | −3.46 | +1.45 |
+| separator vapour, typical, + | separator vapour ×2.43 | +5.52 | +8.64 | +15.61 | −3.30 | +0.91 |
+| separator vapour, typical, − | separator vapour ×0.411 | +4.30 | +6.92 | +20.60 | −2.74 | +1.81 |
+| separator vapour, largest, + | separator vapour ×3.66 | +5.62 | +8.86 | +14.19 | −3.58 | +0.75 |
+| separator vapour, largest, − | separator vapour ×0.274 | +3.72 | +6.37 | +21.35 | −2.94 | +1.92 |
+| approach to equilibrium, typical, + | approach 0.68 (base 0.8) | +5.17 | +8.31 | +16.57 | −2.94 | +1.39 |
+| approach to equilibrium, typical, − | approach 0.941 (base 0.8) | +5.05 | +8.08 | +20.03 | −4.85 | +1.43 |
+| approach to equilibrium, largest, + | approach 0.299 (base 0.8) | +4.36 | +7.41 | +12.22 | −2.05 | +1.15 |
+| approach to equilibrium, largest, − | approach 0.99 (base 0.8) | +5.02 | +8.00 | +21.64 | −7.40 | +0.96 |
+| compression power, typical, + | compression power ×1.73 | +6.38 | +9.67 | +24.34 | −4.36 | +2.02 |
+| compression power, typical, − | compression power ×0.577 | +3.01 | +5.08 | +12.90 | −2.54 | +1.26 |
+| compression power, largest, + | compression power ×4.43 | +5.57 | +11.13 | +32.07 | −12.96 | +2.23 |
+| compression power, largest, − | compression power ×0.226 | +1.34 | +2.11 | +8.85 | −1.90 | +0.90 |
+| catalyst amount (Fe), typical, + | catalyst amount ×1.41 (Fe) | +4.84 | +7.95 | +16.93 | −4.69 | +0.20 |
+| catalyst amount (Fe), typical, − | catalyst amount ×0.708 (Fe) | +5.43 | +8.54 | +19.05 | −2.55 | +2.39 |
+| catalyst amount (Fe), largest at plant conditions, + | catalyst amount ×1.68 (Fe) | +4.74 | +7.85 | +16.18 | −5.45 | −0.57 |
+| catalyst amount (Fe), largest at plant conditions, − | catalyst amount ×0.596 (Fe) | +5.55 | +8.66 | +19.44 | −2.17 | +2.77 |
+| catalyst amount (Fe), largest, + | catalyst amount ×5.61 (Fe) | +3.21 | +6.32 | +6.11 | −15.53 | −10.70 |
+| catalyst amount (Fe), largest, − | catalyst amount ×0.178 (Fe) | +6.38 | +9.50 | +21.52 | −0.07 | +4.91 |
+| catalyst amount (all), typical, + | catalyst amount ×1.41 (every catalyst) | +5.51 | +8.56 | +20.58 | −4.26 | +1.73 |
+| catalyst amount (all), typical, − | catalyst amount ×0.708 (every catalyst) | +4.90 | +7.96 | +15.27 | −2.85 | +1.18 |
+| catalyst amount (all), largest at plant conditions, + | catalyst amount ×1.68 (every catalyst) | +5.76 | +8.77 | +22.14 | −4.74 | +1.87 |
+| catalyst amount (all), largest at plant conditions, − | catalyst amount ×0.596 (every catalyst) | +4.77 | +7.79 | +13.99 | −2.71 | +1.06 |
+| catalyst amount (all), largest, + | catalyst amount ×5.61 (every catalyst) | +6.26 | +9.99 | +42.59 | −12.64 | +2.24 |
+| catalyst amount (all), largest, − | catalyst amount ×0.178 (every catalyst) | +4.06 | +6.37 | +6.87 | −1.95 | +0.89 |
+| bed temperature, typical, + | bed +35.9 °C | +4.41 | +6.92 | +8.24 | −3.39 | −0.10 |
+| bed temperature, typical, − | bed −35.9 °C | +6.51 | +10.26 | +31.99 | −3.72 | +4.47 |
+| bed temperature, largest, + | bed +57.5 °C | +4.13 | +6.13 | +4.35 | −3.14 | −0.54 |
+| bed temperature, largest, − | bed −57.5 °C | +5.90 | +10.66 | +52.22 | −4.61 | +8.84 |
+| all five, each towards Ru, typical | – | +2.36 | +3.68 | +5.20 | −9.29 | −0.59 |
+| all five, each towards Ru, largest | – | +0.26 | +0.70 | +0.53 | −122.02 | no feasible state |
+| all five, least favourable sign combination, typical | – | +2.21 | +3.56 | +3.51 | −12.85 | −9.80 |
+| all five, least favourable sign combination, largest | – | −40.14 | −33.40 | +0.53 | −129.72 | −110.76 |
+
+### Supplementary Table 4c | The 64 benchmark items
+
+Every item of Supplementary Table 4a (`analysis/nh3_benchmark_error_table_2026_10_19/error_table.csv`). Industrial: the published value or range; logical items compare a decision (yes or no) or a threshold. Deviation: as in Supplementary Table 4a, signed (negative: model low).
+
+| Item | Plant or case | Quantity | Model | Industrial | Unit | Deviation | Tolerance | Within tolerance |
+|---|---|---|---|---|---|---|---|---|
+| A01 | Topsoe 140 bar loop (Dybkjaer 1995) | converter inlet NH3 | 1.868 | 4.1 | mol% | −54.5% | ±20% | no |
+| A02 | Topsoe 140 bar loop (Dybkjaer 1995) | outlet / net NH3, loop states | 16.95 | 17.1 | mol% | −0.9% | ±15% | yes |
+| A03 | Topsoe 140 bar loop (Dybkjaer 1995) | converter flow and feed/make-up | 4.252e+05 | 5e+05 | Nm3/h | −14.9% | ±25% | yes |
+| A04 | Topsoe 220 bar loop (Dybkjaer 1995) | converter inlet NH3 | 1.04 | 3.8 | mol% | −72.6% | ±20% | no |
+| A05 | Topsoe 220 bar loop (Dybkjaer 1995) | outlet / net NH3, loop states | 22.54 | 19.9 | mol% | +13.3% | ±15% | yes |
+| A06 | Topsoe 220 bar loop (Dybkjaer 1995) | converter flow and feed/make-up | 3.126e+05 | 4.07e+05 | Nm3/h | −23.2% | ±25% | yes |
+| A07 | Krupp-Uhde 188 bar loop (Appl 2011) | converter inlet NH3 | 1.551 | 4.18 | mol% | −62.9% | ±20% | no |
+| A08 | Krupp-Uhde 188 bar loop (Appl 2011) | outlet / net NH3, loop states | 20.55 | 19.67 | mol% | +4.5% | ±15% | yes |
+| A09 | Krupp-Uhde 188 bar loop (Appl 2011) | converter flow and feed/make-up | 5.22e+05 | 6.353e+05 | Nm3/h | −17.8% | ±25% | yes |
+| A10 | Krupp-Uhde 188 bar loop (Appl 2011) | converter flow and feed/make-up | 3.173 | 3.52 | mol/mol | −9.8% | ±25% | yes |
+| A11 | Topsoe S-250 137 bar (Liu 2013) | outlet / net NH3, loop states | 14.82 | 16.5 | mol% | −10.2% | ±15% | yes |
+| A12 | Uhde 160 bar (Liu 2013) | outlet / net NH3, loop states | 17.51 | 19.3 | mol% | −9.3% | ±15% | yes |
+| A13 | PFI 266 bar (Orphanides 2006) | outlet / net NH3, loop states | 22.13 | 19 | mol% | +16.5% | ±15% | no |
+| A14 | Kellogg 150 bar (Hooper 1991) | converter inlet NH3 | 0.7272 | 2 | mol% | −63.6% | ±20% | no |
+| A15 | Kellogg 150 bar (Hooper 1991) | outlet / net NH3, loop states | 17.46 | 10.0–12.0 | mol% | +45.5% | ±15% | no |
+| A16 | Braun 150 bar (Liu 2013) | converter inlet NH3 | 2.203 | 4 | mol% | −44.9% | ±20% | no |
+| A17 | Braun 150 bar (Liu 2013) | outlet / net NH3, loop states | 17.86 | 21 | mol% | −15.0% | ±15% | yes |
+| A18 | Braun 150 bar (Liu 2013) | outlet / net NH3, loop states | 15.66 | 17 | mol% | −7.9% | ±15% | yes |
+| A19 | Braun 150 bar (Liu 2013) | space velocity | 1.194e+04 | 7600 | 1/h | +57.1% | within a factor of 2 | yes |
+| A20 | Kellogg 140 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 15.81 | 10 | mol% | +58.1% | ±15% | no |
+| A21 | Kellogg 140 bar (Liu 2013 Table 9.2) | space velocity | 1.249e+04 | 1e+04 | 1/h | +24.9% | within a factor of 2 | yes |
+| A22 | Topsoe 260 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 23.92 | 10.0–12.5 | mol% | +91.3% | ±15% | no |
+| A23 | Topsoe 260 bar (Liu 2013 Table 9.2) | space velocity | 1.658e+04 | 1.2e+04 | 1/h | +38.2% | within a factor of 2 | yes |
+| A24 | ICI AMV 100 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 11.11 | 13 | mol% | −14.6% | ±15% | yes |
+| A25 | ICI AMV 100 bar (Liu 2013 Table 9.2) | space velocity | 1.053e+04 | 8000 | 1/h | +31.7% | within a factor of 2 | yes |
+| A26 | small/medium 314 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 26.75 | 8.0–10.0 | mol% | +167.5% | ±15% | no |
+| A27 | small/medium 314 bar (Liu 2013 Table 9.2) | space velocity | 1.886e+04 | 3e+04 | 1/h | −37.1% | within a factor of 2 | yes |
+| A28 | Casale 250 bar converter (US patent) | bed volume, plant conditions | 17.87 | 30 | m3 | −40.4% | within a factor of 2 | yes |
+| E01 | 1000 t/d 151 bar loop (Liu 2013 Table 9.3) | compressor power | 7.5 | 13 | MW | −42.3% | ±30% | no |
+| E02 | Uhde 2000 t/d 195 bar (Lippmann & Frisse 2004) | compressor power | 17.11 | 26.6 | MW | −35.7% | ±30% | no |
+| E03 | S-200 126 bar circulator (Liu 2013 Table 9.19A) | compressor power | 0.3253 | 1.441 | MW | −77.4% | ±30% | no |
+| B01 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 456.8 | 489 | °C | −32.2 °C | ±15 °C | no |
+| B02 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 462.7 | 446 | °C | +16.7 °C | ±15 °C | no |
+| B03 | S-200 126 bar converter, forward (Liu 9.19A) | outlet NH3, converter forward runs | 13.21 | 14.31 | mol% | −7.7% | ±15% | yes |
+| B04 | S-200 126 bar converter, inverse (Liu 9.19A) | bed volume, plant conditions | 76.42 | 65.3 | m3 | +17.0% | within a factor of 2 | yes |
+| B05 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 454.1 | 490 | °C | −35.9 °C | ±15 °C | no |
+| B06 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 462.8 | 444 | °C | +18.8 °C | ±15 °C | no |
+| B07 | S-200 134 bar converter, forward (Liu 9.19B) | outlet NH3, converter forward runs | 13.74 | 14.94 | mol% | −8.0% | ±15% | yes |
+| B08 | S-200 134 bar converter, inverse (Liu 9.19B) | bed volume, plant conditions | 77.57 | 65.3 | m3 | +18.8% | within a factor of 2 | yes |
+| B09 | Topsoe 220/140 bar minimum-volume ratio | bed volume, plant conditions | 0.5117 | 0.6 | - | −14.7% | ±25% | yes |
+| B10 | cost-optimal all-Fe converter at Topsoe 140 bar loop | outlet NH3, cost-optimal converter designs | 9.797 | 17.1 | mol% | −42.7% | ±15% | no |
+| B11 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed-1 inlet temperature, cost-optimal designs | 477.5 | 340–420 | °C | +57.5 °C | inside the range | no |
+| B12 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.01446 | 0.03–0.09 | m3/(t/d) | −51.8% | inside the range | no |
+| B13 | cost-optimal all-Fe converter at Topsoe 220 bar loop | outlet NH3, cost-optimal converter designs | 10.1 | 19.9 | mol% | −49.3% | ±15% | no |
+| B14 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed-1 inlet temperature, cost-optimal designs | 470.4 | 340–420 | °C | +50.4 °C | inside the range | no |
+| B15 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.00535 | 0.03–0.09 | m3/(t/d) | −82.2% | inside the range | no |
+| B16 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | outlet NH3, cost-optimal converter designs | 10.06 | 19.67 | mol% | −48.9% | ±15% | no |
+| B17 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed-1 inlet temperature, cost-optimal designs | 474.3 | 340–420 | °C | +54.3 °C | inside the range | no |
+| B18 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.007987 | 0.03–0.09 | m3/(t/d) | −73.4% | inside the range | no |
+| B19 | cost-optimal KAAP layout, 89 bar | Fe/Ru choice and staging | 0.1546 | 0.35–0.65 | - | −55.8% | inside the range | no |
+| B20 | cost-optimal KAAP layout, 89 bar | outlet NH3, cost-optimal converter designs | 12.69 | 21.0–21.7 | mol% | −39.5% | ±15% | no |
+| C01 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 140 | 78.5–343.2 | bar | +0.0% | inside the range | yes |
+| C02 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 140 | 155–190 | bar | −9.7% | inside the range | no |
+| C03 | model Fe optimum vs industrial Fe windows | Fe optimum temperature | 450 | 350–540 | °C | +0.0 °C | inside the range | yes |
+| C04 | model Fe optimum vs industrial Fe windows | Fe optimum separator temperature | 30 | -25–7.5 | °C | +22.5 °C | inside the range | no |
+| C05 | model Fe optimum vs industrial Fe windows | bed volume, cost-optimal designs and Fe optimum | 0.0563 | 0.03–0.09 | m3/(t/d) | +0.0% | inside the range | yes |
+| C06 | model Fe optimum vs industrial Fe windows | outlet NH3, Fe optimum | 17.91 | 10–21 | mol% | +0.0% | inside the range | yes |
+| C07 | model Fe optimum vs industrial Fe windows | space velocity | 1.024e+04 | 7600–35000 | 1/h | +0.0% | inside the range | yes |
+| C08 | staged Fe/Ru converter optima | Fe/Ru choice and staging | no | no | - | – | same decision | yes |
+| C09 | staged 90 bar KAAP-type loop | Fe/Ru choice and staging | no | yes | - | – | same decision | no |
+| C10 | staged optima across pressure | Fe/Ru choice and staging | -0.9762 | below -0.5 | - | – | below the threshold | yes |
+| C11 | supported Ru/C optimum, 0 %/y | Fe/Ru choice and staging | 105 | 89.2–137.9 | bar | +0.0% | inside the range | yes |
+| C12 | supported Ru/C vs Fe, 12 %/y | Fe/Ru choice and staging | 1.452 | above 0 | USD/t | – | above the threshold | yes |
+| V01 | BASF NH3 saturation table (Ullmann Table 5) | separator vapour NH3 | 0.6024 | 0.8–1.2 | - | −39.8% | inside the range | no |
+
+### Supplementary Table 5a | Leave-one-out validation of the Fe terrace-to-step bridge
+
+Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and the step value predicted with that metal left out, from `analysis/fe_bridge_backward_2026_09_29/fe_bridge_loo.csv`; the Fe terrace value is the Dataset S1 entry used by `analysis/nh3_alloy_extension_2026_10_05/run_alloy_chain.py`. Statistics in Supplementary Table 5b are recomputed from these rows.
 
 | Metal | Terrace *E*_{N} (eV) | Step *E*_{N}, observed (eV) | Step *E*_{N}, leave-one-out (eV) | Observed − predicted (eV) |
 |---|---|---|---|---|
@@ -209,9 +345,9 @@ Terrace and observed step-site N formation energies of the 14 metals with both v
 | W | −1.7650 | −2.1610 | −2.2206 | 0.0596 |
 | Fe | −1.0583 | not in S1 | −1.3921 (full fit) | – |
 
-### Supplementary Table 4b | Statistics of the Fe terrace-to-step bridge
+### Supplementary Table 5b | Statistics of the Fe terrace-to-step bridge
 
-Ordinary least squares on Supplementary Table 4a. The global 14-metal fit is the relation used for Fe in the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo analysis. The strong-binding branch (terrace *E*_{N} ≤ −0.5 eV: Mo, Os, Re, Ru, W) is a sensitivity check and is not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.
+Ordinary least squares on Supplementary Table 5a. The global 14-metal fit is the relation used for Fe in the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo analysis. The strong-binding branch (terrace *E*_{N} ≤ −0.5 eV: Mo, Os, Re, Ru, W) is a sensitivity check and is not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.
 
 | Statistic | Global fit (14 metals) | Strong-binding branch |
 |---|---|---|
@@ -225,7 +361,7 @@ Ordinary least squares on Supplementary Table 4a. The global 14-metal fit is the
 | Fe step *E*_{N}, predicted (eV) | −1.3921 | −1.4180 |
 | 95 % prediction interval for Fe (eV) | −1.917 to −0.868 | −1.579 to −1.257 |
 
-### Supplementary Table 5a | Sources of the methanol plant benchmark
+### Supplementary Table 6a | Sources of the methanol plant benchmark
 
 One row per source of `analysis/meoh_plant_benchmark_2026_10_06/reference_values.csv`, which gives every value with its locator (page, table or figure) and the conversion applied. Printed: value printed in the source; derived: arithmetic on printed values; secondary: pilot-plant values tabulated by Dieterich 2020; figure: read off a figure.
 
@@ -258,9 +394,9 @@ One row per source of `analysis/meoh_plant_benchmark_2026_10_06/reference_values
 | ZHANG19 | Zhang et al., Energies 12, 3742 (2019) [SOE inside] | 10.3390/en12193742 | 5 | 2 | 3 | 0 | 0 |
 | **Total** |  |  | **249** | **175** | **60** | **13** | **1** |
 
-### Supplementary Table 5b | Plant metrics of the model loop at each reference operating point
+### Supplementary Table 6b | Plant metrics of the model loop at each reference operating point
 
-Model values from `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv` (recycled CO, central RWGS rule). Columns: M1, anchor one-step (calibration point); M2, anchor three-step inputs (out-of-sample design); M3, canonical economic optimum, 5 wt% Re 200 C, 2 % purge; M4, canonical optimum at own purge, 1 wt% Re 200 C, 0.5 % purge; M5, at Lurgi CO2-pilot conditions (80 bar, X 0.40, CE 95.25 %); M6, at Gonzalez-Garay conditions (50 bar, X 0.141, CE 91.5 %); M7, at Perez-Fortes 2016 point (76 bar, X 0.2197, 1 % purge, 44.5 t); M8, at Van-Dal 2013 point (75.7 bar, X 0.33, 1 % purge, 44.5 t); M9, at Szima 2018 point (80 bar, X 0.30, 1 % purge); M10, at Nyari 2022 Slotboom point (fitted to RR 2.89, CE 0.937); M11, at Nyari 2022 VD point (fitted to RR 7.67, CE 0.896); M12, at Nieminen 2019 gas-phase point (50 bar, X 0.203, S 0.961). Catalyst lifetime (y): 3 (in constant residual; no inventory term) in every case. Reference values for each metric are in Supplementary Table 5c.
+Model values from `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv` (recycled CO, central RWGS rule). Columns: M1, anchor one-step (calibration point); M2, anchor three-step inputs (out-of-sample design); M3, canonical economic optimum, 5 wt% Re 200 C, 2 % purge; M4, canonical optimum at own purge, 1 wt% Re 200 C, 0.5 % purge; M5, at Lurgi CO2-pilot conditions (80 bar, X 0.40, CE 95.25 %); M6, at Gonzalez-Garay conditions (50 bar, X 0.141, CE 91.5 %); M7, at Perez-Fortes 2016 point (76 bar, X 0.2197, 1 % purge, 44.5 t); M8, at Van-Dal 2013 point (75.7 bar, X 0.33, 1 % purge, 44.5 t); M9, at Szima 2018 point (80 bar, X 0.30, 1 % purge); M10, at Nyari 2022 Slotboom point (fitted to RR 2.89, CE 0.937); M11, at Nyari 2022 VD point (fitted to RR 7.67, CE 0.896); M12, at Nieminen 2019 gas-phase point (50 bar, X 0.203, S 0.961). Catalyst lifetime (y): 3 (in constant residual; no inventory term) in every case. Reference values for each metric are in Supplementary Table 6c.
 
 | Metric | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -282,7 +418,7 @@ Model values from `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant
 | Loop pressure drop (bar) | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 |
 | Net production cost (EUR/t, anchor prices and scale conventions) | 923.6 | 881.8 | 943.3 | 895.2 | 893.8 | 948.8 | 928.1 | 895.6 | 1,005 | 1,061 | 1,128 | 1,232 |
 
-### Supplementary Table 5c | Reference values for the plant metrics of Supplementary Table 5b
+### Supplementary Table 6c | Reference values for the plant metrics of Supplementary Table 6b
 
 From the `references` column of `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_plant.csv`; each value is traced to its source locator in `analysis/meoh_plant_benchmark_2026_10_06/reference_values.csv`. An asterisk marks a pilot-plant value tabulated by Dieterich 2020.
 
@@ -307,7 +443,7 @@ From the `references` column of `analysis/meoh_plant_benchmark_2026_10_06/reconc
 | Loop pressure drop (bar) | Perez-Fortes 4.2; Van-Dal 4.6; Zhang 4; Schorn 1; Lurgi SRC loop 3.5-4, Toyo loop 3 (Dieterich) |
 | Net production cost (EUR/t, anchor prices and scale conventions) | Campos 920 (Table 7: 1071.8 M EUR/a = 924.0); 3-step 868 (871.2) |
 
-### Supplementary Table 5d | Cost at each study's own prices, scale and finance
+### Supplementary Table 6d | Cost at each study's own prices, scale and finance
 
 From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t methanol unless stated). Like-for-like: feed, compression electricity, catalyst replacement and capital annuity at the study's own rate, plus the study's own fixed O&M; for Pérez-Fortes 2016 the reference is its NPV = 0 break-even methanol price (production cost plus capital recovery), not a production cost. Anchor convention: the model's full net production cost. Like-for-like totals: Pérez-Fortes 2016 706.1 €/t, Szima 2018 852.7 €/t (`analysis/meoh_plant_benchmark_2026_10_06/summary.json`).
 
@@ -361,7 +497,7 @@ From `analysis/meoh_plant_benchmark_2026_10_06/reconciliation_cost.csv` (€/t m
 |  | H2 3 EUR/kg, CO2 40 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 735.6 | 691 | 6.5 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
 |  | H2 4.5 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 965.9 | 921 | 4.9 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
 
-### Supplementary Table 5e | Specific fixed capital of the model against published plants
+### Supplementary Table 6e | Specific fixed capital of the model against published plants
 
 From `capex_scale` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`; the model is run at each study's own capacity and cost year.
 
@@ -377,7 +513,7 @@ From `capex_scale` in `analysis/meoh_plant_benchmark_2026_10_06/summary.json`; t
 | Bos 2020 methanol section (condensing reactor) | 65,000 | 67.8 | 1,043 | 169 | EUR | 6.17 |
 | Hank 2018 (input assumption) | 4,188 | 12.2 | 2,908 | 810 | EUR2018 | 3.59 |
 
-### Supplementary Table 5f | Headline comparison rerun with primary-source plant terms
+### Supplementary Table 6f | Headline comparison rerun with primary-source plant terms
 
 From `analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json`: groups whose STY leader is not the plant-cost leader, papers affected, pairwise orderings inverted, median regret of the mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner changes. The baseline reproduces the frozen headline (15/40, 304/1997 inversions; maximum relative cost difference 4.42e−12).
 
@@ -406,7 +542,7 @@ From `analysis/meoh_plant_benchmark_2026_10_06/sensitivity_summary.json`: groups
 | capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 | recycle-driven costs ×0.8736; electricity 129.1 €/MWh; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 
-### Supplementary Table 6 | The 161 methanol comparison groups and the 81 of the primary analysis
+### Supplementary Table 7 | The 161 methanol comparison groups and the 81 of the primary analysis
 
 One row per comparison group of the all-entries cohort (entries of one paper at the same pressure, H₂/CO₂ ratio and space velocity, plot readings included), from `analysis/meoh_field_pooled_2026_10_15/robustness/group_ledger/group_ledger.csv`; counts checked against `analysis/meoh_field_pooled_2026_10_15/robustness/group_ledger/ledger_summary.json`. Entries: all entries of the group / entries with printed conversion and selectivities. The same grouping rule applied to printed values alone keeps 81 groups (632 entries, 50 papers); 33 groups come from 22 papers without printed values and 47 have fewer than two printed entries (30 with none, 17 with one). Verdict columns: whether the space-time-yield leader of the group is not its plant-cost leader, with the regret where it is not; inlet limit, CO, methane and N₂ at most 6.86% of the reactor inlet (primary); no limit, the loop without it. Printed values: the primary analysis, from `analysis/meoh_field_pooled_2026_10_15/groups_S6.csv` and `analysis/meoh_field_pooled_2026_10_15/groups_S5.csv`. Set: first or second extraction. All entries: the sensitivity with plot readings, from the ledger; under the inlet limit one group keeps fewer than two entries that can meet the limit (–).
 
@@ -575,7 +711,7 @@ One row per comparison group of the all-entries cohort (entries of one paper at 
 | Zhang 2026 | second | 10.1126/sciadv.aea7041 | 50 bar, H₂/CO₂ 4, 24 NL/g/h | 52 / 52 | kept | yes (145.6 %) | yes (1.2 %) | yes (145.6 %) | yes (1.2 %) |
 | **Total** |  | **80 papers** | **161 groups** | **1,691 / 649** | **81 kept; 33 + 47 dropped** | **50 of 81** | **25 of 81** | **101 of 160** | **58 of 161** |
 
-### Supplementary Table 7a | Errors in the curated reference data confirmed against the papers
+### Supplementary Table 8a | Errors in the curated reference data confirmed against the papers
 
 One row per source paper with a confirmed error. A root cause is one mechanism in one source paper; error rules group the cells of one paper, field and cause; rows are records of conditions the paper did not test. TheMeCat stores STY as yield × GHSV × CO₂ fraction × 32.04/24.05 rather than the printed value, so a derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed value, dataset row and locator: `analysis/verify_2026_10_08/errata_cells_audit.csv`; rules and classes: `analysis/verify_2026_10_08/errata_adjudication.csv`. Total: 26 root causes, 45 error rules, 169 value cells and 8 rows; 24 further STY cells derived from them.
 
@@ -602,7 +738,7 @@ One row per source paper with a confirmed error. A root cause is one mechanism i
 | TheMeCat v1 | Yang 2024, ChemPhysChem | 10.1002/cphc.202300530 | 2 | 7 | 11 | – | conversion curves of In0.25 and In0.12 swapped (Fig. 9a); In₂O₃ yields rotated between 260 and 300 °C (Fig. 9b). |
 | TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 1 | 4 | 4 | 1 | conversions at 5–50 bar misread (Fig. 7b); STY at 5 bar derived from it. |
 
-### Supplementary Table 7b | Differences of definition and minor differences, not counted as errors
+### Supplementary Table 8b | Differences of definition and minor differences, not counted as errors
 
 Differences between curated and printed values that are not errors of the curated data. Definition: the paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit of the last printed digit. Total: definition 139 cells, minor 13 cells. The printed values are used for scoring in both cases.
 

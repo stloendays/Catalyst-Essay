@@ -337,7 +337,7 @@ def table2b(cr):
     return block("2b", f"The {len(ps)} later ammonia-synthesis papers", cap, hdr, rows)
 
 
-# ---- Supplementary Table 5: methanol plant benchmark ---------------------------------------------------------
+# ---- Supplementary Table 6: methanol plant benchmark ---------------------------------------------------------
 KNOBS = {"cat_term": lambda v: f"catalyst {num(v[0])} €/kg replaced every {num(v[1])} y",
          "loop_dp": lambda v: f"loop ΔP {num(v)} bar", "h2_price": lambda v: f"H₂ {num(v)} €/t",
          "co2_price": lambda v: f"CO₂ {num(v)} €/t", "elec_price": lambda v: f"electricity {num(v)} €/MWh",
@@ -360,7 +360,7 @@ def table3():
         rows.append([rid, max(g.reference, key=len), g.doi.iloc[0], num(len(g))] + [num(k.get(x, 0)) for x in kinds])
     k = rv.kind.value_counts()
     rows.append(["**Total**", "", "", f"**{num(len(rv))}**"] + [f"**{num(k.get(x, 0))}**" for x in kinds])
-    out.append(block("5a", "Sources of the methanol plant benchmark",
+    out.append(block("6a", "Sources of the methanol plant benchmark",
                      f"One row per source of {rel(BENCH / 'reference_values.csv')}, which gives every value with its "
                      f"locator (page, table or figure) and the conversion applied. Printed: value printed in the "
                      f"source; derived: arithmetic on printed values; secondary: pilot-plant values tabulated by "
@@ -377,14 +377,14 @@ def table3():
             continue
         rows.append([r["metric"]] + [num(float(v)) for v in vals])
     legend = "; ".join(f"{a}, {c[len(a):].strip()}" for a, c in zip(short, cases))
-    out.append(block("5b", "Plant metrics of the model loop at each reference operating point",
+    out.append(block("6b", "Plant metrics of the model loop at each reference operating point",
                      f"Model values from {rel(BENCH / 'reconciliation_plant.csv')} (recycled CO, central RWGS rule). "
                      f"Columns: {legend}. " + "".join(x + ". " for x in same) +
-                     "Reference values for each metric are in Supplementary Table 5c.",
+                     "Reference values for each metric are in Supplementary Table 6c.",
                      ["Metric"] + short, rows))
 
     rows = [[r.metric, r.references.replace(" | ", "; ")] for r in rp.itertuples(index=False)]
-    out.append(block("5c", "Reference values for the plant metrics of Supplementary Table 5b",
+    out.append(block("6c", "Reference values for the plant metrics of Supplementary Table 6b",
                      f"From the `references` column of {rel(BENCH / 'reconciliation_plant.csv')}; each value is traced "
                      f"to its source locator in {rel(BENCH / 'reference_values.csv')}. An asterisk marks a pilot-plant "
                      f"value tabulated by Dieterich 2020.", ["Metric", "Reference values"], rows))
@@ -395,7 +395,7 @@ def table3():
         rows.append(["" if r.case == last else r.case, r.term, num(r.model), num(r.reference), dev, r.ref_basis,
                      r.attribution])
         last = r.case
-    out.append(block("5d", "Cost at each study's own prices, scale and finance",
+    out.append(block("6d", "Cost at each study's own prices, scale and finance",
                      f"From {rel(BENCH / 'reconciliation_cost.csv')} (€/t methanol unless stated). Like-for-like: "
                      f"feed, compression electricity, catalyst replacement and capital annuity at the study's own rate, "
                      f"plus the study's own fixed O&M; for Pérez-Fortes 2016 the reference is its NPV = 0 break-even "
@@ -410,7 +410,7 @@ def table3():
         rows.append([c["reference"], num(c["capacity_t_a"]), num(c["model_FCI_MEUR"], 1),
                      num(c["model_FCI_eur_per_tpa"], 0), num(c["reference_eur_per_tpa"], 0), c["reference_basis"],
                      num(c["ratio_model_FCI_to_reference"], 2)])
-    out.append(block("5e", "Specific fixed capital of the model against published plants",
+    out.append(block("6e", "Specific fixed capital of the model against published plants",
                      f"From `capex_scale` in {rel(BENCH / 'summary.json')}; the model is run at each study's own "
                      f"capacity and cost year.",
                      ["Reference", "Capacity (t/a)", "Model FCI (M€)", "Model FCI (€ per t/a)",
@@ -424,7 +424,7 @@ def table3():
                      v["pairwise_inversions"], num(100 * v["regret_median_mismatched"], 1) + " %",
                      num(v["groups_flipped_vs_baseline"]), num(v["groups_economic_winner_changed"])])
     chk = sens["check"]
-    out.append(block("5f", "Headline comparison rerun with primary-source plant terms",
+    out.append(block("6f", "Headline comparison rerun with primary-source plant terms",
                      f"From {rel(BENCH / 'sensitivity_summary.json')}: groups whose STY leader is not the "
                      f"plant-cost leader, papers affected, pairwise orderings inverted, median regret of the "
                      f"mismatched groups, groups whose mismatch flag changes and groups whose plant-cost winner "
@@ -475,7 +475,172 @@ def table4():
     return block(3, "Bimetallic surface layers of the ammonia screen", cap, hdr, rows)
 
 
-# ---- Supplementary Table 4: Fe terrace-to-step bridge ---------------------------------------------------------
+# ---- Supplementary Table 4: ammonia plant benchmark, errors and the Fe-Ru order under them --------------------
+# analysis/nh3_benchmark_error_table_2026_10_19 (run_error_table.py): 64 industrial comparisons of the NH3-FINAL-1.2
+# model, their deviations by quantity, and the Fe/Ru/Os optima re-solved with each failing component perturbed.
+NH3B = ROOT / "analysis/nh3_benchmark_error_table_2026_10_19"
+_NH3B_COMP = {"SEP": "separator vapour", "APP": "approach to equilibrium", "COMP": "compression power",
+              "KIN": "catalyst amount", "TBED": "bed temperature"}
+_NH3B_SIGN = {"under-prediction": "model low", "over-prediction": "model high", "mixed": "both",
+              "none": "inside range"}
+_NH3B_COLS = [("descriptor Ru - Fe", "Ru − Fe, descriptor"), ("descriptor Os - Fe", "Os − Fe, descriptor"),
+              ("measured benchmark Ru - Fe (unconstrained)", "Ru − Fe, measured"),
+              ("measured supported Ru/C - Fe (0 %/y)", "Ru/C − Fe, measured, 0%/y"),
+              ("measured supported Ru/C - Fe (12 %/y)", "Ru/C − Fe, measured, 12%/y")]
+
+
+def _gap(x):
+    x = str(x).strip()
+    if x in ("", "nan", "None"):
+        return "–"
+    if "inf" in x:
+        return "no feasible Ru"
+    return f"{float(x):+.2f}".replace("-", "−")
+
+
+def _setting(r):
+    out = []
+    if float(r["separator_vapour_factor"]) != 1.0:
+        out.append(f"separator vapour ×{float(r['separator_vapour_factor']):.3g}")
+    if float(r["approach_to_equilibrium"]) != 0.8:
+        out.append(f"approach {float(r['approach_to_equilibrium']):.3g} (base 0.8)")
+    if float(r["compression_power_factor"]) != 1.0:
+        out.append(f"compression power ×{float(r['compression_power_factor']):.3g}")
+    if float(r["catalyst_amount_factor"]) != 1.0:
+        who = "Fe" if str(r["catalyst_amount_applies_to"]).startswith("Fe") else "every catalyst"
+        out.append(f"catalyst amount ×{float(r['catalyst_amount_factor']):.3g} ({who})")
+    if float(r["bed_temperature_offset_C"]) != 0.0:
+        out.append(f"bed {float(r['bed_temperature_offset_C']):+.1f} °C".replace("-", "−"))
+    return "; ".join(out) or "–"
+
+
+def _dev(r, kind):
+    if str(r[f"{kind}_abs_dev_pct"]) not in ("", "nan"):
+        v = f"{float(r[f'{kind}_abs_dev_pct']):.1f}%"
+        return v + (f" ({r['max_id_pct']})" if kind == "max" else "")
+    if str(r[f"{kind}_abs_dev_C"]) not in ("", "nan"):
+        v = f"{float(r[f'{kind}_abs_dev_C']):.1f} °C"
+        return v + (f" ({r['max_id_C']})" if kind == "max" else "")
+    return "–"
+
+
+def table_nh3_benchmark():
+    es = pd.read_csv(NH3B / "error_summary.csv", keep_default_na=False, dtype=str)
+    et = pd.read_csv(NH3B / "error_table.csv", keep_default_na=False, dtype=str)
+    pr = pd.read_csv(NH3B / "perturbation_results.csv", keep_default_na=False, dtype=str)
+    ps = json.loads((NH3B / "perturbation_summary.json").read_text(encoding="utf-8"))
+    allrow = es[es.level == "all"].iloc[0]
+    n_pass = int(allrow["n_pass"])
+    assert len(et) == int(allrow["n"]) == 64 and int((et.pass_ == "pass").sum()) == n_pass
+    qg = es[es.level == "quantity group"]
+    assert sum(int(x) for x in qg.n) == 64 and sum(int(x) for x in qg.n_pass) == n_pass
+
+    rows = [[r["group"], int(r["n"]), int(r["n_pass"]), _dev(r, "typical"), _dev(r, "max"),
+             _NH3B_SIGN.get(r["sign"].split(" (")[0], r["sign"]), _NH3B_COMP.get(r["component"], "–")]
+            for _, r in qg.iterrows()]
+    rows.append(["All 64", 64, n_pass,
+                 f"{float(allrow['typical_abs_dev_pct']):.1f}%; {float(allrow['typical_abs_dev_C']):.1f} °C",
+                 f"{float(allrow['max_abs_dev_pct']):.1f}% ({allrow['max_id_pct']}); "
+                 f"{float(allrow['max_abs_dev_C']):.1f} °C ({allrow['max_id_C']})", "both", "–"])
+    cap = (f"The 64 comparisons of the ammonia model with industrial synthesis loops and converters, by quantity "
+           f"({rel(NH3B / 'error_summary.csv')}; every item in Supplementary Table 4c). Deviation: (model − industrial)/"
+           f"industrial for point values, the difference in °C for temperatures, and the distance to the nearer edge "
+           f"for published ranges (0 inside the range). Typical: median absolute deviation of the items of a quantity; "
+           f"largest: their maximum, with the item. Within tolerance: items whose deviation lies within the tolerance "
+           f"listed with them ({n_pass} of 64). Four logical items (Fe/Ru choice and staging) have no numeric "
+           f"deviation. Component: the model component perturbed in Supplementary Table 4b for the failing items of the "
+           f"quantity.")
+    hdr = ["Quantity", "Items", "Within tolerance", "Typical deviation", "Largest deviation (item)", "Direction",
+           "Component perturbed"]
+    out = [block("4a", "Deviations of the ammonia model from industrial plants", cap, hdr, rows)]
+
+    def gaps(sub):
+        g = {r["comparison"]: _gap(r["gap_Ru_minus_Fe"]) for _, r in sub.iterrows()}
+        return [g[c] for c, _ in _NH3B_COLS]
+
+    rows = [["baseline", "–"] + gaps(pr[pr.kind == "baseline"])]
+    singles = pr[pr.kind == "single"]
+    lab_mag = {"typical": "typical", "max_plant_sizing": "largest at plant conditions", "max": "largest"}
+    for comp in ["SEP", "APP", "COMP", "KIN_Fe", "KIN_all", "TBED"]:
+        for mag in ["typical", "max_plant_sizing", "max"]:
+            for sign in ["+", "-"]:
+                sub = singles[singles.scenario == f"{comp} {sign} {mag}"]
+                if sub.empty:
+                    continue
+                name = _NH3B_COMP[comp.split("_")[0]] + {"KIN_Fe": " (Fe)", "KIN_all": " (all)"}.get(comp, "")
+                rows.append([f"{name}, {lab_mag[mag]}, {'+' if sign == '+' else '−'}", _setting(sub.iloc[0])]
+                            + gaps(sub))
+    n_single = singles.scenario.nunique()
+    assert len(rows) == 1 + n_single == 29
+    flips = {c: int(((singles.comparison == c) & (singles.flip == "yes")).sum()) for c, _ in _NH3B_COLS}
+    for key, lab in [("joint_Ru_favouring", "all five, each towards Ru"),
+                     ("worst_corner", "all five, least favourable sign combination")]:
+        for mag in ["typical", "max"]:
+            row = [f"{lab}, {'typical' if mag == 'typical' else 'largest'}", "–"]
+            for c, _ in _NH3B_COLS:
+                v = ps["comparisons"][c].get(key, {}).get(mag)
+                g = None if not v else v.get("gap")
+                row.append("no feasible state" if g is None or str(g) in ("", "nan") else _gap(g))
+            rows.append(row)
+    cap = (f"Catalyst-dependent cost difference at the reoptimized optima, US dollars per tonne of NH₃ (positive: Fe "
+           f"cheaper), with each model component perturbed by the deviations of Supplementary Table 4a "
+           f"({rel(NH3B / 'perturbation_results.csv')}; {rel(NH3B / 'perturbation_summary.json')}). Typical and largest: "
+           f"the typical and the largest deviation of the component's failing items; largest at plant conditions: the "
+           f"largest bed-volume deviation at plant conditions. Each perturbation is applied in both directions "
+           f"({n_single} single cases), and Fe, Ru and Os are reoptimized over the perturbed library of 14,510 states "
+           f"within the 90 m³ limit. Descriptor: the canonical model. Measured: the fused-iron law of Dyson and Simon over "
+           f"the full pressure range and the Ru/C law of Rossetti et al.; Ru/C on its own bed with 95.55% recovery and its "
+           f"inventory financed at 0 or 12% per year. Single cases that reverse the order: "
+           + ", ".join(f"{lab} {flips[c]}" for c, lab in _NH3B_COLS) + ". Combinations: every component at the same "
+           f"size; towards Ru, each in the direction that alone narrows the gap most; least favourable, the smallest gap "
+           f"over all 2⁵ sign combinations and both forms of the catalyst-amount perturbation.")
+    hdr = ["Perturbation", "Setting"] + [lab for _, lab in _NH3B_COLS]
+    out.append(block("4b", "The Fe–Ru order under the benchmark deviations", cap, hdr, rows))
+
+    def val(x):
+        x = re.sub(r"\s*\(W_[A-Z0-9_]+\)", "", str(x)).strip()
+        try:
+            return f"{float(x):.4g}"
+        except ValueError:
+            pass
+        x = {"False": "no", "True": "yes"}.get(x, x)
+        x = re.sub(r"^equals:(True|False)$", lambda m: "yes" if m.group(1) == "True" else "no", x)
+        x = re.sub(r"^below:", "below ", re.sub(r"^above:", "above ", x))
+        return re.sub(r"(?<=\d)-(?=\d)", "–", x)
+
+    def deviation(r):
+        if r["signed_deviation"] in ("", "nan"):
+            return "–"
+        unit = " °C" if r["deviation_unit"] == "C" else ("%" if r["deviation_unit"] == "%" else "")
+        return f"{float(r['signed_deviation']):+.1f}{unit}".replace("-", "−")
+
+    def tolerance(t):
+        if t.startswith("rel:"):
+            return f"±{100 * float(t[4:]):.0f}%"
+        if t.startswith("abs:"):
+            return f"±{float(t[4:]):g} °C"
+        if t.startswith("factor:"):
+            return f"within a factor of {float(t[7:]):g}"
+        if t.startswith("window:") or t == "range":
+            return "inside the range"
+        if t.startswith("equals:"):
+            return "same decision"
+        return {"below": "below the threshold", "above": "above the threshold"}.get(t.split(":")[0], t)
+
+    rows = [[r["metric_id"], r["plant_case"], r["quantity_group"], val(r["model"]), val(r["industrial"]),
+             "°C" if r["unit"] == "C" else r["unit"], deviation(r), tolerance(r["tolerance_rule"]),
+             "yes" if r["pass_"] == "pass" else "no"]
+            for _, r in et.iterrows()]
+    cap = (f"Every item of Supplementary Table 4a ({rel(NH3B / 'error_table.csv')}). Industrial: the published value "
+           f"or range; logical items compare a decision (yes or no) or a threshold. Deviation: as in Supplementary "
+           f"Table 4a, signed (negative: model low).")
+    hdr = ["Item", "Plant or case", "Quantity", "Model", "Industrial", "Unit", "Deviation", "Tolerance",
+           "Within tolerance"]
+    out.append(block("4c", "The 64 benchmark items", cap, hdr, rows))
+    return "\n".join(out)
+
+
+# ---- Supplementary Table 5: Fe terrace-to-step bridge ---------------------------------------------------------
 def s1_terrace():
     src = (ALLOY / "run_alloy_chain.py").read_text(encoding="utf-8")
     node = next(n for n in ast.parse(src).body
@@ -522,8 +687,8 @@ def table5():
     cap = (f"Terrace and observed step-site N formation energies of the 14 metals with both values in Dataset S1, and "
            f"the step value predicted with that metal left out, from {rel(BRIDGE / 'fe_bridge_loo.csv')}; the Fe "
            f"terrace value is the Dataset S1 entry used by {rel(ALLOY / 'run_alloy_chain.py')}. Statistics in "
-           f"Supplementary Table 4b are recomputed from these rows.")
-    out = [block("4a", "Leave-one-out validation of the Fe terrace-to-step bridge", cap,
+           f"Supplementary Table 5b are recomputed from these rows.")
+    out = [block("5a", "Leave-one-out validation of the Fe terrace-to-step bridge", cap,
                  ["Metal", "Terrace *E*_{N} (eV)", "Step *E*_{N}, observed (eV)", "Step *E*_{N}, leave-one-out (eV)",
                   "Observed − predicted (eV)"], rows)]
     names = ", ".join(d.metal[strong])
@@ -535,16 +700,16 @@ def table5():
             (Raw("Fe step *E*_{N}, predicted (eV)"), lambda f: num(f["pred"], 4)),
             ("95 % prediction interval for Fe (eV)", lambda f: f"{num(f['lo'], 3)} to {num(f['hi'], 3)}")]
     rows = [[k, fn(g), fn(b)] for k, fn in stat]
-    cap = (f"Ordinary least squares on Supplementary Table 4a. The global 14-metal fit is the relation used for Fe in "
+    cap = (f"Ordinary least squares on Supplementary Table 5a. The global 14-metal fit is the relation used for Fe in "
            f"the model; its residual standard error is the Fe descriptor uncertainty of the descriptor Monte Carlo "
            f"analysis. The strong-binding branch (terrace *E*_{{N}} ≤ −0.5 eV: {names}) is a sensitivity check and is "
            f"not used in the model. Prediction interval: Student t with n − 2 degrees of freedom.")
-    out.append(block("4b", "Statistics of the Fe terrace-to-step bridge", cap,
+    out.append(block("5b", "Statistics of the Fe terrace-to-step bridge", cap,
                      ["Statistic", "Global fit (14 metals)", "Strong-binding branch"], rows))
     return "\n".join(out)
 
 
-# ---- Supplementary Table 6: the 83 -> 40 methanol comparison groups ------------------------------------------
+# ---- Supplementary Table 7: the 83 -> 40 methanol comparison groups ------------------------------------------
 # One row per comparison group of the all-entries cohort (plot readings included), from the ledger of
 # analysis/meoh_inlet_definition_2026_10_12/run_group_ledger.py; the printed-value verdicts of the 40 kept groups come
 # from the frozen group metrics of the primary analysis (inert-limited loop S6 and unlimited loop S5).
@@ -631,11 +796,11 @@ def table_ledger(cr, fm):
            f"entries that can meet the limit (–).")
     hdr = ["Paper", "Set", "DOI", "Comparison group", "Entries (all / printed)", "Status",
            "Printed values, inlet limit", "Printed values, no limit", "All entries, inlet limit", "All entries, no limit"]
-    return block(6, f"The {ae['groups']} methanol comparison groups and the {pp['groups']} of the primary analysis",
+    return block(7, f"The {ae['groups']} methanol comparison groups and the {pp['groups']} of the primary analysis",
                  cap, hdr, rows)
 
 
-# ---- Supplementary Table 7: errata of the curated reference data ---------------------------------------------
+# ---- Supplementary Table 8: errata of the curated reference data ---------------------------------------------
 # Read from the final adjudication (analysis/verify_2026_10_08/errata_adjudication.py): one root cause = one
 # mechanism in one source paper; STY values a dataset derives from a confirmed input error count with that root.
 ADJ = ROOT / "analysis/verify_2026_10_08/errata_adjudication.csv"
@@ -676,7 +841,7 @@ def table7(cr, fms):
            f"derived STY is counted only with the input error it inherits (last column). Per-cell old value, printed "
            f"value, dataset row and locator: {rel(ROOT / 'analysis/verify_2026_10_08/errata_cells_audit.csv')}; rules "
            f"and classes: {rel(ADJ)}. Total: {tot}.")
-    out = [block("7a", "Errors in the curated reference data confirmed against the papers", cap,
+    out = [block("8a", "Errors in the curated reference data confirmed against the papers", cap,
                  ["Reference set", "Paper", "DOI", "Root causes", "Error rules", "Cells", "Derived STY cells",
                   "Nature of the error"], rows)]
 
@@ -693,7 +858,7 @@ def table7(cr, fms):
            f"of the last printed digit. Total: definition {int(rest[rest.final_class == 'CONV'].cells.sum())} cells, "
            f"minor {int(rest[rest.final_class == 'MINOR'].cells.sum())} cells. The printed values are used for scoring "
            f"in both cases.")
-    out.append(block("7b", "Differences of definition and minor differences, not counted as errors", cap,
+    out.append(block("8b", "Differences of definition and minor differences, not counted as errors", cap,
                      ["Reference set", "Paper", "DOI", "Definition (cells)", "Minor (cells)"], rows))
     return "\n".join(out)
 
@@ -708,7 +873,7 @@ def main():
     parts = ["# Supplementary Tables", "",
              "<!-- Generated by tools/build_si_tables.py from the repository files named in each caption; do not edit "
              "by hand. -->", "",
-             table1(cr), table1b(cr), table2(cr), table2b(cr), table4(), table5(), table3(), table_ledger(cr, {**fm_ex, **manifest(VAL / "fetch_manifest.json")}),
+             table1(cr), table1b(cr), table2(cr), table2b(cr), table4(), table_nh3_benchmark(), table5(), table3(), table_ledger(cr, {**fm_ex, **manifest(VAL / "fetch_manifest.json")}),
              table7(cr, (fm_ex, fm_nf))]
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")

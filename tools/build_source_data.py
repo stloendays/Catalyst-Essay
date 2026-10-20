@@ -204,18 +204,19 @@ def fig2():
     import make_fig_field as FF  # noqa: E402
     lb = FF.meoh_leaderboards().reset_index()
     lb["label"] = lb.label.str.replace("S$_{MeOH}$", "S_MeOH", regex=False)
-    kd = FF.pool["S6"]["kinds"]
+    kc = js("analysis/meoh_catalyst_level_2026_10_19/summary.json")["cat_primary"]["comparison"]
     b.panel("b", [("leader changes by paper leaderboard: inert-limited loop (primary) and STY without the limit", lb,
                    "analysis/meoh_field_pooled_2026_10_15/pooled_candidates.csv (both extractions; cost_column) "
                    "scored with meoh_candidates.aggregate; CI95: analysis/meoh_field_pooled_2026_10_15/summary.json "
                    "(S6 / S5 primary.bootstrap_frozen_inversion.ci95)",
                    "bar height = fraction; hatched height = regret_gt5pct / groups"),
-                  ("STY disagreements by kind, inert-limited loop",
-                   kv({"other catalyst": kd["other_catalyst"]["groups"],
-                       "comparisons with at least two catalysts": kd["other_catalyst"]["of"],
-                       "same catalyst, other temperature": kd["other_temperature"]["groups"],
-                       "comparisons with a temperature series": kd["other_temperature"]["of"]}),
-                   "analysis/meoh_field_pooled_2026_10_15/summary.json (S6.kinds)",
+                  ("STY leader changes catalyst against catalyst (each catalyst at its best measured point), "
+                   "inert-limited loop",
+                   kv({"comparisons with at least two catalysts": kc["groups_2plus_catalysts"],
+                       "leader is another catalyst": kc["changed"],
+                       "of which cost gap above 5 %": kc["gt5pct"],
+                       "CI95 low (paper bootstrap)": kc["ci95"][0], "CI95 high (paper bootstrap)": kc["ci95"][1]}),
+                   "analysis/meoh_catalyst_level_2026_10_19/summary.json (cat_primary.comparison)",
                    "")])
     pr, nv = nh3["primary"], nh3["variants"]
     cases = [("rate per g catalyst (primary)", pr), ("rate per g metal", nv["per_g_metal_leaderboard"]),

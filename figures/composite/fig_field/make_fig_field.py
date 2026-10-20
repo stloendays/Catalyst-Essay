@@ -181,10 +181,20 @@ if __name__ == "__main__":
     pg.letter("a", 2, 148)
 
     # ---- b: methanol leaderboards, inert-limited loop (primary) and STY without the limit ------------------------
-    b = pg.ax(14, 70, 40, 38)
+    # first bar since 2026-10-20: catalyst against catalyst, each at its best measured point (identity rules committed
+    # before the count, analysis/meoh_catalyst_level_2026_10_19); the other bars count every operating point
+    b = pg.ax(14, 70, 46, 38)
     lb = meoh_leaderboards()
-    xb = {"STY": 0.0, "XS": 1.0, "X": 2.0, "SMeOH": 3.0, "STY_no_limit": 4.55}
-    fill = {"STY": RU, "XS": PALE_B, "X": PALE_B, "SMeOH": PALE_B, "STY_no_limit": "white"}
+    kc = read_json("analysis/meoh_catalyst_level_2026_10_19/summary.json")
+    assert kc["point_level_total"]["changed"] == pool["S6"]["primary"]["disagreements"]
+    kc = kc["cat_primary"]["comparison"]
+    cat = pd.DataFrame([dict(label="STY\ncat.", groups=kc["groups_2plus_catalysts"], mismatch_groups=kc["changed"],
+                             fraction=kc["changed"] / kc["groups_2plus_catalysts"], regret_gt5pct=kc["gt5pct"],
+                             CI95_low=kc["ci95"][0], CI95_high=kc["ci95"][1])], index=["STY_catalyst"])
+    assert abs(cat.fraction.iloc[0] - kc["fraction"]) < 1e-12
+    lb = pd.concat([cat, lb.assign(label=lb.label.where(lb.index != "STY", "STY\npoints"))])
+    xb = {"STY_catalyst": 0.0, "STY": 1.0, "XS": 2.0, "X": 3.0, "SMeOH": 4.0, "STY_no_limit": 5.55}
+    fill = {"STY_catalyst": RU, "STY": PALE_B, "XS": PALE_B, "X": PALE_B, "SMeOH": PALE_B, "STY_no_limit": "white"}
     for k, r in lb.iterrows():
         x = xb[k]
         b.bar(x, r.fraction, 0.62, color=fill[k], ec=INK, lw=0.4, zorder=2)
@@ -195,25 +205,22 @@ if __name__ == "__main__":
                        ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
             top = r.CI95_high
         b.text(x, top + 0.03, "%d/%d" % (r.mismatch_groups, r.groups), ha="center", va="bottom", fontsize=5.3)
-    b.axvline(3.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
-    b.text(1.5, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
+    b.axvline(4.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
+    b.text(2.0, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
     b.text(xb["STY_no_limit"], 0.985, "no limit", ha="center", va="top", fontsize=5.3)
-    kd = pool["S6"]["kinds"]
-    pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 %% CI; hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d, "
-                "other temperature %d/%d" % (kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"],
-                                             kd["other_temperature"]["groups"], kd["other_temperature"]["of"]),
-                fontsize=5.3, va="top", ha="left", linespacing=1.2)
+    pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 % CI; hatched: cost gap > 5 %", fontsize=5.3, va="top",
+                ha="left")
     b.set_xticks([xb[k] for k in lb.index])
     b.set_xticklabels(list(lb.label), fontsize=5.6)
     b.set_ylim(0, 1.0)
-    b.set_xlim(-0.55, 5.1)
+    b.set_xlim(-0.55, 6.1)
     b.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     b.set_yticklabels(["0", "25", "50", "75", "100"])
     b.set_ylabel("leader changes (% of comparisons)")
     b.set_xlabel("paper leaderboard")
     boxed(b)
     pg.letter("b", 2, 117)
-    pg.title("Methanol: %d comparisons, %d papers" % (lb.groups.iloc[0], lb.papers.iloc[0]), 14, 117)
+    pg.title("Methanol: %d comparisons, %d papers" % (lb.loc["STY", "groups"], lb.loc["STY", "papers"]), 14, 117)
 
     # ---- c: ammonia leaderboards ------------------------------------------------------------------------------
     c1 = pg.ax(74, 70, 34, 38)
