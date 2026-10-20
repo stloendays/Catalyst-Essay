@@ -60,7 +60,7 @@ Counterfactual and backward calculations locate the cause. Moving every state's 
 
 Propagating each state's own measurement uncertainty separates the robust positions from the unresolved one (Fig. 3d). In 5,000 draws in which the CO₂ conversion and selectivities of every state are sampled independently and the full plant model is re-solved, the economic winner keeps first place in 4,559 draws (91.2%) and 5 wt% Re at 250 °C remains last in all 5,000. The second and third places, 5.5 euros per tonne apart, exchange in 1,054 draws (21.1%). The space-time-yield winner becomes the economic optimum in 413 draws (8.3%), and the complete space-time-yield ranking is recovered in 24 draws (0.5%).
 
-### Supplementary Note 6 | Outside nitride formers and sp metals, surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal
+### Supplementary Note 6 | Alloy surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal
 
 The 15-metal screen contains only three economically feasible candidates. To test whether the Fe preference survives a much larger candidate space, ACSA took the 1,796 bimetallic and pure-metal surfaces of a high-throughput adsorption database[37,38] through the ammonia chain. The most stable N adsorption energy of each surface is placed on the model's step-site descriptor by the terrace-to-step relation that the workbook already uses for Fe, after a linear bridge between the two datasets over the 14 pure metals they share. A second, element-anchored bridge places each of the 14 metals with a frozen descriptor (Ag, Au, Co, Cu, Fe, Ir, Mo, Os, Pd, Pt, Re, Rh, Ru, W) exactly at that descriptor. Metal prices are the frozen model prices for the 15 model metals and USGS annual averages for 21 further elements (2025; Hg 2024); Tc has no market price.[66]
 
@@ -96,7 +96,7 @@ Economic uncertainty around the baseline case does not overturn the Fe preferenc
 
 These draws charge Ru as the benchmark bed of pure metal. Sampling the actual Ru catalyst turns the decision into a probability and shows what sets it. With the Ru dispersion ratio u (11–50) and Ru recovery r (90–95.55%) added to the same 5,000 draws, Ru is cheaper in 90.8% of draws when it is read at the effective price p(1 - r)/u in the benchmark bed, as in Fig. 4d, and in 79.3% when a commercial Ru/C bed (5–10 wt% Ru, 430–550 kg m⁻³) sets the reactor volume. In that bed the dispersion ratio decides the outcome: Ru wins in 49% of draws with u in its lowest tercile, 99% with u in its top tercile and 100% with u and r both in their top terciles; recovery moves it from 71% to 88% between its lowest and top terciles, and the Ru content from 76% below 7.5 wt% to 83% above. Drawing the Ru activity and Ru content from the 54 measured Ru catalysts instead, Fe is cheaper in 93.0% of draws with recovery and 98.1% without, and the Ru wins come from five of the 54 catalysts (Ru on Ca(NH₂)₂, Ba–Ca(NH₂)₂ and BaO–CaH₂, Ba–Cs-promoted Ru/CCHT and Ru/AC-G).
 
-### Supplementary Note 8 | Backward design separates the required catalyst-property region from physical reachability
+### Supplementary Note 8 | Lifecycle engineering, not activity, brings Ru to parity
 
 The forward analysis identifies the preferred catalyst but does not show how much Ru would need to improve to reach parity with Fe. We therefore multiplied Ru intrinsic activity by a factor α and reoptimized the full process at each value. Under the baseline economic assumptions, Ru reaches the Fe cost only after a 114.67-fold activity increase (Fig. 5a).
 

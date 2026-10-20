@@ -397,7 +397,7 @@ ok(
 )
 
 # ----- Results 3: backward target and reachability ----------------------------
-s3 = section("Backward design separates the required catalyst-property region from physical reachability")
+s3 = section("Lifecycle engineering, not activity, brings Ru to parity")
 tokens(
     "NH3 activity-only backward/reachability anchors",
     s3,
@@ -491,7 +491,7 @@ ok(
     and abs(SJ["baseline_regression_anchor"]["Ru_cost_USD_t"] - bw["Ru_best_scaling_cost_USD_t"]) < 1e-9
     and SJ["baseline_regression_anchor"]["E_N_eV"] == bw["Ru_best_scaling_EN_eV"],
 )
-m_bw = main_section("Backward design separates the required catalyst-property region from physical reachability")
+m_bw = main_section("Lifecycle engineering, not activity, brings Ru to parity")
 tokens(
     "Main text: backward design, scaling reach and the lifecycle closure on the strict-scaling manifold",
     m_bw,
@@ -795,9 +795,8 @@ ok("Agent pruning, methanol: bound valid and no leader missed", mpr["bound_valid
 FE_COST_ALLOY = _j(ALY + "alloy_backward_summary.json")["Fe_cost_USD_t"]
 
 # ----- NH3 bimetallic surfaces ----------------------------------------------------------------------------------
-s7 = section("Outside nitride formers and sp metals, surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
-m_alloy = main_section("Outside nitride formers and sp metals, surfaces that undercut Fe pair a cheap 3d metal with a "
-                       "group-6 metal")
+s7 = section("Alloy surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
+m_alloy = main_section("Alloy surfaces that undercut Fe pair a cheap 3d metal with a group-6 metal")
 tm = alloy["extended_excluding_sp_and_group3to5"]
 glob_below = tm["below_Fe_surfaces"]
 anch_below = [x[0] for x in tm["below_Fe_anchored_surfaces"]]
@@ -1296,9 +1295,7 @@ tokens("Main text: methanol leader changes between catalysts (each at its best m
        f"more than 5% extra in {_cc['gt5pct']} of them and more than 10% in {_cc['gt10pct']}",
        f"Counting samples that differ only in synthesis as one catalyst gives {_cs['comparison']['changed']} of "
        f"{_cs['comparison']['groups_2plus_catalysts']}, {_cs['comparison']['gt5pct']} above 5%",
-       f"besides the {_cc['changed']} changes of catalyst, these comprise "
-       f"{_c50['same_catalyst_leads_both']} comparisons in which one catalyst leads both rankings at different operating "
-       f"points and {_c50['single_catalyst_groups']} comparisons of a single catalyst",
+       "a total that also counts changes of operating point",
        f"of {_ct['catalysts_with_2plus_T']} catalysts measured at two or more temperatures, {_ct['plant_T_differs']} reach "
        f"their lowest plant cost at another temperature than their highest space-time yield, "
        f"{_ct['plant_colder']} of them at a lower one (median {_quantiles(_ctC, [0.5])[0]:.0f} °C lower)",
@@ -1773,7 +1770,7 @@ m_feru2 = main_section("What Ru must cost to match fused iron")
 KAAP_P = IR["c_0_KAAP"]["Ru"]["P_bar"]
 _conv = {
     "main": (m_feru2, [
-        "Descriptor rows charge the Ru inventory, as the benchmark model does, for the metal lost at each replacement",
+        "Descriptor rows charge the Ru inventory for the metal lost at each replacement",
         f"({f12['Ru_USD_t']:.2f} against {f12['Fe_same_loop_USD_t']:.2f} at {pc(i_hi)}%)",
         f"it costs {-IR['b_0']['gap']:.2f} US dollars per tonne less than Fe when its Ru inventory carries no financing "
         f"charge and {IR['b_12']['gap']:.2f} more when the inventory is financed over the 25-year plant life at the "
@@ -1982,8 +1979,7 @@ tokens("Discussion: financing threshold of supported Ru in the KAAP-type loop, m
        f"is the cheaper catalyst whenever its Ru is financed below {pc(_be_g, 1)}% per year, {pc(_be_k, 1)}% in the "
        f"KAAP-type loop",
        f"Bulk Ru would need a {pc(1 - IR['bench_price_parity']['factor_vs_current'])}% lower price, or an activity gain "
-       f"({IR['parity']:.0f}-fold with measured kinetics, {bw['Ru_activity_break_even_multiplier']:.0f}-fold with the "
-       f"descriptor model) that its scaling relation does not allow")
+       f"that its scaling relation does not allow")
 
 # apparent reaction orders of the descriptor kinetics (analysis/verify_2026_10_14_descriptor_orders, central differences)
 _do = _j("analysis/verify_2026_10_14_descriptor_orders/descriptor_orders.json")
