@@ -198,10 +198,12 @@ if __name__ == "__main__":
     b.axvline(3.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
     b.text(1.5, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
     b.text(xb["STY_no_limit"], 0.985, "no limit", ha="center", va="top", fontsize=5.3)
-    kd = pool["S6"]["kinds"]
-    pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 %% CI; hatched: cost gap > 5 %%\nSTY: other catalyst %d/%d, "
-                "other temperature %d/%d" % (kd["other_catalyst"]["groups"], kd["other_catalyst"]["of"],
-                                             kd["other_temperature"]["groups"], kd["other_temperature"]["of"]),
+    # catalyst against catalyst, each at its best measured point (identity rules committed before the count)
+    kc = read_json("analysis/meoh_catalyst_level_2026_10_19/summary.json")
+    assert kc["point_level_total"]["changed"] == pool["S6"]["primary"]["disagreements"]
+    kc = kc["cat_primary"]["comparison"]
+    pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 %% CI; hatched: cost gap > 5 %%\nSTY, catalyst against "
+                "catalyst: %d/%d (%d > 5 %%)" % (kc["changed"], kc["groups_2plus_catalysts"], kc["gt5pct"]),
                 fontsize=5.3, va="top", ha="left", linespacing=1.2)
     b.set_xticks([xb[k] for k in lb.index])
     b.set_xticklabels(list(lb.label), fontsize=5.6)
