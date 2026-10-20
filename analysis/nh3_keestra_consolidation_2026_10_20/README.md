@@ -277,3 +277,29 @@ $out='analysis/nh3_keestra_consolidation_2026_10_20'
 | Financing | 776.392093 |
 | Claim ledger | 37.335294 |
 | Table B retained converter computation | 640.045215 |
+
+## Descriptor branch at the upgraded magnitudes
+
+The descriptor branch was rerun with `perturbation_descriptor.py`, importing the unchanged `run_error_table.py` library. Magnitudes come directly from `perturbation_magnitudes.json`: KIN typical 1.4121 → 1.3595, maximum 5.6075 → 7.5784 (B15), plant-sizing maximum 1.6787 (A28) → 1.3659 (B08); TBED typical 35.92 → 19.81 °C and maximum 57.54 → 56.08 °C. SEP, APP and COMP are unchanged.
+
+The canonical anchors remain Fe 11.515784 USD/t at 425 °C / 105 bar / 30 °C and Ru 16.632749 USD/t at 450 °C / 220 bar / 30 °C (reactor temperature / pressure / separator temperature). The baseline gaps are +5.116966 USD/t (Ru − Fe) and +8.230760 USD/t (Os − Fe). Positive gaps mean Fe is cheaper.
+
+The design comprises 28 single cases (including both catalyst-amount forms at typical, maximum and plant-sizing maximum), plus all 2⁵ sign corners for both amount forms at typical and maximum (64 corners per magnitude), and the baseline: 157 scenarios, 314 comparison rows. Joint favourable directions are selected from the single-component results for each comparison and magnitude, as in the original design.
+
+| Quantity (USD/t unless count) | Ru − Fe, old → upgraded | Os − Fe, old → upgraded |
+|---|---:|---:|
+| Smallest finite single margin | 1.340645 → 1.340645 | 2.112350 → 2.112350 |
+| Single cases reversing the baseline order | 0/28 → 0/28 | 0/28 → 0/28 |
+| Joint favourable gap, typical | +2.358004 → +2.521091 | +3.679702 → +3.947241 |
+| Smallest corner gap, typical | +2.212765 → +2.386479 | +3.559844 → +3.805010 |
+| Reversing corners, typical | 0/64 → 0/64 | 0/64 → 0/64 |
+| Joint favourable gap, max | +0.256425 → +0.216620 | +0.703613 → +0.668821 |
+| Smallest corner gap, max | -40.138248 → -47.326311 | -33.396545 → -40.790879 |
+| Reversing corners, max | 18/64 → 18/64 | 12/64 → 12/64 |
+
+Both smallest single margins occur at `COMP - max` (compression power divided by its maximum error factor). All descriptor gaps are finite: each comparison has 28/28 finite singles and 64/64 finite corners at each magnitude, with no infeasible or undecidable cases. The negative maximum-corner gaps are finite reversals, not feasibility losses.
+
+- descriptor Ru - Fe: typical joint `joint SEP- APP- COMP- KIN+ TBED+ KIN[Fe] typical`, smallest corner `joint SEP- APP+ COMP- KIN- TBED+ KIN[all] typical`; max joint `joint SEP- APP+ COMP- KIN+ TBED+ KIN[Fe] max`, smallest corner `joint SEP- APP- COMP+ KIN+ TBED- KIN[Fe] max`.
+- descriptor Os - Fe: typical joint `joint SEP- APP- COMP- KIN+ TBED+ KIN[Fe] typical`, smallest corner `joint SEP- APP+ COMP- KIN- TBED+ KIN[all] typical`; max joint `joint SEP- APP+ COMP- KIN+ TBED+ KIN[Fe] max`, smallest corner `joint SEP- APP- COMP+ KIN+ TBED- KIN[Fe] max`.
+
+Outputs: `perturbation_descriptor_results.csv`, `perturbation_descriptor_summary.json` and `perturbation_descriptor_stdout.txt`. Descriptor runtime: 348.373 s, one worker process. The regenerated Supplementary Table 4b baseline is +5.12, +8.23, +30.56, −3.83, +2.13, −1.21, +1.95 USD/t for descriptor Ru, descriptor Os, measured bulk, benchmark supported 0%/y and 12%/y, and KAAP-type supported 0%/y and 12%/y, respectively.

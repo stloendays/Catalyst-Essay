@@ -478,15 +478,17 @@ def table4():
 # ---- Supplementary Table 4: ammonia plant benchmark, errors and the Fe-Ru order under them --------------------
 # analysis/nh3_benchmark_error_table_2026_10_19 (run_error_table.py): 64 industrial comparisons of the NH3-FINAL-1.2
 # model, their deviations by quantity, and the Fe/Ru/Os optima re-solved with each failing component perturbed.
-NH3B = ROOT / "analysis/nh3_benchmark_error_table_2026_10_19"
+NH3B = ROOT / "analysis/nh3_keestra_consolidation_2026_10_20"
 _NH3B_COMP = {"SEP": "separator vapour", "APP": "approach to equilibrium", "COMP": "compression power",
               "KIN": "catalyst amount", "TBED": "bed temperature"}
 _NH3B_SIGN = {"under-prediction": "model low", "over-prediction": "model high", "mixed": "both",
               "none": "inside range"}
 _NH3B_COLS = [("descriptor Ru - Fe", "Ru − Fe, descriptor"), ("descriptor Os - Fe", "Os − Fe, descriptor"),
-              ("measured benchmark Ru - Fe (unconstrained)", "Ru − Fe, measured"),
-              ("measured supported Ru/C - Fe (0 %/y)", "Ru/C − Fe, measured, 0%/y"),
-              ("measured supported Ru/C - Fe (12 %/y)", "Ru/C − Fe, measured, 12%/y")]
+              ("bulk benchmark", "Ru − Fe, measured, bulk benchmark"),
+              ("benchmark supported 0", "Ru/C − Fe, measured, benchmark loop, 0%/y"),
+              ("benchmark supported 0.12", "Ru/C − Fe, measured, benchmark loop, 12%/y"),
+              ("KAAP supported 0", "Ru/C − Fe, measured, KAAP-type loop, 0%/y"),
+              ("KAAP supported 0.12", "Ru/C − Fe, measured, KAAP-type loop, 12%/y")]
 
 
 def _gap(x):
@@ -527,11 +529,30 @@ def _dev(r, kind):
 def table_nh3_benchmark():
     es = pd.read_csv(NH3B / "error_summary.csv", keep_default_na=False, dtype=str)
     et = pd.read_csv(NH3B / "error_table.csv", keep_default_na=False, dtype=str)
-    pr = pd.read_csv(NH3B / "perturbation_results.csv", keep_default_na=False, dtype=str)
-    ps = json.loads((NH3B / "perturbation_summary.json").read_text(encoding="utf-8"))
+    pr = pd.read_csv(NH3B / "perturbation_descriptor_results.csv", keep_default_na=False, dtype=str)
+    ps = json.loads((NH3B / "perturbation_descriptor_summary.json").read_text(encoding="utf-8"))
+    measured = pd.read_csv(NH3B / "perturbation_results.csv", keep_default_na=False, dtype=str)
+    ms = json.loads((NH3B / "perturbation_summary.json").read_text(encoding="utf-8"))
+    assert len(pr) == 157 * 2 and len(measured) == 157 * 5
+    rate_caption = ("Converter items use the measured rate laws of fused iron (Keestra et al. Model 3, "
+                    "Topsoe KM1R activity, fitted 1–324 bar) and Ru/C (Rossetti et al., 50–100 bar) "
+                    "inside their fitted pressure ranges. C08 and C10 keep their registered scores.")
+
+    def format_gap(value, comparison):
+        value = float(value)
+        if math.isnan(value):
+            return "no feasible state"
+        if value == -math.inf:
+            return "no feasible Fe"
+        if value == math.inf:
+            return "no feasible " + ("Os" if comparison == "descriptor Os - Fe" else
+                                       "Ru" if comparison == "descriptor Ru - Fe" else "Ru/C")
+        return f"{value:+.2f}".replace("-", "−")
+
     allrow = es[es.level == "all"].iloc[0]
     n_pass = int(allrow["n_pass"])
     assert len(et) == int(allrow["n"]) == 64 and int((et.pass_ == "pass").sum()) == n_pass
+    assert n_pass == 33
     qg = es[es.level == "quantity group"]
     assert sum(int(x) for x in qg.n) == 64 and sum(int(x) for x in qg.n_pass) == n_pass
 
@@ -549,51 +570,89 @@ def table_nh3_benchmark():
            f"largest: their maximum, with the item. Within tolerance: items whose deviation lies within the tolerance "
            f"listed with them ({n_pass} of 64). Four logical items (Fe/Ru choice and staging) have no numeric "
            f"deviation. Component: the model component perturbed in Supplementary Table 4b for the failing items of the "
-           f"quantity.")
+           f"quantity. " + rate_caption)
     hdr = ["Quantity", "Items", "Within tolerance", "Typical deviation", "Largest deviation (item)", "Direction",
            "Component perturbed"]
     out = [block("4a", "Deviations of the ammonia model from industrial plants", cap, hdr, rows)]
 
-    def gaps(sub):
-        g = {r["comparison"]: _gap(r["gap_Ru_minus_Fe"]) for _, r in sub.iterrows()}
-        return [g[c] for c, _ in _NH3B_COLS]
+    def measured_scenario(name):
+        if name == "baseline":
+            return name
+        comp, sign, mag = name.split()
+        component = comp.split("_")[0]
+        mode = "all" if comp == "KIN_all" else "Fe"
+        return f"{component} {mode} {1 if sign == '+' else -1} {mag}"
 
-    rows = [["baseline", "–"] + gaps(pr[pr.kind == "baseline"])]
+    def gaps(name):
+        ds = pr[pr.scenario == name]
+        mr = measured[measured.scenario == measured_scenario(name)]
+        assert len(ds) == 2 and len(mr) == 5
+        g = {r["comparison"]: float(r["gap_Ru_minus_Fe"]) for _, r in ds.iterrows()}
+        g.update({r["comparison"]: float(r["gap"]) for _, r in mr.iterrows()})
+        return [format_gap(g[c], c) for c, _ in _NH3B_COLS]
+
+    base = pr[pr.kind == "baseline"]
+    ru = base[base.comparison == "descriptor Ru - Fe"].iloc[0]
+    assert abs(float(ru.Fe_cost) - 11.515784) < 5e-7
+    assert abs(float(ru.Ru_cost) - 16.632749) < 5e-7
+    baseline = gaps("baseline")
+    assert baseline == ["+5.12", "+8.23", "+30.56", "−3.83", "+2.13", "−1.21", "+1.95"], baseline
+    rows = [["baseline", "–"] + baseline]
     singles = pr[pr.kind == "single"]
     lab_mag = {"typical": "typical", "max_plant_sizing": "largest at plant conditions", "max": "largest"}
     for comp in ["SEP", "APP", "COMP", "KIN_Fe", "KIN_all", "TBED"]:
         for mag in ["typical", "max_plant_sizing", "max"]:
             for sign in ["+", "-"]:
-                sub = singles[singles.scenario == f"{comp} {sign} {mag}"]
+                name = f"{comp} {sign} {mag}"
+                sub = singles[singles.scenario == name]
                 if sub.empty:
                     continue
-                name = _NH3B_COMP[comp.split("_")[0]] + {"KIN_Fe": " (Fe)", "KIN_all": " (all)"}.get(comp, "")
-                rows.append([f"{name}, {lab_mag[mag]}, {'+' if sign == '+' else '−'}", _setting(sub.iloc[0])]
-                            + gaps(sub))
+                label = _NH3B_COMP[comp.split("_")[0]] + {"KIN_Fe": " (Fe)", "KIN_all": " (all)"}.get(comp, "")
+                rows.append([f"{label}, {lab_mag[mag]}, {'+' if sign == '+' else '−'}", _setting(sub.iloc[0])]
+                            + gaps(name))
     n_single = singles.scenario.nunique()
     assert len(rows) == 1 + n_single == 29
-    flips = {c: int(((singles.comparison == c) & (singles.flip == "yes")).sum()) for c, _ in _NH3B_COLS}
+    flips = {}
+    for c, _ in _NH3B_COLS:
+        frame, gap_col = (pr, "gap_Ru_minus_Fe") if c.startswith("descriptor") else (measured, "gap")
+        single = frame[(frame.kind == "single") & (frame.comparison == c)]
+        initial = float(frame[(frame.kind == "baseline") & (frame.comparison == c)].iloc[0][gap_col])
+        assert len(single) == 28
+        # Count changes relative to each column's own baseline, including loss of feasibility.
+        flips[c] = sum(not math.isnan(float(g)) and (float(g) > 0) != (initial > 0) for g in single[gap_col])
     for key, lab in [("joint_Ru_favouring", "all five, each towards Ru"),
                      ("worst_corner", "all five, least favourable sign combination")]:
         for mag in ["typical", "max"]:
             row = [f"{lab}, {'typical' if mag == 'typical' else 'largest'}", "–"]
             for c, _ in _NH3B_COLS:
-                v = ps["comparisons"][c].get(key, {}).get(mag)
-                g = None if not v else v.get("gap")
-                row.append("no feasible state" if g is None or str(g) in ("", "nan") else _gap(g))
+                if c.startswith("descriptor"):
+                    g = ps["comparisons"][c][key][mag]["gap"]
+                else:
+                    k = "joint_Ru_favouring_gap" if key == "joint_Ru_favouring" else "min_corner_gap"
+                    g = ms["comparisons"][c]["magnitudes"][mag][k]
+                row.append(format_gap(g, c))
             rows.append(row)
+    assert len(rows) == 33 and all(len(r) == 9 for r in rows)
     cap = (f"Catalyst-dependent cost difference at the reoptimized optima, US dollars per tonne of NH₃ (positive: Fe "
-           f"cheaper), with each model component perturbed by the deviations of Supplementary Table 4a "
-           f"({rel(NH3B / 'perturbation_results.csv')}; {rel(NH3B / 'perturbation_summary.json')}). Typical and largest: "
-           f"the typical and the largest deviation of the component's failing items; largest at plant conditions: the "
-           f"largest bed-volume deviation at plant conditions. Each perturbation is applied in both directions "
-           f"({n_single} single cases), and Fe, Ru and Os are reoptimized over the perturbed library of 14,510 states "
-           f"within the 90 m³ limit. Descriptor: the canonical model. Measured: the fused-iron law of Dyson and Simon over "
-           f"the full pressure range and the Ru/C law of Rossetti et al.; Ru/C on its own bed with 95.55% recovery and its "
-           f"inventory financed at 0 or 12% per year. Single cases that reverse the order: "
-           + ", ".join(f"{lab} {flips[c]}" for c, lab in _NH3B_COLS) + ". Combinations: every component at the same "
-           f"size; towards Ru, each in the direction that alone narrows the gap most; least favourable, the smallest gap "
-           f"over all 2⁵ sign combinations and both forms of the catalyst-amount perturbation.")
+           f"cheaper), with each component perturbed at the upgraded magnitudes of Supplementary Table 4a "
+           f"({rel(NH3B / 'perturbation_magnitudes.json')}). Descriptor results: "
+           f"{rel(NH3B / 'perturbation_descriptor_results.csv')} and "
+           f"{rel(NH3B / 'perturbation_descriptor_summary.json')}; measured results: "
+           f"{rel(NH3B / 'perturbation_results.csv')} and {rel(NH3B / 'perturbation_summary.json')}. "
+           f"Typical and largest: median and maximum component-error magnitudes; largest at plant conditions: "
+           f"the largest plant-condition bed-volume error. Each perturbation is applied in both directions "
+           f"({n_single} single cases), with catalyst-specific reoptimization and a 90 m³ bed limit. Descriptor: "
+           f"the canonical model. Measured columns use Keestra et al. Model 3 for fused iron (Topsoe KM1R activity, "
+           f"1–324 bar) and Rossetti et al. for Ru/C (50–100 bar), with both catalysts restricted to their fitted "
+           f"pressure ranges. Bulk benchmark uses the benchmark catalyst-amount formulation; supported Ru/C uses "
+           f"its own bed, 95.55% metal recovery and inventory financing at 0 or 12%/y. The KAAP-type loop fixes "
+           f"90 bar and −20 °C separation. Single cases that reverse each column's baseline order (including "
+           f"loss of feasibility): "
+           + ", ".join(f"{lab} {flips[c]}/{n_single}" for c, lab in _NH3B_COLS) + ". Combinations: every "
+           f"component at the same magnitude; towards Ru, the direction that alone narrows the gap most; least "
+           f"favourable, the smallest gap over all 2⁵ sign combinations and both catalyst-amount forms (64 corners "
+           f"per magnitude). No feasible Fe or Ru/C denotes loss of that catalyst's feasible states, rather than "
+           f"a finite cost margin; no feasible state denotes neither feasible.")
     hdr = ["Perturbation", "Setting"] + [lab for _, lab in _NH3B_COLS]
     out.append(block("4b", "The Fe–Ru order under the benchmark deviations", cap, hdr, rows))
 
@@ -633,7 +692,7 @@ def table_nh3_benchmark():
             for _, r in et.iterrows()]
     cap = (f"Every item of Supplementary Table 4a ({rel(NH3B / 'error_table.csv')}). Industrial: the published value "
            f"or range; logical items compare a decision (yes or no) or a threshold. Deviation: as in Supplementary "
-           f"Table 4a, signed (negative: model low).")
+           f"Table 4a, signed (negative: model low). " + rate_caption)
     hdr = ["Item", "Plant or case", "Quantity", "Model", "Industrial", "Unit", "Deviation", "Tolerance",
            "Within tolerance"]
     out.append(block("4c", "The 64 benchmark items", cap, hdr, rows))

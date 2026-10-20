@@ -189,72 +189,72 @@ From `analysis/nh3_alloy_extension_2026_10_05/nh3_1_2/summary.json`. 1,796 surfa
 
 ### Supplementary Table 4a | Deviations of the ammonia model from industrial plants
 
-The 64 comparisons of the ammonia model with industrial synthesis loops and converters, by quantity (`analysis/nh3_benchmark_error_table_2026_10_19/error_summary.csv`; every item in Supplementary Table 4c). Deviation: (model − industrial)/industrial for point values, the difference in °C for temperatures, and the distance to the nearer edge for published ranges (0 inside the range). Typical: median absolute deviation of the items of a quantity; largest: their maximum, with the item. Within tolerance: items whose deviation lies within the tolerance listed with them (32 of 64). Four logical items (Fe/Ru choice and staging) have no numeric deviation. Component: the model component perturbed in Supplementary Table 4b for the failing items of the quantity.
+The 64 comparisons of the ammonia model with industrial synthesis loops and converters, by quantity (`analysis/nh3_keestra_consolidation_2026_10_20/error_summary.csv`; every item in Supplementary Table 4c). Deviation: (model − industrial)/industrial for point values, the difference in °C for temperatures, and the distance to the nearer edge for published ranges (0 inside the range). Typical: median absolute deviation of the items of a quantity; largest: their maximum, with the item. Within tolerance: items whose deviation lies within the tolerance listed with them (33 of 64). Four logical items (Fe/Ru choice and staging) have no numeric deviation. Component: the model component perturbed in Supplementary Table 4b for the failing items of the quantity. Converter items use the measured rate laws of fused iron (Keestra et al. Model 3, Topsoe KM1R activity, fitted 1–324 bar) and Ru/C (Rossetti et al., 50–100 bar) inside their fitted pressure ranges. C08 and C10 keep their registered scores.
 
 | Quantity | Items | Within tolerance | Typical deviation | Largest deviation (item) | Direction | Component perturbed |
 |---|---|---|---|---|---|---|
 | converter inlet NH3 | 5 | 0 | 62.9% | 72.6% (A04) | model low | separator vapour |
 | separator vapour NH3 | 1 | 0 | 39.8% | 39.8% (V01) | model low | separator vapour |
 | outlet / net NH3, loop states | 13 | 8 | 14.6% | 167.5% (A26) | both | approach to equilibrium |
-| outlet NH3, converter forward runs | 2 | 2 | 7.9% | 8.0% (B07) | model low | – |
-| outlet NH3, cost-optimal converter designs | 4 | 0 | 45.8% | 49.3% (B13) | model low | approach to equilibrium |
+| outlet NH3, converter forward runs | 2 | 2 | 7.0% | 7.6% (B07) | model low | – |
+| outlet NH3, cost-optimal converter designs | 4 | 0 | 44.9% | 48.1% (B16) | model low | approach to equilibrium |
 | outlet NH3, Fe optimum | 1 | 1 | 0.0% | 0.0% (C06) | inside range | – |
 | converter flow and feed/make-up | 4 | 4 | 16.4% | 23.2% (A06) | model low | – |
-| space velocity | 6 | 6 | 34.4% | 57.1% (A19) | both | – |
+| space velocity | 6 | 5 | 29.8% | 52.5% (A27) | both | – |
 | compressor power | 3 | 0 | 42.3% | 77.4% (E03) | model low | compression power |
-| bed volume, plant conditions | 4 | 4 | 17.9% | 40.4% (A28) | both | catalyst amount |
-| bed volume, cost-optimal designs and Fe optimum | 4 | 1 | 62.6% | 82.2% (B15) | model low | catalyst amount |
-| bed outlet temperature, forward runs | 4 | 0 | 25.5 °C | 35.9 °C (B05) | both | bed temperature |
-| bed-1 inlet temperature, cost-optimal designs | 3 | 0 | 54.3 °C | 57.5 °C (B11) | model high | bed temperature |
-| Fe optimum loop pressure | 2 | 1 | 4.8% | 9.7% (C02) | model low | – |
+| bed volume, plant conditions | 4 | 4 | 28.4% | 36.6% (B08) | both | catalyst amount |
+| bed volume, cost-optimal designs and Fe optimum | 4 | 1 | 72.9% | 86.8% (B15) | model low | catalyst amount |
+| bed outlet temperature, forward runs | 4 | 2 | 9.5 °C | 19.8 °C (B05) | both | bed temperature |
+| bed-1 inlet temperature, cost-optimal designs | 3 | 0 | 52.7 °C | 56.1 °C (B11) | model high | bed temperature |
+| Fe optimum loop pressure | 2 | 1 | 14.5% | 29.0% (C02) | model low | – |
 | Fe optimum temperature | 1 | 1 | 0.0 °C | 0.0 °C (C03) | inside range | – |
-| Fe optimum separator temperature | 1 | 0 | 22.5 °C | 22.5 °C (C04) | model high | – |
-| Fe/Ru choice and staging | 6 | 4 | 27.9% | 55.8% (B19) | model low | – |
-| All 64 | 64 | 32 | 31.7%; 32.2 °C | 167.5% (A26); 57.5 °C (B11) | both | – |
+| Fe optimum separator temperature | 1 | 0 | 7.5 °C | 7.5 °C (C04) | model high | – |
+| Fe/Ru choice and staging | 6 | 4 | 27.1% | 54.1% (B19) | model low | – |
+| All 64 | 64 | 33 | 30.6%; 15.6 °C | 167.5% (A26); 56.1 °C (B11) | both | – |
 
 ### Supplementary Table 4b | The Fe–Ru order under the benchmark deviations
 
-Catalyst-dependent cost difference at the reoptimized optima, US dollars per tonne of NH₃ (positive: Fe cheaper), with each model component perturbed by the deviations of Supplementary Table 4a (`analysis/nh3_benchmark_error_table_2026_10_19/perturbation_results.csv`; `analysis/nh3_benchmark_error_table_2026_10_19/perturbation_summary.json`). Typical and largest: the typical and the largest deviation of the component's failing items; largest at plant conditions: the largest bed-volume deviation at plant conditions. Each perturbation is applied in both directions (28 single cases), and Fe, Ru and Os are reoptimized over the perturbed library of 14,510 states within the 90 m³ limit. Descriptor: the canonical model. Measured: the fused-iron law of Dyson and Simon over the full pressure range and the Ru/C law of Rossetti et al.; Ru/C on its own bed with 95.55% recovery and its inventory financed at 0 or 12% per year. Single cases that reverse the order: Ru − Fe, descriptor 0, Os − Fe, descriptor 0, Ru − Fe, measured 0, Ru/C − Fe, measured, 0%/y 0, Ru/C − Fe, measured, 12%/y 4. Combinations: every component at the same size; towards Ru, each in the direction that alone narrows the gap most; least favourable, the smallest gap over all 2⁵ sign combinations and both forms of the catalyst-amount perturbation.
+Catalyst-dependent cost difference at the reoptimized optima, US dollars per tonne of NH₃ (positive: Fe cheaper), with each component perturbed at the upgraded magnitudes of Supplementary Table 4a (`analysis/nh3_keestra_consolidation_2026_10_20/perturbation_magnitudes.json`). Descriptor results: `analysis/nh3_keestra_consolidation_2026_10_20/perturbation_descriptor_results.csv` and `analysis/nh3_keestra_consolidation_2026_10_20/perturbation_descriptor_summary.json`; measured results: `analysis/nh3_keestra_consolidation_2026_10_20/perturbation_results.csv` and `analysis/nh3_keestra_consolidation_2026_10_20/perturbation_summary.json`. Typical and largest: median and maximum component-error magnitudes; largest at plant conditions: the largest plant-condition bed-volume error. Each perturbation is applied in both directions (28 single cases), with catalyst-specific reoptimization and a 90 m³ bed limit. Descriptor: the canonical model. Measured columns use Keestra et al. Model 3 for fused iron (Topsoe KM1R activity, 1–324 bar) and Rossetti et al. for Ru/C (50–100 bar), with both catalysts restricted to their fitted pressure ranges. Bulk benchmark uses the benchmark catalyst-amount formulation; supported Ru/C uses its own bed, 95.55% metal recovery and inventory financing at 0 or 12%/y. The KAAP-type loop fixes 90 bar and −20 °C separation. Single cases that reverse each column's baseline order (including loss of feasibility): Ru − Fe, descriptor 0/28, Os − Fe, descriptor 0/28, Ru − Fe, measured, bulk benchmark 2/28, Ru/C − Fe, measured, benchmark loop, 0%/y 1/28, Ru/C − Fe, measured, benchmark loop, 12%/y 3/28, Ru/C − Fe, measured, KAAP-type loop, 0%/y 1/28, Ru/C − Fe, measured, KAAP-type loop, 12%/y 5/28. Combinations: every component at the same magnitude; towards Ru, the direction that alone narrows the gap most; least favourable, the smallest gap over all 2⁵ sign combinations and both catalyst-amount forms (64 corners per magnitude). No feasible Fe or Ru/C denotes loss of that catalyst's feasible states, rather than a finite cost margin; no feasible state denotes neither feasible.
 
-| Perturbation | Setting | Ru − Fe, descriptor | Os − Fe, descriptor | Ru − Fe, measured | Ru/C − Fe, measured, 0%/y | Ru/C − Fe, measured, 12%/y |
-|---|---|---|---|---|---|---|
-| baseline | – | +5.12 | +8.23 | +18.14 | −3.46 | +1.45 |
-| separator vapour, typical, + | separator vapour ×2.43 | +5.52 | +8.64 | +15.61 | −3.30 | +0.91 |
-| separator vapour, typical, − | separator vapour ×0.411 | +4.30 | +6.92 | +20.60 | −2.74 | +1.81 |
-| separator vapour, largest, + | separator vapour ×3.66 | +5.62 | +8.86 | +14.19 | −3.58 | +0.75 |
-| separator vapour, largest, − | separator vapour ×0.274 | +3.72 | +6.37 | +21.35 | −2.94 | +1.92 |
-| approach to equilibrium, typical, + | approach 0.68 (base 0.8) | +5.17 | +8.31 | +16.57 | −2.94 | +1.39 |
-| approach to equilibrium, typical, − | approach 0.941 (base 0.8) | +5.05 | +8.08 | +20.03 | −4.85 | +1.43 |
-| approach to equilibrium, largest, + | approach 0.299 (base 0.8) | +4.36 | +7.41 | +12.22 | −2.05 | +1.15 |
-| approach to equilibrium, largest, − | approach 0.99 (base 0.8) | +5.02 | +8.00 | +21.64 | −7.40 | +0.96 |
-| compression power, typical, + | compression power ×1.73 | +6.38 | +9.67 | +24.34 | −4.36 | +2.02 |
-| compression power, typical, − | compression power ×0.577 | +3.01 | +5.08 | +12.90 | −2.54 | +1.26 |
-| compression power, largest, + | compression power ×4.43 | +5.57 | +11.13 | +32.07 | −12.96 | +2.23 |
-| compression power, largest, − | compression power ×0.226 | +1.34 | +2.11 | +8.85 | −1.90 | +0.90 |
-| catalyst amount (Fe), typical, + | catalyst amount ×1.41 (Fe) | +4.84 | +7.95 | +16.93 | −4.69 | +0.20 |
-| catalyst amount (Fe), typical, − | catalyst amount ×0.708 (Fe) | +5.43 | +8.54 | +19.05 | −2.55 | +2.39 |
-| catalyst amount (Fe), largest at plant conditions, + | catalyst amount ×1.68 (Fe) | +4.74 | +7.85 | +16.18 | −5.45 | −0.57 |
-| catalyst amount (Fe), largest at plant conditions, − | catalyst amount ×0.596 (Fe) | +5.55 | +8.66 | +19.44 | −2.17 | +2.77 |
-| catalyst amount (Fe), largest, + | catalyst amount ×5.61 (Fe) | +3.21 | +6.32 | +6.11 | −15.53 | −10.70 |
-| catalyst amount (Fe), largest, − | catalyst amount ×0.178 (Fe) | +6.38 | +9.50 | +21.52 | −0.07 | +4.91 |
-| catalyst amount (all), typical, + | catalyst amount ×1.41 (every catalyst) | +5.51 | +8.56 | +20.58 | −4.26 | +1.73 |
-| catalyst amount (all), typical, − | catalyst amount ×0.708 (every catalyst) | +4.90 | +7.96 | +15.27 | −2.85 | +1.18 |
-| catalyst amount (all), largest at plant conditions, + | catalyst amount ×1.68 (every catalyst) | +5.76 | +8.77 | +22.14 | −4.74 | +1.87 |
-| catalyst amount (all), largest at plant conditions, − | catalyst amount ×0.596 (every catalyst) | +4.77 | +7.79 | +13.99 | −2.71 | +1.06 |
-| catalyst amount (all), largest, + | catalyst amount ×5.61 (every catalyst) | +6.26 | +9.99 | +42.59 | −12.64 | +2.24 |
-| catalyst amount (all), largest, − | catalyst amount ×0.178 (every catalyst) | +4.06 | +6.37 | +6.87 | −1.95 | +0.89 |
-| bed temperature, typical, + | bed +35.9 °C | +4.41 | +6.92 | +8.24 | −3.39 | −0.10 |
-| bed temperature, typical, − | bed −35.9 °C | +6.51 | +10.26 | +31.99 | −3.72 | +4.47 |
-| bed temperature, largest, + | bed +57.5 °C | +4.13 | +6.13 | +4.35 | −3.14 | −0.54 |
-| bed temperature, largest, − | bed −57.5 °C | +5.90 | +10.66 | +52.22 | −4.61 | +8.84 |
-| all five, each towards Ru, typical | – | +2.36 | +3.68 | +5.20 | −9.29 | −0.59 |
-| all five, each towards Ru, largest | – | +0.26 | +0.70 | +0.53 | −122.02 | no feasible state |
-| all five, least favourable sign combination, typical | – | +2.21 | +3.56 | +3.51 | −12.85 | −9.80 |
-| all five, least favourable sign combination, largest | – | −40.14 | −33.40 | +0.53 | −129.72 | −110.76 |
+| Perturbation | Setting | Ru − Fe, descriptor | Os − Fe, descriptor | Ru − Fe, measured, bulk benchmark | Ru/C − Fe, measured, benchmark loop, 0%/y | Ru/C − Fe, measured, benchmark loop, 12%/y | Ru/C − Fe, measured, KAAP-type loop, 0%/y | Ru/C − Fe, measured, KAAP-type loop, 12%/y |
+|---|---|---|---|---|---|---|---|---|
+| baseline | – | +5.12 | +8.23 | +30.56 | −3.83 | +2.13 | −1.21 | +1.95 |
+| separator vapour, typical, + | separator vapour ×2.43 | +5.52 | +8.64 | +30.58 | −3.68 | +2.37 | −2.14 | +2.17 |
+| separator vapour, typical, − | separator vapour ×0.411 | +4.30 | +6.92 | +30.08 | −2.64 | +1.94 | −0.99 | +1.83 |
+| separator vapour, largest, + | separator vapour ×3.66 | +5.62 | +8.86 | +31.08 | −3.67 | +2.34 | no feasible Fe | no feasible Fe |
+| separator vapour, largest, − | separator vapour ×0.274 | +3.72 | +6.37 | +29.44 | −2.66 | +2.22 | −0.95 | +1.80 |
+| approach to equilibrium, typical, + | approach 0.68 (base 0.8) | +5.17 | +8.31 | +25.97 | −3.02 | +2.32 | −0.86 | +1.82 |
+| approach to equilibrium, typical, − | approach 0.941 (base 0.8) | +5.05 | +8.08 | +43.16 | −6.14 | +1.66 | −2.59 | +2.22 |
+| approach to equilibrium, largest, + | approach 0.299 (base 0.8) | +4.36 | +7.41 | +18.82 | −1.68 | +3.28 | −0.53 | +1.87 |
+| approach to equilibrium, largest, − | approach 0.99 (base 0.8) | +5.02 | +8.00 | +62.19 | −10.79 | −0.10 | no feasible Fe | no feasible Fe |
+| compression power, typical, + | compression power ×1.73 | +6.38 | +9.67 | +30.60 | −4.29 | +2.09 | −1.40 | +1.95 |
+| compression power, typical, − | compression power ×0.577 | +3.01 | +5.08 | +31.82 | −2.93 | +3.29 | −1.20 | +1.95 |
+| compression power, largest, + | compression power ×4.43 | +5.57 | +11.13 | +32.55 | −10.17 | +2.78 | −2.21 | +1.95 |
+| compression power, largest, − | compression power ×0.226 | +1.34 | +2.11 | +32.90 | −1.88 | +4.26 | −1.20 | +1.95 |
+| catalyst amount (Fe), typical, + | catalyst amount ×1.36 (Fe) | +4.86 | +7.97 | +29.37 | −5.02 | +0.90 | −1.79 | +1.32 |
+| catalyst amount (Fe), typical, − | catalyst amount ×0.736 (Fe) | +5.40 | +8.52 | +31.51 | −2.87 | +3.11 | −0.80 | +2.39 |
+| catalyst amount (Fe), largest at plant conditions, + | catalyst amount ×1.37 (Fe) | +4.86 | +7.97 | +29.36 | −5.04 | +0.88 | −1.80 | +1.31 |
+| catalyst amount (Fe), largest at plant conditions, − | catalyst amount ×0.732 (Fe) | +5.41 | +8.52 | +31.52 | −2.86 | +3.13 | −0.79 | +2.39 |
+| catalyst amount (Fe), largest, + | catalyst amount ×7.58 (Fe) | +2.64 | +5.75 | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe |
+| catalyst amount (Fe), largest, − | catalyst amount ×0.132 (Fe) | +6.57 | +9.69 | +34.31 | −0.05 | +6.01 | +0.15 | +3.39 |
+| catalyst amount (all), typical, + | catalyst amount ×1.36 (every catalyst) | +5.46 | +8.51 | +39.36 | −4.61 | +2.62 | −1.69 | +2.59 |
+| catalyst amount (all), typical, − | catalyst amount ×0.736 (every catalyst) | +4.92 | +7.99 | +23.89 | −3.17 | +1.75 | −0.94 | +1.45 |
+| catalyst amount (all), largest at plant conditions, + | catalyst amount ×1.37 (every catalyst) | +5.46 | +8.52 | +39.52 | −4.62 | +2.63 | −1.70 | +2.60 |
+| catalyst amount (all), largest at plant conditions, − | catalyst amount ×0.732 (every catalyst) | +4.92 | +7.99 | +23.80 | −3.16 | +1.75 | −0.94 | +1.45 |
+| catalyst amount (all), largest, + | catalyst amount ×7.58 (every catalyst) | +6.20 | +10.20 | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe |
+| catalyst amount (all), largest, − | catalyst amount ×0.132 (every catalyst) | +3.90 | +6.09 | +6.78 | −2.23 | +0.66 | −0.45 | +0.32 |
+| bed temperature, typical, + | bed +19.8 °C | +4.63 | +7.50 | +28.14 | −3.15 | +3.14 | −1.59 | +1.81 |
+| bed temperature, typical, − | bed −19.8 °C | +6.13 | +9.26 | +42.75 | −3.82 | +3.28 | −1.34 | +3.15 |
+| bed temperature, largest, + | bed +56.1 °C | +4.12 | +6.14 | no feasible Ru/C | no feasible Ru/C | no feasible Ru/C | no feasible state | no feasible state |
+| bed temperature, largest, − | bed −56.1 °C | +6.00 | +10.68 | +102.28 | −5.67 | +8.95 | no feasible Fe | no feasible Fe |
+| all five, each towards Ru, typical | – | +2.52 | +3.95 | +15.26 | −11.53 | no feasible state | no feasible state | +0.84 |
+| all five, each towards Ru, largest | – | +0.22 | +0.67 | +36.54 | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe |
+| all five, least favourable sign combination, typical | – | +2.39 | +3.81 | +15.22 | −11.54 | −3.49 | no feasible Fe | no feasible Fe |
+| all five, least favourable sign combination, largest | – | −47.33 | −40.79 | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe | no feasible Fe |
 
 ### Supplementary Table 4c | The 64 benchmark items
 
-Every item of Supplementary Table 4a (`analysis/nh3_benchmark_error_table_2026_10_19/error_table.csv`). Industrial: the published value or range; logical items compare a decision (yes or no) or a threshold. Deviation: as in Supplementary Table 4a, signed (negative: model low).
+Every item of Supplementary Table 4a (`analysis/nh3_keestra_consolidation_2026_10_20/error_table.csv`). Industrial: the published value or range; logical items compare a decision (yes or no) or a threshold. Deviation: as in Supplementary Table 4a, signed (negative: model low). Converter items use the measured rate laws of fused iron (Keestra et al. Model 3, Topsoe KM1R activity, fitted 1–324 bar) and Ru/C (Rossetti et al., 50–100 bar) inside their fitted pressure ranges. C08 and C10 keep their registered scores.
 
 | Item | Plant or case | Quantity | Model | Industrial | Unit | Deviation | Tolerance | Within tolerance |
 |---|---|---|---|---|---|---|---|---|
@@ -276,51 +276,51 @@ Every item of Supplementary Table 4a (`analysis/nh3_benchmark_error_table_2026_1
 | A16 | Braun 150 bar (Liu 2013) | converter inlet NH3 | 2.203 | 4 | mol% | −44.9% | ±20% | no |
 | A17 | Braun 150 bar (Liu 2013) | outlet / net NH3, loop states | 17.86 | 21 | mol% | −15.0% | ±15% | yes |
 | A18 | Braun 150 bar (Liu 2013) | outlet / net NH3, loop states | 15.66 | 17 | mol% | −7.9% | ±15% | yes |
-| A19 | Braun 150 bar (Liu 2013) | space velocity | 1.194e+04 | 7600 | 1/h | +57.1% | within a factor of 2 | yes |
+| A19 | Braun 150 bar (Liu 2013) | space velocity | 1.105e+04 | 7600 | 1/h | +45.4% | within a factor of 2 | yes |
 | A20 | Kellogg 140 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 15.81 | 10 | mol% | +58.1% | ±15% | no |
-| A21 | Kellogg 140 bar (Liu 2013 Table 9.2) | space velocity | 1.249e+04 | 1e+04 | 1/h | +24.9% | within a factor of 2 | yes |
+| A21 | Kellogg 140 bar (Liu 2013 Table 9.2) | space velocity | 1.206e+04 | 1e+04 | 1/h | +20.6% | within a factor of 2 | yes |
 | A22 | Topsoe 260 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 23.92 | 10.0–12.5 | mol% | +91.3% | ±15% | no |
-| A23 | Topsoe 260 bar (Liu 2013 Table 9.2) | space velocity | 1.658e+04 | 1.2e+04 | 1/h | +38.2% | within a factor of 2 | yes |
+| A23 | Topsoe 260 bar (Liu 2013 Table 9.2) | space velocity | 1.32e+04 | 1.2e+04 | 1/h | +10.0% | within a factor of 2 | yes |
 | A24 | ICI AMV 100 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 11.11 | 13 | mol% | −14.6% | ±15% | yes |
-| A25 | ICI AMV 100 bar (Liu 2013 Table 9.2) | space velocity | 1.053e+04 | 8000 | 1/h | +31.7% | within a factor of 2 | yes |
+| A25 | ICI AMV 100 bar (Liu 2013 Table 9.2) | space velocity | 1.111e+04 | 8000 | 1/h | +38.9% | within a factor of 2 | yes |
 | A26 | small/medium 314 bar (Liu 2013 Table 9.2) | outlet / net NH3, loop states | 26.75 | 8.0–10.0 | mol% | +167.5% | ±15% | no |
-| A27 | small/medium 314 bar (Liu 2013 Table 9.2) | space velocity | 1.886e+04 | 3e+04 | 1/h | −37.1% | within a factor of 2 | yes |
-| A28 | Casale 250 bar converter (US patent) | bed volume, plant conditions | 17.87 | 30 | m3 | −40.4% | within a factor of 2 | yes |
+| A27 | small/medium 314 bar (Liu 2013 Table 9.2) | space velocity | 1.424e+04 | 3e+04 | 1/h | −52.5% | within a factor of 2 | no |
+| A28 | Casale 250 bar converter (US patent) | bed volume, plant conditions | 22.17 | 30 | m3 | −26.1% | within a factor of 2 | yes |
 | E01 | 1000 t/d 151 bar loop (Liu 2013 Table 9.3) | compressor power | 7.5 | 13 | MW | −42.3% | ±30% | no |
 | E02 | Uhde 2000 t/d 195 bar (Lippmann & Frisse 2004) | compressor power | 17.11 | 26.6 | MW | −35.7% | ±30% | no |
 | E03 | S-200 126 bar circulator (Liu 2013 Table 9.19A) | compressor power | 0.3253 | 1.441 | MW | −77.4% | ±30% | no |
-| B01 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 456.8 | 489 | °C | −32.2 °C | ±15 °C | no |
-| B02 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 462.7 | 446 | °C | +16.7 °C | ±15 °C | no |
-| B03 | S-200 126 bar converter, forward (Liu 9.19A) | outlet NH3, converter forward runs | 13.21 | 14.31 | mol% | −7.7% | ±15% | yes |
-| B04 | S-200 126 bar converter, inverse (Liu 9.19A) | bed volume, plant conditions | 76.42 | 65.3 | m3 | +17.0% | within a factor of 2 | yes |
-| B05 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 454.1 | 490 | °C | −35.9 °C | ±15 °C | no |
-| B06 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 462.8 | 444 | °C | +18.8 °C | ±15 °C | no |
-| B07 | S-200 134 bar converter, forward (Liu 9.19B) | outlet NH3, converter forward runs | 13.74 | 14.94 | mol% | −8.0% | ±15% | yes |
-| B08 | S-200 134 bar converter, inverse (Liu 9.19B) | bed volume, plant conditions | 77.57 | 65.3 | m3 | +18.8% | within a factor of 2 | yes |
-| B09 | Topsoe 220/140 bar minimum-volume ratio | bed volume, plant conditions | 0.5117 | 0.6 | - | −14.7% | ±25% | yes |
-| B10 | cost-optimal all-Fe converter at Topsoe 140 bar loop | outlet NH3, cost-optimal converter designs | 9.797 | 17.1 | mol% | −42.7% | ±15% | no |
-| B11 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed-1 inlet temperature, cost-optimal designs | 477.5 | 340–420 | °C | +57.5 °C | inside the range | no |
-| B12 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.01446 | 0.03–0.09 | m3/(t/d) | −51.8% | inside the range | no |
-| B13 | cost-optimal all-Fe converter at Topsoe 220 bar loop | outlet NH3, cost-optimal converter designs | 10.1 | 19.9 | mol% | −49.3% | ±15% | no |
-| B14 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed-1 inlet temperature, cost-optimal designs | 470.4 | 340–420 | °C | +50.4 °C | inside the range | no |
-| B15 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.00535 | 0.03–0.09 | m3/(t/d) | −82.2% | inside the range | no |
-| B16 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | outlet NH3, cost-optimal converter designs | 10.06 | 19.67 | mol% | −48.9% | ±15% | no |
-| B17 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed-1 inlet temperature, cost-optimal designs | 474.3 | 340–420 | °C | +54.3 °C | inside the range | no |
-| B18 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.007987 | 0.03–0.09 | m3/(t/d) | −73.4% | inside the range | no |
-| B19 | cost-optimal KAAP layout, 89 bar | Fe/Ru choice and staging | 0.1546 | 0.35–0.65 | - | −55.8% | inside the range | no |
-| B20 | cost-optimal KAAP layout, 89 bar | outlet NH3, cost-optimal converter designs | 12.69 | 21.0–21.7 | mol% | −39.5% | ±15% | no |
-| C01 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 140 | 78.5–343.2 | bar | +0.0% | inside the range | yes |
-| C02 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 140 | 155–190 | bar | −9.7% | inside the range | no |
+| B01 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 473.4 | 489 | °C | −15.6 °C | ±15 °C | no |
+| B02 | S-200 126 bar converter, forward (Liu 9.19A) | bed outlet temperature, forward runs | 448.9 | 446 | °C | +2.9 °C | ±15 °C | yes |
+| B03 | S-200 126 bar converter, forward (Liu 9.19A) | outlet NH3, converter forward runs | 13.41 | 14.31 | mol% | −6.3% | ±15% | yes |
+| B04 | S-200 126 bar converter, inverse (Liu 9.19A) | bed volume, plant conditions | 85.31 | 65.3 | m3 | +30.6% | within a factor of 2 | yes |
+| B05 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 470.2 | 490 | °C | −19.8 °C | ±15 °C | no |
+| B06 | S-200 134 bar converter, forward (Liu 9.19B) | bed outlet temperature, forward runs | 447.5 | 444 | °C | +3.5 °C | ±15 °C | yes |
+| B07 | S-200 134 bar converter, forward (Liu 9.19B) | outlet NH3, converter forward runs | 13.8 | 14.94 | mol% | −7.6% | ±15% | yes |
+| B08 | S-200 134 bar converter, inverse (Liu 9.19B) | bed volume, plant conditions | 89.19 | 65.3 | m3 | +36.6% | within a factor of 2 | yes |
+| B09 | Topsoe 220/140 bar minimum-volume ratio | bed volume, plant conditions | 0.5364 | 0.6 | - | −10.6% | ±25% | yes |
+| B10 | cost-optimal all-Fe converter at Topsoe 140 bar loop | outlet NH3, cost-optimal converter designs | 9.912 | 17.1 | mol% | −42.0% | ±15% | no |
+| B11 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed-1 inlet temperature, cost-optimal designs | 476.1 | 340–420 | °C | +56.1 °C | inside the range | no |
+| B12 | cost-optimal all-Fe converter at Topsoe 140 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.01051 | 0.03–0.09 | m3/(t/d) | −65.0% | inside the range | no |
+| B13 | cost-optimal all-Fe converter at Topsoe 220 bar loop | outlet NH3, cost-optimal converter designs | 10.4 | 19.9 | mol% | −47.7% | ±15% | no |
+| B14 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed-1 inlet temperature, cost-optimal designs | 468.6 | 340–420 | °C | +48.6 °C | inside the range | no |
+| B15 | cost-optimal all-Fe converter at Topsoe 220 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.003959 | 0.03–0.09 | m3/(t/d) | −86.8% | inside the range | no |
+| B16 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | outlet NH3, cost-optimal converter designs | 10.21 | 19.67 | mol% | −48.1% | ±15% | no |
+| B17 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed-1 inlet temperature, cost-optimal designs | 472.7 | 340–420 | °C | +52.7 °C | inside the range | no |
+| B18 | cost-optimal all-Fe converter at Krupp-Uhde 188 bar loop | bed volume, cost-optimal designs and Fe optimum | 0.005738 | 0.03–0.09 | m3/(t/d) | −80.9% | inside the range | no |
+| B19 | cost-optimal KAAP layout, 89 bar | Fe/Ru choice and staging | 0.1606 | 0.35–0.65 | - | −54.1% | inside the range | no |
+| B20 | cost-optimal KAAP layout, 89 bar | outlet NH3, cost-optimal converter designs | 12.74 | 21.0–21.7 | mol% | −39.4% | ±15% | no |
+| C01 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 110 | 78.5–343.2 | bar | +0.0% | inside the range | yes |
+| C02 | model Fe optimum vs industrial Fe windows | Fe optimum loop pressure | 110 | 155–190 | bar | −29.0% | inside the range | no |
 | C03 | model Fe optimum vs industrial Fe windows | Fe optimum temperature | 450 | 350–540 | °C | +0.0 °C | inside the range | yes |
-| C04 | model Fe optimum vs industrial Fe windows | Fe optimum separator temperature | 30 | -25–7.5 | °C | +22.5 °C | inside the range | no |
-| C05 | model Fe optimum vs industrial Fe windows | bed volume, cost-optimal designs and Fe optimum | 0.0563 | 0.03–0.09 | m3/(t/d) | +0.0% | inside the range | yes |
-| C06 | model Fe optimum vs industrial Fe windows | outlet NH3, Fe optimum | 17.91 | 10–21 | mol% | +0.0% | inside the range | yes |
-| C07 | model Fe optimum vs industrial Fe windows | space velocity | 1.024e+04 | 7600–35000 | 1/h | +0.0% | inside the range | yes |
+| C04 | model Fe optimum vs industrial Fe windows | Fe optimum separator temperature | 15 | -25–7.5 | °C | +7.5 °C | inside the range | no |
+| C05 | model Fe optimum vs industrial Fe windows | bed volume, cost-optimal designs and Fe optimum | 0.07004 | 0.03–0.09 | m3/(t/d) | +0.0% | inside the range | yes |
+| C06 | model Fe optimum vs industrial Fe windows | outlet NH3, Fe optimum | 14.93 | 10–21 | mol% | +0.0% | inside the range | yes |
+| C07 | model Fe optimum vs industrial Fe windows | space velocity | 9521 | 7600–35000 | 1/h | +0.0% | inside the range | yes |
 | C08 | staged Fe/Ru converter optima | Fe/Ru choice and staging | no | no | - | – | same decision | yes |
 | C09 | staged 90 bar KAAP-type loop | Fe/Ru choice and staging | no | yes | - | – | same decision | no |
 | C10 | staged optima across pressure | Fe/Ru choice and staging | -0.9762 | below -0.5 | - | – | below the threshold | yes |
-| C11 | supported Ru/C optimum, 0 %/y | Fe/Ru choice and staging | 105 | 89.2–137.9 | bar | +0.0% | inside the range | yes |
-| C12 | supported Ru/C vs Fe, 12 %/y | Fe/Ru choice and staging | 1.452 | above 0 | USD/t | – | above the threshold | yes |
+| C11 | supported Ru/C optimum, 0 %/y | Fe/Ru choice and staging | 100 | 89.2–137.9 | bar | +0.0% | inside the range | yes |
+| C12 | supported Ru/C vs Fe, 12 %/y | Fe/Ru choice and staging | 2.133 | above 0 | USD/t | – | above the threshold | yes |
 | V01 | BASF NH3 saturation table (Ullmann Table 5) | separator vapour NH3 | 0.6024 | 0.8–1.2 | - | −39.8% | inside the range | no |
 
 ### Supplementary Table 5a | Leave-one-out validation of the Fe terrace-to-step bridge
