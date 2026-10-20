@@ -591,7 +591,7 @@ _chi = {"NH3": float(transfer12["NH3"]["pairwise_transfer_index_chi"]),         
         "MeOH": float(transfer["MeOH"]["pairwise_transfer_index_chi"]),
         "AuTiO2": float(transfer["AuTiO2"]["pairwise_transfer_index_chi"])}
 # the transfer index is defined in the last Results subsection since 2026-10-15 (the Discussion only uses it)
-m_chi = main_section("A monotonic catalyst-to-process mapping preserves the ranking")
+m_chi = main_section("An external case: Ru against Ni in CO₂ methanation")
 tokens(
     "pairwise realized-transfer diagnostic, not forecasting criterion",
     m_chi,
