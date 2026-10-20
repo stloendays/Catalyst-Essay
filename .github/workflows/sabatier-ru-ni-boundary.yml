@@ -1,0 +1,37 @@
+name: Sabatier Ru vs Ni external boundary case
+on:
+  pull_request:
+    paths:
+      - "analysis/sabatier_ru_ni_2026_10_19/**"
+      - ".github/workflows/sabatier-ru-ni-boundary.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scientific dependencies
+        run: pip install numpy scipy pandas
+      - name: Pure-helper tests and source Table 6 reproduction
+        run: python -m unittest discover -s analysis/sabatier_ru_ni_2026_10_19 -p 'test_*.py' -v
+      - name: Rerun sweeps, boundary, leverage decomposition and 10,000-draw Monte Carlo; assert frozen hashes
+        run: python analysis/sabatier_ru_ni_2026_10_19/run_model.py --check
+      - name: Assert RESULTS.md headline numbers
+        run: python analysis/sabatier_ru_ni_2026_10_19/check_headlines.py
+      - name: Confirm no tracked frozen inputs changed
+        run: git diff --exit-code -- provenance/ data/ figures/ docs/MANUSCRIPT_MAIN_TEXT.md docs/SUPPLEMENTARY_INFORMATION.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sabatier-ru-ni-boundary
+          path: |
+            analysis/sabatier_ru_ni_2026_10_19/results/*.csv
+            analysis/sabatier_ru_ni_2026_10_19/results/summary.json
+          retention-days: 90
