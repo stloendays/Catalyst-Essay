@@ -21,8 +21,11 @@ from style import (DARK_B, DARK_G, FE, INK, OS, OTHER, PALE_B, PALE_G, RED, RU, 
 
 # Numbered in the order the manuscript first cites them (2026-10-07 restructure); the panel functions keep the
 # names of the first numbering (ed2 = bimetallic, ed4 = measured NH3, ed5 = actual Ru, ed6 = benchmark, ed7 = pruning).
+# 2026-10-21: ED Figs 8 (Au/TiO2 life channel) and 9 (Sabatier Ru vs Ni) added from ed_new_2026_10_21.py; the
+# methanol purge/inlet figure, cited only in Methods and SI, moves from 8 to 10.
 SLUGS = {1: "extraction_accuracy", 2: "bound_pruning", 3: "methanol_robustness", 4: "meoh_plant_benchmark",
-         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc", 8: "meoh_purge_inlet"}
+         5: "nh3_measured_catalysts", 6: "bimetallic_surfaces", 7: "ru_actual_mc", 8: "au_tio2_life_boundary",
+         9: "sabatier_ru_ni", 10: "meoh_purge_inlet"}
 METAL_COL = {"Ru": RU, "Fe": FE, "Co": OTHER, "Ni": PALE_G}
 
 
@@ -743,7 +746,9 @@ def ed8():
     return pg
 
 
-FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5, 8: ed8}
+import ed_new_2026_10_21 as N  # noqa: E402
+
+FIGS = {1: ed1, 2: ed7, 3: ed3, 4: ed6, 5: ed4, 6: ed2, 7: ed5, 8: N.ed_au, 9: N.ed_sab, 10: ed8}
 
 
 # ---------------------------------------------------------------------------------------------- captions
@@ -939,7 +944,7 @@ def write_captions():
     nl = e8[~np.isfinite(e8.limit)].reset_index(drop=True)
     lims = ", ".join("%g" % (100 * x) for x in co.limit)
     ints = lambda s: ", ".join("%d" % v for v in s)  # noqa: E731
-    out += ["## Extended Data Fig. 8 | Purge boundary and inlet-constrained methanol loops", "",
+    out += ["## Extended Data Fig. 10 | Purge boundary and inlet-constrained methanol loops", "",
             "**a**, Net production cost along the purge grid for each of the %d scored methanol entries in the loop "
             "without an inlet limit, relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, "
             "dashed); the grid is extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below "
@@ -990,6 +995,7 @@ def write_captions():
     for col in ("cost_recycled_opt", "cost_inert_opt"):
         fin = np.isfinite(a[col])
         assert (a.bound[fin] <= a[col][fin] * (1 + 5e-6)).all(), col
+    out += [""] + N.captions()
     head, *blocks = "\n".join(out).split("\n## Extended Data Fig. ")
     blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
     text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))
@@ -1002,7 +1008,7 @@ if __name__ == "__main__":
         pg = FIGS[n]()
         # ED Figs 3 and 8 (revised 2026-10-13) set sub- and superscripts at >= 5.3 pt; the others keep their
         # rendering until they are next revised
-        with scripts_at_least(5.3) if n in (3, 8) else contextlib.nullcontext():
+        with scripts_at_least(5.3) if n in (3, 10) else contextlib.nullcontext():
             pg.save(HERE, "EDFig%d_%s" % (n, SLUGS[n]))
     if not sys.argv[1:]:
         write_captions()
