@@ -122,7 +122,25 @@ def add_math(paragraph, latex, size=12):
     paragraph._p.append(omath(latex, size))
 
 
-def add_display_math(paragraph, latex, size=12):
+EQ_NUMBER = re.compile(r"\\qquad\s*\((\d+)\)\s*$")
+
+
+def add_display_math(paragraph, latex, size=12, text_width_cm=16.0):
+    """Display equation. A trailing "\\qquad(n)" becomes the equation number: the equation sits on a centre tab and the
+    number on a right tab, as journals typeset numbered equations."""
+    num = EQ_NUMBER.search(latex)
+    if num:
+        from docx.enum.text import WD_TAB_ALIGNMENT
+        from docx.shared import Cm, Pt
+        tabs = paragraph.paragraph_format.tab_stops
+        tabs.add_tab_stop(Cm(text_width_cm / 2), WD_TAB_ALIGNMENT.CENTER)
+        tabs.add_tab_stop(Cm(text_width_cm), WD_TAB_ALIGNMENT.RIGHT)
+        paragraph.paragraph_format.first_line_indent = Cm(0)
+        paragraph.add_run("\t")
+        paragraph._p.append(omath(latex[:num.start()], size))
+        r = paragraph.add_run(f"\t({num.group(1)})")
+        r.font.size = Pt(size)
+        return
     para = OxmlElement("m:oMathPara")
     ppr = OxmlElement("m:oMathParaPr")
     jc = OxmlElement("m:jc")
