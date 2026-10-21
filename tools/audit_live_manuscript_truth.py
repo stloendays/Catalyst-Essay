@@ -342,7 +342,7 @@ ok("NH3 equal-price counterfactual: Ru below Fe after reoptimization (source sig
    < eq["Ru_canonical"]["price_USD_kg"] < float(_swN["price_USD_kg"]))
 _pools = {k: float(r_["Ru_minus_Fe_USD_t"]) for k, r_ in dec.items() if k != "TOTAL"}
 _pos = sorted((k for k in _pools if _pools[k] > 0), key=lambda k: -_pools[k])
-tokens("NH3 cost-gap decomposition", s2, f"{gap:.3f} in total, of which fresh-feed compression contributes +{_pools['fresh_compression_electricity']:.3f}, metal inventory +{_pools['metal_inventory']:.3f} and compressor capital +{_pools['compressor_CAPEX']:.3f}")
+tokens("NH3 cost-gap decomposition", s2, f"{gap:.3f} in total, of which compression of fresh feed contributes +{_pools['fresh_compression_electricity']:.3f}, metal inventory +{_pools['metal_inventory']:.3f} and compressor capital +{_pools['compressor_CAPEX']:.3f}")
 ok("NH3 cost-gap decomposition: the pools sum to the gap; compression, metal and compressor capital carry it in that "
    "order, vessel, recycle and reactor terms offset it, and neither optimum is refrigerated",
    abs(sum(_pools.values()) - gap) < 1e-9 and abs(gap - GAP_NH3) < 1e-12
@@ -451,11 +451,11 @@ _k15 = next(r_ for r_ in strict_keys if float(r_["life_y"]) == 15 and float(r_["
 tokens("NH3 strict-scaling lifecycle closure", s3,
     f"the lowest Ru cost is {bw['Ru_best_scaling_cost_USD_t']:.3f}", f"{bw['Ru_best_scaling_EN_eV']:.3f}",
     rf"\(q^*={_q / 10 ** _qe:.4f}\times10^{{{_qe}}}\ \mathrm{{y}}^{{-1}}\)",
-    f"At {_cor['life_y']:.0f} years and {100 * _cor['recovery_fraction']:.0f}% recovery the best strict-scaling state", f"{_cor['best_E_N_eV']:.3f}",
+    f"At {_cor['life_y']:.0f} years and {100 * _cor['recovery_fraction']:.0f}% recovery the best state on the strict scaling relation", f"{_cor['best_E_N_eV']:.3f}",
     f"costs {_cor['best_strict_scaling_cost_USD_t']:.3f} US dollars per tonne, {abs(_cor['margin_vs_Fe_USD_t']):.3f} below Fe",
     f"at {float(_k15['life_y']):.0f} years {float(_k15['best_cost_USD_t']):.3f}, {abs(float(_k15['margin_vs_Fe_USD_t'])):.3f} below Fe",
     f"Parity requires {100 * _bx['required_recovery_at_20y']:.3f}% recovery at a 20-year lifetime or a {_bx['required_life_at_99pct_recovery_y']:.2f}-year lifetime at 99% recovery",
-    "Lifecycle engineering thus reaches parity inside the present scaling-constrained design space, where activity alone cannot")
+    "Lifecycle engineering thus reaches parity inside the present design space constrained by the scaling relation, where activity alone cannot")
 ok(
     "strict-scaling tested lifecycle box reaches parity (intersects the strict-scaling manifold; corner below Fe)",
     SJ["tested_lifecycle_envelope"]["intersects_strict_scaling_manifold"] is True
@@ -479,12 +479,12 @@ m_bw = main_section("Lifecycle engineering, not activity, brings Ru to parity")
 tokens("Main text: backward design, scaling reach and the lifecycle closure on the strict-scaling manifold", m_bw,
     f"Ru matches Fe only after a {bw['Ru_activity_break_even_multiplier']:.0f}-fold increase ({a['p05']:.0f}–{a['p95']:.0f}-fold, 5th–95th percentile under economic uncertainty;",
     f"at most {bw['Ru_scaling_max_gain_673K']:.2f}-fold at 673 K and {bw['Ru_scaling_max_gain_all_states']:.2f}-fold across all process conditions",
-    "the cheapest strict-scaling Ru", f"{bw['Ru_best_scaling_EN_eV']:.3f}", f"still costs {bw['Ru_best_scaling_cost_USD_t']:.2f} US dollars per tonne",
+    "the cheapest Ru on the strict scaling relation", f"{bw['Ru_best_scaling_EN_eV']:.3f}", f"still costs {bw['Ru_best_scaling_cost_USD_t']:.2f} US dollars per tonne",
     f"At 99% recovery, a 10-year catalyst life needs at most a {t10:.2f}-fold activity gain and a 20-year life none",
     f"across all {SJ['process_states']:,} process states",
     f"\\(q^*={_q / 10 ** _qe:.2f}\\times10^{{{_qe}}}\\ \\mathrm{{y}}^{{-1}}\\)",
     f"At a {_cor['life_y']:.0f}-year life parity requires {100 * _bx['required_recovery_at_20y']:.2f}% recovery",
-    f"at {100 * _cor['recovery_fraction']:.0f}% recovery the best strict-scaling state costs {_cor['best_strict_scaling_cost_USD_t']:.2f} US dollars per tonne, {abs(_cor['margin_vs_Fe_USD_t']):.2f} below Fe")
+    f"at {100 * _cor['recovery_fraction']:.0f}% recovery the best state on the strict scaling relation costs {_cor['best_strict_scaling_cost_USD_t']:.2f} US dollars per tonne, {abs(_cor['margin_vs_Fe_USD_t']):.2f} below Fe")
 
 ok("Main text: strict-scaling Ru minimum above Fe (activity alone cannot reach parity)",
    bw["Ru_best_scaling_cost_USD_t"] > m["Fe"]["feasible"]["total_cost"]
@@ -721,7 +721,7 @@ tokens(
     *[chem(x) for x in glob_below], *[chem(x) for x in anch_below],
     f"{word(len(glob_below), cap=True)} undercut Fe under the linear bridge: {chem(rg['economic_winner'])} "
     f"({rg['economic_winner_cost']:.2f} US dollars per tonne)",
-    f"{word(len(anch_below), cap=True)} do so under the element-anchored bridge",
+    f"{word(len(anch_below), cap=True)} do so under the bridge anchored to each element",
     f"ranks {ordinal(rg['upstream_winner_economic_rank'])} economically",
     f"({chem(rg['upstream_winner'])}, {rg['regret'] * 100:.1f}% regret)",
     f"{ordinal(ra['upstream_winner_economic_rank'])} ({chem(ra['upstream_winner'])}, {ra['regret'] * 100:.1f}%)",
@@ -753,7 +753,7 @@ ok("NH3 alloy: the surfaces below Fe in both bridges beat Fe in the backward tab
 claim_tokens("Main text: alloy screen, its activity leader and the lower bound",
     ("main text", m_alloy, [f"the {alloy['surfaces_fetched']:,} bimetallic and pure-metal surfaces",
     f"Of the {tm['costed']} surfaces made only of transition metals outside groups 3–5, {tm['feasible']} fit",
-    f"{word(len(glob_below))} undercut Fe when the database is bridged linearly onto the model's descriptor, {word(len(anch_below))} under an element-anchored bridge",
+    f"{word(len(glob_below))} undercut Fe when the database is bridged linearly onto the model's descriptor, {word(len(anch_below))} under a bridge anchored to each element",
     f"The most active surface, {chem(rg['upstream_winner'])}, ranks only {ordinal(rg['upstream_winner_economic_rank'])} on cost ({rg['regret'] * 100:.1f}% regret)",
     f"excludes {ext_all['pruning']['fraction_saved'] * 100:.1f}% of the {ext_all['costed']:,} priced surfaces"]),
     ("SI Notes", section("An automated agent extends the analysis to catalysts from papers and databases"),
@@ -795,7 +795,7 @@ ok("NH3 measured: without recovery exactly one Ru and one Fe catalyst undercut t
 tokens(
     "Main text: measured catalysts of the review (rate and cost uncorrelated)",
     main_section("Laboratory leaders are often not the plant-cost leaders"),
-    f"Across the {sup['primary']} catalysts of a review of ammonia-synthesis catalysts",
+    f"Across the {sup['primary']} catalysts of a review of ammonia synthesis catalysts",
     f"laboratory rate and plant cost are uncorrelated, with a Spearman ρ of {ov['spearman_rate_vs_cost']:.2f}",
     # The two below-Fe catalysts and their costs remain checked in SI Note 4; the percentage margins were removed.
 )
@@ -979,7 +979,7 @@ ok("MeOH combined ledger: identical grouping rule, every dropped group accounted
    and ppc["groups"] + grc["paper without printed values"] + grc["fewer than 2 printed entries"] == aec["groups"]
    and (ppc["groups"], ppc["entries"], ppc["papers"]) == (pl6["groups"], pl6["entries"], pl6["papers"]))
 tokens("Main text: combined comparison groups of both extractions", m_field,
-       f"{pl6['groups']} within-paper comparisons, {pl6['entries']} entries",
+       f"{pl6['groups']} comparisons within papers, {pl6['entries']} entries",
        f"in {pl6['papers']} papers")
 ok("MeOH combined set: the first extraction alone reproduces the frozen primary groups and verdicts",
    (PL6["by_set"]["first"]["groups"], PL6["by_set"]["first"]["papers"]) == (pp["groups"], pp["papers"])
@@ -1020,7 +1020,7 @@ ok(f"SI Table {LEDGER_TABLE}: verdict totals equal the combined S6/S5 primary an
        for k in ("S6_6_86pct", "S5")],
    " | ".join(_ltot[0][-4:]) if _ltot else "no total row")
 tokens("Methods: combined comparison grouping rule", supplementary_method('Methanol comparisons within papers'), "Comparison groups contain the entries of one paper at the same pressure, H₂/CO₂ ratio and space velocity (Supplementary Table 7)")
-tokens("SI Note 3: 161 -> 81 comparison groups", s8, f"{pl6['groups']} comparisons with {pl6['entries']} entries in {pl6['papers']} papers ({len(_ledger_csv)} groups with plot-read values, Supplementary Table 7)")
+tokens("SI Note 3: 161 -> 81 comparison groups", s8, f"{pl6['groups']} comparisons with {pl6['entries']} entries in {pl6['papers']} papers ({len(_ledger_csv)} groups with values read from plots, Supplementary Table 7)")
 
 # published loop designs (reactor-inlet mol% as printed in their stream tables): CO + CH4 + N2, the species the limit
 # counts, and all species other than H2 and CO2
@@ -1159,7 +1159,7 @@ _var81 = [_frac(RB["6_split"]["S6"]["combined"][b_]["disagreements"])[0] for b_ 
     int(x) for x in RB["9_plant_variants"]["combined"]["S6"].split(" ")[0].split("-")]
 claim_tokens("Main text: S6 robustness (sampling, measurement, variants)",
     ("main text", m_field, [f"{_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} persisting in at least 90% of {st6['noise_model']['draws']:,} re-measurements",
-    "every closure, price and plant-term variant tested"]),
+    "every product closure, catalyst price and variant of the plant terms we tested"]),
     ("SI Notes", s8, [f"{PL6['without_bansode']['disagreements']} of {PL6['without_bansode']['groups']}",
     f"the count stays between {int(RB['9_plant_variants']['combined']['S6'].split()[0].split('-')[0])} and {PL6['inert_co']['disagreements']} of {pl6['groups']}"]))
 tokens("SI Note 3: Measurement noise alone changes the laboratory leader", s8,
@@ -1256,7 +1256,7 @@ if all(e for _, e in _hbe):
 _other = sorted((x for r, x in zip(_pub, _cmn) if r not in (_anchor, _three)), reverse=True)
 _cmn_rng = f"{dfmt(min(_cmn), 1)}–{dfmt(max(_cmn), 1)}%"
 _nonr_rng = f"{dfmt(min(_nonr), 1)}–{dfmt(max(_nonr), 1)}%"
-tokens("SI Note 3: species counted and the published loop inlets", s8, f"CO, methane and N₂ to {pc(LIM, 2)}%", f"Industrial loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet", f"reactor-inlet CO is a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% (10th and 90th percentiles {pc(_rin['inlet_co_without_limit']['p10'], 1)}% and {pc(_rin['inlet_co_without_limit']['p90'])}%), against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in the industrial designs")
+tokens("SI Note 3: species counted and the published loop inlets", s8, f"CO, methane and N₂ at the reactor inlet to {pc(LIM, 2)}%", f"Industrial loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet", f"CO at the reactor inlet is a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% (10th and 90th percentiles {pc(_rin['inlet_co_without_limit']['p10'], 1)}% and {pc(_rin['inlet_co_without_limit']['p90'])}%), against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in the industrial designs")
 ok("MeOH S6: CO is more than 80 % of the limited inlet quantity at the limited optimum",
    _scan("frozen", "6.86")["co_fraction_of_nonreactive_median"] > 0.8)
 r1_6 = {r["threshold"]: r for r in st6["regret_threshold_curve"]}
@@ -1324,7 +1324,7 @@ tokens("Abstract headline numbers", main_section_h2("Abstract"),
        f"nor is the fastest catalyst in {NPL['mismatch']} of {NPL['groups']} ammonia comparisons "
        f"({pc(NPL['fraction'])}%)")
 tokens("Results: alloy count and field counts", text, f"{ext_all['costed']:,} priced surfaces",
-       f"ACSA extracted {fd['papers_in_set'] + fx['screening_with_si']['included']} primary ammonia-synthesis papers "
+       f"ACSA extracted {fd['papers_in_set'] + fx['screening_with_si']['included']} primary ammonia synthesis papers "
        f"(Supplementary Tables 2 and 2b)")
 tokens("Discussion: field-level shares", main_section_h2("Discussion"),
     "In a third of the methanol comparisons between catalysts and in more than a quarter of the ammonia comparisons",
@@ -1387,9 +1387,9 @@ claim_tokens("Main text: layer-wise reversal, process optimization moves the gap
     f"places parity at {float(parity['price_USD_kg']):.0f} US dollars per kilogram",
     "Process optimization cannot remove it, only move it",
     f"Ru retreats to about {ru['T_C']:.0f} °C and {ru['P_bar']:.0f} bar, where a small bed holds little metal, while Fe runs near {fe['T_C']:.0f} °C and {fe['P_bar']:.0f} bar",
-    f"the {gap:.2f} US dollars per tonne between them reappears mainly as fresh-feed compression (+{_pools['fresh_compression_electricity']:.3f}), metal inventory (+{_pools['metal_inventory']:.3f}) and compressor capital (+{_pools['compressor_CAPEX']:.3f})",
+    f"the {gap:.2f} US dollars per tonne between them reappears mainly as compression of fresh feed (+{_pools['fresh_compression_electricity']:.3f}), metal inventory (+{_pools['metal_inventory']:.3f}) and compressor capital (+{_pools['compressor_CAPEX']:.3f})",
     f"first in {100 * fe_win / len(draws):.1f}% of {len(draws):,} descriptor samples"]),
-    ("Supplementary Methods", supplementary_method("Ammonia synthesis"), [f"{_yaml_num(manifest, 'max_catalyst_bed_m3'):.0f} m³ bed-volume limit"]))
+    ("Supplementary Methods", supplementary_method("Ammonia synthesis"), [f"{_yaml_num(manifest, 'max_catalyst_bed_m3'):.0f} m³ limit on bed volume"]))
 _cmin = min(float(r["Ru_minus_Fe_USD_t"]) for r in cmc_draws)
 claim_tokens("Main text: economic Monte Carlo, Fe cheaper in every draw and the smallest difference",
     ("main text", m_feru, [f"Fe is cheaper in every one of {len(cmc_draws):,} draws of metal prices, capital cost, electricity price and catalyst lifetime"]),
@@ -1501,7 +1501,7 @@ _LC = _load_module("lifecycle_cashflow", ROOT / "analysis/nh3_ru_net_recovery_bo
 LIFE, PLANT_Y = _ynum("catalyst_life_y"), dcf["frozen_plant_years"]
 _buy, _coll = _LC.lifecycle_dates(LIFE, PLANT_Y)
 tokens("Methods: lifecycle cash-flow variant (dates and financing range)", methods,
-       f"every metal purchase (at {_and(f'{t:.0f}' for t in _buy)} years) and recovered-metal credit (at replacement and closure) at its date",
+       f"every metal purchase (at {_and(f'{t:.0f}' for t in _buy)} years) and credit for recovered metal (at replacement and closure) at its date",
        f"discounted at a metal financing rate of {pc(i_lo)}–{pc(i_hi)}% per year with Fe on the same convention",
        f"over the {PLANT_Y:.0f}-year plant life")
 ok("Methods: recovered Ru is credited at each replacement and at closure",
@@ -2210,7 +2210,7 @@ tokens("Methods semantic lock: catalyst identity and ranking over operating poin
        "What counts as a different catalyst was fixed before any comparison was counted",
        "composition (promoters and dopants included), loading of the active component, support or synthesis",
        "Entries of one sample that differ only in reaction temperature, time on stream, activation or reactor operating mode are one catalyst at different operating points",
-       "Each catalyst enters the laboratory ranking with its highest STY and the plant ranking with its lowest plant cost over its operating points",
+       "Each catalyst enters the laboratory ranking at its highest STY and the plant ranking at its lowest cost",
        "A stricter identity merges samples that differ only in synthesis")
 _activity_ratio = 10 ** (m['Ru']['activity_logTOF'] - m['Fe']['activity_logTOF'])
 _price_ratio = eq['Ru_canonical']['price_USD_kg'] / r8['price_USD_kg']
@@ -2331,14 +2331,14 @@ ok("P2 ledger: sample size, paper count, ten values per paper and accuracy recou
    and sorted(int(r['id']) for r in _p2_rows) == list(range(1, 101))
    and all(sum(r['doi'] == doi for r in _p2_rows) == 10 for doi in _p2_papers)
    and all(r['correct'] in ('True', 'False') and r['location'] in _p2_locations for r in _p2_rows)
-   and sum(map(_p2_correct, _p2_rows)) == _p2['correct'] == 99)
+   and sum(map(_p2_correct, _p2_rows)) == _p2['correct'] == 98)
 ok("P2 ledger: source-type counts and correct counts equal CSV recount",
    _p2_counts == _p2['by_source_type'] and all(r['source_type'] in _p2_types for r in _p2_rows))
 ok("P2 ledger: source-type/location counts equal CSV recount",
    _p2_loc_counts == _p2['by_source_type_and_location'])
 _p2_errors = [dict(id=int(r['id']), doi=r['doi'], note=r['note']) for r in _p2_rows if not _p2_correct(r)]
-ok("P2 ledger: the sole error is value 40 and its evidence equals the summary",
-   _p2_errors == _p2['errors'] and [r['id'] for r in _p2_errors] == [40])
+ok("P2 ledger: errors are values 40 and 99 and their evidence equals the summary",
+   _p2_errors == _p2['errors'] and [r['id'] for r in _p2_errors] == [40, 99])
 _p2_plot = {f"{source} | {field}": dict(n=int(row['n_extracted']), correct=int(row['n_correct_strict']))
             for (source, field), row in src.items()
             if source in ('plot', 'SI-plot') and field in ('X_CO2', 'S_MeOH', 'STY')}
@@ -2368,7 +2368,7 @@ for _type, _label in zip(_p2_types, _p2_labels):
        [r for r in _p2_data_rows if r[0] == _label] == [_expected])
 _p2_total_locs = [sum(v['n'] for k, v in _p2_loc_counts.items() if k.endswith(' | ' + loc))
                   for loc in _p2_locations]
-ok("SI Table 9: total row equals P2 summary (99/100)",
+ok("SI Table 9: total row equals P2 summary (98/100)",
    [r for r in _p2_data_rows if r[0] == 'Total'] ==
    [['Total', *map(str, _p2_total_locs), f"{_p2['correct']} / {_p2['values']}", f"{100 * _p2['correct'] / _p2['values']:.0f} %"]]
    and len(_p2_data_rows) == 8)
@@ -2379,29 +2379,60 @@ for _field, _label in (('X_CO2', 'CO₂ conversion'), ('S_MeOH', 'methanol selec
        [r for r in _p2_data_rows if r[0] == _label] ==
        [[_label, '', '', f"{_counts['correct']} / {_counts['n']}", f"{100 * _counts['correct'] / _counts['n']:.0f} %"]])
 
-tokens("P2 main Methods: 100 values, 99 correct and the single error's catalyst-level scope", methods,
+tokens("P2 main Methods: 100 values, 98 correct and the two errors at the catalyst level", methods,
        f"A random sample of {_p2['values']} extracted values from {_p2['papers']} papers",
-       f"Of these, {_p2['correct']} are correct, and the one error, a conversion printed for a stability test and attached to a table entry of the same catalyst, changes no catalyst-level comparison (Supplementary Table 9)")
+       f"Of these, {_p2['correct']} are correct",
+       f"The {word(len(_p2_errors))} errors",
+       "a conversion printed for a stability test and attached to a table entry of the same catalyst",
+       "a methanol formation rate recorded as STY without the paper's name for it",
+       "change no comparison at the catalyst level (Supplementary Table 9)")
 _p2_method = supplementary_method('Adaptive Catalyst Screening Agent')
 _p2_by = _p2['by_source_type']
 # Derive the prose spelling from the summary count.
-_p2_spelled_correct = {99: 'Ninety-nine'}.get(_p2['correct'], str(_p2['correct']))
-claim_tokens("P2 SI: sample composition and 99 correct match the ledger",
+_p2_spelled_correct = {98: 'Ninety-eight'}.get(_p2['correct'], str(_p2['correct']))
+claim_tokens("P2 SI: sample composition, 98 correct and both errors match the ledger",
     ("SI Note 2", s6, [f"{_p2['correct']} of {_p2['values']} sampled values are correct (Supplementary Table 9)"]),
     ("SI Methods", _p2_method, [
        f"sample of {_p2['values']} extracted values, ten from each of {_p2['papers']} papers",
        f"{_p2_by['printed, table']['n']} are printed in tables, {_p2_by['printed, text/caption']['n']} in the text or captions and {_p2_by['derived']['n']} are H₂/CO₂ ratios derived from printed feed compositions",
        "none is read off a plot" if _p2_by['plot-read']['n'] == 0 else f"{_p2_by['plot-read']['n']} are read off a plot",
-       f"{_p2_spelled_correct} are correct", "Removing it changes no catalyst-level comparison"]))
+       f"{_p2_spelled_correct} are correct", "One error is a CO₂ conversion printed for a stability test and attached to a table entry of the same catalyst",
+       "the other a methanol formation rate recorded as STY without the paper's name for it",
+       "Removing the first changes no comparison at the catalyst level",
+       "The second converts to the same STY and changes no comparison"]))
 _p2_effect = _p2['error_effect_frei_2019']['inlet_limited']
 _p2_before, _p2_after = _p2_effect['as_extracted'], _p2_effect['corrected']
 ok("P2 correction: 50 to 51 of 81 is one additional point-level disagreement",
    _p2_before['disagreements'] == pl6['disagreements'] == 50
    and _p2_before['groups'] == _p2_after['groups'] == pl6['groups'] == 81
-   and _p2_after['disagreements'] == _p2_before['disagreements'] + len(_p2_errors) == 51
+   and _p2_after['disagreements'] == _p2_before['disagreements'] + 1 == 51
    and not _p2_before['group_disagrees'] and _p2_after['group_disagrees'])
 tokens("P2 SI Methods: point-level effect equals the inlet-limited summary", _p2_method,
-       f"adds one disagreement to the point-level count of the inlet-limited loop ({_p2_after['disagreements']} instead of {_p2_before['disagreements']} of {_p2_after['groups']})")
+       f"adds one disagreement to the count at the point level for the loop with the inlet limit ({_p2_after['disagreements']} instead of {_p2_before['disagreements']} of {_p2_after['groups']})")
+
+
+# Ota #99 is a metric-name error: convert the printed rate independently and
+# compare both ledger/summary evidence and the actual pooled model input.
+_p2_ota = _p2['error_effect_ota_2012']
+_p2_ota_rows = [r for r in _p2_rows if int(r['id']) == 99]
+_p2_ota_models = [r for r in rows("analysis/meoh_field_pooled_2026_10_15/pooled_candidates.csv")
+                  if r['doi'] == '10.1016/j.jcat.2012.05.020' and r['entry'] == 'Table 2, PdMgAl']
+_p2_ota_row = _p2_ota_rows[0] if len(_p2_ota_rows) == 1 else {}
+_p2_ota_rate = re.fullmatch(r"([0-9.]+) µmol/min gcat", _p2_ota_row.get('extracted_value', ''))
+_p2_ota_sty = (float(_p2_ota_rate[1]) * 1e-6 * 32.04 * 60) if _p2_ota_rate else math.nan
+ok("P2 Ota #99: printed methanol rate converts to the pooled model STY without changing comparisons",
+   _p2_ota_row.get('doi') == '10.1016/j.jcat.2012.05.020'
+   and _p2_ota_row.get('experimental_entry') == 'Table 2, PdMgAl'
+   and _p2_ota_row.get('field') == 'STY (printed)'
+   and 'rate of methanol' in _p2_ota_row.get('precise_table_figure_location', '')
+   and _p2_ota_row.get('correct') == 'False'
+   and _p2_ota_rate is not None
+   and float(_p2_ota_rate[1]) == _p2_ota['printed_rate_umol_per_g_min'] == 0.3
+   and round(_p2_ota_sty, 6) == _p2_ota['sty_g_per_g_h'] == _p2_ota['model_sty'] == 0.000577
+   and len(_p2_ota_models) == 1
+   and round(float(_p2_ota_models[0]['STY']), 6) == _p2_ota['model_sty']
+   and abs(float(_p2_ota_models[0]['STY']) - _p2_ota_sty) < 1e-6
+   and _p2_ota['comparisons_changed'] == 0)
 
 for _path, _raw in (("docs/MANUSCRIPT_MAIN_TEXT.md (body)", _body),
                     ("docs/SUPPLEMENTARY_INFORMATION.md", raw_si),
