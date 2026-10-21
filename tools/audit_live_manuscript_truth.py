@@ -9,7 +9,8 @@ checks retain their committed sources. The 2026-10-21 manuscript revision uses m
 Fe/Ru/C rate laws inside their fitted ranges, the median disclosed lease rate, the
 conversion-raised catalyst-level methanol result, Au lifetime boundaries and external
 CO2 methanation. Numerical checks cover the main text, Supplementary Notes, Supplementary Methods
-and revised figure captions. Definitions retained in the shortened main-text Methods
+and detailed numerical figure captions. Reference order uses the short reader-facing
+captions. Definitions retained in the shortened main-text Methods
 are checked there; secondary details are anchored to their specific SI subsection. Standard library only (CI needs no project requirements).
 
 Result lines: PASS and FAIL (exit code 1). Source disagreements remain failures; the text is never edited.
@@ -499,11 +500,11 @@ m_bw = main_section("Lifecycle engineering, not activity, brings Ru to parity")
 tokens("Main text: backward design, scaling reach and the lifecycle closure on the strict-scaling manifold", m_bw,
     f"Ru matches Fe only after a {bw['Ru_activity_break_even_multiplier']:.0f}-fold increase ({a['p05']:.0f}–{a['p95']:.0f}-fold, 5th–95th percentile under economic uncertainty;",
     f"at most {bw['Ru_scaling_max_gain_673K']:.2f}-fold at 673 K and {bw['Ru_scaling_max_gain_all_states']:.2f}-fold across all process conditions",
-    f"at *E*_N = {bw['Ru_best_scaling_EN_eV']:.3f} eV, still costs {bw['Ru_best_scaling_cost_USD_t']:.2f} US dollars per tonne",
+    "the cheapest strict-scaling Ru", f"{bw['Ru_best_scaling_EN_eV']:.3f}", f"still costs {bw['Ru_best_scaling_cost_USD_t']:.2f} US dollars per tonne",
     f"At 99% recovery, a 10-year catalyst life needs at most a {t10:.2f}-fold activity gain and a 20-year life none",
     f"across all {SJ['process_states']:,} process states",
     f"\\(q^*={_q / 10 ** _qe:.2f}\\times10^{{{_qe}}}\\ \\mathrm{{y}}^{{-1}}\\)",
-    f"at a {_cor['life_y']:.0f}-year life it requires {100 * _bx['required_recovery_at_20y']:.2f}% recovery",
+    f"At a {_cor['life_y']:.0f}-year life parity requires {100 * _bx['required_recovery_at_20y']:.2f}% recovery",
     f"at {100 * _cor['recovery_fraction']:.0f}% recovery the best strict-scaling state costs {_cor['best_strict_scaling_cost_USD_t']:.2f} US dollars per tonne, {abs(_cor['margin_vs_Fe_USD_t']):.2f} below Fe")
 
 ok("Main text: strict-scaling Ru minimum above Fe (activity alone cannot reach parity)",
@@ -592,20 +593,19 @@ m_chi = main_section("An external case: Ru against Ni in CO₂ methanation")
 tokens(
     "pairwise realized-transfer diagnostic, not forecasting criterion",
     m_transfer,
-    "χ_AB",
+    "realized pairwise transfer index",
     f"{_chi['NH3']:+.3f}",
     f"{_chi['MeOH']:+.3f}",
     f"is ≈ {_chi['AuTiO2']:.2f} for Au",
-    "realized pairwise transfer index",
 )
 tokens(
     "Results: preserve source-normalized upstream advantages and downstream economic effects",
     m_transfer,
     f"have {float(transfer['AuTiO2']['upstream_metric_ratio_sA_over_sB']):.1f} times the mass activity",
     f"need {1 / float(transfer['AuTiO2']['downstream_objective_ratio_JA_over_JB']):.1f} times less catalyst",
-    f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold space-time-yield advantage comes with a "
+    f"a {float(transfer['MeOH']['upstream_metric_ratio_sA_over_sB']):.1f}-fold STY advantage comes with a "
     f"{(float(transfer['MeOH']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.1f}% higher production cost",
-    f"{float(transfer12['NH3']['upstream_metric_ratio_sA_over_sB']):.0f} times the intrinsic turnover frequency comes with a {(float(transfer12['NH3']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.0f}% higher catalyst-dependent cost",
+    f"{float(transfer12['NH3']['upstream_metric_ratio_sA_over_sB']):.0f} times the intrinsic TOF comes with a {(float(transfer12['NH3']['downstream_objective_ratio_JA_over_JB']) - 1) * 100:.0f}% higher catalyst-dependent cost",
 )
 _t12 = transfer12["NH3"]
 ok(
@@ -623,7 +623,7 @@ tokens(  # wording of the 2026-09-30 scope framing: the objective holds only cat
     "NH3 reduced-cost scope lock",
     methods,
     "the objective contains the terms that respond to catalyst identity and performance",
-    "common upstream H₂/N₂ supply contributions are held fixed",
+    "Common upstream H₂/N₂ supply contributions are held fixed",
 )
 tokens(  # the draw-level table itself is checked above ("NH3 regret MC source")
     "NH3 draw-level cost-MC reconstruction lock",
@@ -842,9 +842,9 @@ ok("NH3 measured: without recovery exactly one Ru and one Fe catalyst undercut t
    and abs(FE_SUP - m["Fe"]["feasible"]["total_cost"]) < 1e-12)
 tokens(
     "Main text: measured catalysts of the review (rate and cost uncorrelated)",
-    main_section("Published laboratory leaders are often not the plant-cost leaders"),
+    main_section("Laboratory leaders are often not the plant-cost leaders"),
     f"Across the {sup['primary']} catalysts of a review of ammonia-synthesis catalysts",
-    f"laboratory rate and plant cost are uncorrelated (Spearman ρ = {ov['spearman_rate_vs_cost']:.2f};",
+    f"laboratory rate and plant cost are uncorrelated, with a Spearman ρ of {ov['spearman_rate_vs_cost']:.2f}",
     # The two below-Fe catalysts and their 4% / 3% margins remain checked in NH3 measured catalysts (SI Note 4).
 )
 errata = rows("agent/nh3_supported/out/primary_errata.csv")
@@ -941,7 +941,7 @@ ok("NH3 pooled: the run summary equals the report numbers",
    and {k: v["groups"] for k, v in _plk.items()} == PL["kinds"]
    and abs(_pls["regret_median_mismatched"] - PL["regret_median_mismatched"]) < 1e-12)
 claim_tokens("Main text: pooled ammonia result (both batches)",
-    ("main text", main_section("Published laboratory leaders are often not the plant-cost leaders"),
+    ("main text", main_section("Laboratory leaders are often not the plant-cost leaders"),
     [f"In {PL['mismatch']} of {PL['groups']} comparisons ({pc(PL['fraction'])}%; 95% confidence interval {pc(PL['ci95'][0])}–{pc(PL['ci95'][1])}%)",
     f"{PL['regret_gt5pct']['groups']} of them by more than 5% (Fig. 2c)",
     f"{word(_pl_fe, cap=True)} times the winner is an Fe catalyst on the same support as the faster Ru",
@@ -974,7 +974,7 @@ ok("SI Table 2b: the later ammonia papers with their groups and different winner
 #   analysis/meoh_literature_inversion_2026_10_05 (frozen columns), meoh_constraint_boundary_2026_10_12 (#69),
 #   meoh_inlet_definition_2026_10_12 (#73), verify_2026_10_12_s6_conversion (#67), meoh_s6_robustness_2026_10_13 (#79).
 s8 = section("Published methanol leaderboards and plant-cost leaderboards often disagree")   # Supplementary Note 3
-m_field = main_section("Published laboratory leaders are often not the plant-cost leaders")
+m_field = main_section("Laboratory leaders are often not the plant-cost leaders")
 P0 = lit["primary"]                       # S5
 V = lit["variants"]
 S6 = V["inlet_limit_6.86pct"]             # S6
@@ -1187,7 +1187,7 @@ ok("MeOH S6 kinds recomputed from the frozen group metrics",
 lS6, lX6, lS5, lX5 = F6["leaderboard_SMeOH"], F6["leaderboard_X"], F5["leaderboard_SMeOH"], F5["leaderboard_X"]
 _qX6, _qS6, _qS5 = PL6["leaderboard_X"], PL6["leaderboard_SMeOH"], PL5["leaderboard_SMeOH"]
 tokens("Main text: other laboratory metrics (combined set, both loops)", m_field,
-       f"ranking by conversion disagrees in {_qX6['disagreements']} of {_qX6['groups']} comparisons and ranking by methanol "
+       f"Ranking by conversion disagrees in {_qX6['disagreements']} of {_qX6['groups']} comparisons and ranking by methanol "
        f"selectivity in {_qS6['disagreements']},")
 ok("MeOH combined set: conversion misses more often than STY; selectivity is the worst proxy without the limit",
    _qX6["disagreements"] > pl6["disagreements"]
@@ -1256,8 +1256,8 @@ mc6, mc5 = F6["mechanism"], F5["mechanism"]
 _none = _scan("frozen", "none")
 claim_tokens("Main text: by-product mechanism of the S6 disagreements",
     ("main text", m_field, [f"the reactor feed would carry a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% CO",
-    f"against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in published loop designs",
-    f"the plant-cost leader is the more selective catalyst in {PL6['mechanism']['plant_leader_more_selective']['count']} of the {PL6['mechanism']['disagreements']} disagreements"]),
+    f"against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in industrial loop designs",
+    f"The plant-cost leader is the more selective catalyst in {PL6['mechanism']['plant_leader_more_selective']['count']} of the {PL6['mechanism']['disagreements']} disagreements"]),
     ("SI Notes", s8, [f"makes less CO in {PL6['mechanism']['plant_leader_less_CO']['count']}"]))
 _gm40 = {r["group"] for r in rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv")}
 _ec = [r for r in rows("analysis/meoh_inlet_definition_2026_10_12/entry_costs.csv") if r["group"] in _gm40]
@@ -1277,7 +1277,7 @@ for g in _gm6:      # S6 disagreements whose STY leader is on m-ZrO2, S6 plant l
         a = next(c for c in _cand if c["group"] == g["group"] and c["catalyst"] == g["upstream_winner"])
         b = next(c for c in _cand if c["group"] == g["group"] and c["catalyst"] == g["economic_winner"])
         _ex.append((g["group"], [
-            f"on m-ZrO₂ it gives the highest space-time yield ({pc(float(a['X']), 1)}% conversion, "
+            f"On m-ZrO₂ it gives the highest STY ({pc(float(a['X']), 1)}% conversion, "
             f"{pc(float(a['SMeOH']))}% methanol selectivity, {pc(float(a['SCO']))}% CO) but needs a "
             f"{pc(float(a['purge_recycled_opt_inlet']), 1)}% purge and costs {float(a['cost_recycled_opt_inlet']):,.0f} euros per tonne",
             f"on SiO₂ ({pc(float(b['X']), 1)}% conversion, {pc(float(b['SMeOH']))}% selectivity, "
@@ -1414,7 +1414,7 @@ ok("Methods: near-infeasibility rule is the merged rule (regret > 1 or > 2x the 
 # since 2026-10-15 the abstract and Discussion lead with the inlet-limited loop (S6, approved primary) and give the
 # unlimited loop (S5) in the Discussion and Results; the alloy count is reported in the Results only
 tokens("Abstract headline numbers", main_section_h2("Abstract"),
-       f"nor is the catalyst with the highest rate in {NPL['mismatch']} of {NPL['groups']} ammonia comparisons "
+       f"nor is the fastest catalyst in {NPL['mismatch']} of {NPL['groups']} ammonia comparisons "
        f"({pc(NPL['fraction'])}%)")
 tokens("Results: alloy count and field counts", text, f"{ext_all['costed']:,} priced surfaces",
        f"ACSA extracted {fd['papers_in_set'] + fx['screening_with_si']['included']} primary ammonia-synthesis papers "
@@ -1422,7 +1422,7 @@ tokens("Results: alloy count and field counts", text, f"{ext_all['costed']:,} pr
 tokens("Discussion: field-level shares", main_section_h2("Discussion"),
     "In a third of the methanol comparisons between catalysts and in more than a quarter of the ammonia comparisons",
     "the catalyst a paper ranks first is not the one a plant would build",
-    "the temperature at which a catalyst performs best in the laboratory is usually not where a plant would run it")
+    "The temperature at which a catalyst performs best in the laboratory is usually not where a plant would run it")
 _bl = _j("analysis/validation_meoh_prospective_2026_10_13/results.json")["primary (printed, corrected)"]["S6"]
 _bls = _bl["stats"]
 ok("MeOH blind rule: the committed predictions equal the rule on every comparison of the second set",
@@ -1661,9 +1661,9 @@ tokens("SI Note 7: apparent orders of the Ru/C rate law", s2_full,
 tokens("Methods: measured rate laws and the staged converter", methods,
        f"fitted to data from {fe_irng[0]:.0f} to {fe_irng[1]:.0f} bar, with the activity factor (0.350) of the Topsoe KM1R catalyst",
        f"fitted at {ru_irng[0]:.0f}–{ru_irng[1]:.0f} bar",
-       f"the Ru/C law reproduces the {_ruv['n']} measured points of its source with a mean error of {pc(_ruv['mean_abs_rel_err'])}%",
+       f"The Ru/C law reproduces the {_ruv['n']} measured points of its source with a mean error of {pc(_ruv['mean_abs_rel_err'])}%",
        f"the fused-iron law the outlet of a commercial magnetite catalyst at 100 bar within {100 * _mp['rel_err']['Keestra KM1R_1964 vs magnetite']:.0f}%",
-       "each catalyst is optimized only over the states inside its fitted pressure range",
+       "Each catalyst is optimized only over the states inside its fitted pressure range",
        f"each bed filled with fused iron (up to {_ynum('T_max_Fe_C'):.0f} °C) or Ru/C (up to {_ynum('T_max_Ru_C'):.0f} °C, the top of its measured range)",
        f"at {_ylist('loops_bar')[0] / 10:.0f} MPa, a {_ynum('separator_C'):.0f} °C separator and {pc(_ynum('inerts_typical'))}% inerts")
 
@@ -1719,7 +1719,7 @@ _do12, _doc = _do["1.2"], _do["condition"]
 _dru, _dfe = _do12["orders"]["Ru"]["central"], _do12["orders"]["Fe"]["central"]
 _dcond = f"{_doc['P_bar']:.0f} bar, {_doc['T_C']:.0f} °C and {pc(_doc['y_NH3'])}%"
 tokens("Main text: apparent orders of the descriptor kinetics for Ru and fused iron", m_feru2,
-       f"at {_dcond} NH₃ they give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and {_dru['NH3']:+.1f} in NH₃",
+       f"At {_dcond} NH₃ they give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and {_dru['NH3']:+.1f} in NH₃",
        f"and fused iron {_dfe['NH3']:+.1f} in NH₃ against {fe_o['NH3']:.1f} measured")
 tokens("SI Note 7: apparent orders of the descriptor kinetics", s2_full,
        f"At {_dcond} NH₃ the descriptor kinetics give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and "
@@ -2100,7 +2100,7 @@ tokens("MeOH Methods: per-Re catalyst counts under both conversions", supplement
        f"({_rcat['gt5pct'] - len(_re)} above 5%",
        f"{_cc['changed'] - len(_glr)} of {_cc['groups_2plus_catalysts']} and {_cc['gt5pct'] - len(_glr)} above 5% at laboratory conversion")
 tokens("Abstract: conversion-raised methanol and ammonia field shares", main_section_h2("Abstract"),
-       f"{_rcat['changed']} of {_rcat['groups_2plus_catalysts']} methanol comparisons between catalysts ({pc(_rcat['fraction'])}%)",
+       f"{_rcat['changed']} of {_rcat['groups_2plus_catalysts']} methanol comparisons ({pc(_rcat['fraction'])}%)",
        f"{NPL['mismatch']} of {NPL['groups']} ammonia comparisons ({pc(NPL['fraction'])}%)")
 
 KC = "analysis/nh3_keestra_consolidation_2026_10_20/"
@@ -2123,12 +2123,12 @@ tokens("NH3 reference: financing rate and fitted pressure ranges in Methods", me
        f"({min(_rates):.2f}–{max(_rates):.2f}% per year",
        f"fitted to data from {fe_irng[0]:.0f} to {fe_irng[1]:.0f} bar",
        f"fitted at {ru_irng[0]:.0f}–{ru_irng[1]:.0f} bar",
-       "it is applied to Ru by analogy")
+       "It is applied to Ru by analogy")
 tokens("NH3 main: supported Ru/C savings at median lease rate", m_feru2,
        f"At that rate Ru/C is the cheaper catalyst, by {-float(_fr['benchmark_RuC_minus_Fe']):.2f} US dollars per tonne at the two catalysts' own optima and {-float(_fr['KAAP_RuC_minus_Fe']):.2f} in the KAAP-type loop")
 tokens("NH3 main: owned and supplier-lease break-even rates", m_feru2,
        f"it flips at {pc(_bes['benchmark_owned'], 2)}% per year",
-       f"or {pc(_bes['KAAP_owned'], 2)}% in a KAAP-type loop",
+       f"it flips at {pc(_bes['KAAP_owned'], 2)}%",
        f"the break-even rates are {pc(_bes['benchmark_lease_unsecured'], 2)} and {pc(_bes['KAAP_lease_unsecured'], 2)}% per year")
 tokens("NH3 Abstract and Discussion: measured Ru/C financing thresholds", main_section_h2("Abstract") + " " + discussion,
        f"undercuts fused iron whenever its Ru is financed below {pc(_bes['KAAP_owned'], 1)}–{pc(_bes['benchmark_owned'], 1)}% per year",
@@ -2252,7 +2252,7 @@ _sab = _j(SAB + 'summary.json')
 _sc, _smc = _sab['central'], _sab['monte_carlo']
 _sab_si = section('Ru against Ni in CO₂ methanation')
 tokens("Sabatier main: volume ratio, price ratio and central parity", m_chi,
-       f"Π = {_sc['Pi']:.2f} exceeds *r*_V = {_sc['r_V']:.2f}", f"below {_sc['parity_scale_mw']:.2f} MW")
+       f"{_sc['Pi']:.2f}", "exceeds", f"{_sc['r_V']:.2f}", "catalyst inventory alone favours Ni at every scale", f"below {_sc['parity_scale_mw']:.2f} MW")
 tokens("Sabatier main and SI: MC parity median and interval", m_chi + ' ' + _sab_si,
        f"median {_smc['parity_scale_median_mw']:.2f} MW",
        f"5–95% range {_smc['parity_scale_p05_mw']:.2f}–{_smc['parity_scale_p95_mw']:.1f} MW")
@@ -2279,16 +2279,17 @@ tokens("Sabatier SI: process leverage across scale and at parity", _sab_si,
        f"{(_sc['Pi'] / _sc['r_V'] - 1):.2f} at the parity scale",
        f"{_phi10:.2f} at 10 MW", f"{_sc['phi_proc_100MW']:.3f} at 100 MW")
 
-# Captions are part of the live scientific claim, and use their new figure locations.
+# Numerical caption claims live in the detailed captions. Reference-order checks above
+# deliberately continue to read the short, reader-facing captions.
 def _caption(path, heading):
     raw = (ROOT / path).read_text(encoding="utf-8")
     marker = "## " + heading + " |"
     return _block(raw, raw.index(marker), marker).replace("**", "")
 
-_f5 = _caption("docs/MAIN_FIGURE_CAPTIONS.md", "Figure 5")
-_ed7 = _caption("figures/extended_data/ED_CAPTIONS.md", "Extended Data Fig. 7")
-_ed8 = _caption("figures/extended_data/ED_CAPTIONS.md", "Extended Data Fig. 8")
-_ed9 = _caption("figures/extended_data/ED_CAPTIONS.md", "Extended Data Fig. 9")
+_f5 = _caption("docs/MAIN_FIGURE_CAPTIONS_DETAILED_2026-10-21.md", "Figure 5")
+_ed7 = _caption("figures/extended_data/ED_CAPTIONS_DETAILED.md", "Extended Data Fig. 7")
+_ed8 = _caption("figures/extended_data/ED_CAPTIONS_DETAILED.md", "Extended Data Fig. 8")
+_ed9 = _caption("figures/extended_data/ED_CAPTIONS_DETAILED.md", "Extended Data Fig. 9")
 tokens("Figure 5: owned break-evens and median-rate savings", _f5,
        f"{pc(_bes['KAAP_owned'], 2)} and {pc(_bes['benchmark_owned'], 2)}% per year",
        f"{_rate:.2f}% per year",
@@ -2351,25 +2352,61 @@ ok("Figure 5: reference-rate bed volumes from repriced measured design library",
 tokens("Methods semantic lock: plant-level optimum and candidate-specific operating point", methods,
        "The plant-level optimum of a set of catalysts is the catalyst with the lowest value of its system's objective under the stated process and economic conditions",
        "each catalyst at the operating point that minimizes the objective",
-       "The plant-cost leader of a published comparison is its plant-level optimum")
+       "The plant-cost leader of a comparison is its plant-level optimum")
 tokens("Methods semantic lock: catalyst identity and ranking over operating points", main_section("CO₂-to-methanol"),
        "What counts as a different catalyst was fixed before any comparison was counted",
        "composition (promoters and dopants included), loading of the active component, support or synthesis",
-       "entries of one sample that differ only in reaction temperature, time on stream, activation or reactor operating mode are one catalyst at different operating points",
-       "Each catalyst enters the laboratory ranking with its highest space-time yield and the plant ranking with its lowest plant cost over its operating points",
-       "a stricter identity merges samples that differ only in synthesis")
+       "Entries of one sample that differ only in reaction temperature, time on stream, activation or reactor operating mode are one catalyst at different operating points",
+       "Each catalyst enters the laboratory ranking with its highest STY and the plant ranking with its lowest plant cost over its operating points",
+       "A stricter identity merges samples that differ only in synthesis")
 _activity_ratio = 10 ** (m['Ru']['activity_logTOF'] - m['Fe']['activity_logTOF'])
 _price_ratio = eq['Ru_canonical']['price_USD_kg'] / r8['price_USD_kg']
 tokens("NH3 main: intrinsic turnover and metal-price ratios", main_section("The most active ammonia catalyst is not the cheapest to run"),
        f"Ru turns over {_activity_ratio:.0f} times faster than Fe and costs {_price_ratio:,.0f} times more per kilogram")
 ok("MeOH main: third-to-two-fifths range is the two model treatments, not a confidence interval",
-   "between a third and two-fifths" in m_field
+   "Between a third and two-fifths" in m_field
    and pc(_rcat['fraction']) == "33" and pc(_cc['fraction']) == "41"
    and _rcat['groups_2plus_catalysts'] == _cc['groups_2plus_catalysts']
    and f"at {pc(_rcat['fraction'])}–{pc(_cc['fraction'])}%" in s8
    and "this range spans two model treatments and is not a confidence interval" in s8,
    f"source fractions {_rcat['changed']}/{_rcat['groups_2plus_catalysts']} ({pc(_rcat['fraction'], 1)}%) and "
    f"{_cc['changed']}/{_cc['groups_2plus_catalysts']} ({pc(_cc['fraction'], 1)}%)")
+
+# ----- Author-requested prose checks (2026-10-21) -------------------------------
+def _outside_parentheses_semicolons(body):
+    """Report prose semicolons, retaining citation separators and Markdown tables."""
+    depth = 0
+    locations = []
+    for line_number, line in enumerate(body.splitlines(), 1):
+        if line.lstrip().startswith("|"):
+            continue
+        for column, char in enumerate(line, 1):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth = max(0, depth - 1)
+            elif char == ";" and depth == 0:
+                locations.append(f"{line_number}:{column}")
+    return locations
+
+
+_semicolons = _outside_parentheses_semicolons(_body)
+ok("Main prose: no sentence-joining semicolons outside parentheses and tables",
+   not _semicolons, "line:column " + ", ".join(_semicolons) if _semicolons else "")
+_intro = main_section_h2("Introduction")
+for _abbr, _expanded in (("STY", "space-time yield"), ("TOF", "turnover frequency")):
+    _definition = re.compile(r"\b" + re.escape(_expanded) + r"\s*\(" + _abbr + r"\)")
+    _definitions = list(_definition.finditer(_body))
+    _first_use = re.search(r"\b" + _abbr + r"\b", _body)
+    ok(f"Main body: {_abbr} defined once in Introduction before abbreviated use",
+       len(_definitions) == 1 and bool(_definition.search(_intro))
+       and _first_use is not None
+       and _definitions[0].start() < _first_use.start() < _definitions[0].end(),
+       f"{len(_definitions)} definitions; first abbreviation must be in its definition")
+ok("Main text and SI: no institutional library wording",
+   "institutional library" not in text.casefold()
+   and "institutional library" not in re.sub(r"\s+", " ", raw_si).casefold())
+
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]

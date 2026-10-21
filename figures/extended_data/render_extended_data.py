@@ -1001,7 +1001,10 @@ def write_captions():
     blocks = [b for b in blocks if not b.startswith("7 | Fe against the actual Ru catalyst")]
     blocks.sort(key=lambda b: int(b.split(" ", 1)[0]))
     text = re.sub(r"(?<=[\s(])-(?=\d)", "−", "\n## Extended Data Fig. ".join([head] + blocks))
-    open(os.path.join(HERE, "ED_CAPTIONS.md"), "w", encoding="utf-8").write(text)
+    # 2026-10-21: the numbered, source-linked captions are provenance; the reader-facing captions are short
+    open(os.path.join(HERE, "ED_CAPTIONS_DETAILED.md"), "w", encoding="utf-8").write(text)
+    import ed_captions_short as S  # noqa: E402
+    open(os.path.join(HERE, "ED_CAPTIONS.md"), "w", encoding="utf-8").write(S.text())
     print("wrote ED_CAPTIONS.md")
 
 if __name__ == "__main__":
