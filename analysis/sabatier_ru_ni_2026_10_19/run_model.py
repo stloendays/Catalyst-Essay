@@ -37,6 +37,17 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _sig(o):
+    """Round every finite float in a JSON-able structure to FLOAT_FMT significant digits."""
+    if isinstance(o, float):
+        return float(FLOAT_FMT % o) if o == o and abs(o) != float("inf") else o
+    if isinstance(o, dict):
+        return {k: _sig(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_sig(v) for v in o]
+    return o
+
+
 def write_csv(df: pd.DataFrame, name: str) -> Path:
     path = RESULTS / name
     df.to_csv(path, index=False, float_format=FLOAT_FMT, lineterminator="\n")
@@ -209,7 +220,10 @@ def main(check: bool) -> int:
     paths = [write_csv(sweep, "central_sweep.csv"), write_csv(grid, "price_scale_grid.csv"), write_csv(bnd, "boundary_curve.csv"),
              write_csv(lev, "leverage_decomposition.csv"), write_csv(scen, "scenarios.csv"), write_csv(mc_sum, "mc_summary.csv"),
              write_csv(mc_draws, "mc_draws.csv"), write_csv(kin, "kinetic_crosscheck.csv")]
-    sp = RESULTS / "summary.json"; sp.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n"); paths.append(sp)
+    # floats at the CSV precision (FLOAT_FMT): the full-precision repr differs in the last bit across platforms;
+    # bytes are written with LF on every OS so that FROZEN_HASHES.json holds on Linux CI and Windows alike
+    sp = RESULTS / "summary.json"; sp.write_bytes((json.dumps(_sig(summary), indent=2, sort_keys=True) + "\n").encode())
+    paths.append(sp)
     hashes = {p.relative_to(HERE).as_posix(): sha256(p) for p in paths}
 
     hp = HERE / "FROZEN_HASHES.json"
@@ -220,7 +234,7 @@ def main(check: bool) -> int:
             print("HASH MISMATCH:", json.dumps(bad, indent=1)); return 1
         print("All", len(hashes), "result files reproduce their frozen SHA-256.")
     else:
-        hp.write_text(json.dumps(hashes, indent=2, sort_keys=True) + "\n")
+        hp.write_bytes((json.dumps(hashes, indent=2, sort_keys=True) + "\n").encode())
     print(json.dumps(summary["central"], indent=1)); print(json.dumps(summary["monte_carlo"]["p_ru_cheaper_by_scale"])); print(summary["hypotheses"])
     return 0
 
