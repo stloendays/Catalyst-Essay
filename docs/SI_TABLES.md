@@ -182,7 +182,7 @@ Layers are cumulative. Feasible, inside the 90 m³ bed limit. Surfaces below Fe 
 
 | Layer | Costed | Feasible, global | Feasible, anchored | Below Fe, global bridge | Below Fe, element-anchored bridge | Pruned | False prunes |
 |---|---|---|---|---|---|---|---|
-| Frozen 15-metal prices only | 309 | 113 | 121 | 7: Fe3Mo, Ni3W, Fe3W, Cu3Mo, Co3Mo, Co3W, Ni3Mo | 8: Cu3Mo 10.28, CuMo 10.44, MoNi 10.47, CoMo 10.81, CoW 11.00, Fe3Mo 11.07, Ni3W 11.09, Fe3W 11.15 | 244 (79.0 %) | 0 |
+| 15 model metals priced | 309 | 113 | 121 | 7: Fe3Mo, Ni3W, Fe3W, Cu3Mo, Co3Mo, Co3W, Ni3Mo | 8: Cu3Mo 10.28, CuMo 10.44, MoNi 10.47, CoMo 10.81, CoW 11.00, Fe3Mo 11.07, Ni3W 11.09, Fe3W 11.15 | 244 (79.0 %) | 0 |
 | Transition metals (no sp metal, no group 3–5 element) | 372 | 137 | 144 | 8: Cu3Cr, Fe3Mo, Ni3W, Fe3W, Cu3Mo, Co3Mo, Co3W, Ni3Mo | 9: Cu3Cr 10.13, Cu3Mo 10.28, CuMo 10.44, MoNi 10.47, CoMo 10.81, CoW 11.00, Fe3Mo 11.07, Ni3W 11.09, Fe3W 11.15 | 290 (78.0 %) | 0 |
 | + group 3–5 elements | 912 | 222 | 232 | 18: Cu3V, Fe3V, Cu3Cr, Fe3Mo, Cu3Nb, Fe3Ti, Fe3Nb, Cu3Ta, Fe3La, Cu3La, Ni3W, Fe3W, Cu3Mo, Co3Zr, Fe3Zr, Co3Mo, Co3W, Ni3Mo | 20: Fe3Ti 9.98, Fe3Zr 10.02, Cu3V 10.03, Fe3V 10.05, Fe3La 10.08, Fe3Y 10.11, Cu3Cr 10.13, Fe3Nb 10.16, Cu3Nb 10.24, Cu3Mo 10.28, CuMo 10.44, MoNi 10.47, Fe3Ta 10.79, Cu3Ta 10.80, CoMo 10.81, Cu3La 10.84, CoW 11.00, Fe3Mo 11.07, Ni3W 11.09, Fe3W 11.15 | 774 (84.9 %) | 0 |
 | + sp metals (all priced surfaces) | 1,695 | 406 | 421 | 74: Al3Ti, Al3Cu, AlCr, Al, Al3Zr, Al3La, Al3Y, Zn3V, CrZn, Cu3V, Al3Pb, Zn3Nb, Fe3V, Cu3Cr, Cd3V, Al3Ni, Fe3Mo, SnTi, Cu3Nb, Fe3Ti, Cr3Pb, AlMo, Al3Bi, Al3Cd, Cd3Mo, LaSn, SnY, Zn3Mo, Fe3Nb, CdMo, PbY, SnZr, Cd3Cr, MoZn, Cd3Nb, Zn3Cr, Al3In, CrSn, NbSn, BiV, HgY, Cu3Ta, Fe3La, Cu3La, Ni3W, Al3Sn, Pb3Cr, NbPb, Fe3W, Cu3Mo, BiZr, Co3Zr, Bi3Nb, CrPb, Al3Ta, Hg3W, Fe3Zr, BiLa, InNb, Co3Mo, Zn3Ti, BiNb, Sn3W, LaPb, GaNb, BiTi, Co3W, Pb3Nb, GaV, Fe3Al, BiY, PbTi, Ni3Mo, Fe3Zn | 79: Al3Ti 9.41, Al3Cu 9.51, AlCr 9.71, Al 9.72, Al3Zr 9.72, Al3La 9.73, Al3Y 9.80, Zn3V 9.93, CrZn 9.97, Fe3Ti 9.98, Fe3Zr 10.02, Cu3V 10.03, Al3Pb 10.04, Fe3V 10.05, Zn3Nb 10.06, Fe3La 10.08, Fe3Y 10.11, Cu3Cr 10.13, Cd3V 10.14, Al3Ni 10.14, Fe3Nb 10.16, SnTi 10.22, Cu3Nb 10.24, Cu3Mo 10.28, Cr3Pb 10.29, Al3Bi 10.35, Al3Cd 10.35, Cd3Mo 10.37, LaSn 10.41, CuMo 10.44, SnY 10.46, MoNi 10.47, PbY 10.49, SnZr 10.51, Cd3Cr 10.56, Cd3Nb 10.64, Zn3Cr 10.65, Al3In 10.68, Mo3Pb 10.69, Mo3Sn 10.70, CrSn 10.76, NbSn 10.76, BiV 10.77, Fe3Ta 10.79, HgY 10.80, Cu3Ta 10.80, CoMo 10.81, Zn3Mo 10.83, Cu3La 10.84, AlMo 10.86, Al3Sn 10.87, CdMo 10.88, Pb3Cr 10.91, NbPb 10.92, Zn3W 10.94, AlW 10.94, BiZr 10.99, CoW 11.00, Bi3Nb 11.01, CrPb 11.04, Al3Ta 11.06, Fe3Mo 11.07, Ni3W 11.09, BiLa 11.13, InNb 11.13, Fe3W 11.15, Zn3Ti 11.16, WZn 11.16, BiW 11.16, BiNb 11.18, MoZn 11.18, LaPb 11.20, Hg3W 11.22, GaNb 11.26, BiTi 11.30, Pb3Nb 11.33, GaV 11.35, BiY 11.41, PbTi 11.45 | 1,399 (82.5 %) | 0 |
@@ -466,7 +466,7 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 |  | ACC | 37.08 | 35.6 | 4.1 % | Table 7 | – |
 |  | TOTAL | 881.8 | 871.2 | 1.2 % | Table 7 (text 868) | – |
 |  | TOTAL with catalyst term | 873.5 | 871.2 | 0.3 % | Table 7 | – |
-|  | saving vs one-step | 41.87 | 52.76 | −20.6 % | Table 7 | catalyst halved: 7.5 EUR/t in the reference, constant in the canonical model |
+|  | saving vs one-step | 41.87 | 52.76 | −20.6 % | Table 7 | catalyst halved: 7.5 EUR/t in the reference, constant in the model |
 |  | saving vs one-step, with catalyst term | 50.16 | 52.76 | −4.9 % | Table 7 | – |
 |  | recycle (kmol/h) | 20,950 | 22,580 | −7.2 % | Table 6 | – |
 |  | purge (kmol/h) | 427.6 | 456 | −6.2 % | SI Table S11 | – |
@@ -478,7 +478,7 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 |  | residual direct + 10 % of NPC (anchor convention) | 126.2 | 0 | – | no such terms in the reference | common to every catalyst |
 |  | TOTAL, anchor convention | 841.4 | 723.6 | 16.3 % | NPV = 0 breakeven price (Table 5) | – |
 |  | TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP) | 706.1 | 723.6 | −2.4 % | Table 5 | – |
-|  | TOTAL, like-for-like, catalyst in residual (canonical) | 696.5 | 723.6 | −3.7 % | Table 5 | – |
+|  | TOTAL, like-for-like, catalyst in residual | 696.5 | 723.6 | −3.7 % | Table 5 | – |
 | B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t) | H2 (electrolysis electricity) | 619.1 | 616.9 | 0.4 % | 92 % of VOC is electricity | Szima VOC electricity also nets the 0.79 MW surplus |
 |  | CO2 | −14.07 | −14.1 | −0.2 % | ETS credit 0.01 EUR/kg x 1.41 t/t (revenue) | – |
 |  | catalyst | 33.5 | 33.52 | −0.1 % | 5 % of VOC | charge matched by construction |
@@ -519,7 +519,7 @@ Groups whose STY leader is not the plant-cost leader, papers affected, pairwise 
 
 | Plant terms changed | Different winner | Papers | Inversions | Median regret | Flags changed | Winners changed |
 |---|---|---|---|---|---|---|
-| frozen model | 15/40 | 9 | 304/1997 | 3.5 % | 0 | 0 |
+| baseline | 15/40 | 9 | 304/1997 | 3.5 % | 0 | 0 |
 | catalyst 18.1 €/kg replaced every 3 y | 14/40 | 8 | 252/1997 | 3.0 % | 1 | 5 |
 | catalyst 18.1 €/kg replaced every 5 y | 14/40 | 8 | 272/1997 | 3.3 % | 1 | 3 |
 | loop ΔP 3.75 bar | 15/40 | 9 | 304/1997 | 3.6 % | 0 | 0 |
@@ -759,3 +759,18 @@ Definition, the printed STY differs from the value the dataset derives from yiel
 | TheMeCat v1 | Wang 2017, Sci. Adv. | 10.1126/sciadv.1701290 | 5 | – |
 | TheMeCat v1 | Zaman 2023, Fuel | 10.1016/j.fuel.2023.127927 | 2 | 3 |
 | TheMeCat v1 | Zhang 2017, J. CO2 Util. | 10.1016/j.jcou.2016.11.015 | 8 | – |
+
+### Supplementary Table 9 | Source types and accuracy of 100 sampled extracted values
+
+Ten values from each of 10 methanol papers, checked against the paper and its Supporting Information. A value is correct when its number and qualifier agree with the paper and it belongs to an entry the paper reports it for. The one error is a CO₂ conversion printed for a stability test and attached to a table entry of the same catalyst. The sample contains no plot readings, so plot-read accuracy is given from the comparison with the curated datasets at strict tolerance. Plot readings enter only sensitivity analyses.
+
+| Source type | Main text | Supporting Information | Correct | Accuracy |
+|---|---|---|---|---|
+| Printed, table | 20 | 38 | 58 / 58 | 100 % |
+| Printed, text or caption | 30 | 6 | 35 / 36 | 97 % |
+| Derived from printed numbers | 4 | 2 | 6 / 6 | 100 % |
+| Read off a plot | 0 | 0 | – | – |
+| **Total** | 54 | 46 | **99 / 100** | 99 % |
+| Read off a plot, CO₂ conversion (against curated data) |  |  | 185 / 229 | 81 % |
+| Read off a plot, methanol selectivity (against curated data) |  |  | 73 / 207 | 35 % |
+| Read off a plot, STY (against curated data) |  |  | 18 / 151 | 12 % |

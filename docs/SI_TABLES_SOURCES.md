@@ -77,3 +77,7 @@ One row per source paper with a confirmed error. A root cause is one mechanism i
 ### Supplementary Table 8b | Differences of definition and minor differences, not counted as errors
 
 Differences between curated and printed values that are not errors of the curated data. Definition: the paper's printed STY differs from the STY that TheMeCat derives from yield and GHSV, or the paper prints STY on bases it does not reconcile (10.1021/acsami.1c05586). Minor: at most 2 % and at most one unit of the last printed digit. Total: definition 139 cells, minor 13 cells. The printed values are used for scoring in both cases.
+
+### Supplementary Table 9 | Source types and accuracy of 100 sampled extracted values
+
+From `analysis/extraction_ledger_2026_10_21/summary.json` and `analysis/extraction_ledger_2026_10_21/ledger_100.csv` (one row per value), built by `analysis/extraction_ledger_2026_10_21/build_ledger.py` from the source evidence of the 100-value sample. The one error, #40 (10.1038/s41467-019-11349-9): conversion printed for the 500 h stability test (text, Fig. 6) attached to the Table 2 entry; Table 2 has no conversion column. Removing it changes no catalyst-level comparison; the point-level count of the inlet-limited loop goes from 50 to 51 of 81. Plot-read rows: strict tolerance against the curated datasets (`agent/extraction/eval/field_accuracy_by_source.csv`, main-text and SI plots pooled).

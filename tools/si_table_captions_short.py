@@ -68,4 +68,9 @@ SHORT = {
     "8b": "Definition, the printed STY differs from the value the dataset derives from yield and space velocity, or "
           "the paper prints STY on bases it does not reconcile. Minor, at most 2% and at most one unit of the last "
           "printed digit. The printed values are used for scoring.",
+    "9": "Ten values from each of 10 methanol papers, checked against the paper and its Supporting Information. A "
+         "value is correct when its number and qualifier agree with the paper and it belongs to an entry the paper "
+         "reports it for. The one error is a CO₂ conversion printed for a stability test and attached to a table "
+         "entry of the same catalyst. The sample contains no plot readings, so plot-read accuracy is given from the "
+         "comparison with the curated datasets at strict tolerance. Plot readings enter only sensitivity analyses.",
 }

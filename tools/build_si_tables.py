@@ -95,11 +95,17 @@ def table(header, rows):
 
 
 DETAILED = []  # (number, title, source-linked caption), written to OUT_SOURCES
+# development labels that reach table cells from the source files; reader-facing tables drop them
+READER = {"constant in the canonical model": "constant in the model",
+          "catalyst in residual (canonical)": "catalyst in residual"}
 
 
 def block(n, title, caption, header, rows):
     DETAILED.append((n, title, caption))
-    return f"### Supplementary Table {n} | {title}\n\n{SHORT_CAPTIONS[str(n)]}\n\n{table(header, rows)}\n"
+    body = table(header, rows)
+    for a, b in READER.items():
+        body = body.replace(a, b)
+    return f"### Supplementary Table {n} | {title}\n\n{SHORT_CAPTIONS[str(n)]}\n\n{body}\n"
 
 
 # ---- paper sets and Crossref metadata ------------------------------------------------------------------------
@@ -427,7 +433,7 @@ def table3():
     rows = []
     sens = json.loads((BENCH / "sensitivity_summary.json").read_text(encoding="utf-8"))
     for v in sens["variants"].values():
-        knobs = "; ".join(KNOBS[k](x) for k, x in v["knobs"].items()) or "frozen model"
+        knobs = "; ".join(KNOBS[k](x) for k, x in v["knobs"].items()) or "baseline"
         rows.append([knobs, f"{v['top1_mismatch_groups']}/{v['groups']}", num(v["papers_with_mismatch"]),
                      v["pairwise_inversions"], num(100 * v["regret_median_mismatched"], 1) + " %",
                      num(v["groups_flipped_vs_baseline"]), num(v["groups_economic_winner_changed"])])
@@ -448,7 +454,7 @@ def table3():
 def table4():
     s = json.loads((ALLOY_OUT / "summary.json").read_text(encoding="utf-8"))
     states = json.loads((NH3_RUN / "results.json").read_text(encoding="utf-8"))["deterministic"]["process_state_count"]
-    layers = [("Frozen 15-metal prices only", s),
+    layers = [("15 model metals priced", s),
               ("Transition metals (no sp metal, no group 3–5 element)", s["extended_excluding_sp_and_group3to5"]),
               ("+ group 3–5 elements", s["extended_transition_metals_only"]),
               ("+ sp metals (all priced surfaces)", s["extended_with_usgs_prices"])]
@@ -930,6 +936,40 @@ def table7(cr, fms):
     return "\n".join(out)
 
 
+# ---- Supplementary Table 9: source types of the 100 sampled extracted values ----------------------------------
+LEDGER100 = ROOT / "analysis/extraction_ledger_2026_10_21"
+
+
+def table9():
+    s = json.loads((LEDGER100 / "summary.json").read_text(encoding="utf-8"))
+    loc = s["by_source_type_and_location"]
+    pct_ = lambda c, n: f"{100 * c / n:.0f} %" if n else "–"       # noqa: E731
+    rows = []
+    for t, label in (("printed, table", "Printed, table"), ("printed, text/caption", "Printed, text or caption"),
+                     ("derived", "Derived from printed numbers"), ("plot-read", "Read off a plot")):
+        m, si = loc.get(f"{t} | main text", {"n": 0, "correct": 0}), loc.get(f"{t} | Supporting Information",
+                                                                             {"n": 0, "correct": 0})
+        n, c = s["by_source_type"][t]["n"], s["by_source_type"][t]["correct"]
+        rows.append([label, num(m["n"]), num(si["n"]), f"{c} / {n}" if n else "–", pct_(c, n)])
+    rows.append(["**Total**", num(sum(v["n"] for k, v in loc.items() if k.endswith("main text"))),
+                 num(sum(v["n"] for k, v in loc.items() if k.endswith("Information"))),
+                 f"**{s['correct']} / {s['values']}**", pct_(s["correct"], s["values"])])
+    for f, label in (("X_CO2", "CO₂ conversion"), ("S_MeOH", "methanol selectivity"), ("STY", "STY")):
+        p = s["plot_read_vs_curated"]["pooled"][f]
+        rows.append([f"Read off a plot, {label} (against curated data)", "", "", f"{p['correct']} / {p['n']}",
+                     pct_(p["correct"], p["n"])])
+    e = s["error_effect_frei_2019"]["inlet_limited"]
+    cap = (f"From {rel(LEDGER100 / 'summary.json')} and {rel(LEDGER100 / 'ledger_100.csv')} (one row per value), "
+           f"built by {rel(LEDGER100 / 'build_ledger.py')} from the source evidence of the 100-value sample. The one "
+           f"error, #{s['errors'][0]['id']} ({s['errors'][0]['doi']}): {s['errors'][0]['note']}. Removing it changes no "
+           f"catalyst-level comparison; the point-level count of the inlet-limited loop goes from "
+           f"{e['as_extracted']['disagreements']} to {e['corrected']['disagreements']} of {e['corrected']['groups']}. "
+           f"Plot-read rows: strict tolerance against the curated datasets "
+           f"({rel(EX / 'eval/field_accuracy_by_source.csv')}, main-text and SI plots pooled).")
+    return block(9, "Source types and accuracy of 100 sampled extracted values", cap,
+                 ["Source type", "Main text", "Supporting Information", "Correct", "Accuracy"], rows)
+
+
 # ---- main ---------------------------------------------------------------------------------------------------
 def main():
     refresh = "--refresh" in sys.argv
@@ -941,7 +981,7 @@ def main():
              "<!-- Generated by tools/build_si_tables.py from the repository files named in docs/SI_TABLES_SOURCES.md; do not edit "
              "by hand. -->", "",
              table1(cr), table1b(cr), table2(cr), table2b(cr), table4(), table_nh3_benchmark(), table5(), table3(), table_ledger(cr, {**fm_ex, **manifest(VAL / "fetch_manifest.json")}),
-             table7(cr, (fm_ex, fm_nf))]
+             table7(cr, (fm_ex, fm_nf)), table9()]
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")
     src = ["# Supplementary Tables: sources", "",
