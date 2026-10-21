@@ -42,3 +42,17 @@ extra in 74 of the 82 (median 78 %). Strict identity: 74 of 102. Conversion rais
 - `groups_catalyst_level.csv`, `groups_catalyst_level_strict.csv`: per group, leaders and cost gap.
 - `catalysts_temperature.csv`: per catalyst with ≥ 2 temperatures, laboratory-best and plant-best temperature.
 - `summary.json`: all counts, including the conversion-raised variants.
+
+## Inlet-limit scan between catalysts (2026-10-21)
+
+The catalyst-level count under other inlet limits of CO, methane and N2, same rules and code as run_catalyst_level.py.
+
+| Inlet limit | 4% | 5% | 6.86% | 8% | 10% | none |
+|---|---|---|---|---|---|---|
+| more catalyst loaded (f = 0.95) | 29/62 | 25/62 | 21/63 | 19/63 | 15/63 | 8/63 |
+| laboratory conversion | 31/62 | 28/62 | 26/63 | 25/63 | 23/63 | 16/63 |
+
+- run_limit_scan.py -> summary_limit_scan.json: laboratory conversion, from the pooled cost_recycled_opt_lim* columns (4–30% and none).
+- run_no_limit.py -> summary_no_limit.json, groups_catalyst_level_no_limit.csv: the loop without the limit, laboratory and raised conversion (conversion_s5 points).
+- run_raised_limit_scan.py -> summary_raised_limit_scan.json, raised_limit_scan_points_*.csv: raised conversion re-costed at each limit
+  (run_s6_conversion.evaluate with the limit passed explicitly; each limit reproduces the pooled laboratory cost column, and 6.86% reproduces 21/63). About 18 min per limit with 6 workers.

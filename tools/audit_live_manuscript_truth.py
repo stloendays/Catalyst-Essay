@@ -900,7 +900,7 @@ claim_tokens("Main text: pooled ammonia result (both batches)",
     [f"In {PL['mismatch']} of {PL['groups']} comparisons ({pc(PL['fraction'])}%; 95% confidence interval {pc(PL['ci95'][0])}–{pc(PL['ci95'][1])}%)",
     f"{PL['regret_gt5pct']['groups']} of them by more than 5% (Fig. 2c)",
     f"{word(_pl_fe, cap=True)} times the winner is an Fe catalyst on the same support as the faster Ru",
-    f"{word(_plk['fused-Fe reference vs supported catalyst']['groups'])} times a commercial fused-iron catalyst"]),
+    f"{word(_plk['fused-Fe reference vs supported catalyst']['groups'], cap=True)} times it is the commercial fused-iron catalyst that the authors included as a reference and that their new catalyst outperformed in the laboratory, and the plant would keep the benchmark"]),
     ("SI Notes", s9, [f"{PL['groups']} comparisons in {PL['papers']} papers",
     "Ranking by rate per gram of metal gives " + f"{PLV['per_g_metal_leaderboard']['mismatch']} of {PLV['per_g_metal_leaderboard']['groups']}"]))
 tokens("Methods: second batch of ammonia papers", supplementary_method('Measured ammonia catalysts'), f"a further {fx['screening_with_si']['included']} of {fx['screening']['screened']} papers screened under a protocol fixed before extraction (Supplementary Table 2b)", f"({NPL['entries']} entries in {NPL['groups']} groups)")
@@ -1064,7 +1064,7 @@ claim_tokens("Main text: methanol field result, inlet-limited loop (S6) primary 
     ("main text", m_field, [f"at most {pc(LIM, 2)}% CO, methane and N₂, the limit of the loop that anchors the cost model",
     f"differ in {pl6['disagreements']} of {pl6['groups']} comparisons",
     f"Without the limit the leaders differ in only {pl5['disagreements']} of {pl5['groups']} comparisons",
-    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]}, so it is CO build-up"]),
+    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]}.", "It is CO build-up"]),
     ("SI Notes", s8, [f"{lit['candidates']} operating points", f"from {lit['papers_with_candidates']} papers",
     f"and {PL['sets']['second']['operating_points']} from {PL['sets']['second']['papers']} of",
     f"{pl6['groups']} comparisons with {pl6['entries']} entries in {pl6['papers']} papers",
@@ -1345,7 +1345,7 @@ tokens("Results: alloy count and field counts", text, f"{ext_all['costed']:,} pr
        f"(Supplementary Tables 2 and 2b)")
 tokens("Discussion: field-level shares", main_section_h2("Discussion"),
     "In a third of the methanol comparisons between catalysts and in more than a quarter of the ammonia comparisons",
-    "the catalyst a paper ranks first is not the one a plant would build",
+    "the catalyst that a paper's own data rank first is not the one a plant would build",
     "The temperature at which a catalyst performs best in the laboratory is usually not where a plant would run it")
 _bl = _j("analysis/validation_meoh_prospective_2026_10_13/results.json")["primary (printed, corrected)"]["S6"]
 _bls = _bl["stats"]
@@ -2472,12 +2472,22 @@ _price_reduction = pc(1 - P_STAR / P_RU0)
 _activity_multiple = f"{bw['Ru_activity_break_even_multiplier']:.0f}"
 _results_heading = re.search(r"^## Results\s*\n+### ([^\n]+)", raw_text, re.M)
 _heading_text = _results_heading.group(1) if _results_heading else ""
-tokens("NH3 first Results heading: price reduction and activity multiple equal sources",
-       _heading_text, f"{_price_reduction}% less", f"turn over {_activity_multiple} times faster")
-for _scope, _claim in (("Abstract", main_section_h2("Abstract")),
-                        ("first Results section", NH3_MAIN)):
-    tokens(f"NH3 {_scope}: parity requirements equal the price sweep and backward calculation",
-           _claim, f"{_price_reduction}% lower", f"{_activity_multiple}-fold activity gain")
+_measured_reduction = 100 * (1 - IR['bench_price_parity']['factor_vs_current'])
+_headline_bound = re.search(r"over (\d+)% less", _heading_text)
+ok("NH3 first Results heading: over 90% is below both source price reductions",
+   "Ru must cost over 90% less to match iron" == _heading_text
+   and _headline_bound is not None
+   and float(_headline_bound[1]) < 100 * (1 - P_STAR / P_RU0)
+   and float(_headline_bound[1]) < _measured_reduction)
+tokens("NH3 Abstract: parity requirements equal descriptor and measured sources",
+       main_section_h2("Abstract"),
+       "descriptor and measured kinetics agree that Ru, the most active metal, must cost over 90% less to match iron",
+       f"or become {IR['parity']:.0f}–{_activity_multiple} times more active",
+       "far beyond what its scaling relation allows")
+tokens("NH3 first Results section: parity requirements equal the price sweep and backward calculation",
+       NH3_MAIN, f"{_price_reduction}% lower", f"{_activity_multiple}-fold activity gain")
+tokens("NH3 first Results section: measured parity requirements equal their sources",
+       NH3_MAIN, f"measured rate laws for the industrial pair give {_measured_reduction:.0f}% or {IR['parity']:.0f}-fold")
 tokens("MeOH main: inlet inert range equals SI Note 3 and stream-table species sums",
        m_field, f"loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet")
 
@@ -2490,6 +2500,76 @@ _review_ref = reference_number("10.1002/aesr.202000043")
 ok("Extended Data 5: review reference follows its DOI after renumbering",
    _review_ref is not None and f"ref. {_review_ref}" in
    _caption("figures/extended_data/ED_CAPTIONS.md", "Extended Data Fig. 5"))
+
+# ----- Catalyst-level inlet-limit scan (2026-10-21) -----------------------------
+_CAT_SCAN = "analysis/meoh_catalyst_level_2026_10_19/"
+_limit_scan = _j(_CAT_SCAN + "summary_limit_scan.json")
+_raised_scan = _j(_CAT_SCAN + "summary_raised_limit_scan.json")
+_no_limit = _j(_CAT_SCAN + "summary_no_limit.json")
+_limits = ("4", "5", "6.86", "8", "10")
+# Cross-check the independently costed laboratory rows against the pooled cost
+# columns. Check each row separately so a disagreement identifies its limit.
+for _limit in _limits:
+    _lab = _raised_scan[_limit]['laboratory_conversion']
+    _pooled_lab = _limit_scan[_limit]['catalyst_level']
+    ok(f"MeOH catalyst scan: {_limit}% laboratory row agrees across both scans",
+       all(_lab[k] == _pooled_lab[k] for k in ('changed', 'groups', 'gt5pct', 'papers_changed')))
+for _name, _primary in (("laboratory_conversion", _cc), ("conversion_raised", _rcat)):
+    _row = _raised_scan['6.86'][_name]
+    ok(f"MeOH catalyst scan: 6.86% {_name} reproduces primary counts",
+       _row['changed'] == _primary['changed']
+       and _row['groups'] == _primary['groups_2plus_catalysts']
+       and _row['gt5pct'] == _primary['gt5pct']
+       and _row['papers_changed'] == _primary['papers_changed'])
+_no_lab = _no_limit['laboratory_conversion']['cat_primary']
+_no_raised = _no_limit['conversion_raised']['cost_f0.95']['cat_primary']
+ok("MeOH catalyst scan: unlimited laboratory row reproduces no-limit summary",
+   _limit_scan['none']['catalyst_level'] == {
+       'changed': _no_lab['changed'], 'groups': _no_lab['groups_2plus_catalysts'],
+       'gt5pct': _no_lab['gt5pct'], 'papers_changed': _no_lab['papers_changed']})
+ok("MeOH no-limit point counts reproduce the pooled result and limit scan",
+   _no_limit['point_level']['groups'] == pl5['groups'] == _limit_scan['none']['point_level']['groups']
+   and _no_limit['point_level']['changed'] == pl5['disagreements'] == _limit_scan['none']['point_level']['changed']
+   and _no_limit['point_level']['gt5pct'] == pl5['gt5pct'])
+ok("MeOH no-limit catalyst denominators agree at laboratory and raised conversion",
+   _no_lab['groups_2plus_catalysts'] == _no_raised['groups_2plus_catalysts'])
+tokens("MeOH main: no-limit catalyst counts equal the no-limit summary", m_field,
+       f"between catalysts in {_no_lab['changed']} of {_no_lab['groups_2plus_catalysts']} at laboratory conversion "
+       f"and {_no_raised['changed']} with more catalyst loaded")
+# A single local sentence binds all five ordered counts to their limits and
+# denominator range; no number can pass by occurring elsewhere in the Note.
+_scan_denominators = [r[n]['groups'] for r in _raised_scan.values()
+                      for n in ('conversion_raised', 'laboratory_conversion')]
+_scan_den_range = f"{min(_scan_denominators)}–{max(_scan_denominators)}"
+for _name, _prefix, _tail in (
+        ('conversion_raised', 'Between catalysts, with more catalyst loaded, the leaders differ in ',
+         f" of {_scan_den_range} comparisons at limits of {_and(_limits)}%, and in {_no_raised['changed']} without a limit."),
+        ('laboratory_conversion', 'At laboratory conversion the counts are ',
+         f", and {_no_lab['changed']} without a limit.")):
+    _counts = [_raised_scan[k][_name]['changed'] for k in _limits]
+    tokens(f"MeOH SI Note 3: {_name} scan counts and no-limit count equal summaries",
+           s8, _prefix + _and(_counts) + _tail)
+# The main-text range uses only 5, 6.86, 8 and 10%, excluding the 4% sensitivity.
+_industrial_limits = ("5", "6.86", "8", "10")
+_ranges = {}
+for _name in ('conversion_raised', 'laboratory_conversion'):
+    _counts = [_raised_scan[k][_name]['changed'] for k in _industrial_limits]
+    _ranges[_name] = f"{min(_counts)}–{max(_counts)}"
+_industrial_groups = [_raised_scan[k][n]['groups'] for k in _industrial_limits
+                      for n in ('conversion_raised', 'laboratory_conversion')]
+tokens("MeOH main: 5–10% ranges are scan minima and maxima", m_field,
+       f"Across inlet limits of {min(map(float, _industrial_limits)):g}–{max(map(float, _industrial_limits)):g}%, "
+       f"the range of industrial loop designs, the leaders differ in {_ranges['conversion_raised']} of "
+       f"{min(_industrial_groups)}–{max(_industrial_groups)} comparisons with more catalyst loaded "
+       f"and in {_ranges['laboratory_conversion']} at laboratory conversion")
+# Retain the revised semantic scope where the manuscript now defines the ranking.
+tokens("Abstract: catalyst inventory and measured-point scope", main_section_h2("Abstract"),
+       "each at its best measured point and with the catalyst inventory a plant would choose, "
+       "the catalyst with the highest space-time yield")
+for _scope, _claim in (("main Methods", methods),
+                       ("Supplementary Methods", supplementary_method('Multiscale decision analysis'))):
+    tokens(f"{_scope}: methanol optimum includes catalyst inventory", _claim,
+           "over its measured operating points and the catalyst inventory a plant would choose")
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
