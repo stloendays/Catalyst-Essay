@@ -11,6 +11,7 @@ citations [n] are renumbered in order of first citation in the SI, and the refer
 """
 import argparse
 import re
+import sys
 from pathlib import Path
 
 from docx import Document
@@ -22,6 +23,9 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+from omml import DISPLAY, INLINE, add_display_math, add_math  # noqa: E402  LaTeX -> native Word equations
+
 ap = argparse.ArgumentParser()
 ap.add_argument("out", nargs="?", default=str(ROOT / "Supplementary_Information.docx"))
 ap.add_argument("--si", default=str(ROOT / "docs/SUPPLEMENTARY_INFORMATION.md"))
@@ -39,19 +43,9 @@ PAGE_W, PAGE_H, MARGIN = Cm(21.0), Cm(29.7), Cm(2.5)
 TEXT_W = {"portrait": 21.0 - 5.0, "landscape": 29.7 - 5.0}      # cm
 
 
-# ---- inline LaTeX fragments ---------------------------------------------------------------------------------
+# ---- LaTeX: inline \( ... \) and display $$ ... $$ become native Word equations in runs() and render() --------
 def delatex(s):
-    """Short inline \\( ... \\) fragments: Greek letters, E_N expressions, relations, signs."""
-    def generic(f):
-        for a, b in (("\\alpha", "α"), ("\\le", "≤"), ("\\ge", "≥"), ("\\times", "×"), ("\\Delta", "Δ"),
-                     ("\\approx", "≈"), ("\\,", " "), ("\\ ", " ")):
-            f = f.replace(a, b)
-        f = re.sub(r"\\mathrm\{([^}]*)\}", r"\1", f)
-        f = f.replace("E_N", "*E*_N").replace("=-", " = −")
-        f = re.sub(r"(?<=[\w)])-(?=[\w(])", " − ", f)
-        f = re.sub(r"\^\{?([-−]?\w+)\}?", lambda m: "^{" + m.group(1).replace("-", "−") + "}", f)
-        return f.replace("=", " = ") if " = " not in f else f
-    return re.sub(r"\\\((.*?)\\\)", lambda m: generic(m.group(1)), s)
+    return s
 
 
 # ---- citation renumbering (order of first citation in the SI) -----------------------------------------------
@@ -106,6 +100,13 @@ ESC_STAR, ESC_UND = "\ue000", "\ue001"      # escaped \* and \_ while emphasis a
 
 
 def runs(par, text, size=12, bold=False, italic=False):
+    if "\\(" in text:                                       # inline LaTeX -> native Word equation
+        for i, piece in enumerate(INLINE.split(text)):
+            if i % 2:
+                add_math(par, piece, size)
+            elif piece:
+                runs(par, piece, size, bold, italic)
+        return
     text = text.replace("\\*", ESC_STAR).replace("\\_", ESC_UND)
     text = re.sub(r"`([^`]*)`", lambda m: m.group(1).replace("_", ESC_UND).replace("*", ESC_STAR), text)
     text = re.sub(r"\[([^\]]+)\]\((?:https?://|\.{0,2}/)[^)]*\)", r"\1", text)
@@ -374,6 +375,10 @@ def render(md, top=False):
                 heading(renumber(delatex(x)), level)
             else:
                 heading(renumber(delatex(x)), level, page_break=(kind == "h2" and top))
+        elif kind == "p" and DISPLAY.match(x):
+            p = doc.add_paragraph()
+            p.paragraph_format.line_spacing = 1.5
+            add_display_math(p, DISPLAY.match(x).group(1), 12)
         elif kind == "p":
             in_table_block = any(kd == "table" for kd, _ in items[k + 1:k + 2])
             if in_table_block or (k and items[k - 1][0] == "h3" and items[k - 1][1].startswith("Supplementary Table")):
@@ -381,7 +386,7 @@ def render(md, top=False):
                 cap.paragraph_format.space_after = Pt(6)
                 cap.paragraph_format.keep_together = True
             else:
-                para(renumber(delatex(x)))
+                para(renumber(delatex(x)), indent=not x[:1].islower())   # lower case: continues after an equation
         elif kind == "li":
             mk, txt = x
             list_item(renumber(delatex(txt)), "•" if mk in "-*" else mk)

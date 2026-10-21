@@ -25,29 +25,13 @@ FONT = "Times New Roman"
 body_md, refs_md = TEXT.split("## Working references")
 REFS = {int(m.group(1)): m.group(2).strip() for m in re.finditer(r"^(\d+)\. (.+)$", refs_md, re.M)}
 
-# ---- inline LaTeX fragments -> light markup understood by the run writer ------------------------------------
-LATEX = [
-    (r"\(P_{Ru}(1-r)(10\,\mathrm{y}/L) \le 163.76\)", "*P*_{Ru}(1 − *r*)(10 y/*L*) ≤ 163.76"),
-    (r"\(q=(1-r)/L\)", "*q* = (1 − *r*)/*L*"),
-    (r"\(q^*=4.4068\times10^{-4}\ \mathrm{y}^{-1}\)", "*q** = 4.4068 × 10^{−4} y^{−1}"),
-    (r"\(q^*=8.25\times10^{-4}\ \mathrm{y}^{-1}\)", "*q** = 8.25 × 10^{−4} y^{−1}"),
-]
+# ---- LaTeX: inline \( ... \) and display $$ ... $$ become native Word equations (tools/omml.py) -------------
+sys.path.insert(0, str(ROOT / "tools"))
+from omml import DISPLAY, INLINE, add_display_math, add_math  # noqa: E402
 
 
 def delatex(s):
-    for a, b in LATEX:
-        s = s.replace(a, b)
-    s = s.replace("3 × 10^5", "3 × 10^{5}")
-    s = re.sub(r"\\\((.*?)\\\)", lambda m: generic(m.group(1)), s)
-    assert "\\(" not in s, s[s.index("\\("):s.index("\\(") + 60]
-    return s
-
-
-def generic(f):
-    """Remaining short inline fragments: Greek letters, E_N expressions, signs."""
-    f = f.replace("\\alpha", "α").replace("E_N", "*E*_N")
-    f = f.replace("=-", " = −")
-    return f.replace("=", " = ") if " = " not in f else f
+    return s.replace("3 × 10^5", "3 × 10^{5}")
 
 
 # ---- citation renumbering -----------------------------------------------------------------------------------
@@ -99,6 +83,13 @@ ESC_STAR = "\ue000"        # stands in for an escaped asterisk (\*) while emphas
 
 
 def runs(par, text, size=12, bold=False, italic=False):
+    if "\\(" in text:                                       # inline LaTeX -> native Word equation
+        for i, piece in enumerate(INLINE.split(text)):
+            if i % 2:
+                add_math(par, piece, size)
+            elif piece:
+                runs(par, piece, size, bold, italic)
+        return
     text = text.replace("\\*", ESC_STAR)
     for piece in TOKEN.split(text):
         if not piece:
@@ -229,12 +220,16 @@ for block in re.split(r"\n\s*\n", body_md.strip()):
         p = heading(block[2:], 1)
         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         para("Author list and affiliations to be confirmed by the corresponding author.", indent=False)
+    elif DISPLAY.match(block):
+        p = doc.add_paragraph()
+        p.paragraph_format.line_spacing = 1.5
+        add_display_math(p, DISPLAY.match(block).group(1), 12)
     elif all(ln.strip().startswith("|") for ln in block.splitlines()):
         table(block.splitlines())
     elif block.startswith("**Table "):
         para(" ".join(block.splitlines()), indent=False).paragraph_format.keep_with_next = True
     else:
-        para(" ".join(block.splitlines()))
+        para(" ".join(block.splitlines()), indent=not block[:1].islower())   # lower case: continues after an equation
 
 heading("References", 2)
 for old, new in sorted(order.items(), key=lambda kv: kv[1]):
@@ -250,7 +245,7 @@ assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
 # manuscript figure number -> rendered composite (renumbered 2026-10-07: the field-level figure is Fig. 2)
 # reordered 2026-10-15: the methanol mechanism (renderer fig4) follows the field-level figure as Fig. 3
 FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig4/Fig4.png", 4: "fig2/Fig2.png",
-                5: "fig3/Fig3.png", 6: "fig5/Fig5.png"}
+                5: "fig_frontier/FigFrontier.png", 6: "fig3/Fig3.png"}   # 2026-10-21: measured-kinetics Fig. 5
 for n in range(1, 7):
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()

@@ -31,7 +31,7 @@ from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
-from style import (DARK_G, FE, INK, MID, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
+from style import (DARK_G, FE, INK, MID, OS, OTHER, PALE_B, RED, RU, TINT_B, TINT_G, Page, boxed,  # noqa: E402
                    scripts_at_least)
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -181,20 +181,27 @@ if __name__ == "__main__":
     pg.letter("a", 2, 148)
 
     # ---- b: methanol leaderboards, inert-limited loop (primary) and STY without the limit ------------------------
-    # first bar since 2026-10-20: catalyst against catalyst, each at its best measured point (identity rules committed
-    # before the count, analysis/meoh_catalyst_level_2026_10_19); the other bars count every operating point
+    # first two bars since 2026-10-20 (supervisor, 2026-10-20): catalyst against catalyst, each at its best measured
+    # point (identity rules committed before the count, analysis/meoh_catalyst_level_2026_10_19). Primary: each entry
+    # may load more catalyst and raise its conversion to 0.95 X_eq (cost_f0.95); companion: laboratory conversion.
+    # The other bars count every operating point (single-pass yield, identical to STY at 50/81, is in the caption).
     b = pg.ax(14, 70, 46, 38)
-    lb = meoh_leaderboards()
-    kc = read_json("analysis/meoh_catalyst_level_2026_10_19/summary.json")
-    assert kc["point_level_total"]["changed"] == pool["S6"]["primary"]["disagreements"]
-    kc = kc["cat_primary"]["comparison"]
-    cat = pd.DataFrame([dict(label="STY\ncat.", groups=kc["groups_2plus_catalysts"], mismatch_groups=kc["changed"],
-                             fraction=kc["changed"] / kc["groups_2plus_catalysts"], regret_gt5pct=kc["gt5pct"],
-                             CI95_low=kc["ci95"][0], CI95_high=kc["ci95"][1])], index=["STY_catalyst"])
-    assert abs(cat.fraction.iloc[0] - kc["fraction"]) < 1e-12
+    lb = meoh_leaderboards().drop(index="XS")
+    kj = read_json("analysis/meoh_catalyst_level_2026_10_19/summary.json")
+    assert kj["point_level_total"]["changed"] == pool["S6"]["primary"]["disagreements"]
+    rows = []
+    for key, lab, kc in (("STY_catalyst_Xraised", "cat.,\nX\nraised", kj["conversion_raised"]["cost_f0.95"]["cat_primary"]),
+                         ("STY_catalyst", "cat.,\nlab.\nX", kj["cat_primary"]["comparison"])):
+        assert abs(kc["changed"] / kc["groups_2plus_catalysts"] - kc["fraction"]) < 1e-12
+        rows.append(dict(key=key, label=lab, groups=kc["groups_2plus_catalysts"], mismatch_groups=kc["changed"],
+                         fraction=kc["fraction"], regret_gt5pct=kc["gt5pct"], CI95_low=kc["ci95"][0],
+                         CI95_high=kc["ci95"][1]))
+    cat = pd.DataFrame(rows).set_index("key")
+    assert (cat.loc["STY_catalyst_Xraised", "mismatch_groups"], cat.loc["STY_catalyst", "mismatch_groups"]) == (21, 26)
     lb = pd.concat([cat, lb.assign(label=lb.label.where(lb.index != "STY", "STY\npoints"))])
-    xb = {"STY_catalyst": 0.0, "STY": 1.0, "XS": 2.0, "X": 3.0, "SMeOH": 4.0, "STY_no_limit": 5.55}
-    fill = {"STY_catalyst": RU, "STY": PALE_B, "XS": PALE_B, "X": PALE_B, "SMeOH": PALE_B, "STY_no_limit": "white"}
+    xb = {"STY_catalyst_Xraised": 0.0, "STY_catalyst": 1.0, "STY": 2.15, "X": 3.15, "SMeOH": 4.15, "STY_no_limit": 5.6}
+    fill = {"STY_catalyst_Xraised": RU, "STY_catalyst": OS, "STY": PALE_B, "X": PALE_B, "SMeOH": PALE_B,
+            "STY_no_limit": "white"}
     for k, r in lb.iterrows():
         x = xb[k]
         b.bar(x, r.fraction, 0.62, color=fill[k], ec=INK, lw=0.4, zorder=2)
@@ -205,15 +212,15 @@ if __name__ == "__main__":
                        ecolor=INK, elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=3)
             top = r.CI95_high
         b.text(x, top + 0.03, "%d/%d" % (r.mismatch_groups, r.groups), ha="center", va="bottom", fontsize=5.3)
-    b.axvline(4.775, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
-    b.text(2.0, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
+    b.axvline(4.875, color=INK, lw=0.4, ls=(0, (1.5, 1.5)), zorder=1)
+    b.text(2.1, 0.985, "inert-limited loop", ha="center", va="top", fontsize=5.3)
     b.text(xb["STY_no_limit"], 0.985, "no limit", ha="center", va="top", fontsize=5.3)
     pg.fig.text(14 / pg.W, 113.4 / pg.H, "error bars: 95 % CI; hatched: cost gap > 5 %", fontsize=5.3, va="top",
                 ha="left")
     b.set_xticks([xb[k] for k in lb.index])
     b.set_xticklabels(list(lb.label), fontsize=5.6)
     b.set_ylim(0, 1.0)
-    b.set_xlim(-0.55, 6.1)
+    b.set_xlim(-0.55, 6.15)
     b.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     b.set_yticklabels(["0", "25", "50", "75", "100"])
     b.set_ylabel("leader changes (% of comparisons)")
