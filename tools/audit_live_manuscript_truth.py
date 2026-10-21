@@ -44,6 +44,17 @@ text = re.sub(r"\s+", " ", raw_text).replace("−", "-")
 methods = re.sub(r"\s+", " ", raw_text[raw_text.index("## Methods"):].split("## Working references")[0]).replace("−", "-")
 
 
+# Resolve citations by stable source identity, independent of editorial renumbering.
+_reference_entries = [(int(n), entry) for n, entry in re.findall(
+    r"^(\d+)\.\s+(.+)$", raw_text.split("## Working references", 1)[1], re.M)]
+
+
+def reference_number(identity):
+    """Require a unique DOI/title match; missing/duplicate entries fail callers, not crash."""
+    matches = [n for n, entry in _reference_entries if identity.casefold() in entry.casefold()]
+    return matches[0] if len(matches) == 1 else None
+
+
 def rows(path):
     with open(ROOT / path, encoding="utf-8", newline="") as fh:
         return list(csv.DictReader(fh))
@@ -95,6 +106,12 @@ def main_section_h2(heading):
     i = raw_text.index("\n## " + heading + "\n") + 1
     j = raw_text.find("\n## ", i + 3)
     return re.sub(r"\s+", " ", raw_text[i:j if j >= 0 else len(raw_text)]).replace("−", "-")
+
+
+# The first Results subsection is the screen/parity story; its headline is editorial.
+# Keep its numerical assertions active even when the heading wording changes.
+_nh3_result = re.search(r"^## Results[ \t]*\n+(### [^\n]+)", raw_text, re.M)
+NH3_MAIN = _block(raw_text, _nh3_result.start(1), _nh3_result.group(1)) if _nh3_result else ""
 
 
 checks = []
@@ -301,7 +318,7 @@ tokens(
     f"{_yaml_num(manifest, 'capacity_factor'):.2f} produces {ANNUAL_T:,.0f} t of NH₃ per year",
 )
 tokens("Main text: ammonia ranking reversal, regret and its annual value",
-    main_section("The most active ammonia catalyst is not the cheapest to run"),
+    NH3_MAIN,
     f"over {det['process_state_count']:,} process states",
     f"at {m['Fe']['feasible']['total_cost']:.2f}, {m['Ru']['feasible']['total_cost']:.2f} and {m['Os']['feasible']['total_cost']:.2f} US dollars per tonne of NH₃",
     f"Spearman correlation of {det['raw_global_spearman']:.3f} across all 15 metals",
@@ -1218,7 +1235,7 @@ _maxdoi = [max(rows(f"analysis/meoh_literature_inversion_2026_10_05/{f}"), key=l
 ok("MeOH: the high-pressure Cu/Al2O3 study supplies the largest regret in both loops",
    _maxdoi == [_bd, _bd] and len(_bgm5) == bnd["bansode_groups"] and "c2cy20604h" in V["without_paper_with_most_groups"]["variant"])
 tokens("Main text: the high-pressure Cu/Al2O3 study (combined set)", m_field,
-       f"supplies {PL6['bansode']['groups']} comparisons[36] gives the largest regrets without the limit")
+       f"supplies {PL6['bansode']['groups']} comparisons[{reference_number(_bd)}] gives the largest regrets without the limit")
 ok("MeOH combined set: the Cu/Al2O3 study has the largest regret without the limit, not with it",
    PL5["bansode"]["is_largest"] and not PL6["bansode"]["is_largest"] and PL6["bansode"]["groups"] == bnd["bansode_groups"])
 
@@ -1256,7 +1273,7 @@ if all(e for _, e in _hbe):
 _other = sorted((x for r, x in zip(_pub, _cmn) if r not in (_anchor, _three)), reverse=True)
 _cmn_rng = f"{dfmt(min(_cmn), 1)}–{dfmt(max(_cmn), 1)}%"
 _nonr_rng = f"{dfmt(min(_nonr), 1)}–{dfmt(max(_nonr), 1)}%"
-tokens("SI Note 3: species counted and the published loop inlets", s8, f"CO, methane and N₂ at the reactor inlet to {pc(LIM, 2)}%", f"Industrial loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet", f"CO at the reactor inlet is a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% (10th and 90th percentiles {pc(_rin['inlet_co_without_limit']['p10'], 1)}% and {pc(_rin['inlet_co_without_limit']['p90'])}%), against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in the industrial designs")
+tokens("SI Note 3: species counted and the published loop inlets", s8, f"CO, methane and N₂ at the reactor inlet to {pc(LIM, 2)}%", f"loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet", f"CO at the reactor inlet is a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% (10th and 90th percentiles {pc(_rin['inlet_co_without_limit']['p10'], 1)}% and {pc(_rin['inlet_co_without_limit']['p90'])}%), against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in the industrial designs")
 ok("MeOH S6: CO is more than 80 % of the limited inlet quantity at the limited optimum",
    _scan("frozen", "6.86")["co_fraction_of_nonreactive_median"] > 0.8)
 r1_6 = {r["threshold"]: r for r in st6["regret_threshold_curve"]}
@@ -2214,8 +2231,8 @@ tokens("Methods semantic lock: catalyst identity and ranking over operating poin
        "A stricter identity merges samples that differ only in synthesis")
 _activity_ratio = 10 ** (m['Ru']['activity_logTOF'] - m['Fe']['activity_logTOF'])
 _price_ratio = eq['Ru_canonical']['price_USD_kg'] / r8['price_USD_kg']
-tokens("NH3 main: intrinsic turnover and metal-price ratios", main_section("The most active ammonia catalyst is not the cheapest to run"),
-       f"Ru turns over {_activity_ratio:.0f} times faster than Fe and costs {_price_ratio:,.0f} times more per kilogram")
+tokens("NH3 main: intrinsic turnover and metal-price ratios", NH3_MAIN,
+       f"Ru turns over {_activity_ratio:.0f} times faster than Fe but costs {_price_ratio:,.0f} times more per kilogram")
 ok("MeOH main: third-to-two-fifths range is the two model treatments, not a confidence interval",
    "Between a third and two-fifths" in m_field
    and pc(_rcat['fraction']) == "33" and pc(_cc['fraction']) == "41"
@@ -2273,9 +2290,12 @@ for _abbr, _expanded in (("STY", "space-time yields?"), ("TOF", "turnover freque
 _lease_fy = sorted({int(m.group(1)) for r in rows("analysis/nh3_ru_metal_financing_evidence_2026_10_12/"
                                                   "pbf_catalyst_lease_contracts.csv")
                      for m in [re.search(r"(?:FY|Q\d )(\d{4})", r["first_disclosed_in"])] if m})
-ok("Lease filings: years in SI Methods and ref. 50 match the 32 contracts",
+_lease_ref = reference_number("Annual reports on Form 10-K")
+ok(f"Lease filings: years in SI Methods and ref. {_lease_ref} match the 32 contracts",
    f"filings for {_lease_fy[0]}–{_lease_fy[-1]}" in raw_si
-   and f"fiscal years {_lease_fy[0]} and 2015–{_lease_fy[-1]}" in text, f"filing years {_lease_fy}")
+   and _lease_ref is not None
+   and any(n == _lease_ref and f"fiscal years {_lease_fy[0]} and 2015–{_lease_fy[-1]}" in entry
+           for n, entry in _reference_entries), f"filing years {_lease_fy}")
 ok("Main text and SI: no institutional library wording",
    "institutional library" not in text.casefold()
    and "institutional library" not in re.sub(r"\s+", " ", raw_si).casefold())
@@ -2445,6 +2465,31 @@ for _path, _raw in (("docs/MANUSCRIPT_MAIN_TEXT.md (body)", _body),
 _si_word_count = len(raw_si.split())
 ok("SI compression: fewer than 10,000 whitespace-delimited words", _si_word_count < 10_000,
    f"{_si_word_count:,} words")
+
+# ----- Reframed ammonia headline and added references (2026-10-21) --------------
+# The screen's parity price and activity-only backward calculation define the claim.
+_price_reduction = pc(1 - P_STAR / P_RU0)
+_activity_multiple = f"{bw['Ru_activity_break_even_multiplier']:.0f}"
+_results_heading = re.search(r"^## Results\s*\n+### ([^\n]+)", raw_text, re.M)
+_heading_text = _results_heading.group(1) if _results_heading else ""
+tokens("NH3 first Results heading: price reduction and activity multiple equal sources",
+       _heading_text, f"{_price_reduction}% less", f"turn over {_activity_multiple} times faster")
+for _scope, _claim in (("Abstract", main_section_h2("Abstract")),
+                        ("first Results section", NH3_MAIN)):
+    tokens(f"NH3 {_scope}: parity requirements equal the price sweep and backward calculation",
+           _claim, f"{_price_reduction}% lower", f"{_activity_multiple}-fold activity gain")
+tokens("MeOH main: inlet inert range equals SI Note 3 and stream-table species sums",
+       m_field, f"loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet")
+
+for _doi in ("10.1002/cite.201800026", "10.1002/cite.202200022", "10.3389/fenrg.2020.00005"):
+    _number = reference_number("doi:" + _doi + ".")
+    ok(f"References: added DOI {_doi} has one list entry and a main-body citation",
+       _number is not None and _number in _cited(_body), f"resolved reference {_number}")
+
+_review_ref = reference_number("10.1002/aesr.202000043")
+ok("Extended Data 5: review reference follows its DOI after renumbering",
+   _review_ref is not None and f"ref. {_review_ref}" in
+   _caption("figures/extended_data/ED_CAPTIONS.md", "Extended Data Fig. 5"))
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]

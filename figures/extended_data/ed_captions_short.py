@@ -25,7 +25,7 @@ SHORT = {
         "metrics relative to the reference plant. **d**, Disagreements in the loop without an inlet limit under "
         "plant-model variants."),
     5: ("Measured ammonia catalysts of a review through the plant model",
-        "**a**, Plant cost against laboratory rate per gram of metal for the primary catalysts of ref. 37, without "
+        "**a**, Plant cost against laboratory rate per gram of metal for the primary catalysts of ref. 39, without "
         "metal recovery; dashed, Fe benchmark. **b**, Plant cost by metal; bars, lowest cost per metal."),
     6: ("Bimetallic surfaces through the ammonia model, by element layer",
         "Plant cost against log$_{10}$ TOF at 673 K for the surfaces whose optimum fits the 90 m$^3$ bed limit; dashed, "
