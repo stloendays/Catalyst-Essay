@@ -1,4 +1,4 @@
-"""Figure 1 — a globally correlated catalyst screen inverts at the industrial decision frontier.
+"""Figure 1 — a globally correlated catalyst screen inverts at its top, where the plant decides.
 
 Composite, 183 mm wide. Data from fig1_metals.csv / fig1_rolling.csv (written by
 fig1_data.py from pinned provenance), the model's own volcano curve
@@ -28,10 +28,11 @@ FE_POOLS = json.load(open(os.path.join(RUN, "results.json"), encoding="utf-8"))[
     "deterministic"]["metals"]["Fe"]["feasible"]["breakdown"]
 
 # ---- visual system ---------------------------------------------------------
-INK, MID, GRID = "#1B1B1B", "#6B6F76", "#E4E4E4"
-C = {"Fe": "#89AA7B", "Ru": "#7789B7", "Os": "#9DACCB"}
-OTHER, RED = "#B3B8C0", "#EB6969"
-TINT_G, TINT_B, PAPER = "#E4ECDE", "#E3E7F0", "#F0EEEF"
+# palette of figures/composite/style.py (2026-10-21)
+INK, MID, GRID = "#1B1B1B", "#5F646C", "#E4E4E4"
+C = {"Fe": "#6E9F60", "Ru": "#5677B5", "Os": "#97ABD4"}
+OTHER, RED = "#B5B9C1", "#D9474F"
+TINT_G, TINT_B, PAPER = "#EAF2E5", "#E8EDF7", "#F3F1F0"
 W_MM, H_MM = 183.0, 170.0
 
 plt.rcParams.update({
@@ -162,7 +163,7 @@ yc = 20.2
 B1, B2 = 36.55, 62.75
 TIERS = [("Atomic optimum", "descriptor,\nintrinsic turnover", 0.5, B1),
          ("Laboratory optimum", "measured activity,\nSTY at test conditions", B1, B2),
-         ("Industrial optimum", "plant-cost leader after process\noptimization and economics", B2, 117.5)]
+         ("Plant-level optimum", "lowest cost after process\noptimization", B2, 117.5)]
 for name, sub, x0, x1 in TIERS:
     xm = (x0 + x1) / 2
     ax.text(xm, 50.0, name, ha="center", va="top", fontsize=7.0, fontweight="bold")
@@ -180,11 +181,11 @@ X_AU = 82.8             # the Au/TiO2 segment ends after catalyst inventory
 FS_NAME, FS_BAR = 6.5, 6.0
 bar_top = 41.2
 CASES = [  # name parts, segment, figures, x0, x1, face, edge
-    ([("Ammonia", False)], "atomic → industrial", "Figs 1, 3, 4", 0.9, 117.1, "#C9CDD3", INK),
-    ([("CO", False), ("2", True), ("-to-methanol", False)], "published laboratory → industrial",
-     "Figs 2b,d,e, 5", XL, 117.1, GRID, MID),
-    ([("Au/TiO", False), ("2", True), (" control", False)], "laboratory → catalyst requirement", "Fig. 6",
-     XL, X_AU - 0.4, "white", MID),
+    ([("Ammonia", False)], "atomic → plant", "Figs 1, 4–6", 0.9, 117.1, "#D5DEF0", "#304C86"),
+    ([("CO", False), ("2", True), ("-to-methanol", False)], "laboratory → plant",
+     "Figs 2, 3", XL, 117.1, "#F5D9B3", "#A85E24"),
+    ([("Au/TiO", False), ("2", True), (" control", False)], "laboratory → catalyst requirement", "ED Fig. 8",
+     XL, X_AU - 0.4, "white", "#A8862E"),
 ]
 for row, (name, span, figs, x0, x1, fc, ec) in enumerate(CASES):
     y0 = bar_top - BAR_H * (row + 1) - GAP * row
@@ -317,8 +318,7 @@ ax.plot([xs[5], xs[5], xs[0], xs[0]], [3.3, YB, YB, 3.6], color=RED, lw=0.9, ls=
         solid_joinstyle="miter")
 ax.annotate("", xy=(xs[0], 6.3), xytext=(xs[0], 3.6),
             arrowprops=dict(arrowstyle="-|>", lw=0.9, color=RED, mutation_scale=8, shrinkA=0, shrinkB=0))
-ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "Backward design: activity multiplier α* needed for parity vs "
-        "headroom reachable on the scaling line", fontsize=6.0, color=RED, ha="center", va="baseline")
+ax.text((xs[0] + xs[5]) / 2, YB + 1.05, "backward design: what parity requires, and what the scaling relation allows", fontsize=6.0, color=RED, ha="center", va="baseline")
 
 # ---- b: the three frontier candidates --------------------------------------
 letter("b", 124.0, 168.0)
@@ -326,7 +326,7 @@ axb = ax_mm(125.0, 114.0, 56.0, 52.0)
 axb.set_xlim(0, 56)
 axb.set_ylim(0, 52)
 axb.axis("off")
-axb.text(0.5, 50.0, "Decision-frontier candidates", fontsize=7, fontweight="bold", va="top")
+axb.text(0.5, 50.0, "The three leaders", fontsize=7, fontweight="bold", va="top")
 order = ["Ru", "Os", "Fe"]
 fmt_price = {"Ru": "53,853", "Os": "142,650", "Fe": "8"}
 for i, m in enumerate(order):
@@ -369,7 +369,7 @@ axc = ax_mm(COLS[0][0], ROW2_Y, COLS[0][1], ROW2_H)
 boxed(axc)
 fr = (min(M[m]["E_N_eV"] for m in C) - 0.09, max(M[m]["E_N_eV"] for m in C) + 0.09)
 axc.axvspan(*fr, color=TINT_B, zorder=0, lw=0)
-axc.text(sum(fr) / 2, -30.6, "decision\nfrontier", fontsize=5.3, color="#5A6480", ha="center", va="bottom")
+axc.text(sum(fr) / 2, -30.6, "three\nleaders", fontsize=5.3, color="#304C86", ha="center", va="bottom")
 axc.plot(cE, curve_logtof, color=INK, lw=0.9, zorder=2)
 scatter_metals(axc, "E_N_eV", "logTOF_673K", clip=(-32, 1))
 lab_c = {"Ru": ("Ru", -6, 5, "right"), "Os": ("Os", 6, 5, "left"), "Fe": ("Fe", -6, -1, "right"),
@@ -397,8 +397,8 @@ boxed(axd)
 lim90 = math.log10(90.0)
 axd.axhspan(-5, lim90, color=TINT_G, zorder=0, lw=0)
 axd.axhline(lim90, color=C["Fe"], lw=0.8, ls=(0, (3, 2)), zorder=1)
-axd.text(3.3, lim90 + 0.6, "90 m$^3$ bed limit", fontsize=5.8, color="#5E7A52", ha="right", va="bottom")
-axd.text(3.3, -4.2, "industrially feasible", fontsize=5.8, color="#5E7A52", ha="right", va="bottom")
+axd.text(3.3, lim90 + 0.6, "90 m$^3$ bed limit", fontsize=5.8, color="#467238", ha="right", va="bottom")
+axd.text(3.3, -4.2, "feasible bed", fontsize=5.8, color="#467238", ha="right", va="bottom")
 scatter_metals(axd, "E_N_eV", "log10_min_bed_m3", clip=(-5, 25))
 lab_d = {"Ru": ("Ru", -6, -1, "right"), "Os": ("Os", 6, 1, "left"), "Fe": ("Fe", -6, 0, "right"),
          "Rh": ("Rh, Ir", -6, 4, "right"), "Co": ("Co", 6, 0, "left"), "Ni": ("Ni", 6, 0, "left"),

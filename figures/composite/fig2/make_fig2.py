@@ -352,7 +352,7 @@ for xv in (lo_f, hi_f):
 f.scatter(xF[win == "Ru"], yR[win == "Ru"], s=2.2, c=RU, edgecolors="none", zorder=2, alpha=0.9)
 f.scatter(xF[win == "Fe"], yR[win == "Fe"], s=2.2, c=FE, edgecolors="none", zorder=3, alpha=0.9)
 f.plot(EN["Fe"], EN["Ru"], marker="*", ms=6.5, mfc="white", mec=INK, mew=0.6, zorder=5)
-f.text(EN["Fe"] + 0.05, EN["Ru"] + 0.012, "canonical", fontsize=5.5, va="bottom", color=INK, fontweight="bold",
+f.text(EN["Fe"] + 0.05, EN["Ru"] + 0.012, "baseline", fontsize=5.5, va="bottom", color=INK, fontweight="bold",
        bbox=dict(boxstyle="square,pad=0.1", fc="white", ec="none", alpha=0.8), zorder=6)
 f.text(0.5 * (lo_f + hi_f), -1.305, "Fe feasible", ha="center", va="bottom", fontsize=5.6, color=MID)
 f.text(lo_f - 0.04, -0.985, "bed > 90 m$^3$", ha="right", va="top", fontsize=5.5, color=MID,
@@ -376,14 +376,15 @@ for yy, col, txt in ((0.74, FE, "Fe  %d" % N_FE_WIN), (0.64, RU, "Ru  %d" % (len
 pg.letter("g", 70.0, LY0 + LH + 6.5)
 g = pg.ax(97.0, LY0, 26.0, LH)
 boxed(g)
-bars = [("Fe feasible,\nbed ≤ 90 m$^3$", f3["Fe_feasible_descriptor_MC"], FE),
-        ("Fe economic Top-1", f3["Fe_economic_top1_descriptor_MC"], FE),
-        ("Atomic Top-1 =\neconomic Top-1", f3["top1_survival_descriptor_MC"], OTHER),
-        ("Fe in actionable\nTop-3", f3["Fe_top3_actionable_descriptor_MC"], FE)]
+bars = [("Fe bed\n≤ 90 m$^3$", f3["Fe_feasible_descriptor_MC"], FE),
+        ("Fe first", f3["Fe_economic_top1_descriptor_MC"], FE),
+        ("activity leader\nfirst", f3["top1_survival_descriptor_MC"], OTHER),
+        ("Fe in top three", f3["Fe_top3_actionable_descriptor_MC"], FE)]
 for i, (name, v, col) in enumerate(bars):
     y = len(bars) - 1 - i
-    g.barh(y, 100 * v, height=0.58, color=col, ec=INK, lw=0.5, zorder=3)
-    g.text(100 * v + 2.5, y, "%.1f%%" % (100 * v), va="center", fontsize=6.0, fontweight="bold")
+    g.plot([0, 100 * v], [y, y], color=col, lw=1.6, solid_capstyle="butt", zorder=2)
+    g.scatter([100 * v], [y], s=30, facecolor=col, edgecolor=INK, lw=0.5, zorder=3)
+    g.text(100 * v + 9, y, "%.1f%%" % (100 * v), va="center", fontsize=6.0, fontweight="bold")
 g.set_yticks(range(len(bars))[::-1])
 g.set_yticklabels([bb[0] for bb in bars], fontsize=6.0, linespacing=1.0)
 g.tick_params(axis="y", length=0)

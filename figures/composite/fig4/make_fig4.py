@@ -47,7 +47,7 @@ KEY = {"1wtRe_200C": "1 wt% Re | 200 C", "5wtRe_200C": "5 wt% Re | 200 C",
 LABEL = {"1wtRe_200C": "1 wt%, 200 °C", "5wtRe_200C": "5 wt%, 200 °C",
          "1wtRe_250C": "1 wt%, 250 °C", "5wtRe_250C": "5 wt%, 250 °C"}
 SHORT = {k: v.replace(" wt%", "%") for k, v in LABEL.items()}
-COLOR = {"1wtRe_200C": "#ACBF9F", "5wtRe_200C": "#6E8E62", "1wtRe_250C": "#9DACCB", "5wtRe_250C": "#56679A"}
+COLOR = {"1wtRe_200C": "#F2D29C", "5wtRe_200C": "#D47A2C", "1wtRe_250C": "#E8AE5E", "5wtRe_250C": "#8A5638"}  # warm family
 WIN = "5wtRe_200C"                                                          # upstream #3, economic #1
 ECON = sorted(KEY, key=lambda k: int(cand[KEY[k]]["economic_rank"]))        # rows, economic rank 1..4
 UP = sorted(KEY, key=lambda k: int(cand[KEY[k]]["rank_STY_per_gRe"]))
@@ -102,7 +102,7 @@ a.add_patch(FancyBboxPatch((xr - wr / 2, y0 - hr / 2), wr, hr, boxstyle="round,p
 rng = np.random.default_rng(5)
 px = rng.uniform(xr - wr / 2 + 1.1, xr + wr / 2 - 1.1, 140)
 py = rng.uniform(y0 - hr / 2 + 3.0, y0 + hr / 2 - 4.0, 140)
-a.scatter(px, py, s=3.2, c="#B9C1D3", edgecolors="#8B9098", linewidths=0.2, zorder=4)
+a.scatter(px, py, s=3.2, c="#ECB874", edgecolors="#A85E24", linewidths=0.2, zorder=4)
 label(xr, y0 - hr / 2 - 1.3, "Reactor", "Re/TiO$_2$")
 a.text(xr + wr / 2 + 1.0, y0 + 2.2, "CH$_3$OH\n+ CH$_4$", fontsize=5.5, va="bottom", ha="left",
        linespacing=1.05)
@@ -221,7 +221,7 @@ m = pg.ax(xm0, CY, 30.0, CH)
 m.set_xlim(-0.5, 3.5)
 m.set_ylim(-0.6, 3.6)
 m.axis("off")
-cmap = LinearSegmentedColormap.from_list("rp", ["#FFFFFF", "#3E4452"])
+cmap = LinearSegmentedColormap.from_list("rp", ["#FFFFFF", "#7A4A2E"])
 
 
 def pfmt(p):
@@ -280,7 +280,7 @@ for key in KEY:
     ends[key] = ys[-1]
 for ax_ in (f1, f2):
     ax_.axvline(2.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=1)
-f1.text(2.8, 2700, "2% canonical", fontsize=5.5, color=MID, va="top")
+f1.text(2.8, 2700, "2% reference", fontsize=5.5, color=MID, va="top")
 for key, yv_ in ends.items():
     f1.text(41.0, yv_, SHORT[key], fontsize=5.4, va="center", ha="left",
             color=RED if key == WIN else INK, fontweight="bold" if key == WIN else "normal")

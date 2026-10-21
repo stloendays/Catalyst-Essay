@@ -76,7 +76,7 @@ pg = Page(183.0, 122.0)
 # a — activity-only backward target
 # --------------------------------------------------------------------------------------
 pg.letter("a", 2.0, 119.5)
-pg.title("Activity-only economic target", 12.0, 116.5)
+pg.title("Activity needed for parity", 12.0, 116.5)
 a = pg.ax(13.0, 85.0, 74.0, 24.0)
 boxed(a)
 lit = pg.ax(13.0, 70.0, 74.0, 13.0, sharex=a)   # measured gains over a reference Ru catalyst
@@ -99,9 +99,9 @@ a.text(1.22, ru_cost[i1] + 0.25, "current Ru\n%.2f" % RU_COST,
        fontsize=5.8, color=DARK_B, va="bottom", ha="left")
 a.text(A_STAR * 1.08, FE_COST + 0.35, r"$\alpha^*$ = %.2f×" % A_STAR,
        fontsize=6.2, color=RED, fontweight="bold", va="bottom", ha="left")
-a.text(1.05, FE_COST + 0.45, "strict-scaling\nheadroom ≤ %.3f×" % GALL,
+a.text(1.05, FE_COST + 0.45, "scaling reach\n≤ %.3f×" % GALL,
        fontsize=5.3, color=DARK_G, fontweight="bold", va="bottom", ha="left")
-a.text(P05 / 1.12, 18.8, "economic uncertainty\np05–p95: %.2f×–%.0f×" % (P05, P95),
+a.text(P05 / 1.12, 18.8, "5th–95th percentile\n%.2f–%.0f×" % (P05, P95),
        fontsize=5.5, color=RED, ha="right", va="top")
 a.text(14.0, FE_COST - 0.25, "Fe %.2f" % FE_COST, fontsize=5.4, color=DARK_G, ha="left", va="top")
 
@@ -155,7 +155,7 @@ lit.text(0.32, 2.95, "measured gains", fontsize=4.9, color=MID, ha="left", va="t
 # b — activity-only strict-scaling reachability
 # --------------------------------------------------------------------------------------
 pg.letter("b", 93.0, 119.5)
-pg.title("Activity-only physical reachability", 103.0, 116.5)
+pg.title("What the scaling relation allows", 103.0, 116.5)
 b = pg.ax(105.0, 70.0, 69.0, 39.0)
 boxed(b)
 
@@ -170,9 +170,9 @@ b.plot(cE[ib], cC[ib], "o", ms=4.0, mfc=RU, mec=INK, mew=0.5, zorder=5)
 assert abs(cC[ib] - BEST_C) < 1e-9 and abs(cE[ib] - BEST_E) < 1e-12
 b.text(cE[ib], cC[ib] - 0.9, "best %.3f\nat %s eV" % (cC[ib], fmt_minus("%.3f" % cE[ib])),
        fontsize=5.8, va="top", ha="center")
-b.text(-1.115, 25.6, "still +%.3f USD t$^{-1}$ above Fe" % (BEST_C - FE_COST),
+b.text(-1.115, 25.6, "%.3f USD t$^{-1}$ above Fe" % (BEST_C - FE_COST),
        fontsize=5.6, color=RED, ha="center", va="top", fontweight="bold")
-b.text(-1.115, 24.3, "673 K headroom %.3f×\nstate-specific max %.3f×" % (G673, GALL),
+b.text(-1.115, 24.3, "gain ≤ %.3f× at 673 K,\n≤ %.3f× over all states" % (G673, GALL),
        fontsize=5.4, color=DARK_G, ha="center", va="top")
 b.text(0.97, 0.08, "Fe %.3f" % FE_COST, transform=b.transAxes,
        fontsize=5.6, color=DARK_G, ha="right", va="bottom")
@@ -191,7 +191,7 @@ b.set_ylabel(r"Lowest Ru cost (USD t$^{-1}$ NH$_3$)")
 # c — joint direct activity / lifecycle target
 # --------------------------------------------------------------------------------------
 pg.letter("c", 2.0, 62.0)
-pg.title("Joint economic target region", 12.0, 59.0)
+pg.title("Activity and lifecycle together", 12.0, 59.0)
 c = pg.ax(13.0, 13.0, 74.0, 39.0)
 boxed(c)
 
@@ -227,7 +227,7 @@ for r in direct_keys:
     c.plot(aa, 99.0, "o", ms=3.8, mfc=col, mec=INK, mew=0.45, zorder=5)
     c.text(aa, 99.12, "%.3f×" % aa, fontsize=5.2, color=col, ha="center", va="bottom")
 
-c.text(2.27, 99.95, "curves = conservative direct-activity targets\n(not physical reachability)",
+c.text(2.27, 99.95, "upper bounds on the\nactivity gain needed",
        fontsize=5.3, color=MID, ha="right", va="top")
 c.text(2.27, 99.12, "99% recovery", fontsize=5.4, color=MID, ha="right", va="bottom")
 c.legend(loc="lower left", bbox_to_anchor=(0.01, 0.26), fontsize=5.5, handlelength=2.2)
@@ -246,7 +246,7 @@ c.set_ylabel("Ru recovery required for Fe parity (%)")
 # d — exact strict-scaling x lifecycle reachability
 # --------------------------------------------------------------------------------------
 pg.letter("d", 93.0, 62.0)
-pg.title("Strict-scaling joint reachability", 103.0, 59.0)
+pg.title("Lifecycle parity on the scaling relation", 103.0, 59.0)
 d = pg.ax(105.0, 13.0, 69.0, 39.0)
 boxed(d)
 
@@ -273,7 +273,7 @@ d.plot(life99, 99.0, "o", ms=3.7, mfc=RU, mec=INK, mew=0.5, zorder=5)
 
 assert corner_margin < 0 and life99 < 20.0 and boundary20 < 99.0
 d.annotate(
-    "tested corner\n20 y + 99%%\n%s USD t$^{-1}$ vs Fe" % fmt_minus("%+.3f" % corner_margin),
+    "20 y and 99%%:\n%.3f USD t$^{-1}$ below Fe" % (-corner_margin),
     xy=(20.0, 99.0), xytext=(29.0, 98.75),
     fontsize=5.4, va="top", ha="left",
     arrowprops=dict(arrowstyle="-", lw=0.5, color=MID, shrinkA=1, shrinkB=2),
@@ -293,9 +293,9 @@ d.annotate(
 q_mant, q_exp = ("%.4e" % QCRIT).split("e")
 d.text(0.97, 0.84, r"$q^*=(1-r)/L=%s\times10^{%d}$ y$^{-1}$" % (q_mant, int(q_exp)),
        transform=d.transAxes, fontsize=5.3, ha="right", va="top")
-d.text(0.03, 0.04, "tested box", transform=d.transAxes,
+d.text(0.03, 0.04, "range tested", transform=d.transAxes,
        fontsize=5.3, color=DARK_G, fontweight="bold", ha="left", va="bottom")
-d.text(0.97, 0.95, "strict-scaling parity region", transform=d.transAxes,
+d.text(0.97, 0.95, "parity region", transform=d.transAxes,
        fontsize=5.3, color=DARK_B, fontweight="bold", ha="right", va="top")
 
 d.set_xlim(5, 50)

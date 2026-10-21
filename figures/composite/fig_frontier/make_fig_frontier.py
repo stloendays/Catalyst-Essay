@@ -23,7 +23,7 @@ import statistics
 import sys
 
 import numpy as np
-from matplotlib.patches import FancyArrowPatch, Rectangle
+from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -72,42 +72,42 @@ assert abs(win_hi - 5.46) < 0.005, win_hi
 i_ref = int(np.argmin(np.abs(r - REF_RATE)))
 assert abs(r[i_ref] - REF_RATE) < 1e-9
 
-pg = Page(183.0, 76.0)
+pg = Page(180.0, 104.0)
 
 # ---- a: Ru/C - Fe against the metal financing rate ---------------------------------------------------------------
-a = pg.ax(13, 11, 46, 54)
+a = pg.ax(14, 60, 66, 38)
 a.axvspan(min(leases), max(leases), color=TINT_B, lw=0, zorder=0)
 a.axhline(0, color=INK, lw=0.5, zorder=1)
-a.plot(r, kaap, color=RU, lw=1.2, zorder=3, label="KAAP-type loop, 90 bar")
+a.plot(r, kaap, color=RU, lw=1.2, zorder=3, label="KAAP-type loop")
 a.plot(r, bench, color=DARK_B, lw=0.9, ls=(0, (3, 1.5)), zorder=3, label="each at own optimum")
 a.axvline(REF_RATE, color=RED, lw=0.7, zorder=2)
 for be, y in ((be_kaap, kaap), (be_bench, bench)):
     a.plot(be, 0, "o", ms=3.2, mfc="white", mec=INK, mew=0.6, zorder=5)
 a.text(be_kaap, 0.25, "%.2f" % be_kaap, fontsize=5.4, ha="right", va="bottom")
 a.text(be_bench + 0.2, -0.25, "%.2f" % be_bench, fontsize=5.4, ha="left", va="top")
-a.text(REF_RATE + 0.15, 2.45, "reference\n%.2f %%/y" % REF_RATE, fontsize=5.4, color=RED, va="top", linespacing=1.0)
+a.text(REF_RATE + 0.15, 2.45, "reference\n%.2f%%" % REF_RATE, fontsize=5.4, color=RED, va="top", linespacing=1.0)
 a.text((min(leases) + max(leases)) / 2, -4.05, "disclosed\nleases", fontsize=5.3, color=DARK_B, ha="center",
        va="bottom", linespacing=1.0)
-a.text(11.8, -3.0, "Ru/C cheaper", fontsize=5.4, ha="right", color=DARK_B)
+a.text(11.8, -3.95, "Ru/C cheaper", fontsize=5.4, ha="right", va="bottom", color=DARK_B)
 a.text(11.8, 0.15, "Fe cheaper", fontsize=5.4, ha="right", va="bottom", color=DARK_G)
 a.set_xlim(0, 12)
 a.set_ylim(-4.2, 2.6)
 a.set_xticks([0, 2, 4, 6, 8, 10, 12])
 a.set_xlabel("Ru financing rate (% per year)")
 a.set_ylabel(r"Ru/C $-$ Fe (USD t$^{-1}$ NH$_3$)")
-a.legend(frameon=False, fontsize=5.3, loc="upper left", bbox_to_anchor=(0.0, 0.88), handlelength=2.2)
+a.legend(frameon=False, fontsize=5.3, loc="lower right", bbox_to_anchor=(1.0, 0.13), handlelength=2.2)   # empty lower right
 boxed(a)
-pg.letter("a", 2, 72)
+pg.letter("a", 2, 102)
 
 # ---- b: three-bed converter, best design of each arrangement -----------------------------------------------------
-b = pg.ax(72, 11, 44, 54)
+b = pg.ax(108, 60, 70, 38)
 b.axvspan(0, win_hi, color=TINT_G, lw=0, zorder=0)
 b.plot(r, s_fe, color=FE, lw=1.1, label="all Fe", zorder=3)
 b.plot(r, s_rr, color=RU, lw=1.1, label="all Ru/C", zorder=3)
 b.plot(r, s_rf, color=MID, lw=0.8, ls=(0, (1.2, 1.2)), label="Ru/C first", zorder=3)
 b.plot(r, s_ff, color=INK, lw=1.3, label="Fe first", zorder=4)
 b.axvline(REF_RATE, color=RED, lw=0.7, zorder=2)
-b.text(2.35, 17.24, "Fe first optimal"+chr(10)+"0–%.2f %%/y" % win_hi, fontsize=5.4, ha="left", va="bottom",
+b.text(2.35, 17.24, "Fe first optimal"+chr(10)+"0–%.2f%%" % win_hi, fontsize=5.4, ha="left", va="bottom",
        color=DARK_G, linespacing=1.0)
 b.set_xlim(0, 12)
 b.set_ylim(17.2, 19.0)
@@ -116,7 +116,7 @@ b.set_xlabel("Ru financing rate (% per year)")
 b.set_ylabel(r"cost (USD t$^{-1}$ NH$_3$)")
 b.legend(frameon=False, fontsize=5.3, loc="upper right", handlelength=2.0)
 boxed(b)
-pg.letter("b", 61, 72)
+pg.letter("b", 96, 102)
 
 # ---- c: the least-cost converter at the reference rate -----------------------------------------------------------
 sys.path.insert(0, os.path.join(REPO, "analysis", "nh3_staged_converter_2026_10_12"))
@@ -139,25 +139,47 @@ pat = best["pattern"]
 vols = [float(v) for v in best["beds_volume_m3"].split(";")]
 temps = ["%.0f–%.0f" % tuple(float(v) for v in t.split(":")[1].split("-")) for t in best["beds_T_in_out_C"].split(";")]
 ynh3 = [100 * float(v) for v in best["beds_y_NH3_out"].split(";")]
-c = pg.canvas(124, 6, 30, 62)
-y0, scale = 6.0, 40.0 / sum(vols)
-x0, w = 8.0, 12.0
-y = 58.0
-c.text(x0 + w / 2, 63.0, "9 MPa, %.2f %%/y" % REF_RATE, ha="center", fontsize=5.4)
-c.add_patch(FancyArrowPatch((x0 + w / 2, 61.6), (x0 + w / 2, 58.6), arrowstyle="-|>", mutation_scale=5, lw=0.5,
-                            color=INK))
+# drawn as the converter itself: gas runs left to right through three adiabatic beds (lengths to scale with volume)
+# separated by interbed coolers
+c = pg.canvas(4, 4, 104, 44)
+rng = np.random.default_rng(7)
+XS, XE, YB, YT = 16.0, 92.0, 14.0, 28.0          # vessel interior
+COOL = 7.0                                        # cooler slot between beds
+scale = (XE - XS - 2 * COOL - 2.0) / sum(vols)
+c.add_patch(FancyBboxPatch((XS - 1.2, YB - 1.2), XE - XS + 2.4, YT - YB + 2.4, boxstyle="round,pad=0,rounding_size=3",
+                           fc="white", ec=INK, lw=0.8, zorder=1))
+x = XS + 1.0
+fe_frac = 1 - float(best["Ru_volume_fraction"])
 for k, (cat, v, t, yo) in enumerate(zip(pat, vols, temps, ynh3)):
-    h_ = max(v * scale, 3.2)
-    y -= h_
-    c.add_patch(Rectangle((x0, y), w, h_, fc=FE if cat == "F" else RU, ec=INK, lw=0.5))
-    c.text(x0 + w / 2, y + h_ / 2, "Fe" if cat == "F" else "Ru/C", ha="center", va="center", fontsize=5.6,
-           color="white" if cat == "R" else INK, fontweight="bold")
-    c.text(x0 + w + 1.2, y + h_ / 2, "%.1f m$^3$\n%s °C\n%.1f%% NH$_3$" % (v, t, yo),
-           ha="left", va="center", fontsize=5.0, linespacing=1.0)
-    y -= 2.2
-c.text(x0 + w / 2, y - 0.6, "Ru/C %d%% of volume" % round(100 * float(best["Ru_volume_fraction"])), ha="center",
-       va="top", fontsize=5.4)
-pg.letter("c", 120, 72)
+    L = v * scale
+    col, dark = (FE, DARK_G) if cat == "F" else (RU, DARK_B)
+    c.add_patch(Rectangle((x, YB + 0.6), L, YT - YB - 1.2, fc=col, ec="none", alpha=0.9, zorder=2))
+    n = int(28 * L)
+    c.scatter(rng.uniform(x + 0.6, x + L - 0.6, n), rng.uniform(YB + 1.3, YT - 1.3, n), s=0.9, c=dark, lw=0,
+              zorder=3)
+    c.text(x + L / 2, YT + 6.6, "Fe" if cat == "F" else "Ru/C", ha="center", va="bottom", fontsize=6.4,
+           fontweight="bold", color=dark)
+    c.text(x + L / 2, YT + 2.6, "%.1f m$^3$" % v, ha="center", va="bottom", fontsize=5.4, color=INK)
+    c.text(x + L / 2, YB - 2.4, "%s °C" % t, ha="center", va="top", fontsize=5.4, color=INK)
+    c.text(x + L / 2, YB - 5.8, "%.1f%% NH$_3$" % yo, ha="center", va="top", fontsize=5.4, color=INK)
+    x += L
+    if k < 2:
+        cx = x + COOL / 2
+        c.add_patch(Circle((cx, (YB + YT) / 2), 2.4, fc="white", ec=INK, lw=0.6, zorder=3))
+        zz = np.linspace(cx - 1.6, cx + 1.6, 7)
+        c.plot(zz, (YB + YT) / 2 + 1.0 * np.array([0, 1, -1, 1, -1, 1, 0]), color=INK, lw=0.5, zorder=4)
+        x += COOL
+c.annotate("", xy=(XS - 1.4, (YB + YT) / 2), xytext=(4.0, (YB + YT) / 2),
+           arrowprops=dict(arrowstyle="-|>", lw=0.8, color=INK, mutation_scale=6))
+c.text(4.0, (YB + YT) / 2 + 2.0, "N$_2$ + 3H$_2$", fontsize=5.6, va="bottom", ha="left")
+c.annotate("", xy=(103.0, (YB + YT) / 2), xytext=(XE + 1.4, (YB + YT) / 2),
+           arrowprops=dict(arrowstyle="-|>", lw=0.8, color=INK, mutation_scale=6))
+c.text(103.0, (YB + YT) / 2 + 2.0, "to loop", fontsize=5.6, va="bottom", ha="right")
+c.text(54, 44.0, "Least-cost converter at %.2f%% per year, 9 MPa" % REF_RATE, ha="center", va="top", fontsize=6.4,
+       fontweight="bold")
+c.text(54, 40.2, "fused iron %d%% of the catalyst volume" % round(100 * fe_frac), ha="center", va="top", fontsize=5.6,
+       color=DARK_G)
+pg.letter("c", 2, 50)
 
 # ---- d: rate ratio along the bed -----------------------------------------------------------------------------------
 val = json.load(open(os.path.join(INR, "validation.json"), encoding="utf-8"))["rate_ratio_90bar_Keestra"]
@@ -166,21 +188,21 @@ xa = np.array([100 * float(k.split("_")[-1]) for k in yv])
 pk = np.array([val[k]["Ru_over_Fe_per_kg"] for k in yv])
 pm = np.array([val[k]["Ru_over_Fe_per_m3"] for k in yv])
 assert round(pk[0]) == 9 and round(pk[-1]) == 62
-d = pg.ax(166, 11, 14, 54)
+d = pg.ax(130, 10, 48, 36)
 d.plot(xa, pk, "-o", color=RU, ms=2.6, mec=INK, mew=0.3, lw=0.9, label="per kg")
 d.plot(xa, pm, "-s", color=PALE_B, ms=2.6, mec=INK, mew=0.3, lw=0.9, label="per m$^3$")
 d.set_yscale("log")
 d.set_ylim(1, 100)
 d.set_xlim(0, 16)
-d.set_xticks([2, 8, 14])
+d.set_xticks([0, 4, 8, 12, 16])
 d.set_xlabel("NH$_3$ (%)")
-d.set_ylabel("Ru/C : Fe rate", labelpad=1)
+d.set_ylabel("Ru/C to Fe rate ratio", labelpad=1)
 d.yaxis.set_major_formatter(__import__("matplotlib").ticker.FuncFormatter(lambda v, _: "%g" % v))
 for x_, y_ in ((xa[0], pk[0]), (xa[-1], pk[-1])):
     d.text(x_, y_ * 1.25, "%d" % round(y_), fontsize=5.3, ha="center", va="bottom")
 d.legend(frameon=False, fontsize=5.0, loc="lower right", handlelength=1.2, borderaxespad=0.2)
 boxed(d)
-pg.letter("d", 156, 72)
+pg.letter("d", 118, 50)
 
 pg.save(HERE, "FigFrontier")
 print("break-even KAAP %.3f, each at own optimum %.3f %%/y; Fe-first optimal up to %.2f %%/y; at %.2f %%/y: "

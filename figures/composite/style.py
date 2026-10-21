@@ -13,12 +13,16 @@ import matplotlib.image as mpimg  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-INK, MID, GRID = "#1B1B1B", "#6B6F76", "#E4E4E4"
-FE, RU, OS = "#89AA7B", "#7789B7", "#9DACCB"
-OTHER, RED = "#B3B8C0", "#EB6969"
-TINT_G, TINT_B, PAPER = "#E4ECDE", "#E3E7F0", "#F0EEEF"
-PALE_B, PALE_G, MID_G, LINE = "#C6CCDC", "#CBD7C3", "#ACBF9F", "#D6D6D6"
-DARK_G, DARK_B = "#5E7A52", "#5A6480"
+INK, MID, GRID = "#1B1B1B", "#5F646C", "#E4E4E4"
+# 2026-10-21 palette (author: richer, not monotonous): Fe green and Ru blue keep their meaning, deeper than the
+# earlier pastels; methanol states take a warm family; RED stays the one highlighted element per panel.
+FE, RU, OS = "#6E9F60", "#5677B5", "#97ABD4"
+OTHER, RED = "#B5B9C1", "#D9474F"
+TINT_G, TINT_B, PAPER = "#EAF2E5", "#E8EDF7", "#F3F1F0"
+PALE_B, PALE_G, MID_G, LINE = "#C8D3EA", "#CDE0C4", "#9EC390", "#D6D6D6"
+DARK_G, DARK_B = "#467238", "#304C86"
+AMB, AMB_D, AMB_P, AMB_L = "#E0913A", "#A85E24", "#F5D9B3", "#ECB874"     # methanol states (warm)
+GOLD = "#C9A23F"                                                               # Au/TiO2
 
 RC = {
     "font.family": "Arial", "font.size": 7, "axes.linewidth": 0.6,
