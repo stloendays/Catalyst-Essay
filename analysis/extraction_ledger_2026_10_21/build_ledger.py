@@ -10,10 +10,14 @@ Each value is assigned one source type, by where the paper gives it:
   plot-read               read off a plotted curve or bar (none in this sample)
 
 A value is correct when its number and qualifier agree with the paper and it is attached to an entry for which the
-paper reports it. The one error of the sample is #40 (Frei et al. 2019): the CO2 conversion of 9.7% is printed in the
-text on the 500 h stability test (Fig. 6), but the extraction attached it to the Table 2 entry, and Table 2 has no
-conversion column. Its effect on the comparisons is computed below from the costed candidates; the catalyst-level
-counts are unaffected because both records belong to one catalyst.
+paper reports it under the metric it names. The sample has two errors:
+  #40 (Frei et al. 2019): the CO2 conversion of 9.7% is printed in the text on the 500 h stability test (Fig. 6), but
+      the extraction attached it to the Table 2 entry, and Table 2 has no conversion column. Its effect on the
+      comparisons is computed below from the costed candidates; the catalyst-level counts are unaffected because both
+      records belong to one catalyst.
+  #99 (Ota et al. 2012): Table 2 prints a methanol formation rate, 0.3 umol per gram of catalyst per minute, and the
+      extraction recorded it as a printed STY without the paper's metric name. The value converts to the STY the model
+      uses (checked below), so no comparison changes.
 
 Plot-read values do not occur in the sample, so their accuracy is taken from the comparison with the curated datasets
 (agent/extraction/eval/field_accuracy_by_source.csv, strict tolerance), with its own denominators.
@@ -34,9 +38,11 @@ BY_SOURCE = REPO / "agent/extraction/eval/field_accuracy_by_source.csv"
 POOLED = REPO / "analysis/meoh_field_pooled_2026_10_15/pooled_candidates.csv"
 
 ERRORS = {40: "conversion printed for the 500 h stability test (text, Fig. 6) attached to the Table 2 entry; "
-              "Table 2 has no conversion column"}
-NOTES = {93: "upper bound '<0.1%' kept as extracted (qualifier '<'); printed in the methods text",
-         99: "printed as 'MeOH rate' in µmol per gram of catalyst per minute; unit kept as printed"}
+              "Table 2 has no conversion column",
+          99: "methanol formation rate printed in µmol per gram of catalyst per minute recorded as a printed STY "
+              "without the paper's metric name; the value converts to the same STY"}
+NOTES = {93: "upper bound '<0.1%' kept as extracted (qualifier '<'); printed in the methods text"}
+M_MEOH = 32.04                       # g/mol
 TEXT_MARKS = ("caption", "footnote", "reaction conditions", "text", "prose", "paragraph", "activity testing")
 TYPES = ["printed, table", "printed, text/caption", "derived", "plot-read"]
 
@@ -72,6 +78,17 @@ def frei_effect():
     return out
 
 
+def ota_effect():
+    """#99: the printed rate (umol per g catalyst per min) converts to the STY (g per g catalyst per h) of the model."""
+    c = pd.read_csv(POOLED)
+    r = c[(c.doi == "10.1016/j.jcat.2012.05.020") & (c.entry == "Table 2, PdMgAl")]
+    assert len(r) == 1
+    sty = 0.3e-6 * M_MEOH * 60
+    assert abs(r.STY.item() - sty) < 1e-6, (r.STY.item(), sty)
+    return dict(printed_rate_umol_per_g_min=0.3, sty_g_per_g_h=round(sty, 6), model_sty=round(float(r.STY.item()), 6),
+                comparisons_changed=0)
+
+
 def main():
     d = pd.read_csv(EVIDENCE)
     assert len(d) == 100 and d.numeric_comparison.eq("MATCH").all()
@@ -97,7 +114,7 @@ def main():
                    errors=[dict(id=int(i), doi=d.loc[d.id == i, "doi"].item(), note=n) for i, n in ERRORS.items()],
                    by_source_type=by_type, by_source_type_and_location=by_type_loc,
                    plot_read_vs_curated=dict(by_source=plot, pooled=pooled),
-                   error_effect_frei_2019=frei_effect())
+                   error_effect_frei_2019=frei_effect(), error_effect_ota_2012=ota_effect())
     (HERE / "summary.json").write_text(json.dumps(summary, indent=1, ensure_ascii=False), encoding="utf-8")
     print(json.dumps({k: summary[k] for k in ("correct", "by_source_type", "error_effect_frei_2019")}, indent=1,
                      ensure_ascii=False))

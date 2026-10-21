@@ -762,15 +762,15 @@ Definition, the printed STY differs from the value the dataset derives from yiel
 
 ### Supplementary Table 9 | Source types and accuracy of 100 sampled extracted values
 
-Ten values from each of 10 methanol papers, checked against the paper and its Supporting Information. A value is correct when its number and qualifier agree with the paper and it belongs to an entry the paper reports it for. The one error is a CO₂ conversion printed for a stability test and attached to a table entry of the same catalyst. The sample contains no plot readings, so plot-read accuracy is given from the comparison with the curated datasets at strict tolerance. Plot readings enter only sensitivity analyses.
+Ten values from each of 10 methanol papers, checked against the paper and its Supporting Information. A value is correct when its number and qualifier agree with the paper and it belongs to an entry the paper reports it for, under the metric the paper names. The two errors are a CO₂ conversion printed for a stability test and attached to a table entry of the same catalyst, and a methanol formation rate recorded as STY. The sample contains no plot readings, so plot-read accuracy is given from the comparison with the curated datasets at strict tolerance. Plot readings enter only sensitivity analyses.
 
 | Source type | Main text | Supporting Information | Correct | Accuracy |
 |---|---|---|---|---|
-| Printed, table | 20 | 38 | 58 / 58 | 100 % |
+| Printed, table | 20 | 38 | 57 / 58 | 98 % |
 | Printed, text or caption | 30 | 6 | 35 / 36 | 97 % |
 | Derived from printed numbers | 4 | 2 | 6 / 6 | 100 % |
 | Read off a plot | 0 | 0 | – | – |
-| **Total** | 54 | 46 | **99 / 100** | 99 % |
+| **Total** | 54 | 46 | **98 / 100** | 98 % |
 | Read off a plot, CO₂ conversion (against curated data) |  |  | 185 / 229 | 81 % |
 | Read off a plot, methanol selectivity (against curated data) |  |  | 73 / 207 | 35 % |
 | Read off a plot, STY (against curated data) |  |  | 18 / 151 | 12 % |

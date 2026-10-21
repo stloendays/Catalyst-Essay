@@ -960,10 +960,11 @@ def table9():
                      pct_(p["correct"], p["n"])])
     e = s["error_effect_frei_2019"]["inlet_limited"]
     cap = (f"From {rel(LEDGER100 / 'summary.json')} and {rel(LEDGER100 / 'ledger_100.csv')} (one row per value), "
-           f"built by {rel(LEDGER100 / 'build_ledger.py')} from the source evidence of the 100-value sample. The one "
-           f"error, #{s['errors'][0]['id']} ({s['errors'][0]['doi']}): {s['errors'][0]['note']}. Removing it changes no "
+           f"built by {rel(LEDGER100 / 'build_ledger.py')} from the source evidence of the 100-value sample. Errors: "
+           + "; ".join(f"#{x['id']} ({x['doi']}): {x['note']}" for x in s["errors"]) + ". Removing #40 changes no "
            f"catalyst-level comparison; the point-level count of the inlet-limited loop goes from "
            f"{e['as_extracted']['disagreements']} to {e['corrected']['disagreements']} of {e['corrected']['groups']}. "
+           f"#99 converts to the STY the model uses ({s['error_effect_ota_2012']['model_sty']} g per g catalyst per h). "
            f"Plot-read rows: strict tolerance against the curated datasets "
            f"({rel(EX / 'eval/field_accuracy_by_source.csv')}, main-text and SI plots pooled).")
     return block(9, "Source types and accuracy of 100 sampled extracted values", cap,
