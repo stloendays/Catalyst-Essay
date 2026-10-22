@@ -164,29 +164,19 @@ INDUSTRIAL = ("5", "6.86", "8", "10")          # inlet limits inside the 4.4-9.8
 
 
 def draw_track(pg):
-    """Panel a: the ACSA chain as a metro-map track (no box-and-arrow; figure-studio rule 8)."""
-    cv = pg.canvas(4, 121, 176, 26)
-    tr = track.Track(cv, y=11.5, sym=6.6, desc=5.6, title=6.4, lw=2.0)
-    tr.band(22, 86, TINT_B, None, below=8.0, height=21.0, r=4.0, alpha=1.0)
-    tr.band(92, 154, TINT_G, None, below=8.0, height=21.0, r=4.0, alpha=1.0)
-    tr.text(54, 20.4, "ACSA reads the literature", 6.4, DARK_B, weight="bold", va="bottom")
-    tr.text(123, 20.4, "plant model", 6.4, DARK_G, weight="bold", va="bottom")
-    tr.seg(8, 89, DARK_B)
-    tr.seg(89, 164, DARK_G)
-    for x in (20, 47, 76, 108, 140):
-        tr.chevron(x)
-    tr.station(10, "papers", "main text\nand SI", DARK_B)
-    tr.station(34, "extract", "value, unit,\nlocation", DARK_B)
-    tr.gate(62, "self-check", DARK_B)
-    tr.text(62, 8.1, "hand-built cases\nreproduced", 5.6, track.LABEL, va="top", linespacing=1.15)
-    tr.station(100, "cost bound", "lower bound\nper candidate", DARK_G)
-    tr.branch(100, 118, 3.0, MID, "", "", "", text_color=INK)
-    tr.text(120.4, 3.0, "skipped when above\nthe best cost", 5.4, track.LABEL, ha="left", va="center",
-            linespacing=1.15)
-    tr.station(146, "optimize", "kinetics,\nprocess, cost", DARK_G)
-    tr.terminal(164, RED, check=False, r=2.2)
-    tr.text(164, 8.1, "laboratory vs\nplant leader", 5.6, track.LABEL, va="top", linespacing=1.15)
-    pg.letter("a", 2, 148)
+    """Panel a: literature -> ACSA -> multiscale cost chain -> leaderboards (editable source Fig2a.pptx)."""
+    import matplotlib.image as mpimg
+    img = mpimg.imread(os.path.join(HERE, "Fig2a_from_pptx.png"))
+    ink = (img[..., :3].min(-1) < 0.97)
+    r, c = np.where(ink.any(1))[0], np.where(ink.any(0))[0]
+    img = img[r[0]:r[-1] + 1, c[0]:c[-1] + 1]
+    h, w = img.shape[:2]
+    W_ = 174.0
+    H_ = W_ * h / w
+    ax = pg.ax(5, 184 - 1 - H_, W_, H_)
+    ax.imshow(img, interpolation="lanczos")
+    ax.axis("off")
+    pg.letter("a", 2, 182)
 
 
 def dot(ax, x, y, lo=None, hi=None, fc=RU, ec=INK, s=26, z=4):
@@ -196,7 +186,7 @@ def dot(ax, x, y, lo=None, hi=None, fc=RU, ec=INK, s=26, z=4):
 
 
 if __name__ == "__main__":
-    pg = Page(180.0, 150.0)
+    pg = Page(180.0, 184.0)
     draw_track(pg)
 
     # ---- b: methanol, between catalysts and over every operating point ------------------------------------------
