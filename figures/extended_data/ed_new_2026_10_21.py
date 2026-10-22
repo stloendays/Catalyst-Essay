@@ -76,8 +76,20 @@ def sab_data():
 # ------------------------------------------------------------------------------------------------- ED Fig. 8
 def ed_au():
     d = au_data()
-    pg = Page(183.0, 112.0)
-    # a: catalyst requirement against size (nominal exponents)
+    pg = Page(183.0, 152.0)
+    # a: the five particle sizes on one TiO2 support, to scale (OVITO render of figures/composite/fig5)
+    import matplotlib.image as mpimg
+    img = mpimg.imread(os.path.join(REPO, "figures/composite/fig5/renders/Au_TiO2_2to6nm.png"))
+    ra = pg.ax(14, 110, 164, 34)
+    ra.imshow(img)
+    ra.axis("off")
+    H_, W_ = img.shape[:2]                     # labels in image pixels: under each particle, title at the left end
+    for fx, nm in zip((0.099, 0.234, 0.403, 0.603, 0.838), SIZES):
+        ra.text(fx * W_, H_ * 1.04, "%d nm" % nm, ha="center", va="top", fontsize=6.4)
+    ra.set_ylim(H_ * 1.18, 0)
+    ra.text(0.0, H_ * 0.08, "Au on TiO$_2$(110), to scale", ha="left", va="top", fontsize=6.4)
+    pg.letter("a", 2, 149)
+    # b: catalyst requirement against size (nominal exponents)
     a = pg.ax(14, 62, 36, 38)
     b_ = np.asarray(d["burden"], float)
     assert np.allclose(b_, [1, 2.161, 3.732, 5.703, 8.064], atol=6e-4), b_
@@ -93,7 +105,7 @@ def ed_au():
     a.set_xlabel("Au particle diameter (nm)")
     a.set_ylabel("catalyst required (rel. to 2 nm)")
     boxed(a)
-    pg.letter("a", 2, 108)
+    pg.letter("b", 2, 108)
 
     # b: per-candidate scatter: full order and 2 nm leader against sigma
     b = pg.ax(62, 62, 36, 38)
@@ -110,7 +122,7 @@ def ed_au():
     b.set_ylabel("draws kept (%)")
     b.legend(frameon=False, fontsize=5.3, loc="lower left", bbox_to_anchor=(0.0, 0.0), handlelength=1.6)
     boxed(b)
-    pg.letter("b", 50, 108)
+    pg.letter("c", 50, 108)
 
     # c: lambda x (n + m) map of P(2 nm leader)
     c = pg.ax(112, 62, 40, 38)
@@ -131,7 +143,7 @@ def ed_au():
     cb.set_yticklabels(["0", "50", "100"], fontsize=5.3)
     cb.set_ylabel("P(2 nm leader) (%)", fontsize=5.3, labelpad=1)
     boxed(c)
-    pg.letter("c", 100, 108)
+    pg.letter("d", 100, 108)
 
     # d: combined lifetime + operating freedom, 273-293 K
     e = pg.ax(14, 10, 70, 36)
@@ -152,7 +164,7 @@ def ed_au():
     e.set_ylabel("draws (%)")
     e.legend(frameon=False, fontsize=5.3, loc="center left", bbox_to_anchor=(1.01, 0.5), handlelength=1.6)
     boxed(e)
-    pg.letter("d", 2, 50)
+    pg.letter("e", 2, 50)
     return pg
 
 
