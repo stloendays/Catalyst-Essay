@@ -142,6 +142,7 @@ def tokens(label, haystack, *needles):
     ok(label, not missing, "source-derived text missing: " + ", ".join(missing) if missing else "")
 
 
+# (1.3 direct-path descriptor costs differ from the cached-surface anchors by < 5e-3 USD/t: direct vs interpolated kinetics.)
 # Re-anchored checks can retain a secondary number in its precise SI section.
 # Each anchor is mandatory: a stale number in main text cannot pass via an SI fallback.
 def claim_tokens(label, *anchors):
@@ -2646,6 +2647,41 @@ ok("NCE format: display equations numbered (1)–(3) in appearance order",
 
 tokens("Main text: compressed promoter activity range", m_bw,
        f"Promotion raises Ru activity {min(float(r['factor_high']) for r in _prom):.0f}- to more than {max(float(r['factor_high']) for r in _prom):.0f}-fold")
+
+
+# ----- Items A-D of the 2026-10-22 revision -------------------------------------
+# D: ammonia field comparisons on measured rate laws (analysis/nh3_field_measured_kinetics_2026_10_22).
+_md = _j("analysis/nh3_field_measured_kinetics_2026_10_22/summary.json")
+_mdp, _mde = _md["primary_measured"], _md["entries"]
+ok("D gates: frozen 12/44, Keestra Fe 15.307473, Rossetti zero at equilibrium",
+   all(v["ok"] for v in _md["gates"].values()) and (_md["frozen_descriptor"]["groups"], _md["frozen_descriptor"]["top1_mismatch_groups"]) == (NPL["groups"], NPL["mismatch"]))
+claim_tokens("D: measured-law basis in SI Note 4 equals its source",
+    ("SI Note 4", s9, [f"Of the {_mde['total']} entries, {_mde['lab_outside_fitted_range']} were measured outside",
+                       f"{_mde['infeasible_primary']} entries need more than the 90 m³ bed",
+                       f"In the {_mdp['groups']} comparisons that keep two buildable entries the leaders differ in {_mdp['top1_mismatch_groups']}, all above 5%",
+                       f"gives {_md['g_integral_calibration']['top1_mismatch_groups']} of {_md['g_integral_calibration']['groups']}",
+                       f"gives {_md['a_ru_cholewa_as_printed']['top1_mismatch_groups']} of {_md['a_ru_cholewa_as_printed']['groups']}",
+                       f"{_md['gates']['cholewa_as_printed_H2N2_ratio_info']['ratio_15_over_30']:.2f}-fold rate gain"]))
+ok("D: >5 % count equals the mismatch count on the measured basis", _mdp["regret_gt5pct_groups"] == _mdp["top1_mismatch_groups"])
+ok("D: integral, ranked-last and anchored variants agree",
+   len({(_md[k]["top1_mismatch_groups"], _md[k]["groups"]) for k in ("f_infeasible_ranked_last", "g_integral_calibration", "h_anchored_on_fused_reference")}) == 1)
+# A+B: NH3-FINAL-1.3 structural check (analysis/nh3_final_1_3_2026_10_22).
+_r13 = _j("analysis/nh3_final_1_3_2026_10_22/results.json")
+_d13, _m13, _g13 = _r13["descriptor"]["1.3"], _r13["measured"]["1.3"], _r13["gates"]["G1_vle_holdout"]
+_d12 = _r13["descriptor"]["1.2_direct"]
+ok("1.3: 1.2 recomputed on the same path equals the canonical anchors",
+   all(abs(_d12["metals"][m]["cost"] - det["metals"][m]["feasible"]["total_cost"]) < 5e-3 for m in ("Fe", "Ru", "Os"))
+   and abs(_r13["measured"]["1.2"]["breakeven_own_optima"]["rate"] - _bes["benchmark_owned"]) < 1e-6)
+claim_tokens("1.3: SI Note 7 and main text equal results.json",
+    ("SI Note 7", s2_full, [f"within {100 * _g13[0]['dev_1_3']:.1f}% and {100 * _g13[1]['dev_1_3']:.1f}%",
+                            f"Fe, Ru and Os cost {_d13['metals']['Fe']['cost']:.2f}, {_d13['metals']['Ru']['cost']:.2f} and {_d13['metals']['Os']['cost']:.2f} US dollars per tonne",
+                            f"Fe {_d13['Ru_minus_Fe']:.2f})",
+                            f"Ru matches Fe at {_d13['Ru_price_parity_USD_kg']:.0f} US dollars per kilogram or with an {_d13['Ru_activity_multiple_for_parity']:.0f}-fold activity gain",
+                            f"bulk Ru needs {_m13['bulk_Ru_activity_parity']:.1f}-fold or {_m13['bulk_Ru_price_parity']['price_USD_kg']:,.0f} US dollars per kilogram",
+                            f"Ru/C is {-_m13['own_optima_2.10']['gap']:.2f} and {-_m13['KAAP_2.10']['gap']:.2f} US dollars per tonne cheaper",
+                            f"break-even {100 * _m13['breakeven_own_optima']['rate']:.2f}% and {100 * _m13['breakeven_KAAP']['rate']:.2f}% per year"]),
+    ("main text", m_feru, [f"the gap stays at {_d13['Ru_minus_Fe']:.2f} US dollars per tonne"]))
+ok("1.3: both separator hold-outs within 7 % (main-text wording)", all(abs(g["dev_1_3"]) < 0.07 for g in _g13))
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
