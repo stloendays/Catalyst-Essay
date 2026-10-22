@@ -69,3 +69,5 @@
 ## 进度日志
 - 2026-10-22 20:10 建分支与回溯标签；Keestra Ru 论文下载受人机验证阻挡（待用户手动），Cholewa 2024 已下载。
 - 2026-10-22 22:00 D 完成：`analysis/nh3_field_measured_kinetics_2026_10_22`（README 有全部数字）。Cholewa 2024 式 (12) 按原文参数复现不了自身 Fig. 5b（1.21 vs >1.8），主选 Ru 方程改为 Rossetti（Addendum 1）。描述符 12/44 → 实测方程 4/25；98/237 条外推后放不进 90 m³ 床。标签 rollback/AD-D-done。
+- 2026-10-22 20:30 A+B 完成：`analysis/nh3_final_1_3_2026_10_22`。BASF 表 VLE 过留出检验（−6.2 %、−3.3 %），多级压缩仍低 38–46 %（门槛未过，不拟合）→ 1.3 作结构性稳健性检查，1.2 仍为主模型。结论全部保持（Fe<Ru<Os，差 5.17；Ru/C 盈亏 3.24/4.84 %/y 仍高于 2.10 % 参考利率）。标签 rollback/AD-AB-done。
+- 2026-10-22 20:40 正文/SI 第一轮：Note 4 加"动力学口径"段（D），Note 7 加 1.3 段与两行表，Methods 加两句检查；新文献 61（Appl 氨 1 表 5）、67（Cholewa 2024）并重排编号；审计加 D 与 1.3 锁，352/0；正文 3,493 词，SI 9,993。C 的加料口径重算仍在跑（`analysis/meoh_catalyst_level_co_rule_2026_10_22/run.log`）。
