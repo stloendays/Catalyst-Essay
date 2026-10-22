@@ -32,7 +32,7 @@ Plant cost against log$_{10}$ TOF at 673 K for the surfaces whose optimum fits t
 
 ## Extended Data Fig. 8 | Rank preservation in the Au/TiO$_2$ control and the catalyst-life channel
 
-**a**, The five Au particle sizes on one TiO$_2$(110) support, to scale (illustrative models). **b**, Catalyst required relative to 2 nm particles at the nominal size exponents. **c**, Share of draws keeping the full order and the 2 nm leader against the per-size activity scatter σ; dashed, σ = 0.25. **d**, Probability that 2 nm particles stay the least-cost catalyst when catalyst life scales as d$^{λ}$; dashed, λ = n + m. **e**, Full order, 2 nm leader and full inversion against λ with candidate-specific kinetic and operating variation over 273–293 K; shaded, the carbonate-loss regime (λ ≈ 0).
+**a**, The five Au particle sizes on one TiO$_2$(110) support, to scale (illustrative models). **b**, Full order, 2 nm leader and full inversion against the life exponent λ with candidate-specific kinetic and operating variation over 273–293 K; shaded, the carbonate-loss regime (λ ≈ 0). **c**, Catalyst required relative to 2 nm particles at the nominal size exponents. **d**, Share of draws keeping the full order and the 2 nm leader against the per-size activity scatter σ; dashed, σ = 0.25. **e**, Probability that 2 nm particles stay the least-cost catalyst when catalyst life scales as d$^{λ}$; dashed, λ = n + m.
 
 ## Extended Data Fig. 9 | Ru against Ni in CO$_2$ methanation, from an independent reactor study
 
@@ -41,4 +41,3 @@ Plant cost against log$_{10}$ TOF at 673 K for the surfaces whose optimum fits t
 ## Extended Data Fig. 10 | Purge boundary and inlet-limited methanol loops
 
 **a**, Net production cost along an extended purge grid for every scored entry in the loop without an inlet limit. **b**, Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, published loop designs; dashed, the loop that anchors the cost model. **c**, Optimal purge and **d**, recycle ratio under each loop treatment. **e**, Disagreements against the inlet limit, counting CO, CH$_4$ and N$_2$ (circles) or CH$_4$ and N$_2$ only (squares).
-

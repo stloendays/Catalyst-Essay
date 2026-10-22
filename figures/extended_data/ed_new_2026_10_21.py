@@ -108,7 +108,7 @@ def ed_au():
     a.set_xlabel("Au particle diameter (nm)")
     a.set_ylabel("catalyst required (rel. to 2 nm)")
     boxed(a)
-    pg.letter("b", 2, 56)
+    pg.letter("c", 2, 56)
 
     # b: per-candidate scatter: full order and 2 nm leader against sigma
     b = pg.ax(62, 12, 36, 38)
@@ -125,7 +125,7 @@ def ed_au():
     b.set_ylabel("draws kept (%)")
     b.legend(frameon=False, fontsize=5.3, loc="lower left", bbox_to_anchor=(0.0, 0.0), handlelength=1.6)
     boxed(b)
-    pg.letter("c", 50, 56)
+    pg.letter("d", 50, 56)
 
     # c: lambda x (n + m) map of P(2 nm leader)
     c = pg.ax(112, 12, 40, 38)
@@ -146,7 +146,7 @@ def ed_au():
     cb.set_yticklabels(["0", "50", "100"], fontsize=5.3)
     cb.set_ylabel("P(2 nm leader) (%)", fontsize=5.3, labelpad=1)
     boxed(c)
-    pg.letter("d", 100, 56)
+    pg.letter("e", 100, 56)
 
     # d: combined lifetime + operating freedom, 273-293 K
     e = pg.ax(126, 64, 52, 36)
@@ -167,7 +167,7 @@ def ed_au():
     e.set_ylabel("draws (%)")
     e.legend(frameon=False, fontsize=5.3, loc="upper right", handlelength=1.6, borderaxespad=0.3)
     boxed(e)
-    pg.letter("e", 114, 104)
+    pg.letter("b", 114, 104)
     return pg
 
 

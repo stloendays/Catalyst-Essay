@@ -624,7 +624,7 @@ def ed8():
     ax.yaxis.set_minor_formatter(NullFormatter())
     ax.set_ylabel("cost / cost at %.1f %% purge" % floor)
     below = int((opt.purge < a.attrs["purge_floor"] - 1e-12).sum())
-    ax.text(floor * 1.15, 0.062, "frozen grid\n(0.5–40 %)", color=RED, fontsize=FS, va="bottom")
+    ax.text(floor * 1.15, 0.062, "standard grid\n(0.5–40 %)", color=RED, fontsize=FS, va="bottom")
     ax.text(0.03, 0.04, "optimum below %.1f %%: %d of %d entries\nmedian optimum %.3f %% purge" % (
         floor, below, len(opt), 100 * float(np.median(opt.purge))), transform=ax.transAxes, fontsize=FS,
         va="bottom")
@@ -934,7 +934,7 @@ def write_captions():
     bd, ext = pb["boundary"], pb["boundary"]["at_extended_optimum"]
     lim = pb["limits"]
     n_pub = d["b"][0].attrs["published"][2]
-    lab = [("canonical", "frozen grid"), ("extended", "extended grid"),
+    lab = [("canonical", "standard grid"), ("extended", "extended grid"),
            ("limit_published_max", "≤ %.2f %%" % (100 * lim["published_max"])),
            ("limit_anchor", "≤ %.2f %%" % (100 * lim["anchor"])),
            ("limit_published_min", "≤ %.2f %%" % (100 * lim["published_min"]))]
@@ -946,20 +946,20 @@ def write_captions():
     ints = lambda s: ", ".join("%d" % v for v in s)  # noqa: E731
     out += ["## Extended Data Fig. 10 | Purge boundary and inlet-constrained methanol loops", "",
             "**a**, Net production cost along the purge grid for each of the %d scored methanol entries in the loop "
-            "without an inlet limit, relative to the cost at 0.5 %% purge, the floor of the frozen grid (0.5–40 %%, "
+            "without an inlet limit, relative to the cost at 0.5 %% purge, the floor of the standard grid (0.5–40 %%, "
             "dashed); the grid is extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below "
             "0.5 %% for %d of %d entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above "
             "it. **b**, Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the "
             "inlets of %d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the "
             "cost model (%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; "
-            "dashed, anchor loop %.2f) without the limit on the frozen grid and on the extended grid (median recycle "
+            "dashed, anchor loop %.2f) without the limit on the standard grid and on the extended grid (median recycle "
             "ratio %.0f), and with the inlet content limited to %.2f, %.2f and %.2f %% on the extended grid (bars, "
             "median). **e**, Comparisons whose STY leader is not the plant-cost leader against the limit on the "
             "reactor-inlet fraction, when the limit counts CO, CH$_4$ and N$_2$ (circles; the definition of the "
             "primary analysis) or CH$_4$ and N$_2$ only (squares); filled, all disagreements; open and dashed, cost "
             "gap > 5 %%. At limits of %s %%: CO, CH$_4$ and N$_2$ %s of %d (%s above 5 %%); CH$_4$ and N$_2$ only %s "
             "(%s above 5 %%). Dashed red line, %s %% (the anchor loop; primary); shaded, the %d published loop "
-            "designs; diamonds and dotted line, no limit: %d (%d above 5 %%) on the frozen purge grid and %d (%d "
+            "designs; diamonds and dotted line, no limit: %d (%d above 5 %%) on the standard purge grid and %d (%d "
             "above 5 %%) with the grid extended to 10$^{-4}$ %%. **f**, Reactor-inlet CO, CH$_4$ and N$_2$ at each "
             "optimum, mean over the scored entries (total: %s). Source: `%s` (purge_boundary_summary.json, "
             "purge_boundary_entries.csv, purge_boundary_curves.csv); `%s` (definition_scan.csv)." % (

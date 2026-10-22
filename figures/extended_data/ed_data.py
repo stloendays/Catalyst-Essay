@@ -479,10 +479,10 @@ def edfig7():
                  full_evaluations=sm["pruning"]["inert_opt"]["evaluated"],
                  excluded_by_bound=sm["pruning"]["inert_opt"]["excluded"],
                  leader_missed=sm["pruning"]["inert_opt"]["leader_missed"]),
-            dict(system="ammonia alloys, frozen prices", candidates=s["costed"],
+            dict(system="ammonia alloys, reference prices", candidates=s["costed"],
                  full_evaluations=s["pruning"]["full_optimizations_needed"],
                  excluded_by_bound=s["pruning"]["pruned"], leader_missed=len(s["pruning"]["false_prunes"])),
-            dict(system="ammonia alloys, frozen + USGS prices", candidates=len(c),
+            dict(system="ammonia alloys, reference + USGS prices", candidates=len(c),
                  full_evaluations=int((~c.pruned).sum()), excluded_by_bound=int(c.pruned.sum()),
                  leader_missed=int(((c.pruned) & (c.cost_USD_t < fe)).sum()))]
     assert len(frozen) == s["costed"] and int(frozen.pruned.sum()) == s["pruning"]["pruned"]

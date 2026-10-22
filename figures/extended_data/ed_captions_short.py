@@ -37,11 +37,12 @@ SHORT = {
         "financing rate of each case; shaded, disclosed catalyst-metal lease rates; red, the reference rate. Each "
         "catalyst is optimized inside the pressure range of its rate law."),
     8: ("Rank preservation in the Au/TiO$_2$ control and the catalyst-life channel",
-        "**a**, The five Au particle sizes on one TiO$_2$(110) support, to scale (illustrative models). **b**, Catalyst required relative to 2 nm particles at the nominal size exponents. **c**, Share of draws "
-        "keeping the full order and the 2 nm leader against the per-size activity scatter σ; dashed, σ = 0.25. "
-        "**d**, Probability that 2 nm particles stay the least-cost catalyst when catalyst life scales as d$^{λ}$; "
-        "dashed, λ = n + m. **e**, Full order, 2 nm leader and full inversion against λ with candidate-specific "
-        "kinetic and operating variation over 273–293 K; shaded, the carbonate-loss regime (λ ≈ 0)."),
+        "**a**, The five Au particle sizes on one TiO$_2$(110) support, to scale (illustrative models). **b**, Full order, "
+        "2 nm leader and full inversion against the life exponent λ with candidate-specific kinetic and operating "
+        "variation over 273–293 K; shaded, the carbonate-loss regime (λ ≈ 0). **c**, Catalyst required relative to "
+        "2 nm particles at the nominal size exponents. **d**, Share of draws keeping the full order and the 2 nm "
+        "leader against the per-size activity scatter σ; dashed, σ = 0.25. **e**, Probability that 2 nm particles "
+        "stay the least-cost catalyst when catalyst life scales as d$^{λ}$; dashed, λ = n + m."),
     9: ("Ru against Ni in CO$_2$ methanation, from an independent reactor study",
         "**a**, Ru − Ni catalyst-dependent cost per MWh of SNG against plant scale, central parameters (line) and "
         "Monte Carlo median with 5–95% range (points). **b**, Probability that Ru is cheaper. **c**, The two sides of "
