@@ -126,44 +126,85 @@ def main():
     in_fit = {law: (P >= LAWS[law][1][0] - 1e-6) & (P <= LAWS[law][1][1] + 1e-6)
               & (T >= LAWS[law][2][0] - 1e-6) & (T <= LAWS[law][2][1] + 1e-6) for law in LAWS}
 
-    def entry_cost(r, law, restrict=True):
-        y = min(0.5 * r.y_out, 0.5 * r.y_eq_exp)
-        rl = lab_rate(law, r.T_C, r.P_MPa * 10.0, y)
-        if not (rl > 0):
-            return None, None, None
-        A = r.rate_umol_gcat_h * UMOL_GCAT_H / rl
-        assert abs(A * rl / (r.rate_umol_gcat_h * UMOL_GCAT_H) - 1) < 1e-9
+    def activity(r, law, calib):
+        """Activity factor of one entry on one law: point (y_lab = min(y_out/2, y_eq/2)) or integral (plug flow over the
+        laboratory bed, A = R * mean(1/r) over the extent per mol N2 from 0 to its outlet value)."""
+        R = r.rate_umol_gcat_h * UMOL_GCAT_H
+        if calib == "point":
+            rl = lab_rate(law, r.T_C, r.P_MPa * 10.0, min(0.5 * r.y_out, 0.5 * r.y_eq_exp))
+            return R / rl if rl > 0 else None
+        xo = 2.0 * r.y_out / (1.0 + r.y_out)
+        xi = xo * KS.GRID
+        tot = 4.0 - 2.0 * xi
+        T = np.full_like(xi, r.T_C + 273.15)
+        rl = RATE[law](T, np.full_like(xi, r.P_MPa * 10.0), (1 - xi) / tot, 3 * (1 - xi) / tot,
+                       np.maximum(2 * xi / tot, 1e-12))
+        if not np.all(np.isfinite(rl) & (rl > 0)):
+            return None
+        mean_inv = float(np.sum(KS.WTS * KS.DGRID / rl))           # int_0^1 ds (dGRID/ds) / r = mean of 1/r over xi
+        return R * mean_inv
+
+    def cost_of(r, law, A, restrict=True):
+        if A is None:
+            return None, None
         w, rho = (FUSED_W, FUSED_RHO) if r.fused else (r.metal_wt_pct / 100.0, SUP_RHO)
         M = base[law] / A
         tot, _ = KS.costs(h, M / rho, M * w, hc.PRICE[r.metal], 1.0)
         t = np.where(in_fit[law], tot, np.inf) if restrict else tot
         i = int(np.argmin(t))
         if not np.isfinite(t[i]):
-            return None, A, None
-        return float(t[i]), A, (float(T[i]), float(P[i]), float(h.state_Tsep[i]), float(M[i] / rho))
+            return None, None
+        return float(t[i]), (float(T[i]), float(P[i]), float(h.state_Tsep[i]), float(M[i] / rho))
 
+    PRIMARY = {"Fe": "Fe_Keestra", "Ru": "Ru_Rossetti"}
     rows = []
     for idx, r in c.iterrows():
         d = dict(idx=idx)
         lab_P, lab_T = r.P_MPa * 10.0, r.T_C
-        for variant, law_of, restrict in (("primary", {"Fe": "Fe_Keestra", "Ru": "Ru_Rossetti"}, True),
+        for variant, law_of, restrict in (("primary", PRIMARY, True),
                                           ("ru_cholewa", {"Fe": "Fe_Keestra", "Ru": "Ru_Cholewa"}, True),
-                                          ("ru_unrestricted", {"Fe": "Fe_Keestra", "Ru": "Ru_Rossetti"}, False)):
+                                          ("ru_unrestricted", PRIMARY, False)):
             law = law_of.get(r.metal)
             if law is None:
                 d[f"cost_{variant}"] = r.cost_USD_t
                 continue
-            cost, A, opt = entry_cost(r, law, restrict if r.metal == "Ru" else True)
+            A = activity(r, law, "point")
+            if A is not None:
+                rl = lab_rate(law, r.T_C, lab_P, min(0.5 * r.y_out, 0.5 * r.y_eq_exp))
+                assert abs(A * rl / (r.rate_umol_gcat_h * UMOL_GCAT_H) - 1) < 1e-9
+            cost, opt = cost_of(r, law, A, restrict if r.metal == "Ru" else True)
             d[f"cost_{variant}"] = cost
             if variant == "primary":
                 d.update(law=law, activity_factor=A, lab_in_fit=bool(LAWS[law][1][0] - 1e-6 <= lab_P <= LAWS[law][1][1] + 1e-6
                                                                      and LAWS[law][2][0] - 1e-6 <= lab_T <= LAWS[law][2][1] + 1e-6))
                 if opt:
                     d.update(meas_T_opt_C=opt[0], meas_P_opt_bar=opt[1], meas_Tsep_opt_C=opt[2], meas_V_m3=opt[3])
+                d["activity_integral"] = activity(r, law, "integral")
         rows.append(d)
     m = pd.DataFrame(rows).set_index("idx")
     cm = c.join(m)
     cm["lab_in_fit"] = cm.lab_in_fit.astype("boolean").fillna(True)        # Co/Ni: descriptor, no fitted range
+    # (g) integral calibration and (h) anchoring on the paper's own commercial fused-iron reference
+    cm["anchor"] = 1.0
+    for g, x in cm.groupby("group"):
+        ref = x[x.fused & (x.metal == "Fe") & x.activity_integral.notna()]
+        if len(ref):
+            cm.loc[x.index, "anchor"] = float(np.exp(-np.mean(np.log(ref.activity_integral))))
+    for col, scale in (("cost_integral", False), ("cost_anchored", True)):
+        vals = []
+        for i, r in cm.iterrows():
+            if r.metal not in PRIMARY:
+                vals.append(r.cost_USD_t)
+                continue
+            A = r.activity_integral
+            A = None if pd.isna(A) else A * (r.anchor if scale else 1.0)
+            vals.append(cost_of(r, PRIMARY[r.metal], A)[0])
+        cm[col] = vals
+    INFEASIBLE = 1e6
+    for col in ("cost_primary", "cost_integral", "cost_anchored"):
+        lab = cm.metal.isin(list(PRIMARY))
+        cm[col + "_inf"] = cm[col].where(~(lab & cm[col].isna()), INFEASIBLE)
+    cm["has_fused_ref"] = cm.groupby("group").fused.transform("any")
 
     def agg(frame, col, label):
         gm, s = F.aggregate(frame, cost_col=col, label=label, boot=True)
@@ -183,6 +224,11 @@ def main():
         "d_ru_states_unrestricted": (cm, "cost_ru_unrestricted"),
         "e_groups_only_Fe_Ru": (cm[fe_ru_only], "cost_primary"),
         "frozen_descriptor_groups_only_Fe_Ru": (cm[fe_ru_only], "cost_USD_t"),
+        "f_infeasible_ranked_last": (cm, "cost_primary_inf"),
+        "g_integral_calibration": (cm, "cost_integral_inf"),
+        "h_anchored_on_fused_reference": (cm, "cost_anchored_inf"),
+        "h_groups_with_fused_reference_anchored": (cm[cm.has_fused_ref], "cost_anchored_inf"),
+        "h_groups_with_fused_reference_frozen": (cm[cm.has_fused_ref], "cost_USD_t"),
     }
     for k, (fr, col) in spec.items():
         gms[k], out[k] = agg(fr, col, k)
@@ -196,7 +242,10 @@ def main():
                           for x in (True, False) for y in (True, False)}
     out["entries"] = dict(total=int(len(cm)), by_law=cm.law.fillna("descriptor (Co/Ni)").value_counts().to_dict(),
                           lab_outside_fitted_range=int((~cm.lab_in_fit).sum()),
-                          infeasible_primary=int(cm.cost_primary.isna().sum()))
+                          infeasible_primary=int(cm.cost_primary.isna().sum()),
+                          infeasible_integral=int(cm.cost_integral.isna().sum()),
+                          infeasible_anchored=int(cm.cost_anchored.isna().sum()),
+                          anchors={g: float(a) for g, a in cm.groupby("group").anchor.first().items() if a != 1.0})
     out["gates"] = G
     cm.to_csv(HERE / "candidates_measured.csv", index=False, float_format="%.6g")
     (HERE / "summary.json").write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
