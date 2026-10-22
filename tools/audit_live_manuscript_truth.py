@@ -2662,6 +2662,12 @@ claim_tokens("D: measured-law basis in SI Note 4 equals its source",
                        f"gives {_md['g_integral_calibration']['top1_mismatch_groups']} of {_md['g_integral_calibration']['groups']}",
                        f"gives {_md['a_ru_cholewa_as_printed']['top1_mismatch_groups']} of {_md['a_ru_cholewa_as_printed']['groups']}",
                        f"{_md['gates']['cholewa_as_printed_H2N2_ratio_info']['ratio_15_over_30']:.2f}-fold rate gain"]))
+_fz = [r for r in rows("analysis/nh3_field_measured_kinetics_2026_10_22/candidates_measured.csv") if r["fused"].lower() in ("true", "1")]
+_hot = [100 * float(r["activity_factor"]) for r in _fz if float(r["T_C"]) >= 450 and abs(float(r["P_MPa"]) - 1.0) < 1e-9]
+_cold = [100 * float(r["activity_factor"]) for r in _fz if float(r["T_C"]) <= 340]
+tokens("D: commercial fused-iron references on the fused-iron law (SI Note 4)", s9,
+       f"tested at 450–459 °C and 1 MPa run at {min(_hot):.1f}–{max(_hot):.0f}% of the activity",
+       f"those tested at 300–340 °C at {min(_cold):.0f}–{max(_cold):.0f}%")
 ok("D: >5 % count equals the mismatch count on the measured basis", _mdp["regret_gt5pct_groups"] == _mdp["top1_mismatch_groups"])
 ok("D: integral, ranked-last and anchored variants agree",
    len({(_md[k]["top1_mismatch_groups"], _md[k]["groups"]) for k in ("f_infeasible_ranked_last", "g_integral_calibration", "h_anchored_on_fused_reference")}) == 1)
@@ -2680,7 +2686,7 @@ claim_tokens("1.3: SI Note 7 and main text equal results.json",
                             f"bulk Ru needs {_m13['bulk_Ru_activity_parity']:.1f}-fold or {_m13['bulk_Ru_price_parity']['price_USD_kg']:,.0f} US dollars per kilogram",
                             f"Ru/C is {-_m13['own_optima_2.10']['gap']:.2f} and {-_m13['KAAP_2.10']['gap']:.2f} US dollars per tonne cheaper",
                             f"break-even {100 * _m13['breakeven_own_optima']['rate']:.2f}% and {100 * _m13['breakeven_KAAP']['rate']:.2f}% per year"]),
-    ("main text", m_feru, [f"the gap stays at {_d13['Ru_minus_Fe']:.2f} US dollars per tonne"]))
+    ("main text", m_feru, [f"the gap moves only from {_d12['Ru_minus_Fe']:.2f} to {_d13['Ru_minus_Fe']:.2f} US dollars per tonne"]))
 ok("1.3: both separator hold-outs within 7 % (main-text wording)", all(abs(g["dev_1_3"]) < 0.07 for g in _g13))
 
 # ----- Report -----------------------------------------------------------------
