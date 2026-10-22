@@ -57,3 +57,30 @@ laboratory P or T lies outside their law's fitted range removed; (d) Ru plant st
 3. Cholewa law: rate zero at equilibrium (|r| < 1e-9 relative); at 400 °C, 45 bar and low conversion the rate at
    H₂/N₂ = 1.5 exceeds that at 3.0 by more than 1.5× (the paper reports > 80 %, Fig. 5b).
 4. Every calibrated entry reproduces its laboratory rate to 1e-9 relative.
+
+## Addendum 1 (2026-10-22, after the gates ran, before any comparison was read)
+
+- Gate 3 as written used the ideal-gas Gillespie–Beattie equilibrium, while every rate law here runs on Newton–Cooper
+  fugacities; the zero-rate check is redefined on the fugacity equilibrium (`run_supported_chain.y_eq_exp_fugacity`)
+  with a relative tolerance of 1e-3 (the two Newton–Cooper implementations differ in unit handling at that level).
+- Cholewa eqn (12) with its Table 3 parameters gives a rate ratio of 1.21 between H₂/N₂ = 1.5 and 3.0 at 400 °C,
+  45 bar and low conversion, against > 1.8 in the source's Fig. 5b. The printed denominator exponent 1.5·f₂ = 0.174
+  cannot produce the reported H₂ inhibition, so the law as printed fails gate 3 (transcription re-checked at 5× render).
+  The primary Ru law therefore becomes Rossetti et al. 2006 (fitted 50–100 bar, 370–460 °C; validated on its 125 points
+  in `nh3_staged_converter_2026_10_12/validate_kinetics.py`, mean error 10 %), the law the manuscript already uses for
+  Ru/C. Cholewa eqn (12) as printed is reported as a variant. Gate 3 applies to the primary law (Rossetti): zero rate at
+  equilibrium. Variant (a) becomes "Ru law Cholewa 2024 as printed (11–81 bar states)".
+
+## Addendum 2 (2026-10-22, added after the primary result was read; reported as such)
+
+First run: primary 4/25 groups, because 98 of 237 entries (82 Ru, 16 Fe) need more than the 90 m³ bed at every state
+and drop out of their groups. Their activity factors are low because a Temkin-type law, evaluated at the near-zero NH₃
+fraction of a differential laboratory test, predicts a very high rate; commercial fused-iron references come out at
+0.5–6 % of the KM1R-1964 activity. Three treatments are added and reported next to the primary:
+
+- (f) infeasible entries stay in their group, ranked last (a plant cannot build them), instead of being dropped;
+- (g) integral calibration: the activity factor reproduces the measured rate over the laboratory bed in plug flow,
+  A = R · mean over ξ∈[0, ξ_out] of 1/r_law, the same sizing the plant side uses (with (f));
+- (h) reference anchoring: in a group that contains a commercial fused-iron reference, every entry's activity factor is
+  multiplied by the factor that brings that reference to the KM1R-1964 commercial activity (b_cat = 0.350, the plant
+  benchmark), so the paper's own reference sets the laboratory-to-plant correction (on (g), with (f)).
