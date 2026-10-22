@@ -247,8 +247,8 @@ assert sorted(caps) == [1, 2, 3, 4, 5, 6], sorted(caps)
 FIGURE_FILES = {1: "fig1/Fig1.png", 2: "fig_field/FigField.png", 3: "fig4/Fig4.png", 4: "fig2/Fig2.png",
                 5: "fig_frontier/FigFrontier.png", 6: "fig3/Fig3.png"}   # 2026-10-21: measured-kinetics Fig. 5
 for n in range(1, 7):
-    doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     pic = doc.add_paragraph()
+    pic.paragraph_format.page_break_before = True   # no empty page when the previous one is full
     pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pic.add_run().add_picture(str(ROOT / "figures/composite" / FIGURE_FILES[n]), width=Cm(16.0))
     title, legend = caps[n]
@@ -279,8 +279,8 @@ if ED_CAPS.exists():
                        re.M | re.S)]
     for n, title, legend in eds:
         png = sorted((ROOT / "figures/extended_data").glob(f"EDFig{n}_*.png"))
-        doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
         pic = doc.add_paragraph()
+        pic.paragraph_format.page_break_before = True
         pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pic.add_run().add_picture(str(png[0]), width=Cm(16.0))
         p = doc.add_paragraph()

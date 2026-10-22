@@ -20,7 +20,7 @@ Reader-facing captions; the numbered, source-linked captions are in ED_CAPTIONS_
 
 ## Extended Data Fig. 5 | Measured ammonia catalysts of a review through the plant model
 
-**a**, Plant cost against laboratory rate per gram of metal for the primary catalysts of ref. 39, without metal recovery; dashed, Fe benchmark. **b**, Plant cost by metal; bars, lowest cost per metal.
+**a**, Plant cost against laboratory rate per gram of metal for the primary catalysts of ref. 31, without metal recovery; dashed, Fe benchmark. **b**, Plant cost by metal; bars, lowest cost per metal.
 
 ## Extended Data Fig. 6 | Bimetallic surfaces through the ammonia model, by element layer
 
