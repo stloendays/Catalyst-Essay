@@ -2656,7 +2656,7 @@ _mdp, _mde = _md["primary_measured"], _md["entries"]
 ok("D gates: frozen 12/44, Keestra Fe 15.307473, Rossetti zero at equilibrium",
    all(v["ok"] for v in _md["gates"].values()) and (_md["frozen_descriptor"]["groups"], _md["frozen_descriptor"]["top1_mismatch_groups"]) == (NPL["groups"], NPL["mismatch"]))
 claim_tokens("D: measured-law basis in SI Note 4 equals its source",
-    ("SI Note 4", s9, [f"Of the {_mde['total']} entries, {_mde['lab_outside_fitted_range']} were measured outside",
+    ("SI Note 4", s9, [f"Of the {_mde['total']} entries, {_mde['lab_outside_fitted_range']} were measured outside the fitted range of the measured rate law for their metal",
                        f"{_mde['infeasible_primary']} entries need more than the 90 m³ bed",
                        f"In the {_mdp['groups']} comparisons that keep two buildable entries the leaders differ in {_mdp['top1_mismatch_groups']}, all above 5%",
                        f"gives {_md['g_integral_calibration']['top1_mismatch_groups']} of {_md['g_integral_calibration']['groups']}",
