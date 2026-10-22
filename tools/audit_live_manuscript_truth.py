@@ -1421,7 +1421,7 @@ ok("MeOH plant benchmark: baseline reproduces the S5 headline",
    pb["check"]["baseline_top1"] == f"{P0['top1_mismatch_groups']}/{P0['groups']}")
 
 # main-text summaries written in the 2026-10-07 compression (the full statements live in the Supplementary Notes)
-m_feru = main_section("What Ru must cost to match fused iron")
+m_feru = main_section("Bulk Ru loses on the price of its metal")
 _layer = {r["metal"]: r for r in rows(FEB + "inversion_layer_common_reference.csv")}
 _repl = {k: float(_layer[k]["annualized_replacement_cost_USD_t_NH3"]) for k in ("Fe", "Ru", "Os")}
 _ru_win = sum(r["economic_winner"] == "Ru" for r in draws)
@@ -1538,7 +1538,8 @@ ok("NH3 measured kinetics: frozen Fe and Ru optima reproduced before the swap",
    and abs(fsw["reproduced_headline"]["parity_multiple"] - kh["Ru_activity_multiple_for_parity"]) < 1e-5)
 
 # both financing conventions (replaces the 2026-10-12 check that no lifecycle-financing claim appears)
-m_feru2 = (main_section("What Ru must cost to match fused iron") + " "
+m_feru2 = (main_section("Bulk Ru loses on the price of its metal") + " "
+           + main_section("Supported Ru/C turns the choice into one of metal financing") + " "
            + main_section("The optimizer recovers the industrial bed order"))
 KAAP_P = IR["c_0_KAAP"]["Ru"]["P_bar"]
 _LC = _load_module("lifecycle_cashflow", ROOT / "analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_cashflow.py")
@@ -2505,9 +2506,10 @@ _activity_multiple = f"{bw['Ru_activity_break_even_multiplier']:.0f}"
 _results_heading = re.search(r"^## Results\s*\n+### ([^\n]+)", raw_text, re.M)
 _heading_text = _results_heading.group(1) if _results_heading else ""
 _measured_reduction = 100 * (1 - IR['bench_price_parity']['factor_vs_current'])
-_headline_bound = re.search(r"over (\d+)% less", _heading_text)
-ok("NH3 first Results heading: over 90% is below both source price reductions",
-   "Ru must cost over 90% less to match iron" == _heading_text
+# 2026-10-22: Ru/C leads the ammonia story; the "over 90%" bound now lives in the Abstract.
+_headline_bound = re.search(r"bulk Ru must cost over (\d+)% less", main_section_h2("Abstract"))
+ok("NH3 Abstract: bulk-Ru 'over 90%' is below both source price reductions",
+   "Ru leads in activity and loses on the price of its metal" == _heading_text
    and _headline_bound is not None
    and float(_headline_bound[1]) < 100 * (1 - P_STAR / P_RU0)
    and float(_headline_bound[1]) < _measured_reduction)
