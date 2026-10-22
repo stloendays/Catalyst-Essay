@@ -1,0 +1,55 @@
+name: Au-TiO2 decision-boundary analysis V2.0
+
+# Reruns controls/au_tio2_decision_boundary_v2/run_decision_boundary_v2.py from the committed config and the
+# frozen canonical inputs (data/rank_preservation_control_v1_1.csv, data/rank_preservation_semiopen_v1_3_summary.csv),
+# then asserts the headline numbers of docs/AU_TIO2_DECISION_BOUNDARY_V2_RESULT.md and that the regenerated
+# outputs equal the committed artifacts (CSV and summary hashes in FROZEN_HASHES.json).
+
+on:
+  pull_request:
+    paths:
+      - 'controls/au_tio2_decision_boundary_v2/**'
+      - 'artifacts/au_tio2_decision_boundary_v2/**'
+      - 'data/rank_preservation_control_v1_1.csv'
+      - 'data/rank_preservation_semiopen_v1_3_summary.csv'
+      - '.github/workflows/au-tio2-decision-boundary-v2.yml'
+  push:
+    branches:
+      - analysis/au-tio2-decision-boundary-2026-10-19
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  decision-boundary-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Keep a copy of the committed outputs
+        run: cp -r artifacts/au_tio2_decision_boundary_v2 /tmp/committed
+      - name: Rerun V2.0 (per-candidate MC, ladder L0-L3, combined L2+L3)
+        run: python controls/au_tio2_decision_boundary_v2/run_decision_boundary_v2.py
+      - name: Assert headline numbers
+        run: python controls/au_tio2_decision_boundary_v2/check_headlines.py
+      - name: Regenerated outputs equal the committed ones
+        run: |
+          for f in mc_v2_per_candidate.csv l1_price_channel_check.csv l2_adjacent_flip_thresholds.csv \
+                   l2_boundary_map_q_vs_nm.csv l2_q_cut_shared_nm_sampled.csv l2_l3_combined_273_293K_moderate.csv \
+                   summary.json FROZEN_HASHES.json; do
+            cmp /tmp/committed/$f artifacts/au_tio2_decision_boundary_v2/$f
+          done
+      - name: Frozen inputs unchanged
+        run: git diff --exit-code -- controls/au_tio2_rank_preservation_v1_1.py controls/au_tio2_rank_preservation_v1_1_config.json data/rank_preservation_control_v1_1.csv data/rank_preservation_semiopen_v1_3_summary.csv provenance/ docs/MANUSCRIPT_MAIN_TEXT.md docs/MAIN_FIGURE_CAPTIONS.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: au-tio2-decision-boundary-v2
+          path: artifacts/au_tio2_decision_boundary_v2/
+          retention-days: 90
