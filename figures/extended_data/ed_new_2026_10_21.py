@@ -76,21 +76,24 @@ def sab_data():
 # ------------------------------------------------------------------------------------------------- ED Fig. 8
 def ed_au():
     d = au_data()
-    pg = Page(183.0, 152.0)
+    pg = Page(183.0, 108.0)
     # a: the five particle sizes on one TiO2 support, to scale (OVITO render of figures/composite/fig5)
     import matplotlib.image as mpimg
     img = mpimg.imread(os.path.join(REPO, "figures/composite/fig5/renders/Au_TiO2_2to6nm.png"))
-    ra = pg.ax(14, 110, 164, 34)
+    W0 = img.shape[1]
+    img = img[116:780, 44:3555]                # crop the transparent margin of the render
+    H_, W_ = img.shape[:2]
+    ra = pg.ax(4, 64, 108, 34)
     ra.imshow(img)
     ra.axis("off")
-    H_, W_ = img.shape[:2]                     # labels in image pixels: under each particle, title at the left end
-    for fx, nm in zip((0.099, 0.234, 0.403, 0.603, 0.838), SIZES):
-        ra.text(fx * W_, H_ * 1.04, "%d nm" % nm, ha="center", va="top", fontsize=6.4)
-    ra.set_ylim(H_ * 1.18, 0)
-    ra.text(0.0, H_ * 0.08, "Au on TiO$_2$(110), to scale", ha="left", va="top", fontsize=6.4)
-    pg.letter("a", 2, 149)
+    for fx, nm in zip((0.099, 0.234, 0.403, 0.603, 0.838), SIZES):   # fractions of the uncropped width
+        ra.text(fx * W0 - 44, H_ * 1.05, "%d nm" % nm, ha="center", va="top", fontsize=6.4)
+    ra.text(0.0, -H_ * 0.08, "Au on TiO$_2$(110), to scale", ha="left", va="bottom", fontsize=6.4)
+    ra.set_ylim(H_ * 1.25, -H_ * 0.3)
+    ra.set_xlim(0, W_)
+    pg.letter("a", 2, 104)
     # b: catalyst requirement against size (nominal exponents)
-    a = pg.ax(14, 62, 36, 38)
+    a = pg.ax(14, 12, 36, 38)
     b_ = np.asarray(d["burden"], float)
     assert np.allclose(b_, [1, 2.161, 3.732, 5.703, 8.064], atol=6e-4), b_
     a.plot(SIZES, b_, "-o", color=RU, ms=3, lw=0.8, mec=INK, mew=0.3)
@@ -105,10 +108,10 @@ def ed_au():
     a.set_xlabel("Au particle diameter (nm)")
     a.set_ylabel("catalyst required (rel. to 2 nm)")
     boxed(a)
-    pg.letter("b", 2, 108)
+    pg.letter("b", 2, 56)
 
     # b: per-candidate scatter: full order and 2 nm leader against sigma
-    b = pg.ax(62, 62, 36, 38)
+    b = pg.ax(62, 12, 36, 38)
     mc = d["mc"].sort_values("sigma_ln")
     b.plot(mc.sigma_ln, mc.full_preservation, "-o", color=RU, ms=3, lw=0.8, mec=INK, mew=0.3, label="full order")
     b.plot(mc.sigma_ln, mc.winner_2nm_probability, "-s", color=FE, ms=3, lw=0.8, mec=INK, mew=0.3,
@@ -122,10 +125,10 @@ def ed_au():
     b.set_ylabel("draws kept (%)")
     b.legend(frameon=False, fontsize=5.3, loc="lower left", bbox_to_anchor=(0.0, 0.0), handlelength=1.6)
     boxed(b)
-    pg.letter("c", 50, 108)
+    pg.letter("c", 50, 56)
 
     # c: lambda x (n + m) map of P(2 nm leader)
-    c = pg.ax(112, 62, 40, 38)
+    c = pg.ax(112, 12, 40, 38)
     mp = d["map"]
     qs, nms = np.sort(mp.q.unique()), np.sort(mp.n_plus_m.unique())
     Z = mp.pivot(index="n_plus_m", columns="q", values="p_winner_2nm").loc[nms, qs].values
@@ -138,15 +141,15 @@ def ed_au():
     c.set_xlabel("life exponent λ (life ~ d$^{λ}$)")
     c.set_ylabel("requirement exponent n + m")
     c.text(0.03, 0.97, "dashed: λ = n + m", transform=c.transAxes, fontsize=5.3, va="top")
-    cb = pg.fig.add_axes([153.5 / pg.W, 62 / pg.H, 2.2 / pg.W, 38 / pg.H])
+    cb = pg.fig.add_axes([153.5 / pg.W, 12 / pg.H, 2.2 / pg.W, 38 / pg.H])
     pg.fig.colorbar(im, cax=cb, ticks=[0, 0.5, 1])
     cb.set_yticklabels(["0", "50", "100"], fontsize=5.3)
     cb.set_ylabel("P(2 nm leader) (%)", fontsize=5.3, labelpad=1)
     boxed(c)
-    pg.letter("d", 100, 108)
+    pg.letter("d", 100, 56)
 
     # d: combined lifetime + operating freedom, 273-293 K
-    e = pg.ax(14, 10, 70, 36)
+    e = pg.ax(126, 64, 52, 36)
     cm = d["comb"]
     e.plot(cm.q, cm.full_preservation_fraction, "-o", color=RU, ms=3, lw=0.8, mec=INK, mew=0.3, label="full order")
     e.plot(cm.q, cm.winner_2nm_probability, "-s", color=FE, ms=3, lw=0.8, mec=INK, mew=0.3, label="2 nm leader")
@@ -157,14 +160,14 @@ def ed_au():
     e.axvspan(-0.6, 0.0, color=PALE_B, alpha=0.35, lw=0)
     e.text(-0.3, 1.04, "carbonate\nloss, λ ≈ 0", fontsize=5.3, ha="center", va="bottom")
     e.set_xlim(-0.6, 3.1)
-    e.set_ylim(0, 1.2)
+    e.set_ylim(0, 1.5)
     e.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     e.set_yticklabels(["0", "25", "50", "75", "100"])
     e.set_xlabel("life exponent λ")
     e.set_ylabel("draws (%)")
-    e.legend(frameon=False, fontsize=5.3, loc="center left", bbox_to_anchor=(1.01, 0.5), handlelength=1.6)
+    e.legend(frameon=False, fontsize=5.3, loc="upper right", handlelength=1.6, borderaxespad=0.3)
     boxed(e)
-    pg.letter("e", 2, 50)
+    pg.letter("e", 114, 104)
     return pg
 
 
