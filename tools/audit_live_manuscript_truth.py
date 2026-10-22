@@ -1191,7 +1191,7 @@ _var81 = [_frac(RB["6_split"]["S6"]["combined"][b_]["disagreements"])[0] for b_ 
     int(x) for x in RB["9_plant_variants"]["combined"]["S6"].split(" ")[0].split("-")]
 claim_tokens("Main text: S6 robustness (sampling, measurement, variants)",
     ("main text", m_field, [f"{_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} persist in at least 90% of {st6['noise_model']['draws']:,} re-measurements",
-    "every product closure, catalyst price and plant-term variant tested"]),
+    "every recycled-CO conversion rule, product closure, catalyst price and plant-term variant tested"]),
     ("SI Notes", s8, [f"{PL6['without_bansode']['disagreements']} of {PL6['without_bansode']['groups']}",
     f"the count stays between {int(RB['9_plant_variants']['combined']['S6'].split()[0].split('-')[0])} and {PL6['inert_co']['disagreements']} of {pl6['groups']}"]))
 tokens("SI Note 3: Measurement noise alone changes the laboratory leader", s8,
@@ -2688,6 +2688,17 @@ claim_tokens("1.3: SI Note 7 and main text equal results.json",
                             f"break-even {100 * _m13['breakeven_own_optima']['rate']:.2f}% and {100 * _m13['breakeven_KAAP']['rate']:.2f}% per year"]),
     ("main text", m_feru, [f"the gap moves only from {_d12['Ru_minus_Fe']:.2f} to {_d13['Ru_minus_Fe']:.2f} US dollars per tonne"]))
 ok("1.3: both separator hold-outs within 7 % (main-text wording)", all(abs(g["dev_1_3"]) < 0.07 for g in _g13))
+
+# C: methanol catalyst-level count under the recycled-CO rules (analysis/meoh_catalyst_level_co_rule_2026_10_22).
+_cr = _j("analysis/meoh_catalyst_level_co_rule_2026_10_22/summary.json")
+ok("C gates: central lab 26/63 and frozen raised 21/63 reproduced", all(g["ok"] for g in _cr["gates"].values()))
+_rz = {k: _cr["raised_conversion"][k]["cat_primary"]["changed"] for k in ("equal_X", "high", "family")}
+_lz = {k: _cr["laboratory_conversion"][f"{k}|6.86"]["cat_primary"]["changed"] for k in ("equal_X", "high", "family")}
+tokens("C: SI Note 3 recycled-CO rules between catalysts", s8,
+       f"gives {_rz['equal_X']}, {_rz['high']} and {_rz['family']} of 63 between catalysts with more catalyst loaded and "
+       f"{_lz['equal_X']}, {_lz['high']} and {_lz['family']} at laboratory conversion")
+ok("C: the primary rule gives the smallest catalyst-level count", min(_rz.values()) >= 21 and min(_lz.values()) >= 26)
+tokens("C: main text names the recycled-CO rules among the variants", m_field, "every recycled-CO conversion rule")
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]

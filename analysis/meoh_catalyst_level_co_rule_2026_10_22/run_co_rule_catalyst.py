@@ -54,7 +54,7 @@ def _init(rule):
 
 
 def _eval(job):
-    return job[0], S6.evaluate(job)
+    return S6.evaluate(job)          # already returns (key, result dict)
 
 
 def raised(points, rule_of_row):
@@ -119,7 +119,12 @@ def main(lab_only=False):
             else:
                 rules = [RULES["high"] if (r == "family" and cu) else RULES["central"] if r == "family" else RULES[r]
                          for cu in cc.cu_based]
-                cc[col] = raised(cc, rules)
+                cache = HERE / f"raised_{r}.csv"
+                if cache.exists():
+                    cc[col] = pd.read_csv(cache)[col].to_numpy()
+                else:
+                    cc[col] = raised(cc, rules)
+                    cc[[col]].to_csv(cache, index=False, float_format="%.10g")
             k = count(cc.assign(sty_basis=""), col)
             gm = k.pop("_gm")
             gm.to_csv(HERE / f"groups_raised_{r}.csv", index=False, float_format="%.6g")
