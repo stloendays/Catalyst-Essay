@@ -1,0 +1,345 @@
+name: Exploratory Keestra 2025 NH3 matched-domain kinetics
+
+on:
+  push:
+    paths:
+      - "analysis/nh3_keestra_matched_2026_10_19/**"
+      - ".github/workflows/nh3-keestra-matched-2026-10-19.yml"
+  pull_request:
+    paths:
+      - "analysis/nh3_keestra_matched_2026_10_19/**"
+      - ".github/workflows/nh3-keestra-matched-2026-10-19.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nh3-keestra-source-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-anchored-audit:
+    name: G0/G1 published rate tests; G2/G3 industrial blockers retained
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONIOENCODING: utf-8
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install plot dependency only
+        run: python -m pip install --disable-pip-version-check "matplotlib>=3.8,<4"
+      - name: Unit tests and source physical consistency
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_matched_audit"
+          python -m unittest discover -s analysis/nh3_keestra_matched_2026_10_19 \
+            -p 'test_kinetics.py' -v 2>&1 | tee "$RUNNER_TEMP/keestra_matched_audit/TESTS.log"
+      - name: Run source-anchored 80 bar(g) screening and source readiness report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/run_audit.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" --plot \
+            | tee "$RUNNER_TEMP/keestra_matched_audit/STDOUT.log"
+      - name: Compute source-locked commercial Fe / Ru-Ba-K/C 100bar local kinetic crossover
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/commercial_frontier.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" \
+            | tee "$RUNNER_TEMP/keestra_matched_audit/COMMERCIAL_FRONTIER_STDOUT.json"
+      - name: Assert source validation is blocked, not quietly marked passed
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,csv
+          d=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_matched_audit'
+          x=json.loads((d/'readiness.json').read_text())
+          assert x["G0"]["status"]=="PASS"
+          assert x["G1b"]["status"]=="PASS_PUBLISHED_MODEL_D_FACTORS_LOCAL_IDEAL_GAS_SCREEN_ONLY"
+          assert x["G1b"]["bcat_Ru_Ba_K_C"]==76.25
+          assert x["G1b"]["bN_Ru_Ba_K_C"]==.8514
+          assert x["G1b"]["final_bed_inlet_ideal_gas_Ru_to_Fe_rate"]>1
+          assert x["G2"]["source_SI_table8_parameter_gate"]=="PASS_SOURCE_VERIFIED"
+          assert x["G1"]["status"] in ("PASS_QUALITATIVE_IN_FAMILY_DIRECTION",
+                                      "FAILED_QUALITATIVE_DIRECTION")
+          assert x["G1"]["dataset_in_training"] is True
+          assert x["G2"]["status"]=="BLOCKED"
+          assert x["G3"]["status"]=="BLOCKED_G2_REQUIRED"
+          assert x["G0"]["uses_published_Keestra_modified_SRK"] is False
+          assert all(r["Ru_formulation"].find("Ru/CeO2")>=0 for r in x["kinetic_rows"])
+          assert len(list(csv.DictReader((d/'screen_80barg_preliminary.csv').open())))==3
+          si=json.loads((d/'100bar_source_locked_kinetic_frontier_summary.json').read_text())
+          assert si["industrial_G2"]=="BLOCKED_FULL_MODIFIED_SRK_ADIABATIC_BED_REQUIRED"
+          assert abs(si["source_industrial_final_bed_inlet"]["Ru_over_Fe_local_rate"]-6.8891)<0.03
+          assert len(list(csv.DictReader((d/'100bar_source_locked_local_rate_grid.csv').open())))==305
+          for k in ('screen_80barg_preliminary.png','screen_80barg_preliminary.svg','REPORT.md',
+                    'SI_source_locked_100bar_local_kinetic_frontier.png',
+                    'SI_source_locked_100bar_local_kinetic_frontier.svg'):
+              assert (d/k).stat().st_size>50,k
+          print("Correctly blocked industrial G2/G3 despite completed rate tests")
+          PY
+          set +e
+          python analysis/nh3_keestra_matched_2026_10_19/run_audit.py \
+            --out "$RUNNER_TEMP/keestra_matched_audit" --require-100bar-completion >/dev/null
+          code=$?
+          set -e
+          if [ "$code" -ne 2 ]; then
+            echo "FAIL: source-incomplete G2 did not fail closed with status 2 (got $code)"
+            exit 1
+          fi
+          git diff --exit-code -- docs figures source_data provenance data
+      - name: Publish explicitly limited scientific result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          f="$RUNNER_TEMP/keestra_matched_audit/REPORT.md"
+          if [ -f "$f" ]; then
+            head -n 56 "$f" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No kinetic result generated; inspect failure logs" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload source-verified rates, plot, blocked checklist and logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-source-audit
+          path: ${{ runner.temp }}/keestra_matched_audit/
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  public-source-probe:
+    name: Verify publicly accessible Keestra 2025 supplementary files
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check PDF text extraction tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq poppler-utils
+          fi
+      - name: Public-source checks (not a model validation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_source_probe"
+          python analysis/nh3_keestra_matched_2026_10_19/source_probe.py \
+            --out "$RUNNER_TEMP/keestra_source_probe" \
+            | tee "$RUNNER_TEMP/keestra_source_probe/STDOUT.log"
+      - name: Inspect verified Elsevier Ru SI Model D formulation tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/inspect_si_table.py \
+            --out "$RUNNER_TEMP/keestra_source_probe" \
+            > "$RUNNER_TEMP/keestra_source_probe/SI_TABLE_EXTRACTION.log"
+          sed -n '1,220p' "$RUNNER_TEMP/keestra_source_probe/SI_TABLE_EXTRACTION.log"
+      - name: Verify original Ru-Ba-K/C kinetic SI gate remains blocked
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'keestra_source_probe'
+          j=json.loads((root/'source_probe.json').read_text())
+          assert len(j['all_attempts'])>=4
+          assert j['original_ru_ba_k_c_SI_exact_parameter_gate'].startswith('ACCESS_ONLY_')
+          approved=json.loads((root/'SI_SOURCE_INDEX.json').read_text())
+          assert approved["exact_Ru_Ba_K_C_factor_table_status"]=="PASS_SOURCE_SHA_AND_EXACT_MODEL_D_TABLE8_ROW"
+          assert approved["bcat_verified"]==76.25
+          assert approved["bN_verified"]==.8514
+          assert j['do_not_fit_to_published_5p8_ratio'] is True
+          print('SOURCE ACCESS AUDIT COMPLETE; scientific G2/G3 remain BLOCKED')
+          PY
+          git diff --exit-code -- docs figures provenance source_data data
+      - name: Report source access and bounded evidence
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          p="$RUNNER_TEMP/keestra_source_probe/SOURCE_PROBE.md"
+          if [ -f "$p" ]; then
+            cat "$p" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No source access report created; inspect logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Archive source availability manifest only (never unreviewed extracted SI factors)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-official-source-probe
+          path: ${{ runner.temp }}/keestra_source_probe/
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  fe-si-eos-source-audit:
+    name: G2 retrieve Fe source SI SRK/PFR implementation requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check PDF text extraction
+        shell: bash
+        run: |
+          if ! command -v pdftotext >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq poppler-utils
+          fi
+      - name: Fetch original Fe 2025 SI A5-A7 and create SHA/text audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_g2_fe_si"
+          python analysis/nh3_keestra_matched_2026_10_19/g2_fe_source_audit.py \
+            --out "$RUNNER_TEMP/keestra_g2_fe_si" > "$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_STDOUT.log"
+          sed -n '1,300p' "$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_STDOUT.log"
+      - name: Assert status is explicit; no pretend G2 readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"keestra_g2_fe_si"
+          v=json.loads((p/"source_audit.json").read_text())
+          assert v["no_kinetic_factor_refit"] is True
+          assert v["no_physics_gate_pass_inferred"] is True
+          assert v["probe_status"] in ("SOURCE_PDF_NOT_YET_VERIFIED","OFFICIAL_PDF_TEXT_VERIFIED")
+          if v["probe_status"]=="OFFICIAL_PDF_TEXT_VERIFIED":
+              assert len(v["sha256"])==64 and v["length_chars"]>1000
+          print("RETRIEVAL ONLY: no G2 industrial source reproduction is yet asserted")
+          PY
+          git diff --exit-code -- docs figures provenance source_data data
+      - name: Append original source access result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          p="$RUNNER_TEMP/keestra_g2_fe_si/SOURCE_AUDIT.md"
+          if [ -f "$p" ]; then cat "$p" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload source-only Fe SI text and audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-fe-2025-si-thermo-pfr-source
+          path: ${{ runner.temp }}/keestra_g2_fe_si/
+          if-no-files-found: warn
+          retention-days: 14
+
+
+  g2-adiabatic-pfr:
+    name: G2 exploratory source-locked SRK adiabatic final-bed falsification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PYTHONIOENCODING: utf-8
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install numeric solver and plot-only dependencies
+        run: |
+          python -m pip install --disable-pip-version-check "numpy>=2,<3" "scipy>=1.13,<2" "matplotlib>=3.8,<4"
+      - name: Test source exact SRK and independent adiabatic conservation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/keestra_g2_adiabatic"
+          python -m unittest discover \
+            -s analysis/nh3_keestra_matched_2026_10_19 \
+            -p "test_g2_*.py" -v 2>&1 \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/TESTS.log"
+      - name: Compute 100bar commercial Fe/Ru adiabatic bed WITHOUT source target fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/g2_adiabatic.py \
+            --out "$RUNNER_TEMP/keestra_g2_adiabatic" \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/RESULTS.log"
+      - name: Forward-validate at authors' GHSV without parameter fitting
+        shell: bash
+        run: |
+          set -euo pipefail
+          python analysis/nh3_keestra_matched_2026_10_19/g2_forward_diagnostic.py \
+            --out "$RUNNER_TEMP/keestra_g2_adiabatic" \
+            | tee "$RUNNER_TEMP/keestra_g2_adiabatic/FORWARD_DIAGNOSTIC_STDOUT.log"
+      - name: Verify audit output contains actual predictions and complete-physics caution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,csv,math
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"keestra_g2_adiabatic"
+          j=json.loads((p/"g2_adiabatic_readiness.json").read_text())
+          assert j["status"]=="EXPLORATORY_NONIDENTICAL_THERMO_UNVERIFIED_G2"
+          assert j["G2_independent_complete_reproduction"] is False
+          assert j["G3_updated_economic_phase_map"] is False
+          assert j["parameter_fitting"].startswith("NONE")
+          assert len(j["scenarios"])==5
+          assert {(x["gas_model"],x["energy_model"]) for x in j["scenarios"]}=={
+            ("ideal","nist_ideal"),
+            ("literal_source","nist_ideal"),
+            ("literal_source","nist_plus_srk_residual"),
+            ("conventional","nist_ideal"),
+            ("conventional","nist_plus_srk_residual")}
+          for x in j["scenarios"]:
+            assert 0<x["predicted_GHSV_Fe_h"]<1e8
+            assert 0<x["predicted_GHSV_Ru_h"]<1e8
+            assert abs(x["max_energy_residual_J_per_feed_mol"])<1e-3
+            assert x["equilibrium_extent_N2_per_feed_mol"]>0
+          assert len(list(csv.DictReader((p/"g2_adiabatic_scenario_results.csv").open())))==5
+          assert (p/"g2_adiabatic_vs_published.png").stat().st_size>1000
+          assert (p/"G2_REPORT.md").stat().st_size>500
+          q=json.loads((p/"g2_forward_source_GHSV_readiness.json").read_text())
+          assert q["source_GHSV_values_used_only_as_forward_inputs"] is True
+          assert q["all_source_parameters_unmodified"] is True
+          assert len(q["records"])==10
+          for item in q["records"]:
+              assert 0<item["model_forward_fraction_of_own_adiabatic_eq_extent"]<1
+              assert abs(item["model_energy_residual_J_per_inlet_mol"])<1e-3
+          assert (p/"G2_FORWARD_DIAGNOSTIC.md").stat().st_size>500
+          print("G2 source-parameter adiabatic numerical exploratory result OK; exact Aspen reproduction NOT certified")
+          PY
+          git diff --exit-code -- docs figures data source_data provenance
+      - name: Show numeric outcome with all caveats
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          f="$RUNNER_TEMP/keestra_g2_adiabatic/G2_REPORT.md"
+          if [ -f "$f" ]; then cat "$f" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Archive all G2 numerical results, profiles and failure logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nh3-keestra-2025-g2-adiabatic-pfr
+          path: ${{ runner.temp }}/keestra_g2_adiabatic/
+          if-no-files-found: warn
+          retention-days: 30

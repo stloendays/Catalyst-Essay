@@ -1,0 +1,162 @@
+{
+  "study": "NH3 Keestra 2025 joint-pressure source-locked preliminary rate audit",
+  "sourceFe": {
+    "doi": "10.1016/j.cej.2025.164593",
+    "citation": "Keestra et al., CEJ 518 (2025) 164593, Eq.15, Table 2",
+    "bcatReference": "Clariant AmoMax 10 (Cholewa 2024)",
+    "bcat": 1,
+    "globalDatasetPressureBar": [
+      1,
+      324
+    ],
+    "globalDatasetTC": [
+      251,
+      550
+    ],
+    "parameters": {
+      "k_A": 22150000000000,
+      "k_B_J_mol": 100700,
+      "KN_A": 2.455e-8,
+      "KN_B_J_mol": -17950,
+      "sqrtKH_A": 327.6,
+      "sqrtKH_B_J_mol": -4948
+    }
+  },
+  "sourceRu": {
+    "doi": "10.1016/j.cej.2025.168541",
+    "citation": "Keestra et al., CEJ 523 (2025) 168541, Eqs.10-12, Table 3",
+    "bcatReference": "FREA-AIST Ru/CeO2 (Cholewa 2024)",
+    "bcat": 1,
+    "bN": 1,
+    "globalDatasetPressureBar": [
+      1,
+      200
+    ],
+    "globalDatasetTC": [
+      247,
+      465
+    ],
+    "parameters": {
+      "k_A": 221100000,
+      "k_B_J_mol": 112800,
+      "KN_A": 1.569e-7,
+      "KN_B_J_mol": -49520,
+      "sqrtKH_A": 1.116,
+      "sqrtKH_B_J_mol": -12190
+    }
+  },
+  "sourceCholewa": {
+    "doi": "10.1039/D4SE00254G",
+    "pressureType": "gauge",
+    "pressureMeasuredBarG": [
+      10,
+      45,
+      80
+    ],
+    "temperatureMeasuredC": [
+      350,
+      400,
+      450
+    ],
+    "FeMaterial": "Clariant AG commercial Fe",
+    "RuMaterial": "FREA-AIST Ru/CeO2",
+    "notes": "Keestra Fe and Ru anchors use Cholewa data in their training; the G1 agreement is in-family source anchor, NOT independent holdout. Cholewa Fig 4 reports direction Fe > Ru/CeO2; exact raw numerical rate values were not extracted."
+  },
+  "referenceTarget100Bar": {
+    "status": "BLOCKED_MISSING_SOURCE_SPECIFIC_RU_BA_K_C_FACTORS_AND_MODIFIED_SRK",
+    "doi": "10.1016/j.cej.2025.168541",
+    "FeMaterial": "Clariant AmoMax 10",
+    "RuMaterial": "4 wt% Ru-Ba-K/C",
+    "inletTemperatureC": 400,
+    "pressureBarAbsolute": 100,
+    "H2_N2_molarRatio": 2.25,
+    "NH3InletMoleFraction": 0.11,
+    "voidage": 0.4,
+    "bedDensityFe_kg_m3": 2500,
+    "bedDensityRu_kg_m3": 750,
+    "targetEquilibriumFraction": 0.9,
+    "authorsVolumeFactorFe_over_Ru_approx": 5.8,
+    "authorsMassFactorFe_over_Ru_approx": 19,
+    "Ru_Ba_K_C_bcat": 76.25,
+    "Ru_Ba_K_C_bN": 0.8514,
+    "missing": [
+      "full modified SRK EOS and mixing consistency audit",
+      "source-matched adiabatic PFR and heat capacity/enthalpy/geometry data",
+      "source-specific per-formulation measured pressure/T support and physical transfer validity audit"
+    ],
+    "validationRules": [
+      "Do not fit factors to 5.8x or 19x outcomes",
+      "Do not substitute bcat=bN=1 from Ru/CeO2",
+      "Do not call 100bar source experiment independent holdout: Keestra bcat and bN are inferred from training"
+    ],
+    "published_GHSV_Fe_per_h": 22250,
+    "published_GHSV_Ru_per_h": 130000,
+    "published_GHSV_reference": "Keestra Ru 2025 published Table 4 (these values are model outputs of the authors, not independently predicted by this project)",
+    "Ru_Ba_K_C_bcat_CI95": 0.03561,
+    "Ru_Ba_K_C_bN_CI95": 0.008091,
+    "specific_ru_parameters_source": {
+      "source_url": "https://ars.els-cdn.com/content/image/1-s2.0-S1385894725093830-mmc1.pdf",
+      "source_sha256": "a6137d61860d2c55905a12544d7792437592a02fcbed6b0d05c237d4a1569598",
+      "source_pdf_title": "Supplementary Information to: Universal Kinetic Model for Ammonia Synthesis on Various Ruthenium-based Catalysts",
+      "source_section": "A-1-4 Model D",
+      "source_table": "Table 8, Ru-Ba-K/C - Liu (2013) [4]",
+      "source_pdf_printed_page": 5,
+      "source_extracted_source_columns": "bcat Value +/- 95% CI; bN Value +/- 95% CI",
+      "source_row_source_text_numbers": "Ru-Ba-K/C – Liu (2013) [4], 7.625E+01 ± 3.561E-02; 8.514E-01 ± 8.091E-03",
+      "transcribed_on": "2026-10-19",
+      "status": "VERIFIED_EXACT_ORIGINAL_SI_ROW_DISTINCT_FROM_RU_CEO2_REFERENCE",
+      "confirm_matches_main_text_Ru_Ba_K_C": "Formulation name matches 4% Ru-Ba-K/C final-bed example. Exact individual fit/validity window still to check."
+    },
+    "supplementary_parameters_no_longer_missing": true
+  },
+  "publishedEquilibrium": {
+    "doi": "10.1016/j.cej.2025.164593",
+    "equation": "Kf(T)=1.3628e-6*exp(+51111/(R*T))",
+    "exponentSignEvidence": "Fe main Eq.4 shows e^(- -5.1111e4/(RT)), the physical positive exponent"
+  },
+  "provenanceWarnings": [
+    "Original gas fugacity is modified-SRK; preliminary code uses ideal f_i=y_i*P for G1 ONLY",
+    "Pressure 80bar(g) is 81.01325bar absolute at sea-level reference 1atm",
+    "No original software fitting of any source-specific parameters in this preliminary study",
+    "No modification to PR111 phase map or manuscript",
+    "SI source regained 2026-10-19, SHA256 pinned; 4 wt% Ru-Ba-K/C Model D SI A-1-4 Table 8 factors bcat 76.25 and bN 0.8514, NOT the Ru/CeO2 reference factors."
+  ],
+  "sourceTrainingOverlap": {
+    "Cholewa2024": {
+      "in_Keestra_Fe_training": true,
+      "in_Keestra_Ru_training": true,
+      "reason": "Cholewa is reference [23] in Keestra Ru 2025 fitted source Figure 1 and is source of their Fe and Ru/CeO2 reference materials"
+    },
+    "Kowalczyk1996": {
+      "in_Keestra_Ru_training": true,
+      "reason": "Keestra Ru 2025 Figure 1 fitting sources include reference [27], which is Kowalczyk et al 1996 DOI 10.1016/0926-860X(95)00251-0; NOT a held-out test"
+    },
+    "Pan2011": {
+      "in_Keestra_Ru_training": "NOT_DOCUMENTED_IN_MAIN_FITTING_SOURCE_LIST",
+      "reason": "Pan 2011 DOI 10.1016/S1004-9541(11)60165-1 was not identified in Keestra Ru Figure 1 fitting sources [1,19,23-27]; full raw data and formulation-specific Keestra parameters are unavailable; only qualitative external literature contrast"
+    }
+  },
+  "sourcePan2011": {
+    "doi": "10.1016/S1004-9541(11)60165-1",
+    "materialFe": "A301 iron catalyst",
+    "materialRu": "activated carbon-supported Ru catalyst (precise promoter and loading to verify from full source)",
+    "pressureMPa": 10,
+    "approxPressureBar": 100,
+    "temperatureC": [
+      375,
+      400
+    ],
+    "GHSV_h": 10000,
+    "H2_N2": 3,
+    "reported_Ru_activity_higher_percent_range": [
+      33.5,
+      37.6
+    ],
+    "reported_Fe_Ru_series_outletNH3_gain_percent_range": [
+      45.6,
+      63.5
+    ],
+    "sourceNature": "Published abstract directly, not reproduced numerically nor used to fit a Keestra catalyst-specific correction",
+    "sourceURL": "https://doi.org/10.1016/S1004-9541(11)60165-1"
+  }
+}
