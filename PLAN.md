@@ -77,3 +77,4 @@
 - 2026-10-22 21:00 核对：SI「熔铁参比只有商业活性 0.5–6 %」一句只对 450–459 °C、1 MPa 的三条成立，已改为分温度表述（300–340 °C 为 27–126 %）并加审计锁；正文氨口径句改为可由本仓库数据核实的说法。C 加料口径用 6 个进程重跑 high/equal_X/family。
 - 2026-10-22 21:40 C 完成：`analysis/meoh_catalyst_level_co_rule_2026_10_22`。加料口径 central 21/63（正文）、equal_X 27、high 28、Cu 家族 26；实验室转化率 26/31/28/28。正文所用规则给出最小计数。标签 rollback/AD-C-done。
 - 2026-10-22 21:55 收尾：正文 3,496 词、摘要 141、SI 9,986；审计 357/0；Word/PDF `work/build_2026-10-22_AD`（正文 46 页、SI 67 页，改动页已渲染目检）。草稿 PR #120（base = manuscript/nce-compact-2026-10-21）。A–D 全部完成；E（选择性–转化率包络）不在本轮范围。
+- 2026-10-23 用户决定：D 只留在仓库（`analysis/nh3_field_measured_kinetics_2026_10_22`），不进论文。已从正文（Results 一句、Methods 一句）、SI Note 4、审计中移除；Cholewa 文献随之删除，Kitano 改回 67。A、B、C 保留。审计 352/0，正文 3,473 词，SI 9,784；Word/PDF `work/build_2026-10-23_ABC`（46 + 66 页，改动页已目检）。

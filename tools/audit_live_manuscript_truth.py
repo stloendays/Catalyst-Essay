@@ -2650,27 +2650,6 @@ tokens("Main text: compressed promoter activity range", m_bw,
 
 
 # ----- Items A-D of the 2026-10-22 revision -------------------------------------
-# D: ammonia field comparisons on measured rate laws (analysis/nh3_field_measured_kinetics_2026_10_22).
-_md = _j("analysis/nh3_field_measured_kinetics_2026_10_22/summary.json")
-_mdp, _mde = _md["primary_measured"], _md["entries"]
-ok("D gates: frozen 12/44, Keestra Fe 15.307473, Rossetti zero at equilibrium",
-   all(v["ok"] for v in _md["gates"].values()) and (_md["frozen_descriptor"]["groups"], _md["frozen_descriptor"]["top1_mismatch_groups"]) == (NPL["groups"], NPL["mismatch"]))
-claim_tokens("D: measured-law basis in SI Note 4 equals its source",
-    ("SI Note 4", s9, [f"Of the {_mde['total']} entries, {_mde['lab_outside_fitted_range']} were measured outside the fitted range of the measured rate law for their metal",
-                       f"{_mde['infeasible_primary']} entries need more than the 90 m³ bed",
-                       f"In the {_mdp['groups']} comparisons that keep two buildable entries the leaders differ in {_mdp['top1_mismatch_groups']}, all above 5%",
-                       f"gives {_md['g_integral_calibration']['top1_mismatch_groups']} of {_md['g_integral_calibration']['groups']}",
-                       f"gives {_md['a_ru_cholewa_as_printed']['top1_mismatch_groups']} of {_md['a_ru_cholewa_as_printed']['groups']}",
-                       f"{_md['gates']['cholewa_as_printed_H2N2_ratio_info']['ratio_15_over_30']:.2f}-fold rate gain"]))
-_fz = [r for r in rows("analysis/nh3_field_measured_kinetics_2026_10_22/candidates_measured.csv") if r["fused"].lower() in ("true", "1")]
-_hot = [100 * float(r["activity_factor"]) for r in _fz if float(r["T_C"]) >= 450 and abs(float(r["P_MPa"]) - 1.0) < 1e-9]
-_cold = [100 * float(r["activity_factor"]) for r in _fz if float(r["T_C"]) <= 340]
-tokens("D: commercial fused-iron references on the fused-iron law (SI Note 4)", s9,
-       f"tested at 450–459 °C and 1 MPa run at {min(_hot):.1f}–{max(_hot):.0f}% of the activity",
-       f"those tested at 300–340 °C at {min(_cold):.0f}–{max(_cold):.0f}%")
-ok("D: >5 % count equals the mismatch count on the measured basis", _mdp["regret_gt5pct_groups"] == _mdp["top1_mismatch_groups"])
-ok("D: integral, ranked-last and anchored variants agree",
-   len({(_md[k]["top1_mismatch_groups"], _md[k]["groups"]) for k in ("f_infeasible_ranked_last", "g_integral_calibration", "h_anchored_on_fused_reference")}) == 1)
 # A+B: NH3-FINAL-1.3 structural check (analysis/nh3_final_1_3_2026_10_22).
 _r13 = _j("analysis/nh3_final_1_3_2026_10_22/results.json")
 _d13, _m13, _g13 = _r13["descriptor"]["1.3"], _r13["measured"]["1.3"], _r13["gates"]["G1_vle_holdout"]
