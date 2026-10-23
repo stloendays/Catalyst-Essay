@@ -85,3 +85,4 @@
 - 2026-10-23 全部图（主图 6 + ED 10）整合为一个 PPTX：work/figures_pptx_2026-10-23/Figures_NCE_2026-10-23.pptx，一图一页、1:1 尺寸，按 SVG 里的分图字母把每个分图切成独立透明底图片放回原位，可单独拖动（脚本 tools/make_figures_pptx.py）。
 - 2026-10-23 Fig. 1a、Fig. 3a 可编辑 PPTX：work/editable_panels_2026-10-23/（tools/svg_panel_to_pptx.py 由 SVG 转换，文字为文本框、线框为自由形状、结构渲染为图片）。
 - 2026-10-23 14:00 按用户 PPT 批注改图（d88f0f3；回溯标签 rollback/pre-figure-edits-2026-10-23）。Fig. 1a、Fig. 3a 改为用户新流程图（figures/composite/fig1/Fig1a.pptx、fig4/Fig3a.pptx，600 dpi 导出后放回原位）；Fig. 1f、3e 加两条排名轴、3e 文字外移；3c 组标题居中、表底加线；Fig. 2a 原子渲染图层盖住放大线；2b、2c 点线加粗，2c 图例左侧加竖线；2d–f 点重画、标注移出数据区。Fig. 2a 计数 90 = 50 + 40、52 = 30 + 22 核对无误。图注不变；审计 357/0。Word/PDF work/build_2026-10-23_figs（47 页，图页已目检）；图集 PPTX 已按新图重生成（用户改过的旧版存为 *_before-markup.pptx，另有 work/user_edits_2026-10-23_1326 快照）。
+- 2026-10-23 Fig. 2b 改为横向森林图（d9bb421）：左侧类别与计数一列，横轴为百分比，图例移到标题下一行；数值与图注不变，审计 357/0。稿件 work/build_2026-10-23_figs/Manuscript_NCE_2026-10-23_fig2b.pdf；图集 PPTX 已重生成。
