@@ -34,3 +34,10 @@ support facet are illustrative, not characterization data.
 render-venv/python      build_re_tio2.py     # OVITO 3.16, Tachyon, ambient occlusion
 pur_bridge_env/python   make_fig4.py         # -> Fig4.svg / .pdf / .png
 ```
+
+## Panel a (2026-10-23)
+
+Panel a is laid out in `Fig3a.pptx` (editable: native text, boxes and arrows; author-revised layout of 2026-10-23, derived from
+the former matplotlib drawing with `tools/svg_panel_to_pptx.py`). `make_fig4.py` places its 600-dpi export
+`Fig3a_from_pptx.png` at the position the drawing occupied. To change panel a: edit `Fig3a.pptx`, export the slide at
+2,465 px wide (`Export-Slides.ps1 -Width 2465`) to `Fig3a_from_pptx.png`, and rerun `make_fig4.py`.

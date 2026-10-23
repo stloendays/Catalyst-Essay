@@ -27,6 +27,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Patch
+from matplotlib import patheffects as pe
 from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -179,10 +180,13 @@ def draw_track(pg):
     pg.letter("a", 2, 182)
 
 
-def dot(ax, x, y, lo=None, hi=None, fc=RU, ec=INK, s=26, z=4):
+def dot(ax, x, y, lo=None, hi=None, fc=RU, ec=INK, s=42, z=4):
     if lo is not None:
-        ax.plot([x, x], [lo, hi], color=INK, lw=0.6, zorder=z - 1, solid_capstyle="butt")
-    ax.scatter([x], [y], s=s, facecolor=fc, edgecolor=ec, lw=0.6, zorder=z)
+        ax.plot([x, x], [lo, hi], color=INK, lw=1.0, zorder=z - 1, solid_capstyle="butt")
+    ax.scatter([x], [y], s=s, facecolor=fc, edgecolor=ec, lw=0.8, zorder=z)
+
+
+HALO = [pe.withStroke(linewidth=2.2, foreground="white")]     # keeps labels legible where they cross data
 
 
 if __name__ == "__main__":
@@ -216,11 +220,11 @@ if __name__ == "__main__":
         f = n / g
         cat = key.startswith("cat")
         if band:
-            b.plot([x, x], band, color=PALE_B, lw=7.5, solid_capstyle="round", zorder=1)
-        b.plot([x, x], [f5, f], color=MID, lw=0.5, ls=(0, (1.2, 1.2)), zorder=1.5)
-        b.scatter([x], [f5], s=18, facecolor="white", edgecolor=MID, lw=0.6, zorder=3)
+            b.plot([x, x], band, color=PALE_B, lw=9.0, solid_capstyle="round", zorder=1)
+        b.plot([x, x], [f5, f], color=MID, lw=0.8, ls=(0, (1.5, 1.2)), zorder=1.5)
+        b.scatter([x], [f5], s=30, facecolor="white", edgecolor=MID, lw=0.8, zorder=3)
         dot(b, x, f, *(ci if ci else (None, None)), fc=RU if cat else OS)
-        b.text(x + 0.16, f, "%d/%d" % (n, g), fontsize=5.6, va="center", ha="left", zorder=5)
+        b.text(x + 0.18, f, "%d/%d" % (n, g), fontsize=5.8, va="center", ha="left", zorder=5, path_effects=HALO)
     b.set_xticks(xs)
     b.set_xticklabels([r[1] for r in rows], fontsize=5.6)
     b.set_xlim(-0.5, 5.0)
@@ -232,9 +236,9 @@ if __name__ == "__main__":
         b.annotate("", xy=(x0, -0.2), xytext=(x1, -0.2), xycoords=("data", "axes fraction"),
                    arrowprops=dict(arrowstyle="-", lw=0.5, color=INK))
         b.text((x0 + x1) / 2, -0.235, t, transform=b.get_xaxis_transform(), ha="center", va="top", fontsize=5.6)
-    h = [b.scatter([], [], s=26, facecolor=RU, edgecolor=INK, lw=0.6),
+    h = [b.scatter([], [], s=42, facecolor=RU, edgecolor=INK, lw=0.8),
          Patch(facecolor=PALE_B, edgecolor="none"),
-         b.scatter([], [], s=18, facecolor="white", edgecolor=MID, lw=0.6)]
+         b.scatter([], [], s=30, facecolor="white", edgecolor=MID, lw=0.8)]
     b.legend(h, ["6.86% inlet limit", "5–10% limits", "no limit"], loc="upper left", fontsize=5.4, handlelength=1.2,
              borderaxespad=0.4, labelspacing=0.35, handletextpad=0.5)
     boxed(b)
@@ -250,7 +254,8 @@ if __name__ == "__main__":
         f = x["top1_mismatch_fraction"]
         l, h_ = x["bootstrap_papers"]["mismatch_fraction_ci95"]
         dot(c1, i, f, l, h_, fc=col)
-        c1.text(i + 0.14, f, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), fontsize=5.6, va="center", ha="left")
+        c1.text(i + 0.16, f, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), fontsize=5.8, va="center", ha="left",
+                path_effects=HALO)
     c1.set_xticks(range(len(ncases)))
     c1.set_xticklabels([l for l, _, _ in ncases], fontsize=5.6)
     c1.set_xlim(-0.5, 2.7)
@@ -283,6 +288,8 @@ if __name__ == "__main__":
             if float(g["regret"]) > 0.05:
                 c2.add_patch(Circle((x0 + cell / 2, y - cell / 2), 0.75, fc="white", ec="none"))
         c2.text(0, y + 0.6, lab.replace("\n", " "), fontsize=5.6, ha="left", va="bottom", color=INK)
+    # vertical rule left of the key (author's mark-up, 2026-10-23)
+    c2.plot([-1.25, -1.25], [2.2, 34.3], color=INK, lw=0.8, solid_capstyle="butt", clip_on=False)
     c2.add_patch(Circle((1.0, 0.9), 0.75, fc=INK, ec="none"))
     c2.text(2.4, 0.9, "cost gap > 5%", fontsize=5.4, va="center", ha="left")
     pg.letter("c", 96, 117)
@@ -291,39 +298,44 @@ if __name__ == "__main__":
                 fontweight="bold", va="bottom")
 
     # ---- d, e: two methanol comparisons ------------------------------------------------------------------------
+    # Each entry: filled circle with the 6.86% inlet limit, open circle without it, joined by a light stem; marker
+    # area scales with the by-product selectivity. Leaders are ringed; labels carry a white halo and sit in empty
+    # space with a hairline leader, so no label covers a marker.
     for k, (g, title, byp, byp_tex) in enumerate(MEOH_GROUPS):
         t = meoh_group(g, byp)
         e = pg.ax(14 + k * 59, 11, 45, 40)
         sty, cost, cost5 = t.STY.to_numpy(), t[S6].to_numpy(), t[S5].to_numpy()
-        size = 10 + 170 * t[byp].to_numpy()
+        size = 16 + 120 * t[byp].to_numpy()
         for x, y0, y1 in zip(sty, cost5, cost):
-            e.plot([x, x], [y0, y1], color=AMB_L, lw=0.6, zorder=1)
-        e.scatter(sty, cost5, s=size, facecolor="white", ec=AMB_D, lw=0.45, zorder=1.5)
-        e.scatter(sty, cost, s=size, c=AMB_P, ec=AMB_D, lw=0.45, zorder=2)
+            e.plot([x, x], [y0, y1], color=AMB_D, lw=0.7, alpha=0.55, zorder=1, solid_capstyle="butt")
+        e.scatter(sty, cost5, s=size, facecolor="white", ec=AMB_D, lw=0.7, zorder=1.5)
+        e.scatter(sty, cost, s=size, c=AMB_P, ec="white", lw=0.7, zorder=2)
+        e.scatter(sty, cost, s=size, facecolor="none", ec=AMB_D, lw=0.5, zorder=2.1)
         iu, ie = int(np.argmax(sty)), int(np.argmin(cost))
         assert t.STY_leader[iu] and t.plant_cost_leader[ie] and iu != ie
-        e.scatter([sty[iu]], [cost[iu]], s=size[iu] + 34, facecolor="none", ec=RED, lw=1.0, zorder=3)
-        e.scatter([sty[ie]], [cost[ie]], s=size[ie] + 34, facecolor="none", ec=DARK_G, lw=1.0, zorder=3)
+        for i_, col in ((iu, RED), (ie, DARK_G)):
+            e.scatter([sty[i_]], [cost[i_]], s=size[i_] + 60, facecolor="none", ec=col, lw=1.1, zorder=3)
         names = [support_name(c) if k == 1 else "" for c in t.catalyst]
         xr = sty.max() - sty.min()
-        for i, nm in enumerate(names):
-            if nm and i not in (iu, ie):
-                e.annotate(nm, (sty[i], cost[i]), xytext=(5, 0), textcoords="offset points", fontsize=5.4,
-                           ha="left", va="center", color=INK)
-        # d: the two leaders sit close together, so the plant choice is labelled to the left of its marker
+        lab_kw = dict(fontsize=5.6, fontweight="bold", path_effects=HALO, zorder=6)
+
+        def leader(col):
+            return dict(arrowstyle="-", lw=0.5, color=col, shrinkA=0.5, shrinkB=5)
         if k == 0:
-            # d: the leaders sit among other entries near 1,000 EUR/t; labels go to the empty upper right, with leaders
-            for i, lab, col, xy in ((iu, "STY leader", RED, (0.97, 0.62)), (ie, "plant choice", DARK_G, (0.97, 0.47))):
-                e.annotate(lab, (sty[i], cost[i]), xytext=xy, textcoords="axes fraction", fontsize=5.6, ha="right",
-                           va="center", color=col, fontweight="bold",
-                           arrowprops=dict(arrowstyle="-", lw=0.5, color=col, shrinkA=1, shrinkB=4))
-            e.set_xlabel("STY (g$_{MeOH}$ g$_{cat}^{-1}$ h$^{-1}$)")
-        for i, lab, col, off, ha, va in () if k == 0 else ((iu, "STY leader", RED, (-6, 8), "right", "bottom"),
-                                         (ie, "plant choice", DARK_G, (-8, 0) if k == 0 else (7, 7),
-                                          "right" if k == 0 else "left", "center" if k == 0 else "bottom")):
-            nm = (", " + names[i]) if names[i] else ""
-            e.annotate(lab + nm, (sty[i], cost[i]), xytext=off, textcoords="offset points", fontsize=5.6,
-                       ha=ha, va=va, color=col, fontweight="bold")
+            # d: the two leaders sit among other entries near 1,000 EUR/t; labels go to the empty upper right
+            for i_, lab, col, xy in ((iu, "STY leader", RED, (0.97, 0.66)), (ie, "plant choice", DARK_G, (0.70, 0.45))):
+                e.annotate(lab, (sty[i_], cost[i_]), xytext=xy, textcoords="axes fraction", ha="right", va="center",
+                           color=col, arrowprops=leader(col), **lab_kw)
+        else:
+            # e: entries are named by support; the leaders carry their support in the leader label
+            for i_, nm in enumerate(names):
+                if nm and i_ not in (iu, ie):
+                    e.annotate(nm, (sty[i_], cost[i_]), xytext=(6, 0), textcoords="offset points", fontsize=5.4,
+                               ha="left", va="center", color=INK, path_effects=HALO, zorder=6)
+            e.annotate("STY leader, " + names[iu], (sty[iu], cost[iu]), xytext=(0.97, 0.74), textcoords="axes fraction",
+                       ha="right", va="center", color=RED, arrowprops=leader(RED), **lab_kw)
+            e.annotate("plant choice,\n" + names[ie], (sty[ie], cost[ie]), xytext=(-10, 0), textcoords="offset points",
+                       ha="right", va="center", color=DARK_G, linespacing=1.1, **lab_kw)
         e.set_xlabel("STY (g$_{MeOH}$ g$_{cat}^{-1}$ h$^{-1}$)")
         e.set_ylabel("net cost (EUR t$^{-1}$)")
         allc = np.concatenate([cost, cost5])
@@ -337,7 +349,7 @@ if __name__ == "__main__":
             span = allc.max() - allc.min()
             e.set_ylim(allc.min() - 0.12 * span, allc.max() + 0.55 * span)
         e.yaxis.set_major_formatter(plain)
-        e.set_xlim(sty.min() - 0.2 * xr, sty.max() + 0.14 * xr)
+        e.set_xlim(sty.min() - (0.45 if k == 1 else 0.2) * xr, sty.max() + 0.16 * xr)   # e: room for the plant label
         e.text(0.04, 0.95, title, transform=e.transAxes, fontsize=6, va="top", fontweight="bold")
         boxed(e)
     pg.letter("d", 2, 57)
@@ -352,21 +364,23 @@ if __name__ == "__main__":
     met = [r["metal"] for r in rows_]
     for m in ("Ru", "Fe", "Co"):
         sel = [i for i, x in enumerate(met) if x == m]
-        fax.scatter(rate[sel], cost[sel], s=18, c=mcol[m], ec=INK, lw=0.4, zorder=2, label=m)
+        fax.scatter(rate[sel], cost[sel], s=34, c=mcol[m], ec="white", lw=0.7, zorder=2, label=m)
+        fax.scatter(rate[sel], cost[sel], s=34, facecolor="none", ec=INK, lw=0.4, zorder=2.1)
     iu, ie = int(np.argmax(rate)), int(np.argmin(cost))
     assert rows_[iu]["catalyst"] == gm["paper_winner"] and abs(cost[ie] - float(gm["plant_winner_cost"])) < 1e-9
     assert rows_[ie]["metal"] == "Fe" and float(rows_[ie]["metal_wt_pct"]) == 1.0
-    fax.scatter([rate[iu]], [cost[iu]], s=52, facecolor="none", ec=RED, lw=1.0, zorder=3)
-    fax.scatter([rate[ie]], [cost[ie]], s=52, facecolor="none", ec=DARK_G, lw=1.0, zorder=3)
-    fax.annotate("rate leader", (rate[iu], cost[iu]), xytext=(-2, 8), textcoords="offset points", fontsize=5.6,
-                 color=RED, ha="right", fontweight="bold")
-    fax.annotate("plant choice", (rate[ie], cost[ie]), xytext=(7, -1), textcoords="offset points", fontsize=5.6,
-                 color=DARK_G, ha="left", va="center", fontweight="bold")
+    fax.scatter([rate[iu]], [cost[iu]], s=110, facecolor="none", ec=RED, lw=1.1, zorder=3)
+    fax.scatter([rate[ie]], [cost[ie]], s=110, facecolor="none", ec=DARK_G, lw=1.1, zorder=3)
+    fax.annotate("rate leader", (rate[iu], cost[iu]), xytext=(-4, 10), textcoords="offset points", fontsize=5.6,
+                 color=RED, ha="right", fontweight="bold", path_effects=HALO, zorder=6)
+    fax.annotate("plant choice", (rate[ie], cost[ie]), xytext=(9, -1), textcoords="offset points", fontsize=5.6,
+                 color=DARK_G, ha="left", va="center", fontweight="bold", path_effects=HALO, zorder=6)
     fax.set_xlabel("rate (mmol g$_{cat}^{-1}$ h$^{-1}$)")
     fax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
     fax.set_xlim(-2.5, 55)
     fax.set_ylim(11.5, 34.5)
-    fax.legend(loc="upper right", fontsize=5.6, handletextpad=0.1, borderaxespad=0.3, labelspacing=0.3)
+    fax.legend(loc="center right", bbox_to_anchor=(1.0, 0.62), fontsize=5.6, handletextpad=0.1, borderaxespad=0.3,
+               labelspacing=0.3)
     fax.text(0.04, 0.95, NH3_GROUP[1], transform=fax.transAxes, fontsize=6, va="top", fontweight="bold")
     boxed(fax)
     pg.letter("f", 121, 57)

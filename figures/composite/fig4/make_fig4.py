@@ -59,100 +59,16 @@ for key in ECON:   # the MC centre is the plotted canonical cost
 
 pg = Page(183.0, 168.0)
 
-# ---- a: CO2-to-methanol loop -------------------------------------------------------------
-pg.letter("a", 2.0, 166.0)
-a = pg.canvas(4.0, 112.0, 104.0, 52.0)
-a.text(1.5, 50.0, "CO$_2$-to-methanol loop", fontsize=7, fontweight="bold", va="top")
-y0 = 20.0
-arrow = dict(arrowstyle="-|>", lw=0.7, color=INK, mutation_scale=5.5, shrinkA=0, shrinkB=0)
-
-
-def line(xs, ys):
-    a.plot(xs, ys, color=INK, lw=0.7, solid_capstyle="butt", zorder=2)
-
-
-def flow(x0, y0_, x1, y1, color=INK):
-    a.annotate("", xy=(x1, y1), xytext=(x0, y0_), arrowprops=dict(arrow, color=color), zorder=2)
-
-
-def compressor(xc, yc, w=7.0, h1=8.4, h2=4.4, left_wide=True):
-    x0, x1 = (xc - w / 2, xc + w / 2) if left_wide else (xc + w / 2, xc - w / 2)
-    a.add_patch(Polygon([[x0, yc - h1 / 2], [x0, yc + h1 / 2], [x1, yc + h2 / 2], [x1, yc - h2 / 2]],
-                        closed=True, fc="white", ec=INK, lw=0.8, zorder=3))
-
-
-def label(x, y, head, sub=None, ha="center"):
-    a.text(x, y, head, ha=ha, va="top", fontsize=6.2, fontweight="bold", linespacing=1.05)
-    if sub:
-        n = head.count("\n") + 1
-        a.text(x, y - 2.5 * n - 0.5, sub, ha=ha, va="top", fontsize=5.5, color=MID, linespacing=1.12)
-
-
-a.text(0.5, y0 + 1.8, "CO$_2$ + H$_2$", fontsize=5.8, va="bottom")
-flow(0.5, y0, 9.5, y0)
-compressor(13.0, y0)
-label(13.0, y0 - 5.8, "Feed\ncompressor", "feed gas,\nelectricity")
-xm = 22.0
-flow(16.5, y0, xm - 0.2, y0)
-a.add_patch(Circle((xm, y0), 0.75, fc=INK, ec="none", zorder=4))
-xr, wr, hr = 32.5, 9.0, 22.0
-flow(xm, y0, xr - wr / 2, y0)
-a.add_patch(FancyBboxPatch((xr - wr / 2, y0 - hr / 2), wr, hr, boxstyle="round,pad=0,rounding_size=3.2",
-                           fc="white", ec=INK, lw=0.9, zorder=3))
-rng = np.random.default_rng(5)
-px = rng.uniform(xr - wr / 2 + 1.1, xr + wr / 2 - 1.1, 140)
-py = rng.uniform(y0 - hr / 2 + 3.0, y0 + hr / 2 - 4.0, 140)
-a.scatter(px, py, s=3.2, c="#ECB874", edgecolors="#A85E24", linewidths=0.2, zorder=4)
-label(xr, y0 - hr / 2 - 1.3, "Reactor", "Re/TiO$_2$")
-a.text(xr + wr / 2 + 1.0, y0 + 2.2, "CH$_3$OH\n+ CH$_4$", fontsize=5.5, va="bottom", ha="left",
-       linespacing=1.05)
-# flash
-xf, wf, hf = 50.0, 7.0, 14.0
-flow(xr + wr / 2, y0, xf - wf / 2, y0)
-a.add_patch(FancyBboxPatch((xf - wf / 2, y0 - hf / 2), wf, hf, boxstyle="round,pad=0,rounding_size=2.3",
-                           fc="white", ec=INK, lw=0.9, zorder=3))
-a.add_patch(Rectangle((xf - wf / 2 + 0.35, y0 - hf / 2 + 0.6), wf - 0.7, 3.8, fc=PALE_B, ec="none", zorder=4))
-a.text(xf + wf / 2 + 0.8, y0 + 3.2, "Flash", fontsize=6.2, fontweight="bold", va="center", ha="left")
-# distillation of the crude
-xd = 66.0
-line([xf, xf, xd - 2.3], [y0 - hf / 2, 7.0, 7.0])
-a.add_patch(FancyBboxPatch((xd - 2.3, 2.0), 4.6, 15.5, boxstyle="round,pad=0,rounding_size=1.7",
-                           fc="white", ec=INK, lw=0.8, zorder=3))
-for yy in np.linspace(4.3, 15.2, 5):
-    a.plot([xd - 1.6, xd + 1.6], [yy, yy], color=INK, lw=0.4, zorder=4)
-flow(xd + 2.3, 15.5, xd + 7.0, 15.5)
-a.text(xd + 7.5, 15.5, "CH$_3$OH", fontsize=5.8, va="center")
-flow(xd + 2.3, 4.0, xd + 7.0, 4.0)
-a.text(xd + 7.5, 4.0, "H$_2$O", fontsize=5.8, va="center")
-a.text(xd, 18.3, "Distillation", ha="center", va="bottom", fontsize=6.2, fontweight="bold")
-# vapour: purge split and recycle
-yv = 33.0
-xs_ = 60.0
-line([xf, xf, xs_], [y0 + hf / 2, yv, yv])
-a.add_patch(Circle((xs_, yv), 0.75, fc=INK, ec="none", zorder=4))
-flow(xs_, yv, xs_ + 11.0, yv, color=RED)
-a.text(xs_ + 11.6, yv + 0.3, "purge", fontsize=6.2, fontweight="bold", color=RED, va="bottom")
-a.text(xs_ + 11.6, yv - 0.3, "CH$_4$, CO, N$_2$\nwith H$_2$, CO$_2$", fontsize=5.5, color=MID, va="top",
-       linespacing=1.1)
-yr = 41.0
-xc = 42.0
-line([xs_, xs_, xc + 3.5], [yv, yr, yr])
-compressor(xc, yr, left_wide=False)
-line([xc - 3.5, xm], [yr, yr])
-flow(xm, yr, xm, y0 + 0.9)
-a.text(xc, yr + 4.6, "Recycle compressor", ha="center", va="bottom", fontsize=6.2, fontweight="bold")
-a.text(xs_ - 1.2, yr + 0.8, "CH$_4$ builds up", fontsize=5.5, color=MID, va="bottom", ha="right")
-a.text(xs_ + 1.6, 37.0, "purge fraction", fontsize=5.8, style="italic", va="center", ha="left", zorder=6,
-       bbox=dict(boxstyle="round,pad=0.25,rounding_size=0.8", fc=PAPER, ec=MID, lw=0.4))
-# the pathway, top to bottom
-chain = ["S$_\\mathrm{CH_4}$ ↑", "CH$_4$ in the loop ↑", "recycle and purge\nlosses ↑", "H$_2$ feed and\ncompression ↑"]
-cy = [25.0, 18.6, 11.6, 3.6]
-for t, yy in zip(chain, cy):
-    a.text(92.0, yy, t, ha="center", va="center", fontsize=5.9, linespacing=1.05,
-           fontweight="bold" if t is chain[0] else "normal", color=RED if t is chain[0] else INK)
-for y_a, y_b in ((cy[0] - 1.6, cy[1] + 1.6), (cy[1] - 1.6, cy[2] + 2.9), (cy[2] - 2.9, cy[3] + 2.9)):
-    a.annotate("", xy=(92.0, y_b), xytext=(92.0, y_a),
-               arrowprops=dict(arrowstyle="-|>", lw=0.6, color=MID, mutation_scale=5, shrinkA=0, shrinkB=0))
+# ---- a: CO2-to-methanol loop (laid out in the editable Fig3a.pptx) ------------------------------------
+# Fig3a.pptx holds panel a with its letter as native text, boxes and arrows (author's layout, 2026-10-23); it was
+# derived from this script's former matplotlib drawing (tools/svg_panel_to_pptx.py) and is placed from its 600-dpi
+# export Fig3a_from_pptx.png at the position that drawing occupied: top-left 0.942 mm, 0.713 mm; 104.369 x 54.804 mm.
+PANEL_A = dict(png="Fig3a_from_pptx.png", left=0.942, top=0.713, w=104.369, h=54.804)
+import matplotlib.image as _mpimg  # noqa: E402
+_pa = _mpimg.imread(os.path.join(HERE, PANEL_A["png"]))
+_ax_a = pg.ax(PANEL_A["left"], pg.H - PANEL_A["top"] - PANEL_A["h"], PANEL_A["w"], PANEL_A["h"])
+_ax_a.imshow(_pa, extent=(0, 1, 0, 1), aspect="auto", interpolation="none")
+_ax_a.axis("off")
 
 # ---- b: Re/TiO2 at two loadings ----------------------------------------------------------------
 pg.letter("b", 110.0, 166.0)
@@ -211,8 +127,11 @@ for key in ECON:
              fontweight="bold" if key == WIN else "normal", color=RED if key == WIN else INK)
 for (k0, k1, text) in ((0, 2, "Catalyst, measured"), (3, 5, "Loop at 2% purge"), (6, 6, "Plant")):
     xa, xb = xpos[k0], xpos[k1] + cw
-    pg.fig.text(xa / pg.W, (CY + CH + 8.6) / pg.H, text, fontsize=6.3, fontweight="bold", va="bottom")
+    pg.fig.text((xa + xb) / 2 / pg.W, (CY + CH + 8.6) / pg.H, text, fontsize=6.3, fontweight="bold", va="bottom",
+                ha="center")
     pg.fig.add_artist(Line2D([xa / pg.W, xb / pg.W], [(CY + CH + 8.1) / pg.H] * 2, color=INK, lw=0.5))
+# rule under the table, where the column axes end
+pg.fig.add_artist(Line2D([xpos[0] / pg.W, (xpos[-1] + cw) / pg.W], [(CY + 0.6) / pg.H] * 2, color=INK, lw=0.5))
 
 # ---- d: rank probability under each state's own measurement uncertainty ------------------------------
 xm0 = 148.0
@@ -256,9 +175,11 @@ for key in KEY:
     hl = key == WIN
     e.plot([0, 1], [u, v], color=COLOR[key], lw=2.0 if hl else 1.3, solid_capstyle="round", zorder=4 if hl else 3)
     e.plot([0, 1], [u, v], "o", ms=3.4, mfc=COLOR[key], mec=INK, mew=0.4, zorder=5)
-    for x_, r_, ha in ((-0.1, u, "right"), (1.1, v, "left")):
+    for x_, r_, ha in ((-0.16, u, "right"), (1.16, v, "left")):
         e.text(x_, r_, LABEL[key], ha=ha, va="center", fontsize=5.8, fontweight="bold" if hl else "normal",
                color=RED if hl else INK)
+for xa in (-0.075, 1.075):          # rank axes between the labels and the markers
+    e.plot([xa, xa], [0.75, 4.25], color=INK, lw=0.6, solid_capstyle="butt", zorder=2)
 e.text(0, 0.1, "STY per g Re", ha="center", va="bottom", fontsize=6.0, fontweight="bold")
 e.text(1, 0.1, "Net cost", ha="center", va="bottom", fontsize=6.0, fontweight="bold")
 e.text(0.5, 5.15, "ρ = %.2f,  τ = %.2f" % (met["spearman"], met["kendall"]), ha="center", va="top", fontsize=6.0,

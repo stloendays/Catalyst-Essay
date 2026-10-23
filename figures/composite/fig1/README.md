@@ -46,3 +46,11 @@ pur_bridge_env/python   make_fig1.py             # matplotlib -> Fig1.svg / .pdf
 ```
 
 Text stays live in the SVG and is embedded as TrueType in the PDF; all type is Arial, 5.3–9 pt.
+
+## Panel a (2026-10-23)
+
+Panel a is laid out in `Fig1a.pptx` (editable: native text, boxes and arrows; author-revised layout of 2026-10-23, derived from
+the former matplotlib drawing with `tools/svg_panel_to_pptx.py`). `make_fig1.py` places its 600-dpi export
+`Fig1a_from_pptx.png` at the position the drawing occupied. To change panel a: edit `Fig1a.pptx`, export the slide at
+2,875 px wide (WPS, `windows-office-toolchain/scripts/Export-Slides.ps1 -Width 2875`) to `Fig1a_from_pptx.png`, and rerun
+`make_fig1.py`.
