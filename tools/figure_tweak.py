@@ -1,13 +1,14 @@
-"""Drag-and-drop editor for the code-generated figures: move labels, legends and axis titles, resize markers, then
-re-render from the script. The adjustments are stored as data in <stem>.tweaks.json next to the figure and re-applied
-by figures/composite/tweak.py on every render, so the script stays the source and nothing is lost on a rerun.
+"""Drag-and-drop editor for the code-generated figures (main Figs. 1-6 and Extended Data Figs. 1-10).
 
-    python tools/figure_tweak.py <figure folder or paper figure number 1-6> [--port 8765] [--no-browser]
-    tools/figure_tweak.cmd 2          (double-click and type the number)
+Move or resize a whole chart, move texts, annotation labels, axis titles, legends and the tick or category labels of
+an axis, change their wording and size, resize marker sets, then re-render from the script. The adjustments are
+stored as data in <stem>.tweaks.json next to the figure and re-applied by figures/composite/tweak.py on every render,
+so the script stays the source and nothing is lost on a rerun.
 
-Opens http://127.0.0.1:<port>/ . Click an item to select it; drag (or arrow keys, 0.1 mm; Shift 0.5 mm) to move a
-text or legend; mouse wheel or +/- to resize a marker set (marker positions are data and do not move). "保存并重新出图"
-writes the adjustments and reruns the figure script; the page then shows the new render.
+    python tools/figure_tweak.py [2 | ED3 | <figure folder>] [--port 8765] [--no-browser]
+    tools/figure_tweak.cmd            (double-click; pick the figure in the page)
+
+Opens http://127.0.0.1:<port>/ ; the figure can be switched in the page.
 """
 import argparse
 import glob
@@ -21,25 +22,30 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PY = r"D:\Tools\pur_bridge_env\Scripts\python.exe"
-PAPER_FIGS = {"1": "fig1", "2": "fig_field", "3": "fig4", "4": "fig2", "5": "fig_frontier", "6": "fig3"}   # paper No.
-FALLBACK_PY =r"D:\Research\CatalystForge\.venv\Scripts\python.exe"     # e.g. fig_frontier needs yaml
+FALLBACK_PY = r"D:\Research\CatalystForge\.venv\Scripts\python.exe"     # e.g. fig_frontier needs yaml
+COMP, ED = os.path.join(ROOT, "figures", "composite"), os.path.join(ROOT, "figures", "extended_data")
+# paper figure number -> folder, script, arguments, output stem
+FIGS = {str(n): (os.path.join(COMP, d), s, [], stem) for n, d, s, stem in (
+    (1, "fig1", "make_fig1.py", "Fig1"), (2, "fig_field", "make_fig_field.py", "FigField"),
+    (3, "fig4", "make_fig4.py", "Fig4"), (4, "fig2", "make_fig2.py", "Fig2"),
+    (5, "fig_frontier", "make_fig_frontier.py", "FigFrontier"), (6, "fig3", "make_fig3.py", "Fig3"))}
+for _f in sorted(glob.glob(os.path.join(ED, "EDFig*_*.svg")), key=lambda p: int(os.path.basename(p)[5:].split("_")[0])):
+    _stem = os.path.basename(_f)[:-4]
+    _n = _stem[5:].split("_")[0]
+    FIGS["ED" + _n] = (ED, "render_extended_data.py", [_n], _stem)
+
+
+def label(fid):
+    return ("Extended Data Fig. " + fid[2:]) if fid.startswith("ED") else ("Fig. " + fid)
 
 
 class Fig:
-    def __init__(self, folder, python):
-        self.dir = os.path.abspath(folder)
-        scripts = sorted(glob.glob(os.path.join(self.dir, "make_*.py")))
-        if len(scripts) > 1:                     # e.g. fig3 also holds a helper panel script
-            scripts = [s for s in scripts if os.path.basename(s).startswith("make_fig")] or scripts
-        if len(scripts) != 1:
-            sys.exit("expected one make_*.py in %s, found %s" % (self.dir, scripts))
-        self.script, self.python = scripts[0], python
-        keys = glob.glob(os.path.join(self.dir, "*.tweak_keys.json"))
-        if not keys:
+    def __init__(self, fid, python):
+        self.fid = fid
+        self.dir, self.script, self.args, self.stem = FIGS[fid]
+        self.python = python
+        if not os.path.exists(self.path(".tweak_keys.json")):
             print(self.render())
-            keys = glob.glob(os.path.join(self.dir, "*.tweak_keys.json"))
-        self.stem = os.path.basename(keys[0])[:-len(".tweak_keys.json")]
-        self.lock = threading.Lock()
 
     def path(self, ext):
         return os.path.join(self.dir, self.stem + ext)
@@ -49,12 +55,19 @@ class Fig:
         return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
 
     def write_tweaks(self, t):
-        t = {k: {kk: round(vv, 3) for kk, vv in v.items()} for k, v in sorted(t.items())
-             if abs(v.get("dx_mm", 0)) > 1e-3 or abs(v.get("dy_mm", 0)) > 1e-3 or abs(v.get("scale", 1) - 1) > 1e-3}
-        if t:
-            json.dump(t, open(self.path(".tweaks.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-        elif os.path.exists(self.path(".tweaks.json")):
-            os.remove(self.path(".tweaks.json"))
+        clean = {}
+        for k, v in sorted(t.items()):
+            v = {kk: (round(vv, 3) if isinstance(vv, float) else vv) for kk, vv in (v or {}).items()}
+            v = {kk: vv for kk, vv in v.items() if not (
+                (kk in ("dx_mm", "dy_mm", "dw_mm", "dh_mm") and abs(vv) < 1e-3)
+                or (kk in ("size", "scale") and abs(vv - 1) < 1e-3) or (kk == "rename" and not vv))}
+            if v:
+                clean[k] = v
+        p = self.path(".tweaks.json")
+        if clean:
+            json.dump(clean, open(p, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+        elif os.path.exists(p):
+            os.remove(p)
 
     def render(self):
         r = self._run()
@@ -66,11 +79,16 @@ class Fig:
         return ("OK" if r.returncode == 0 else "ERROR %d" % r.returncode) + "\n" + "\n".join(out[-12:])
 
     def _run(self):
-        return subprocess.run([self.python, os.path.basename(self.script)], cwd=self.dir, capture_output=True,
+        return subprocess.run([self.python, self.script] + self.args, cwd=self.dir, capture_output=True,
                               text=True, encoding="utf-8", errors="replace")
 
 
-def make_handler(fig):
+class State:
+    def __init__(self, fid, python):
+        self.python, self.lock, self.fig = python, threading.Lock(), Fig(fid, python)
+
+
+def make_handler(st):
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
             pass
@@ -85,59 +103,64 @@ def make_handler(fig):
             self.wfile.write(b)
 
         def do_GET(self):
+            f = st.fig
             if self.path == "/":
-                html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure_tweak.html"),
-                            encoding="utf-8").read()
-                self.send(html.replace("__TITLE__", fig.stem), "text/html; charset=utf-8")
+                self.send(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure_tweak.html"),
+                               encoding="utf-8").read(), "text/html; charset=utf-8")
+            elif self.path.startswith("/figs"):
+                self.send(json.dumps({"current": f.fid, "stem": f.stem,
+                                      "figs": [[k, label(k)] for k in FIGS]}, ensure_ascii=False))
             elif self.path.startswith("/svg"):
-                self.send(open(fig.path(".svg"), "rb").read(), "image/svg+xml")
+                self.send(open(f.path(".svg"), "rb").read(), "image/svg+xml")
             elif self.path.startswith("/keys"):
-                self.send(open(fig.path(".tweak_keys.json"), encoding="utf-8").read())
+                self.send(open(f.path(".tweak_keys.json"), encoding="utf-8").read())
             elif self.path.startswith("/tweaks"):
-                self.send(json.dumps(fig.tweaks(), ensure_ascii=False))
+                self.send(json.dumps(f.tweaks(), ensure_ascii=False))
             else:
                 self.send("not found", "text/plain", 404)
 
         def do_POST(self):
             n = int(self.headers.get("Content-Length", 0))
             req = json.loads(self.rfile.read(n).decode("utf-8") or "{}")
-            with fig.lock:
-                t = fig.tweaks()
-                if self.path == "/save":                  # deltas from the page, added to what is stored
-                    for k, d in req.items():
-                        cur = t.setdefault(k, {})
-                        for ax in ("dx_mm", "dy_mm"):
-                            if d.get(ax):
-                                cur[ax] = cur.get(ax, 0.0) + d[ax]
-                        if d.get("scale", 1) != 1:
-                            cur["scale"] = cur.get("scale", 1.0) * d["scale"]
-                elif self.path == "/reset":
-                    for k in req.get("keys", []):
-                        t.pop(k, None)
+            with st.lock:
+                if self.path == "/open":
+                    st.fig = Fig(req["fig"], st.python)
+                    return self.send(json.dumps({"log": "OK"}))
+                f = st.fig
+                t = f.tweaks()
+                if self.path == "/save":                  # full overrides of the changed items; null removes one
+                    for k, v in req.items():
+                        if v:
+                            t[k] = v
+                        else:
+                            t.pop(k, None)
                 elif self.path == "/reset_all":
                     t = {}
-                else:
+                elif self.path != "/render":
                     return self.send("not found", "text/plain", 404)
-                fig.write_tweaks(t)
-                log = fig.render()
-            self.send(json.dumps({"log": log, "tweaks": fig.tweaks()}, ensure_ascii=False))
+                f.write_tweaks(t)
+                log = f.render()
+            self.send(json.dumps({"log": log}, ensure_ascii=False))
     return H
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("folder", nargs="?", help="figure folder, or the paper's figure number 1-6")
+    ap.add_argument("figure", nargs="?", default="2", help="paper figure number 1-6, ED1-ED10, or a figure folder")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--python", default=DEFAULT_PY if os.path.exists(DEFAULT_PY) else sys.executable)
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()
-    folder = a.folder or input("要调哪张图？输入正文图号 1-6：").strip()
-    if folder in PAPER_FIGS:
-        folder = os.path.join(ROOT, "figures", "composite", PAPER_FIGS[folder])
-    fig = Fig(folder, a.python)
-    srv = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(fig))
+    fid = a.figure.upper().replace(" ", "")
+    if fid not in FIGS:                                   # a folder: match it in the registry
+        d = os.path.abspath(a.figure)
+        fid = next((k for k, v in FIGS.items() if os.path.abspath(v[0]) == d), None)
+        if fid is None:
+            sys.exit("unknown figure %r; use 1-6, ED1-ED10 or a folder among %s" % (a.figure, sorted(FIGS)))
+    st = State(fid, a.python)
+    srv = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(st))
     url = "http://127.0.0.1:%d/" % a.port
-    print("editing %s (%s) at %s  -- Ctrl+C to stop" % (fig.stem, os.path.relpath(fig.script, ROOT), url))
+    print("figure editor at %s (%s)  -- Ctrl+C to stop" % (url, label(fid)))
     if not a.no_browser:
         webbrowser.open(url)
     srv.serve_forever()

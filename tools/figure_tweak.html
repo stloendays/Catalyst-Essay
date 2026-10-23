@@ -3,58 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>__TITLE__ · 拖动调图</title>
+<title>拖动调图</title>
 <style>
-  :root { --ink:#1b1b1b; --line:#d6d6d6; --bg:#f3f3f1; --panel:#ffffff; --acc:#2f6fd6; --acc2:#d9474f; }
+  :root { --ink:#1b1b1b; --line:#d6d6d6; --bg:#f3f3f1; --panel:#ffffff; --acc:#2f6fd6; --sel:#d9474f; }
   * { box-sizing: border-box; }
   body { margin:0; font:14px/1.45 "Microsoft YaHei", Arial, sans-serif; color:var(--ink); background:var(--bg);
-         display:grid; grid-template-columns: 1fr 320px; grid-template-rows: auto 1fr; height:100vh; }
+         display:grid; grid-template-columns: 1fr 340px; grid-template-rows: auto 1fr; height:100vh; }
   header { grid-column: 1 / 3; display:flex; gap:8px; align-items:center; padding:8px 12px; background:var(--panel);
            border-bottom:1px solid var(--line); flex-wrap:wrap; }
-  header h1 { font-size:15px; margin:0 12px 0 0; }
+  header select { font:inherit; padding:4px 6px; }
   button { font:inherit; padding:5px 12px; border:1px solid #9aa3b2; border-radius:6px; background:#fff; cursor:pointer; }
   button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
-  button:disabled { opacity:.5; cursor:default; }
-  #status { margin-left:auto; color:#333; }
+  button:disabled { opacity:.45; cursor:default; }
+  #status { margin-left:auto; }
   #wrap { overflow:auto; padding:16px; }
   #stage { position:relative; display:inline-block; background:#fff; box-shadow:0 0 0 1px var(--line); }
-  #stage svg { display:block; }
-  #stage g.tw { cursor:pointer; }
-  #stage g.tw[data-kind="text"], #stage g.tw[data-kind="legend"] { cursor:move; }
+  #stage svg { display:block; user-select:none; }
   .box { position:absolute; pointer-events:none; border:1px dashed var(--acc); }
-  .box.sel { border:1.5px solid var(--acc2); background:rgba(217,71,79,.06); }
-  aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:12px; }
+  .box.sel { border:1.5px solid var(--sel); background:rgba(217,71,79,.05); }
+  .handle { position:absolute; width:10px; height:10px; background:var(--sel); border:1px solid #fff; cursor:nwse-resize;
+            pointer-events:auto; }
+  aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:10px 12px; }
   aside h2 { font-size:14px; margin:14px 0 6px; }
-  .kv { font-family: Consolas, monospace; font-size:12px; word-break:break-all; }
+  .types label { display:inline-block; margin:2px 10px 2px 0; white-space:nowrap; }
+  .kv { font-family: Consolas, monospace; font-size:12px; word-break:break-all; white-space:pre-wrap; }
+  .form { display:grid; grid-template-columns: 96px 1fr; gap:5px 8px; align-items:center; margin-top:6px; }
+  .form input { font:inherit; padding:3px 6px; width:100%; border:1px solid #b8bec9; border-radius:4px; }
   .help li { margin:3px 0; }
   ul.list { list-style:none; padding:0; margin:0; }
   ul.list li { padding:4px 6px; border-bottom:1px solid #eee; cursor:pointer; font-size:12px; }
   ul.list li:hover { background:#eef3fc; }
   pre { white-space:pre-wrap; font-size:11px; background:#f6f6f6; padding:6px; margin:0; }
-  .zoom { display:flex; align-items:center; gap:6px; }
+  .muted { color:#333; font-size:12px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>__TITLE__ · 拖动调图</h1>
+  <select id="figsel" title="选择要调的图"></select>
   <button id="save" class="primary" disabled>保存并重新出图</button>
   <button id="undo" disabled>撤销</button>
   <button id="discard" disabled>放弃未保存</button>
   <button id="resetSel" disabled>还原所选</button>
   <button id="resetAll">全部还原</button>
-  <span class="zoom">缩放 <input id="zoom" type="range" min="1" max="6" step="0.25" value="2.5"></span>
+  <span>缩放 <input id="zoom" type="range" min="0.8" max="6" step="0.1" value="2.5"></span>
   <span id="status">载入中…</span>
 </header>
 <div id="wrap"><div id="stage"></div></div>
 <aside>
+  <h2>可选中的类型</h2>
+  <div class="types" id="types"></div>
   <h2>所选</h2>
-  <div id="sel" class="kv">（点击图中的文字、图例或一组点）</div>
+  <div id="sel" class="kv muted">（在图上点一下要调的部分）</div>
+  <div id="form" class="form"></div>
   <h2>用法</h2>
-  <ul class="help">
-    <li>文字、图例、坐标轴标题：按住拖动；方向键微调 0.1 mm，Shift + 方向键 0.5 mm。</li>
-    <li>一组点：选中后滚轮或 + / − 改大小。点的位置是数据，不能拖。</li>
-    <li>箭头标注：拖文字即可，保存后箭头会重新连到数据点。</li>
-    <li>“保存并重新出图”把调整写进 <span class="kv">__TITLE__.tweaks.json</span>，并重跑作图脚本（SVG/PDF/PNG 同步更新）。</li>
+  <ul class="help muted">
+    <li>先在上面勾选类型，点击只会选中勾选的类型。只勾“整个图表”就能整块移动图表，分图字母不跟着动。</li>
+    <li>拖动＝移动；方向键微调 0.1 mm（Shift 0.5 mm）。整个图表选中后拖右下角红点可改宽高。</li>
+    <li>鼠标停在所选部分上滚轮，或按 + / −：放大缩小（图表、字号、点的面积）。</li>
+    <li>刻度/类别标签整列一起移动，文字可以逐个改；图例同理。点的位置是数据，只能改大小。</li>
+    <li>右侧数值框可以直接输入精确数值，改文字也在这里。</li>
+    <li>“保存并重新出图”：调整写进 <span class="kv" id="tfile"></span>，作图脚本重跑，SVG/PDF/PNG 一起更新。</li>
   </ul>
   <h2>未保存的调整</h2>
   <ul id="pending" class="list"></ul>
@@ -65,205 +73,366 @@
 </aside>
 <script>
 const PT_MM = 25.4 / 72;
-let svg, keys = {}, byKey = {}, stored = {}, pending = {}, history = [], selId = null, hoverId = null, drag = null;
+const TYPES = [["axes", "整个图表"], ["text", "文字"], ["axislabel", "坐标轴标题"], ["ticks", "刻度/类别标签"],
+               ["legend", "图例"], ["scatter", "点"]];
+const KIND_NAME = Object.fromEntries(TYPES);
+const MOVABLE = new Set(["axes", "text", "axislabel", "ticks", "legend"]);
+const SIZED = new Set(["text", "axislabel", "ticks", "legend"]);
+let svg, keys = {}, items = {}, stored = {}, cur = {}, history = [], sel = null, hover = null, drag = null, figInfo = {};
+let enabled = { axes: true, text: true, axislabel: true, ticks: true, legend: true, scatter: true };
+try { Object.assign(enabled, JSON.parse(localStorage.getItem("tw_types") || "{}")); } catch (e) {}
 const $ = id => document.getElementById(id);
 const stage = $("stage");
+const clone = o => JSON.parse(JSON.stringify(o));
+const setStatus = s => $("status").textContent = s;
 
-function clone(o) { return JSON.parse(JSON.stringify(o)); }
-function pushHistory() { history.push(clone(pending)); if (history.length > 200) history.shift(); }
-function setStatus(s) { $("status").textContent = s; }
+// ---- type filter -------------------------------------------------------------------------------------------------
+for (const [k, name] of TYPES) {
+  const l = document.createElement("label");
+  l.innerHTML = `<input type="checkbox" data-k="${k}"> ${name}`;
+  const cb = l.querySelector("input"); cb.checked = enabled[k];
+  cb.onchange = () => { enabled[k] = cb.checked; try { localStorage.setItem("tw_types", JSON.stringify(enabled)); } catch (e) {} };
+  $("types").appendChild(l);
+}
+
+// ---- loading -----------------------------------------------------------------------------------------------------
+async function loadFigs() {
+  figInfo = await fetch("/figs?" + Date.now()).then(r => r.json());
+  $("figsel").innerHTML = figInfo.figs.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+  $("figsel").value = figInfo.current;
+  $("tfile").textContent = figInfo.stem + ".tweaks.json";
+  document.title = figInfo.figs.find(f => f[0] === figInfo.current)[1] + " · 拖动调图";
+}
 
 async function load() {
   const [svgText, k, t] = await Promise.all([
     fetch("/svg?" + Date.now()).then(r => r.text()),
     fetch("/keys?" + Date.now()).then(r => r.json()),
     fetch("/tweaks?" + Date.now()).then(r => r.json())]);
-  keys = k; stored = t; byKey = {};
+  keys = k; stored = t; cur = clone(t); history = []; items = {};
   stage.innerHTML = svgText.replace(/^[\s\S]*?(<svg)/, "$1");
   svg = stage.querySelector("svg");
   svg.removeAttribute("width"); svg.removeAttribute("height");
+  const Hmm = svg.viewBox.baseVal.height * PT_MM;
   for (const [id, v] of Object.entries(keys)) {
     const el = svg.getElementById(id);
     if (!el) continue;
-    el.classList.add("tw"); el.dataset.kind = v.kind; byKey[v.key] = id;
-    if (v.kind === "scatter")       // markers are <use x y> or, for short collections, one <path> each
+    const it = items[v.key] || (items[v.key] = { key: v.key, kind: v.kind, axis: v.axis, side: v.side, own: null, members: [] });
+    if (v.member !== undefined) { it.members.push(id); el.dataset.member = v.member; }
+    else it.own = id;
+    el.querySelectorAll("text").forEach(t => t.dataset.orig = t.textContent);
+    if (v.kind === "scatter")
       el.querySelectorAll("use, path").forEach(u => {
         if (u.tagName === "use") { u.dataset.cx = u.getAttribute("x"); u.dataset.cy = u.getAttribute("y"); }
         else { const b = u.getBBox(); u.dataset.cx = b.x + b.width / 2; u.dataset.cy = b.y + b.height / 2; }
       });
+    else if (v.member !== undefined || v.kind !== "ticks") {
+      const b = el.getBBox(); el.dataset.cx = b.x + b.width / 2; el.dataset.cy = b.y + b.height / 2;
+    }
   }
-  if (!load.fitted) {                          // first load: fit the figure to the window width
-    const z = ($("wrap").clientWidth - 40) / svg.viewBox.baseVal.width;
-    $("zoom").value = Math.max(1, Math.min(6, z)); load.fitted = true;
+  for (const it of Object.values(items)) if (it.kind === "axes") {       // rendered chart rectangle, in SVG units
+    const m = it.key.match(/^ax@(-?\d+),(-?\d+),(\d+),(\d+)/);
+    if (!m) continue;
+    const [x, y, w, h] = m.slice(1).map(Number), s = stored[it.key] || {};
+    it.w = w; it.h = h;
+    it.ox = (x + (s.dx_mm || 0)) / PT_MM; it.oy = (Hmm - (y + h + (s.dy_mm || 0))) / PT_MM;
   }
-  applyZoom(); applyPending(); refresh();
-  setStatus("就绪：" + Object.keys(keys).length + " 个可调对象");
+  if (!load.fitted) {
+    $("zoom").value = Math.max(0.8, Math.min(6, ($("wrap").clientWidth - 40) / svg.viewBox.baseVal.width));
+    load.fitted = true;
+  }
+  if (sel && !items[sel.key]) sel = null;
+  applyZoom(); preview(); refresh();
+  setStatus("就绪：" + Object.keys(items).length + " 个可调对象");
 }
 
 function applyZoom() {
-  const vb = svg.viewBox.baseVal;
-  svg.style.width = (vb.width * $("zoom").value) + "px";
-  svg.style.height = (vb.height * $("zoom").value) + "px";
+  const vb = svg.viewBox.baseVal, z = $("zoom").value;
+  svg.style.width = (vb.width * z) + "px"; svg.style.height = (vb.height * z) + "px";
   drawBoxes();
 }
 
-function applyPending() {
-  for (const [id, v] of Object.entries(keys)) {
-    const el = svg.getElementById(id); if (!el) continue;
-    const p = pending[v.key] || {};
-    if (v.kind === "scatter") {
-      const k = Math.sqrt(p.scale || 1);
-      el.querySelectorAll("use, path").forEach(u => {
+// ---- preview: what the page shows = rendered SVG + (current - stored) --------------------------------------------
+function diff(key) {
+  const s = stored[key] || {}, c = cur[key] || {};
+  const d = n => (c[n] || 0) - (s[n] || 0);
+  return { dx: d("dx_mm"), dy: d("dy_mm"), dw: d("dw_mm"), dh: d("dh_mm"),
+           size: (c.size || 1) / (s.size || 1), scale: (c.scale || 1) / (s.scale || 1), c, s };
+}
+function aboutCenter(el, k) {
+  const x = +el.dataset.cx, y = +el.dataset.cy;
+  return k === 1 ? "" : ` translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`;
+}
+function setText(g, target) {
+  g.querySelectorAll("text").forEach((t, i) => {
+    const want = (i === 0 && target !== null) ? target : t.dataset.orig;
+    if (t.textContent !== want) t.textContent = want;
+  });
+}
+function preview() {
+  for (const it of Object.values(items)) {
+    const d = diff(it.key), tx = d.dx / PT_MM, ty = -d.dy / PT_MM;
+    const own = it.own ? svg.getElementById(it.own) : null;
+    if (it.kind === "axes" && own) {
+      const sx = (it.w + (d.c.dw_mm || 0)) / (it.w + (d.s.dw_mm || 0)), sy = (it.h + (d.c.dh_mm || 0)) / (it.h + (d.s.dh_mm || 0));
+      const t = `translate(${tx} ${ty})` + (sx !== 1 || sy !== 1 ?
+        ` translate(${it.ox} ${it.oy}) scale(${sx} ${sy}) translate(${-it.ox} ${-it.oy})` : "");
+      t === "translate(0 0)" ? own.removeAttribute("transform") : own.setAttribute("transform", t);
+    } else if ((it.kind === "text" || it.kind === "axislabel") && own) {
+      const t = `translate(${tx} ${ty})` + aboutCenter(own, d.size);
+      t === "translate(0 0)" ? own.removeAttribute("transform") : own.setAttribute("transform", t);
+      const s = d.s.text, c = d.c.text;
+      setText(own, c !== undefined ? c : (s !== undefined ? textFromKey(it.key) : null));
+    } else if (it.kind === "ticks") {
+      for (const id of it.members) {
+        const el = svg.getElementById(id);
+        const t = (it.axis === "y" ? `translate(${tx} 0)` : `translate(0 ${ty})`) + aboutCenter(el, d.size);
+        el.setAttribute("transform", t);
+        renameMember(el, d);
+      }
+    } else if (it.kind === "legend" && own) {
+      own.setAttribute("transform", `translate(${tx} ${ty})` + aboutCenter(own, d.size));
+      for (const id of it.members) renameMember(svg.getElementById(id), d);
+    } else if (it.kind === "scatter" && own) {
+      const k = Math.sqrt(d.scale);
+      own.querySelectorAll("use, path").forEach(u => {
         const x = u.dataset.cx, y = u.dataset.cy;
-        if (k === 1) u.removeAttribute("transform");
-        else u.setAttribute("transform", `translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`);
+        k === 1 ? u.removeAttribute("transform")
+                : u.setAttribute("transform", `translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`);
       });
-    } else {
-      if (p.dx || p.dy) el.setAttribute("transform", `translate(${p.dx || 0} ${p.dy || 0})`);
-      else el.removeAttribute("transform");
     }
   }
   drawBoxes();
 }
+function textFromKey(key) { return key.replace(/^.*?\/text\//, "").replace(/#\d+$/, ""); }
+function renameMember(el, d) {
+  const m = el.dataset.member, cr = (d.c.rename || {})[m], sr = (d.s.rename || {})[m];
+  setText(el, cr !== undefined ? cr : (sr !== undefined ? m : null));
+}
 
-function box(id, cls) {
-  const el = svg.getElementById(id); if (!el) return;
-  const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
-  const d = document.createElement("div");
+// ---- boxes and selection -----------------------------------------------------------------------------------------
+function rectOf(key) {
+  const it = items[key]; if (!it) return null;
+  const ids = it.kind === "ticks" ? it.members : [it.own];
+  let r = null;
+  for (const id of ids) {
+    const el = id && svg.getElementById(id); if (!el) continue;
+    const b = el.getBoundingClientRect();
+    r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) }
+          : { l: b.left, t: b.top, r: b.right, b: b.bottom };
+  }
+  return r;
+}
+function addBox(key, cls) {
+  const r = rectOf(key); if (!r) return;
+  const s = stage.getBoundingClientRect(), d = document.createElement("div");
   d.className = "box " + cls;
-  Object.assign(d.style, { left: (r.left - s.left - 2) + "px", top: (r.top - s.top - 2) + "px",
-                           width: (r.width + 4) + "px", height: (r.height + 4) + "px" });
+  Object.assign(d.style, { left: (r.l - s.left - 2) + "px", top: (r.t - s.top - 2) + "px",
+                           width: (r.r - r.l + 4) + "px", height: (r.b - r.t + 4) + "px" });
   stage.appendChild(d);
+  if (cls === "sel" && items[key].kind === "axes") {
+    const h = document.createElement("div"); h.className = "handle";
+    Object.assign(h.style, { left: (r.r - s.left - 5) + "px", top: (r.b - s.top - 5) + "px" });
+    h.addEventListener("pointerdown", e => startDrag(e, "resize"));
+    stage.appendChild(h);
+  }
 }
 function drawBoxes() {
-  stage.querySelectorAll(".box").forEach(b => b.remove());
-  if (hoverId && hoverId !== selId) box(hoverId, "");
-  if (selId) box(selId, "sel");
+  if (!svg) return;
+  stage.querySelectorAll(".box, .handle").forEach(b => b.remove());
+  if (hover && (!sel || hover.key !== sel.key)) addBox(hover.key, "");
+  if (sel) addBox(sel.key, "sel");
+}
+function pick(e) {
+  for (let el = e.target; el && el !== svg; el = el.parentNode) {
+    const v = el.id && keys[el.id];
+    if (v && enabled[v.kind]) return { key: v.key, member: v.member !== undefined ? el.id : null };
+  }
+  return null;
 }
 
-function fmt(p, kind) {
-  if (!p) return "";
-  if (kind === "scatter") return "面积 ×" + (p.scale || 1).toFixed(2);
-  const dx = p.dx_mm !== undefined ? p.dx_mm : (p.dx || 0) * PT_MM;
-  const dy = p.dy_mm !== undefined ? p.dy_mm : -(p.dy || 0) * PT_MM;
-  return `右移 ${dx.toFixed(2)} mm，上移 ${dy.toFixed(2)} mm`;
+// ---- side panel --------------------------------------------------------------------------------------------------
+function fmt(o) {
+  if (!o) return "";
+  const p = [];
+  if (o.dx_mm) p.push(`右移 ${o.dx_mm.toFixed(2)} mm`);
+  if (o.dy_mm) p.push(`上移 ${o.dy_mm.toFixed(2)} mm`);
+  if (o.dw_mm) p.push(`宽 ${o.dw_mm > 0 ? "+" : ""}${o.dw_mm.toFixed(2)} mm`);
+  if (o.dh_mm) p.push(`高 ${o.dh_mm > 0 ? "+" : ""}${o.dh_mm.toFixed(2)} mm`);
+  if (o.size && o.size !== 1) p.push(`字号 ×${o.size.toFixed(2)}`);
+  if (o.scale && o.scale !== 1) p.push(`面积 ×${o.scale.toFixed(2)}`);
+  if (o.text !== undefined) p.push(`文字→“${o.text}”`);
+  if (o.rename) for (const [a, b] of Object.entries(o.rename)) p.push(`“${a}”→“${b}”`);
+  return p.length ? p.join("，") : "还原";
 }
-function kindName(k) { return { text: "文字", legend: "图例", scatter: "一组点" }[k] || k; }
-
-function refresh() {
-  const v = selId ? keys[selId] : null;
-  $("sel").textContent = v ? `${kindName(v.kind)}\n${v.key}\n本次：${fmt(pending[v.key], v.kind) || "无"}\n已存：${fmt(stored[v.key], v.kind) || "无"}`
-                           : "（点击图中的文字、图例或一组点）";
-  $("sel").style.whiteSpace = "pre-wrap";
-  const list = (ul, obj, f) => {
+function field(label, value, step, onset, type = "number") {
+  const l = document.createElement("label"); l.textContent = label;
+  const i = document.createElement("input"); i.type = type;
+  i.value = type === "number" ? value : value.replace(/\n/g, "\\n");          // a line break is typed as \n
+  if (type === "number") i.step = step;
+  else i.title = "换行写成 \\n；上下标等可用 matplotlib 写法，如 CO$_2$";
+  i.onchange = () => { push(); onset(type === "number" ? parseFloat(i.value || "0") : i.value.replace(/\\n/g, "\n"));
+                       preview(); refresh(false); };
+  $("form").append(l, i);
+}
+function refresh(rebuildForm = true) {
+  const it = sel && items[sel.key];
+  $("sel").textContent = it ? `${KIND_NAME[it.kind]}\n${it.key}` + (sel.member ? `\n此项：${svg.getElementById(sel.member).dataset.member}` : "")
+                            : "（在图上点一下要调的部分）";
+  if (rebuildForm) {
+    $("form").innerHTML = "";
+    if (it) {
+      const c = cur[it.key] || {}, set = (n, v) => { (cur[it.key] = cur[it.key] || {})[n] = v; };
+      if (MOVABLE.has(it.kind)) {
+        if (!(it.kind === "ticks" && it.axis === "x")) field("右移 mm", (c.dx_mm || 0).toFixed(2), 0.1, v => set("dx_mm", v));
+        if (!(it.kind === "ticks" && it.axis === "y")) field("上移 mm", (c.dy_mm || 0).toFixed(2), 0.1, v => set("dy_mm", v));
+      }
+      if (it.kind === "axes") {
+        field("宽 增减 mm", (c.dw_mm || 0).toFixed(2), 0.5, v => set("dw_mm", v));
+        field("高 增减 mm", (c.dh_mm || 0).toFixed(2), 0.5, v => set("dh_mm", v));
+      }
+      if (SIZED.has(it.kind)) field("字号 ×", (c.size || 1).toFixed(2), 0.05, v => set("size", v || 1));
+      if (it.kind === "scatter") field("点面积 ×", (c.scale || 1).toFixed(2), 0.1, v => set("scale", v || 1));
+      if (it.kind === "text" || it.kind === "axislabel")
+        field("文字", c.text !== undefined ? c.text : textFromKey(it.key), 0, v => {
+          if (v === textFromKey(it.key)) delete (cur[it.key] || {}).text; else set("text", v); }, "text");
+      if (sel.member) {
+        const m = svg.getElementById(sel.member).dataset.member;
+        field("此项文字", (c.rename || {})[m] !== undefined ? c.rename[m] : m, 0, v => {
+          const o = cur[it.key] || (cur[it.key] = {});
+          o.rename = Object.assign({}, o.rename || {});
+          if (v === m) delete o.rename[m]; else o.rename[m] = v;
+        }, "text");
+      }
+    }
+  }
+  const list = (ul, keysToShow, obj) => {
     ul.innerHTML = "";
-    for (const [k, p] of Object.entries(obj)) {
-      const id = byKey[k], kind = id ? keys[id].kind : "?";
-      const li = document.createElement("li");
-      li.textContent = `${k} — ${f(p, kind)}`;
-      li.onclick = () => { if (id) { selId = id; refresh(); drawBoxes(); } };
+    for (const k of keysToShow.sort()) {
+      const it2 = items[k], li = document.createElement("li");
+      li.textContent = `${it2 ? KIND_NAME[it2.kind] : "（已失效）"} ${k} — ${fmt(obj[k])}`;
+      li.onclick = () => { if (it2) { sel = { key: k, member: null }; refresh(); drawBoxes(); } };
       ul.appendChild(li);
     }
   };
-  list($("pending"), pending, fmt);
-  list($("stored"), stored, fmt);
-  const dirty = Object.keys(pending).length > 0;
-  $("save").disabled = !dirty; $("discard").disabled = !dirty; $("undo").disabled = history.length === 0;
-  $("resetSel").disabled = !(v && (stored[v.key] || pending[v.key]));
+  list($("pending"), dirtyKeys(), cur);
+  list($("stored"), Object.keys(stored), stored);
+  const any = dirtyKeys().length > 0;
+  $("save").disabled = !any; $("discard").disabled = !any; $("undo").disabled = history.length === 0;
+  $("resetSel").disabled = !(it && (stored[it.key] || dirty(it.key)));
 }
-
-function targetId(e) {
-  const g = e.target.closest && e.target.closest("g.tw");
-  return g ? g.id : null;
+function normObj(o) {
+  const r = {};
+  for (const [k, v] of Object.entries(o || {})) {
+    if (["dx_mm", "dy_mm", "dw_mm", "dh_mm"].includes(k) && Math.abs(v) < 1e-3) continue;
+    if (["size", "scale"].includes(k) && Math.abs(v - 1) < 1e-3) continue;
+    if (k === "rename" && !Object.keys(v).length) continue;
+    r[k] = typeof v === "number" ? Math.round(v * 1000) / 1000 : v;
+  }
+  return r;
 }
-function svgScale() { return svg.getScreenCTM().a; }    // screen px per SVG unit (pt)
+const sig = o => { const r = normObj(o); return JSON.stringify(Object.keys(r).sort().map(k => [k, r[k]])); };
+const dirty = k => sig(cur[k]) !== sig(stored[k]);
+const dirtyKeys = () => [...new Set([...Object.keys(cur), ...Object.keys(stored)])].filter(dirty);
+function push() { history.push(clone(cur)); if (history.length > 300) history.shift(); }
+function undo() { if (!history.length) return; cur = history.pop(); preview(); refresh(); }
 
+// ---- mouse and keyboard ------------------------------------------------------------------------------------------
+const pxToMm = () => PT_MM / svg.getScreenCTM().a;
+function startDrag(e, mode) {
+  const it = sel && items[sel.key]; if (!it) return;
+  push();
+  const c = cur[it.key] || (cur[it.key] = {});
+  drag = { mode, it, x0: e.clientX, y0: e.clientY, dx: c.dx_mm || 0, dy: c.dy_mm || 0, dw: c.dw_mm || 0, dh: c.dh_mm || 0 };
+  stage.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation();
+}
+stage.addEventListener("pointerdown", e => {
+  if (e.target.classList.contains("handle")) return;
+  sel = pick(e); refresh(); drawBoxes();
+  if (!sel) return;
+  if (items[sel.key].kind === "scatter") { setStatus("点：滚轮或 + / − 改大小（位置是数据，不能拖）"); return; }
+  startDrag(e, "move");
+});
 stage.addEventListener("pointermove", e => {
   if (drag) {
-    const s = svgScale(), p = pending[drag.key] || (pending[drag.key] = {});
-    p.dx = drag.dx0 + (e.clientX - drag.x0) / s;
-    p.dy = drag.dy0 + (e.clientY - drag.y0) / s;
-    applyPending(); refresh(); return;
+    const k = pxToMm(), c = cur[drag.it.key], mx = (e.clientX - drag.x0) * k, my = -(e.clientY - drag.y0) * k;
+    if (drag.mode === "resize") { c.dw_mm = drag.dw + mx; c.dh_mm = drag.dh - my; }
+    else {
+      if (!(drag.it.kind === "ticks" && drag.it.axis === "x")) c.dx_mm = drag.dx + mx;
+      if (!(drag.it.kind === "ticks" && drag.it.axis === "y")) c.dy_mm = drag.dy + my;
+    }
+    preview(); refresh(false); return;
   }
-  const id = targetId(e);
-  if (id !== hoverId) { hoverId = id; drawBoxes(); }
+  const h = pick(e);
+  if ((h && h.key) !== (hover && hover.key)) { hover = h; drawBoxes(); }
 });
-stage.addEventListener("pointerdown", e => {
-  const id = targetId(e);
-  selId = id; refresh(); drawBoxes();
-  if (!id) return;
-  const v = keys[id];
-  if (v.kind === "scatter") { setStatus("一组点：用滚轮或 + / − 改大小"); return; }
-  pushHistory();
-  const p = pending[v.key] || {};
-  drag = { key: v.key, x0: e.clientX, y0: e.clientY, dx0: p.dx || 0, dy0: p.dy || 0 };
-  stage.setPointerCapture(e.pointerId); e.preventDefault();
-});
-stage.addEventListener("pointerup", () => {
-  if (drag) { const p = pending[drag.key]; if (p && !p.dx && !p.dy && !p.scale) delete pending[drag.key]; }
-  drag = null; refresh();
-});
-stage.addEventListener("wheel", e => {
-  const id = targetId(e) || selId;
-  if (!id || keys[id].kind !== "scatter") return;
-  e.preventDefault(); selId = id;
-  resize(keys[id].key, e.deltaY < 0 ? 1.1 : 1 / 1.1);
-}, { passive: false });
-
-function resize(key, f) {
-  pushHistory();
-  const p = pending[key] || (pending[key] = {});
-  p.scale = (p.scale || 1) * f;
-  applyPending(); refresh();
+stage.addEventListener("pointerup", () => { if (drag) { drag = null; refresh(); } });
+function scaleSel(f) {
+  const it = sel && items[sel.key]; if (!it) return;
+  push();
+  const c = cur[it.key] || (cur[it.key] = {});
+  if (it.kind === "axes") { c.dw_mm = (it.w + (c.dw_mm || 0)) * f - it.w; c.dh_mm = (it.h + (c.dh_mm || 0)) * f - it.h; }
+  else if (it.kind === "scatter") c.scale = (c.scale || 1) * f;
+  else c.size = (c.size || 1) * f;
+  preview(); refresh();
 }
-
+stage.addEventListener("wheel", e => {
+  if (!sel) return;
+  const r = rectOf(sel.key);
+  if (!r || e.clientX < r.l || e.clientX > r.r || e.clientY < r.t || e.clientY > r.b) return;
+  e.preventDefault(); scaleSel(e.deltaY < 0 ? 1.05 : 1 / 1.05);
+}, { passive: false });
 document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "z") { undo(); e.preventDefault(); return; }
-  if (!selId) return;
-  const v = keys[selId];
-  if (v.kind === "scatter") {
-    if (e.key === "+" || e.key === "=") { resize(v.key, 1.1); e.preventDefault(); }
-    if (e.key === "-" || e.key === "_") { resize(v.key, 1 / 1.1); e.preventDefault(); }
-    return;
-  }
-  const step = (e.shiftKey ? 0.5 : 0.1) / PT_MM;
-  const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { undo(); e.preventDefault(); return; }
+  if (e.key === "Escape") { sel = null; refresh(); drawBoxes(); return; }
+  if (!sel) return;
+  const it = items[sel.key];
+  if (e.key === "+" || e.key === "=") { scaleSel(1.05); e.preventDefault(); return; }
+  if (e.key === "-" || e.key === "_") { scaleSel(1 / 1.05); e.preventDefault(); return; }
+  if (!MOVABLE.has(it.kind)) return;
+  const s = e.shiftKey ? 0.5 : 0.1;
+  const d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, s], ArrowDown: [0, -s] }[e.key];
   if (!d) return;
-  e.preventDefault(); pushHistory();
-  const p = pending[v.key] || (pending[v.key] = {});
-  p.dx = (p.dx || 0) + d[0]; p.dy = (p.dy || 0) + d[1];
-  applyPending(); refresh();
+  e.preventDefault(); push();
+  const c = cur[it.key] || (cur[it.key] = {});
+  if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = (c.dx_mm || 0) + d[0];
+  if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = (c.dy_mm || 0) + d[1];
+  preview(); refresh();
 });
 
-function undo() { if (!history.length) return; pending = history.pop(); applyPending(); refresh(); }
-
+// ---- server ------------------------------------------------------------------------------------------------------
 async function post(path, body) {
-  setStatus("重新出图中…"); document.querySelectorAll("header button").forEach(b => b.disabled = true);
+  setStatus("重新出图中…"); document.querySelectorAll("header button, header select").forEach(b => b.disabled = true);
   const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify(body) }).then(r => r.json());
   $("log").textContent = r.log;
-  pending = {}; history = [];
-  const keep = selId ? keys[selId].key : null;
-  await load();
-  selId = keep ? byKey[keep] || null : null; refresh(); drawBoxes();
-  $("resetAll").disabled = false;
+  await loadFigs(); await load();
+  document.querySelectorAll("header button, header select").forEach(b => b.disabled = false);
+  refresh(); drawBoxes();
   setStatus(r.log.startsWith("OK") ? "已保存并重新出图" : "出图出错，见右下日志");
 }
-
 $("save").onclick = () => {
   const out = {};
-  for (const [k, p] of Object.entries(pending))
-    out[k] = { dx_mm: (p.dx || 0) * PT_MM, dy_mm: -(p.dy || 0) * PT_MM, scale: p.scale || 1 };
+  for (const k of dirtyKeys()) { const o = normObj(cur[k]); out[k] = Object.keys(o).length ? o : null; }
   post("/save", out);
 };
 $("undo").onclick = undo;
-$("discard").onclick = () => { pushHistory(); pending = {}; applyPending(); refresh(); };
-$("resetSel").onclick = () => { if (selId) post("/reset", { keys: [keys[selId].key] }); };
+$("discard").onclick = () => { push(); cur = clone(stored); preview(); refresh(); };
+$("resetSel").onclick = () => { if (sel) post("/save", { [sel.key]: null }); };
 $("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整并重新出图？")) post("/reset_all", {}); };
+$("figsel").onchange = async () => {
+  if (dirtyKeys().length && !confirm("有未保存的调整，切换会放弃它们。继续？")) { $("figsel").value = figInfo.current; return; }
+  sel = null; hover = null; load.fitted = false;
+  setStatus("切换中…");
+  await fetch("/open", { method: "POST", headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ fig: $("figsel").value }) });
+  await loadFigs(); await load();
+};
 $("zoom").oninput = applyZoom;
 window.addEventListener("resize", drawBoxes);
-window.addEventListener("beforeunload", e => { if (Object.keys(pending).length) { e.preventDefault(); e.returnValue = ""; } });
-load();
+window.addEventListener("beforeunload", e => { if (dirtyKeys().length) { e.preventDefault(); e.returnValue = ""; } });
+loadFigs().then(load);
 </script>
 </body>
 </html>
