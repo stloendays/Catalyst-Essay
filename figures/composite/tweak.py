@@ -10,13 +10,17 @@ draw and before anything changes, so they stay valid after an adjustment.
 
 Adjustable, per kind (lengths in mm; size, scale and lw are factors; colours are hex):
     figure      background, colors {old: new} over the whole figure
-    axes        dx_mm, dy_mm, dw_mm, dh_mm (top-left fixed), background, colors, visible
-    text        texts, annotation labels, titles, letters: dx_mm, dy_mm, size, text, weight, style, colors, visible
+    axes        dx_mm, dy_mm, dw_mm, dh_mm (top-left fixed), background, background_alpha, lw (frame and ticks),
+                colors, visible
+    text        texts, annotation labels, titles, letters: dx_mm, dy_mm, size, text, weight, style, rotation (deg),
+                ha (left/center/right), colors, alpha, visible
                 (an annotation's leader line keeps its data end and follows the label)
     axislabel   axis titles: as text
-    ticks       the tick or category labels of one axis: dx_mm (y) / dy_mm (x), size, rename {old: new}, colors,
-                visible
-    legend      dx_mm, dy_mm, size, rename, colors, visible
+    ticks       the tick or category labels of one axis: dx_mm (y) / dy_mm (x), size, weight, rotation,
+                rename {old: new}, colors, visible
+    legend      dx_mm, dy_mm, size, weight, rename, colors, visible
+    added text  "fig/added/<id>": {"add": {"text", "x_mm", "y_mm" (baseline-left from the bottom-left corner),
+                "size_pt", "color"}} plus any text setting; a text the author inserted in the editor
     scatter     scale (marker area), lw, alpha, colors, visible; positions are data and never move
     line        lw, alpha, colors, visible
     patch       bars, boxes, shapes: lw, alpha, colors, visible
@@ -192,12 +196,13 @@ def _name(a):
 
 def _items(fig):
     items = [dict(key="fig/figure", kind="figure", artist=fig)]
+    items += [dict(key=t._tw_key, kind="text", artist=t, added=True) for t in fig.texts if hasattr(t, "_tw_key")]
 
     def texts_of(owner, texts, kind):
         seen = Counter()
         for t in texts:
             s = t.get_text()
-            if not s.strip() or not t.get_visible():
+            if not s.strip() or not t.get_visible() or hasattr(t, "_tw_key"):
                 continue
             seen[s] += 1
             items.append(dict(key="%s/text/%s%s" % (owner, s, "" if seen[s] == 1 else "#%d" % seen[s]), kind=kind,
@@ -298,7 +303,18 @@ def _apply(fig, it, tw):
         elif kind != "figure":
             _recolor(a, m)
     if tw.get("lw", 1.0) != 1.0:
-        _scale_lw(a, tw["lw"])
+        if kind == "axes":                                 # the frame: spines and tick marks, not the data
+            for sp in a.spines.values():
+                sp.set_linewidth(sp.get_linewidth() * tw["lw"])
+            for nm, axis in (("x", a.xaxis), ("y", a.yaxis)):
+                ticks = axis.get_major_ticks()
+                if ticks:
+                    a.tick_params(axis=nm, which="major", width=ticks[0].tick1line.get_markeredgewidth() * tw["lw"])
+                mt = axis.get_minor_ticks()
+                if mt:
+                    a.tick_params(axis=nm, which="minor", width=mt[0].tick1line.get_markeredgewidth() * tw["lw"])
+        else:
+            _scale_lw(a, tw["lw"])
     if "alpha" in tw and kind in ("text", "axislabel", "scatter", "line", "patch", "collection", "image"):
         a.set_alpha(tw["alpha"])
     if kind == "figure":
@@ -309,8 +325,8 @@ def _apply(fig, it, tw):
         dw, dh = tw.get("dw_mm", 0.0), tw.get("dh_mm", 0.0)
         if dx or dy or dw or dh:
             a.set_position(Bbox.from_bounds(x0 + dx / W, y0 + (dy - dh) / H, w + dw / W, h + dh / H))
-        if tw.get("background"):
-            a.set_facecolor(tw["background"])
+        if tw.get("background") or "background_alpha" in tw:
+            a.set_facecolor(to_rgba(tw.get("background") or a.patch.get_facecolor(), tw.get("background_alpha")))
     elif kind in ("text", "axislabel"):
         if "text" in tw:
             a.set_text(tw["text"])
@@ -320,6 +336,11 @@ def _apply(fig, it, tw):
             a.set_fontweight(tw["weight"])
         if tw.get("style"):
             a.set_fontstyle(tw["style"])
+        if "rotation" in tw:
+            a.set_rotation(tw["rotation"])
+        if tw.get("ha"):
+            a.set_horizontalalignment(tw["ha"])
+            a.set_multialignment(tw["ha"])
         if dx or dy:
             _shift_text(fig, a, dx, dy)
     elif kind == "ticks":
@@ -333,6 +354,12 @@ def _apply(fig, it, tw):
             kw["pad"] = axis.get_major_ticks()[0].get_pad() + sign * d
         if size != 1.0:
             kw["labelsize"] = it["members"][0].get_fontsize() * size
+        if "rotation" in tw:
+            kw["labelrotation"] = tw["rotation"]
+        if tw.get("weight"):
+            for t in axis.get_major_ticks():
+                t.label1.set_fontweight(tw["weight"])
+                t.label2.set_fontweight(tw["weight"])
         if tw.get("visible") is False:
             kw.update(label1On=False, label2On=False)
         if kw:
@@ -344,6 +371,8 @@ def _apply(fig, it, tw):
                 t.set_text(tw["rename"][t.get_text()])
             if size != 1.0:
                 t.set_fontsize(t.get_fontsize() * size)
+            if tw.get("weight"):
+                t.set_fontweight(tw["weight"])
         if dx or dy:
             _shift_legend(a, dx, dy)
     elif kind == "scatter" and tw.get("scale", 1.0) != 1.0:
@@ -369,6 +398,13 @@ def apply(fig, here, stem, rerun_args=None):
     arguments that re-render only this figure (default: those of the current run)."""
     path = os.path.join(here, stem + ".tweaks.json")
     tweaks = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    W, H = fig.get_size_inches() / MM
+    for k, v in sorted(tweaks.items()):            # texts inserted in the editor
+        if k.startswith("fig/added/") and isinstance(v, dict) and v.get("add"):
+            a = v["add"]
+            t = fig.text(a.get("x_mm", W / 2) / W, a.get("y_mm", H / 2) / H, a.get("text", ""),
+                         fontsize=a.get("size_pt", 7), color=a.get("color", "#1b1b1b"), ha="left", va="baseline")
+            t._tw_key = k
     fig.canvas.draw()                              # lays out ticks and legends so they can be keyed and tagged
     renderer = fig.canvas.get_renderer()
     H_pt = fig.get_size_inches()[1] * 72
@@ -378,6 +414,10 @@ def apply(fig, here, stem, rerun_args=None):
     for it in items:                               # tag everything before anything changes
         a, gid = it["artist"], _gid(it["key"])
         rec = dict(key=it["key"], kind=it["kind"])
+        if it.get("added"):
+            rec["added"] = True
+        if isinstance(a, Text):
+            rec.update(rotation=round(a.get_rotation(), 2), ha=a.get_horizontalalignment())
         if it["kind"] == "figure":
             a.patch.set_gid(gid)
             rec["background"] = _hex(a.patch.get_facecolor()) or "#ffffff"
