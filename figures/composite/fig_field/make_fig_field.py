@@ -194,7 +194,7 @@ if __name__ == "__main__":
     draw_track(pg)
 
     # ---- b: methanol, between catalysts and over every operating point ------------------------------------------
-    b = pg.ax(14, 70, 70, 38)
+    b = pg.ax(41, 70, 43, 36)          # horizontal forest layout: labels and counts to the left (2026-10-23)
     kj = read_json("analysis/meoh_catalyst_level_2026_10_19/summary.json")
     lb = meoh_leaderboards()
     assert kj["point_level_total"]["changed"] == pool["S6"]["primary"]["disagreements"]
@@ -215,32 +215,41 @@ if __name__ == "__main__":
         _, s5 = aggregate(c5, S5, up_col=up)
         ci = (r.CI95_low, r.CI95_high) if np.isfinite(r.CI95_low) else None
         rows.append((key, lab, int(r.mismatch_groups), int(r.groups), ci, s5["top1_mismatch_fraction"], None))
-    xs = [0, 1, 2.4, 3.4, 4.4]
-    for x, (key, lab, n, g, ci, f5, band) in zip(xs, rows):
+    ys = [0, 1, 2.75, 3.75, 4.75]               # rows top to bottom; a header row above each group
+
+    def fx(mm):                                  # figure millimetres -> axes fraction of b
+        return (mm - 41) / 43
+    for y, (key, lab, n, g, ci, f5, band) in zip(ys, rows):
         f = n / g
         cat = key.startswith("cat")
         if band:
-            b.plot([x, x], band, color=PALE_B, lw=9.0, solid_capstyle="round", zorder=1)
-        b.plot([x, x], [f5, f], color=MID, lw=0.8, ls=(0, (1.5, 1.2)), zorder=1.5)
-        b.scatter([x], [f5], s=30, facecolor="white", edgecolor=MID, lw=0.8, zorder=3)
-        dot(b, x, f, *(ci if ci else (None, None)), fc=RU if cat else OS)
-        b.text(x + 0.18, f, "%d/%d" % (n, g), fontsize=5.8, va="center", ha="left", zorder=5, path_effects=HALO)
-    b.set_xticks(xs)
-    b.set_xticklabels([r[1] for r in rows], fontsize=5.6)
-    b.set_xlim(-0.5, 5.0)
-    b.set_ylim(0, 0.85)
-    b.set_yticks([0, 0.2, 0.4, 0.6, 0.8])
-    b.set_yticklabels(["0", "20", "40", "60", "80"])
-    b.set_ylabel("STY leader ≠ plant choice (%)")
-    for x0, x1, t in ((-0.3, 1.3, "between catalysts"), (2.1, 4.7, "every operating point")):
-        b.annotate("", xy=(x0, -0.2), xytext=(x1, -0.2), xycoords=("data", "axes fraction"),
-                   arrowprops=dict(arrowstyle="-", lw=0.5, color=INK))
-        b.text((x0 + x1) / 2, -0.235, t, transform=b.get_xaxis_transform(), ha="center", va="top", fontsize=5.6)
+            b.plot(band, [y, y], color=PALE_B, lw=8.0, solid_capstyle="round", zorder=1)
+        b.plot([f5, f], [y, y], color=MID, lw=0.8, ls=(0, (1.5, 1.2)), zorder=1.5)
+        b.scatter([f5], [y], s=30, facecolor="white", edgecolor=MID, lw=0.8, zorder=3)
+        if ci:
+            b.plot(ci, [y, y], color=INK, lw=1.0, zorder=3, solid_capstyle="butt")
+        b.scatter([f], [y], s=42, facecolor=RU if cat else OS, edgecolor=INK, lw=0.8, zorder=4)
+        yt = b.get_yaxis_transform()
+        b.text(fx(15.5), y, lab, transform=yt, fontsize=5.8, va="center", ha="left", clip_on=False)
+        b.text(fx(39.5), y, "%d/%d" % (n, g), transform=yt, fontsize=5.8, va="center", ha="right", clip_on=False)
+    for y, t in ((-0.85, "between catalysts"), (1.9, "every operating point")):
+        b.text(fx(14), y, t, transform=b.get_yaxis_transform(), fontsize=5.8, fontweight="bold", va="center",
+               ha="left", clip_on=False)
+    b.axhline(1.9 - 0.55, xmin=fx(14), xmax=1, color=INK, lw=0.4, clip_on=False, ls=(0, (1, 1.5)))
+    b.set_ylim(5.35, -1.35)
+    b.set_yticks([])
+    b.set_xlim(0, 0.85)
+    b.set_xticks([0, 0.2, 0.4, 0.6, 0.8])
+    b.set_xticklabels(["0", "20", "40", "60", "80"])
+    b.set_xlabel("STY leader ≠ plant choice (%)")
+    b.grid(axis="x", color=TINT_B, lw=0.5, zorder=0)
+    b.set_axisbelow(True)
     h = [b.scatter([], [], s=42, facecolor=RU, edgecolor=INK, lw=0.8),
          Patch(facecolor=PALE_B, edgecolor="none"),
          b.scatter([], [], s=30, facecolor="white", edgecolor=MID, lw=0.8)]
-    b.legend(h, ["6.86% inlet limit", "5–10% limits", "no limit"], loc="upper left", fontsize=5.4, handlelength=1.2,
-             borderaxespad=0.4, labelspacing=0.35, handletextpad=0.5)
+    pg.fig.legend(h, ["6.86% inlet limit", "5–10% limits", "no limit"], loc="lower left", ncol=3,
+                  bbox_to_anchor=(13 / pg.W, 106.6 / pg.H), fontsize=5.6, handlelength=1.2, frameon=False,
+                  columnspacing=1.4, handletextpad=0.4, borderaxespad=0)
     boxed(b)
     pg.letter("b", 2, 117)
     pg.title("Methanol, %d comparisons in %d papers" % (lb.loc["STY", "groups"], lb.loc["STY", "papers"]), 14, 117)
