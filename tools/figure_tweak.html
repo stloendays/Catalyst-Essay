@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ · 拖动调图</title>
+<style>
+  :root { --ink:#1b1b1b; --line:#d6d6d6; --bg:#f3f3f1; --panel:#ffffff; --acc:#2f6fd6; --acc2:#d9474f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 "Microsoft YaHei", Arial, sans-serif; color:var(--ink); background:var(--bg);
+         display:grid; grid-template-columns: 1fr 320px; grid-template-rows: auto 1fr; height:100vh; }
+  header { grid-column: 1 / 3; display:flex; gap:8px; align-items:center; padding:8px 12px; background:var(--panel);
+           border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:15px; margin:0 12px 0 0; }
+  button { font:inherit; padding:5px 12px; border:1px solid #9aa3b2; border-radius:6px; background:#fff; cursor:pointer; }
+  button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
+  button:disabled { opacity:.5; cursor:default; }
+  #status { margin-left:auto; color:#333; }
+  #wrap { overflow:auto; padding:16px; }
+  #stage { position:relative; display:inline-block; background:#fff; box-shadow:0 0 0 1px var(--line); }
+  #stage svg { display:block; }
+  #stage g.tw { cursor:pointer; }
+  #stage g.tw[data-kind="text"], #stage g.tw[data-kind="legend"] { cursor:move; }
+  .box { position:absolute; pointer-events:none; border:1px dashed var(--acc); }
+  .box.sel { border:1.5px solid var(--acc2); background:rgba(217,71,79,.06); }
+  aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:12px; }
+  aside h2 { font-size:14px; margin:14px 0 6px; }
+  .kv { font-family: Consolas, monospace; font-size:12px; word-break:break-all; }
+  .help li { margin:3px 0; }
+  ul.list { list-style:none; padding:0; margin:0; }
+  ul.list li { padding:4px 6px; border-bottom:1px solid #eee; cursor:pointer; font-size:12px; }
+  ul.list li:hover { background:#eef3fc; }
+  pre { white-space:pre-wrap; font-size:11px; background:#f6f6f6; padding:6px; margin:0; }
+  .zoom { display:flex; align-items:center; gap:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>__TITLE__ · 拖动调图</h1>
+  <button id="save" class="primary" disabled>保存并重新出图</button>
+  <button id="undo" disabled>撤销</button>
+  <button id="discard" disabled>放弃未保存</button>
+  <button id="resetSel" disabled>还原所选</button>
+  <button id="resetAll">全部还原</button>
+  <span class="zoom">缩放 <input id="zoom" type="range" min="1" max="6" step="0.25" value="2.5"></span>
+  <span id="status">载入中…</span>
+</header>
+<div id="wrap"><div id="stage"></div></div>
+<aside>
+  <h2>所选</h2>
+  <div id="sel" class="kv">（点击图中的文字、图例或一组点）</div>
+  <h2>用法</h2>
+  <ul class="help">
+    <li>文字、图例、坐标轴标题：按住拖动；方向键微调 0.1 mm，Shift + 方向键 0.5 mm。</li>
+    <li>一组点：选中后滚轮或 + / − 改大小。点的位置是数据，不能拖。</li>
+    <li>箭头标注：拖文字即可，保存后箭头会重新连到数据点。</li>
+    <li>“保存并重新出图”把调整写进 <span class="kv">__TITLE__.tweaks.json</span>，并重跑作图脚本（SVG/PDF/PNG 同步更新）。</li>
+  </ul>
+  <h2>未保存的调整</h2>
+  <ul id="pending" class="list"></ul>
+  <h2>已保存的调整</h2>
+  <ul id="stored" class="list"></ul>
+  <h2>出图日志</h2>
+  <pre id="log">—</pre>
+</aside>
+<script>
+const PT_MM = 25.4 / 72;
+let svg, keys = {}, byKey = {}, stored = {}, pending = {}, history = [], selId = null, hoverId = null, drag = null;
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function pushHistory() { history.push(clone(pending)); if (history.length > 200) history.shift(); }
+function setStatus(s) { $("status").textContent = s; }
+
+async function load() {
+  const [svgText, k, t] = await Promise.all([
+    fetch("/svg?" + Date.now()).then(r => r.text()),
+    fetch("/keys?" + Date.now()).then(r => r.json()),
+    fetch("/tweaks?" + Date.now()).then(r => r.json())]);
+  keys = k; stored = t; byKey = {};
+  stage.innerHTML = svgText.replace(/^[\s\S]*?(<svg)/, "$1");
+  svg = stage.querySelector("svg");
+  svg.removeAttribute("width"); svg.removeAttribute("height");
+  for (const [id, v] of Object.entries(keys)) {
+    const el = svg.getElementById(id);
+    if (!el) continue;
+    el.classList.add("tw"); el.dataset.kind = v.kind; byKey[v.key] = id;
+    if (v.kind === "scatter")       // markers are <use x y> or, for short collections, one <path> each
+      el.querySelectorAll("use, path").forEach(u => {
+        if (u.tagName === "use") { u.dataset.cx = u.getAttribute("x"); u.dataset.cy = u.getAttribute("y"); }
+        else { const b = u.getBBox(); u.dataset.cx = b.x + b.width / 2; u.dataset.cy = b.y + b.height / 2; }
+      });
+  }
+  if (!load.fitted) {                          // first load: fit the figure to the window width
+    const z = ($("wrap").clientWidth - 40) / svg.viewBox.baseVal.width;
+    $("zoom").value = Math.max(1, Math.min(6, z)); load.fitted = true;
+  }
+  applyZoom(); applyPending(); refresh();
+  setStatus("就绪：" + Object.keys(keys).length + " 个可调对象");
+}
+
+function applyZoom() {
+  const vb = svg.viewBox.baseVal;
+  svg.style.width = (vb.width * $("zoom").value) + "px";
+  svg.style.height = (vb.height * $("zoom").value) + "px";
+  drawBoxes();
+}
+
+function applyPending() {
+  for (const [id, v] of Object.entries(keys)) {
+    const el = svg.getElementById(id); if (!el) continue;
+    const p = pending[v.key] || {};
+    if (v.kind === "scatter") {
+      const k = Math.sqrt(p.scale || 1);
+      el.querySelectorAll("use, path").forEach(u => {
+        const x = u.dataset.cx, y = u.dataset.cy;
+        if (k === 1) u.removeAttribute("transform");
+        else u.setAttribute("transform", `translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`);
+      });
+    } else {
+      if (p.dx || p.dy) el.setAttribute("transform", `translate(${p.dx || 0} ${p.dy || 0})`);
+      else el.removeAttribute("transform");
+    }
+  }
+  drawBoxes();
+}
+
+function box(id, cls) {
+  const el = svg.getElementById(id); if (!el) return;
+  const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+  const d = document.createElement("div");
+  d.className = "box " + cls;
+  Object.assign(d.style, { left: (r.left - s.left - 2) + "px", top: (r.top - s.top - 2) + "px",
+                           width: (r.width + 4) + "px", height: (r.height + 4) + "px" });
+  stage.appendChild(d);
+}
+function drawBoxes() {
+  stage.querySelectorAll(".box").forEach(b => b.remove());
+  if (hoverId && hoverId !== selId) box(hoverId, "");
+  if (selId) box(selId, "sel");
+}
+
+function fmt(p, kind) {
+  if (!p) return "";
+  if (kind === "scatter") return "面积 ×" + (p.scale || 1).toFixed(2);
+  const dx = p.dx_mm !== undefined ? p.dx_mm : (p.dx || 0) * PT_MM;
+  const dy = p.dy_mm !== undefined ? p.dy_mm : -(p.dy || 0) * PT_MM;
+  return `右移 ${dx.toFixed(2)} mm，上移 ${dy.toFixed(2)} mm`;
+}
+function kindName(k) { return { text: "文字", legend: "图例", scatter: "一组点" }[k] || k; }
+
+function refresh() {
+  const v = selId ? keys[selId] : null;
+  $("sel").textContent = v ? `${kindName(v.kind)}\n${v.key}\n本次：${fmt(pending[v.key], v.kind) || "无"}\n已存：${fmt(stored[v.key], v.kind) || "无"}`
+                           : "（点击图中的文字、图例或一组点）";
+  $("sel").style.whiteSpace = "pre-wrap";
+  const list = (ul, obj, f) => {
+    ul.innerHTML = "";
+    for (const [k, p] of Object.entries(obj)) {
+      const id = byKey[k], kind = id ? keys[id].kind : "?";
+      const li = document.createElement("li");
+      li.textContent = `${k} — ${f(p, kind)}`;
+      li.onclick = () => { if (id) { selId = id; refresh(); drawBoxes(); } };
+      ul.appendChild(li);
+    }
+  };
+  list($("pending"), pending, fmt);
+  list($("stored"), stored, fmt);
+  const dirty = Object.keys(pending).length > 0;
+  $("save").disabled = !dirty; $("discard").disabled = !dirty; $("undo").disabled = history.length === 0;
+  $("resetSel").disabled = !(v && (stored[v.key] || pending[v.key]));
+}
+
+function targetId(e) {
+  const g = e.target.closest && e.target.closest("g.tw");
+  return g ? g.id : null;
+}
+function svgScale() { return svg.getScreenCTM().a; }    // screen px per SVG unit (pt)
+
+stage.addEventListener("pointermove", e => {
+  if (drag) {
+    const s = svgScale(), p = pending[drag.key] || (pending[drag.key] = {});
+    p.dx = drag.dx0 + (e.clientX - drag.x0) / s;
+    p.dy = drag.dy0 + (e.clientY - drag.y0) / s;
+    applyPending(); refresh(); return;
+  }
+  const id = targetId(e);
+  if (id !== hoverId) { hoverId = id; drawBoxes(); }
+});
+stage.addEventListener("pointerdown", e => {
+  const id = targetId(e);
+  selId = id; refresh(); drawBoxes();
+  if (!id) return;
+  const v = keys[id];
+  if (v.kind === "scatter") { setStatus("一组点：用滚轮或 + / − 改大小"); return; }
+  pushHistory();
+  const p = pending[v.key] || {};
+  drag = { key: v.key, x0: e.clientX, y0: e.clientY, dx0: p.dx || 0, dy0: p.dy || 0 };
+  stage.setPointerCapture(e.pointerId); e.preventDefault();
+});
+stage.addEventListener("pointerup", () => {
+  if (drag) { const p = pending[drag.key]; if (p && !p.dx && !p.dy && !p.scale) delete pending[drag.key]; }
+  drag = null; refresh();
+});
+stage.addEventListener("wheel", e => {
+  const id = targetId(e) || selId;
+  if (!id || keys[id].kind !== "scatter") return;
+  e.preventDefault(); selId = id;
+  resize(keys[id].key, e.deltaY < 0 ? 1.1 : 1 / 1.1);
+}, { passive: false });
+
+function resize(key, f) {
+  pushHistory();
+  const p = pending[key] || (pending[key] = {});
+  p.scale = (p.scale || 1) * f;
+  applyPending(); refresh();
+}
+
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "z") { undo(); e.preventDefault(); return; }
+  if (!selId) return;
+  const v = keys[selId];
+  if (v.kind === "scatter") {
+    if (e.key === "+" || e.key === "=") { resize(v.key, 1.1); e.preventDefault(); }
+    if (e.key === "-" || e.key === "_") { resize(v.key, 1 / 1.1); e.preventDefault(); }
+    return;
+  }
+  const step = (e.shiftKey ? 0.5 : 0.1) / PT_MM;
+  const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (!d) return;
+  e.preventDefault(); pushHistory();
+  const p = pending[v.key] || (pending[v.key] = {});
+  p.dx = (p.dx || 0) + d[0]; p.dy = (p.dy || 0) + d[1];
+  applyPending(); refresh();
+});
+
+function undo() { if (!history.length) return; pending = history.pop(); applyPending(); refresh(); }
+
+async function post(path, body) {
+  setStatus("重新出图中…"); document.querySelectorAll("header button").forEach(b => b.disabled = true);
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(body) }).then(r => r.json());
+  $("log").textContent = r.log;
+  pending = {}; history = [];
+  const keep = selId ? keys[selId].key : null;
+  await load();
+  selId = keep ? byKey[keep] || null : null; refresh(); drawBoxes();
+  $("resetAll").disabled = false;
+  setStatus(r.log.startsWith("OK") ? "已保存并重新出图" : "出图出错，见右下日志");
+}
+
+$("save").onclick = () => {
+  const out = {};
+  for (const [k, p] of Object.entries(pending))
+    out[k] = { dx_mm: (p.dx || 0) * PT_MM, dy_mm: -(p.dy || 0) * PT_MM, scale: p.scale || 1 };
+  post("/save", out);
+};
+$("undo").onclick = undo;
+$("discard").onclick = () => { pushHistory(); pending = {}; applyPending(); refresh(); };
+$("resetSel").onclick = () => { if (selId) post("/reset", { keys: [keys[selId].key] }); };
+$("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整并重新出图？")) post("/reset_all", {}); };
+$("zoom").oninput = applyZoom;
+window.addEventListener("resize", drawBoxes);
+window.addEventListener("beforeunload", e => { if (Object.keys(pending).length) { e.preventDefault(); e.returnValue = ""; } });
+load();
+</script>
+</body>
+</html>

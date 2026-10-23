@@ -66,6 +66,8 @@ class Page:
         self.fig.text(x / self.W, y / self.H, text, fontsize=7, fontweight="bold", va="top", ha="left")
 
     def save(self, here, stem):
+        import tweak                            # hand adjustments from <stem>.tweaks.json (tools/figure_tweak.py)
+        tweak.apply(self.fig, here, stem)
         for ext in ("svg", "pdf", "png"):
             self.fig.savefig(os.path.join(here, "%s.%s" % (stem, ext)), dpi=600,
                              facecolor="white")
