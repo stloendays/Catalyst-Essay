@@ -79,3 +79,5 @@
 - 2026-10-22 21:55 收尾：正文 3,496 词、摘要 141、SI 9,986；审计 357/0；Word/PDF `work/build_2026-10-22_AD`（正文 46 页、SI 67 页，改动页已渲染目检）。草稿 PR #120（base = manuscript/nce-compact-2026-10-21）。A–D 全部完成；E（选择性–转化率包络）不在本轮范围。
 - 2026-10-23 用户决定：D 只留在仓库（`analysis/nh3_field_measured_kinetics_2026_10_22`），不进论文。已从正文（Results 一句、Methods 一句）、SI Note 4、审计中移除；Cholewa 文献随之删除，Kitano 改回 67。A、B、C 保留。审计 352/0，正文 3,473 词，SI 9,784；Word/PDF `work/build_2026-10-23_ABC`（46 + 66 页，改动页已目检）。
 - 2026-10-23 11:30 E 完成：`analysis/meoh_selectivity_conversion_2026_10_23`。同一催化剂多空速数据 23 组/9 篇，21 组甲醇选择性随转化率下降（中位斜率 −0.93）。加料口径下让选择性随转化率变化：趋向平衡分配 23/63，中位斜率 18，四分位 22/20；>5% 为 8–10；恒定选择性 21/63 复现。正文加半句，SI Note 3 加两句，审计 355/0。
+- 2026-10-23 Data/Code availability 两节写入（Methods 之后、参考文献之前），指向公开仓库 catalyst-rankings-process-economics；版本写作 v2.0、Zenodo DOI 留占位。审计加 2 项，357/0。参考文献 67 篇（正文 56、仅 Methods 10、仅图注 1），NCE 指南为"建议不超过 50"，未删减。
+- 待办：公开仓库仍停在 v1.1（10-12），缺 ED 9–10 Source Data 及之后的全部分析；投稿前需发布 v2.0 并取得 Zenodo DOI，再替换占位。

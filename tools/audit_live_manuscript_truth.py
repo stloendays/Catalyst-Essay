@@ -2695,6 +2695,15 @@ tokens("E: SI Note 3 selectivity-conversion counts", s8,
 tokens("E: main-text range", m_field,
        f"letting selectivity shift with conversion gives {min(v for k, v in _sm.items() if k != 'constant')}–{max(v for k, v in _sm.items() if k != 'constant')}")
 
+# Data and Code availability (NCE requirement), placed after Methods and before the references.
+_repo = "https://github.com/stloendays/catalyst-rankings-process-economics"
+_da = raw_text.split("## Data availability", 1)[-1].split("## Code availability", 1)[0] if "## Data availability" in raw_text else ""
+_ca = raw_text.split("## Code availability", 1)[-1].split("## Working references", 1)[0] if "## Code availability" in raw_text else ""
+ok("Availability: Data and Code availability sections present, after Methods, naming the public repository",
+   bool(_da) and bool(_ca) and _repo in _da and raw_text.index("## Methods") < raw_text.index("## Data availability")
+   < raw_text.index("## Code availability") < raw_text.index("## Working references"))
+ok("Availability: the extraction model named in Code availability equals the SI", "gpt-5.5" in _ca and "gpt-5.5" in raw_si)
+
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
 for label, passed, detail in checks:
