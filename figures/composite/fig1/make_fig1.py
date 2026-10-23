@@ -408,10 +408,12 @@ for m, (txt, dx, dy, ha) in lab_d.items():
     axd.annotate(txt, (M[m]["E_N_eV"], M[m]["log10_min_bed_m3"]), xytext=(dx, dy), textcoords="offset points",
                  fontsize=5.8 if m not in C else 6.5, fontweight="bold" if m in C else "normal",
                  color=INK if m in C else MID, ha=ha, va="center")
+# Ag and Au lie above the axis range: arrows leave the frame at the top, values given beside them and in the caption
 for m, dx in (("Ag", -0.06), ("Au", 0.06)):
-    axd.annotate("", xy=(M[m]["E_N_eV"] + dx, 24.6), xytext=(M[m]["E_N_eV"] + dx, 20.2),
-                 arrowprops=dict(arrowstyle="-|>", lw=0.5, color=MID, mutation_scale=4))
-axd.text(2.55, 19.5, "Ag, Au\n(%s)" % ", ".join("%d" % round(M[m]["log10_min_bed_m3"]) for m in OFF), fontsize=5.3, color=MID, ha="center", va="top")
+    axd.annotate("", xy=(M[m]["E_N_eV"] + dx, 27.4), xytext=(M[m]["E_N_eV"] + dx, 23.2),
+                 arrowprops=dict(arrowstyle="-|>", lw=0.5, color=MID, mutation_scale=4), annotation_clip=False)
+axd.text(2.55, 27.5, "Ag, Au (%s)" % ", ".join("%d" % round(M[m]["log10_min_bed_m3"]) for m in OFF), fontsize=5.3,
+         color=MID, ha="center", va="bottom", clip_on=False)
 axd.set_xlim(-2.5, 3.4)
 axd.set_ylim(-5, 25)
 axd.set_xlabel(r"$E_\mathrm{N}$ at the step (eV)")

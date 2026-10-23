@@ -142,6 +142,7 @@ def tokens(label, haystack, *needles):
     ok(label, not missing, "source-derived text missing: " + ", ".join(missing) if missing else "")
 
 
+# (1.3 direct-path descriptor costs differ from the cached-surface anchors by < 5e-3 USD/t: direct vs interpolated kinetics.)
 # Re-anchored checks can retain a secondary number in its precise SI section.
 # Each anchor is mandatory: a stale number in main text cannot pass via an SI fallback.
 def claim_tokens(label, *anchors):
@@ -1190,7 +1191,7 @@ _var81 = [_frac(RB["6_split"]["S6"]["combined"][b_]["disagreements"])[0] for b_ 
     int(x) for x in RB["9_plant_variants"]["combined"]["S6"].split(" ")[0].split("-")]
 claim_tokens("Main text: S6 robustness (sampling, measurement, variants)",
     ("main text", m_field, [f"{_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} persist in at least 90% of {st6['noise_model']['draws']:,} re-measurements",
-    "every product closure, catalyst price and plant-term variant tested"]),
+    "every recycled-CO conversion rule, product closure, catalyst price and plant-term variant tested"]),
     ("SI Notes", s8, [f"{PL6['without_bansode']['disagreements']} of {PL6['without_bansode']['groups']}",
     f"the count stays between {int(RB['9_plant_variants']['combined']['S6'].split()[0].split('-')[0])} and {PL6['inert_co']['disagreements']} of {pl6['groups']}"]))
 tokens("SI Note 3: Measurement noise alone changes the laboratory leader", s8,
@@ -2646,6 +2647,62 @@ ok("NCE format: display equations numbered (1)–(3) in appearance order",
 
 tokens("Main text: compressed promoter activity range", m_bw,
        f"Promotion raises Ru activity {min(float(r['factor_high']) for r in _prom):.0f}- to more than {max(float(r['factor_high']) for r in _prom):.0f}-fold")
+
+
+# ----- Items A-D of the 2026-10-22 revision -------------------------------------
+# A+B: NH3-FINAL-1.3 structural check (analysis/nh3_final_1_3_2026_10_22).
+_r13 = _j("analysis/nh3_final_1_3_2026_10_22/results.json")
+_d13, _m13, _g13 = _r13["descriptor"]["1.3"], _r13["measured"]["1.3"], _r13["gates"]["G1_vle_holdout"]
+_d12 = _r13["descriptor"]["1.2_direct"]
+ok("1.3: 1.2 recomputed on the same path equals the canonical anchors",
+   all(abs(_d12["metals"][m]["cost"] - det["metals"][m]["feasible"]["total_cost"]) < 5e-3 for m in ("Fe", "Ru", "Os"))
+   and abs(_r13["measured"]["1.2"]["breakeven_own_optima"]["rate"] - _bes["benchmark_owned"]) < 1e-6)
+claim_tokens("1.3: SI Note 7 and main text equal results.json",
+    ("SI Note 7", s2_full, [f"within {100 * _g13[0]['dev_1_3']:.1f}% and {100 * _g13[1]['dev_1_3']:.1f}%",
+                            f"Fe, Ru and Os cost {_d13['metals']['Fe']['cost']:.2f}, {_d13['metals']['Ru']['cost']:.2f} and {_d13['metals']['Os']['cost']:.2f} US dollars per tonne",
+                            f"Fe {_d13['Ru_minus_Fe']:.2f})",
+                            f"Ru matches Fe at {_d13['Ru_price_parity_USD_kg']:.0f} US dollars per kilogram or with an {_d13['Ru_activity_multiple_for_parity']:.0f}-fold activity gain",
+                            f"bulk Ru needs {_m13['bulk_Ru_activity_parity']:.1f}-fold or {_m13['bulk_Ru_price_parity']['price_USD_kg']:,.0f} US dollars per kilogram",
+                            f"Ru/C is {-_m13['own_optima_2.10']['gap']:.2f} and {-_m13['KAAP_2.10']['gap']:.2f} US dollars per tonne cheaper",
+                            f"break-even {100 * _m13['breakeven_own_optima']['rate']:.2f}% and {100 * _m13['breakeven_KAAP']['rate']:.2f}% per year"]),
+    ("main text", m_feru, [f"the gap moves only from {_d12['Ru_minus_Fe']:.2f} to {_d13['Ru_minus_Fe']:.2f} US dollars per tonne"]))
+ok("1.3: both separator hold-outs within 7 % (main-text wording)", all(abs(g["dev_1_3"]) < 0.07 for g in _g13))
+
+# C: methanol catalyst-level count under the recycled-CO rules (analysis/meoh_catalyst_level_co_rule_2026_10_22).
+_cr = _j("analysis/meoh_catalyst_level_co_rule_2026_10_22/summary.json")
+ok("C gates: central lab 26/63 and frozen raised 21/63 reproduced", all(g["ok"] for g in _cr["gates"].values()))
+_rz = {k: _cr["raised_conversion"][k]["cat_primary"]["changed"] for k in ("equal_X", "high", "family")}
+_lz = {k: _cr["laboratory_conversion"][f"{k}|6.86"]["cat_primary"]["changed"] for k in ("equal_X", "high", "family")}
+tokens("C: SI Note 3 recycled-CO rules between catalysts", s8,
+       f"gives {_rz['equal_X']}, {_rz['high']} and {_rz['family']} of 63 between catalysts with more catalyst loaded and "
+       f"{_lz['equal_X']}, {_lz['high']} and {_lz['family']} at laboratory conversion")
+ok("C: the primary rule gives the smallest catalyst-level count", min(_rz.values()) >= 21 and min(_lz.values()) >= 26)
+tokens("C: main text names the recycled-CO rules among the variants", m_field, "every recycled-CO conversion rule")
+
+# E: methanol selectivity moving with conversion (analysis/meoh_selectivity_conversion_2026_10_23).
+_se = _j("analysis/meoh_selectivity_conversion_2026_10_23/summary.json")
+_sm = {k: v["changed"] for k, v in _se["models"].items()}
+_s5 = [v["gt5pct"] for k, v in _se["models"].items() if k != "constant"]
+_sl = rows("analysis/meoh_selectivity_conversion_2026_10_23/slopes.csv")
+_neg = sum(float(r["slope_dSMeOH_dX"]) < 0 for r in _sl)
+_med = sorted(float(r["slope_dSMeOH_dX"]) for r in _sl)[len(_sl) // 2]
+ok("E gates: constant model reproduces 21/63, equilibrium split valid", _se["gates"]["constant_reproduces_frozen"]["ok"]
+   and _se["gates"]["s_eq_in_unit_interval"] and _se["gates"]["X_eq_matches_frozen"])
+tokens("E: SI Note 3 selectivity-conversion counts", s8,
+       f"in {_neg} of {len(_sl)} sets in {len({r['doi'] for r in _sl})} papers",
+       f"(median slope {_med:.2f})",
+       f"gives {_sm['equilibrium']}, {_sm['slope_median']}, {_sm['slope_q1']} and {_sm['slope_q3']} of 63 ({min(_s5)}–{max(_s5)} above 5%)")
+tokens("E: main-text range", m_field,
+       f"letting selectivity shift with conversion gives {min(v for k, v in _sm.items() if k != 'constant')}–{max(v for k, v in _sm.items() if k != 'constant')}")
+
+# Data and Code availability (NCE requirement), placed after Methods and before the references.
+_repo = "https://github.com/stloendays/catalyst-rankings-process-economics"
+_da = raw_text.split("## Data availability", 1)[-1].split("## Code availability", 1)[0] if "## Data availability" in raw_text else ""
+_ca = raw_text.split("## Code availability", 1)[-1].split("## Working references", 1)[0] if "## Code availability" in raw_text else ""
+ok("Availability: Data and Code availability sections present, after Methods, naming the public repository",
+   bool(_da) and bool(_ca) and _repo in _da and raw_text.index("## Methods") < raw_text.index("## Data availability")
+   < raw_text.index("## Code availability") < raw_text.index("## Working references"))
+ok("Availability: the extraction model named in Code availability equals the SI", "gpt-5.5" in _ca and "gpt-5.5" in raw_si)
 
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
