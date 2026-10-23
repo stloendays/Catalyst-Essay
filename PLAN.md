@@ -81,3 +81,5 @@
 - 2026-10-23 11:30 E 完成：`analysis/meoh_selectivity_conversion_2026_10_23`。同一催化剂多空速数据 23 组/9 篇，21 组甲醇选择性随转化率下降（中位斜率 −0.93）。加料口径下让选择性随转化率变化：趋向平衡分配 23/63，中位斜率 18，四分位 22/20；>5% 为 8–10；恒定选择性 21/63 复现。正文加半句，SI Note 3 加两句，审计 355/0。
 - 2026-10-23 Data/Code availability 两节写入（Methods 之后、参考文献之前），指向公开仓库 catalyst-rankings-process-economics；版本写作 v2.0、Zenodo DOI 留占位。审计加 2 项，357/0。参考文献 67 篇（正文 56、仅 Methods 10、仅图注 1），NCE 指南为"建议不超过 50"，未删减。
 - 待办：公开仓库仍停在 v1.1（10-12），缺 ED 9–10 Source Data 及之后的全部分析；投稿前需发布 v2.0 并取得 Zenodo DOI，再替换占位。
+- 2026-10-23 PR #120 合入 manuscript/nce-compact-2026-10-21（c7d88c2）；合并前修了两项早已存在的 CI 失败（Word 构建缺 latex2mathml；Fig. 3 渲染清单在 10-21 换色后未重算哈希）。审计 357/0。
+- 2026-10-23 全部图（主图 6 + ED 10）整合为一个 PPTX：work/figures_pptx_2026-10-23/Figures_NCE_2026-10-23.pptx，一图一页、1:1 尺寸，按 SVG 里的分图字母把每个分图切成独立透明底图片放回原位，可单独拖动（脚本 tools/make_figures_pptx.py）。
