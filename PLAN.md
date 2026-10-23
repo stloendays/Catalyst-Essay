@@ -83,3 +83,4 @@
 - 待办：公开仓库仍停在 v1.1（10-12），缺 ED 9–10 Source Data 及之后的全部分析；投稿前需发布 v2.0 并取得 Zenodo DOI，再替换占位。
 - 2026-10-23 PR #120 合入 manuscript/nce-compact-2026-10-21（c7d88c2）；合并前修了两项早已存在的 CI 失败（Word 构建缺 latex2mathml；Fig. 3 渲染清单在 10-21 换色后未重算哈希）。审计 357/0。
 - 2026-10-23 全部图（主图 6 + ED 10）整合为一个 PPTX：work/figures_pptx_2026-10-23/Figures_NCE_2026-10-23.pptx，一图一页、1:1 尺寸，按 SVG 里的分图字母把每个分图切成独立透明底图片放回原位，可单独拖动（脚本 tools/make_figures_pptx.py）。
+- 2026-10-23 Fig. 1a、Fig. 3a 可编辑 PPTX：work/editable_panels_2026-10-23/（tools/svg_panel_to_pptx.py 由 SVG 转换，文字为文本框、线框为自由形状、结构渲染为图片）。
