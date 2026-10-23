@@ -5,75 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>调图</title>
 <style>
-  :root { --ink:#1d2330; --sub:#3c4454; --line:#e2e5ea; --soft:#f5f6f8; --acc:#2563eb; --acc-soft:#e8efff;
-          --sel:#e2445c; --warn:#e8890c; }
+  /* the paper's own palette: ink text, Ru blue, Fe green, one red for what is selected */
+  :root { --ink:#1b1b1b; --line:#c3c8d1; --rule:#dfe3e9; --blue:#5677b5; --blue-d:#304c86; --tint:#e8edf7;
+          --green-d:#467238; --red:#d9474f; --amber:#a85e24; }
   * { box-sizing: border-box; }
   html, body { height:100%; }
-  body { margin:0; font:13px/1.45 "Microsoft YaHei", "Segoe UI", Arial, sans-serif; color:var(--ink); background:#fff;
-         display:grid; grid-template-columns: 250px 1fr 310px; grid-template-rows: auto auto 1fr; }
-  header { grid-column: 1 / 4; display:flex; gap:8px; align-items:center; padding:7px 12px; border-bottom:1px solid var(--line); }
-  header .brand { font-weight:700; font-size:15px; margin-right:4px; }
-  .sep { width:1px; height:22px; background:var(--line); }
+  body { margin:0; font:14px/1.5 "Microsoft YaHei", Arial, sans-serif; color:var(--ink); background:#fff;
+         display:grid; grid-template-columns: 260px 1fr 330px; grid-template-rows: auto auto 1fr; }
+  header, .bar { grid-column: 1 / 4; display:flex; gap:8px; align-items:center; padding:8px 14px; border-bottom:1px solid var(--line);
+                 flex-wrap:wrap; background:#fff; }
+  .bar { padding:6px 14px; }
+  .brand { font-weight:700; font-size:16px; margin-right:6px; letter-spacing:.04em; }
+  .sep { width:1px; height:24px; background:var(--line); margin:0 2px; }
+  .lbl { font-weight:700; }
   select, button, input, textarea { font:inherit; color:inherit; }
-  select { padding:4px 6px; border:1px solid var(--line); border-radius:6px; background:#fff; }
-  button { padding:4px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
-  button:hover:not(:disabled) { background:var(--soft); }
-  button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
-  button.primary:hover:not(:disabled) { background:#1d4fd0; }
-  button.on { background:var(--acc-soft); border-color:#b9cdfb; color:#123a9c; }
-  button:disabled { opacity:.4; cursor:default; }
-  button.icon { padding:4px 8px; min-width:30px; }
-  #status { margin-left:auto; color:var(--sub); }
-  #status.warn { color:#b25e00; }
-  .filters { grid-column: 1 / 4; display:flex; gap:6px; align-items:center; padding:6px 12px; border-bottom:1px solid var(--line);
-             flex-wrap:wrap; }
-  .chip { padding:2px 10px; border:1px solid var(--line); border-radius:999px; cursor:pointer; user-select:none; background:#fff; }
-  .chip.on { background:var(--acc-soft); border-color:#b9cdfb; color:#123a9c; }
-  .chip.warn.on { background:#fff3e0; border-color:#f3c27a; color:#8a4b00; }
+  select { padding:4px 8px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  button { padding:4px 11px; border:1px solid var(--line); border-radius:4px; background:#fff; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--blue); background:var(--tint); }
+  button.primary { background:var(--blue-d); color:#fff; border-color:var(--blue-d); font-weight:700; }
+  button.primary:hover:not(:disabled) { background:#253d6e; }
+  button.on { background:var(--blue-d); border-color:var(--blue-d); color:#fff; }
+  button.danger { color:var(--red); border-color:#e6b3b7; }
+  button:disabled { opacity:.38; cursor:default; }
+  button.icon { min-width:32px; padding:4px 8px; }
+  #status { margin-left:auto; font-weight:700; }
+  #status.warn { color:var(--red); }
+  .chip { padding:2px 11px; border:1px solid var(--line); border-radius:4px; cursor:pointer; user-select:none; background:#fff; }
+  .chip.on { background:var(--tint); border-color:var(--blue); color:var(--blue-d); font-weight:700; }
+  .chip.alarm.on { background:#fbe9ea; border-color:var(--red); color:var(--red); }
   aside { overflow:auto; border-right:1px solid var(--line); }
-  aside.right { border-right:none; border-left:1px solid var(--line); padding:10px 12px; }
-  aside h3 { font-size:12px; color:var(--sub); margin:14px 0 6px; font-weight:700; }
-  aside h3:first-child { margin-top:2px; }
-  #layers { padding:6px 0; }
-  .ghead { display:flex; align-items:center; gap:6px; padding:5px 10px; cursor:pointer; font-weight:600; }
-  .ghead:hover, .row:hover { background:var(--soft); }
-  .tw-caret { width:12px; color:var(--sub); }
-  .row { display:flex; align-items:center; gap:6px; padding:3px 10px 3px 26px; cursor:pointer; white-space:nowrap; }
-  .row.sel, .ghead.sel { background:var(--acc-soft); }
-  .row.msel { background:#f0f4ff; }
-  .row .nm, .ghead .nm { overflow:hidden; text-overflow:ellipsis; flex:1; }
-  .tag { font-size:11px; padding:0 5px; border-radius:4px; background:var(--soft); color:var(--sub); flex:none; }
-  .eye { border:none; background:none; padding:0 2px; cursor:pointer; color:var(--sub); flex:none; }
-  .dot { width:6px; height:6px; border-radius:50%; background:var(--acc); flex:none; }
-  .hidden .nm { color:#8a909c; text-decoration:line-through; }
+  aside.right { border-right:none; border-left:1px solid var(--line); padding:6px 14px 14px; }
+  aside h3 { font-size:14px; margin:16px 0 8px; padding-bottom:4px; border-bottom:1px solid var(--rule); }
+  .title { font-size:15px; font-weight:700; margin:8px 0 2px; }
+  #layers { padding:4px 0 12px; }
+  .ghead { display:flex; align-items:center; gap:6px; padding:6px 12px; cursor:pointer; font-weight:700; border-bottom:1px solid var(--rule); }
+  .ghead:hover, .row:hover { background:var(--tint); }
+  .caret { width:12px; }
+  .row { display:flex; align-items:center; gap:7px; padding:3px 12px 3px 28px; cursor:pointer; white-space:nowrap; font-size:13px; }
+  .row.sel, .ghead.sel { background:var(--tint); box-shadow: inset 3px 0 0 var(--blue-d); }
+  .row.msel { background:#f2f5fb; box-shadow: inset 3px 0 0 var(--blue); }
+  .nm { overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .tag { font-size:12px; padding:0 5px; border-radius:3px; background:var(--tint); color:var(--blue-d); flex:none; font-weight:700; }
+  .tag.shape { background:#fbe9ea; color:var(--red); }
+  .eye { border:none; background:none; padding:0 2px; cursor:pointer; flex:none; font-size:13px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--blue); flex:none; }
+  .hidden .nm { color:#7b818c; text-decoration:line-through; }
   main { overflow:auto; background:#fff; position:relative; }
-  #board { padding:28px; display:inline-block; min-width:100%; }
-  #stage { position:relative; display:inline-block; background:#fff; box-shadow:0 0 0 1px #e6e8ec, 0 6px 24px rgba(20,30,50,.08); }
+  #board { padding:30px; display:inline-block; min-width:100%; }
+  #stage { position:relative; display:inline-block; background:#fff; outline:1px solid var(--line); }
+  #stage.paint { cursor:copy; }
   #stage svg { display:block; user-select:none; }
-  .box { position:absolute; pointer-events:none; border:1px dashed var(--acc); }
-  .box.sel { border:1.5px solid var(--sel); }
-  .box.msel { border:1.5px dashed var(--sel); }
-  .box.ovl { border:1.5px solid var(--warn); background:rgba(232,137,12,.10); }
-  .guide { position:absolute; pointer-events:none; background:#ff3d8b; }
-  .handle { position:absolute; width:10px; height:10px; background:#fff; border:1.5px solid var(--sel); border-radius:2px;
-            cursor:nwse-resize; pointer-events:auto; }
-  .prop { display:grid; grid-template-columns: 82px 1fr; gap:6px 8px; align-items:center; }
-  .prop label { color:var(--sub); }
-  .prop input[type=number], .prop textarea { width:100%; padding:3px 6px; border:1px solid var(--line); border-radius:5px; }
-  .prop textarea { resize:vertical; min-height:30px; }
-  .btns { display:flex; flex-wrap:wrap; gap:4px; }
-  .btns button { padding:3px 8px; }
-  .swatches { display:flex; flex-wrap:wrap; gap:5px; }
-  .sw { width:22px; height:22px; border-radius:5px; border:1px solid rgba(0,0,0,.18); cursor:pointer; position:relative; }
-  .sw.active { outline:2px solid var(--sel); outline-offset:1px; }
-  .sw.changed::after { content:""; position:absolute; right:-3px; top:-3px; width:7px; height:7px; border-radius:50%;
-                       background:var(--acc); border:1px solid #fff; }
-  .pal { margin-top:6px; }
-  .pal .row2 { display:flex; align-items:center; gap:6px; margin:4px 0; }
-  .hint { color:var(--sub); font-size:12px; }
-  .kv { font-family: Consolas, monospace; font-size:11px; color:var(--sub); word-break:break-all; }
-  pre { white-space:pre-wrap; font-size:11px; background:var(--soft); padding:6px; margin:0; border-radius:5px; }
-  input[type=range] { width:100%; }
+  .box { position:absolute; pointer-events:none; border:1px dashed var(--blue); }
+  .box.sel { border:1.5px solid var(--red); }
+  .box.msel { border:1.5px dashed var(--red); }
+  .box.ovl { border:1.5px solid var(--amber); background:rgba(168,94,36,.10); }
+  .guide { position:absolute; pointer-events:none; background:var(--red); }
+  .handle { position:absolute; width:11px; height:11px; background:#fff; border:2px solid var(--red); border-radius:2px;
+            cursor:move; pointer-events:auto; z-index:3; }
+  .prop { display:grid; grid-template-columns: 86px 1fr; gap:7px 8px; align-items:center; }
+  .prop input[type=number], .prop textarea, .prop select { width:100%; padding:3px 7px; border:1px solid var(--line); border-radius:4px; }
+  .prop textarea { resize:vertical; min-height:32px; }
+  .pair { display:grid; grid-template-columns: 1fr 1fr; gap:6px; }
+  .btns { display:flex; flex-wrap:wrap; gap:5px; }
+  .btns button { padding:3px 9px; }
+  .swatches { display:flex; flex-wrap:wrap; gap:6px; }
+  .sw { width:24px; height:24px; border-radius:4px; border:1px solid rgba(0,0,0,.25); cursor:pointer; position:relative; }
+  .sw.none { background: linear-gradient(135deg, #fff 45%, var(--red) 46%, var(--red) 54%, #fff 55%) !important; }
+  .sw.active { outline:2px solid var(--red); outline-offset:2px; }
+  .sw.changed::after { content:""; position:absolute; right:-4px; top:-4px; width:8px; height:8px; border-radius:50%;
+                       background:var(--blue-d); border:1px solid #fff; }
+  .pal .row2 { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .pal .row2 > span { min-width:56px; font-weight:700; font-size:13px; }
+  .note { font-size:13px; margin:6px 0; }
+  .kv { font-family: Consolas, monospace; font-size:12px; word-break:break-all; }
+  pre { white-space:pre-wrap; font-size:12px; border:1px solid var(--rule); padding:6px 8px; margin:0; }
+  input[type=range] { width:100%; accent-color: var(--blue-d); }
+  /* consistency dialog */
+  #modal { position:fixed; inset:0; background:rgba(20,25,35,.35); display:none; align-items:flex-start; justify-content:center; z-index:20; }
+  #modal.open { display:flex; }
+  .dlg { background:#fff; margin-top:5vh; width:min(980px, 94vw); max-height:88vh; overflow:auto; border:1px solid var(--line);
+         box-shadow:0 10px 40px rgba(20,30,50,.25); padding:16px 22px 22px; }
+  .dlg h2 { font-size:18px; margin:4px 0 4px; }
+  .dlg h4 { font-size:15px; margin:18px 0 6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  table.grid { border-collapse:collapse; width:100%; font-size:13px; }
+  table.grid th, table.grid td { border:1px solid var(--line); padding:4px 8px; text-align:left; }
+  table.grid th { font-weight:700; }
+  td.bad { color:var(--red); font-weight:700; }
+  .ok { color:var(--green-d); font-weight:700; }
 </style>
 </head>
 <body>
@@ -84,61 +102,70 @@
   <button id="undo" class="icon" title="撤销 Ctrl+Z" disabled>↶</button>
   <button id="redo" class="icon" title="重做 Ctrl+Y" disabled>↷</button>
   <span class="sep"></span>
-  <button id="addText" title="在画面中央插入一段文字">＋ 文字</button>
+  <span class="lbl">插入</span>
+  <button data-ins="text" title="文字">文字</button>
+  <button data-ins="arrow" title="箭头">箭头 →</button>
+  <button data-ins="line" title="直线或引线">线 —</button>
+  <button data-ins="bracket" title="显著性括号">括号 ⊓</button>
+  <button data-ins="box" title="圆角框">框 ▢</button>
+  <span class="sep"></span>
+  <button id="painter" title="把所选对象的字号、粗细、颜色、线宽刷给别的对象">格式刷</button>
+  <button id="consist" title="检查所有图的分图字母、标题、坐标轴标题、刻度字号是否统一">全稿一致性</button>
   <span class="sep"></span>
   <button id="zout" class="icon" title="缩小">−</button>
-  <span id="zpct" style="min-width:44px;text-align:center">100%</span>
+  <span id="zpct" style="min-width:46px;text-align:center;font-weight:700">100%</span>
   <button id="zin" class="icon" title="放大">+</button>
-  <button id="zfit" title="适应窗口">适应</button>
+  <button id="zfit">适应</button>
   <span id="status">载入中…</span>
   <button id="discard" disabled>放弃未保存</button>
-  <button id="resetAll">全部还原</button>
+  <button id="resetAll" class="danger">全部还原</button>
   <button id="save" class="primary" disabled title="Ctrl+S">保存并重新出图</button>
 </header>
-<div class="filters"><span class="hint">点击可选中：</span><span id="chips"></span>
-  <span class="sep"></span><span id="ovlChip" class="chip warn" title="把互相重叠的文字标成橙色">重叠检查</span>
-  <span class="hint" style="margin-left:auto">Shift+点击多选 · 拖动自动吸附（按住 Alt 关闭）· 方向键微调 · Delete 隐藏 · Ctrl+滚轮缩放</span></div>
+<div class="bar"><span class="lbl">点击可选中</span><span id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+  <span class="sep"></span><span id="ovlChip" class="chip alarm">重叠检查</span></div>
 <aside><div id="layers"></div></aside>
 <main id="main"><div id="board"><div id="stage"></div></div></main>
 <aside class="right" id="props"></aside>
+<div id="modal"><div class="dlg" id="dlg"></div></div>
 <script>
-const PT_MM = 25.4 / 72;
+const PT_MM = 25.4 / 72, SVGNS = "http://www.w3.org/2000/svg";
 const KINDS = { figure: "画布", axes: "图表", text: "文字", axislabel: "坐标轴标题", ticks: "刻度/类别标签", legend: "图例",
-                scatter: "点", line: "线", patch: "形状", collection: "误差线/色带", image: "图片" };
-const TAG = { figure: "画布", axes: "图表", text: "T", axislabel: "轴题", ticks: "刻度", legend: "图例", scatter: "点",
-              line: "线", patch: "形", collection: "带", image: "图" };
+                scatter: "点", line: "线", patch: "形状/色块", collection: "误差线/色带", image: "图片", shape: "插入的形状" };
+const SHAPES = { arrow: "箭头", line: "线", bracket: "显著性括号", box: "圆角框" };
+const TAG = { figure: "画布", axes: "图表", text: "字", axislabel: "轴题", ticks: "刻度", legend: "图例", scatter: "点",
+              line: "线", patch: "块", collection: "带", image: "图", shape: "形" };
 const FILTERS = [["axes", "整个图表"], ["text", "文字"], ["axislabel", "坐标轴标题"], ["ticks", "刻度/类别"], ["legend", "图例"],
-                 ["scatter", "点"], ["line", "线"], ["patch", "形状/色块"], ["collection", "误差线/色带"]];
-const MOVABLE = new Set(["axes", "text", "axislabel", "ticks", "legend"]);
+                 ["scatter", "点"], ["line", "线"], ["patch", "形状/色块"], ["collection", "误差线/色带"], ["shape", "插入的形状"]];
+const MOVABLE = new Set(["axes", "text", "axislabel", "ticks", "legend", "shape"]);
 const TEXTY = new Set(["text", "axislabel"]);
 const SIZED = new Set(["text", "axislabel", "ticks", "legend"]);
 const LW = new Set(["line", "patch", "collection", "scatter", "axes"]);
-const ALPHA = new Set(["text", "axislabel", "scatter", "line", "patch", "collection", "image"]);
+const ALPHA = new Set(["text", "axislabel", "scatter", "line", "patch", "collection", "image", "shape"]);
 const ANCHOR = { left: "start", center: "middle", right: "end" };
 let svg, meta = {}, ids = {}, items = {}, stored = {}, cur = {}, undoS = [], redoS = [];
 let sel = null, multi = new Set(), hover = null, drag = null, figInfo = {}, zoom = 1, activeColor = null, openGroups = new Set();
-let showOverlap = false, lastWarn = "";
+let showOverlap = false, lastWarn = "", painter = null;
 let enabled = { axes: false, text: true, axislabel: true, ticks: true, legend: true, scatter: true, line: true, patch: true,
-                collection: true, image: true };
-try { Object.assign(enabled, JSON.parse(localStorage.getItem("tw_filter3") || "{}")); } catch (e) {}
+                collection: true, image: true, shape: true };
+try { Object.assign(enabled, JSON.parse(localStorage.getItem("tw_filter4") || "{}")); } catch (e) {}
 const $ = id => document.getElementById(id);
 const stage = $("stage");
 const clone = o => JSON.parse(JSON.stringify(o));
 const setStatus = (s, warn) => { $("status").textContent = s; $("status").className = warn ? "warn" : ""; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const num = (o, k, d) => (o && o[k] !== undefined && o[k] !== null ? o[k] : d);
+const el = (tag, attrs = {}, kids = []) => { const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "text" ? e.textContent = v : k === "html" ? e.innerHTML = v : k.startsWith("on") ? e[k] = v : e.setAttribute(k, v);
+  kids.forEach(k => e.appendChild(k)); return e; };
 
 // ---- filter chips --------------------------------------------------------------------------------------------------
 function drawChips() {
   $("chips").innerHTML = "";
-  for (const [k, name] of FILTERS) {
-    const c = document.createElement("span");
-    c.className = "chip" + (enabled[k] ? " on" : ""); c.textContent = name;
-    c.onclick = () => { enabled[k] = !enabled[k]; if (k === "collection") enabled.image = enabled[k];
-                        try { localStorage.setItem("tw_filter3", JSON.stringify(enabled)); } catch (e) {} drawChips(); };
-    $("chips").appendChild(c);
-  }
-  $("ovlChip").className = "chip warn" + (showOverlap ? " on" : "");
+  for (const [k, name] of FILTERS)
+    $("chips").appendChild(el("span", { class: "chip" + (enabled[k] ? " on" : ""), text: name, onclick: () => {
+      enabled[k] = !enabled[k]; if (k === "collection") enabled.image = enabled[k];
+      try { localStorage.setItem("tw_filter4", JSON.stringify(enabled)); } catch (e) {} drawChips(); } }));
+  $("ovlChip").className = "chip alarm" + (showOverlap ? " on" : "");
 }
 $("ovlChip").onclick = () => { showOverlap = !showOverlap; drawChips(); drawBoxes(); if (svg) updateButtons(); };
 drawChips();
@@ -150,15 +177,15 @@ async function loadFigs() {
   $("figsel").value = figInfo.current;
   document.title = (figInfo.figs.find(f => f[0] === figInfo.current) || [0, ""])[1] + " · 调图";
 }
-function prepEl(el, v) {
-  el.querySelectorAll("text").forEach(t => t.dataset.orig = t.textContent);
+function prepEl(g, v) {
+  g.querySelectorAll("text").forEach(t => t.dataset.orig = t.textContent);
   if (v.kind === "scatter")
-    el.querySelectorAll("use, path").forEach(u => {
+    g.querySelectorAll("use, path").forEach(u => {
       if (u.tagName === "use") { u.dataset.cx = u.getAttribute("x"); u.dataset.cy = u.getAttribute("y"); }
       else { const b = u.getBBox(); u.dataset.cx = b.x + b.width / 2; u.dataset.cy = b.y + b.height / 2; }
     });
   else if (v.kind !== "ticks" || v.member !== undefined) {
-    try { const b = el.getBBox(); el.dataset.cx = b.x + b.width / 2; el.dataset.cy = b.y + b.height / 2; } catch (e) {}
+    try { const b = g.getBBox(); g.dataset.cx = b.x + b.width / 2; g.dataset.cy = b.y + b.height / 2; } catch (e) {}
   }
 }
 async function load() {
@@ -174,11 +201,15 @@ async function load() {
   const Hmm = svg.viewBox.baseVal.height * PT_MM;
   for (const [id, v] of Object.entries(ids)) {
     const it = items[v.key] || (items[v.key] = Object.assign({ own: null, members: [] }, v, { member: undefined }));
-    const el = svg.getElementById(id);
-    if (v.member !== undefined) { it.members.push(id); if (el) el.dataset.member = v.member; }
+    const g = svg.getElementById(id);
+    if (v.member !== undefined) { it.members.push(id); if (g) g.dataset.member = v.member; }
     else it.own = id;
-    if (!el) continue;
-    prepEl(el, v);
+    if (!g) continue;
+    if (v.kind === "shape") {                         // drawn by the editor from its settings; the render is hidden
+      [id, ...(v.parts || [])].forEach(p => { const e = svg.getElementById(p); if (e) { e.dataset.keephidden = "1"; e.style.display = "none"; } });
+      continue;
+    }
+    prepEl(g, v);
     if (v.arrow) {                                     // leader line: the end away from the data point follows
       const a = svg.getElementById(id + "_arrow"), p = a && a.querySelector("path");
       if (p) {
@@ -196,7 +227,7 @@ async function load() {
     it.w = w; it.h = h; it.prefix = it.key.slice(0, -"/axes".length) + "/";
     it.ox = (x + (s.dx_mm || 0)) / PT_MM; it.oy = (Hmm - (y + h + (s.dy_mm || 0))) / PT_MM;
   }
-  for (const key of Object.keys(cur)) if (key.startsWith("fig/added/") && !items[key]) addedPreview(key);
+  syncAdded();
   if (sel && !items[sel.key]) sel = null;
   multi = new Set([...multi].filter(k => items[k]));
   if (!load.fitted) { fit(); load.fitted = true; } else applyZoom();
@@ -204,38 +235,102 @@ async function load() {
   setStatus(lastWarn || `${Object.keys(items).length} 个对象`, !!lastWarn);
 }
 
-// ---- inserted text -------------------------------------------------------------------------------------------------
-function addedPreview(key) {                         // a text inserted here, shown until the next render draws it
+// ---- inserted texts and shapes -------------------------------------------------------------------------------------
+const X = mm => mm / PT_MM, Y = mm => svg.viewBox.baseVal.height - mm / PT_MM;
+function addedText(key) {                             // an inserted text, shown until the next render draws it
   const a = (cur[key] || {}).add; if (!a) return;
-  const H = svg.viewBox.baseVal.height, id = "twnew_" + key.split("/").pop();
+  const id = "twnew_" + key.split("/").pop();
   const old = svg.getElementById(id); if (old) old.remove();
-  const g = document.createElementNS("http://www.w3.org/2000/svg", "g"); g.id = id;
-  const lines = String(a.text || "").split("\n");
-  lines.forEach((ln, i) => {
-    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    t.setAttribute("x", a.x_mm / PT_MM); t.setAttribute("y", H - a.y_mm / PT_MM + i * (a.size_pt || 7) * 1.2);
+  const g = document.createElementNS(SVGNS, "g"); g.id = id;
+  String(a.text || "").split("\n").forEach((ln, i) => {
+    const t = document.createElementNS(SVGNS, "text");
+    t.setAttribute("x", X(a.x_mm)); t.setAttribute("y", Y(a.y_mm) + i * (a.size_pt || 7) * 1.2);
     t.setAttribute("style", `font-size: ${a.size_pt || 7}px; font-family: 'Arial'; text-anchor: start; fill: ${a.color || "#1b1b1b"}`);
     t.textContent = ln; g.appendChild(t);
   });
   svg.appendChild(g);
   g.querySelectorAll("[style]").forEach(e => e.dataset.os = e.getAttribute("style"));
-  const v = { key, kind: "text", added: true, rotation: 0, ha: "left", colors: [a.color || "#1b1b1b"] };
+  const v = { key, kind: "text", added: true, rotation: 0, ha: "left", colors: [a.color || "#1b1b1b"], fontsize: a.size_pt || 7 };
   ids[id] = v; items[key] = Object.assign({ own: id, members: [], fresh: true }, v);
   prepEl(g, v);
 }
-$("addText").onclick = () => {
+function headPath(x0, y0, x1, y1, L, W, filled) {      // arrow head at (x1, y1) pointing away from (x0, y0)
+  const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d;
+  const bx = x1 - ux * L, by = y1 - uy * L, px = -uy * W, py = ux * W;
+  return filled ? `M ${x1} ${y1} L ${bx + px} ${by + py} L ${bx - px} ${by - py} Z`
+                : `M ${bx + px} ${by + py} L ${x1} ${y1} L ${bx - px} ${by - py}`;
+}
+function drawShape(key) {                             // the editor's drawing of an inserted shape, from its settings
+  const id = "twshape_" + key.split("/").pop();
+  const old = svg.getElementById(id); if (old) old.remove();
+  const c = cur[key]; if (!c || !c.add || c.visible === false) return id;
+  const a = c.add, ox = num(c, "dx_mm", 0), oy = num(c, "dy_mm", 0);
+  const col = (c.colors || {})[(a.color || "#1b1b1b").toLowerCase()] || a.color || "#1b1b1b";
+  const lw = num(a, "lw", 0.8) * num(c, "lw", 1);
+  const dash = (a.ls || "-") === "--" ? `stroke-dasharray: ${3.7 * lw} ${1.6 * lw};` : "";
+  const g = document.createElementNS(SVGNS, "g"); g.id = id; if (num(c, "alpha", 1) !== 1) g.style.opacity = c.alpha;
+  const add = (tag, at) => { const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(at)) e.setAttribute(k, v); g.appendChild(e); return e; };
+  const stroke = `fill: none; stroke: ${col}; stroke-width: ${lw}; ${dash} stroke-linejoin: miter; stroke-linecap: butt`;
+  if (a.type === "arrow" || a.type === "line") {
+    const x0 = X(a.x0_mm + ox), y0 = Y(a.y0_mm + oy), x1 = X(a.x1_mm + ox), y1 = Y(a.y1_mm + oy);
+    const head = a.head || (a.type === "arrow" ? "-|>" : "-"), hs = num(a, "head_size", 6), L = 0.4 * hs, W = 0.2 * hs;
+    const filled = head.includes("|>"), both = head.startsWith("<");
+    const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d;
+    const e1 = head !== "-" && filled ? L : 0, e0 = both && filled ? L : 0;
+    add("path", { d: `M ${x0 + ux * e0} ${y0 + uy * e0} L ${x1 - ux * e1} ${y1 - uy * e1}`, style: stroke });
+    add("path", { d: `M ${x0} ${y0} L ${x1} ${y1}`, style: "stroke: transparent; stroke-width: 6; fill: none" });   // easier to grab
+    if (head !== "-") add("path", { d: headPath(x0, y0, x1, y1, L, W, filled), style: filled ? `fill: ${col}; stroke: ${col}; stroke-width: ${lw}` : stroke });
+    if (both) add("path", { d: headPath(x1, y1, x0, y0, L, W, filled), style: filled ? `fill: ${col}; stroke: ${col}; stroke-width: ${lw}` : stroke });
+  } else if (a.type === "box") {
+    const r = num(a, "radius_mm", 1);
+    add("rect", { x: X(a.x_mm + ox), y: Y(a.y_mm + oy + a.h_mm), width: X(a.w_mm), height: X(a.h_mm), rx: X(r), ry: X(r),
+                  style: `fill: ${a.fill && a.fill !== "none" ? a.fill : "none"}; stroke: ${col}; stroke-width: ${lw}; ${dash}` });
+    if (!a.fill || a.fill === "none")
+      add("rect", { x: X(a.x_mm + ox), y: Y(a.y_mm + oy + a.h_mm), width: X(a.w_mm), height: X(a.h_mm), style: "fill: none; stroke: transparent; stroke-width: 6" });
+  } else if (a.type === "bracket") {
+    const x0 = X(a.x0_mm + ox), x1 = X(a.x1_mm + ox), y = Y(a.y_mm + oy), h = X(num(a, "h_mm", 1.5));
+    add("path", { d: `M ${x0} ${y + h} L ${x0} ${y} L ${x1} ${y} L ${x1} ${y + h}`, style: stroke });
+    add("path", { d: `M ${x0} ${y} L ${x1} ${y}`, style: "stroke: transparent; stroke-width: 6; fill: none" });
+    const fs = num(a, "size_pt", 7) * num(c, "size", 1);
+    const t = add("text", { x: (x0 + x1) / 2, y: y - X(num(a, "gap_mm", 0.3)),
+                            style: `font-size: ${fs}px; font-family: 'Arial'; text-anchor: middle; fill: ${col}; font-weight: ${c.weight || "normal"}` });
+    t.textContent = a.text ?? "*";
+  }
+  svg.appendChild(g);
+  return id;
+}
+function syncAdded() {
+  for (const key of new Set([...Object.keys(cur), ...Object.keys(items)])) {
+    if (!key.startsWith("fig/added/")) continue;
+    const spec = (cur[key] || stored[key] || {}).add || {};
+    if ((spec.type || "text") === "text") { if (cur[key] && !items[key]) addedText(key); continue; }
+    const id = drawShape(key);
+    const v = { key, kind: "shape", shape: spec.type, added: true };
+    ids[id] = v;
+    const it = items[key] || (items[key] = Object.assign({ members: [] }, v));
+    it.own = id; it.shape = spec.type;
+  }
+}
+function viewCentreMm() {
   const vb = svg.viewBox.baseVal, m = $("main").getBoundingClientRect(), s = svg.getBoundingClientRect();
   let cx = (m.left + m.width / 2 - s.left) / s.width * vb.width, cy = (m.top + m.height / 2 - s.top) / s.height * vb.height;
-  if (!(cx > 0 && cx < vb.width && cy > 0 && cy < vb.height)) { cx = vb.width / 2; cy = vb.height / 2; }   // view centre, else page centre
-  const key = "fig/added/" + Date.now().toString(36);
-  push();
-  cur[key] = { add: { text: "新文字", x_mm: +(Math.max(2, Math.min(vb.width - 20, cx)) * PT_MM).toFixed(2),
-                      y_mm: +((vb.height - Math.max(10, Math.min(vb.height - 4, cy))) * PT_MM).toFixed(2), size_pt: 7, color: "#1b1b1b" } };
-  addedPreview(key);
-  select({ key, member: null });
-  afterEdit();
-  setTimeout(() => { const ta = document.querySelector("#props textarea"); if (ta) { ta.focus(); ta.select(); } }, 0);
-};
+  if (!(cx > 0 && cx < vb.width && cy > 0 && cy < vb.height)) { cx = vb.width / 2; cy = vb.height / 2; }
+  return [+(cx * PT_MM).toFixed(1), +((vb.height - cy) * PT_MM).toFixed(1)];
+}
+function insert(type) {
+  const [cx, cy] = viewCentreMm(), key = "fig/added/" + Date.now().toString(36);
+  const specs = {
+    text: { type: "text", text: "Text", x_mm: cx - 5, y_mm: cy, size_pt: 7, color: "#1b1b1b" },
+    arrow: { type: "arrow", x0_mm: cx - 8, y0_mm: cy + 4, x1_mm: cx + 8, y1_mm: cy - 4, head: "-|>", head_size: 6, lw: 0.8, ls: "-", color: "#1b1b1b" },
+    line: { type: "line", x0_mm: cx - 10, y0_mm: cy, x1_mm: cx + 10, y1_mm: cy, head: "-", lw: 0.6, ls: "-", color: "#1b1b1b" },
+    bracket: { type: "bracket", x0_mm: cx - 8, x1_mm: cx + 8, y_mm: cy, h_mm: 1.5, text: "*", size_pt: 7, lw: 0.6, color: "#1b1b1b" },
+    box: { type: "box", x_mm: cx - 12, y_mm: cy - 6, w_mm: 24, h_mm: 12, radius_mm: 1.5, fill: "none", lw: 0.6, ls: "-", color: "#5677b5" } };
+  push(); cur[key] = { add: specs[type] };
+  if (type === "text") addedText(key);
+  syncAdded(); select({ key, member: null }); afterEdit();
+  if (type === "text") setTimeout(() => { const ta = document.querySelector("#props textarea"); if (ta) { ta.focus(); ta.select(); } }, 0);
+}
+document.querySelectorAll("[data-ins]").forEach(b => b.onclick = () => insert(b.dataset.ins));
 
 // ---- zoom ----------------------------------------------------------------------------------------------------------
 function applyZoom() {
@@ -258,15 +353,15 @@ function deltaMap(s, c) {
   }
   return m;
 }
-function swapStyle(el, m, lwf) {
-  let st = el.getAttribute("style"); if (!st) return;
+function swapStyle(e, m, lwf) {
+  let st = e.getAttribute("style"); if (!st) return;
   if (m && Object.keys(m).length) st = st.replace(/#[0-9a-fA-F]{6}\b/g, h => m[h.toLowerCase()] || h);
   if (lwf && lwf !== 1) st = st.replace(/stroke-width:\s*([\d.]+)/g, (_, w) => "stroke-width: " + (+w * lwf));
-  el.setAttribute("style", st);
+  e.setAttribute("style", st);
 }
 function scopeEls(it, frameOnly) {
   const out = [];
-  const add = el => { if (!el) return; if (el.hasAttribute("style")) out.push(el); el.querySelectorAll("[style]").forEach(e => out.push(e)); };
+  const add = e => { if (!e) return; if (e.hasAttribute("style")) out.push(e); e.querySelectorAll("[style]").forEach(x => out.push(x)); };
   if (frameOnly) {                                    // a chart's frame: spines and tick marks
     const g = svg.getElementById(it.own); if (!g) return out;
     g.querySelectorAll(":scope > g[id^=patch], :scope > g[id^=matplotlib\\.axis] g[id^=line2d]").forEach(add);
@@ -279,16 +374,16 @@ function scopeEls(it, frameOnly) {
 }
 function previewStyle() {
   svg.querySelectorAll("[data-os]").forEach(e => e.setAttribute("style", e.dataset.os));
-  svg.querySelectorAll("g[id^=tw_], g[id^=twnew_]").forEach(g => { g.style.opacity = ""; g.style.display = ""; });
+  svg.querySelectorAll("g[id^=tw_], g[id^=twnew_]").forEach(g => { g.style.opacity = ""; g.style.display = g.dataset.keephidden ? "none" : ""; });
   for (const it of Object.values(items)) {
-    if (it.kind === "figure") continue;
+    if (it.kind === "figure" || it.kind === "shape") continue;
     const s = stored[it.key] || {}, c = cur[it.key] || {};
     if (it.added && !cur[it.key]) { const g = svg.getElementById(it.own); if (g) g.style.display = "none"; continue; }
     const m = deltaMap(s.colors, c.colors), lwf = num(c, "lw", 1) / num(s, "lw", 1);
     if (Object.keys(m).length) scopeEls(it).forEach(e => swapStyle(e, m, 1));
     if (lwf !== 1) scopeEls(it, it.kind === "axes").forEach(e => swapStyle(e, null, lwf));
-    const texts = it.kind === "ticks" ? it.members.map(id => svg.getElementById(id)).filter(Boolean) : [];
     if (it.kind === "ticks") {
+      const texts = it.members.map(id => svg.getElementById(id)).filter(Boolean);
       if (c.visible === false) texts.forEach(e => e.style.display = "none");
       if ((c.weight || "normal") !== (s.weight || "normal")) texts.forEach(e => e.querySelectorAll("text").forEach(t => t.style.fontWeight = c.weight || "normal"));
       continue;
@@ -298,10 +393,10 @@ function previewStyle() {
     if (num(c, "alpha", 1) !== num(s, "alpha", 1)) own.style.opacity = num(c, "alpha", 1) / num(s, "alpha", 1);
     if (c.visible === false) own.style.display = "none";
     own.querySelectorAll("text").forEach(t => {
-      if ((c.weight || "") !== (s.weight || "")) t.style.fontWeight = c.weight || "normal";
-      if ((c.style || "") !== (s.style || "")) t.style.fontStyle = c.style || "normal";
+      t.style.fontWeight = (c.weight || "") !== (s.weight || "") ? (c.weight || "normal") : "";
+      t.style.fontStyle = (c.style || "") !== (s.style || "") ? (c.style || "normal") : "";
       const ha = c.ha || it.ha, sha = s.ha || it.ha;
-      if (ha && ha !== sha) t.style.textAnchor = ANCHOR[ha];
+      t.style.textAnchor = ha && ha !== sha ? ANCHOR[ha] : "";
     });
     if (it.kind === "axes") {
       const bg = svg.getElementById(it.own + "_bg"), p = bg && bg.querySelector("path");
@@ -332,7 +427,7 @@ function setLines(g, target) {                        // matplotlib writes one <
     if (t.textContent !== want) t.textContent = want;
   });
 }
-function textOf(it, o) {                              // the string a text item shows under settings o
+function textOf(it, o) {
   if (it.added) return ((o || {}).add || {}).text ?? "";
   return (o || {}).text !== undefined ? o.text : textFromKey(it.key);
 }
@@ -341,33 +436,34 @@ function previewText() {
     const s = stored[it.key] || {}, c = cur[it.key] || {};
     if (TEXTY.has(it.kind)) {
       const now = textOf(it, c), was = it.fresh ? null : textOf(it, s);
-      if (it.fresh && cur[it.key]) {                  // an inserted text: redraw its lines when their number changes
+      if (it.fresh && cur[it.key]) {
         const g = svg.getElementById(it.own);
-        if (g && g.querySelectorAll("text").length !== String(now).split("\n").length) { addedPreview(it.key); continue; }
+        if (g && g.querySelectorAll("text").length !== String(now).split("\n").length) { addedText(it.key); continue; }
       }
       setLines(it.own && svg.getElementById(it.own), it.fresh ? now : (now === was ? null : now));
     } else if (it.kind === "ticks" || it.kind === "legend")
       for (const id of it.members) {
-        const el = svg.getElementById(id); if (!el) continue;
-        const mm = el.dataset.member, cr = (c.rename || {})[mm], sr = (s.rename || {})[mm];
+        const g = svg.getElementById(id); if (!g) continue;
+        const mm = g.dataset.member, cr = (c.rename || {})[mm], sr = (s.rename || {})[mm];
         const now = cr !== undefined ? cr : mm, was = sr !== undefined ? sr : mm;
-        setLines(el, now === was ? null : now);
+        setLines(g, now === was ? null : now);
       }
   }
 }
-function aboutCenter(el, k, rot) {
-  const x = +el.dataset.cx, y = +el.dataset.cy;
+function aboutCenter(g, k, rot) {
+  const x = +g.dataset.cx, y = +g.dataset.cy;
   if (isNaN(x)) return "";
   return (rot ? ` rotate(${rot} ${x} ${y})` : "") + (k === 1 ? "" : ` translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`);
 }
 function previewGeom() {
   for (const it of Object.values(items)) {
+    if (it.kind === "shape") { drawShape(it.key); continue; }
     const s = it.fresh ? {} : (stored[it.key] || {}), c = cur[it.key] || {};
     const tx = (num(c, "dx_mm", 0) - num(s, "dx_mm", 0)) / PT_MM, ty = -(num(c, "dy_mm", 0) - num(s, "dy_mm", 0)) / PT_MM;
     const k = num(c, "size", 1) / num(s, "size", 1);
-    const rot = -(num(c, "rotation", it.rotation || 0) - num(s, "rotation", it.rotation || 0));   // SVG turns clockwise
+    const rot = -(num(c, "rotation", it.rotation || 0) - num(s, "rotation", it.rotation || 0));
     const own = it.own ? svg.getElementById(it.own) : null;
-    const setT = (el, t) => !t.trim() || t.trim() === "translate(0 0)" ? el.removeAttribute("transform") : el.setAttribute("transform", t);
+    const setT = (e, t) => !t.trim() || t.trim() === "translate(0 0)" ? e.removeAttribute("transform") : e.setAttribute("transform", t);
     if (it.kind === "axes" && own) {
       const sx = (it.w + num(c, "dw_mm", 0)) / (it.w + num(s, "dw_mm", 0)), sy = (it.h + num(c, "dh_mm", 0)) / (it.h + num(s, "dh_mm", 0));
       setT(own, `translate(${tx} ${ty})` + (sx !== 1 || sy !== 1 ?
@@ -385,8 +481,8 @@ function previewGeom() {
     } else if (it.kind === "ticks") {
       const r = -(num(c, "rotation", 0) - num(s, "rotation", 0));
       for (const id of it.members) {
-        const el = svg.getElementById(id); if (!el) continue;
-        setT(el, (it.axis === "y" ? `translate(${tx} 0)` : `translate(0 ${ty})`) + aboutCenter(el, k, r));
+        const e = svg.getElementById(id); if (!e) continue;
+        setT(e, (it.axis === "y" ? `translate(${tx} 0)` : `translate(0 ${ty})`) + aboutCenter(e, k, r));
       }
     } else if (it.kind === "legend" && own) {
       setT(own, `translate(${tx} ${ty})` + aboutCenter(own, k));
@@ -403,14 +499,14 @@ function previewGeom() {
 function preview() { previewStyle(); previewText(); previewGeom(); }
 function textFromKey(key) { return key.replace(/^.*?\/text\//, "").replace(/#\d+$/, ""); }
 
-// ---- boxes, guides, overlap ----------------------------------------------------------------------------------------
+// ---- boxes, handles, guides, overlap -------------------------------------------------------------------------------
 function rectOf(key) {
   const it = items[key]; if (!it) return null;
   const idl = it.kind === "ticks" ? it.members : [it.own];
   let r = null;
   for (const id of idl) {
-    const el = id && svg.getElementById(id); if (!el || el.style.display === "none") continue;
-    const b = el.getBoundingClientRect(); if (!b.width && !b.height) continue;
+    const e = id && svg.getElementById(id); if (!e || e.style.display === "none") continue;
+    const b = e.getBoundingClientRect(); if (!b.width && !b.height) continue;
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) }
           : { l: b.left, t: b.top, r: b.right, b: b.bottom };
   }
@@ -423,26 +519,47 @@ function boxAt(r, cls) {
                            width: (r.r - r.l + 4) + "px", height: (r.b - r.t + 4) + "px" });
   stage.appendChild(d);
 }
+function screenOf(xmm, ymm) {                          // figure mm -> screen px
+  const m = svg.getScreenCTM(), p = svg.createSVGPoint(); p.x = X(xmm); p.y = Y(ymm);
+  const q = p.matrixTransform(m); return [q.x, q.y];
+}
+function handleAt(sx, sy, onDrag, cursor) {
+  const s = stage.getBoundingClientRect(), h = document.createElement("div"); h.className = "handle";
+  Object.assign(h.style, { left: (sx - s.left - 5.5) + "px", top: (sy - s.top - 5.5) + "px", cursor: cursor || "move" });
+  h.addEventListener("pointerdown", e => startDrag(e, "handle", onDrag));
+  stage.appendChild(h);
+}
+function shapeHandles(it) {
+  const c = cur[it.key]; if (!c || !c.add) return;
+  const a = c.add, ox = num(c, "dx_mm", 0), oy = num(c, "dy_mm", 0);
+  if (a.type === "arrow" || a.type === "line") {
+    handleAt(...screenOf(a.x0_mm + ox, a.y0_mm + oy), (sp, dx, dy, cc) => { cc.add.x0_mm = sp.x0_mm + dx; cc.add.y0_mm = sp.y0_mm + dy; });
+    handleAt(...screenOf(a.x1_mm + ox, a.y1_mm + oy), (sp, dx, dy, cc) => { cc.add.x1_mm = sp.x1_mm + dx; cc.add.y1_mm = sp.y1_mm + dy; });
+  } else if (a.type === "bracket") {
+    handleAt(...screenOf(a.x0_mm + ox, a.y_mm + oy), (sp, dx, dy, cc) => { cc.add.x0_mm = sp.x0_mm + dx; }, "ew-resize");
+    handleAt(...screenOf(a.x1_mm + ox, a.y_mm + oy), (sp, dx, dy, cc) => { cc.add.x1_mm = sp.x1_mm + dx; }, "ew-resize");
+    handleAt(...screenOf(a.x0_mm + ox, a.y_mm + oy - num(a, "h_mm", 1.5)), (sp, dx, dy, cc) => { cc.add.h_mm = Math.max(0, num(sp, "h_mm", 1.5) - dy); }, "ns-resize");
+  } else if (a.type === "box") {
+    handleAt(...screenOf(a.x_mm + ox + a.w_mm, a.y_mm + oy), (sp, dx, dy, cc) => {
+      cc.add.w_mm = Math.max(1, sp.w_mm + dx); const h = Math.max(1, sp.h_mm - dy); cc.add.y_mm = sp.y_mm + sp.h_mm - h; cc.add.h_mm = h; }, "nwse-resize");
+  }
+}
 function overlaps() {
   const boxes = [];
   for (const it of Object.values(items)) {
     if (!(TEXTY.has(it.kind) || it.kind === "legend" || it.kind === "ticks")) continue;
     const idl = it.kind === "ticks" ? it.members : [it.own];
     for (const id of idl) {
-      const el = id && svg.getElementById(id); if (!el || el.style.display === "none") continue;
-      const b = el.getBoundingClientRect(); if (b.width < 1 || b.height < 1) continue;
+      const e = id && svg.getElementById(id); if (!e || e.style.display === "none") continue;
+      const b = e.getBoundingClientRect(); if (b.width < 1 || b.height < 1) continue;
       boxes.push({ key: it.key, r: { l: b.left, t: b.top, r: b.right, b: b.bottom } });
     }
   }
-  const hit = new Map();
+  const hit = new Map(), inside = (p, q) => p.l >= q.l - 1 && p.r <= q.r + 1 && p.t >= q.t - 1 && p.b <= q.b + 1;
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const a = boxes[i], b = boxes[j]; if (a.key === b.key) continue;
     const w = Math.min(a.r.r, b.r.r) - Math.max(a.r.l, b.r.l), h = Math.min(a.r.b, b.r.b) - Math.max(a.r.t, b.r.t);
-    if (w > 1.5 && h > 1.5) {
-      const inside = (p, q) => p.l >= q.l - 1 && p.r <= q.r + 1 && p.t >= q.t - 1 && p.b <= q.b + 1;   // legend members
-      if (inside(a.r, b.r) || inside(b.r, a.r)) continue;
-      hit.set(a.key + a.r.l + a.r.t, a.r); hit.set(b.key + b.r.l + b.r.t, b.r);
-    }
+    if (w > 1.5 && h > 1.5 && !inside(a.r, b.r) && !inside(b.r, a.r)) { hit.set(a.key + a.r.l + a.r.t, a.r); hit.set(b.key + b.r.l + b.r.t, b.r); }
   }
   return [...hit.values()];
 }
@@ -452,29 +569,23 @@ function drawBoxes() {
   if (showOverlap) { const o = overlaps(); o.forEach(r => boxAt(r, "ovl")); drawBoxes.nOvl = o.length; }
   if (hover && (!sel || hover.key !== sel.key) && !multi.has(hover.key)) { const r = rectOf(hover.key); if (r) boxAt(r, ""); }
   for (const k of multi) if (!sel || k !== sel.key) { const r = rectOf(k); if (r) boxAt(r, "msel"); }
-  if (sel && items[sel.key] && items[sel.key].kind !== "figure") {
-    const r = rectOf(sel.key); if (!r) return;
-    boxAt(r, "sel");
-    if (items[sel.key].kind === "axes" && multi.size <= 1) {
-      const s = stage.getBoundingClientRect(), h = document.createElement("div"); h.className = "handle";
-      Object.assign(h.style, { left: (r.r - s.left - 5) + "px", top: (r.b - s.top - 5) + "px" });
-      h.addEventListener("pointerdown", e => startDrag(e, "resize"));
-      stage.appendChild(h);
-    }
-  }
+  const it = sel && items[sel.key];
+  if (!it || it.kind === "figure") return;
+  const r = rectOf(sel.key); if (r) boxAt(r, "sel");
+  if (multi.size > 1 || (drag && drag.mode !== "handle")) return;
+  if (it.kind === "shape") shapeHandles(it);
+  else if (it.kind === "axes" && r) handleAt(r.r, r.b, (sp, dx, dy, c) => { c.dw_mm = sp.dw + dx; c.dh_mm = sp.dh - dy; }, "nwse-resize");
 }
 function showGuides(gx, gy) {
   stage.querySelectorAll(".guide").forEach(g => g.remove());
   const s = stage.getBoundingClientRect();
-  for (const x of gx) { const d = document.createElement("div"); d.className = "guide";
-    Object.assign(d.style, { left: (x - s.left) + "px", top: 0, width: "1px", height: s.height + "px" }); stage.appendChild(d); }
-  for (const y of gy) { const d = document.createElement("div"); d.className = "guide";
-    Object.assign(d.style, { top: (y - s.top) + "px", left: 0, height: "1px", width: s.width + "px" }); stage.appendChild(d); }
+  for (const x of gx) { const d = el("div", { class: "guide" }); d.style.cssText = `left:${x - s.left}px;top:0;width:1px;height:${s.height}px`; stage.appendChild(d); }
+  for (const y of gy) { const d = el("div", { class: "guide" }); d.style.cssText = `top:${y - s.top}px;left:0;height:1px;width:${s.width}px`; stage.appendChild(d); }
 }
 function pick(e) {
-  for (let el = e.target; el && el !== svg; el = el.parentNode) {
-    const v = el.id && ids[el.id];
-    if (v && v.kind !== "figure" && enabled[v.kind]) return { key: v.key, member: v.member !== undefined ? el.id : null };
+  for (let n = e.target; n && n !== svg; n = n.parentNode) {
+    const v = n.id && ids[n.id];
+    if (v && v.kind !== "figure" && enabled[v.kind]) return { key: v.key, member: v.member !== undefined ? n.id : null };
   }
   return null;
 }
@@ -490,307 +601,404 @@ function select(s, add) {
 // ---- layers --------------------------------------------------------------------------------------------------------
 function dispName(it) {
   const one = s => String(s).replace(/\$([^$]*)\$/g, "$1").replace(/[_^{}\\]/g, "").replace(/\n/g, " ");
+  if (it.kind === "shape") return SHAPES[it.shape] || "形状";
   if (TEXTY.has(it.kind)) return one(textOf(it, cur[it.key])) || "（空文字）";
   if (it.kind === "ticks") return (it.axis === "x" ? "横轴" : "纵轴") + "刻度/类别";
   const n = it.key.match(/\/(\d+)$/);
   return it.name || (KINDS[it.kind] + (n ? " " + (+n[1] + 1) : ""));
 }
-const isHidden = it => (cur[it.key] || {}).visible === false || (it.added && !cur[it.key]);
+const isHidden = it => (cur[it.key] || {}).visible === false;
 function drawLayers() {
-  const L = $("layers"), keepScroll = L.parentNode.scrollTop; L.innerHTML = "";
+  const L = $("layers"), keep = L.parentNode.scrollTop; L.innerHTML = "";
   const all = Object.values(items).filter(i => !(i.added && !cur[i.key]));
   const axes = all.filter(i => i.kind === "axes");
   const inAxes = it => axes.find(a => it.key.startsWith(a.prefix));
-  const groups = [{ id: "fig", title: "画布与标题", head: items["fig/figure"], kids: all.filter(i => i.kind !== "figure" && i.kind !== "axes" && !inAxes(i)) }];
-  for (const a of axes) groups.push({ id: a.key, title: `图表 ${a.panel || ""}`.trim() + ` · ${a.w}×${a.h} mm`, head: a,
+  const groups = [{ id: "fig", title: "画布、标题与插入", head: items["fig/figure"], kids: all.filter(i => i.kind !== "figure" && i.kind !== "axes" && !inAxes(i)) }];
+  for (const a of axes) groups.push({ id: a.key, title: `图表 ${a.panel || ""}`.trim() + `　${a.w}×${a.h} mm`, head: a,
                                       kids: all.filter(i => i !== a && i.key.startsWith(a.prefix)) });
-  const selGroup = sel && groups.find(g => (g.head && g.head.key === sel.key) || g.kids.some(k => k.key === sel.key));
-  if (selGroup) openGroups.add(selGroup.id);
+  const sg = sel && groups.find(g => (g.head && g.head.key === sel.key) || g.kids.some(k => k.key === sel.key));
+  if (sg) openGroups.add(sg.id);
   for (const g of groups) {
-    const box = document.createElement("div");
     const open = openGroups.has(g.id);
-    const head = document.createElement("div");
-    head.className = "ghead" + (sel && g.head && sel.key === g.head.key ? " sel" : "");
-    head.innerHTML = `<span class="tw-caret">${open ? "▾" : "▸"}</span><span class="nm">${esc(g.title)}</span>` +
-                     (g.head && g.head.kind === "axes" ? eyeHtml(g.head) : "");
+    const head = el("div", { class: "ghead" + (sel && g.head && sel.key === g.head.key ? " sel" : ""),
+                             html: `<span class="caret">${open ? "▾" : "▸"}</span><span class="nm">${esc(g.title)}</span>` + (g.head && g.head.kind === "axes" ? eyeHtml(g.head) : "") });
     head.onclick = e => {
       if (e.target.classList.contains("eye")) return;
-      if (e.target.classList.contains("tw-caret")) { open ? openGroups.delete(g.id) : openGroups.add(g.id); drawLayers(); return; }
+      if (e.target.classList.contains("caret")) { open ? openGroups.delete(g.id) : openGroups.add(g.id); drawLayers(); return; }
       openGroups.add(g.id); select({ key: g.head ? g.head.key : "fig/figure", member: null }, e.shiftKey && g.head && g.head.kind === "axes");
     };
-    box.appendChild(head);
+    L.appendChild(head);
     if (open) for (const it of g.kids) {
-      const r = document.createElement("div");
-      r.className = "row" + (sel && sel.key === it.key ? " sel" : multi.has(it.key) ? " msel" : "") + (isHidden(it) ? " hidden" : "");
-      r.innerHTML = `<span class="tag">${TAG[it.kind]}</span><span class="nm" title="${esc(it.key)}">${esc(dispName(it))}</span>` +
-                    (dirty(it.key) || stored[it.key] ? `<span class="dot" title="有调整"></span>` : "") + eyeHtml(it);
-      r.onclick = e => { if (!e.target.classList.contains("eye")) select({ key: it.key, member: null }, e.shiftKey); };
-      box.appendChild(r);
+      const r = el("div", { class: "row" + (sel && sel.key === it.key ? " sel" : multi.has(it.key) ? " msel" : "") + (isHidden(it) ? " hidden" : ""),
+                            html: `<span class="tag${it.kind === "shape" || it.added ? " shape" : ""}">${TAG[it.kind]}</span><span class="nm" title="${esc(it.key)}">${esc(dispName(it))}</span>` +
+                                  (dirty(it.key) || stored[it.key] ? `<span class="dot" title="有调整"></span>` : "") + eyeHtml(it) });
+      r.onclick = e => { if (!e.target.classList.contains("eye")) { if (painter) { paintOnto(it.key); return; } select({ key: it.key, member: null }, e.shiftKey); } };
+      L.appendChild(r);
     }
-    L.appendChild(box);
   }
   L.querySelectorAll(".eye").forEach(b => b.onclick = e => {
     e.stopPropagation(); const k = b.dataset.k; push();
     const o = cur[k] || (cur[k] = {}); if (o.visible === false) delete o.visible; else o.visible = false;
     afterEdit();
   });
-  L.parentNode.scrollTop = keepScroll;
+  L.parentNode.scrollTop = keep;
 }
-function eyeHtml(it) { return `<button class="eye" data-k="${esc(it.key)}" title="显示/隐藏">${isHidden(it) ? "◌" : "●"}</button>`; }
+function eyeHtml(it) { return `<button class="eye" data-k="${esc(it.key)}" title="显示/隐藏">${isHidden(it) ? "○" : "●"}</button>`; }
+
+// ---- format painter ------------------------------------------------------------------------------------------------
+function mainColor(it, c) {
+  c = c || cur[it.key] || {};
+  if (it.added) { const a = c.add || {}, col = (a.color || "#1b1b1b").toLowerCase(); return (c.colors || {})[col] || col; }
+  const base = (it.colors || [])[0]; return base ? ((c.colors || {})[base] || base) : null;
+}
+function fontPt(it, c) {                               // effective font size in pt
+  c = c || cur[it.key] || {};
+  const base = it.added ? num(c.add, "size_pt", it.fontsize || 7) : it.fontsize;
+  return base ? base * num(c, "size", 1) : null;
+}
+function grabStyle(key) {
+  const it = items[key], c = cur[key] || {};
+  const st = { kind: it.kind, color: mainColor(it, c), pt: SIZED.has(it.kind) || it.added || it.shape === "bracket" ? fontPt(it, c) : null,
+               weight: c.weight || it.weight || "normal", style: c.style || "normal" };
+  if (it.kind === "shape") Object.assign(st, { lw: num(c.add, "lw", 0.8), ls: (c.add || {}).ls || "-" });
+  return st;
+}
+function paintOnto(key) {
+  const it = items[key]; if (!it || !painter || key === painter.from) return;
+  push();
+  const c = curOf(key), p = painter.style;
+  if (p.pt && (SIZED.has(it.kind) || it.added || it.shape === "bracket")) {
+    const base = it.added ? num(c.add, "size_pt", it.fontsize || 7) : it.fontsize;
+    if (base) c.size = p.pt / base;
+    c.weight = p.weight;
+    if (TEXTY.has(it.kind)) c.style = p.style;
+  }
+  if (p.color) {
+    if (it.added) c.add = Object.assign({}, c.add, { color: p.color });
+    else { const base = (it.colors || [])[0]; if (base) { c.colors = Object.assign({}, c.colors || {}); if (base === p.color) delete c.colors[base]; else c.colors[base] = p.color; } }
+  }
+  if (it.kind === "shape" && p.kind === "shape") c.add = Object.assign({}, c.add, { lw: p.lw, ls: p.ls });
+  afterEdit();
+  setStatus(`格式刷：已刷到“${dispName(it)}”，继续点其他对象，Esc 结束`);
+}
+function togglePainter() {
+  if (painter) { painter = null; stage.classList.remove("paint"); $("painter").classList.remove("on"); setStatus("格式刷已关闭"); drawProps(); return; }
+  if (!sel || items[sel.key].kind === "figure") { setStatus("先选中一个对象，再点格式刷", true); return; }
+  painter = { from: sel.key, style: grabStyle(sel.key) };
+  stage.classList.add("paint"); $("painter").classList.add("on");
+  setStatus(`格式刷：已取“${dispName(items[sel.key])}”的样式，点要套用的对象，Esc 结束`);
+  drawProps();
+}
+$("painter").onclick = togglePainter;
 
 // ---- properties ----------------------------------------------------------------------------------------------------
 function curOf(key) { return cur[key] || (cur[key] = {}); }
 function afterEdit(rebuild = true) { preview(); drawLayers(); if (rebuild) drawProps(); updateButtons(); }
-function numField(box, label, value, step, set) {
-  const l = document.createElement("label"); l.textContent = label;
-  const i = document.createElement("input"); i.type = "number"; i.step = step; i.value = (+value).toFixed(2);
+function numField(box, label, value, step, set, digits = 2) {
+  const i = el("input", { type: "number", step }); i.value = (+value).toFixed(digits);
   i.onchange = () => { push(); set(parseFloat(i.value || "0")); afterEdit(false); };
-  box.append(l, i); return i;
+  box.append(el("label", { text: label }), i); return i;
+}
+function pairFields(box, label, a, b) {               // two number fields on one row: [[value, set], [value, set]]
+  const w = el("div", { class: "pair" });
+  for (const [v, set] of [a, b]) { const i = el("input", { type: "number", step: 0.5 }); i.value = (+v).toFixed(1);
+    i.onchange = () => { push(); set(parseFloat(i.value || "0")); afterEdit(false); }; w.appendChild(i); }
+  box.append(el("label", { text: label }), w);
 }
 function textField(box, label, value, set) {
-  const l = document.createElement("label"); l.textContent = label;
-  const wrap = document.createElement("div");
-  const t = document.createElement("textarea"); t.rows = Math.max(1, value.split("\n").length); t.value = value;
-  t.title = "可换行；上下标用 matplotlib 写法，如 CO$_2$、t$^{-1}$";
-  t.onchange = () => { push(); set(t.value); afterEdit(); };
+  const wrap = el("div");
+  const t = el("textarea", { rows: Math.max(1, value.split("\n").length), title: "可换行；上下标用 matplotlib 写法，如 CO$_2$、t$^{-1}$" });
+  t.value = value; t.onchange = () => { push(); set(t.value); afterEdit(); };
   wrap.appendChild(t);
-  if (value.includes("\n")) {
-    const b = document.createElement("button"); b.textContent = "合为一行"; b.style.marginTop = "3px";
-    b.onclick = () => { push(); set(t.value.replace(/\s*\n\s*/g, " ")); afterEdit(); };
-    wrap.appendChild(b);
-  }
-  box.append(l, wrap);
+  if (value.includes("\n")) wrap.appendChild(el("button", { text: "合为一行", style: "margin-top:4px",
+    onclick: () => { push(); set(t.value.replace(/\s*\n\s*/g, " ")); afterEdit(); } }));
+  box.append(el("label", { text: label }), wrap);
 }
 function btnRow(box, label, defs) {
-  const l = document.createElement("label"); l.textContent = label;
-  const d = document.createElement("div"); d.className = "btns";
-  for (const [txt, on, fn, title, css] of defs) {
-    const b = document.createElement("button"); b.textContent = txt; if (on) b.className = "on"; if (title) b.title = title;
-    if (css) b.style.cssText = css; b.onclick = fn; d.appendChild(b);
-  }
-  box.append(l, d);
+  const d = el("div", { class: "btns" });
+  for (const [txt, on, fn, title, css] of defs) { const b = el("button", { text: txt, onclick: fn }); if (on) b.className = "on"; if (title) b.title = title; if (css) b.style.cssText = css; d.appendChild(b); }
+  box.append(el("label", { text: label }), d);
 }
 function section(title) {
-  const P = $("props"); const h = document.createElement("h3"); h.textContent = title; P.appendChild(h);
-  const d = document.createElement("div"); d.className = "prop"; P.appendChild(d); return d;
+  $("props").appendChild(el("h3", { text: title }));
+  const d = el("div", { class: "prop" }); $("props").appendChild(d); return d;
 }
 function swatch(color, opts = {}) {
-  const d = document.createElement("div"); d.className = "sw" + (opts.active ? " active" : "") + (opts.changed ? " changed" : "");
-  d.style.background = color; d.title = opts.title || color; if (opts.onclick) d.onclick = opts.onclick; return d;
+  const d = el("div", { class: "sw" + (color === "none" ? " none" : "") + (opts.active ? " active" : "") + (opts.changed ? " changed" : ""), title: opts.title || color });
+  if (color !== "none") d.style.background = color; if (opts.onclick) d.onclick = opts.onclick; return d;
 }
-function palettePicker(onPick) {
-  const wrap = document.createElement("div"); wrap.className = "pal";
+function palettePicker(onPick, allowNone) {
+  const wrap = el("div", { class: "pal" });
   const rowOf = (title, cols) => {
     if (!cols.length) return;
-    const r = document.createElement("div"); r.className = "row2";
-    const t = document.createElement("span"); t.className = "hint"; t.style.minWidth = "48px"; t.textContent = title; r.appendChild(t);
-    const s = document.createElement("div"); s.className = "swatches";
+    const s = el("div", { class: "swatches" });
     cols.forEach(([c, name]) => s.appendChild(swatch(c, { title: name ? `${name} ${c}` : c, onclick: () => onPick(c) })));
-    r.appendChild(s); wrap.appendChild(r);
+    wrap.appendChild(el("div", { class: "row2" }, [el("span", { text: title }), s]));
   };
   rowOf("项目配色", Object.entries(meta.style_palette || {}).map(([n, c]) => [c, n]));
   rowOf("本图用色", (meta.palette || []).map(c => [c, ""]));
-  const r = document.createElement("div"); r.className = "row2";
-  const t = document.createElement("span"); t.className = "hint"; t.style.minWidth = "48px"; t.textContent = "自选";
-  const i = document.createElement("input"); i.type = "color"; i.value = activeColor && /^#/.test(activeColor) ? activeColor : "#2563eb";
+  const i = el("input", { type: "color" }); i.value = activeColor && /^#/.test(activeColor) ? activeColor : "#5677b5";
   i.onchange = () => onPick(i.value);
-  r.append(t, i); wrap.appendChild(r);
+  const extra = [el("span", { text: "自选" }), i];
+  if (allowNone) extra.push(el("button", { text: "无填充", onclick: () => onPick("none") }));
+  wrap.appendChild(el("div", { class: "row2" }, extra));
   return wrap;
 }
 function colorSection(title, key, colors, hint) {
   if (!colors || !colors.length) return;
   const box = section(title); box.style.display = "block";
   const c = curOf(key), map = c.colors || {};
-  const sw = document.createElement("div"); sw.className = "swatches";
-  colors.forEach(col => sw.appendChild(swatch(map[col] || col, {
-    active: activeColor === col, changed: !!map[col], title: map[col] ? `${col} → ${map[col]}` : col,
+  const sw = el("div", { class: "swatches" });
+  colors.forEach(col => sw.appendChild(swatch(map[col] || col, { active: activeColor === col, changed: !!map[col], title: map[col] ? `${col} → ${map[col]}` : col,
     onclick: () => { activeColor = activeColor === col ? null : col; drawProps(); } })));
   box.appendChild(sw);
-  const h = document.createElement("div"); h.className = "hint"; h.style.margin = "5px 0 0";
-  h.textContent = activeColor && colors.includes(activeColor) ? "选一个新颜色：" : hint;
-  box.appendChild(h);
+  box.appendChild(el("div", { class: "note", text: activeColor && colors.includes(activeColor) ? "选新颜色：" : hint }));
   if (activeColor && colors.includes(activeColor)) {
     box.appendChild(palettePicker(nc => { push(); const o = curOf(key); o.colors = Object.assign({}, o.colors || {});
-      if (nc.toLowerCase() === activeColor) delete o.colors[activeColor]; else o.colors[activeColor] = nc.toLowerCase();
-      afterEdit(); }));
-    if (map[activeColor]) {
-      const b = document.createElement("button"); b.textContent = "恢复原色"; b.style.marginTop = "4px";
-      b.onclick = () => { push(); delete curOf(key).colors[activeColor]; afterEdit(); }; box.appendChild(b);
-    }
+      if (nc.toLowerCase() === activeColor) delete o.colors[activeColor]; else o.colors[activeColor] = nc.toLowerCase(); afterEdit(); }));
+    if (map[activeColor]) box.appendChild(el("button", { text: "恢复原色", style: "margin-top:4px", onclick: () => { push(); delete curOf(key).colors[activeColor]; afterEdit(); } }));
   }
 }
-function parentRect(it) {                             // the plot area a text belongs to, or the whole page
+function parentRect(it) {
   const a = Object.values(items).find(x => x.kind === "axes" && it.key.startsWith(x.prefix));
   const bg = a && svg.getElementById(a.own + "_bg");
   const b = (bg || svg).getBoundingClientRect();
   return { l: b.left, t: b.top, r: b.right, b: b.bottom };
 }
-function nudgePx(key, dxPx, dyPx) {                   // move an item by screen pixels
-  const it = items[key], k = pxToMm(), c = curOf(key);
-  if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = num(c, "dx_mm", 0) + dxPx * k;
-  if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = num(c, "dy_mm", 0) - dyPx * k;
+function moveMm(key, dx, dy) {                        // move an item by mm (a shape moves its own coordinates)
+  const it = items[key], c = curOf(key);
+  if (it.kind === "shape") { c.dx_mm = num(c, "dx_mm", 0) + dx; c.dy_mm = num(c, "dy_mm", 0) + dy; bake(c); return; }
+  if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = num(c, "dx_mm", 0) + dx;
+  if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = num(c, "dy_mm", 0) + dy;
 }
 function alignSel(mode) {
   const ks = [...multi].filter(k => MOVABLE.has(items[k].kind) && items[k].kind !== "ticks");
   const rs = ks.map(k => [k, rectOf(k)]).filter(x => x[1]);
   if (rs.length < 2) return;
   push();
-  const L = Math.min(...rs.map(x => x[1].l)), R = Math.max(...rs.map(x => x[1].r));
-  const T = Math.min(...rs.map(x => x[1].t)), B = Math.max(...rs.map(x => x[1].b));
-  const ref = rectOf(sel.key) || rs[0][1];
+  const k = pxToMm(), L = Math.min(...rs.map(x => x[1].l)), R = Math.max(...rs.map(x => x[1].r));
+  const T = Math.min(...rs.map(x => x[1].t)), B = Math.max(...rs.map(x => x[1].b)), ref = rectOf(sel.key) || rs[0][1];
   if (mode === "hdist" || mode === "vdist") {
     const h = mode === "hdist", sorted = rs.slice().sort((a, b) => h ? a[1].l - b[1].l : a[1].t - b[1].t);
     const total = sorted.reduce((s, x) => s + (h ? x[1].r - x[1].l : x[1].b - x[1].t), 0);
     const gap = ((h ? R - L : B - T) - total) / (sorted.length - 1);
     let pos = h ? L : T;
-    for (const [k, r] of sorted) { nudgePx(k, h ? pos - r.l : 0, h ? 0 : pos - r.t); pos += (h ? r.r - r.l : r.b - r.t) + gap; }
-  } else for (const [k, r] of rs) {
+    for (const [key, r] of sorted) { moveMm(key, h ? (pos - r.l) * k : 0, h ? 0 : -(pos - r.t) * k); pos += (h ? r.r - r.l : r.b - r.t) + gap; }
+  } else for (const [key, r] of rs) {
     const cx = (r.l + r.r) / 2, cy = (r.t + r.b) / 2;
     const d = { left: [ref.l - r.l, 0], hcenter: [(ref.l + ref.r) / 2 - cx, 0], right: [ref.r - r.r, 0],
                 top: [0, ref.t - r.t], vcenter: [0, (ref.t + ref.b) / 2 - cy], bottom: [0, ref.b - r.b] }[mode];
-    nudgePx(k, d[0], d[1]);
+    moveMm(key, d[0] * k, -d[1] * k);
   }
   afterEdit();
+}
+function shapeProps(it, c) {
+  const a = c.add, set = (k, v) => { a[k] = v; };
+  const g = section(SHAPES[a.type] + "：位置（mm，从左下角起）");
+  if (a.type === "arrow" || a.type === "line") {
+    pairFields(g, "起点 x / y", [a.x0_mm, v => set("x0_mm", v)], [a.y0_mm, v => set("y0_mm", v)]);
+    pairFields(g, "终点 x / y", [a.x1_mm, v => set("x1_mm", v)], [a.y1_mm, v => set("y1_mm", v)]);
+  } else if (a.type === "box") {
+    pairFields(g, "左下 x / y", [a.x_mm, v => set("x_mm", v)], [a.y_mm, v => set("y_mm", v)]);
+    pairFields(g, "宽 / 高", [a.w_mm, v => set("w_mm", v)], [a.h_mm, v => set("h_mm", v)]);
+    numField(g, "圆角", num(a, "radius_mm", 1), 0.5, v => set("radius_mm", v), 1);
+  } else if (a.type === "bracket") {
+    pairFields(g, "左端 / 右端 x", [a.x0_mm, v => set("x0_mm", v)], [a.x1_mm, v => set("x1_mm", v)]);
+    pairFields(g, "横杠 y / 腿长", [a.y_mm, v => set("y_mm", v)], [num(a, "h_mm", 1.5), v => set("h_mm", v)]);
+    const t = section("标注");
+    textField(t, "文字", a.text ?? "*", v => set("text", v));
+    btnRow(t, "常用", ["*", "**", "***", "n.s."].map(s => [s, a.text === s, () => { push(); a.text = s; afterEdit(); }]));
+    numField(t, "字号 pt", num(a, "size_pt", 7) * num(c, "size", 1), 0.5, v => { a.size_pt = v; delete c.size; }, 1);
+    btnRow(t, "样式", [["B", c.weight === "bold", () => { push(); c.weight = c.weight === "bold" ? "normal" : "bold"; afterEdit(); }, "加粗", "font-weight:700"]]);
+  }
+  const s = section("线条");
+  numField(s, "线宽 pt", num(a, "lw", 0.8), 0.1, v => set("lw", Math.max(0.1, v)));
+  btnRow(s, "线型", [["实线", (a.ls || "-") === "-", () => { push(); a.ls = "-"; afterEdit(); }], ["虚线", a.ls === "--", () => { push(); a.ls = "--"; afterEdit(); }]]);
+  if (a.type === "arrow" || a.type === "line") {
+    btnRow(s, "箭头", [["无", (a.head || "-") === "-", () => { push(); a.head = "-"; afterEdit(); }],
+                       ["实心 ▶", a.head === "-|>", () => { push(); a.head = "-|>"; afterEdit(); }],
+                       ["线形 >", a.head === "->", () => { push(); a.head = "->"; afterEdit(); }],
+                       ["双向", a.head === "<|-|>", () => { push(); a.head = "<|-|>"; afterEdit(); }]]);
+    if ((a.head || "-") !== "-") numField(s, "箭头大小", num(a, "head_size", 6), 1, v => set("head_size", v), 0);
+  }
+  const cl = section("颜色"); cl.style.display = "block";
+  cl.appendChild(el("div", { class: "swatches" }, [swatch(a.color || "#1b1b1b", { title: "线条颜色" })]));
+  cl.appendChild(palettePicker(nc => { push(); a.color = nc.toLowerCase(); afterEdit(); }));
+  if (a.type === "box") {
+    const f = section("填充"); f.style.display = "block";
+    f.appendChild(el("div", { class: "swatches" }, [swatch(a.fill || "none", { title: "填充" })]));
+    f.appendChild(palettePicker(nc => { push(); a.fill = nc === "none" ? "none" : nc.toLowerCase(); afterEdit(); }, true));
+    const r = el("input", { type: "range", min: 0.05, max: 1, step: 0.05 }); r.value = num(c, "alpha", 1);
+    r.onchange = () => { push(); if (+r.value === 1) delete c.alpha; else c.alpha = +r.value; afterEdit(false); };
+    const g2 = el("div", { class: "prop", style: "margin-top:6px" }); g2.append(el("label", { text: "不透明度" }), r); f.appendChild(g2);
+  }
 }
 function drawProps() {
   const P = $("props"); P.innerHTML = "";
   if (multi.size > 1) {
-    const h = document.createElement("h3"); h.textContent = `已选 ${multi.size} 个对象`; P.appendChild(h);
-    const n = document.createElement("p"); n.className = "hint"; n.style.margin = "0 0 6px";
-    n.textContent = "一起拖动或用方向键移动。对齐以红框（最后选中的）为准。"; P.appendChild(n);
+    P.appendChild(el("div", { class: "title", text: `已选 ${multi.size} 个对象` }));
+    P.appendChild(el("div", { class: "note", text: "可一起拖动、方向键移动。对齐以红框为准。" }));
     const b = section("对齐与分布");
-    btnRow(b, "水平", [["左", 0, () => alignSel("left")], ["中", 0, () => alignSel("hcenter")], ["右", 0, () => alignSel("right")],
-                     ["等距", 0, () => alignSel("hdist"), "水平方向等间距"]]);
-    btnRow(b, "垂直", [["上", 0, () => alignSel("top")], ["中", 0, () => alignSel("vcenter")], ["下", 0, () => alignSel("bottom")],
-                     ["等距", 0, () => alignSel("vdist"), "垂直方向等间距"]]);
+    btnRow(b, "水平", [["左", 0, () => alignSel("left")], ["中", 0, () => alignSel("hcenter")], ["右", 0, () => alignSel("right")], ["等距", 0, () => alignSel("hdist")]]);
+    btnRow(b, "垂直", [["上", 0, () => alignSel("top")], ["中", 0, () => alignSel("vcenter")], ["下", 0, () => alignSel("bottom")], ["等距", 0, () => alignSel("vdist")]]);
     const v = section("批量");
     btnRow(v, "显示", [["全部隐藏", 0, () => { push(); multi.forEach(k => curOf(k).visible = false); afterEdit(); }],
                       ["全部显示", 0, () => { push(); multi.forEach(k => delete curOf(k).visible); afterEdit(); }]]);
     const tx = [...multi].filter(k => SIZED.has(items[k].kind));
-    if (tx.length) {
-      btnRow(v, "字号", [["A−", 0, () => { push(); tx.forEach(k => curOf(k).size = num(cur[k], "size", 1) / 1.05); afterEdit(); }],
+    if (tx.length)
+      btnRow(v, "文字", [["A−", 0, () => { push(); tx.forEach(k => curOf(k).size = num(cur[k], "size", 1) / 1.05); afterEdit(); }],
                         ["A+", 0, () => { push(); tx.forEach(k => curOf(k).size = num(cur[k], "size", 1) * 1.05); afterEdit(); }],
-                        ["B", 0, () => { push(); const on = tx.every(k => cur[k].weight === "bold");
-                                          tx.forEach(k => curOf(k).weight = on ? "normal" : "bold"); afterEdit(); }, "加粗/取消", "font-weight:700"]]);
-    }
+                        ["B", 0, () => { push(); const on = tx.every(k => cur[k].weight === "bold"); tx.forEach(k => curOf(k).weight = on ? "normal" : "bold"); afterEdit(); }, "加粗/取消", "font-weight:700"]]);
     drawLog(); return;
   }
   const it = sel && items[sel.key];
-  if (!it || it.kind === "figure") {                                  // nothing selected: the canvas
+  if (!it || it.kind === "figure") {
     const fi = items["fig/figure"];
-    const h = document.createElement("h3"); h.textContent = "画布"; P.appendChild(h);
+    P.appendChild(el("div", { class: "title", text: "画布" }));
     if (fi) {
-      const c = curOf(fi.key);
-      const bg = section("画布背景"); bg.style.display = "block";
-      const row = document.createElement("div"); row.className = "swatches";
-      row.appendChild(swatch(c.background || fi.background || "#ffffff", { title: "当前背景" })); bg.appendChild(row);
+      const c = curOf(fi.key), bg = section("画布背景"); bg.style.display = "block";
+      bg.appendChild(el("div", { class: "swatches" }, [swatch(c.background || fi.background || "#ffffff", { title: "当前背景" })]));
       bg.appendChild(palettePicker(nc => { push(); const o = curOf(fi.key);
         if (nc.toLowerCase() === (fi.background || "#ffffff")) delete o.background; else o.background = nc.toLowerCase(); afterEdit(); }));
-      colorSection("全图配色（替换整张图里的某个颜色）", fi.key, meta.palette || [], "点一个颜色，再选新颜色，整张图里用到它的地方一起改。");
+      colorSection("全图配色", fi.key, meta.palette || [], "点一个颜色，再选新颜色：整张图里用到它的地方一起改。");
     }
-    const n = document.createElement("p"); n.className = "hint";
-    n.innerHTML = "在图上或左侧图层里选中对象后，这里显示它的属性。Shift+点击可以多选，再做对齐。<br>上方“点击可选中”决定在图上点击会选中哪类对象；左侧图层不受限制。";
-    P.appendChild(n);
+    P.appendChild(el("div", { class: "note", text: "选中对象后在这里改属性。Shift+点击多选。" }));
     drawLog(); return;
   }
   const c = curOf(it.key);
-  const h = document.createElement("h3"); h.textContent = (it.added ? "插入的文字" : KINDS[it.kind]) + " · " + dispName(it); P.appendChild(h);
-  const k = document.createElement("div"); k.className = "kv"; k.textContent = it.key; P.appendChild(k);
-  const vis = document.createElement("label"); vis.style.display = "block"; vis.style.margin = "6px 0";
-  vis.innerHTML = `<input type="checkbox" ${c.visible === false ? "" : "checked"}> 显示`;
+  P.appendChild(el("div", { class: "title", text: (it.kind === "shape" ? "插入的" + (SHAPES[it.shape] || "形状") : it.added ? "插入的文字" : KINDS[it.kind]) + (it.kind === "shape" ? "" : "：" + dispName(it)) }));
+  P.appendChild(el("div", { class: "kv", text: it.key }));
+  const vis = el("label", { style: "display:block;margin:8px 0", html: `<input type="checkbox" ${c.visible === false ? "" : "checked"}> 显示` });
   vis.querySelector("input").onchange = e => { push(); if (e.target.checked) delete c.visible; else c.visible = false; afterEdit(); };
   P.appendChild(vis);
-  if (MOVABLE.has(it.kind)) {
-    const b = section("位置与尺寸（mm）");
-    if (!(it.kind === "ticks" && it.axis === "x")) numField(b, "右移", num(c, "dx_mm", 0), 0.1, v => c.dx_mm = v);
-    if (!(it.kind === "ticks" && it.axis === "y")) numField(b, "上移", num(c, "dy_mm", 0), 0.1, v => c.dy_mm = v);
+  const pb = el("button", { text: painter ? "关闭格式刷" : "格式刷：取这个样式", onclick: togglePainter }); if (painter) pb.className = "on";
+  P.appendChild(el("div", { class: "btns" }, [pb]));
+  if (it.kind === "shape") {
+    shapeProps(it, c);
+  } else {
+    if (MOVABLE.has(it.kind)) {
+      const b = section("位置与尺寸（mm）");
+      if (!(it.kind === "ticks" && it.axis === "x")) numField(b, "右移", num(c, "dx_mm", 0), 0.1, v => c.dx_mm = v);
+      if (!(it.kind === "ticks" && it.axis === "y")) numField(b, "上移", num(c, "dy_mm", 0), 0.1, v => c.dy_mm = v);
+      if (it.kind === "axes") { numField(b, "宽 增减", num(c, "dw_mm", 0), 0.5, v => c.dw_mm = v); numField(b, "高 增减", num(c, "dh_mm", 0), 0.5, v => c.dh_mm = v); }
+      if (TEXTY.has(it.kind) || it.kind === "legend")
+        btnRow(b, "居中于", [["图表水平", 0, () => { const r = rectOf(it.key), p = parentRect(it); push(); moveMm(it.key, ((p.l + p.r) / 2 - (r.l + r.r) / 2) * pxToMm(), 0); afterEdit(); }],
+                            ["图表垂直", 0, () => { const r = rectOf(it.key), p = parentRect(it); push(); moveMm(it.key, 0, -((p.t + p.b) / 2 - (r.t + r.b) / 2) * pxToMm()); afterEdit(); }]]);
+    }
+    if (SIZED.has(it.kind)) {
+      const b = section("文字");
+      if (TEXTY.has(it.kind))
+        textField(b, "内容", textOf(it, c), v => { if (it.added) { c.add = Object.assign({}, c.add, { text: v }); return; }
+          if (v === textFromKey(it.key)) delete c.text; else c.text = v; });
+      if (sel.member) {
+        const g = svg.getElementById(sel.member), m = g ? g.dataset.member : "";
+        textField(b, "此项文字", (c.rename || {})[m] !== undefined ? c.rename[m] : m, v => {
+          c.rename = Object.assign({}, c.rename || {}); if (v === m) delete c.rename[m]; else c.rename[m] = v; });
+      } else if (it.kind === "ticks" || it.kind === "legend") b.appendChild(el("div", { class: "note", style: "grid-column:1/3", text: "改单项文字：在图上点那一项。" }));
+      const pt = fontPt(it, c);
+      if (pt) numField(b, "字号 pt", pt, 0.5, v => { const base = it.added ? num(c.add, "size_pt", 7) : it.fontsize; c.size = v / base; }, 1);
+      else numField(b, "字号 ×", num(c, "size", 1), 0.05, v => c.size = v || 1);
+      const bold = c.weight === "bold" || (!c.weight && it.weight === "bold"), ital = c.style === "italic";
+      const sb = [["B", bold, () => { push(); c.weight = bold ? "normal" : "bold"; afterEdit(); }, "加粗", "font-weight:700"]];
+      if (TEXTY.has(it.kind)) sb.push(["I", ital, () => { push(); c.style = ital ? "normal" : "italic"; afterEdit(); }, "斜体", "font-style:italic"]);
+      btnRow(b, "样式", sb);
+      if (TEXTY.has(it.kind)) {
+        const ha = c.ha || it.ha || "left";
+        btnRow(b, "对齐", [["左", ha === "left", () => { push(); c.ha = "left"; afterEdit(); }], ["中", ha === "center", () => { push(); c.ha = "center"; afterEdit(); }],
+                           ["右", ha === "right", () => { push(); c.ha = "right"; afterEdit(); }]]);
+      }
+      if (TEXTY.has(it.kind) || it.kind === "ticks") {
+        const r0 = num(c, "rotation", it.kind === "ticks" ? 0 : (it.rotation || 0));
+        numField(b, "旋转 °", r0, 15, v => c.rotation = v, 0).title = "逆时针为正";
+        btnRow(b, "", [["⟲ 90°", 0, () => { push(); c.rotation = (r0 + 90) % 360; afterEdit(); }], ["⟳ 90°", 0, () => { push(); c.rotation = (r0 + 270) % 360; afterEdit(); }],
+                       ["0°", 0, () => { push(); c.rotation = 0; afterEdit(); }]]);
+      }
+    }
+    if (it.kind === "scatter" || LW.has(it.kind) || ALPHA.has(it.kind)) {
+      const b = section(it.kind === "axes" ? "边框" : it.kind === "scatter" ? "点与线" : "线条与透明度");
+      if (it.kind === "scatter") numField(b, "点面积 ×", num(c, "scale", 1), 0.1, v => c.scale = v || 1);
+      if (LW.has(it.kind)) numField(b, it.kind === "axes" ? "边框线宽 ×" : "线宽 ×", num(c, "lw", 1), 0.1, v => c.lw = v || 1);
+      if (ALPHA.has(it.kind)) {
+        const r = el("input", { type: "range", min: 0.05, max: 1, step: 0.05 }); r.value = num(c, "alpha", 1);
+        r.onchange = () => { push(); if (+r.value === 1) delete c.alpha; else c.alpha = +r.value; afterEdit(false); };
+        b.append(el("label", { text: "不透明度" }), r);
+      }
+    }
     if (it.kind === "axes") {
-      numField(b, "宽 增减", num(c, "dw_mm", 0), 0.5, v => c.dw_mm = v);
-      numField(b, "高 增减", num(c, "dh_mm", 0), 0.5, v => c.dh_mm = v);
+      const b = section("图表内部背景"); b.style.display = "block";
+      b.appendChild(el("div", { class: "swatches" }, [swatch(c.background || (it.background === "none" ? "#ffffff" : it.background), { title: "当前背景" })]));
+      b.appendChild(palettePicker(nc => { push(); c.background = nc.toLowerCase(); afterEdit(); }));
+      const g = el("div", { class: "prop", style: "margin-top:6px" });
+      const r = el("input", { type: "range", min: 0, max: 1, step: 0.05 }); r.value = num(c, "background_alpha", 1);
+      r.onchange = () => { push(); if (+r.value === 1) delete c.background_alpha; else c.background_alpha = +r.value; afterEdit(false); };
+      g.append(el("label", { text: "不透明度" }), r); b.appendChild(g);
     }
-    if (TEXTY.has(it.kind) || it.kind === "legend")
-      btnRow(b, "居中于", [["图表水平", 0, () => { const r = rectOf(it.key), p = parentRect(it); push();
-                                              nudgePx(it.key, (p.l + p.r) / 2 - (r.l + r.r) / 2, 0); afterEdit(); }, "移到所在图表（或整页）的水平中线"],
-                          ["图表垂直", 0, () => { const r = rectOf(it.key), p = parentRect(it); push();
-                                              nudgePx(it.key, 0, (p.t + p.b) / 2 - (r.t + r.b) / 2); afterEdit(); }, "移到所在图表（或整页）的垂直中线"]]);
+    colorSection("颜色", it.key, it.added ? [((c.add || {}).color || "#1b1b1b")] : it.colors, "点一个颜色再选新颜色；只换这一种颜色，其余不变。");
   }
-  if (SIZED.has(it.kind)) {
-    const b = section("文字");
-    if (TEXTY.has(it.kind))
-      textField(b, "内容", textOf(it, c), v => {
-        if (it.added) { c.add = Object.assign({}, c.add, { text: v }); return; }
-        if (v === textFromKey(it.key)) delete c.text; else c.text = v; });
-    if (sel.member) {
-      const el = svg.getElementById(sel.member), m = el ? el.dataset.member : "";
-      textField(b, "此项文字", (c.rename || {})[m] !== undefined ? c.rename[m] : m, v => {
-        c.rename = Object.assign({}, c.rename || {}); if (v === m) delete c.rename[m]; else c.rename[m] = v; });
-    } else if (it.kind === "ticks" || it.kind === "legend") {
-      const l = document.createElement("span"); l.className = "hint"; l.style.gridColumn = "1 / 3";
-      l.textContent = "要改某一项的文字：在图上点那一项。"; b.appendChild(l);
-    }
-    numField(b, "字号 ×", num(c, "size", 1), 0.05, v => c.size = v || 1);
-    const bold = c.weight === "bold", ital = c.style === "italic";
-    const styleBtns = [["B", bold, () => { push(); c.weight = bold ? "normal" : "bold"; afterEdit(); }, "加粗", "font-weight:700"]];
-    if (TEXTY.has(it.kind)) styleBtns.push(["I", ital, () => { push(); c.style = ital ? "normal" : "italic"; afterEdit(); }, "斜体", "font-style:italic"]);
-    btnRow(b, "样式", styleBtns);
-    if (TEXTY.has(it.kind)) {
-      const ha = c.ha || it.ha || "left";
-      btnRow(b, "对齐", [["左", ha === "left", () => { push(); c.ha = "left"; afterEdit(); }, "左对齐（多行文字各行也左对齐）"],
-                       ["中", ha === "center", () => { push(); c.ha = "center"; afterEdit(); }, "居中"],
-                       ["右", ha === "right", () => { push(); c.ha = "right"; afterEdit(); }, "右对齐"]]);
-    }
-    if (TEXTY.has(it.kind) || it.kind === "ticks") {
-      const r0 = num(c, "rotation", it.kind === "ticks" ? 0 : (it.rotation || 0));
-      const rf = numField(b, "旋转 °", r0, 15, v => c.rotation = v);
-      rf.title = "逆时针为正";
-      btnRow(b, "", [["⟲ 90°", 0, () => { push(); c.rotation = (r0 + 90) % 360; afterEdit(); }, "逆时针转 90°"],
-                    ["⟳ 90°", 0, () => { push(); c.rotation = (r0 + 270) % 360; afterEdit(); }, "顺时针转 90°"],
-                    ["0°", 0, () => { push(); c.rotation = 0; afterEdit(); }, "转正"]]);
-    }
-  }
-  if (it.kind === "scatter" || LW.has(it.kind) || ALPHA.has(it.kind)) {
-    const b = section(it.kind === "axes" ? "边框" : it.kind === "scatter" ? "点与线" : "线条与透明度");
-    if (it.kind === "scatter") numField(b, "点面积 ×", num(c, "scale", 1), 0.1, v => c.scale = v || 1);
-    if (LW.has(it.kind)) numField(b, it.kind === "axes" ? "边框线宽 ×" : "线宽 ×", num(c, "lw", 1), 0.1, v => c.lw = v || 1);
-    if (ALPHA.has(it.kind)) {
-      const l = document.createElement("label"); l.textContent = "不透明度";
-      const r = document.createElement("input"); r.type = "range"; r.min = 0.05; r.max = 1; r.step = 0.05; r.value = num(c, "alpha", 1);
-      r.onchange = () => { push(); if (+r.value === 1) delete c.alpha; else c.alpha = +r.value; afterEdit(false); };
-      b.append(l, r);
-    }
-  }
-  if (it.kind === "axes") {
-    const b = section("图表内部背景"); b.style.display = "block";
-    const row = document.createElement("div"); row.className = "swatches";
-    row.appendChild(swatch(c.background || (it.background === "none" ? "#ffffff" : it.background), { title: "当前背景" }));
-    b.appendChild(row);
-    b.appendChild(palettePicker(nc => { push(); c.background = nc.toLowerCase(); afterEdit(); }));
-    const g = document.createElement("div"); g.className = "prop"; g.style.marginTop = "6px";
-    const l = document.createElement("label"); l.textContent = "背景不透明度";
-    const r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 1; r.step = 0.05; r.value = num(c, "background_alpha", 1);
-    r.onchange = () => { push(); if (+r.value === 1) delete c.background_alpha; else c.background_alpha = +r.value; afterEdit(false); };
-    g.append(l, r); b.appendChild(g);
-    const n = document.createElement("div"); n.className = "hint"; n.style.marginTop = "4px";
-    n.textContent = "图表里的色带、柱子等：上方勾选“形状/色块”或“误差线/色带”后直接点它们，改颜色和不透明度。"; b.appendChild(n);
-  }
-  colorSection("颜色", it.key, it.added ? [((c.add || {}).color || "#1b1b1b")] : it.colors,
-               "点一个颜色再选新颜色；只改这个对象里用到该颜色的部分，其余颜色保持不变。");
-  const b = document.createElement("div"); b.style.marginTop = "12px"; b.className = "btns";
-  const rs = document.createElement("button"); rs.textContent = "还原此对象";
-  rs.onclick = () => { push(); if (it.added) { const a = c.add; cur[it.key] = { add: a }; } else cur[it.key] = {}; afterEdit(); };
-  b.appendChild(rs);
-  if (it.added) {
-    const del = document.createElement("button"); del.textContent = "删除这段文字";
-    del.onclick = () => { push(); delete cur[it.key]; select(null); afterEdit(); };
-    b.appendChild(del);
-  }
+  const b = el("div", { class: "btns", style: "margin-top:14px" });
+  b.appendChild(el("button", { text: "还原此对象", onclick: () => { push(); if (it.added) cur[it.key] = { add: clone((stored[it.key] || cur[it.key]).add) }; else cur[it.key] = {}; syncAdded(); afterEdit(); } }));
+  if (it.added) b.appendChild(el("button", { class: "danger", text: "删除", onclick: () => { push(); delete cur[it.key]; select(null); syncAdded(); afterEdit(); } }));
   P.appendChild(b);
   drawLog();
 }
 function drawLog() {
-  const h = document.createElement("h3"); h.textContent = "出图日志"; $("props").appendChild(h);
-  const p = document.createElement("pre"); p.id = "log"; p.textContent = drawLog.text || "—"; $("props").appendChild(p);
+  $("props").appendChild(el("h3", { text: "出图日志" }));
+  $("props").appendChild(el("pre", { id: "log", text: drawLog.text || "—" }));
 }
+
+// ---- consistency across figures ------------------------------------------------------------------------------------
+async function openConsistency() {
+  const D = $("dlg"); D.innerHTML = "<h2>全稿一致性</h2><div class='note'>检查中…</div>"; $("modal").classList.add("open");
+  const r = await fetch("/consistency?" + Date.now()).then(x => x.json());
+  D.innerHTML = "";
+  D.appendChild(el("div", { style: "display:flex;align-items:center;gap:10px" }, [el("h2", { text: "全稿一致性" }),
+    el("button", { text: "关闭", style: "margin-left:auto", onclick: () => $("modal").classList.remove("open") })]));
+  D.appendChild(el("div", { class: "note", text: "同一类文字在所有图里应当同字号、同粗细。下表列出与主流不一致的地方，红色为不一致的值。" }));
+  if (r.missing.length) D.appendChild(el("div", { class: "note", style: "color:var(--red);font-weight:700", text: "这些图需要重新出图一次才能参与检查：" + r.missing.join("、") }));
+  for (const ro of r.roles) {
+    const info = ro.role === "text";
+    const h = el("h4", { html: `${esc(ro.name)}<span style="font-weight:400">　主流 ${ro.mode} pt${ro.weight === "bold" ? "，粗体" : ""}　共 ${ro.n} 处　</span>` +
+                                (info ? `<span style="font-weight:400">（按需不同，仅供参考）</span>` : ro.odd.length ? `<span style="color:var(--red)">${ro.odd.length} 处不一致</span>` : `<span class="ok">一致</span>`) });
+    D.appendChild(h);
+    D.appendChild(el("div", { class: "note", text: "字号分布：" + ro.sizes.slice().sort((a, b) => b[1] - a[1]).map(([s, n]) => `${s} pt × ${n}`).join("，") }));
+    if (!ro.odd.length) continue;
+    const inp = el("input", { type: "number", step: 0.5, style: "width:70px" }); inp.value = ro.mode;
+    const wsel = el("select", { html: `<option value="">粗细不变</option><option value="bold">统一粗体</option><option value="normal">统一常规</option>` });
+    if (ro.role === "letter" || ro.role === "title") wsel.value = ro.weight;
+    const go = el("button", { class: "primary", text: `把这 ${ro.odd.length} 处统一`, onclick: async () => {
+      if (dirtyKeys().length && !confirm("当前图有未保存的调整，统一后会重新载入并放弃它们。继续？")) return;
+      go.disabled = true; go.textContent = "重新出图中…（每张图约半分钟）";
+      const res = await fetch("/unify", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows: ro.odd, size: +inp.value, weight: wsel.value || null }) }).then(x => x.json());
+      drawLog.text = res.log; await loadFigs(); await load(); updateButtons(); openConsistency();
+    } });
+    h.append(el("span", { text: "统一为" }), inp, el("span", { text: "pt" }), wsel, go);
+    const rows = ro.odd.map(x => `<tr><td>${esc(x.label)}</td><td>${esc(shortKey(x.key))}</td><td class="${Math.abs(x.size - ro.mode) > 0.05 ? "bad" : ""}">${x.size}</td>` +
+      `<td class="${x.weight !== ro.weight && (ro.role === "letter" || ro.role === "title") ? "bad" : ""}">${x.weight === "bold" ? "粗体" : "常规"}</td>` +
+      `<td><button data-fig="${esc(x.fig)}" data-key="${esc(x.key)}">定位</button></td></tr>`).join("");
+    const t = el("table", { class: "grid", html: `<tr><th>图</th><th>文字</th><th>字号 pt</th><th>粗细</th><th></th></tr>${rows}` });
+    t.querySelectorAll("button[data-fig]").forEach(b => b.onclick = () => locate(b.dataset.fig, b.dataset.key));
+    D.appendChild(t);
+  }
+}
+function shortKey(k) {
+  if (k.includes("/text/")) return k.replace(/^.*?\/text\//, "").replace(/#\d+$/, "").replace(/\n/g, " ");
+  if (k.endsWith("ticks")) return (k.endsWith("xticks") ? "横轴" : "纵轴") + "刻度";
+  if (k.includes("/legend/")) return "图例";
+  return k;
+}
+async function locate(fig, key) {
+  $("modal").classList.remove("open");
+  if (fig !== figInfo.current) {
+    if (dirtyKeys().length && !confirm("有未保存的调整，切换会放弃它们。继续？")) return;
+    load.fitted = false; openGroups = new Set();
+    await fetch("/open", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fig }) });
+    await loadFigs(); await load(); updateButtons();
+  }
+  if (items[key]) select({ key, member: null });
+}
+$("consist").onclick = openConsistency;
+$("modal").onclick = e => { if (e.target === $("modal")) $("modal").classList.remove("open"); };
 
 // ---- edit history --------------------------------------------------------------------------------------------------
 function normObj(o) {
@@ -808,13 +1016,13 @@ const sig = o => { const r = normObj(o); return JSON.stringify(Object.keys(r).so
 const dirty = k => sig(cur[k]) !== sig(stored[k]);
 const dirtyKeys = () => [...new Set([...Object.keys(cur), ...Object.keys(stored)])].filter(dirty);
 function push() { undoS.push(clone(cur)); if (undoS.length > 300) undoS.shift(); redoS = []; }
-function syncAdded() { for (const k of Object.keys(cur)) if (k.startsWith("fig/added/") && !items[k]) addedPreview(k); }
 function undo() { if (!undoS.length) return; redoS.push(clone(cur)); cur = undoS.pop(); syncAdded(); afterEdit(); }
 function redo() { if (!redoS.length) return; undoS.push(clone(cur)); cur = redoS.pop(); syncAdded(); afterEdit(); }
 function updateButtons() {
   const any = dirtyKeys().length;
   $("save").disabled = !any; $("discard").disabled = !any;
   $("undo").disabled = !undoS.length; $("redo").disabled = !redoS.length;
+  if (painter) return;
   if (showOverlap && drawBoxes.nOvl !== undefined) setStatus(`${drawBoxes.nOvl} 处文字重叠` + (any ? `，${any} 处未保存` : ""), drawBoxes.nOvl > 0);
   else if (any) setStatus(`${any} 处未保存`);
   else if (/未保存/.test($("status").textContent)) setStatus("已是最新");
@@ -822,40 +1030,39 @@ function updateButtons() {
 
 // ---- mouse and keyboard --------------------------------------------------------------------------------------------
 const pxToMm = () => PT_MM / svg.getScreenCTM().a;
-function startDrag(e, mode) {
+function startDrag(e, mode, onHandle) {
   if (!sel) return;
   push();
-  const keys = mode === "resize" ? [sel.key] : [...multi].filter(k => MOVABLE.has(items[k].kind));
+  const keys = mode === "handle" ? [sel.key] : [...multi].filter(k => MOVABLE.has(items[k].kind));
   const start = Object.fromEntries(keys.map(k => { const c = curOf(k);
-    return [k, { dx: num(c, "dx_mm", 0), dy: num(c, "dy_mm", 0), dw: num(c, "dw_mm", 0), dh: num(c, "dh_mm", 0) }]; }));
-  const moving = new Set(keys);
-  const r0 = rectOf(sel.key);
-  const cand = { x: [], y: [] };                     // snap lines from everything else
+    return [k, { dx: num(c, "dx_mm", 0), dy: num(c, "dy_mm", 0), dw: num(c, "dw_mm", 0), dh: num(c, "dh_mm", 0), add: clone(c.add || {}) }]; }));
+  const moving = new Set(keys), r0 = rectOf(sel.key), cand = { x: [], y: [] };
   if (mode === "move" && r0) {
     for (const it of Object.values(items)) {
-      if (moving.has(it.key) || !(TEXTY.has(it.kind) || it.kind === "legend" || it.kind === "axes")) continue;
-      const el = it.kind === "axes" ? svg.getElementById(it.own + "_bg") : null;
-      const b = el ? el.getBoundingClientRect() : rectOf(it.key); if (!b) continue;
-      const r = el ? { l: b.left, t: b.top, r: b.right, b: b.bottom } : b;
+      if (moving.has(it.key) || !(TEXTY.has(it.kind) || it.kind === "legend" || it.kind === "axes" || it.kind === "shape")) continue;
+      const bg = it.kind === "axes" ? svg.getElementById(it.own + "_bg") : null;
+      const b = bg ? bg.getBoundingClientRect() : rectOf(it.key); if (!b) continue;
+      const r = bg ? { l: b.left, t: b.top, r: b.right, b: b.bottom } : b;
       cand.x.push(r.l, (r.l + r.r) / 2, r.r); cand.y.push(r.t, (r.t + r.b) / 2, r.b);
     }
     const s = svg.getBoundingClientRect(); cand.x.push((s.left + s.right) / 2); cand.y.push((s.top + s.bottom) / 2);
   }
-  drag = { mode, keys, start, x0: e.clientX, y0: e.clientY, r0, cand, moved: false };
+  drag = { mode, keys, start, x0: e.clientX, y0: e.clientY, r0, cand, moved: false, onHandle };
   stage.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation();
 }
-function snap(drag, dxPx, dyPx, off) {
-  if (off || !drag.r0) { showGuides([], []); return [dxPx, dyPx]; }
-  const r = drag.r0, xs = [r.l + dxPx, (r.l + r.r) / 2 + dxPx, r.r + dxPx], ys = [r.t + dyPx, (r.t + r.b) / 2 + dyPx, r.b + dyPx];
+function snap(d, dxPx, dyPx, off) {
+  if (off || !d.r0) { showGuides([], []); return [dxPx, dyPx]; }
+  const r = d.r0, xs = [r.l + dxPx, (r.l + r.r) / 2 + dxPx, r.r + dxPx], ys = [r.t + dyPx, (r.t + r.b) / 2 + dyPx, r.b + dyPx];
   let bx = null, by = null;
-  for (const x of xs) for (const c of drag.cand.x) if (Math.abs(c - x) < 5 && (!bx || Math.abs(c - x) < Math.abs(bx[0]))) bx = [c - x, c];
-  for (const y of ys) for (const c of drag.cand.y) if (Math.abs(c - y) < 5 && (!by || Math.abs(c - y) < Math.abs(by[0]))) by = [c - y, c];
+  for (const x of xs) for (const c of d.cand.x) if (Math.abs(c - x) < 5 && (!bx || Math.abs(c - x) < Math.abs(bx[0]))) bx = [c - x, c];
+  for (const y of ys) for (const c of d.cand.y) if (Math.abs(c - y) < 5 && (!by || Math.abs(c - y) < Math.abs(by[0]))) by = [c - y, c];
   showGuides(bx ? [bx[1]] : [], by ? [by[1]] : []);
   return [dxPx + (bx ? bx[0] : 0), dyPx + (by ? by[0] : 0)];
 }
 stage.addEventListener("pointerdown", e => {
   if (e.target.classList.contains("handle")) return;
   const p = pick(e);
+  if (painter) { if (p) paintOnto(p.key); return; }
   if (e.shiftKey) { if (p) select(p, true); return; }
   if (!(p && multi.has(p.key) && multi.size > 1)) select(p);
   else { sel = p; drawBoxes(); }
@@ -863,15 +1070,16 @@ stage.addEventListener("pointerdown", e => {
 });
 stage.addEventListener("pointermove", e => {
   if (drag) {
-    const k = pxToMm();
-    drag.moved = true;
-    if (drag.mode === "resize") {
-      const c = curOf(drag.keys[0]), st = drag.start[drag.keys[0]];
-      c.dw_mm = st.dw + (e.clientX - drag.x0) * k; c.dh_mm = st.dh + (e.clientY - drag.y0) * k;
+    const k = pxToMm(); drag.moved = true;
+    if (drag.mode === "handle") {
+      const key = drag.keys[0], st = drag.start[key], c = curOf(key), dx = (e.clientX - drag.x0) * k, dy = -(e.clientY - drag.y0) * k;
+      drag.onHandle(Object.keys(st.add).length ? st.add : st, dx, dy, c);
+      if (c.add) for (const kk of Object.keys(c.add)) if (typeof c.add[kk] === "number") c.add[kk] = +c.add[kk].toFixed(2);
     } else {
       const [dxp, dyp] = snap(drag, e.clientX - drag.x0, e.clientY - drag.y0, e.altKey);
       for (const key of drag.keys) {
         const it = items[key], c = curOf(key), st = drag.start[key];
+        if (it.kind === "shape") { c.add = clone(st.add); c.dx_mm = dxp * k; c.dy_mm = -dyp * k; continue; }
         if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = st.dx + dxp * k;
         if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = st.dy - dyp * k;
       }
@@ -885,8 +1093,18 @@ stage.addEventListener("pointerup", () => {
   if (!drag) return;
   showGuides([], []);
   if (!drag.moved) undoS.pop();
+  for (const key of drag.keys) {                       // a dragged shape keeps its new coordinates, not an offset
+    const it = items[key], c = cur[key];
+    if (it && it.kind === "shape" && c && c.add) bake(c);
+  }
   drag = null; afterEdit();
 });
+function bake(c) {
+  const a = c.add, dx = num(c, "dx_mm", 0), dy = num(c, "dy_mm", 0);
+  for (const k of ["x0_mm", "x1_mm", "x_mm"]) if (k in a) a[k] = +(a[k] + dx).toFixed(2);
+  for (const k of ["y0_mm", "y1_mm", "y_mm"]) if (k in a) a[k] = +(a[k] + dy).toFixed(2);
+  delete c.dx_mm; delete c.dy_mm;
+}
 function scaleSel(f) {
   const ks = multi.size ? [...multi] : sel ? [sel.key] : [];
   if (!ks.length) return;
@@ -897,6 +1115,7 @@ function scaleSel(f) {
     if (it.kind === "axes") { c.dw_mm = (it.w + num(c, "dw_mm", 0)) * f - it.w; c.dh_mm = (it.h + num(c, "dh_mm", 0)) * f - it.h; }
     else if (it.kind === "scatter") c.scale = num(c, "scale", 1) * f;
     else if (SIZED.has(it.kind)) c.size = num(c, "size", 1) * f;
+    else if (it.kind === "shape") { if (it.shape === "box") { c.add.w_mm = +(c.add.w_mm * f).toFixed(2); c.add.h_mm = +(c.add.h_mm * f).toFixed(2); } else c.add.lw = +(num(c.add, "lw", 0.8) * f).toFixed(2); }
     else if (LW.has(it.kind)) c.lw = num(c, "lw", 1) * f;
     else continue;
     any = true;
@@ -915,13 +1134,13 @@ document.addEventListener("keydown", e => {
   const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName);
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (!$("save").disabled) $("save").click(); return; }
   if (typing) return;
+  if (e.key === "Escape") { if ($("modal").classList.contains("open")) { $("modal").classList.remove("open"); return; } if (painter) { togglePainter(); return; } select(null); return; }
   if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) { redo(); e.preventDefault(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { undo(); e.preventDefault(); return; }
-  if (e.key === "Escape") { select(null); return; }
   if (!sel) return;
   if (e.key === "Delete" || e.key === "Backspace") {
     push(); for (const k of multi) { if (items[k].added) delete cur[k]; else curOf(k).visible = false; }
-    select(null); afterEdit(); e.preventDefault(); return;
+    select(null); syncAdded(); afterEdit(); e.preventDefault(); return;
   }
   if (e.key === "+" || e.key === "=") { scaleSel(1.05); e.preventDefault(); return; }
   if (e.key === "-" || e.key === "_") { scaleSel(1 / 1.05); e.preventDefault(); return; }
@@ -930,11 +1149,7 @@ document.addEventListener("keydown", e => {
   if (!d) return;
   const ks = [...multi].filter(k => MOVABLE.has(items[k].kind)); if (!ks.length) return;
   e.preventDefault(); push();
-  for (const key of ks) {
-    const it = items[key], c = curOf(key);
-    if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = num(c, "dx_mm", 0) + d[0];
-    if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = num(c, "dy_mm", 0) + d[1];
-  }
+  for (const key of ks) moveMm(key, d[0], d[1]);
   afterEdit(false);
 });
 
@@ -945,7 +1160,7 @@ async function post(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json());
   drawLog.text = r.log;
   const stale = (r.log.match(/tweaks: (\d+) entr(?:y|ies) match no artist/) || [])[1];
-  lastWarn = !r.log.startsWith("OK") ? "出图出错，见右侧日志" : stale ? `已出图；${stale} 处调整找不到对象（文字被脚本改过？），见日志` : "";
+  lastWarn = !r.log.startsWith("OK") ? "出图出错，见右侧日志" : stale ? `已出图；${stale} 处调整找不到对象，见日志` : "";
   await loadFigs(); await load();
   document.querySelectorAll("header button, header select").forEach(b => b.disabled = false);
   updateButtons(); drawProps();
@@ -958,8 +1173,8 @@ $("save").onclick = () => {
   post("/save", out);
 };
 $("undo").onclick = undo; $("redo").onclick = redo;
-$("discard").onclick = () => { push(); cur = clone(stored); afterEdit(); };
-$("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整（包括插入的文字）并重新出图？")) post("/reset_all", {}); };
+$("discard").onclick = () => { push(); cur = clone(stored); syncAdded(); afterEdit(); };
+$("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整（包括插入的文字和形状）并重新出图？")) post("/reset_all", {}); };
 $("figsel").onchange = async () => {
   if (dirtyKeys().length && !confirm("有未保存的调整，切换会放弃它们。继续？")) { $("figsel").value = figInfo.current; return; }
   sel = null; multi = new Set(); hover = null; load.fitted = false; openGroups = new Set(); setStatus("切换中…");

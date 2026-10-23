@@ -19,8 +19,13 @@ Adjustable, per kind (lengths in mm; size, scale and lw are factors; colours are
     ticks       the tick or category labels of one axis: dx_mm (y) / dy_mm (x), size, weight, rotation,
                 rename {old: new}, colors, visible
     legend      dx_mm, dy_mm, size, weight, rename, colors, visible
-    added text  "fig/added/<id>": {"add": {"text", "x_mm", "y_mm" (baseline-left from the bottom-left corner),
-                "size_pt", "color"}} plus any text setting; a text the author inserted in the editor
+    added       "fig/added/<id>": {"add": {...}} plus the usual settings: an item the author inserted in the editor,
+                in mm from the figure's bottom-left corner. add.type is
+                  text     x_mm, y_mm (baseline-left), text, size_pt, color
+                  arrow    x0_mm, y0_mm, x1_mm, y1_mm, head ("-|>", "->", "<|-|>", "-"), head_size, lw, ls, color
+                  line     as arrow, head "-"
+                  bracket  x0_mm, x1_mm, y_mm (the bar), h_mm (the legs), text ("*", "n.s." ...), size_pt, lw, color
+                  box      x_mm, y_mm (bottom-left), w_mm, h_mm, radius_mm, fill, lw, ls, color
     scatter     scale (marker area), lw, alpha, colors, visible; positions are data and never move
     line        lw, alpha, colors, visible
     patch       bars, boxes, shapes: lw, alpha, colors, visible
@@ -39,10 +44,10 @@ from matplotlib.colors import to_hex, to_rgba
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Patch
 from matplotlib.text import Annotation, Text
 from matplotlib.ticker import Formatter
-from matplotlib.transforms import Bbox, ScaledTranslation
+from matplotlib.transforms import Affine2D, Bbox, ScaledTranslation
 
 MM = 1 / 25.4
 PT_PER_MM = 72 * MM
@@ -76,7 +81,7 @@ def _walk(a):
     """The artist and everything drawn as part of it, for recolouring and colour listing."""
     if isinstance(a, Figure):
         yield a.patch
-        for x in list(a.texts) + list(a.legends) + list(a.axes):
+        for x in list(a.texts) + list(a.legends) + list(a.axes) + list(a.artists):
             yield from _walk(x)
     elif hasattr(a, "get_children") and not isinstance(a, (Text, Line2D, Patch, Collection)):
         if isinstance(a, Axis):
@@ -196,7 +201,11 @@ def _name(a):
 
 def _items(fig):
     items = [dict(key="fig/figure", kind="figure", artist=fig)]
-    items += [dict(key=t._tw_key, kind="text", artist=t, added=True) for t in fig.texts if hasattr(t, "_tw_key")]
+    for key, (shape, parts) in getattr(fig, "_tw_added", {}).items():
+        if shape == "text":
+            items.append(dict(key=key, kind="text", artist=parts[0], added=True))
+        else:
+            items.append(dict(key=key, kind="shape", artist=parts[0], parts=parts, shape=shape, added=True))
 
     def texts_of(owner, texts, kind):
         seen = Counter()
@@ -242,6 +251,82 @@ def _items(fig):
 
 def _gid(key):
     return "tw_" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+
+
+def _font_of(it):
+    """The text whose font stands for the item (the first label of a tick column or legend)."""
+    k = it["kind"]
+    if k in ("text", "axislabel"):
+        return it["artist"]
+    if k in ("ticks", "legend") and it.get("members"):
+        return it["members"][0]
+    if k == "shape" and it["shape"] == "bracket":
+        return it["parts"][1]
+    return None
+
+
+def _weight(w):
+    if isinstance(w, (int, float)):
+        return "bold" if w >= 600 else "normal"
+    return "bold" if str(w).lower() in ("bold", "heavy", "extra bold", "black", "semibold", "demibold", "demi") \
+        else "normal"
+
+
+def _role(it):
+    """What a text is, for the cross-figure consistency check."""
+    if it.get("added"):
+        return "added"
+    if it["kind"] == "text":
+        if it["key"].startswith("fig/"):
+            s = it["artist"].get_text().strip()
+            return "letter" if len(s) == 1 and s.isalpha() else "title"
+        return "text"
+    return it["kind"]                                  # axislabel, ticks, legend
+
+
+# ---- texts and shapes inserted in the editor -----------------------------------------------------------------------
+
+def _mm_transform(fig):
+    """Millimetres from the figure's bottom-left corner."""
+    return Affine2D().scale(MM) + fig.dpi_scale_trans
+
+
+def _make_added(fig, key, v):
+    """Draw one inserted item. Text moves through dx_mm/dy_mm like any text; a shape's offset is added to its
+    coordinates (the editor stores a dragged shape's new coordinates, alignment tools may add an offset)."""
+    a, T = v["add"], _mm_transform(fig)
+    W, H = fig.get_size_inches() / MM
+    typ = a.get("type", "text")
+    col, lw, ls = a.get("color", "#1b1b1b"), a.get("lw", 0.8), a.get("ls", "-")
+    ox, oy = (0.0, 0.0) if typ == "text" else (v.get("dx_mm", 0.0), v.get("dy_mm", 0.0))
+    if typ == "text":
+        parts = [fig.text(a.get("x_mm", W / 2), a.get("y_mm", H / 2), a.get("text", ""), transform=T,
+                          fontsize=a.get("size_pt", 7), color=col, ha="left", va="baseline")]
+    elif typ in ("arrow", "line"):
+        parts = [FancyArrowPatch((a["x0_mm"] + ox, a["y0_mm"] + oy), (a["x1_mm"] + ox, a["y1_mm"] + oy), transform=T,
+                                 arrowstyle=a.get("head", "-|>" if typ == "arrow" else "-"),
+                                 mutation_scale=a.get("head_size", 6), lw=lw, color=col, linestyle=ls,
+                                 shrinkA=0, shrinkB=0, capstyle="butt", joinstyle="miter")]
+    elif typ == "box":
+        r = a.get("radius_mm", 1.0)
+        parts = [FancyBboxPatch((a["x_mm"] + ox, a["y_mm"] + oy), a["w_mm"], a["h_mm"], transform=T,
+                                boxstyle=("round,pad=0,rounding_size=%g" % r) if r > 0 else "square,pad=0",
+                                lw=lw, edgecolor=col, facecolor=a.get("fill", "none"), linestyle=ls)]
+    elif typ == "bracket":
+        x0, x1, y, h = a["x0_mm"] + ox, a["x1_mm"] + ox, a["y_mm"] + oy, a.get("h_mm", 1.5)
+        parts = [Line2D([x0, x0, x1, x1], [y - h, y, y, y - h], transform=T, lw=lw, color=col, linestyle=ls,
+                        solid_joinstyle="miter", solid_capstyle="butt"),
+                 Text((x0 + x1) / 2, y + a.get("gap_mm", 0.3), a.get("text", "*"), transform=T, ha="center",
+                      va="bottom", fontsize=a.get("size_pt", 7), color=col)]
+    else:
+        return
+    for p in parts:
+        if p not in fig.texts:
+            fig.add_artist(p)
+        p._tw_key = key
+    if not hasattr(fig, "_tw_added"):
+        fig._tw_added = {}
+    fig._tw_added[key] = (typ, parts)
 
 
 # ---- applying one adjustment ---------------------------------------------------------------------------------------
@@ -290,6 +375,23 @@ class _Renamed(Formatter):
 
 def _apply(fig, it, tw):
     kind, a = it["kind"], it["artist"]
+    if kind == "shape":                                # geometry and base style live in tw["add"]
+        m = {k.lower(): v for k, v in (tw.get("colors") or {}).items()}
+        for p in it["parts"]:
+            if m:
+                _recolor(p, m)
+            if tw.get("lw", 1.0) != 1.0:
+                _scale_lw(p, tw["lw"])
+            if "alpha" in tw:
+                p.set_alpha(tw["alpha"])
+            if isinstance(p, Text):
+                if tw.get("size", 1.0) != 1.0:
+                    p.set_fontsize(p.get_fontsize() * tw["size"])
+                if tw.get("weight"):
+                    p.set_fontweight(tw["weight"])
+            if tw.get("visible") is False:
+                p.set_visible(False)
+        return
     dx, dy, size = tw.get("dx_mm", 0.0), tw.get("dy_mm", 0.0), tw.get("size", 1.0)
     W, H = fig.get_size_inches() / MM
     if tw.get("colors"):
@@ -398,13 +500,9 @@ def apply(fig, here, stem, rerun_args=None):
     arguments that re-render only this figure (default: those of the current run)."""
     path = os.path.join(here, stem + ".tweaks.json")
     tweaks = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
-    W, H = fig.get_size_inches() / MM
-    for k, v in sorted(tweaks.items()):            # texts inserted in the editor
+    for k, v in sorted(tweaks.items()):            # texts and shapes inserted in the editor
         if k.startswith("fig/added/") and isinstance(v, dict) and v.get("add"):
-            a = v["add"]
-            t = fig.text(a.get("x_mm", W / 2) / W, a.get("y_mm", H / 2) / H, a.get("text", ""),
-                         fontsize=a.get("size_pt", 7), color=a.get("color", "#1b1b1b"), ha="left", va="baseline")
-            t._tw_key = k
+            _make_added(fig, k, v)
     fig.canvas.draw()                              # lays out ticks and legends so they can be keyed and tagged
     renderer = fig.canvas.get_renderer()
     H_pt = fig.get_size_inches()[1] * 72
@@ -418,6 +516,15 @@ def apply(fig, here, stem, rerun_args=None):
             rec["added"] = True
         if isinstance(a, Text):
             rec.update(rotation=round(a.get_rotation(), 2), ha=a.get_horizontalalignment())
+        font = _font_of(it)
+        if font:                                   # base font, for the format painter and the consistency check
+            rec.update(fontsize=round(font.get_fontsize(), 2), weight=_weight(font.get_fontweight()),
+                       role=_role(it))
+        if it["kind"] == "shape":
+            rec["shape"] = it["shape"]
+            for j, p in enumerate(it["parts"][1:]):
+                p.set_gid("%s_p%d" % (gid, j))
+            rec["parts"] = ["%s_p%d" % (gid, j) for j in range(len(it["parts"]) - 1)]
         if it["kind"] == "figure":
             a.patch.set_gid(gid)
             rec["background"] = _hex(a.patch.get_facecolor()) or "#ffffff"
