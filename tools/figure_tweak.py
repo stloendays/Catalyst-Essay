@@ -1,14 +1,13 @@
-"""Drag-and-drop editor for the code-generated figures (main Figs. 1-6 and Extended Data Figs. 1-10).
+"""Figure editor for code-generated matplotlib figures, in the browser: layers, properties, colours, drag and drop.
 
-Move or resize a whole chart, move texts, annotation labels, axis titles, legends and the tick or category labels of
-an axis, change their wording and size, resize marker sets, then re-render from the script. The adjustments are
-stored as data in <stem>.tweaks.json next to the figure and re-applied by figures/composite/tweak.py on every render,
-so the script stays the source and nothing is lost on a rerun.
+Every figure saved through tweak.apply (Page.save does it) leaves a <stem>.tweak_keys.json that says what can be
+edited and how to re-render the figure; this server finds them all under --root, shows them, writes the edits to
+<stem>.tweaks.json and reruns the figure's own script. The script stays the source and nothing is lost on a rerun.
 
-    python tools/figure_tweak.py [2 | ED3 | <figure folder>] [--port 8765] [--no-browser]
-    tools/figure_tweak.cmd            (double-click; pick the figure in the page)
+    python tools/figure_tweak.py [figure] [--root figures] [--port 8765] [--no-browser]
+    tools/figure_tweak.cmd                      (double-click)
 
-Opens http://127.0.0.1:<port>/ ; the figure can be switched in the page.
+`figure` is a stem (FigField), a label from <root>/figure_labels.json ("Fig. 2", "2", "ED3") or omitted.
 """
 import argparse
 import glob
@@ -20,35 +19,43 @@ import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_PY = r"D:\Tools\pur_bridge_env\Scripts\python.exe"
-FALLBACK_PY = r"D:\Research\CatalystForge\.venv\Scripts\python.exe"     # e.g. fig_frontier needs yaml
-COMP, ED = os.path.join(ROOT, "figures", "composite"), os.path.join(ROOT, "figures", "extended_data")
-# paper figure number -> folder, script, arguments, output stem
-FIGS = {str(n): (os.path.join(COMP, d), s, [], stem) for n, d, s, stem in (
-    (1, "fig1", "make_fig1.py", "Fig1"), (2, "fig_field", "make_fig_field.py", "FigField"),
-    (3, "fig4", "make_fig4.py", "Fig4"), (4, "fig2", "make_fig2.py", "Fig2"),
-    (5, "fig_frontier", "make_fig_frontier.py", "FigFrontier"), (6, "fig3", "make_fig3.py", "Fig3"))}
-for _f in sorted(glob.glob(os.path.join(ED, "EDFig*_*.svg")), key=lambda p: int(os.path.basename(p)[5:].split("_")[0])):
-    _stem = os.path.basename(_f)[:-4]
-    _n = _stem[5:].split("_")[0]
-    FIGS["ED" + _n] = (ED, "render_extended_data.py", [_n], _stem)
+HERE = os.path.dirname(os.path.abspath(__file__))
+SKIP = (os.sep + ".git" + os.sep, os.sep + "node_modules" + os.sep)
 
 
-def label(fid):
-    return ("Extended Data Fig. " + fid[2:]) if fid.startswith("ED") else ("Fig. " + fid)
+def discover(root):
+    """stem -> keys-file path, for every figure under root, ordered by figure_labels.json then by name."""
+    labels_path = os.path.join(root, "figure_labels.json")
+    labels = json.load(open(labels_path, encoding="utf-8")) if os.path.exists(labels_path) else {}
+    found = {}
+    for p in glob.glob(os.path.join(root, "**", "*.tweak_keys.json"), recursive=True):
+        if not any(s in p for s in SKIP):
+            found[os.path.basename(p)[:-len(".tweak_keys.json")]] = p
+    order = [s for s in labels if s in found] + sorted(s for s in found if s not in labels)
+    return [(s, labels.get(s, s), found[s]) for s in order]
+
+
+def resolve(figs, want):
+    if not want:
+        return figs[0][0]
+    w = want.strip().lower().replace(" ", "")
+    for s, lab, _ in figs:
+        l2 = lab.lower().replace(" ", "")
+        if w in (s.lower(), l2) or l2 in ("fig." + w, "extendeddatafig." + w.replace("ed", "", 1)):
+            return s
+    sys.exit("unknown figure %r; known: %s" % (want, ", ".join(l for _, l, _ in figs)))
 
 
 class Fig:
-    def __init__(self, fid, python):
-        self.fid = fid
-        self.dir, self.script, self.args, self.stem = FIGS[fid]
-        self.python = python
-        if not os.path.exists(self.path(".tweak_keys.json")):
-            print(self.render())
+    def __init__(self, stem, keys_path):
+        self.stem, self.keys_path = stem, keys_path
+        self.dir = os.path.dirname(keys_path)
 
     def path(self, ext):
         return os.path.join(self.dir, self.stem + ext)
+
+    def meta(self):
+        return json.load(open(self.keys_path, encoding="utf-8")).get("meta", {})
 
     def tweaks(self):
         p = self.path(".tweaks.json")
@@ -57,12 +64,17 @@ class Fig:
     def write_tweaks(self, t):
         clean = {}
         for k, v in sorted(t.items()):
-            v = {kk: (round(vv, 3) if isinstance(vv, float) else vv) for kk, vv in (v or {}).items()}
-            v = {kk: vv for kk, vv in v.items() if not (
-                (kk in ("dx_mm", "dy_mm", "dw_mm", "dh_mm") and abs(vv) < 1e-3)
-                or (kk in ("size", "scale") and abs(vv - 1) < 1e-3) or (kk == "rename" and not vv))}
-            if v:
-                clean[k] = v
+            out = {}
+            for kk, vv in (v or {}).items():
+                if isinstance(vv, float):
+                    vv = round(vv, 3)
+                if (kk in ("dx_mm", "dy_mm", "dw_mm", "dh_mm") and abs(vv) < 1e-3) \
+                        or (kk in ("size", "scale", "lw") and abs(vv - 1) < 1e-3) \
+                        or (kk in ("rename", "colors") and not vv) or (kk == "visible" and vv is True):
+                    continue
+                out[kk] = vv
+            if out:
+                clean[k] = out
         p = self.path(".tweaks.json")
         if clean:
             json.dump(clean, open(p, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
@@ -70,22 +82,13 @@ class Fig:
             os.remove(p)
 
     def render(self):
-        r = self._run()
-        if r.returncode and "ModuleNotFoundError" in r.stderr and os.path.exists(FALLBACK_PY) \
-                and self.python != FALLBACK_PY:
-            self.python = FALLBACK_PY
-            r = self._run()
+        m = self.meta()
+        if not m.get("script"):
+            return "ERROR\n%s has no render information; run its script once with the current tweak.py" % self.stem
+        r = subprocess.run([m["python"], m["script"]] + m.get("args", []), cwd=m.get("cwd") or self.dir,
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
         out = (r.stdout + r.stderr).strip().splitlines()
         return ("OK" if r.returncode == 0 else "ERROR %d" % r.returncode) + "\n" + "\n".join(out[-12:])
-
-    def _run(self):
-        return subprocess.run([self.python, self.script] + self.args, cwd=self.dir, capture_output=True,
-                              text=True, encoding="utf-8", errors="replace")
-
-
-class State:
-    def __init__(self, fid, python):
-        self.python, self.lock, self.fig = python, threading.Lock(), Fig(fid, python)
 
 
 def make_handler(st):
@@ -103,17 +106,18 @@ def make_handler(st):
             self.wfile.write(b)
 
         def do_GET(self):
-            f = st.fig
+            f = st["fig"]
             if self.path == "/":
-                self.send(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure_tweak.html"),
-                               encoding="utf-8").read(), "text/html; charset=utf-8")
+                self.send(open(os.path.join(HERE, "figure_tweak.html"), encoding="utf-8").read(),
+                          "text/html; charset=utf-8")
             elif self.path.startswith("/figs"):
-                self.send(json.dumps({"current": f.fid, "stem": f.stem,
-                                      "figs": [[k, label(k)] for k in FIGS]}, ensure_ascii=False))
+                st["figs"] = discover(st["root"])
+                self.send(json.dumps({"current": f.stem, "figs": [[s, l] for s, l, _ in st["figs"]]},
+                                     ensure_ascii=False))
             elif self.path.startswith("/svg"):
                 self.send(open(f.path(".svg"), "rb").read(), "image/svg+xml")
             elif self.path.startswith("/keys"):
-                self.send(open(f.path(".tweak_keys.json"), encoding="utf-8").read())
+                self.send(open(f.keys_path, encoding="utf-8").read())
             elif self.path.startswith("/tweaks"):
                 self.send(json.dumps(f.tweaks(), ensure_ascii=False))
             else:
@@ -122,13 +126,16 @@ def make_handler(st):
         def do_POST(self):
             n = int(self.headers.get("Content-Length", 0))
             req = json.loads(self.rfile.read(n).decode("utf-8") or "{}")
-            with st.lock:
+            with st["lock"]:
                 if self.path == "/open":
-                    st.fig = Fig(req["fig"], st.python)
+                    hit = [x for x in discover(st["root"]) if x[0] == req["fig"]]
+                    if not hit:
+                        return self.send(json.dumps({"log": "ERROR\nno such figure"}))
+                    st["fig"] = Fig(hit[0][0], hit[0][2])
                     return self.send(json.dumps({"log": "OK"}))
-                f = st.fig
+                f = st["fig"]
                 t = f.tweaks()
-                if self.path == "/save":                  # full overrides of the changed items; null removes one
+                if self.path == "/save":                  # full settings of the changed items; null removes one
                     for k, v in req.items():
                         if v:
                             t[k] = v
@@ -146,21 +153,23 @@ def make_handler(st):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("figure", nargs="?", default="2", help="paper figure number 1-6, ED1-ED10, or a figure folder")
+    ap.add_argument("figure", nargs="?")
+    guess = os.path.join(os.path.dirname(HERE), "figures")
+    ap.add_argument("--root", default=guess if os.path.isdir(guess) else os.getcwd(),
+                    help="folder searched for *.tweak_keys.json (default: ../figures next to this tool, else here)")
     ap.add_argument("--port", type=int, default=8765)
-    ap.add_argument("--python", default=DEFAULT_PY if os.path.exists(DEFAULT_PY) else sys.executable)
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()
-    fid = a.figure.upper().replace(" ", "")
-    if fid not in FIGS:                                   # a folder: match it in the registry
-        d = os.path.abspath(a.figure)
-        fid = next((k for k, v in FIGS.items() if os.path.abspath(v[0]) == d), None)
-        if fid is None:
-            sys.exit("unknown figure %r; use 1-6, ED1-ED10 or a folder among %s" % (a.figure, sorted(FIGS)))
-    st = State(fid, a.python)
+    root = os.path.abspath(a.root)
+    figs = discover(root)
+    if not figs:
+        sys.exit("no *.tweak_keys.json under %s: render a figure through tweak.apply first" % root)
+    stem = resolve(figs, a.figure)
+    st = {"root": root, "figs": figs, "lock": threading.Lock(),
+          "fig": Fig(stem, next(p for s, _, p in figs if s == stem))}
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(st))
     url = "http://127.0.0.1:%d/" % a.port
-    print("figure editor at %s (%s)  -- Ctrl+C to stop" % (url, label(fid)))
+    print("figure editor at %s  (%d figures under %s)  -- Ctrl+C to stop" % (url, len(figs), root))
     if not a.no_browser:
         webbrowser.open(url)
     srv.serve_forever()

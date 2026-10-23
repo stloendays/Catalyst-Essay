@@ -65,12 +65,13 @@ class Page:
     def title(self, text, x, y):
         self.fig.text(x / self.W, y / self.H, text, fontsize=7, fontweight="bold", va="top", ha="left")
 
-    def save(self, here, stem):
+    def save(self, here, stem, rerun_args=None):
+        """rerun_args: the command-line arguments that re-render only this figure, for the figure editor."""
         import tweak                            # hand adjustments from <stem>.tweaks.json (tools/figure_tweak.py)
-        tweak.apply(self.fig, here, stem)
-        for ext in ("svg", "pdf", "png"):
+        tweak.apply(self.fig, here, stem, rerun_args)
+        for ext in ("svg", "pdf", "png"):       # figure facecolour: white unless the editor changed the background
             self.fig.savefig(os.path.join(here, "%s.%s" % (stem, ext)), dpi=600,
-                             facecolor="white")
+                             facecolor=self.fig.get_facecolor())
         print("wrote %s.{svg,pdf,png}  %.0f x %.0f mm" % (stem, self.W, self.H))
 
 

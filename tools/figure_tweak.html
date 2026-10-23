@@ -3,221 +3,324 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>拖动调图</title>
+<title>调图</title>
 <style>
-  :root { --ink:#1b1b1b; --line:#d6d6d6; --bg:#f3f3f1; --panel:#ffffff; --acc:#2f6fd6; --sel:#d9474f; }
+  :root { --ink:#1d2330; --sub:#3c4454; --line:#e2e5ea; --soft:#f5f6f8; --acc:#2563eb; --acc-soft:#e8efff;
+          --sel:#e2445c; --panel:#ffffff; }
   * { box-sizing: border-box; }
-  body { margin:0; font:14px/1.45 "Microsoft YaHei", Arial, sans-serif; color:var(--ink); background:var(--bg);
-         display:grid; grid-template-columns: 1fr 340px; grid-template-rows: auto 1fr; height:100vh; }
-  header { grid-column: 1 / 3; display:flex; gap:8px; align-items:center; padding:8px 12px; background:var(--panel);
-           border-bottom:1px solid var(--line); flex-wrap:wrap; }
-  header select { font:inherit; padding:4px 6px; }
-  button { font:inherit; padding:5px 12px; border:1px solid #9aa3b2; border-radius:6px; background:#fff; cursor:pointer; }
+  html, body { height:100%; }
+  body { margin:0; font:13px/1.45 "Microsoft YaHei", "Segoe UI", Arial, sans-serif; color:var(--ink); background:#fff;
+         display:grid; grid-template-columns: 250px 1fr 300px; grid-template-rows: auto auto 1fr; }
+  header { grid-column: 1 / 4; display:flex; gap:10px; align-items:center; padding:7px 12px; border-bottom:1px solid var(--line); }
+  header .brand { font-weight:700; font-size:15px; margin-right:6px; }
+  .sep { width:1px; height:22px; background:var(--line); }
+  select, button, input, textarea { font:inherit; color:inherit; }
+  select { padding:4px 6px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { padding:4px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  button:hover:not(:disabled) { background:var(--soft); }
   button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
-  button:disabled { opacity:.45; cursor:default; }
-  #status { margin-left:auto; }
-  #wrap { overflow:auto; padding:16px; }
-  #stage { position:relative; display:inline-block; background:#fff; box-shadow:0 0 0 1px var(--line); }
+  button.primary:hover:not(:disabled) { background:#1d4fd0; }
+  button:disabled { opacity:.4; cursor:default; }
+  button.icon { padding:4px 8px; min-width:30px; }
+  #status { margin-left:auto; color:var(--sub); }
+  .filters { grid-column: 1 / 4; display:flex; gap:6px; align-items:center; padding:6px 12px; border-bottom:1px solid var(--line);
+             flex-wrap:wrap; }
+  .chip { padding:2px 10px; border:1px solid var(--line); border-radius:999px; cursor:pointer; user-select:none; background:#fff; }
+  .chip.on { background:var(--acc-soft); border-color:#b9cdfb; color:#123a9c; }
+  aside { overflow:auto; border-right:1px solid var(--line); }
+  aside.right { border-right:none; border-left:1px solid var(--line); padding:10px 12px; }
+  aside h3 { font-size:12px; letter-spacing:.02em; color:var(--sub); margin:14px 0 6px; font-weight:700; }
+  aside h3:first-child { margin-top:2px; }
+  #layers { padding:6px 0; }
+  .grp > .ghead { display:flex; align-items:center; gap:6px; padding:5px 10px; cursor:pointer; font-weight:600; }
+  .grp > .ghead:hover, .row:hover { background:var(--soft); }
+  .tw-caret { width:12px; color:var(--sub); }
+  .row { display:flex; align-items:center; gap:6px; padding:3px 10px 3px 26px; cursor:pointer; white-space:nowrap; }
+  .row.sel, .ghead.sel { background:var(--acc-soft); }
+  .row .nm { overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .tag { font-size:11px; padding:0 5px; border-radius:4px; background:var(--soft); color:var(--sub); flex:none; }
+  .eye { border:none; background:none; padding:0 2px; cursor:pointer; color:var(--sub); flex:none; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--acc); flex:none; }
+  .hidden .nm { color:#8a909c; text-decoration:line-through; }
+  main { overflow:auto; background:#fff; position:relative; }
+  #board { padding:28px; display:inline-block; min-width:100%; }
+  #stage { position:relative; display:inline-block; background:#fff; box-shadow:0 0 0 1px #e6e8ec, 0 6px 24px rgba(20,30,50,.08); }
   #stage svg { display:block; user-select:none; }
   .box { position:absolute; pointer-events:none; border:1px dashed var(--acc); }
-  .box.sel { border:1.5px solid var(--sel); background:rgba(217,71,79,.05); }
-  .handle { position:absolute; width:10px; height:10px; background:var(--sel); border:1px solid #fff; cursor:nwse-resize;
-            pointer-events:auto; }
-  aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:10px 12px; }
-  aside h2 { font-size:14px; margin:14px 0 6px; }
-  .types label { display:inline-block; margin:2px 10px 2px 0; white-space:nowrap; }
-  .kv { font-family: Consolas, monospace; font-size:12px; word-break:break-all; white-space:pre-wrap; }
-  .form { display:grid; grid-template-columns: 96px 1fr; gap:5px 8px; align-items:center; margin-top:6px; }
-  .form input { font:inherit; padding:3px 6px; width:100%; border:1px solid #b8bec9; border-radius:4px; }
-  .help li { margin:3px 0; }
-  ul.list { list-style:none; padding:0; margin:0; }
-  ul.list li { padding:4px 6px; border-bottom:1px solid #eee; cursor:pointer; font-size:12px; }
-  ul.list li:hover { background:#eef3fc; }
-  pre { white-space:pre-wrap; font-size:11px; background:#f6f6f6; padding:6px; margin:0; }
-  .muted { color:#333; font-size:12px; }
+  .box.sel { border:1.5px solid var(--sel); }
+  .handle { position:absolute; width:10px; height:10px; background:#fff; border:1.5px solid var(--sel); border-radius:2px;
+            cursor:nwse-resize; pointer-events:auto; }
+  .prop { display:grid; grid-template-columns: 82px 1fr; gap:6px 8px; align-items:center; }
+  .prop label { color:var(--sub); }
+  .prop input[type=number], .prop textarea { width:100%; padding:3px 6px; border:1px solid var(--line); border-radius:5px; }
+  .prop textarea { resize:vertical; min-height:30px; }
+  .toggles button.on { background:var(--acc-soft); border-color:#b9cdfb; }
+  .swatches { display:flex; flex-wrap:wrap; gap:5px; }
+  .sw { width:22px; height:22px; border-radius:5px; border:1px solid rgba(0,0,0,.18); cursor:pointer; position:relative; }
+  .sw.active { outline:2px solid var(--sel); outline-offset:1px; }
+  .sw.changed::after { content:""; position:absolute; right:-3px; top:-3px; width:7px; height:7px; border-radius:50%;
+                       background:var(--acc); border:1px solid #fff; }
+  .pal { margin-top:6px; }
+  .pal .row2 { display:flex; align-items:center; gap:6px; margin:4px 0; }
+  .hint { color:var(--sub); font-size:12px; }
+  .kv { font-family: Consolas, monospace; font-size:11px; color:var(--sub); word-break:break-all; }
+  pre { white-space:pre-wrap; font-size:11px; background:var(--soft); padding:6px; margin:0; border-radius:5px; }
+  input[type=range] { width:100%; }
 </style>
 </head>
 <body>
 <header>
-  <select id="figsel" title="选择要调的图"></select>
-  <button id="save" class="primary" disabled>保存并重新出图</button>
-  <button id="undo" disabled>撤销</button>
-  <button id="discard" disabled>放弃未保存</button>
-  <button id="resetSel" disabled>还原所选</button>
-  <button id="resetAll">全部还原</button>
-  <span>缩放 <input id="zoom" type="range" min="0.8" max="6" step="0.1" value="2.5"></span>
+  <span class="brand">调图</span>
+  <select id="figsel" title="选择图"></select>
+  <span class="sep"></span>
+  <button id="undo" class="icon" title="撤销 Ctrl+Z" disabled>↶</button>
+  <button id="redo" class="icon" title="重做 Ctrl+Y" disabled>↷</button>
+  <span class="sep"></span>
+  <button id="zout" class="icon" title="缩小">−</button>
+  <span id="zpct" style="min-width:44px;text-align:center">100%</span>
+  <button id="zin" class="icon" title="放大">+</button>
+  <button id="zfit" title="适应窗口">适应</button>
   <span id="status">载入中…</span>
+  <button id="discard" disabled>放弃未保存</button>
+  <button id="resetAll">全部还原</button>
+  <button id="save" class="primary" disabled title="Ctrl+S">保存并重新出图</button>
 </header>
-<div id="wrap"><div id="stage"></div></div>
-<aside>
-  <h2>可选中的类型</h2>
-  <div class="types" id="types"></div>
-  <h2>所选</h2>
-  <div id="sel" class="kv muted">（在图上点一下要调的部分）</div>
-  <div id="form" class="form"></div>
-  <h2>用法</h2>
-  <ul class="help muted">
-    <li>先在上面勾选类型，点击只会选中勾选的类型。只勾“整个图表”就能整块移动图表，分图字母不跟着动。</li>
-    <li>拖动＝移动；方向键微调 0.1 mm（Shift 0.5 mm）。整个图表选中后拖右下角红点可改宽高。</li>
-    <li>鼠标停在所选部分上滚轮，或按 + / −：放大缩小（图表、字号、点的面积）。</li>
-    <li>刻度/类别标签整列一起移动，文字可以逐个改；图例同理。点的位置是数据，只能改大小。</li>
-    <li>右侧数值框可以直接输入精确数值，改文字也在这里。</li>
-    <li>“保存并重新出图”：调整写进 <span class="kv" id="tfile"></span>，作图脚本重跑，SVG/PDF/PNG 一起更新。</li>
-  </ul>
-  <h2>未保存的调整</h2>
-  <ul id="pending" class="list"></ul>
-  <h2>已保存的调整</h2>
-  <ul id="stored" class="list"></ul>
-  <h2>出图日志</h2>
-  <pre id="log">—</pre>
-</aside>
+<div class="filters"><span class="hint">点击可选中：</span><span id="chips"></span>
+  <span class="hint" style="margin-left:auto">拖动移动 · 方向键微调 · 滚轮/±放大缩小 · Delete 隐藏 · Ctrl+滚轮缩放视图</span></div>
+<aside><div id="layers"></div></aside>
+<main id="main"><div id="board"><div id="stage"></div></div></main>
+<aside class="right" id="props"></aside>
 <script>
 const PT_MM = 25.4 / 72;
-const TYPES = [["axes", "整个图表"], ["text", "文字"], ["axislabel", "坐标轴标题"], ["ticks", "刻度/类别标签"],
-               ["legend", "图例"], ["scatter", "点"]];
-const KIND_NAME = Object.fromEntries(TYPES);
+const KINDS = { figure: "画布", axes: "图表", text: "文字", axislabel: "坐标轴标题", ticks: "刻度/类别标签", legend: "图例",
+                scatter: "点", line: "线", patch: "形状", collection: "误差线/色带", image: "图片" };
+const TAG = { figure: "画布", axes: "图表", text: "T", axislabel: "轴题", ticks: "刻度", legend: "图例", scatter: "点",
+              line: "线", patch: "形", collection: "带", image: "图" };
+const FILTERS = [["axes", "整个图表"], ["text", "文字"], ["axislabel", "坐标轴标题"], ["ticks", "刻度/类别"], ["legend", "图例"],
+                 ["scatter", "点"], ["line", "线"], ["patch", "形状"], ["collection", "误差线/色带"]];
 const MOVABLE = new Set(["axes", "text", "axislabel", "ticks", "legend"]);
 const SIZED = new Set(["text", "axislabel", "ticks", "legend"]);
-let svg, keys = {}, items = {}, stored = {}, cur = {}, history = [], sel = null, hover = null, drag = null, figInfo = {};
-let enabled = { axes: true, text: true, axislabel: true, ticks: true, legend: true, scatter: true };
-try { Object.assign(enabled, JSON.parse(localStorage.getItem("tw_types") || "{}")); } catch (e) {}
+const LW = new Set(["line", "patch", "collection", "scatter", "axes"]);
+const ALPHA = new Set(["text", "axislabel", "scatter", "line", "patch", "collection", "image"]);
+let svg, meta = {}, ids = {}, items = {}, stored = {}, cur = {}, undoS = [], redoS = [], sel = null, hover = null, drag = null;
+let figInfo = {}, zoom = 1, activeColor = null, openGroups = new Set();
+let enabled = { axes: false, text: true, axislabel: true, ticks: true, legend: true, scatter: true, line: false, patch: false,
+                collection: false, image: false };
+try { Object.assign(enabled, JSON.parse(localStorage.getItem("tw_filter2") || "{}")); } catch (e) {}
 const $ = id => document.getElementById(id);
 const stage = $("stage");
 const clone = o => JSON.parse(JSON.stringify(o));
 const setStatus = s => $("status").textContent = s;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-// ---- type filter -------------------------------------------------------------------------------------------------
-for (const [k, name] of TYPES) {
-  const l = document.createElement("label");
-  l.innerHTML = `<input type="checkbox" data-k="${k}"> ${name}`;
-  const cb = l.querySelector("input"); cb.checked = enabled[k];
-  cb.onchange = () => { enabled[k] = cb.checked; try { localStorage.setItem("tw_types", JSON.stringify(enabled)); } catch (e) {} };
-  $("types").appendChild(l);
+// ---- filter chips --------------------------------------------------------------------------------------------------
+function drawChips() {
+  $("chips").innerHTML = "";
+  for (const [k, name] of FILTERS) {
+    const c = document.createElement("span");
+    c.className = "chip" + (enabled[k] ? " on" : ""); c.textContent = name;
+    c.onclick = () => { enabled[k] = !enabled[k]; if (k === "collection") enabled.image = enabled[k];
+                        try { localStorage.setItem("tw_filter2", JSON.stringify(enabled)); } catch (e) {} drawChips(); };
+    $("chips").appendChild(c);
+  }
 }
+drawChips();
 
-// ---- loading -----------------------------------------------------------------------------------------------------
+// ---- loading -------------------------------------------------------------------------------------------------------
 async function loadFigs() {
   figInfo = await fetch("/figs?" + Date.now()).then(r => r.json());
-  $("figsel").innerHTML = figInfo.figs.map(([k, l]) => `<option value="${k}">${l}</option>`).join("");
+  $("figsel").innerHTML = figInfo.figs.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join("");
   $("figsel").value = figInfo.current;
-  $("tfile").textContent = figInfo.stem + ".tweaks.json";
-  document.title = figInfo.figs.find(f => f[0] === figInfo.current)[1] + " · 拖动调图";
+  document.title = (figInfo.figs.find(f => f[0] === figInfo.current) || [0, ""])[1] + " · 调图";
 }
-
 async function load() {
   const [svgText, k, t] = await Promise.all([
     fetch("/svg?" + Date.now()).then(r => r.text()),
     fetch("/keys?" + Date.now()).then(r => r.json()),
     fetch("/tweaks?" + Date.now()).then(r => r.json())]);
-  keys = k; stored = t; cur = clone(t); history = []; items = {};
+  meta = k.meta || {}; ids = k.ids || k; stored = t; cur = clone(t); undoS = []; redoS = []; items = {};
   stage.innerHTML = svgText.replace(/^[\s\S]*?(<svg)/, "$1");
   svg = stage.querySelector("svg");
   svg.removeAttribute("width"); svg.removeAttribute("height");
+  svg.querySelectorAll("[style]").forEach(e => e.dataset.os = e.getAttribute("style"));
   const Hmm = svg.viewBox.baseVal.height * PT_MM;
-  for (const [id, v] of Object.entries(keys)) {
+  for (const [id, v] of Object.entries(ids)) {
+    const it = items[v.key] || (items[v.key] = Object.assign({ own: null, members: [] }, v, { member: undefined }));
     const el = svg.getElementById(id);
-    if (!el) continue;
-    const it = items[v.key] || (items[v.key] = { key: v.key, kind: v.kind, axis: v.axis, side: v.side, own: null, members: [] });
-    if (v.member !== undefined) { it.members.push(id); el.dataset.member = v.member; }
+    if (v.member !== undefined) { it.members.push(id); if (el) el.dataset.member = v.member; }
     else it.own = id;
+    if (!el) continue;
     el.querySelectorAll("text").forEach(t => t.dataset.orig = t.textContent);
     if (v.kind === "scatter")
       el.querySelectorAll("use, path").forEach(u => {
         if (u.tagName === "use") { u.dataset.cx = u.getAttribute("x"); u.dataset.cy = u.getAttribute("y"); }
         else { const b = u.getBBox(); u.dataset.cx = b.x + b.width / 2; u.dataset.cy = b.y + b.height / 2; }
       });
-    else if (v.member !== undefined || v.kind !== "ticks") {
-      const b = el.getBBox(); el.dataset.cx = b.x + b.width / 2; el.dataset.cy = b.y + b.height / 2;
+    else if (v.kind !== "ticks" || v.member !== undefined) {
+      try { const b = el.getBBox(); el.dataset.cx = b.x + b.width / 2; el.dataset.cy = b.y + b.height / 2; } catch (e) {}
+    }
+    if (v.arrow) {                                     // leader line: the end away from the data point follows
+      const a = svg.getElementById(id + "_arrow"), p = a && a.querySelector("path");
+      if (p) {
+        const L = p.getTotalLength(), p0 = p.getPointAtLength(0), p1 = p.getPointAtLength(L);
+        const d0 = Math.hypot(p0.x - v.arrow[0], p0.y - v.arrow[1]), d1 = Math.hypot(p1.x - v.arrow[0], p1.y - v.arrow[1]);
+        const T = d0 > d1 ? p0 : p1;
+        it.arrowEl = id + "_arrow"; it.T = [T.x, T.y];
+      }
     }
   }
-  for (const it of Object.values(items)) if (it.kind === "axes") {       // rendered chart rectangle, in SVG units
+  for (const it of Object.values(items)) if (it.kind === "axes") {
     const m = it.key.match(/^ax@(-?\d+),(-?\d+),(\d+),(\d+)/);
     if (!m) continue;
     const [x, y, w, h] = m.slice(1).map(Number), s = stored[it.key] || {};
-    it.w = w; it.h = h;
+    it.w = w; it.h = h; it.prefix = it.key.slice(0, -"/axes".length) + "/";
     it.ox = (x + (s.dx_mm || 0)) / PT_MM; it.oy = (Hmm - (y + h + (s.dy_mm || 0))) / PT_MM;
   }
-  if (!load.fitted) {
-    $("zoom").value = Math.max(0.8, Math.min(6, ($("wrap").clientWidth - 40) / svg.viewBox.baseVal.width));
-    load.fitted = true;
-  }
   if (sel && !items[sel.key]) sel = null;
-  applyZoom(); preview(); refresh();
-  setStatus("就绪：" + Object.keys(items).length + " 个可调对象");
+  if (!load.fitted) { fit(); load.fitted = true; } else applyZoom();
+  preview(); drawLayers(); drawProps();
+  setStatus(`${Object.keys(items).length} 个对象`);
 }
 
+// ---- zoom ----------------------------------------------------------------------------------------------------------
 function applyZoom() {
-  const vb = svg.viewBox.baseVal, z = $("zoom").value;
-  svg.style.width = (vb.width * z) + "px"; svg.style.height = (vb.height * z) + "px";
+  const vb = svg.viewBox.baseVal;
+  svg.style.width = (vb.width * zoom) + "px"; svg.style.height = (vb.height * zoom) + "px";
+  $("zpct").textContent = Math.round(zoom / 1.3333 * 100) + "%";     // 100% = print size on a 96-dpi screen
   drawBoxes();
 }
+function fit() { zoom = Math.max(0.5, Math.min(8, ($("main").clientWidth - 70) / svg.viewBox.baseVal.width)); applyZoom(); }
+$("zin").onclick = () => { zoom = Math.min(10, zoom * 1.2); applyZoom(); };
+$("zout").onclick = () => { zoom = Math.max(0.3, zoom / 1.2); applyZoom(); };
+$("zfit").onclick = fit;
 
-// ---- preview: what the page shows = rendered SVG + (current - stored) --------------------------------------------
-function diff(key) {
-  const s = stored[key] || {}, c = cur[key] || {};
-  const d = n => (c[n] || 0) - (s[n] || 0);
-  return { dx: d("dx_mm"), dy: d("dy_mm"), dw: d("dw_mm"), dh: d("dh_mm"),
-           size: (c.size || 1) / (s.size || 1), scale: (c.scale || 1) / (s.scale || 1), c, s };
+// ---- preview = rendered SVG + (current − stored) --------------------------------------------------------------------
+const num = (o, k, d) => (o && o[k] !== undefined ? o[k] : d);
+function deltaMap(s, c) {
+  const m = {};
+  for (const k of new Set([...Object.keys(s || {}), ...Object.keys(c || {})])) {
+    const from = ((s || {})[k] || k).toLowerCase(), to = ((c || {})[k] || k).toLowerCase();
+    if (from !== to) m[from] = to;
+  }
+  return m;
 }
-function aboutCenter(el, k) {
-  const x = +el.dataset.cx, y = +el.dataset.cy;
-  return k === 1 ? "" : ` translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`;
+function swapStyle(el, m, lwf) {
+  let st = el.getAttribute("style"); if (!st) return;
+  if (m && Object.keys(m).length) st = st.replace(/#[0-9a-fA-F]{6}\b/g, h => m[h.toLowerCase()] || h);
+  if (lwf && lwf !== 1) st = st.replace(/stroke-width:\s*([\d.]+)/g, (_, w) => "stroke-width: " + (+w * lwf));
+  el.setAttribute("style", st);
 }
-function setText(g, target) {
-  g.querySelectorAll("text").forEach((t, i) => {
+function scopeEls(it) {
+  const out = [];
+  const add = el => { if (!el) return; if (el.hasAttribute("style")) out.push(el); el.querySelectorAll("[style]").forEach(e => out.push(e)); };
+  if (it.kind === "ticks") it.members.forEach(id => add(svg.getElementById(id)));
+  else if (it.own) add(svg.getElementById(it.own));
+  if (it.arrowEl) add(svg.getElementById(it.arrowEl));
+  return out;
+}
+function previewStyle() {
+  svg.querySelectorAll("[data-os]").forEach(e => e.setAttribute("style", e.dataset.os));
+  svg.querySelectorAll("g[id^=tw_]").forEach(g => { g.style.opacity = ""; g.style.display = ""; });
+  svg.querySelectorAll("text").forEach(t => { t.style.fontWeight = ""; t.style.fontStyle = ""; });
+  for (const it of Object.values(items)) {
+    if (it.kind === "figure") continue;
+    const s = stored[it.key] || {}, c = cur[it.key] || {};
+    const m = deltaMap(s.colors, c.colors), lwf = num(c, "lw", 1) / num(s, "lw", 1);
+    if (Object.keys(m).length || lwf !== 1) scopeEls(it).forEach(e => swapStyle(e, m, lwf));
+    if (it.kind === "ticks") {                        // the axis group also holds tick marks and the title
+      if (c.visible === false) it.members.forEach(id => { const e = svg.getElementById(id); if (e) e.style.display = "none"; });
+      continue;
+    }
+    const own = it.own && svg.getElementById(it.own);
+    if (!own) continue;
+    if (num(c, "alpha", 1) !== num(s, "alpha", 1)) own.style.opacity = num(c, "alpha", 1) / num(s, "alpha", 1);
+    if (c.visible === false) own.style.display = "none";
+    if (c.weight || c.style) own.querySelectorAll("text").forEach(t => {
+      if (c.weight) t.style.fontWeight = c.weight; if (c.style) t.style.fontStyle = c.style; });
+    if (it.kind === "axes" && (c.background || s.background) && c.background !== s.background) {
+      const bg = svg.getElementById(it.own + "_bg"), p = bg && bg.querySelector("path");
+      if (p && (c.background || it.background !== "none")) p.style.fill = c.background || it.background;
+    }
+  }
+  const fi = items["fig/figure"];
+  if (fi) {
+    const s = stored[fi.key] || {}, c = cur[fi.key] || {};
+    const m = deltaMap(s.colors, c.colors);
+    if (Object.keys(m).length) svg.querySelectorAll("[style]").forEach(e => swapStyle(e, m, 1));
+    const p = fi.own && svg.getElementById(fi.own) && svg.getElementById(fi.own).querySelector("path");
+    if (p && c.background && c.background !== s.background) p.style.fill = c.background;   // inline style was reset above
+  }
+}
+function previewText() {
+  const setText = (g, target) => g && g.querySelectorAll("text").forEach((t, i) => {
     const want = (i === 0 && target !== null) ? target : t.dataset.orig;
     if (t.textContent !== want) t.textContent = want;
   });
-}
-function preview() {
   for (const it of Object.values(items)) {
-    const d = diff(it.key), tx = d.dx / PT_MM, ty = -d.dy / PT_MM;
+    const s = stored[it.key] || {}, c = cur[it.key] || {};
+    if (it.kind === "text" || it.kind === "axislabel")
+      setText(it.own && svg.getElementById(it.own), c.text !== undefined ? c.text : (s.text !== undefined ? textFromKey(it.key) : null));
+    else if (it.kind === "ticks" || it.kind === "legend")
+      for (const id of it.members) {
+        const el = svg.getElementById(id); if (!el) continue;
+        const mm = el.dataset.member, cr = (c.rename || {})[mm], sr = (s.rename || {})[mm];
+        setText(el, cr !== undefined ? cr : (sr !== undefined ? mm : null));
+      }
+  }
+}
+function aboutCenter(el, k) {
+  const x = +el.dataset.cx, y = +el.dataset.cy;
+  return (k === 1 || isNaN(x)) ? "" : ` translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`;
+}
+function previewGeom() {
+  for (const it of Object.values(items)) {
+    const s = stored[it.key] || {}, c = cur[it.key] || {};
+    const tx = (num(c, "dx_mm", 0) - num(s, "dx_mm", 0)) / PT_MM, ty = -(num(c, "dy_mm", 0) - num(s, "dy_mm", 0)) / PT_MM;
+    const k = num(c, "size", 1) / num(s, "size", 1);
     const own = it.own ? svg.getElementById(it.own) : null;
+    const setT = (el, t) => t.trim() === "translate(0 0)" || !t.trim() ? el.removeAttribute("transform") : el.setAttribute("transform", t);
     if (it.kind === "axes" && own) {
-      const sx = (it.w + (d.c.dw_mm || 0)) / (it.w + (d.s.dw_mm || 0)), sy = (it.h + (d.c.dh_mm || 0)) / (it.h + (d.s.dh_mm || 0));
-      const t = `translate(${tx} ${ty})` + (sx !== 1 || sy !== 1 ?
-        ` translate(${it.ox} ${it.oy}) scale(${sx} ${sy}) translate(${-it.ox} ${-it.oy})` : "");
-      t === "translate(0 0)" ? own.removeAttribute("transform") : own.setAttribute("transform", t);
+      const sx = (it.w + num(c, "dw_mm", 0)) / (it.w + num(s, "dw_mm", 0)), sy = (it.h + num(c, "dh_mm", 0)) / (it.h + num(s, "dh_mm", 0));
+      setT(own, `translate(${tx} ${ty})` + (sx !== 1 || sy !== 1 ?
+        ` translate(${it.ox} ${it.oy}) scale(${sx} ${sy}) translate(${-it.ox} ${-it.oy})` : ""));
     } else if ((it.kind === "text" || it.kind === "axislabel") && own) {
-      const t = `translate(${tx} ${ty})` + aboutCenter(own, d.size);
-      t === "translate(0 0)" ? own.removeAttribute("transform") : own.setAttribute("transform", t);
-      const s = d.s.text, c = d.c.text;
-      setText(own, c !== undefined ? c : (s !== undefined ? textFromKey(it.key) : null));
+      setT(own, `translate(${tx} ${ty})` + aboutCenter(own, k));
+      if (it.arrowEl) {
+        const a = svg.getElementById(it.arrowEl), P = it.arrow, v = [it.T[0] - P[0], it.T[1] - P[1]], n = v[0] ** 2 + v[1] ** 2;
+        if (a && n > 0) {
+          const A = 1 + tx * v[0] / n, C = tx * v[1] / n, B = ty * v[0] / n, D = 1 + ty * v[1] / n;
+          const E = P[0] - A * P[0] - C * P[1], F = P[1] - B * P[0] - D * P[1];
+          (tx || ty) ? a.setAttribute("transform", `matrix(${A} ${B} ${C} ${D} ${E} ${F})`) : a.removeAttribute("transform");
+        }
+      }
     } else if (it.kind === "ticks") {
       for (const id of it.members) {
-        const el = svg.getElementById(id);
-        const t = (it.axis === "y" ? `translate(${tx} 0)` : `translate(0 ${ty})`) + aboutCenter(el, d.size);
-        el.setAttribute("transform", t);
-        renameMember(el, d);
+        const el = svg.getElementById(id); if (!el) continue;
+        setT(el, (it.axis === "y" ? `translate(${tx} 0)` : `translate(0 ${ty})`) + aboutCenter(el, k));
       }
     } else if (it.kind === "legend" && own) {
-      own.setAttribute("transform", `translate(${tx} ${ty})` + aboutCenter(own, d.size));
-      for (const id of it.members) renameMember(svg.getElementById(id), d);
+      setT(own, `translate(${tx} ${ty})` + aboutCenter(own, k));
     } else if (it.kind === "scatter" && own) {
-      const k = Math.sqrt(d.scale);
+      const q = Math.sqrt(num(c, "scale", 1) / num(s, "scale", 1));
       own.querySelectorAll("use, path").forEach(u => {
         const x = u.dataset.cx, y = u.dataset.cy;
-        k === 1 ? u.removeAttribute("transform")
-                : u.setAttribute("transform", `translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`);
+        q === 1 ? u.removeAttribute("transform") : u.setAttribute("transform", `translate(${x} ${y}) scale(${q}) translate(${-x} ${-y})`);
       });
     }
   }
   drawBoxes();
 }
+function preview() { previewStyle(); previewText(); previewGeom(); }
 function textFromKey(key) { return key.replace(/^.*?\/text\//, "").replace(/#\d+$/, ""); }
-function renameMember(el, d) {
-  const m = el.dataset.member, cr = (d.c.rename || {})[m], sr = (d.s.rename || {})[m];
-  setText(el, cr !== undefined ? cr : (sr !== undefined ? m : null));
-}
 
-// ---- boxes and selection -----------------------------------------------------------------------------------------
+// ---- selection boxes -----------------------------------------------------------------------------------------------
 function rectOf(key) {
   const it = items[key]; if (!it) return null;
-  const ids = it.kind === "ticks" ? it.members : [it.own];
+  const idl = it.kind === "ticks" ? it.members : [it.own];
   let r = null;
-  for (const id of ids) {
+  for (const id of idl) {
     const el = id && svg.getElementById(id); if (!el) continue;
-    const b = el.getBoundingClientRect();
+    const b = el.getBoundingClientRect(); if (!b.width && !b.height) continue;
     r = r ? { l: Math.min(r.l, b.left), t: Math.min(r.t, b.top), r: Math.max(r.r, b.right), b: Math.max(r.b, b.bottom) }
           : { l: b.left, t: b.top, r: b.right, b: b.bottom };
   }
@@ -241,92 +344,232 @@ function drawBoxes() {
   if (!svg) return;
   stage.querySelectorAll(".box, .handle").forEach(b => b.remove());
   if (hover && (!sel || hover.key !== sel.key)) addBox(hover.key, "");
-  if (sel) addBox(sel.key, "sel");
+  if (sel && items[sel.key] && items[sel.key].kind !== "figure") addBox(sel.key, "sel");
 }
 function pick(e) {
   for (let el = e.target; el && el !== svg; el = el.parentNode) {
-    const v = el.id && keys[el.id];
-    if (v && enabled[v.kind]) return { key: v.key, member: v.member !== undefined ? el.id : null };
+    const v = el.id && ids[el.id];
+    if (v && v.kind !== "figure" && enabled[v.kind]) return { key: v.key, member: v.member !== undefined ? el.id : null };
   }
   return null;
 }
+function select(s) { sel = s; activeColor = null; drawBoxes(); drawLayers(); drawProps(); }
 
-// ---- side panel --------------------------------------------------------------------------------------------------
-function fmt(o) {
-  if (!o) return "";
-  const p = [];
-  if (o.dx_mm) p.push(`右移 ${o.dx_mm.toFixed(2)} mm`);
-  if (o.dy_mm) p.push(`上移 ${o.dy_mm.toFixed(2)} mm`);
-  if (o.dw_mm) p.push(`宽 ${o.dw_mm > 0 ? "+" : ""}${o.dw_mm.toFixed(2)} mm`);
-  if (o.dh_mm) p.push(`高 ${o.dh_mm > 0 ? "+" : ""}${o.dh_mm.toFixed(2)} mm`);
-  if (o.size && o.size !== 1) p.push(`字号 ×${o.size.toFixed(2)}`);
-  if (o.scale && o.scale !== 1) p.push(`面积 ×${o.scale.toFixed(2)}`);
-  if (o.text !== undefined) p.push(`文字→“${o.text}”`);
-  if (o.rename) for (const [a, b] of Object.entries(o.rename)) p.push(`“${a}”→“${b}”`);
-  return p.length ? p.join("，") : "还原";
+// ---- layers --------------------------------------------------------------------------------------------------------
+function dispName(it) {
+  const one = s => s.replace(/\$([^$]*)\$/g, "$1").replace(/[_^{}\\]/g, "").replace(/\n/g, " ");
+  if (it.kind === "text" || it.kind === "axislabel") return one(((cur[it.key] || {}).text) ?? textFromKey(it.key));
+  if (it.kind === "ticks") return (it.axis === "x" ? "横轴" : "纵轴") + "刻度/类别";
+  const n = it.key.match(/\/(\d+)$/);
+  return it.name || (KINDS[it.kind] + (n ? " " + (+n[1] + 1) : ""));
 }
-function field(label, value, step, onset, type = "number") {
+const isHidden = it => (cur[it.key] || {}).visible === false;
+function drawLayers() {
+  const L = $("layers"); L.innerHTML = "";
+  const all = Object.values(items);
+  const axes = all.filter(i => i.kind === "axes");
+  const inAxes = it => axes.find(a => it.key.startsWith(a.prefix));
+  const groups = [{ id: "fig", title: "画布与标题", head: items["fig/figure"], kids: all.filter(i => i.kind !== "figure" && i.kind !== "axes" && !inAxes(i)) }];
+  for (const a of axes) groups.push({ id: a.key, title: `图表 ${a.panel || ""}`.trim() + ` · ${a.w}×${a.h} mm`, head: a,
+                                      kids: all.filter(i => i !== a && i.key.startsWith(a.prefix)) });
+  const selGroup = sel && groups.find(g => g.head && g.head.key === sel.key || g.kids.some(k => k.key === sel.key));
+  if (selGroup) openGroups.add(selGroup.id);
+  for (const g of groups) {
+    const box = document.createElement("div"); box.className = "grp";
+    const open = openGroups.has(g.id);
+    const head = document.createElement("div");
+    head.className = "ghead" + (sel && g.head && sel.key === g.head.key ? " sel" : "");
+    head.innerHTML = `<span class="tw-caret">${open ? "▾" : "▸"}</span><span class="nm">${esc(g.title)}</span>` +
+                     (g.head && g.head.kind === "axes" ? eyeHtml(g.head) : "");
+    head.onclick = e => {
+      if (e.target.classList.contains("eye")) return;
+      if (e.target.classList.contains("tw-caret")) { open ? openGroups.delete(g.id) : openGroups.add(g.id); drawLayers(); return; }
+      openGroups.add(g.id); select({ key: g.head ? g.head.key : "fig/figure", member: null });
+    };
+    box.appendChild(head);
+    if (open) for (const it of g.kids) {
+      const r = document.createElement("div");
+      r.className = "row" + (sel && sel.key === it.key ? " sel" : "") + (isHidden(it) ? " hidden" : "");
+      r.innerHTML = `<span class="tag">${TAG[it.kind]}</span><span class="nm" title="${esc(it.key)}">${esc(dispName(it))}</span>` +
+                    (dirty(it.key) || stored[it.key] ? `<span class="dot" title="有调整"></span>` : "") + eyeHtml(it);
+      r.onclick = e => { if (!e.target.classList.contains("eye")) select({ key: it.key, member: null }); };
+      box.appendChild(r);
+    }
+    L.appendChild(box);
+  }
+  L.querySelectorAll(".eye").forEach(b => b.onclick = e => {
+    e.stopPropagation(); const k = b.dataset.k; push();
+    const o = cur[k] || (cur[k] = {}); if (o.visible === false) delete o.visible; else o.visible = false;
+    afterEdit();
+  });
+}
+function eyeHtml(it) { return `<button class="eye" data-k="${esc(it.key)}" title="显示/隐藏">${isHidden(it) ? "◌" : "●"}</button>`; }
+
+// ---- properties ----------------------------------------------------------------------------------------------------
+function curOf(key) { return cur[key] || (cur[key] = {}); }
+function afterEdit(rebuild = true) { preview(); drawLayers(); if (rebuild) drawProps(); updateButtons(); }
+function numField(box, label, value, step, set) {
   const l = document.createElement("label"); l.textContent = label;
-  const i = document.createElement("input"); i.type = type;
-  i.value = type === "number" ? value : value.replace(/\n/g, "\\n");          // a line break is typed as \n
-  if (type === "number") i.step = step;
-  else i.title = "换行写成 \\n；上下标等可用 matplotlib 写法，如 CO$_2$";
-  i.onchange = () => { push(); onset(type === "number" ? parseFloat(i.value || "0") : i.value.replace(/\\n/g, "\n"));
-                       preview(); refresh(false); };
-  $("form").append(l, i);
+  const i = document.createElement("input"); i.type = "number"; i.step = step; i.value = (+value).toFixed(2);
+  i.onchange = () => { push(); set(parseFloat(i.value || "0")); afterEdit(false); };
+  box.append(l, i);
 }
-function refresh(rebuildForm = true) {
-  const it = sel && items[sel.key];
-  $("sel").textContent = it ? `${KIND_NAME[it.kind]}\n${it.key}` + (sel.member ? `\n此项：${svg.getElementById(sel.member).dataset.member}` : "")
-                            : "（在图上点一下要调的部分）";
-  if (rebuildForm) {
-    $("form").innerHTML = "";
-    if (it) {
-      const c = cur[it.key] || {}, set = (n, v) => { (cur[it.key] = cur[it.key] || {})[n] = v; };
-      if (MOVABLE.has(it.kind)) {
-        if (!(it.kind === "ticks" && it.axis === "x")) field("右移 mm", (c.dx_mm || 0).toFixed(2), 0.1, v => set("dx_mm", v));
-        if (!(it.kind === "ticks" && it.axis === "y")) field("上移 mm", (c.dy_mm || 0).toFixed(2), 0.1, v => set("dy_mm", v));
-      }
-      if (it.kind === "axes") {
-        field("宽 增减 mm", (c.dw_mm || 0).toFixed(2), 0.5, v => set("dw_mm", v));
-        field("高 增减 mm", (c.dh_mm || 0).toFixed(2), 0.5, v => set("dh_mm", v));
-      }
-      if (SIZED.has(it.kind)) field("字号 ×", (c.size || 1).toFixed(2), 0.05, v => set("size", v || 1));
-      if (it.kind === "scatter") field("点面积 ×", (c.scale || 1).toFixed(2), 0.1, v => set("scale", v || 1));
-      if (it.kind === "text" || it.kind === "axislabel")
-        field("文字", c.text !== undefined ? c.text : textFromKey(it.key), 0, v => {
-          if (v === textFromKey(it.key)) delete (cur[it.key] || {}).text; else set("text", v); }, "text");
-      if (sel.member) {
-        const m = svg.getElementById(sel.member).dataset.member;
-        field("此项文字", (c.rename || {})[m] !== undefined ? c.rename[m] : m, 0, v => {
-          const o = cur[it.key] || (cur[it.key] = {});
-          o.rename = Object.assign({}, o.rename || {});
-          if (v === m) delete o.rename[m]; else o.rename[m] = v;
-        }, "text");
-      }
+function textField(box, label, value, set) {
+  const l = document.createElement("label"); l.textContent = label;
+  const t = document.createElement("textarea"); t.rows = Math.max(1, value.split("\n").length); t.value = value;
+  t.title = "可换行；上下标用 matplotlib 写法，如 CO$_2$、t$^{-1}$";
+  t.onchange = () => { push(); set(t.value); afterEdit(false); };
+  box.append(l, t);
+}
+function section(title) {
+  const P = $("props"); const h = document.createElement("h3"); h.textContent = title; P.appendChild(h);
+  const d = document.createElement("div"); d.className = "prop"; P.appendChild(d); return d;
+}
+function swatch(color, opts = {}) {
+  const d = document.createElement("div"); d.className = "sw" + (opts.active ? " active" : "") + (opts.changed ? " changed" : "");
+  d.style.background = color; d.title = opts.title || color; if (opts.onclick) d.onclick = opts.onclick; return d;
+}
+function palettePicker(onPick) {
+  const wrap = document.createElement("div"); wrap.className = "pal";
+  const rowOf = (title, cols) => {
+    if (!cols.length) return;
+    const r = document.createElement("div"); r.className = "row2";
+    const t = document.createElement("span"); t.className = "hint"; t.style.minWidth = "48px"; t.textContent = title; r.appendChild(t);
+    const s = document.createElement("div"); s.className = "swatches";
+    cols.forEach(([c, name]) => s.appendChild(swatch(c, { title: name ? `${name} ${c}` : c, onclick: () => onPick(c) })));
+    r.appendChild(s); wrap.appendChild(r);
+  };
+  rowOf("项目配色", Object.entries(meta.style_palette || {}).map(([n, c]) => [c, n]));
+  rowOf("本图用色", (meta.palette || []).map(c => [c, ""]));
+  const r = document.createElement("div"); r.className = "row2";
+  const t = document.createElement("span"); t.className = "hint"; t.style.minWidth = "48px"; t.textContent = "自选";
+  const i = document.createElement("input"); i.type = "color"; i.value = activeColor && /^#/.test(activeColor) ? activeColor : "#2563eb";
+  i.onchange = () => onPick(i.value);
+  r.append(t, i); wrap.appendChild(r);
+  return wrap;
+}
+function colorSection(title, key, colors, hint) {
+  if (!colors || !colors.length) return;
+  const box = section(title); box.style.display = "block";
+  const c = curOf(key), map = c.colors || {};
+  const sw = document.createElement("div"); sw.className = "swatches";
+  colors.forEach(col => sw.appendChild(swatch(map[col] || col, {
+    active: activeColor === col, changed: !!map[col], title: map[col] ? `${col} → ${map[col]}` : col,
+    onclick: () => { activeColor = activeColor === col ? null : col; drawProps(); } })));
+  box.appendChild(sw);
+  const h = document.createElement("div"); h.className = "hint"; h.style.margin = "5px 0 0";
+  h.textContent = activeColor && colors.includes(activeColor) ? "选一个新颜色：" : hint;
+  box.appendChild(h);
+  if (activeColor && colors.includes(activeColor)) {
+    box.appendChild(palettePicker(nc => { push(); const o = curOf(key); o.colors = Object.assign({}, o.colors || {});
+      if (nc.toLowerCase() === activeColor) delete o.colors[activeColor]; else o.colors[activeColor] = nc.toLowerCase();
+      afterEdit(); }));
+    if (map[activeColor]) {
+      const b = document.createElement("button"); b.textContent = "恢复原色"; b.style.marginTop = "4px";
+      b.onclick = () => { push(); delete curOf(key).colors[activeColor]; afterEdit(); }; box.appendChild(b);
     }
   }
-  const list = (ul, keysToShow, obj) => {
-    ul.innerHTML = "";
-    for (const k of keysToShow.sort()) {
-      const it2 = items[k], li = document.createElement("li");
-      li.textContent = `${it2 ? KIND_NAME[it2.kind] : "（已失效）"} ${k} — ${fmt(obj[k])}`;
-      li.onclick = () => { if (it2) { sel = { key: k, member: null }; refresh(); drawBoxes(); } };
-      ul.appendChild(li);
-    }
-  };
-  list($("pending"), dirtyKeys(), cur);
-  list($("stored"), Object.keys(stored), stored);
-  const any = dirtyKeys().length > 0;
-  $("save").disabled = !any; $("discard").disabled = !any; $("undo").disabled = history.length === 0;
-  $("resetSel").disabled = !(it && (stored[it.key] || dirty(it.key)));
 }
+function drawProps() {
+  const P = $("props"); P.innerHTML = "";
+  const it = sel && items[sel.key];
+  if (!it || it.kind === "figure") {                                  // nothing selected: the canvas
+    const fi = items["fig/figure"];
+    const h = document.createElement("h3"); h.textContent = "画布"; P.appendChild(h);
+    if (fi) {
+      const c = curOf(fi.key);
+      const bg = section("画布背景"); bg.style.display = "block";
+      const row = document.createElement("div"); row.className = "swatches";
+      row.appendChild(swatch(c.background || fi.background || "#ffffff", { title: "当前背景" })); bg.appendChild(row);
+      bg.appendChild(palettePicker(nc => { push(); const o = curOf(fi.key);
+        if (nc.toLowerCase() === (fi.background || "#ffffff")) delete o.background; else o.background = nc.toLowerCase(); afterEdit(); }));
+      colorSection("全图配色（替换整张图里的某个颜色）", fi.key, meta.palette || [], "点一个颜色，再选新颜色，整张图里用到它的地方一起改。");
+    }
+    const n = document.createElement("p"); n.className = "hint";
+    n.innerHTML = "在图上或左侧图层里选中对象后，这里显示它的属性。<br>上方的“点击可选中”决定在图上点击时会选中哪类对象；左侧图层不受限制。";
+    P.appendChild(n);
+    drawLog(); return;
+  }
+  const c = curOf(it.key);
+  const h = document.createElement("h3"); h.textContent = KINDS[it.kind] + " · " + dispName(it); P.appendChild(h);
+  const k = document.createElement("div"); k.className = "kv"; k.textContent = it.key; P.appendChild(k);
+  const vis = document.createElement("label"); vis.style.display = "block"; vis.style.margin = "6px 0";
+  vis.innerHTML = `<input type="checkbox" ${c.visible === false ? "" : "checked"}> 显示`;
+  vis.querySelector("input").onchange = e => { push(); if (e.target.checked) delete c.visible; else c.visible = false; afterEdit(); };
+  P.appendChild(vis);
+  if (MOVABLE.has(it.kind)) {
+    const b = section("位置与尺寸（mm）");
+    if (!(it.kind === "ticks" && it.axis === "x")) numField(b, "右移", num(c, "dx_mm", 0), 0.1, v => c.dx_mm = v);
+    if (!(it.kind === "ticks" && it.axis === "y")) numField(b, "上移", num(c, "dy_mm", 0), 0.1, v => c.dy_mm = v);
+    if (it.kind === "axes") {
+      numField(b, "宽 增减", num(c, "dw_mm", 0), 0.5, v => c.dw_mm = v);
+      numField(b, "高 增减", num(c, "dh_mm", 0), 0.5, v => c.dh_mm = v);
+    }
+  }
+  if (SIZED.has(it.kind)) {
+    const b = section("文字");
+    if (it.kind === "text" || it.kind === "axislabel")
+      textField(b, "内容", c.text !== undefined ? c.text : textFromKey(it.key), v => {
+        if (v === textFromKey(it.key)) delete c.text; else c.text = v; });
+    if (sel.member) {
+      const el = svg.getElementById(sel.member), m = el ? el.dataset.member : "";
+      textField(b, "此项文字", (c.rename || {})[m] !== undefined ? c.rename[m] : m, v => {
+        c.rename = Object.assign({}, c.rename || {}); if (v === m) delete c.rename[m]; else c.rename[m] = v; });
+    } else if (it.kind === "ticks" || it.kind === "legend") {
+      const l = document.createElement("span"); l.className = "hint"; l.style.gridColumn = "1 / 3";
+      l.textContent = "要改某一项的文字：在图上点那一项。"; b.appendChild(l);
+    }
+    numField(b, "字号 ×", num(c, "size", 1), 0.05, v => c.size = v || 1);
+    if (it.kind === "text" || it.kind === "axislabel") {
+      const l = document.createElement("label"); l.textContent = "样式";
+      const t = document.createElement("div"); t.className = "toggles";
+      for (const [prop, on, off, txt] of [["weight", "bold", "normal", "B"], ["style", "italic", "normal", "I"]]) {
+        const bt = document.createElement("button"); bt.textContent = txt; bt.className = c[prop] === on ? "on" : "";
+        if (txt === "B") bt.style.fontWeight = "700"; else bt.style.fontStyle = "italic";
+        bt.onclick = () => { push(); c[prop] = c[prop] === on ? off : on; afterEdit(); };
+        t.appendChild(bt);
+      }
+      b.append(l, t);
+    }
+  }
+  if (it.kind === "scatter" || LW.has(it.kind) || ALPHA.has(it.kind)) {
+    const b = section(it.kind === "scatter" ? "点与线" : "线条与透明度");
+    if (it.kind === "scatter") numField(b, "点面积 ×", num(c, "scale", 1), 0.1, v => c.scale = v || 1);
+    if (LW.has(it.kind)) numField(b, "线宽 ×", num(c, "lw", 1), 0.1, v => c.lw = v || 1);
+    if (ALPHA.has(it.kind)) {
+      const l = document.createElement("label"); l.textContent = "不透明度";
+      const r = document.createElement("input"); r.type = "range"; r.min = 0.05; r.max = 1; r.step = 0.05; r.value = num(c, "alpha", 1);
+      r.onchange = () => { push(); if (+r.value === 1) delete c.alpha; else c.alpha = +r.value; afterEdit(false); };
+      b.append(l, r);
+    }
+  }
+  if (it.kind === "axes") {
+    const b = section("图表背景"); b.style.display = "block";
+    const row = document.createElement("div"); row.className = "swatches";
+    row.appendChild(swatch(c.background || (it.background === "none" ? "#ffffff" : it.background), { title: "当前背景" }));
+    b.appendChild(row);
+    b.appendChild(palettePicker(nc => { push(); c.background = nc.toLowerCase(); afterEdit(); }));
+  }
+  colorSection("颜色", it.key, it.colors, "点一个颜色再选新颜色；只改这个对象里用到该颜色的部分，其余颜色保持不变。");
+  const b = document.createElement("div"); b.style.marginTop = "12px";
+  const rs = document.createElement("button"); rs.textContent = "还原此对象";
+  rs.onclick = () => { push(); cur[it.key] = {}; afterEdit(); };
+  b.appendChild(rs); P.appendChild(b);
+  drawLog();
+}
+function drawLog() {
+  const h = document.createElement("h3"); h.textContent = "出图日志"; $("props").appendChild(h);
+  const p = document.createElement("pre"); p.id = "log"; p.textContent = drawLog.text || "—"; $("props").appendChild(p);
+}
+
+// ---- edit history --------------------------------------------------------------------------------------------------
 function normObj(o) {
   const r = {};
   for (const [k, v] of Object.entries(o || {})) {
     if (["dx_mm", "dy_mm", "dw_mm", "dh_mm"].includes(k) && Math.abs(v) < 1e-3) continue;
-    if (["size", "scale"].includes(k) && Math.abs(v - 1) < 1e-3) continue;
-    if (k === "rename" && !Object.keys(v).length) continue;
+    if (["size", "scale", "lw"].includes(k) && Math.abs(v - 1) < 1e-3) continue;
+    if ((k === "rename" || k === "colors") && !Object.keys(v).length) continue;
+    if (k === "visible" && v === true) continue;
     r[k] = typeof v === "number" ? Math.round(v * 1000) / 1000 : v;
   }
   return r;
@@ -334,60 +577,79 @@ function normObj(o) {
 const sig = o => { const r = normObj(o); return JSON.stringify(Object.keys(r).sort().map(k => [k, r[k]])); };
 const dirty = k => sig(cur[k]) !== sig(stored[k]);
 const dirtyKeys = () => [...new Set([...Object.keys(cur), ...Object.keys(stored)])].filter(dirty);
-function push() { history.push(clone(cur)); if (history.length > 300) history.shift(); }
-function undo() { if (!history.length) return; cur = history.pop(); preview(); refresh(); }
+function push() { undoS.push(clone(cur)); if (undoS.length > 300) undoS.shift(); redoS = []; }
+function undo() { if (!undoS.length) return; redoS.push(clone(cur)); cur = undoS.pop(); afterEdit(); }
+function redo() { if (!redoS.length) return; undoS.push(clone(cur)); cur = redoS.pop(); afterEdit(); }
+function updateButtons() {
+  const any = dirtyKeys().length;
+  $("save").disabled = !any; $("discard").disabled = !any;
+  $("undo").disabled = !undoS.length; $("redo").disabled = !redoS.length;
+  if (any) setStatus(`${any} 处未保存`); else if (/未保存/.test($("status").textContent)) setStatus("已是最新");
+}
 
-// ---- mouse and keyboard ------------------------------------------------------------------------------------------
+// ---- mouse and keyboard --------------------------------------------------------------------------------------------
 const pxToMm = () => PT_MM / svg.getScreenCTM().a;
 function startDrag(e, mode) {
   const it = sel && items[sel.key]; if (!it) return;
   push();
-  const c = cur[it.key] || (cur[it.key] = {});
-  drag = { mode, it, x0: e.clientX, y0: e.clientY, dx: c.dx_mm || 0, dy: c.dy_mm || 0, dw: c.dw_mm || 0, dh: c.dh_mm || 0 };
+  const c = curOf(it.key);
+  drag = { mode, it, x0: e.clientX, y0: e.clientY, dx: num(c, "dx_mm", 0), dy: num(c, "dy_mm", 0), dw: num(c, "dw_mm", 0),
+           dh: num(c, "dh_mm", 0), moved: false };
   stage.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation();
 }
 stage.addEventListener("pointerdown", e => {
   if (e.target.classList.contains("handle")) return;
-  sel = pick(e); refresh(); drawBoxes();
-  if (!sel) return;
-  if (items[sel.key].kind === "scatter") { setStatus("点：滚轮或 + / − 改大小（位置是数据，不能拖）"); return; }
-  startDrag(e, "move");
+  const p = pick(e);
+  select(p);
+  if (p && MOVABLE.has(items[p.key].kind)) startDrag(e, "move");
 });
 stage.addEventListener("pointermove", e => {
   if (drag) {
-    const k = pxToMm(), c = cur[drag.it.key], mx = (e.clientX - drag.x0) * k, my = -(e.clientY - drag.y0) * k;
+    const k = pxToMm(), c = curOf(drag.it.key), mx = (e.clientX - drag.x0) * k, my = -(e.clientY - drag.y0) * k;
+    drag.moved = true;
     if (drag.mode === "resize") { c.dw_mm = drag.dw + mx; c.dh_mm = drag.dh - my; }
     else {
       if (!(drag.it.kind === "ticks" && drag.it.axis === "x")) c.dx_mm = drag.dx + mx;
       if (!(drag.it.kind === "ticks" && drag.it.axis === "y")) c.dy_mm = drag.dy + my;
     }
-    preview(); refresh(false); return;
+    previewGeom(); return;
   }
   const h = pick(e);
   if ((h && h.key) !== (hover && hover.key)) { hover = h; drawBoxes(); }
 });
-stage.addEventListener("pointerup", () => { if (drag) { drag = null; refresh(); } });
+stage.addEventListener("pointerup", () => {
+  if (!drag) return;
+  if (!drag.moved) undoS.pop();
+  drag = null; afterEdit();
+});
 function scaleSel(f) {
-  const it = sel && items[sel.key]; if (!it) return;
+  const it = sel && items[sel.key]; if (!it || it.kind === "figure") return;
   push();
-  const c = cur[it.key] || (cur[it.key] = {});
-  if (it.kind === "axes") { c.dw_mm = (it.w + (c.dw_mm || 0)) * f - it.w; c.dh_mm = (it.h + (c.dh_mm || 0)) * f - it.h; }
-  else if (it.kind === "scatter") c.scale = (c.scale || 1) * f;
-  else c.size = (c.size || 1) * f;
-  preview(); refresh();
+  const c = curOf(it.key);
+  if (it.kind === "axes") { c.dw_mm = (it.w + num(c, "dw_mm", 0)) * f - it.w; c.dh_mm = (it.h + num(c, "dh_mm", 0)) * f - it.h; }
+  else if (it.kind === "scatter") c.scale = num(c, "scale", 1) * f;
+  else if (SIZED.has(it.kind)) c.size = num(c, "size", 1) * f;
+  else if (LW.has(it.kind)) c.lw = num(c, "lw", 1) * f;
+  else { undoS.pop(); return; }
+  afterEdit();
 }
-stage.addEventListener("wheel", e => {
+$("main").addEventListener("wheel", e => {
+  if (e.ctrlKey) { e.preventDefault(); zoom = Math.max(0.3, Math.min(10, zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1))); applyZoom(); return; }
   if (!sel) return;
   const r = rectOf(sel.key);
   if (!r || e.clientX < r.l || e.clientX > r.r || e.clientY < r.t || e.clientY > r.b) return;
   e.preventDefault(); scaleSel(e.deltaY < 0 ? 1.05 : 1 / 1.05);
 }, { passive: false });
 document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName);
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); if (!$("save").disabled) $("save").click(); return; }
+  if (typing) return;
+  if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) { redo(); e.preventDefault(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { undo(); e.preventDefault(); return; }
-  if (e.key === "Escape") { sel = null; refresh(); drawBoxes(); return; }
+  if (e.key === "Escape") { select(null); return; }
   if (!sel) return;
   const it = items[sel.key];
+  if (e.key === "Delete" || e.key === "Backspace") { push(); curOf(it.key).visible = false; afterEdit(); e.preventDefault(); return; }
   if (e.key === "+" || e.key === "=") { scaleSel(1.05); e.preventDefault(); return; }
   if (e.key === "-" || e.key === "_") { scaleSel(1 / 1.05); e.preventDefault(); return; }
   if (!MOVABLE.has(it.kind)) return;
@@ -395,44 +657,40 @@ document.addEventListener("keydown", e => {
   const d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, s], ArrowDown: [0, -s] }[e.key];
   if (!d) return;
   e.preventDefault(); push();
-  const c = cur[it.key] || (cur[it.key] = {});
-  if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = (c.dx_mm || 0) + d[0];
-  if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = (c.dy_mm || 0) + d[1];
-  preview(); refresh();
+  const c = curOf(it.key);
+  if (!(it.kind === "ticks" && it.axis === "x")) c.dx_mm = num(c, "dx_mm", 0) + d[0];
+  if (!(it.kind === "ticks" && it.axis === "y")) c.dy_mm = num(c, "dy_mm", 0) + d[1];
+  afterEdit(false);
 });
 
-// ---- server ------------------------------------------------------------------------------------------------------
+// ---- server --------------------------------------------------------------------------------------------------------
 async function post(path, body) {
-  setStatus("重新出图中…"); document.querySelectorAll("header button, header select").forEach(b => b.disabled = true);
-  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(body) }).then(r => r.json());
-  $("log").textContent = r.log;
+  setStatus("重新出图中…");
+  document.querySelectorAll("header button, header select").forEach(b => b.disabled = true);
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json());
+  drawLog.text = r.log;
   await loadFigs(); await load();
   document.querySelectorAll("header button, header select").forEach(b => b.disabled = false);
-  refresh(); drawBoxes();
-  setStatus(r.log.startsWith("OK") ? "已保存并重新出图" : "出图出错，见右下日志");
+  updateButtons(); drawProps();
+  setStatus(r.log.startsWith("OK") ? "已保存并重新出图" : "出图出错，见右侧日志");
 }
 $("save").onclick = () => {
   const out = {};
   for (const k of dirtyKeys()) { const o = normObj(cur[k]); out[k] = Object.keys(o).length ? o : null; }
   post("/save", out);
 };
-$("undo").onclick = undo;
-$("discard").onclick = () => { push(); cur = clone(stored); preview(); refresh(); };
-$("resetSel").onclick = () => { if (sel) post("/save", { [sel.key]: null }); };
+$("undo").onclick = undo; $("redo").onclick = redo;
+$("discard").onclick = () => { push(); cur = clone(stored); afterEdit(); };
 $("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整并重新出图？")) post("/reset_all", {}); };
 $("figsel").onchange = async () => {
   if (dirtyKeys().length && !confirm("有未保存的调整，切换会放弃它们。继续？")) { $("figsel").value = figInfo.current; return; }
-  sel = null; hover = null; load.fitted = false;
-  setStatus("切换中…");
-  await fetch("/open", { method: "POST", headers: { "Content-Type": "application/json" },
-                         body: JSON.stringify({ fig: $("figsel").value }) });
-  await loadFigs(); await load();
+  sel = null; hover = null; load.fitted = false; openGroups = new Set(); setStatus("切换中…");
+  await fetch("/open", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fig: $("figsel").value }) });
+  await loadFigs(); await load(); updateButtons();
 };
-$("zoom").oninput = applyZoom;
 window.addEventListener("resize", drawBoxes);
 window.addEventListener("beforeunload", e => { if (dirtyKeys().length) { e.preventDefault(); e.returnValue = ""; } });
-loadFigs().then(load);
+loadFigs().then(load).then(updateButtons);
 </script>
 </body>
 </html>

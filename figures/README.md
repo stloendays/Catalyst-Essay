@@ -203,3 +203,10 @@ The 2026-09-20 supervisor extensions are retained as analysis-facing source figu
 - `../analysis/supervisor_2026_09_20/cost_mc_summary.svg` — NH3 alpha* cost-MC distribution and MeOH candidate rank-probability matrix.
 
 The canonical manuscript-facing F3/F10 R assets have now been rendered and hash-pinned. These analysis-facing source figures remain useful for tracing the supervisor-requested extensions.
+
+## Hand edits in the figure editor
+
+`tools/figure_tweak.cmd` (or `python tools/figure_tweak.py`) opens a browser editor over every figure saved through
+`figures/composite/tweak.py` (`Page.save` calls it): layers, properties, colours, drag and drop. Edits are stored as
+`<stem>.tweaks.json` beside each figure and re-applied on every render; commit them with the figure.
+`figure_labels.json` maps output stems to the paper's figure numbers for the editor's menu.

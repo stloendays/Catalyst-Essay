@@ -1014,6 +1014,6 @@ if __name__ == "__main__":
         # ED Figs 3 and 8 (revised 2026-10-13) set sub- and superscripts at >= 5.3 pt; the others keep their
         # rendering until they are next revised
         with scripts_at_least(5.3) if n in (3, 10) else contextlib.nullcontext():
-            pg.save(HERE, "EDFig%d_%s" % (n, SLUGS[n]))
+            pg.save(HERE, "EDFig%d_%s" % (n, SLUGS[n]), rerun_args=[str(n)])
     if not sys.argv[1:]:
         write_captions()

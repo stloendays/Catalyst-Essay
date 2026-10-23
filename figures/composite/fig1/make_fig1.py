@@ -329,5 +329,5 @@ sys.path.insert(0, os.path.dirname(HERE))
 import tweak  # noqa: E402  hand adjustments from Fig1.tweaks.json (tools/figure_tweak.py)
 tweak.apply(fig, HERE, "Fig1")
 for ext in ("svg", "pdf", "png"):
-    fig.savefig(os.path.join(HERE, "Fig1." + ext), dpi=600, facecolor="white")
+    fig.savefig(os.path.join(HERE, "Fig1." + ext), dpi=600, facecolor=fig.get_facecolor())
 print("wrote Fig1.{svg,pdf,png}  %.0f x %.0f mm" % (W_MM, H_MM))
