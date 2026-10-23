@@ -78,3 +78,4 @@
 - 2026-10-22 21:40 C 完成：`analysis/meoh_catalyst_level_co_rule_2026_10_22`。加料口径 central 21/63（正文）、equal_X 27、high 28、Cu 家族 26；实验室转化率 26/31/28/28。正文所用规则给出最小计数。标签 rollback/AD-C-done。
 - 2026-10-22 21:55 收尾：正文 3,496 词、摘要 141、SI 9,986；审计 357/0；Word/PDF `work/build_2026-10-22_AD`（正文 46 页、SI 67 页，改动页已渲染目检）。草稿 PR #120（base = manuscript/nce-compact-2026-10-21）。A–D 全部完成；E（选择性–转化率包络）不在本轮范围。
 - 2026-10-23 用户决定：D 只留在仓库（`analysis/nh3_field_measured_kinetics_2026_10_22`），不进论文。已从正文（Results 一句、Methods 一句）、SI Note 4、审计中移除；Cholewa 文献随之删除，Kitano 改回 67。A、B、C 保留。审计 352/0，正文 3,473 词，SI 9,784；Word/PDF `work/build_2026-10-23_ABC`（46 + 66 页，改动页已目检）。
+- 2026-10-23 11:30 E 完成：`analysis/meoh_selectivity_conversion_2026_10_23`。同一催化剂多空速数据 23 组/9 篇，21 组甲醇选择性随转化率下降（中位斜率 −0.93）。加料口径下让选择性随转化率变化：趋向平衡分配 23/63，中位斜率 18，四分位 22/20；>5% 为 8–10；恒定选择性 21/63 复现。正文加半句，SI Note 3 加两句，审计 355/0。

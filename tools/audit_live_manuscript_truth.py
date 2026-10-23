@@ -2679,6 +2679,22 @@ tokens("C: SI Note 3 recycled-CO rules between catalysts", s8,
 ok("C: the primary rule gives the smallest catalyst-level count", min(_rz.values()) >= 21 and min(_lz.values()) >= 26)
 tokens("C: main text names the recycled-CO rules among the variants", m_field, "every recycled-CO conversion rule")
 
+# E: methanol selectivity moving with conversion (analysis/meoh_selectivity_conversion_2026_10_23).
+_se = _j("analysis/meoh_selectivity_conversion_2026_10_23/summary.json")
+_sm = {k: v["changed"] for k, v in _se["models"].items()}
+_s5 = [v["gt5pct"] for k, v in _se["models"].items() if k != "constant"]
+_sl = rows("analysis/meoh_selectivity_conversion_2026_10_23/slopes.csv")
+_neg = sum(float(r["slope_dSMeOH_dX"]) < 0 for r in _sl)
+_med = sorted(float(r["slope_dSMeOH_dX"]) for r in _sl)[len(_sl) // 2]
+ok("E gates: constant model reproduces 21/63, equilibrium split valid", _se["gates"]["constant_reproduces_frozen"]["ok"]
+   and _se["gates"]["s_eq_in_unit_interval"] and _se["gates"]["X_eq_matches_frozen"])
+tokens("E: SI Note 3 selectivity-conversion counts", s8,
+       f"in {_neg} of {len(_sl)} sets in {len({r['doi'] for r in _sl})} papers",
+       f"(median slope {_med:.2f})",
+       f"gives {_sm['equilibrium']}, {_sm['slope_median']}, {_sm['slope_q1']} and {_sm['slope_q3']} of 63 ({min(_s5)}–{max(_s5)} above 5%)")
+tokens("E: main-text range", m_field,
+       f"letting selectivity shift with conversion gives {min(v for k, v in _sm.items() if k != 'constant')}–{max(v for k, v in _sm.items() if k != 'constant')}")
+
 # ----- Report -----------------------------------------------------------------
 failed = [(label, detail) for label, passed, detail in checks if not passed]
 for label, passed, detail in checks:
