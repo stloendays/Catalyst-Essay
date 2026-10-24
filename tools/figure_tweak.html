@@ -392,11 +392,11 @@ function previewStyle() {
     if (!own) continue;
     if (num(c, "alpha", 1) !== num(s, "alpha", 1)) own.style.opacity = num(c, "alpha", 1) / num(s, "alpha", 1);
     if (c.visible === false) own.style.display = "none";
-    own.querySelectorAll("text").forEach(t => {
-      t.style.fontWeight = (c.weight || "") !== (s.weight || "") ? (c.weight || "normal") : "";
-      t.style.fontStyle = (c.style || "") !== (s.style || "") ? (c.style || "normal") : "";
-      const ha = c.ha || it.ha, sha = s.ha || it.ha;
-      t.style.textAnchor = ha && ha !== sha ? ANCHOR[ha] : "";
+    own.querySelectorAll("text").forEach(t => {      // only touch what changed: the style attribute was restored above,
+      if ((c.weight || "") !== (s.weight || "")) t.style.fontWeight = c.weight || "normal";   // and clearing a property
+      if ((c.style || "") !== (s.style || "")) t.style.fontStyle = c.style || "normal";       // would drop matplotlib's
+      const ha = c.ha || it.ha, sha = s.ha || it.ha;                                          // own anchor and weight
+      if (ha && ha !== sha) t.style.textAnchor = ANCHOR[ha];
     });
     if (it.kind === "axes") {
       const bg = svg.getElementById(it.own + "_bg"), p = bg && bg.querySelector("path");
