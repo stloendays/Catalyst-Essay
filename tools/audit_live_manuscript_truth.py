@@ -971,6 +971,13 @@ plci6, plci5 = pl6["bootstrap_frozen_inversion"]["ci95"], pl5["bootstrap_frozen_
 RB = _j("analysis/meoh_field_pooled_2026_10_15/robustness/summary.json")
 assert not RB["checks_failed"], RB["checks_failed"]
 _rn = RB["1_noise"]["S6"]["combined"]
+# catalyst-level (63 groups) re-measurement and selectivity: analysis/meoh_catalyst_level_robustness_2026_10_24
+_CLR = "analysis/meoh_catalyst_level_robustness_2026_10_24/"
+_nr, _nl = _j(_CLR + "summary_noise_raised.json"), _j(_CLR + "summary_noise_lab.json")
+_sel = _j(_CLR + "selectivity.json")
+_sr, _sl = _sel["more catalyst loaded, f = 0.95 (21/63)"], _sel["laboratory conversion (26/63)"]
+assert (_nr["observed_changed"], _nr["groups"], _nl["observed_changed"], _nl["groups"]) == (21, 63, 26, 63)
+assert _nl["gate_point_level"] == {"observed": 50, "kept_ge90": 42}
 _rin = RB["2_inlet"]["combined"]
 _frac = lambda s: tuple(int(x) for x in s.split("/"))  # noqa: E731
 LIM = bnd["s6_limit"]
@@ -1079,7 +1086,7 @@ claim_tokens("Main text: methanol field result, inlet-limited loop (S6) primary 
     ("main text", m_field, [f"at most {pc(LIM, 2)}% CO, methane and N₂, the limit of the loop that anchors the cost model",
     f"differ in {pl6['disagreements']} of {pl6['groups']} comparisons",
     f"Without the limit the leaders differ in only {pl5['disagreements']} of {pl5['groups']} comparisons",
-    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]}.", "It is CO build-up"]),
+    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]}.", "CO build-up, which plants purge to avoid"]),
     ("SI Notes", s8, [f"{lit['candidates']} operating points", f"from {lit['papers_with_candidates']} papers",
     f"and {PL['sets']['second']['operating_points']} from {PL['sets']['second']['papers']} of",
     f"{pl6['groups']} comparisons with {pl6['entries']} entries in {pl6['papers']} papers",
@@ -1190,9 +1197,13 @@ _var81 = [_frac(RB["6_split"]["S6"]["combined"][b_]["disagreements"])[0] for b_ 
     _frac(RB["4_conversion"]["S6"]["combined"]["printed|cost_f0.95"]["disagreements"])[0]] + [
     int(x) for x in RB["9_plant_variants"]["combined"]["S6"].split(" ")[0].split("-")]
 claim_tokens("Main text: S6 robustness (sampling, measurement, variants)",
-    ("main text", m_field, [f"{_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} persist in at least 90% of {st6['noise_model']['draws']:,} re-measurements",
+    ("main text", m_field, [f"The count survives measurement noise ({_nr['changed_per_draw_mean']:.0f} on average over {st6['noise_model']['draws']:,} re-measurements, 95% range {_nr['changed_per_draw_q025_q975'][0]:.0f}–{_nr['changed_per_draw_q025_q975'][1]:.0f}, and {_nr['observed_gt5pct_kept_ge90']} of the {_nr['observed_gt5pct']} changes above 5% persist in at least 90% of them",
     "every recycled-CO conversion rule, product closure, catalyst price and plant-term variant tested"]),
-    ("SI Notes", s8, [f"{PL6['without_bansode']['disagreements']} of {PL6['without_bansode']['groups']}",
+    ("SI Notes", s8, [f"keeps {_frac(_rn['kept_ge90pct']['k1'])[0]} of the {_frac(_rn['kept_ge90pct']['k1'])[1]} disagreements in at least 90% of draws",
+    f"leaves {_nr['changed_per_draw_mean']:.1f} changes on average with more catalyst loaded (95% range {_nr['changed_per_draw_q025_q975'][0]:.0f}–{_nr['changed_per_draw_q025_q975'][1]:.0f})",
+    f"Of the {_nr['observed_changed']}, {_nr['observed_kept_ge50']} persist in at least half of the draws and {_nr['observed_kept_ge90']} in at least 90%, among them {_nr['observed_gt5pct_kept_ge90']} of the {_nr['observed_gt5pct']} above 5%",
+    f"At laboratory conversion {_nl['changed_per_draw_mean']:.1f} changes remain on average ({_nl['changed_per_draw_q025_q975'][0]:.0f}–{_nl['changed_per_draw_q025_q975'][1]:.0f}), and all {_nl['observed_changed']} persist in at least half of the draws and {_nl['observed_kept_ge90']} in at least 90%",
+    f"{PL6['without_bansode']['disagreements']} of {PL6['without_bansode']['groups']}",
     f"the count stays between {int(RB['9_plant_variants']['combined']['S6'].split()[0].split('-')[0])} and {PL6['inert_co']['disagreements']} of {pl6['groups']}"]))
 tokens("SI Note 3: Measurement noise alone changes the laboratory leader", s8,
        f"measurement noise alone changes a paper's STY leader in "
@@ -1213,8 +1224,13 @@ _none = _scan("frozen", "none")
 claim_tokens("Main text: by-product mechanism of the S6 disagreements",
     ("main text", m_field, [f"the reactor feed would carry a median {pc(_rin['inlet_co_without_limit']['median'], 1)}% CO",
     f"against {min(_pub_co):.1f}–{max(_pub_co):.1f}% in industrial loop designs",
-    f"The plant-cost leader is the more selective catalyst in {PL6['mechanism']['plant_leader_more_selective']['count']} of the {PL6['mechanism']['disagreements']} disagreements"]),
-    ("SI Notes", s8, [f"makes less CO in {PL6['mechanism']['plant_leader_less_CO']['count']}"]))
+    f"The plant-cost leader is the more selective catalyst in {_sr['plant_leader_more_selective']} of the {_sr['disagreements']} changes, and in all {_sr['more_selective_among_gap_gt5pct'].split('/')[1]} above 5%"]),
+    ("SI Notes", s8, [f"makes less CO in {PL6['mechanism']['plant_leader_less_CO']['count']}",
+    f"more selective in {PL6['mechanism']['plant_leader_more_selective']['count']} of the {PL6['mechanism']['disagreements']}",
+    f"the more selective catalyst in {_sr['plant_leader_more_selective']} of the {_sr['disagreements']} changes with more catalyst loaded, all {_sr['more_selective_among_gap_gt5pct'].split('/')[1]} above 5% among them, and makes less CO in {_sr['plant_leader_less_CO']}",
+    f"At laboratory conversion it is more selective in {_sl['plant_leader_more_selective']} of the {_sl['disagreements']}"]))
+ok("MeOH catalyst level: every raised-conversion change above 5% has the more selective plant leader",
+   _sr["more_selective_among_gap_gt5pct"].split("/")[0] == _sr["more_selective_among_gap_gt5pct"].split("/")[1])
 _gm40 = {r["group"] for r in rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv")}
 _ec = [r for r in rows("analysis/meoh_inlet_definition_2026_10_12/entry_costs.csv") if r["group"] in _gm40]
 _co_none = sorted(float(r["co_frozen_none"]) for r in _ec)
@@ -1846,6 +1862,42 @@ _lease3 = [hl[k]["rate_pct"] for k in ("pbf_min", "pbf_median", "pbf_max")]
 _save = [-_decide(KAAP, P_RU, r_hi, x / 100, lib=_libK)["staged_minus_Fe"] for x in _lease3]
 ok("Staged converter (in range): the documented lease rates lie inside the Fe-first window, where staging saves cost",
    wK["95"]["lo"] < lease_lo and lease_hi < wK["95"]["hi"] and min(_save) > 0)
+# Ru/C allowed to 500 and 530 C (analysis/nh3_staged_ru_tmax_2026_10_24): the order is not set by its 460 C limit
+_TM = {t: (_j(f"analysis/nh3_staged_ru_tmax_2026_10_24/tmax{t}_summary.json"),
+           rows(f"analysis/nh3_staged_ru_tmax_2026_10_24/tmax{t}_window.csv")) for t in (500, 530)}
+
+
+def _tm_window(t):
+    w = _TM[t][1]
+    r = [float(x["fin_rate"]) for x in w]
+    c = {p: [float(x["cost_" + p]) for x in w] for p in ("FFF", "FFR", "FRR", "RRR", "RFF", "RRF")}
+    fe = [min(a, b) for a, b in zip(c["FFR"], c["FRR"])]
+    ru1 = [min(a, b) for a, b in zip(c["RFF"], c["RRF"])]
+
+    def cross(g):
+        j = max(i for i, v in enumerate(g) if v < 0)
+        return r[j] + (r[j + 1] - r[j]) * (-g[j]) / (g[j + 1] - g[j])
+    allru = cross([c["RRR"][i] - min(fe[i], c["FFF"][i]) for i in range(len(r))])
+    hi = cross([fe[i] - c["FFF"][i] for i in range(len(r))])
+    gap = [ru1[i] - fe[i] for i in range(len(r)) if r[i] < hi]
+    return allru, hi, min(gap), max(gap)
+
+
+_tmw = {t: _tm_window(t) for t in (500, 530)}
+_tm_ref = _TM[500][0]["window"]["at"]["2.10 %/y"]
+ok("Staged converter, Ru/C to 500/530 C: Ru/C first never optimal, envelope within 0.01 USD/t, windows exist",
+   all(not _TM[t][0]["window"]["Ru_first_ever_best"] and _TM[t][0]["Ru_first_never_optimal_arrangements"]
+       and _TM[t][0]["envelope_check"]["max_envelope_minus_direct"] < 0.01 and _tmw[t][2] > 0 for t in (500, 530))
+   and _tm_ref["best"] == "FRR")
+_tm_gap = (min(_tmw[500][2], _tmw[530][2]), max(_tmw[500][3], _tmw[530][3]))
+tokens("Main text: bed order without the 460 C limit of Ru/C", main_section("The optimizer recovers the industrial bed order"),
+       f"below {pc(_tmw[500][0], 2)} or {pc(_tmw[530][0], 2)}% per year",
+       f"up to {pc(_tmw[500][1], 2)}% per year the best design with Ru/C first costs more")
+tokens("SI Note 7: bed order without the 460 C limit of Ru/C", s2_full,
+       f"all-Ru/C is cheapest below {pc(_tmw[500][0], 2)} and {pc(_tmw[530][0], 2)}% per year",
+       f"from there to {pc(_tmw[500][1], 2)}% per year",
+       f"costs {_tm_gap[0]:.2f}–{_tm_gap[1]:.2f} US dollars per tonne more",
+       f"({_tm_ref['best_cost']:.2f} US dollars per tonne, all-Fe {_tm_ref['costs']['FFF']:.2f})")
 _order = [a.get("best", "") for a in ssum["arrangements"]] + [s.get("best", "") for s in ssum["sensitivities"]]
 ok("Staged converter: a Ru/C-first converter is optimal in no case tested",
    _order and all(not re.search(r"R.*F", b) for b in _order) and not w150["all_ru_below"] and not w200["all_ru_below"])

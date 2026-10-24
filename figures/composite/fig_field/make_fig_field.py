@@ -202,7 +202,7 @@ if __name__ == "__main__":
     for key, lab, kc, nl, sk in (
             ("cat_raised", "more catalyst", kj["conversion_raised"]["cost_f0.95"]["cat_primary"],
              NOLIM["conversion_raised"]["cost_f0.95"]["cat_primary"], "conversion_raised"),
-            ("cat_lab", "laboratory X", kj["cat_primary"]["comparison"], NOLIM["laboratory_conversion"]["cat_primary"],
+            ("cat_lab", "laboratory\nconversion", kj["cat_primary"]["comparison"], NOLIM["laboratory_conversion"]["cat_primary"],
              "laboratory_conversion")):
         scan = [SCAN[L][sk]["changed"] / SCAN[L][sk]["groups"] for L in INDUSTRIAL]
         assert SCAN["6.86"][sk]["changed"] == kc["changed"]
@@ -230,7 +230,8 @@ if __name__ == "__main__":
             b.plot(ci, [y, y], color=INK, lw=1.0, zorder=3, solid_capstyle="butt")
         b.scatter([f], [y], s=42, facecolor=RU if cat else OS, edgecolor=INK, lw=0.8, zorder=4)
         yt = b.get_yaxis_transform()
-        b.text(fx(15.5), y, lab, transform=yt, fontsize=5.8, va="center", ha="left", clip_on=False)
+        b.text(fx(15.5), y - (0.1 if "\n" in lab else 0), lab, transform=yt, fontsize=5.8, va="center", ha="left",
+               linespacing=0.95, clip_on=False)
         b.text(fx(39.5), y, "%d/%d" % (n, g), transform=yt, fontsize=5.8, va="center", ha="right", clip_on=False)
     for y, t in ((-0.85, "between catalysts"), (1.9, "every operating point")):
         b.text(fx(14), y, t, transform=b.get_yaxis_transform(), fontsize=5.8, fontweight="bold", va="center",
