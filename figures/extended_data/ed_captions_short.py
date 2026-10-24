@@ -18,7 +18,10 @@ SHORT = {
         "re-measurement of every entry at one, two and four times the measurement error, against the noise floor. "
         "**d**, Persistence of each disagreement under re-measurement; triangles, near-infeasible cases. **e**, "
         "Disagreements under each robustness variant; hatched, cost gap above 5%. Filled, inert-limited loop (CO, "
-        "CH$_4$ and N$_2$ at most 6.86% of the reactor inlet); open, no limit."),
+        "CH$_4$ and N$_2$ at most 6.86% of the reactor inlet); open, no limit. **f**, Persistence under re-measurement "
+        "of each change of catalyst in the 63 comparisons with at least two catalysts, with more catalyst loaded and "
+        "at laboratory conversion, in the inert-limited loop; dots, cost gap above 5%. Dark bars in **d** and **f**, "
+        "persistent in at least 90% of 2,000 draws."),
     4: ("The methanol plant model against published plant assessments",
         "**a**, Cost terms of a reference CO$_2$-to-methanol plant, model against reference. **b**, Model cost against "
         "the reported production cost or break-even price of 12 studies at their own inputs; band, ±5%. **c**, Loop "

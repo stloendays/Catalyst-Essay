@@ -192,6 +192,36 @@ def near_infeasible_classes():
     return groups.set_index("group").cls
 
 
+CLR = "analysis/meoh_catalyst_level_robustness_2026_10_24/"
+CLV = "analysis/meoh_catalyst_level_2026_10_19/"
+
+
+def catalyst_level_noise():
+    """ED Fig. 3f: persistence under re-measurement of each catalyst-level change of the 63 groups, with more catalyst
+    loaded (headline 21/63) and at laboratory conversion (26/63)."""
+    out = []
+    attrs = {}
+    for basis, tag, groups in (("more_catalyst", "raised", "groups_catalyst_level_conversion_raised.csv"),
+                               ("laboratory_conversion", "lab", "groups_catalyst_level.csv")):
+        nz = rcsv(CLR + "groups_noise_%s.csv" % tag)
+        gp = rcsv(CLV + groups)[["group", "changed", "gap"]]
+        m = nz[nz.observed_changed.astype(str) == "True"].merge(gp, on="group", validate="one_to_one")
+        assert m.changed.all()
+        m = m.sort_values(["p_changed", "gap"], ascending=False).reset_index(drop=True)
+        m.insert(0, "basis", basis)
+        s = rjson(CLR + "summary_noise_%s.json" % tag)
+        assert len(m) == s["observed_changed"] and int((m.p_changed >= 0.9).sum()) == s["observed_kept_ge90"]
+        attrs[basis] = dict(observed=s["observed_changed"], groups=s["groups"], mean=s["changed_per_draw_mean"],
+                            q025=s["changed_per_draw_q025_q975"][0], q975=s["changed_per_draw_q025_q975"][1],
+                            kept90=s["observed_kept_ge90"], kept50=s["observed_kept_ge50"],
+                            gt5=int((m.gap > 0.05).sum()), gt5_kept90=int(((m.gap > 0.05) & (m.p_changed >= 0.9)).sum()))
+        out.append(m[["basis", "group", "doi", "gap", "p_changed"]])
+    f = pd.concat(out, ignore_index=True)
+    f.attrs.update(attrs)
+    assert (attrs["more_catalyst"]["gt5"], attrs["more_catalyst"]["gt5_kept90"]) == (10, 8)
+    return f
+
+
 def edfig3():
     parts = {}
     for loop, name, stats in LOOPS:
@@ -245,6 +275,7 @@ def edfig3():
     s6 = d[d.loop == "inlet_limited"]
     assert int(s6.near_infeasible.sum()) == 26 and int((s6.near_infeasible & (s6.p_mismatch_meas_k1 >= 0.9)).sum()) == 26
     e = robustness_checks()
+    f = catalyst_level_noise()
     return {"a": (a, "%sgroup_noise_probabilities.csv and %sgroup_noise_probabilities.csv (observed_mismatch, doi) "
                   "re-drawn with the seed and resample count of each summary.json; 95 %% CIs checked against "
                   "summary.json" % (STATS6_C, STATS5_C)),
@@ -252,7 +283,9 @@ def edfig3():
             "c": (c, STATS6_C + "summary.json, " + STATS5_C + "summary.json (noise.*)"),
             "d": (d, STATS6_C + "group_noise_probabilities.csv, " + STATS5_C + "group_noise_probabilities.csv "
                   "(observed_mismatch == True); near-infeasible: PR #69 rule on " + POOL + "pooled_candidates.csv"),
-            "e": (e, "see column source")}
+            "e": (e, "see column source"),
+            "f": (f, CLR + "groups_noise_raised.csv, groups_noise_lab.csv, summary_noise_*.json; cost gap from "
+                  + CLV + "groups_catalyst_level_conversion_raised.csv, groups_catalyst_level.csv")}
 
 
 # ------------------------------------------------------------------ ED Fig. 4: measured ammonia catalysts -------

@@ -133,11 +133,12 @@ FS = 5.3            # smallest text size in ED Figs 3 and 8
 
 def ed3():
     d = E.edfig3()
-    a, b, c, dd, ee = (d[k][0] for k in "abcde")
+    a, b, c, dd, ee, ff = (d[k][0] for k in "abcdef")
     ng = a.attrs["groups"]
     loops = ("inlet_limited", "no_limit")
-    pg = Page(183.0, 182.0)
-    up = 62.0                     # panels a-d sit above panel e
+    pg = Page(183.0, 244.0)
+    fo = 62.0                     # panel f (2026-10-24) sits below panel e
+    up = 62.0 + fo                # panels a-d sit above panel e
     # a bootstrap distributions of both loops, with the observed share and the 95 % CI as a bracket
     ax = pg.ax(14, 70 + up, 70, 40)
     w = a.bin_high_fraction - a.bin_low_fraction
@@ -248,7 +249,7 @@ def ed3():
     pg.letter("d", 96, 59 + up)
     pg.title("Persistence of each observed disagreement", 108, 59 + up)
     # e every robustness check, both loops
-    ex = pg.ax(14, 12, 164, 40)
+    ex = pg.ax(14, 12 + fo, 164, 40)
     keys = list(dict.fromkeys(ee.key))
     for i, k in enumerate(keys):
         for loop, dxo in (("inlet_limited", -0.19), ("no_limit", 0.19)):
@@ -267,8 +268,33 @@ def ed3():
     ex.set_ylabel("STY leader \u2260 plant-cost leader (%)")
     ex.legend(loc="upper right", fontsize=FS, borderaxespad=0.3, handletextpad=0.4, ncol=3)
     boxed(ex)
-    pg.letter("e", 2, 59)
-    pg.title("Every robustness check in both loops", 14, 59)
+    pg.letter("e", 2, 59 + fo)
+    pg.title("Every robustness check in both loops", 14, 59 + fo)
+    # f catalyst-level changes of the 63 comparisons with at least two catalysts, under re-measurement
+    fx = pg.ax(14, 12, 164, 40)
+    pos = 0.0
+    for basis, label in (("more_catalyst", "more catalyst loaded"), ("laboratory_conversion", "laboratory conversion")):
+        g = ff[ff.basis == basis].reset_index(drop=True)
+        at = ff.attrs[basis]
+        xg = pos + np.arange(len(g)) + 1
+        fx.bar(xg, g.p_changed, 0.75, color=[RU if p >= 0.9 else PALE_B for p in g.p_changed], ec=INK, lw=0.25,
+               zorder=2)
+        big = (g.gap > 0.05).to_numpy()
+        fx.scatter(xg[big], g.p_changed[big] + 0.05, s=4, marker="o", c=INK, lw=0, zorder=3)
+        lab = ("%s: %d of %d changed\n%.1f per draw (95 %% range %d–%d)\n%d in ≥ 90 %%, %d in ≥ 50 %%; "
+               "cost gap > 5 %%: %d of %d in ≥ 90 %%" % (label, at["observed"], at["groups"], at["mean"], at["q025"],
+                                                    at["q975"], at["kept90"], at["kept50"], at["gt5_kept90"], at["gt5"]))
+        fx.text(xg.mean(), 1.08, lab, fontsize=FS, ha="center", va="bottom", linespacing=1.15)
+        pos = xg[-1] + 3.0
+    fx.axhline(0.9, color=INK, lw=0.5, ls=":")
+    fx.set_xlim(0.2, pos - 2.3)
+    pct_axis(fx, 1.5)
+    fx.set_xticks([])
+    fx.set_xlabel("observed catalyst changes, sorted by persistence (● cost gap > 5 %)")
+    fx.set_ylabel("draws still changed at error ×1 (%)")
+    boxed(fx)
+    pg.letter("f", 2, 59)
+    pg.title("Between catalysts: persistence of each change in the 63 comparisons", 14, 59)
     return pg
 
 
@@ -859,7 +885,20 @@ def write_captions():
                 k1_6.noise_floor_mean, k1_6.noise_floor_q025, k1_6.noise_floor_q975, k1_6.observed, k1_5.observed,
                 int((d6.p_mismatch_meas_k1 >= 0.9).sum()), len(d6), int((d5.p_mismatch_meas_k1 >= 0.9).sum()), len(d5),
                 len(ni), persist_ni, "; ".join(pair(k) for k in chk),
-                E.STATS6_C, E.STATS5_C, E.POOL, E.CMB), ""]
+                E.STATS6_C, E.STATS5_C, E.POOL, E.CMB)]
+    ff = d["f"][0]
+    fr, fl = ff.attrs["more_catalyst"], ff.attrs["laboratory_conversion"]
+    out[-1] += (" **f**, Catalyst-level changes of the %d comparisons with at least two catalysts (inert-limited loop), "
+                "each catalyst at its highest-STY and its lowest-cost point, re-measured %s times with the error model "
+                "of **c** (×1): share of draws in which each observed change of catalyst persists; dots, cost gap > 5 %%. "
+                "More catalyst loaded: %d changes, %.1f per draw (95 %% range %d–%d), %d persist in at least 90 %% and "
+                "%d in at least half of the draws, %d of the %d above 5 %% in at least 90 %%. Laboratory conversion: %d "
+                "changes, %.1f per draw (%d–%d), %d and %d. Source: `%s` (summary_noise_raised.json, "
+                "summary_noise_lab.json, groups_noise_*.csv)." % (
+                    fr["groups"], format(c.attrs["draws"], ","), fr["observed"], fr["mean"], fr["q025"], fr["q975"],
+                    fr["kept90"], fr["kept50"], fr["gt5_kept90"], fr["gt5"], fl["observed"], fl["mean"], fl["q025"],
+                    fl["q975"], fl["kept90"], fl["kept50"], E.CLR))
+    out += [""]
     assert abs(k1_6.noise_floor_mean - k1_5.noise_floor_mean) < 0.01 and k1_6.noise_floor_q025 == k1_5.noise_floor_q025
 
     d = E.edfig4()

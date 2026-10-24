@@ -1229,6 +1229,11 @@ claim_tokens("Main text: by-product mechanism of the S6 disagreements",
     f"more selective in {PL6['mechanism']['plant_leader_more_selective']['count']} of the {PL6['mechanism']['disagreements']}",
     f"the more selective catalyst in {_sr['plant_leader_more_selective']} of the {_sr['disagreements']} changes with more catalyst loaded, all {_sr['more_selective_among_gap_gt5pct'].split('/')[1]} above 5% among them, and makes less CO in {_sr['plant_leader_less_CO']}",
     f"At laboratory conversion it is more selective in {_sl['plant_leader_more_selective']} of the {_sl['disagreements']}"]))
+tokens("ED Fig. 3f caption: catalyst-level re-measurement", (ROOT / "figures/extended_data/ED_CAPTIONS_DETAILED.md").read_text(encoding="utf-8"),
+       f"More catalyst loaded: {_nr['observed_changed']} changes, {_nr['changed_per_draw_mean']:.1f} per draw (95 % range "
+       f"{_nr['changed_per_draw_q025_q975'][0]:.0f}–{_nr['changed_per_draw_q025_q975'][1]:.0f}), {_nr['observed_kept_ge90']} persist",
+       f"{_nr['observed_gt5pct_kept_ge90']} of the {_nr['observed_gt5pct']} above 5 % in at least 90 %",
+       f"Laboratory conversion: {_nl['observed_changed']} changes, {_nl['changed_per_draw_mean']:.1f} per draw")
 ok("MeOH catalyst level: every raised-conversion change above 5% has the more selective plant leader",
    _sr["more_selective_among_gap_gt5pct"].split("/")[0] == _sr["more_selective_among_gap_gt5pct"].split("/")[1])
 _gm40 = {r["group"] for r in rows("analysis/meoh_literature_inversion_2026_10_05/group_metrics.csv")}

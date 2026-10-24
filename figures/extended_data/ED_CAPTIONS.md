@@ -12,7 +12,7 @@ Reader-facing captions; the numbered, source-linked captions are in ED_CAPTIONS_
 
 ## Extended Data Fig. 3 | Robustness of the methanol leader changes
 
-**a**, Paper-cluster bootstrap distribution of the share of comparisons in which the STY leader is not the plant-cost leader. **b**, Disagreements against the regret threshold. **c**, Disagreements under re-measurement of every entry at one, two and four times the measurement error, against the noise floor. **d**, Persistence of each disagreement under re-measurement; triangles, near-infeasible cases. **e**, Disagreements under each robustness variant; hatched, cost gap above 5%. Filled, inert-limited loop (CO, CH$_4$ and N$_2$ at most 6.86% of the reactor inlet); open, no limit.
+**a**, Paper-cluster bootstrap distribution of the share of comparisons in which the STY leader is not the plant-cost leader. **b**, Disagreements against the regret threshold. **c**, Disagreements under re-measurement of every entry at one, two and four times the measurement error, against the noise floor. **d**, Persistence of each disagreement under re-measurement; triangles, near-infeasible cases. **e**, Disagreements under each robustness variant; hatched, cost gap above 5%. Filled, inert-limited loop (CO, CH$_4$ and N$_2$ at most 6.86% of the reactor inlet); open, no limit. **f**, Persistence under re-measurement of each change of catalyst in the 63 comparisons with at least two catalysts, with more catalyst loaded and at laboratory conversion, in the inert-limited loop; dots, cost gap above 5%. Dark bars in **d** and **f**, persistent in at least 90% of 2,000 draws.
 
 ## Extended Data Fig. 4 | The methanol plant model against published plant assessments
 
