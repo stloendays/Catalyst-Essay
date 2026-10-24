@@ -1901,8 +1901,7 @@ tokens("Main text: bed order without the 460 C limit of Ru/C", main_section("The
 tokens("SI Note 7: bed order without the 460 C limit of Ru/C", s2_full,
        f"all-Ru/C is cheapest below {pc(_tmw[500][0], 2)} and {pc(_tmw[530][0], 2)}% per year",
        f"from there to {pc(_tmw[500][1], 2)}% per year",
-       f"costs {_tm_gap[0]:.2f}–{_tm_gap[1]:.2f} US dollars per tonne more",
-       f"({_tm_ref['best_cost']:.2f} US dollars per tonne, all-Fe {_tm_ref['costs']['FFF']:.2f})")
+       f"costs {_tm_gap[0]:.2f}–{_tm_gap[1]:.2f} US dollars per tonne more")
 _order = [a.get("best", "") for a in ssum["arrangements"]] + [s.get("best", "") for s in ssum["sensitivities"]]
 ok("Staged converter: a Ru/C-first converter is optimal in no case tested",
    _order and all(not re.search(r"R.*F", b) for b in _order) and not w150["all_ru_below"] and not w200["all_ru_below"])
@@ -2009,9 +2008,16 @@ ok("References: those cited only in figure captions follow the main-body referen
 _missing = sorted(_all_cited - set(_ref_ids))
 ok("References: every [n] in the main text, captions and SI exists in the list", not _missing,
    f"missing {_missing}" if _missing else "")
-_uncited = sorted(set(_ref_ids) - set(_b_order) - set(_c_only))
-ok("References: every listed reference is cited in the main body or a caption", not _uncited,
+# 2026-10-24: references that only the SI cites stay in the pool, numbered after the main list (the manuscript
+# builder leaves them out; the SI builder numbers its own list)
+_s_only = [n_ for n_ in _first_order(_cited(raw_si)) if n_ not in _b_order and n_ not in _c_only]
+_n_main = len(_b_order) + len(_c_only)
+ok("References: those cited only in the SI follow the main and caption references, in SI order",
+   _s_only == list(range(_n_main + 1, _n_main + 1 + len(_s_only))), f"SI-only {_s_only}")
+_uncited = sorted(set(_ref_ids) - set(_b_order) - set(_c_only) - set(_s_only))
+ok("References: every listed reference is cited in the main body, a caption or the SI", not _uncited,
    f"uncited {_uncited}" if _uncited else "")
+ok("NCE format: main-text references (body and captions) at most 57", _n_main <= 57, f"{_n_main} references")
 
 # ----- Supplementary Tables: numbered 1..N in order of first citation in the main text ------------------------------
 _st_heads = sorted({int(x) for x in re.findall(r"^### Supplementary Table (\d+)", SIT, re.M)})
@@ -2583,10 +2589,15 @@ tokens("NH3 first Results section: measured parity requirements equal their sour
 tokens("MeOH main: inlet inert range equals SI Note 3 and stream-table species sums",
        m_field, f"loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet")
 
-for _doi in ("10.1002/cite.201800026", "10.1002/cite.202200022", "10.3389/fenrg.2020.00005"):
+for _doi in ("10.1002/cite.201800026",):
     _number = reference_number("doi:" + _doi + ".")
     ok(f"References: added DOI {_doi} has one list entry and a main-body citation",
        _number is not None and _number in _cited(_body), f"resolved reference {_number}")
+# 2026-10-24 reference compression: Nestler 2022 stays with SI Note 3 only; Zimmermann 2020 was dropped with its clause
+_n22 = reference_number("doi:10.1002/cite.202200022.")
+ok("References: Nestler 2022 is cited in the SI only",
+   _n22 is not None and _n22 in _cited(raw_si) and _n22 not in _cited(_body), f"resolved reference {_n22}")
+ok("References: Zimmermann 2020 is no longer listed", reference_number("doi:10.3389/fenrg.2020.00005.") is None)
 
 _review_ref = reference_number("10.1002/aesr.202000043")
 ok("Extended Data 5: review reference follows its DOI after renumbering",
@@ -2710,6 +2721,19 @@ _ysz = {r["id"]: r for r in rows(f"analysis/promoted_ru_literature_2026_10_05/{V
 ok("SI Note 8: Cs-Ru/YSZ gain equals the literature table",
    float(_ysz["factor_high"]) == 10 and _ysz["basis"] == "per g Ru"
    and f"raises the rate per gram of Ru tenfold at {_ysz['T_C']} °C" in raw_si)
+# 2026-10-24: all-Ru/C against all-Fe in the staged converter at each Ru/C limit, against the KAAP-type loop of Fig. 5a
+# (analysis/nh3_staged_ru_tmax_2026_10_24/all_ruc_breakeven.json, read from the committed cost curves)
+_arb = _j("analysis/nh3_staged_ru_tmax_2026_10_24/all_ruc_breakeven.json")
+_arx = {k: f"{v:.2f}" for k, v in _arb["staged_all_RuC_vs_all_Fe_pct"].items()}
+_ark = f"{_arb['KAAP_type_loop_RuC_vs_Fe_pct']:.2f}"
+ok("Staged converter: all-Ru/C break-even rises with the Ru/C limit and brackets the KAAP-type loop",
+   float(_arx["460"]) < float(_arx["500"]) < float(_ark) < float(_arx["530"]) and _ark == "4.57")
+tokens("Fig. 5 caption: all-Ru/C break-even against the KAAP-type loop", _captions,
+       f"All-Ru/C matches all-Fe at {_arx['460']}% per year rather than the {_ark}% of **a**",
+       f"({_arx['500']}% and {_arx['530']}% with the limit at 500 °C and 530 °C)")
+tokens("SI Note 7: all-Ru/C break-even against the KAAP-type loop", raw_si,
+       f"All-Ru/C matches all-Fe at {_arx['460']}% per year, below the {_ark}% of the isothermal KAAP-type loop",
+       f"(500 °C: {_arx['500']}%; 530 °C: {_arx['530']}%)")
 
 
 # ----- Items A-D of the 2026-10-22 revision -------------------------------------

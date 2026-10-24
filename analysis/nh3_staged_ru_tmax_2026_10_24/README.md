@@ -35,3 +35,11 @@ where the gas is still lean in NH₃.
 Files: `tmax<T>_summary.json` (arrangements, window regimes, rates, envelope check), `tmax<T>_window.csv` (cost of all
 six arrangements on the 0–12 %/y grid), `tmax<T>_arrangements.csv`, `tmax<T>_design_library.csv`,
 `tmax<T>_envelope_checks.csv`, `tmax<T>_stdout.txt`.
+
+## All-Ru/C against all-Fe, and the KAAP-type loop of Fig. 5a (`all_ruc_breakeven.py` → `all_ruc_breakeven.json`)
+
+Fig. 5a puts the Ru/C − Fe break-even of the KAAP-type loop (isothermal plug-flow states, same loop, laws and costs) at
+4.57 %/y, whereas in the three-bed converter the all-Ru/C design matches all-Fe at 2.46 %/y with Ru/C held to 460 °C.
+Read from the committed cost curves, the same crossing moves to 4.32 %/y at 500 °C and 4.96 %/y at 530 °C, bracketing
+4.57: the gap is the temperature limit on adiabatic Ru/C beds, which must leave at the limit after their temperature
+rise. Stated in the Fig. 5b caption and SI Note 7.

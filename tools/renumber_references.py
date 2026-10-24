@@ -1,6 +1,7 @@
 """Renumber the manuscript references in order of first citation in the main body (Abstract to Methods), with
-references cited only in figure captions after them, and rewrite every citation in the main text, the main figure
-captions and the Supplementary Information to the new numbers. The reference list is reordered to match.
+references cited only in figure captions after them and those cited only in the Supplementary Information last,
+and rewrite every citation in the main text, the main figure captions and the Supplementary Information to the new
+numbers. The reference list is reordered to match.
 
     python tools/renumber_references.py          # rewrites the three files in place (line endings preserved)
     python tools/renumber_references.py --check  # exit 1 if a renumbering is needed
@@ -72,7 +73,10 @@ def main():
     ids = [int(n) for n, _ in entries]
     order = first_order(cited(body))
     cap_only = [n for n in first_order(cited(raw[CAPS])) if n not in order]
-    new_order = order + cap_only
+    # references that only the Supplementary Information cites stay in the pool after the main list; the manuscript
+    # builder leaves them out and the SI builder numbers its own list
+    si_only = [n for n in first_order(cited(raw[SI])) if n not in order and n not in cap_only]
+    new_order = order + cap_only + si_only
     missing = sorted(set(ids) - set(new_order))
     assert not missing, f"listed but never cited: {missing}"
     assert set(new_order) <= set(ids), sorted(set(new_order) - set(ids))
