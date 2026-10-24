@@ -660,7 +660,7 @@ def ed8():
     pg.title("Cost along the purge grid, every scored entry", 14, 175)
     # b reactor-inlet content of species other than H2 and CO2
     bx = pg.ax(108, 128, 70, 40)
-    lo, hi, nlit = b.attrs["published"]
+    lo, hi, nlit = b.attrs["published_con"]
     bx.axhspan(100 * lo, 100 * hi, color=PALE_G, alpha=0.6, lw=0, zorder=0)
     for _, g in b.groupby("i"):
         bx.plot(g.purge * 100, g.nonreactive * 100, color=RU, lw=0.25, alpha=0.2, zorder=1)
@@ -673,7 +673,7 @@ def ed8():
     bx.set_ylim(0, 100)
     bx.set_ylabel("reactor inlet, not H$_2$ or CO$_2$ (mol%)")
     # just above the band at the lowest purges, where the curves sit near 100 % and the optima do not reach
-    bx.text(1.3e-4, 100 * hi + 0.8, "shaded: %d published\nloop designs, %.2f–%.2f %%\ndashed: anchor loop %.2f %%" % (
+    bx.text(1.3e-4, 100 * hi + 0.8, "shaded: %d published loop\ndesigns, CO + CH$_4$ + N$_2$\n%.2f–%.2f %%\ndashed: anchor loop %.2f %%" % (
         nlit, 100 * lo, 100 * hi, 100 * b.attrs["anchor"]), fontsize=FS, ha="left", va="bottom", color=DARK_G)
     boxed(bx)
     pg.letter("b", 96, 175)
@@ -988,9 +988,9 @@ def write_captions():
             "without an inlet limit, relative to the cost at 0.5 %% purge, the floor of the standard grid (0.5–40 %%, "
             "dashed); the grid is extended to 10$^{-4}$ %% (black, median; dots, optimum). The optimum lies below "
             "0.5 %% for %d of %d entries (median optimum %.3f %% purge); at 0.5 %% the cost is a median %s %% above "
-            "it. **b**, Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, the "
-            "inlets of %d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%); dashed, the anchor loop of the "
-            "cost model (%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; "
+            "it. **b**, Reactor-inlet content of species other than H$_2$ and CO$_2$ along the same grid; shaded, "
+            "CO, CH$_4$ and N$_2$ at the inlets of %d published CO$_2$-to-methanol loop designs (%.2f–%.2f %%; "
+            "%.2f–%.2f %% with methanol and water); dashed, the anchor loop of the cost model (%s %%). **c**, Optimal purge and **d**, recycle ratio (recycle / fresh make-up, molar; "
             "dashed, anchor loop %.2f) without the limit on the standard grid and on the extended grid (median recycle "
             "ratio %.0f), and with the inlet content limited to %.2f, %.2f and %.2f %% on the extended grid (bars, "
             "median). **e**, Comparisons whose STY leader is not the plant-cost leader against the limit on the "
@@ -1004,6 +1004,7 @@ def write_captions():
             "purge_boundary_entries.csv, purge_boundary_curves.csv); `%s` (definition_scan.csv)." % (
                 pb["entries"], bd["extended_optimum_below_0p5pct"], pb["entries"], 100 * ext["purge"]["median"],
                 _p(bd["cost_at_0p5pct_above_extended_optimum"]["median"]), n_pub,
+                100 * d["b"][0].attrs["published_con"][0], 100 * d["b"][0].attrs["published_con"][1],
                 100 * lim["published_min"], 100 * lim["published_max"], _p(lim["anchor"], 2),
                 pb["anchor_loop"]["recycle_ratio"], ext["recycle_ratio"]["median"], 100 * lim["published_max"],
                 100 * lim["anchor"], 100 * lim["published_min"],

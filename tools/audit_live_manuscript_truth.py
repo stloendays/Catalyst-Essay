@@ -1019,7 +1019,7 @@ ok("MeOH combined ledger: identical grouping rule, every dropped group accounted
    and (ppc["groups"], ppc["entries"], ppc["papers"]) == (pl6["groups"], pl6["entries"], pl6["papers"]))
 tokens("Main text: combined comparison groups of both extractions", m_field,
        f"{pl6['groups']} comparisons within papers, {pl6['entries']} entries",
-       f"in {pl6['papers']} papers")
+       f"{pl6['papers']} supply {pl6['groups']} comparisons")
 ok("MeOH combined set: the first extraction alone reproduces the frozen primary groups and verdicts",
    (PL6["by_set"]["first"]["groups"], PL6["by_set"]["first"]["papers"]) == (pp["groups"], pp["papers"])
    and PL6["by_set"]["first"]["disagreements"] == S6["top1_mismatch_groups"]
@@ -1681,7 +1681,7 @@ _do12, _doc = _do["1.2"], _do["condition"]
 _dru, _dfe = _do12["orders"]["Ru"]["central"], _do12["orders"]["Fe"]["central"]
 _dcond = f"{_doc['P_bar']:.0f} bar, {_doc['T_C']:.0f} °C and {pc(_doc['y_NH3'])}%"
 tokens("Main text: descriptor versus measured Ru H2 order", m_feru2,
-       f"giving Ru an apparent H₂ order of {_dru['H2']:+.1f} where {ru_o['H2']:+.1f} is measured")
+       f"give Ru an apparent H₂ order of {_dru['H2']:+.1f} where {ru_o['H2']:+.1f} is measured")
 # The individual NH3 orders remain checked against SI Note 7 below.
 tokens("SI Note 7: apparent orders of the descriptor kinetics", s2_full,
        f"At {_dcond} NH₃ the descriptor kinetics give Ru apparent orders of {_dru['H2']:+.1f} in H₂ and "
@@ -2567,7 +2567,7 @@ _measured_reduction = 100 * (1 - IR['bench_price_parity']['factor_vs_current'])
 # 2026-10-22: Ru/C leads the ammonia story; the "over 90%" bound now lives in the Abstract.
 _headline_bound = re.search(r"bulk Ru must cost over (\d+)% less", main_section_h2("Abstract"))
 ok("NH3 Abstract: bulk-Ru 'over 90%' is below both source price reductions",
-   "Ru leads in activity and loses on the price of its metal" == _heading_text
+   "Ru leads in activity, Fe in plant cost" == _heading_text
    and _headline_bound is not None
    and float(_headline_bound[1]) < 100 * (1 - P_STAR / P_RU0)
    and float(_headline_bound[1]) < _measured_reduction)
@@ -2703,7 +2703,13 @@ ok("NCE format: display equations numbered (1)–(3) in appearance order",
    f"numbers {[m.group(1) if m else 'missing' for m in _equation_numbers]}")
 
 tokens("Main text: compressed promoter activity range", m_bw,
-       f"Promotion raises Ru activity {min(float(r['factor_high']) for r in _prom):.0f}- to more than {max(float(r['factor_high']) for r in _prom):.0f}-fold")
+       f"Promotion raises Ru activity up to more than {max(float(r['factor_high']) for r in _prom):.0f}-fold")
+# 2026-10-24: Fig. 6a also plots Cs-Ru/YSZ (P05, 10x per g Ru); the main text gives the upper end only, SI Note 8
+# states the YSZ value and the caption cites its source.
+_ysz = {r["id"]: r for r in rows(f"analysis/promoted_ru_literature_2026_10_05/{V12}/fig3_literature_points.csv")}["P05"]
+ok("SI Note 8: Cs-Ru/YSZ gain equals the literature table",
+   float(_ysz["factor_high"]) == 10 and _ysz["basis"] == "per g Ru"
+   and f"raises the rate per gram of Ru tenfold at {_ysz['T_C']} °C" in raw_si)
 
 
 # ----- Items A-D of the 2026-10-22 revision -------------------------------------

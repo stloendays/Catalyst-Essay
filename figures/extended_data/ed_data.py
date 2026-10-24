@@ -529,9 +529,9 @@ def edfig7():
 # ------------------------------------------------------------------ ED Fig. 8: purge optimum and inlet composition
 PURGE_TREATMENTS = (("canonical", "no limit: purge grid 0.5–40 %"),
                     ("extended", "no limit, purge grid extended to 10$^{-4}$ %"),
-                    ("limit_published_max", "inlet ≤ %.2f %% (highest published design)"),
+                    ("limit_published_max", "inlet ≤ %.2f %% (highest published total)"),
                     ("limit_anchor", "inlet ≤ %.2f %% (the cost model's anchor loop)"),
-                    ("limit_published_min", "inlet ≤ %.2f %% (lowest published design)"))
+                    ("limit_published_min", "inlet ≤ %.2f %% (lowest published total)"))
 
 
 def definition_sweep_table(sm):
@@ -589,6 +589,12 @@ def edfig8():
     a.attrs["purge_floor"] = sm["grid"]["canonical_floor"]
     b = cur[["i", "purge", "nonreactive", "CO", "CH4", "N2"]].copy()
     b.attrs["published"] = (lim["published_min"], lim["published_max"], len(sm["published_inlet_non_h2co2_pct"]))
+    # the model inlet holds only CO, CH4 and N2 besides H2 and CO2, so the published designs are shaded on that basis
+    # (their methanol and water add 0.3-0.5 points); the 4.92 and 10.25 % limits stay those designs' totals
+    pub = rcsv(INV + "inlet_inert_literature.csv")
+    con = (pub.CO + pub.CH4 + pub.N2) / 100
+    assert len(con) == b.attrs["published"][2]
+    b.attrs["published_con"] = (float(con.min()), float(con.max()), len(con))
     b.attrs["anchor"] = lim["anchor"]
     long = []
     for k, _ in PURGE_TREATMENTS:
