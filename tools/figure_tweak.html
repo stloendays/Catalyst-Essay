@@ -108,6 +108,7 @@
   <button data-ins="line" title="直线或引线">线 —</button>
   <button data-ins="bracket" title="显著性括号">括号 ⊓</button>
   <button data-ins="box" title="圆角框">框 ▢</button>
+  <button id="addOverlay" title="打开一张不是用脚本画的图（Origin、R 导出的 SVG，或 PNG），在上面加标注">＋ 外部图</button>
   <span class="sep"></span>
   <button id="painter" title="把所选对象的字号、粗细、颜色、线宽刷给别的对象">格式刷</button>
   <button id="consist" title="检查所有图的分图字母、标题、坐标轴标题、刻度字号是否统一">全稿一致性</button>
@@ -128,14 +129,15 @@
 <aside class="right" id="props"></aside>
 <div id="modal"><div class="dlg" id="dlg"></div></div>
 <script>
-const PT_MM = 25.4 / 72, SVGNS = "http://www.w3.org/2000/svg";
+let PT_MM = 25.4 / 72; const PTU = () => (25.4 / 72) / PT_MM;   // SVG units per pt
+const SVGNS = "http://www.w3.org/2000/svg";   // mm per SVG unit (pt for matplotlib)
 const KINDS = { figure: "画布", axes: "图表", text: "文字", axislabel: "坐标轴标题", ticks: "刻度/类别标签", legend: "图例",
-                scatter: "点", line: "线", patch: "形状/色块", collection: "误差线/色带", image: "图片", shape: "插入的形状" };
+                scatter: "点", line: "线", patch: "形状/色块", collection: "误差线/色带/热图", image: "图片", shape: "插入的形状" };
 const SHAPES = { arrow: "箭头", line: "线", bracket: "显著性括号", box: "圆角框" };
 const TAG = { figure: "画布", axes: "图表", text: "字", axislabel: "轴题", ticks: "刻度", legend: "图例", scatter: "点",
               line: "线", patch: "块", collection: "带", image: "图", shape: "形" };
 const FILTERS = [["axes", "整个图表"], ["text", "文字"], ["axislabel", "坐标轴标题"], ["ticks", "刻度/类别"], ["legend", "图例"],
-                 ["scatter", "点"], ["line", "线"], ["patch", "形状/色块"], ["collection", "误差线/色带"], ["shape", "插入的形状"]];
+                 ["scatter", "点"], ["line", "线"], ["patch", "形状/色块"], ["collection", "误差线/色带/热图"], ["shape", "插入的形状"]];
 const MOVABLE = new Set(["axes", "text", "axislabel", "ticks", "legend", "shape"]);
 const TEXTY = new Set(["text", "axislabel"]);
 const SIZED = new Set(["text", "axislabel", "ticks", "legend"]);
@@ -194,6 +196,7 @@ async function load() {
     fetch("/keys?" + Date.now()).then(r => r.json()),
     fetch("/tweaks?" + Date.now()).then(r => r.json())]);
   meta = k.meta || {}; ids = k.ids || k; stored = t; cur = clone(t); undoS = []; redoS = []; items = {};
+  PT_MM = meta.unit_mm || 25.4 / 72;
   stage.innerHTML = svgText.replace(/^[\s\S]*?(<svg)/, "$1");
   svg = stage.querySelector("svg");
   svg.removeAttribute("width"); svg.removeAttribute("height");
@@ -244,8 +247,8 @@ function addedText(key) {                             // an inserted text, shown
   const g = document.createElementNS(SVGNS, "g"); g.id = id;
   String(a.text || "").split("\n").forEach((ln, i) => {
     const t = document.createElementNS(SVGNS, "text");
-    t.setAttribute("x", X(a.x_mm)); t.setAttribute("y", Y(a.y_mm) + i * (a.size_pt || 7) * 1.2);
-    t.setAttribute("style", `font-size: ${a.size_pt || 7}px; font-family: 'Arial'; text-anchor: start; fill: ${a.color || "#1b1b1b"}`);
+    t.setAttribute("x", X(a.x_mm)); t.setAttribute("y", Y(a.y_mm) + i * (a.size_pt || 7) * 1.2 * PTU());
+    t.setAttribute("style", `font-size: ${(a.size_pt || 7) * PTU()}px; font-family: 'Arial'; text-anchor: start; fill: ${a.color || "#1b1b1b"}`);
     t.textContent = ln; g.appendChild(t);
   });
   svg.appendChild(g);
@@ -266,14 +269,14 @@ function drawShape(key) {                             // the editor's drawing of
   const c = cur[key]; if (!c || !c.add || c.visible === false) return id;
   const a = c.add, ox = num(c, "dx_mm", 0), oy = num(c, "dy_mm", 0);
   const col = (c.colors || {})[(a.color || "#1b1b1b").toLowerCase()] || a.color || "#1b1b1b";
-  const lw = num(a, "lw", 0.8) * num(c, "lw", 1);
+  const lw = num(a, "lw", 0.8) * num(c, "lw", 1) * PTU();
   const dash = (a.ls || "-") === "--" ? `stroke-dasharray: ${3.7 * lw} ${1.6 * lw};` : "";
   const g = document.createElementNS(SVGNS, "g"); g.id = id; if (num(c, "alpha", 1) !== 1) g.style.opacity = c.alpha;
   const add = (tag, at) => { const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(at)) e.setAttribute(k, v); g.appendChild(e); return e; };
   const stroke = `fill: none; stroke: ${col}; stroke-width: ${lw}; ${dash} stroke-linejoin: miter; stroke-linecap: butt`;
   if (a.type === "arrow" || a.type === "line") {
     const x0 = X(a.x0_mm + ox), y0 = Y(a.y0_mm + oy), x1 = X(a.x1_mm + ox), y1 = Y(a.y1_mm + oy);
-    const head = a.head || (a.type === "arrow" ? "-|>" : "-"), hs = num(a, "head_size", 6), L = 0.4 * hs, W = 0.2 * hs;
+    const head = a.head || (a.type === "arrow" ? "-|>" : "-"), hs = num(a, "head_size", 6) * PTU(), L = 0.4 * hs, W = 0.2 * hs;
     const filled = head.includes("|>"), both = head.startsWith("<");
     const d = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / d, uy = (y1 - y0) / d;
     const e1 = head !== "-" && filled ? L : 0, e0 = both && filled ? L : 0;
@@ -291,7 +294,7 @@ function drawShape(key) {                             // the editor's drawing of
     const x0 = X(a.x0_mm + ox), x1 = X(a.x1_mm + ox), y = Y(a.y_mm + oy), h = X(num(a, "h_mm", 1.5));
     add("path", { d: `M ${x0} ${y + h} L ${x0} ${y} L ${x1} ${y} L ${x1} ${y + h}`, style: stroke });
     add("path", { d: `M ${x0} ${y} L ${x1} ${y}`, style: "stroke: transparent; stroke-width: 6; fill: none" });
-    const fs = num(a, "size_pt", 7) * num(c, "size", 1);
+    const fs = num(a, "size_pt", 7) * num(c, "size", 1) * PTU();
     const t = add("text", { x: (x0 + x1) / 2, y: y - X(num(a, "gap_mm", 0.3)),
                             style: `font-size: ${fs}px; font-family: 'Arial'; text-anchor: middle; fill: ${col}; font-weight: ${c.weight || "normal"}` });
     t.textContent = a.text ?? "*";
@@ -382,6 +385,17 @@ function previewStyle() {
     const m = deltaMap(s.colors, c.colors), lwf = num(c, "lw", 1) / num(s, "lw", 1);
     if (Object.keys(m).length) scopeEls(it).forEach(e => swapStyle(e, m, 1));
     if (lwf !== 1) scopeEls(it, it.kind === "axes").forEach(e => swapStyle(e, null, lwf));
+    if (["line", "patch", "collection", "scatter"].includes(it.kind) && ((c.ls || it.ls) !== (s.ls || it.ls) || JSON.stringify(c.dash) !== JSON.stringify(s.dash))) {
+      const ls = c.ls || it.ls || "-";                   // dash preview on the stroked paths (markers keep theirs)
+      scopeEls(it).forEach(e => {
+        const st = e.getAttribute("style") || "";
+        if (e.tagName !== "path" || !/fill:\s*none/.test(st) || !/stroke:\s*#/.test(st)) return;
+        const w = +((st.match(/stroke-width:\s*([\d.]+)/) || [0, 1])[1]);
+        e.style.strokeDasharray = ls === "--" ? (c.dash ? c.dash.map(v => v * PTU()).join(" ") : `${3.7 * w} ${1.6 * w}`)
+          : ls === ":" ? `${w} ${1.65 * w}` : ls === "-." ? `${6.4 * w} ${1.6 * w} ${w} ${1.6 * w}` : "none";
+        if (ls === "none") e.style.strokeOpacity = 0;
+      });
+    }
     if (it.kind === "ticks") {
       const texts = it.members.map(id => svg.getElementById(id)).filter(Boolean);
       if (c.visible === false) texts.forEach(e => e.style.display = "none");
@@ -464,6 +478,14 @@ function previewGeom() {
     const rot = -(num(c, "rotation", it.rotation || 0) - num(s, "rotation", it.rotation || 0));
     const own = it.own ? svg.getElementById(it.own) : null;
     const setT = (e, t) => !t.trim() || t.trim() === "translate(0 0)" ? e.removeAttribute("transform") : e.setAttribute("transform", t);
+    if (it.kind === "axes" && own && it.colorbar_of && !num(c, "dx_mm", 0) && !num(c, "dy_mm", 0) && items[it.colorbar_of]) {
+      const pc = cur[it.colorbar_of] || {}, ps = stored[it.colorbar_of] || {};
+      const d = n => num(pc, n, 0) - num(ps, n, 0);
+      const fx = (d("dx_mm") + (it.cb_orient === "vertical" ? d("dw_mm") : 0)) / PT_MM;
+      const fy = -(d("dy_mm") - (it.cb_orient === "vertical" ? 0 : d("dh_mm"))) / PT_MM;
+      setT(own, `translate(${fx} ${fy})`);
+      continue;
+    }
     if (it.kind === "axes" && own) {
       const sx = (it.w + num(c, "dw_mm", 0)) / (it.w + num(s, "dw_mm", 0)), sy = (it.h + num(c, "dh_mm", 0)) / (it.h + num(s, "dh_mm", 0));
       setT(own, `translate(${tx} ${ty})` + (sx !== 1 || sy !== 1 ?
@@ -792,6 +814,50 @@ function alignSel(mode) {
   }
   afterEdit();
 }
+const MARKERS = [["none", "无"], ["o", "●"], ["s", "■"], ["^", "▲"], ["v", "▼"], ["D", "◆"], ["x", "×"], ["+", "+"],
+                 ["*", "★"], [".", "·"]];
+function lineProps(it, c) {
+  const b = section("线型");
+  const ls = c.ls || it.ls || "-";
+  const setLs = v => () => { push(); if (v === (it.ls || "-")) delete c.ls; else c.ls = v; if (v !== "--") delete c.dash; afterEdit(); };
+  btnRow(b, "样式", [["实线", ls === "-", setLs("-")], ["虚线", ls === "--", setLs("--")], ["点线", ls === ":", setLs(":")],
+                    ["点划线", ls === "-.", setLs("-.")], ["无", ls === "none", setLs("none"), "只留标记，不画线"]]);
+  if (ls === "--") {
+    const w = it.lw_pt || 1, d = c.dash || [+(3.7 * w).toFixed(2), +(1.6 * w).toFixed(2)];
+    pairFields(b, "段长 / 间距 pt", [d[0], v => { c.dash = [v, (c.dash || d)[1]]; c.ls = "--"; }], [d[1], v => { c.dash = [(c.dash || d)[0], v]; c.ls = "--"; }]);
+  }
+  if (it.kind === "line") {
+    const m = section("线上的点（标记）");
+    const mk = c.marker || (it.marker === "None" ? "none" : it.marker) || "none";
+    btnRow(m, "形状", MARKERS.map(([v, t]) => [t, mk === v, () => { push(); c.marker = v; afterEdit(); }, v === "none" ? "不画点" : ""]));
+    if (mk !== "none") {
+      numField(m, "大小 pt", num(c, "ms", it.ms || 6), 0.5, v => c.ms = v, 1);
+      numField(m, "描边 pt", num(c, "mew", 1), 0.1, v => c.mew = v, 1);
+      btnRow(m, "填充", [["实心", c.mfc !== "none", () => { push(); delete c.mfc; afterEdit(); }],
+                        ["空心", c.mfc === "none", () => { push(); c.mfc = "none"; afterEdit(); }]]);
+    }
+    m.appendChild(el("div", { class: "note", style: "grid-column:1/3", text: "点的形状和大小在保存出图后显示；线型改动可直接预览。" }));
+  }
+}
+function cmapProps(it, c) {
+  const b = section("配色方案（色带）"); b.style.display = "block";
+  const curName = c.cmap || it.cmap, base = curName.replace(/_r$/, ""), rev = curName.endsWith("_r");
+  const grid = el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:6px" });
+  for (const [name, cols] of Object.entries(meta.cmaps || {})) {
+    const sw = el("div", { title: name, style: `height:18px;border:1px solid ${name === base ? "var(--red)" : "var(--line)"};outline:${name === base ? "1px solid var(--red)" : "none"};cursor:pointer;` +
+      `background:linear-gradient(90deg,${(rev ? cols.slice().reverse() : cols).join(",")})` });
+    sw.onclick = () => { push(); c.cmap = name + (rev ? "_r" : ""); if (c.cmap === it.cmap) delete c.cmap; afterEdit(); };
+    grid.appendChild(el("div", {}, [sw, el("div", { style: "font-size:12px", text: name.replace("paper_", "论文·") })]));
+  }
+  b.appendChild(grid);
+  const g = el("div", { class: "prop", style: "margin-top:8px" });
+  btnRow(g, "方向", [["正向", !rev, () => { push(); c.cmap = base; if (c.cmap === it.cmap) delete c.cmap; afterEdit(); }],
+                    ["反转", rev, () => { push(); c.cmap = base + "_r"; if (c.cmap === it.cmap) delete c.cmap; afterEdit(); }]]);
+  const cl = c.clim || it.clim || [0, 1];
+  pairFields(g, "色标 下限 / 上限", [cl[0], v => c.clim = [v, (c.clim || cl)[1]]], [cl[1], v => c.clim = [(c.clim || cl)[0], v]]);
+  b.appendChild(g);
+  b.appendChild(el("div", { class: "note", text: `原始：${it.cmap}，${it.clim.map(v => +v.toPrecision(4)).join(" – ")}。配色在保存出图后显示；色条随之更新，刻度文字保持原样。` }));
+}
 function shapeProps(it, c) {
   const a = c.add, set = (k, v) => { a[k] = v; };
   const g = section(SHAPES[a.type] + "：位置（mm，从左下角起）");
@@ -914,6 +980,8 @@ function drawProps() {
                        ["0°", 0, () => { push(); c.rotation = 0; afterEdit(); }]]);
       }
     }
+    if (["line", "patch", "collection", "scatter"].includes(it.kind) && it.ls !== undefined) lineProps(it, c);
+    if (it.cmap) cmapProps(it, c);
     if (it.kind === "scatter" || LW.has(it.kind) || ALPHA.has(it.kind)) {
       const b = section(it.kind === "axes" ? "边框" : it.kind === "scatter" ? "点与线" : "线条与透明度");
       if (it.kind === "scatter") numField(b, "点面积 ×", num(c, "scale", 1), 0.1, v => c.scale = v || 1);
@@ -1170,9 +1238,24 @@ async function post(path, body) {
 $("save").onclick = () => {
   const out = {};
   for (const k of dirtyKeys()) { const o = normObj(cur[k]); out[k] = Object.keys(o).length ? o : null; }
+  if (meta.overlay) {                                   // an external figure: the server adds this drawing to it
+    const keep = [...svg.querySelectorAll("g[id^=twshape_], g[id^=twnew_]")].filter(g => g.style.display !== "none");
+    out.__overlay_svg = keep.map(g => g.outerHTML).join("\n");
+  }
   post("/save", out);
 };
 $("undo").onclick = undo; $("redo").onclick = redo;
+$("addOverlay").onclick = async () => {
+  const path = prompt("外部图的完整路径（SVG 或 PNG），例如 D:\\data\\fig_origin.svg：");
+  if (!path) return;
+  if (dirtyKeys().length && !confirm("有未保存的调整，切换会放弃它们。继续？")) return;
+  setStatus("登记外部图…");
+  const r = await fetch("/overlay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: path.trim().replace(/^"|"$/g, "") }) }).then(x => x.json());
+  if (!r.ok) { setStatus(r.error || "打不开这个文件", true); return; }
+  sel = null; multi = new Set(); load.fitted = false; openGroups = new Set();
+  await loadFigs(); await load(); updateButtons();
+  setStatus("外部图：用上方“插入”加文字、箭头、括号和框，保存后另存为 *_annotated.svg/png/pdf");
+};
 $("discard").onclick = () => { push(); cur = clone(stored); syncAdded(); afterEdit(); };
 $("resetAll").onclick = () => { if (confirm("清除这张图的全部手动调整（包括插入的文字和形状）并重新出图？")) post("/reset_all", {}); };
 $("figsel").onchange = async () => {

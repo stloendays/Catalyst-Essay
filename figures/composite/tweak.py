@@ -38,15 +38,17 @@ import os
 import sys
 from collections import Counter
 
+import matplotlib
 from matplotlib.axis import Axis
 from matplotlib.collections import Collection, PathCollection
-from matplotlib.colors import to_hex, to_rgba
+from matplotlib.colors import LinearSegmentedColormap, to_hex, to_rgba
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
+from matplotlib.markers import MarkerStyle
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Patch
 from matplotlib.text import Annotation, Text
-from matplotlib.ticker import Formatter
+from matplotlib.ticker import FixedLocator, Formatter, FuncFormatter
 from matplotlib.transforms import Affine2D, Bbox, ScaledTranslation
 
 MM = 1 / 25.4
@@ -329,6 +331,126 @@ def _make_added(fig, key, v):
     fig._tw_added[key] = (typ, parts)
 
 
+# ---- line styles, markers and colour maps --------------------------------------------------------------------------
+
+LINESTYLES = {"-": "solid", "--": "dashed", ":": "dotted", "-.": "dashdot", "none": "None"}
+
+
+def _ls_name(ls):
+    """matplotlib's linestyle (a name, a symbol or an (offset, dashes) tuple) as one of '-', '--', ':', '-.', 'none'."""
+    if isinstance(ls, tuple):
+        return "--" if ls[1] else "-"
+    s = str(ls)
+    return {"solid": "-", "dashed": "--", "dotted": ":", "dashdot": "-.", "None": "none", " ": "none", "": "none"}.get(s, s)
+
+
+def _style_line(a, tw):
+    """ls ('-', '--', ':', '-.', 'none'), dash [on, off] in pt, marker, ms (pt), mew (pt), mfc ('none' for hollow)."""
+    if "ls" in tw or "dash" in tw:
+        ls = tw.get("ls", "--" if "dash" in tw else "-")
+        if ls == "--" and tw.get("dash"):
+            lw = a.get_linewidth() if isinstance(a, Line2D) else (list(a.get_linewidths()) or [1])[0]
+            on, off = tw["dash"]
+            scale = lw if matplotlib.rcParams["lines.scale_dashes"] and lw > 0 else 1.0   # dashes scale with lw
+            a.set_linestyle((0, (on / scale, off / scale)))
+        else:
+            a.set_linestyle(LINESTYLES.get(ls, ls))
+    if isinstance(a, Line2D):
+        if "marker" in tw:
+            a.set_marker(tw["marker"] if tw["marker"] != "none" else "None")
+        if "ms" in tw:
+            a.set_markersize(tw["ms"])
+        if "mew" in tw:
+            a.set_markeredgewidth(tw["mew"])
+        if "mfc" in tw:
+            a.set_markerfacecolor(tw["mfc"])
+    elif isinstance(a, PathCollection) and tw.get("marker") and tw["marker"] != "none":
+        ms = MarkerStyle(tw["marker"])
+        a.set_paths([ms.get_path().transformed(ms.get_transform())])
+
+
+def _paper_cmaps():
+    """Colour maps from the project's palette (white -> Ru blue, white -> Fe green, blue -> white -> red)."""
+    pal = _style_palette()
+    blue, green, red = pal.get("RU", "#5677b5"), pal.get("FE", "#6e9f60"), pal.get("RED", "#d9474f")
+    dark_b, dark_g = pal.get("DARK_B", "#304c86"), pal.get("DARK_G", "#467238")
+    return {"paper_blue": LinearSegmentedColormap.from_list("paper_blue", ["#ffffff", blue, dark_b]),
+            "paper_green": LinearSegmentedColormap.from_list("paper_green", ["#ffffff", green, dark_g]),
+            "paper_red": LinearSegmentedColormap.from_list("paper_red", ["#ffffff", red]),
+            "paper_div": LinearSegmentedColormap.from_list("paper_div", [dark_b, "#ffffff", red])}
+
+
+CMAP_CHOICES = ["paper_blue", "paper_green", "paper_red", "paper_div", "viridis", "cividis", "magma", "plasma",
+                "Blues", "Greens", "Reds", "Oranges", "Purples", "Greys", "YlGnBu", "YlOrRd", "RdBu_r", "coolwarm",
+                "PuOr_r", "BrBG"]
+
+
+def _get_cmap(name):
+    rev = name.endswith("_r") and name[:-2] in _paper_cmaps()
+    base = name[:-2] if rev else name
+    cm = _paper_cmaps().get(base) or matplotlib.colormaps[base]
+    return cm.reversed() if rev else cm
+
+
+def _style_cmap(a, tw):
+    cb = getattr(a, "colorbar", None)
+    keep = None
+    if cb is not None and tw.get("clim"):            # the colorbar keeps its own tick values and wording
+        locs = [float(v) for v in cb.locator()]
+        labs = cb.formatter.format_ticks(locs) if hasattr(cb.formatter, "format_ticks") else [str(v) for v in locs]
+        keep = (locs, dict(zip((round(v, 12) for v in locs), labs)))
+    if tw.get("cmap"):
+        a.set_cmap(_get_cmap(tw["cmap"]))
+    if tw.get("clim"):
+        a.set_clim(*tw["clim"])
+    if keep:
+        locs, lab = keep
+        cb.locator = FixedLocator(locs)
+        cb.formatter = FuncFormatter(lambda v, pos, _l=lab: _l.get(round(float(v), 12), "%g" % v))
+
+
+def _cmap_samples():
+    """Eleven colours of each colour map on offer, for the editor's swatches."""
+    out = {}
+    for n in CMAP_CHOICES:
+        cm = _get_cmap(n)
+        out[n] = [to_hex(cm(i / 10)) for i in range(11)]
+    return out
+
+
+def _is_mapped(a):
+    """Coloured through a colour map (a heat map, contour or colour-coded scatter), not an RGB picture."""
+    if not (hasattr(a, "get_array") and hasattr(a, "get_cmap")) or a.get_array() is None:
+        return False
+    if getattr(getattr(a, "axes", None), "_colorbar", None) is not None:
+        return False                                   # a colorbar's own swatch follows its mappable
+    return a.get_array().ndim <= 2 and not (a.get_array().ndim == 2 and a.__class__.__name__ == "AxesImage"
+                                            and False) and not (a.get_array().ndim == 3)
+
+
+def _follow_colorbars(fig, tweaks, axkeys):
+    """A colorbar's axes moves with the chart it belongs to, unless it was moved itself."""
+    key_of = {ax: k for ax, k in axkeys.items()}
+    W, H = fig.get_size_inches() / MM
+    for cax in fig.axes:
+        cb = getattr(cax, "_colorbar", None)
+        parent = getattr(getattr(cb, "mappable", None), "axes", None)
+        if cb is None or parent is None or parent not in key_of or cax not in key_of:
+            continue
+        own = tweaks.get(key_of[cax] + "/axes") or {}
+        if own.get("dx_mm") or own.get("dy_mm"):
+            continue
+        p = tweaks.get(key_of[parent] + "/axes") or {}
+        dx, dy = p.get("dx_mm", 0.0), p.get("dy_mm", 0.0)
+        if cb.orientation == "vertical":
+            dx += p.get("dw_mm", 0.0)                  # a colorbar to the right follows the chart's right edge
+        else:
+            dy -= p.get("dh_mm", 0.0)                  # one below follows its bottom edge
+        if dx or dy:
+            x0, y0, w, h = cax.get_position(original=True).bounds
+            cax.set_position(Bbox.from_bounds(x0 + dx / W, y0 + dy / H, w, h))
+
+
 # ---- applying one adjustment ---------------------------------------------------------------------------------------
 
 def _shift_text(fig, t, dx, dy):
@@ -419,6 +541,10 @@ def _apply(fig, it, tw):
             _scale_lw(a, tw["lw"])
     if "alpha" in tw and kind in ("text", "axislabel", "scatter", "line", "patch", "collection", "image"):
         a.set_alpha(tw["alpha"])
+    if kind in ("line", "patch", "collection", "scatter"):
+        _style_line(a, tw)
+    if kind in ("image", "collection", "scatter") and ("cmap" in tw or "clim" in tw):
+        _style_cmap(a, tw)
     if kind == "figure":
         if tw.get("background"):
             fig.patch.set_facecolor(tw["background"])
@@ -508,6 +634,7 @@ def apply(fig, here, stem, rerun_args=None):
     H_pt = fig.get_size_inches()[1] * 72
     to_svg = 72.0 / fig.dpi
     items = _items(fig)
+    axk = _axkeys(fig)
     ids, palette = {}, Counter()
     for it in items:                               # tag everything before anything changes
         a, gid = it["artist"], _gid(it["key"])
@@ -544,6 +671,18 @@ def apply(fig, here, stem, rerun_args=None):
             a.arrow_patch.set_gid(gid + "_arrow")
             px, py = a._get_position_xy(renderer)          # the annotated point, which the leader keeps
             rec["arrow"] = [px * to_svg, H_pt - py * to_svg]
+        if isinstance(a, Line2D) and it["kind"] == "line":
+            rec.update(ls=_ls_name(a.get_linestyle()), marker=str(a.get_marker()), ms=round(a.get_markersize(), 2),
+                       lw_pt=round(a.get_linewidth(), 2))
+        elif it["kind"] in ("patch", "collection", "scatter") and hasattr(a, "get_linestyle"):
+            ls = a.get_linestyle()
+            rec["ls"] = _ls_name(ls[0] if isinstance(ls, list) and ls else ls)
+        if it["kind"] in ("image", "collection", "scatter") and _is_mapped(a):
+            rec.update(cmap=a.get_cmap().name, clim=[float(v) for v in a.get_clim()])
+        if it["kind"] == "axes" and getattr(a, "_colorbar", None) is not None:
+            parent = getattr(a._colorbar.mappable, "axes", None)
+            if parent is not None and parent in axk:
+                rec.update(colorbar_of=axk[parent] + "/axes", cb_orient=a._colorbar.orientation)
         name = _name(a) if it["kind"] not in ("figure", "axes", "ticks") else ""
         if name:
             rec["name"] = name
@@ -559,13 +698,15 @@ def apply(fig, here, stem, rerun_args=None):
         if tw:
             used.add(it["key"])
             _apply(fig, it, tw)
+    _follow_colorbars(fig, tweaks, axk)
     gm = (tweaks.get("fig/figure") or {}).get("colors")
     if gm:
         _recolor(fig, {k.lower(): v for k, v in gm.items()})
     meta = dict(stem=stem, script=os.path.abspath(sys.argv[0]),
                 args=[str(x) for x in (sys.argv[1:] if rerun_args is None else rerun_args)],
                 python=sys.executable, cwd=os.getcwd(), size_mm=[round(v / MM, 2) for v in fig.get_size_inches()],
-                palette=[c for c, _ in palette.most_common()], style_palette=_style_palette())
+                palette=[c for c, _ in palette.most_common()], style_palette=_style_palette(),
+                cmaps=_cmap_samples() if any("cmap" in v for v in ids.values()) else {})
     json.dump(dict(meta=meta, ids=ids), open(os.path.join(here, stem + ".tweak_keys.json"), "w", encoding="utf-8"),
               indent=0, ensure_ascii=False)
     stale = sorted(set(tweaks) - used)
