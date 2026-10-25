@@ -1,0 +1,166 @@
+name: NH3 source-data VLE CV and physical applicability (unfrozen)
+on:
+  push:
+    paths:
+      - "analysis/nh3_validation_extension_2026_10_15/**"
+      - ".github/workflows/nh3-source-cv-2026-10-15.yml"
+  pull_request:
+    paths:
+      - "analysis/nh3_validation_extension_2026_10_15/**"
+      - ".github/workflows/nh3-source-cv-2026-10-15.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-evidence:
+    name: ${{ matrix.study }} - source-pinned validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        study: ["vle", "energy"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Assert no registered source, models or manuscript changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/nh3_validation_extension_2026_10_15/|\.github/workflows/nh3-source-cv-2026-10-15\.yml$)' changed.txt; then
+            echo "Frozen model, source or manuscript modification forbidden"
+            exit 1
+          fi
+      - name: Test predeclared model parameter and leakage contracts
+        run: |
+          python -m unittest discover -s analysis/nh3_validation_extension_2026_10_15 -p 'test_validation.py' -v
+      - name: Evaluate NH3 independent literature-source uncertainty and applicability
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/${{ matrix.study == 'vle' && 'vle_cv' || 'energy_domain' }}.py --out artifacts/nh3-${{ matrix.study }}
+      - name: Independent source / table / inference scope checks
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/test_validation.py --study ${{ matrix.study }} --out artifacts/nh3-${{ matrix.study }}
+      - name: Publish result and limitations
+        if: success()
+        run: |
+          cat artifacts/nh3-${{ matrix.study }}/summary.json
+          cat artifacts/nh3-${{ matrix.study }}/REPORT.md
+      - name: Upload sources and prediction artifacts even on failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-validation-${{ matrix.study }}-${{ github.sha }}
+          path: artifacts/nh3-${{ matrix.study }}/
+          retention-days: 90
+
+
+  source-to-plant:
+    name: BASF-source coefficients -> five unchanged industrial inlet targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      PYTHONIOENCODING: utf-8
+      NH3_MODEL: "1.2"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install source-benchmark-compatible numerical library versions
+        run: pip install "numpy==2.3.5" "scipy==1.18.0" "pandas>=2.0" "pyyaml>=6" "openpyxl>=3.1"
+      - name: Assert original registered model and source not patched
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/nh3_validation_extension_2026_10_15/|\.github/workflows/nh3-source-cv-2026-10-15\.yml$)' changed.txt; then
+            echo "Original model or scientific evidence cannot be rewritten by transfer"
+            exit 1
+          fi
+      - name: Evaluate source-fitted effective VLE against five published industrial inlets
+        run: python analysis/nh3_validation_extension_2026_10_15/source_to_plant.py --out artifacts/nh3-transfer
+      - name: Assert five targets, benchmark 32/64 unchanged and non-fitting scope
+        run: python analysis/nh3_validation_extension_2026_10_15/test_validation.py --study transfer --out artifacts/nh3-transfer
+      - name: Prove frozen library and source persisted without edits
+        run: git diff --exit-code -- docs/ data/ provenance/ analysis/validation_nh3_plant_2026_10_13/ analysis/nh3_industrial_validation_2026_10_14/
+      - name: Print full source-to-plant transfer outcome
+        if: success()
+        run: |
+          cat artifacts/nh3-transfer/summary.json
+          cat artifacts/nh3-transfer/REPORT.md
+      - name: Upload transfer results including negative findings
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-validation-five-plant-transfer-${{ github.sha }}
+          path: artifacts/nh3-transfer/
+          retention-days: 90
+
+
+  uhde-separator-gas:
+    name: BASF-source vapor curve vs 2 independent Uhde separator GAS streams
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify frozen model/manuscript unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base=$(git merge-base origin/main HEAD)
+          git diff --name-only "$base" HEAD | tee changed.txt
+          if grep -Ev '^(analysis/nh3_validation_extension_2026_10_15/|\.github/workflows/nh3-source-cv-2026-10-15\.yml$)' changed.txt; then
+            echo "Original model or source cannot be rewritten"
+            exit 1
+          fi
+      - name: Fetch independent 12-stream primary source from stacked PR 90
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/uhde-external
+          git fetch --no-tags origin paper/nh3-uhde-stream-simulation-2026-10-14
+          git show FETCH_HEAD:analysis/nh3_source_matched_loop_v0/figure57_streams.csv > artifacts/uhde-external/figure57_streams.csv
+          test "$(git hash-object artifacts/uhde-external/figure57_streams.csv)" = "7d511a788895d1f3ab825f9db9a3f0929db44460"
+      - name: Apply frozen BASF source-only fits to two real published separator gas compositions
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/uhde_vapor.py --streams artifacts/uhde-external/figure57_streams.csv --out artifacts/uhde-cross-source
+      - name: Independently verify 2 gas streams are one plant, and no industrial re-score
+        run: |
+          python analysis/nh3_validation_extension_2026_10_15/test_validation.py --study uhde --out artifacts/uhde-cross-source
+      - name: Publish source-to-source limitations and numerical outcomes
+        if: success()
+        run: |
+          cat artifacts/uhde-cross-source/summary.json
+          cat artifacts/uhde-cross-source/REPORT.md
+      - name: Upload pinned published source and comparator result including failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nh3-source-cross-uhde-vapor-${{ github.sha }}
+          path: |
+            artifacts/uhde-external/
+            artifacts/uhde-cross-source/
+          retention-days: 90
