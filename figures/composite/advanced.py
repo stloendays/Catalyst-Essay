@@ -819,8 +819,7 @@ def taylor(fig_or_pg, rect_mm, ref_std, models, highlight=None, normalize=True, 
         if disc > 0:
             r0 = sref * np.cos(tt) + np.sqrt(disc)
             if r0 < smax * 0.97:
-                ax.text(tt, r0, "%g" % lv, fontsize=SMALL - 0.3, color=MID, ha="center", va="center",
-                        bbox=dict(fc="white", ec="none", pad=0.2), zorder=4)
+                ax.text(tt, r0, "%g" % lv, fontsize=SMALL - 0.3, color=MID, ha="center", va="center", zorder=4)
     t = np.linspace(0, np.pi / 2, 100)
     ax.plot(t, np.full_like(t, sref), color=INK, lw=0.5, ls=(0, (1, 1.2)))
     ax.plot(0, sref, marker="*", ms=6, color=INK, clip_on=False, zorder=5)
@@ -1042,8 +1041,7 @@ def energy_profile(ax, energies, states=None, x=None, color=DARK_B, label=None, 
                     arrowprops=dict(arrowstyle="<->", color=RED, lw=0.7, shrinkA=0, shrinkB=0))
         ax.plot([x[k] + level_w / 2, xa + 0.04], [E[k], E[k]], color=RED, lw=0.4, ls=(0, (1, 1)))
         ax.text(xa + 0.07, (E[k] + E[k + 1]) / 2, _fmt_minus("Δ$\\mathit{G}$ = %.2f" % d[k]),
-                color=RED, fontsize=text_size, ha="left", va="center", zorder=7,
-                bbox=dict(fc="white", ec="none", pad=0.5))
+                color=RED, fontsize=text_size, ha="left", va="center", zorder=7)
     if states is not None:
         ax.set_xticks(x)
         ax.set_xticklabels(states)
@@ -1064,9 +1062,18 @@ def map2d(ax, X, Y, Z, levels=14, cmap=SEQ, points=None, labels=None, highlight=
             ax.scatter(px[highlight], py[highlight], s=16, color=RED, edgecolor="white", lw=0.5, zorder=5)
         if labels is not None:
             for xx, yy, t in zip(px, py, labels):
-                ax.annotate(t, (xx, yy), xytext=(3, 2), textcoords="offset points", fontsize=SMALL, color=INK,
-                            zorder=6, bbox=dict(fc="white", ec="none", pad=0.3, alpha=0.75))
+                ax.annotate(t, (xx, yy), xytext=(3, 2), textcoords="offset points", fontsize=SMALL,
+                            color=contrast_ink(m, X, Y, Z, xx, yy), fontweight="bold", zorder=6)
     return m
+
+
+def contrast_ink(mappable, X, Y, Z, x, y):
+    """Text colour for a label on a colour-mapped field: white on dark fill, INK on light fill. Labels carry no
+    background box (house rule, 2026-10-26), so the colour has to do the work."""
+    X, Y, Z = (np.asarray(v, float) for v in (X, Y, Z))
+    i = np.unravel_index(np.argmin((X - x) ** 2 + (Y - y) ** 2), Z.shape)
+    r, g, b, _ = mappable.cmap(mappable.norm(Z[i]))
+    return "white" if 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.45 else INK
 
 
 # --------------------------------------------------------------------------- spectra: zoom insets, stacks
