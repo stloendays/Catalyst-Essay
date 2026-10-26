@@ -352,11 +352,9 @@ for xv in (lo_f, hi_f):
 f.scatter(xF[win == "Ru"], yR[win == "Ru"], s=2.2, c=RU, edgecolors="none", zorder=2, alpha=0.9)
 f.scatter(xF[win == "Fe"], yR[win == "Fe"], s=2.2, c=FE, edgecolors="none", zorder=3, alpha=0.9)
 f.plot(EN["Fe"], EN["Ru"], marker="*", ms=6.5, mfc="white", mec=INK, mew=0.6, zorder=5)
-f.text(EN["Fe"] + 0.05, EN["Ru"] + 0.012, "baseline", fontsize=5.5, va="bottom", color=INK, fontweight="bold",
-       bbox=dict(boxstyle="square,pad=0.1", fc="white", ec="none", alpha=0.8), zorder=6)
 f.text(0.5 * (lo_f + hi_f), -1.305, "Fe feasible", ha="center", va="bottom", fontsize=5.6, color=MID)
-f.text(lo_f - 0.04, -0.985, "bed > 90 m$^3$", ha="right", va="top", fontsize=5.5, color=MID,
-       bbox=dict(boxstyle="square,pad=0.1", fc="#F3F3F3", ec="none", alpha=0.85), zorder=6)
+# "baseline" and "bed > 90 m3" used to sit on the point cloud behind white boxes; text carries no background, so
+# both moved into the key at the right
 f.set_xlim(-2.12, -0.62)
 f.set_ylim(-1.31, -0.97)
 f.set_xlabel(r"Fe $E_\mathrm{N}$ draw (eV)")
@@ -370,7 +368,12 @@ f.set_yticklabels([fmt_minus("%.1f" % v) for v in (-1.3, -1.2, -1.1, -1.0)])
 f.text(1.03, 0.98, "economic\nwinner", transform=f.transAxes, fontsize=5.6, va="top", color=MID)
 for yy, col, txt in ((0.74, FE, "Fe  %d" % N_FE_WIN), (0.64, RU, "Ru  %d" % (len(win) - N_FE_WIN))):
     f.plot([1.06], [yy], "o", ms=3.0, mfc=col, mec="none", transform=f.transAxes, clip_on=False)
-    f.text(1.1, yy, txt, transform=f.transAxes, fontsize=5.8, va="center")
+    f.text(1.1, yy, txt, transform=f.transAxes, fontsize=5.8, va="center", fontweight="bold")
+f.plot([1.06], [0.48], marker="*", ms=5.5, mfc="white", mec=INK, mew=0.6, transform=f.transAxes, clip_on=False)
+f.text(1.1, 0.48, "baseline", transform=f.transAxes, fontsize=5.8, va="center", fontweight="bold")
+f.add_patch(Rectangle((1.035, 0.345), 0.05, 0.07, transform=f.transAxes, fc="#F3F3F3", ec=MID, lw=0.4,
+                      clip_on=False))
+f.text(1.1, 0.38, "bed > 90 m$^3$", transform=f.transAxes, fontsize=5.8, va="center", fontweight="bold")
 
 # ---- g: decision endpoints under descriptor uncertainty -------------------------------------------
 pg.letter("g", 70.0, LY0 + LH + 6.5)

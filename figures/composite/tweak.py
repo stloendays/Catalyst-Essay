@@ -621,11 +621,42 @@ def _style_palette():
     return out
 
 
+def _near_white(c):
+    from matplotlib.colors import to_rgba
+    r, g, b, a = to_rgba(c)
+    return a > 0 and min(r, g, b) >= 0.9
+
+
+def _house_defaults(fig):
+    """House defaults, applied before the figure is keyed so the editor records them as the base style (user,
+    2026-10-26): legend text is bold, and text carries no masking background (no white stroke halo, no white or
+    near-white box without an edge). Boxes with an edge are drawn labels and stay. A weight or a box set in
+    tweaks.json still wins, because the tweaks are applied afterwards."""
+    from matplotlib import patheffects as pe
+    legends = [ax.get_legend() for ax in fig.axes if ax.get_legend() is not None] + list(fig.legends)
+    for lg in legends:
+        for t in lg.get_texts():
+            t.set_fontweight("bold")
+        if lg.get_title() is not None and lg.get_title().get_text():
+            lg.get_title().set_fontweight("bold")
+    for t in list(fig.texts) + [t for ax in fig.axes for t in ax.texts]:
+        effects = t.get_path_effects() or []
+        keep = [e for e in effects
+                if not (isinstance(e, pe.withStroke) and _near_white(e._gc.get("foreground", "black")))]
+        if len(keep) != len(effects):
+            t.set_path_effects(keep)
+        bp = t.get_bbox_patch()
+        if bp is not None and _near_white(bp.get_facecolor()) and (
+                bp.get_linewidth() == 0 or bp.get_edgecolor()[3] == 0):
+            t.set_bbox(None)
+
+
 def apply(fig, here, stem, rerun_args=None):
     """Apply <stem>.tweaks.json to `fig` and write <stem>.tweak_keys.json. `rerun_args` are the command-line
     arguments that re-render only this figure (default: those of the current run)."""
     path = os.path.join(here, stem + ".tweaks.json")
     tweaks = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    _house_defaults(fig)                           # bold legends, no masking text backgrounds
     for k, v in sorted(tweaks.items()):            # texts and shapes inserted in the editor
         if k.startswith("fig/added/") and isinstance(v, dict) and v.get("add"):
             _make_added(fig, k, v)

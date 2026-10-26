@@ -330,7 +330,9 @@ def ed_frontier():
     a.set_xlabel("Ru/C $-$ Fe (USD t$^{-1}$ NH$_3$)")
     a.text(-7.7, n - 0.6, "Ru/C cheaper", fontsize=5.3, color=DARK_B, va="center")
     a.text(7.2, n - 0.6, "Fe cheaper", fontsize=5.3, color=DARK_G, ha="right", va="center")
-    a.legend(frameon=False, fontsize=5.0, loc="upper right", bbox_to_anchor=(1.0, 0.50), handlelength=0.6, handletextpad=0.3, borderaxespad=0.2)
+    # above the axes, two columns: inside, the bold labels sat on the 12 %/y markers of the lifetime rows
+    a.legend(frameon=False, fontsize=5.0, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, columnspacing=1.2,
+             handlelength=0.6, handletextpad=0.3, borderaxespad=0.2)
     boxed(a)
     pg.letter("a", 2, 88)
 

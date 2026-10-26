@@ -27,7 +27,6 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Patch
-from matplotlib import patheffects as pe
 from matplotlib.ticker import FuncFormatter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -183,10 +182,16 @@ def draw_track(pg):
 def dot(ax, x, y, lo=None, hi=None, fc=RU, ec=INK, s=42, z=4):
     if lo is not None:
         ax.plot([x, x], [lo, hi], color=INK, lw=1.0, zorder=z - 1, solid_capstyle="butt")
-    ax.scatter([x], [y], s=s, facecolor=fc, edgecolor=ec, lw=0.8, zorder=z)
+    ax.scatter([x], [y], s=s, facecolor=fc, edgecolor=ec, lw=MARKER_LW, zorder=z)
 
 
-HALO = [pe.withStroke(linewidth=2.2, foreground="white")]     # keeps labels legible where they cross data
+MARKER_LW = 0.6      # one outline width for every marker in the figure
+RING_GAP = 4.5       # highlight rings sit this many points outside the marker they ring, whatever its size
+
+
+def ring_s(s):
+    """Scatter size of a highlight ring around a marker of size s (points^2): constant gap, not constant area."""
+    return (np.sqrt(s) + RING_GAP) ** 2
 
 
 if __name__ == "__main__":
@@ -225,10 +230,10 @@ if __name__ == "__main__":
         if band:
             b.plot(band, [y, y], color=PALE_B, lw=8.0, solid_capstyle="round", zorder=1)
         b.plot([f5, f], [y, y], color=MID, lw=0.8, ls=(0, (1.5, 1.2)), zorder=1.5)
-        b.scatter([f5], [y], s=30, facecolor="white", edgecolor=MID, lw=0.8, zorder=3)
+        b.scatter([f5], [y], s=30, facecolor="white", edgecolor=MID, lw=MARKER_LW, zorder=3)
         if ci:
             b.plot(ci, [y, y], color=INK, lw=1.0, zorder=3, solid_capstyle="butt")
-        b.scatter([f], [y], s=42, facecolor=RU if cat else OS, edgecolor=INK, lw=0.8, zorder=4)
+        b.scatter([f], [y], s=42, facecolor=RU if cat else OS, edgecolor=INK, lw=MARKER_LW, zorder=4)
         yt = b.get_yaxis_transform()
         b.text(fx(15.5), y - (0.1 if "\n" in lab else 0), lab, transform=yt, fontsize=5.8, va="center", ha="left",
                linespacing=0.95, clip_on=False)
@@ -245,9 +250,9 @@ if __name__ == "__main__":
     b.set_xlabel("STY leader ≠ plant choice (%)")
     b.grid(axis="x", color=TINT_B, lw=0.5, zorder=0)
     b.set_axisbelow(True)
-    h = [b.scatter([], [], s=42, facecolor=RU, edgecolor=INK, lw=0.8),
+    h = [b.scatter([], [], s=42, facecolor=RU, edgecolor=INK, lw=MARKER_LW),
          Patch(facecolor=PALE_B, edgecolor="none"),
-         b.scatter([], [], s=30, facecolor="white", edgecolor=MID, lw=0.8)]
+         b.scatter([], [], s=30, facecolor="white", edgecolor=MID, lw=MARKER_LW)]
     pg.fig.legend(h, ["6.86% inlet limit", "5–10% limits", "no limit"], loc="lower left", ncol=3,
                   bbox_to_anchor=(13 / pg.W, 106.6 / pg.H), fontsize=5.6, handlelength=1.2, frameon=False,
                   columnspacing=1.4, handletextpad=0.4, borderaxespad=0)
@@ -264,11 +269,10 @@ if __name__ == "__main__":
         f = x["top1_mismatch_fraction"]
         l, h_ = x["bootstrap_papers"]["mismatch_fraction_ci95"]
         dot(c1, i, f, l, h_, fc=col)
-        c1.text(i + 0.16, f, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), fontsize=5.8, va="center", ha="left",
-                path_effects=HALO)
+        c1.text(i + 0.16, f, "%d/%d" % (x["top1_mismatch_groups"], x["groups"]), fontsize=5.8, va="center", ha="left")
     c1.set_xticks(range(len(ncases)))
     c1.set_xticklabels([l for l, _, _ in ncases], fontsize=5.6)
-    c1.set_xlim(-0.5, 2.7)
+    c1.set_xlim(-0.5, 2.95)        # the last count stays inside the frame
     c1.set_ylim(0, 0.85)
     c1.set_yticks([0, 0.2, 0.4, 0.6, 0.8])
     c1.set_yticklabels(["0", "20", "40", "60", "80"])
@@ -309,8 +313,8 @@ if __name__ == "__main__":
 
     # ---- d, e: two methanol comparisons ------------------------------------------------------------------------
     # Each entry: filled circle with the 6.86% inlet limit, open circle without it, joined by a light stem; marker
-    # area scales with the by-product selectivity. Leaders are ringed; labels carry a white halo and sit in empty
-    # space with a hairline leader, so no label covers a marker.
+    # area scales with the by-product selectivity. Leaders are ringed; labels have no background and sit in empty
+    # space with a hairline leader, so no label covers a marker or a frame line.
     for k, (g, title, byp, byp_tex) in enumerate(MEOH_GROUPS):
         t = meoh_group(g, byp)
         e = pg.ax(14 + k * 59, 11, 45, 40)
@@ -318,16 +322,15 @@ if __name__ == "__main__":
         size = 16 + 120 * t[byp].to_numpy()
         for x, y0, y1 in zip(sty, cost5, cost):
             e.plot([x, x], [y0, y1], color=AMB_D, lw=0.7, alpha=0.55, zorder=1, solid_capstyle="butt")
-        e.scatter(sty, cost5, s=size, facecolor="white", ec=AMB_D, lw=0.7, zorder=1.5)
-        e.scatter(sty, cost, s=size, c=AMB_P, ec="white", lw=0.7, zorder=2)
-        e.scatter(sty, cost, s=size, facecolor="none", ec=AMB_D, lw=0.5, zorder=2.1)
+        e.scatter(sty, cost5, s=size, facecolor="white", ec=AMB_D, lw=MARKER_LW, zorder=1.5)
+        e.scatter(sty, cost, s=size, c=AMB_P, ec=AMB_D, lw=MARKER_LW, zorder=2)
         iu, ie = int(np.argmax(sty)), int(np.argmin(cost))
         assert t.STY_leader[iu] and t.plant_cost_leader[ie] and iu != ie
         for i_, col in ((iu, RED), (ie, DARK_G)):
-            e.scatter([sty[i_]], [cost[i_]], s=size[i_] + 60, facecolor="none", ec=col, lw=1.1, zorder=3)
+            e.scatter([sty[i_]], [cost[i_]], s=ring_s(size[i_]), facecolor="none", ec=col, lw=1.1, zorder=3)
         names = [support_name(c) if k == 1 else "" for c in t.catalyst]
         xr = sty.max() - sty.min()
-        lab_kw = dict(fontsize=5.6, fontweight="bold", path_effects=HALO, zorder=6)
+        lab_kw = dict(fontsize=5.6, fontweight="bold", zorder=6)
 
         def leader(col):
             return dict(arrowstyle="-", lw=0.5, color=col, shrinkA=0.5, shrinkB=5)
@@ -341,7 +344,7 @@ if __name__ == "__main__":
             for i_, nm in enumerate(names):
                 if nm and i_ not in (iu, ie):
                     e.annotate(nm, (sty[i_], cost[i_]), xytext=(6, 0), textcoords="offset points", fontsize=5.4,
-                               ha="left", va="center", color=INK, path_effects=HALO, zorder=6)
+                               ha="left", va="center", color=INK, zorder=6)
             e.annotate("STY leader, " + names[iu], (sty[iu], cost[iu]), xytext=(0.97, 0.74), textcoords="axes fraction",
                        ha="right", va="center", color=RED, arrowprops=leader(RED), **lab_kw)
             e.annotate("plant choice,\n" + names[ie], (sty[ie], cost[ie]), xytext=(-10, 0), textcoords="offset points",
@@ -374,17 +377,16 @@ if __name__ == "__main__":
     met = [r["metal"] for r in rows_]
     for m in ("Ru", "Fe", "Co"):
         sel = [i for i, x in enumerate(met) if x == m]
-        fax.scatter(rate[sel], cost[sel], s=34, c=mcol[m], ec="white", lw=0.7, zorder=2, label=m)
-        fax.scatter(rate[sel], cost[sel], s=34, facecolor="none", ec=INK, lw=0.4, zorder=2.1)
+        fax.scatter(rate[sel], cost[sel], s=34, c=mcol[m], ec=INK, lw=MARKER_LW, zorder=2, label=m)
     iu, ie = int(np.argmax(rate)), int(np.argmin(cost))
     assert rows_[iu]["catalyst"] == gm["paper_winner"] and abs(cost[ie] - float(gm["plant_winner_cost"])) < 1e-9
     assert rows_[ie]["metal"] == "Fe" and float(rows_[ie]["metal_wt_pct"]) == 1.0
-    fax.scatter([rate[iu]], [cost[iu]], s=110, facecolor="none", ec=RED, lw=1.1, zorder=3)
-    fax.scatter([rate[ie]], [cost[ie]], s=110, facecolor="none", ec=DARK_G, lw=1.1, zorder=3)
+    fax.scatter([rate[iu]], [cost[iu]], s=ring_s(34), facecolor="none", ec=RED, lw=1.1, zorder=3)
+    fax.scatter([rate[ie]], [cost[ie]], s=ring_s(34), facecolor="none", ec=DARK_G, lw=1.1, zorder=3)
     fax.annotate("rate leader", (rate[iu], cost[iu]), xytext=(-4, 10), textcoords="offset points", fontsize=5.6,
-                 color=RED, ha="right", fontweight="bold", path_effects=HALO, zorder=6)
+                 color=RED, ha="right", fontweight="bold", zorder=6)
     fax.annotate("plant choice", (rate[ie], cost[ie]), xytext=(9, -1), textcoords="offset points", fontsize=5.6,
-                 color=DARK_G, ha="left", va="center", fontweight="bold", path_effects=HALO, zorder=6)
+                 color=DARK_G, ha="left", va="center", fontweight="bold", zorder=6)
     fax.set_xlabel("rate (mmol g$_{cat}^{-1}$ h$^{-1}$)")
     fax.set_ylabel("plant cost (USD t$^{-1}$ NH$_3$)")
     fax.set_xlim(-2.5, 55)
