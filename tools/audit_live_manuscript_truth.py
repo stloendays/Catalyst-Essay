@@ -912,7 +912,7 @@ ok("NH3 pooled: the run summary equals the report numbers",
    and abs(_pls["regret_median_mismatched"] - PL["regret_median_mismatched"]) < 1e-12)
 claim_tokens("Main text: pooled ammonia result (both batches)",
     ("main text", main_section("Laboratory leaders are often not the plant-cost leaders"),
-    [f"In {PL['mismatch']} of {PL['groups']} comparisons ({pc(PL['fraction'])}%; 95% confidence interval {pc(PL['ci95'][0])}–{pc(PL['ci95'][1])}%)",
+    [f"In {PL['mismatch']} of {PL['groups']} comparisons in {PL['papers']} papers ({pc(PL['fraction'])}%; 95% confidence interval {pc(PL['ci95'][0])}–{pc(PL['ci95'][1])}%)",
     f"{PL['regret_gt5pct']['groups']} of them by more than 5% (Fig. 2c)",
     f"{word(_pl_fe, cap=True)} times the winner is an Fe catalyst on the same support as the faster Ru",
     f"{word(_plk['fused-Fe reference vs supported catalyst']['groups'])} times the commercial fused-iron reference that the authors' new catalyst outperformed in the laboratory"]),
@@ -1086,7 +1086,7 @@ claim_tokens("Main text: methanol field result, inlet-limited loop (S6) primary 
     ("main text", m_field, [f"at most {pc(LIM, 2)}% CO, methane and N₂, the limit of the loop that anchors the cost model",
     f"differ in {pl6['disagreements']} of {pl6['groups']} comparisons",
     f"Without the limit the leaders differ in only {pl5['disagreements']} of {pl5['groups']} comparisons",
-    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]}.", "CO build-up, which plants purge to avoid"]),
+    f"limiting methane and N₂ alone gives {_frac(_rin['co_excluded_6_86']['disagreements'])[0]} of {_frac(_rin['co_excluded_6_86']['disagreements'])[1]}.", "CO build-up, which plants purge to avoid"]),
     ("SI Notes", s8, [f"{lit['candidates']} operating points", f"from {lit['papers_with_candidates']} papers",
     f"and {PL['sets']['second']['operating_points']} from {PL['sets']['second']['papers']} of",
     f"{pl6['groups']} comparisons with {pl6['entries']} entries in {pl6['papers']} papers",
@@ -2105,7 +2105,7 @@ claim_tokens("NH3 main and SI Note 7: owned and supplier-lease break-even rates"
     ("SI Note 7", s2_full, [f"the break-even lease rates are {pc(_bes['benchmark_lease_unsecured'], 2)}% and {pc(_bes['KAAP_lease_unsecured'], 2)}% per year"]))
 claim_tokens("NH3 Abstract, Results and Discussion: measured Ru/C financing thresholds",
     ("Abstract", main_section_h2("Abstract"), [f"financed below {pc(_bes['KAAP_owned'], 1)}–{pc(_bes['benchmark_owned'], 1)}% per year"]),
-    ("Results", NH3_MAIN, [f"financed below {pc(_bes['KAAP_owned'], 1)}–{pc(_bes['benchmark_owned'], 1)}% per year"]),
+    ("Results", m_feru2, [f"flips it at {pc(_bes['benchmark_owned'], 2)}% per year, and at {pc(_bes['KAAP_owned'], 2)}%"]),
     ("Discussion", discussion, [f"below {pc(_bes['benchmark_owned'], 1)}% per year at the two catalysts' own optima and {pc(_bes['KAAP_owned'], 1)}% in a KAAP-type loop"]))
 for _basis, _prefix, _be in (("own optima", "b", 'benchmark_owned'), ("KAAP-type", "c", 'KAAP_owned')):
     _z = IR['b_0' if _prefix == 'b' else 'c_0_KAAP']
@@ -2580,12 +2580,15 @@ ok("NH3 Abstract: bulk-Ru 'over 90%' is below both source price reductions",
 tokens("NH3 Abstract: parity requirements equal descriptor and measured sources",
        main_section_h2("Abstract"),
        "Ru must cost over 90% less to match iron",
-       f"or become {IR['parity']:.0f}–{_activity_multiple} times more active",
-       "far beyond what its scaling relation allows")
+       f"or become {_activity_multiple} times more active on descriptor kinetics",
+       f"and {IR['parity']:.0f} times on measured rate laws",
+       "far beyond its scaling relation")
 tokens("NH3 first Results section: parity requirements equal the price sweep and backward calculation",
        NH3_MAIN, f"{_price_reduction}% lower", f"{_activity_multiple}-fold activity gain")
-tokens("NH3 first Results section: measured parity requirements equal their sources",
-       NH3_MAIN, f"measured rate laws give {_measured_reduction:.0f}% or {IR['parity']:.0f}-fold")
+tokens("Discussion: bulk-Ru price reduction spans the measured and descriptor parity prices", discussion,
+       f"a {_measured_reduction:.0f}–{_price_reduction}% lower price")
+tokens("NH3 measured-law section: bulk-Ru parity requirements equal their sources",
+       m_feru2, f"It would need a {IR['parity']:.0f}-fold activity gain or a {_measured_reduction:.0f}% lower price")
 tokens("MeOH main: inlet inert range equals SI Note 3 and stream-table species sums",
        m_field, f"loop designs carry {_cmn_rng} CO, methane and N₂ at the reactor inlet")
 
