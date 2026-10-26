@@ -23,6 +23,7 @@ from matplotlib.ticker import FixedLocator, LogLocator, MultipleLocator, NullFor
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 from style import INK, LINE, MID, PALE_B, PAPER, RED, Page, boxed, crop_rgba  # noqa: E402
+import advanced as AV  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 
@@ -201,7 +202,6 @@ for key in KEY:
     ends[key] = ys[-1]
 for ax_ in (f1, f2):
     ax_.axvline(2.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=1)
-f1.text(2.8, 2700, "2% reference", fontsize=5.5, color=MID, va="top")
 for key, yv_ in ends.items():
     f1.text(41.0, yv_, SHORT[key], fontsize=5.4, va="center", ha="left",
             color=RED if key == WIN else INK, fontweight="bold" if key == WIN else "normal")
@@ -222,6 +222,17 @@ f2.set_ylabel("ρ", labelpad=2.0)
 f2.set_xlabel("Purge fraction (%)")
 f2.xaxis.set_major_locator(FixedLocator([0, 10, 20, 30, 40]))
 f2.xaxis.set_minor_locator(MultipleLocator(5))
+# magnified low-purge window: the states differ by 1-3% here, below 2 mm of the full cost axis. The inset is its own
+# axes, so it can be moved or resized in the figure editor; its leaders re-attach to the facing side when drawn.
+fi = AV.zoom_inset(pg, f1, (0.5, 3.0), (885, 1015), (81.0, 37.6, 14.2, 10.0))
+fi.axvline(2.0, color=MID, lw=0.5, ls=(0, (2, 1.5)), zorder=1)
+row2 = [r for r in purge if abs(float(r["purge"]) - 0.02) < 1e-9][0]
+for key, dy, va in ((WIN, -6, "top"), ("1wtRe_250C", 6, "bottom")):
+    yv = float(row2["NPC_" + KEY[key]])
+    fi.plot([2.0], [yv], "o", ms=2.0, mfc="white", mec=COLOR[key], mew=0.8, zorder=6)
+    fi.text(2.12, yv + dy, "%.0f" % yv, fontsize=5.3, va=va, color=RED if key == WIN else INK,
+            fontweight="bold" if key == WIN else "normal")
+fi.text(1.93, 1011, "2%", fontsize=5.3, color=MID, ha="right", va="top")
 
 # ---- g: local economic leverage ----------------------------------------------------------------------------
 pg.letter("g", 129.0, LY + LH + 7.0)

@@ -12,7 +12,7 @@ Reader-facing captions of the six main figures (183 mm wide): Fig. 1 `figures/co
 
 ## Figure 3 | Selectivity, recycle and purge reshape the methanol ranking
 
-**a,** CO₂-to-methanol loop with a purge split. **b,** Re/TiO₂ at 1 and 5 wt% Re (schematic), measured at 200 and 250 °C, 100 bar and CO₂:H₂ = 1:4.[12] **c,** Measured properties of the four catalyst states and their net production cost at 2% purge. **d,** Rank probability over 5,000 draws of each state's measurement uncertainty. **e,** STY rank against cost rank. **f,** Net production cost and Spearman ρ over purge levels from 0.5% to 40%. **g,** Local economic leverage of CH₄ suppression, single-pass conversion and STY at 5 wt% Re and 250 °C.
+**a,** CO₂-to-methanol loop with a purge split. **b,** Re/TiO₂ at 1 and 5 wt% Re (schematic), measured at 200 and 250 °C, 100 bar and CO₂:H₂ = 1:4.[12] **c,** Measured properties of the four catalyst states and their net production cost at 2% purge. **d,** Rank probability over 5,000 draws of each state's measurement uncertainty. **e,** STY rank against cost rank. **f,** Net production cost and Spearman ρ over purge levels from 0.5% to 40%. Inset, 0.5–3% purge (dashed box), with the costs at the 2% reference. **g,** Local economic leverage of CH₄ suppression, single-pass conversion and STY at 5 wt% Re and 250 °C.
 
 ## Figure 4 | Ru matches iron only at a 99% lower price
 
