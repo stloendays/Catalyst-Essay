@@ -208,10 +208,20 @@ def para(text, size=12, indent=True):
     return p
 
 
+# NCE Articles open the main text with an unheaded introduction, so the abstract (one paragraph under "Abstract")
+# stays on the title page and the introduction starts a new page.
+abstract_state = None                     # "heading" after "## Abstract", "done" after its paragraph
 for block in re.split(r"\n\s*\n", body_md.strip()):
     block = renumber(delatex(block.strip()))
     if not block:
         continue
+    new_page = abstract_state == "done"
+    if new_page:
+        abstract_state = None
+    if block == "## Abstract":
+        abstract_state = "heading"
+    elif abstract_state == "heading" and not block.startswith("#"):
+        abstract_state = "done"
     if block.startswith("### "):
         heading(block[4:], 3)
     elif block.startswith("## "):
@@ -229,7 +239,8 @@ for block in re.split(r"\n\s*\n", body_md.strip()):
     elif block.startswith("**Table "):
         para(" ".join(block.splitlines()), indent=False).paragraph_format.keep_with_next = True
     else:
-        para(" ".join(block.splitlines()), indent=not block[:1].islower())   # lower case: continues after an equation
+        p = para(" ".join(block.splitlines()), indent=not block[:1].islower())   # lower case: continues after an equation
+        p.paragraph_format.page_break_before = new_page
 
 heading("References", 2)
 for old, new in sorted(order.items(), key=lambda kv: kv[1]):
