@@ -178,7 +178,7 @@ Papers screened, extracted and scored under a protocol committed before extracti
 
 ### Supplementary Table 3 | Bimetallic surface layers of the ammonia screen
 
-Layers are cumulative. Feasible, inside the 90 m³ bed limit. Surfaces below Fe (11.52 US dollars per tonne of NH₃) are listed in order of cost under the linear bridge, with their cost under the element-anchored bridge. Pruned, excluded by the lower bound on cost before the full optimization. False prunes, pruned surfaces whose full optimization falls below Fe. The 101 surfaces containing Tc are not costed.
+Layers are cumulative. Feasible, inside the 90 m³ bed limit. Surfaces below Fe (11.52 USD t⁻¹ NH₃) are listed in order of cost under the linear bridge, with their cost under the element-anchored bridge. Pruned, excluded by the lower bound on cost before the full optimization. False prunes, pruned surfaces whose full optimization falls below Fe. The 101 surfaces containing Tc are not costed.
 
 | Layer | Costed | Feasible, global | Feasible, anchored | Below Fe, global bridge | Below Fe, element-anchored bridge | Pruned | False prunes |
 |---|---|---|---|---|---|---|---|
@@ -214,7 +214,7 @@ Deviation, (model − industrial)/industrial for point values, the difference in
 
 ### Supplementary Table 4b | The Fe–Ru order under the benchmark deviations
 
-Catalyst-dependent cost difference at the reoptimized optima (US dollars per tonne of NH₃, positive: Fe cheaper), with each model component perturbed in both directions by the deviations of Supplementary Table 4a. Descriptor, descriptor kinetics. Measured, the rate laws of fused iron and Ru/C inside their fitted pressure ranges, for the benchmark bed and for supported Ru/C (95.55% recovery, metal financing at 0 or 12% per year). Combinations: every component at the same magnitude, each in the direction that favours Ru, and the least favourable of the 64 sign combinations. No feasible Fe or Ru/C, no state of that catalyst within the 90 m³ limit.
+Catalyst-dependent cost difference at the reoptimized optima (USD t⁻¹ NH₃, positive: Fe cheaper), with each model component perturbed in both directions by the deviations of Supplementary Table 4a. Descriptor, descriptor kinetics. Measured, the rate laws of fused iron and Ru/C inside their fitted pressure ranges, for the benchmark bed and for supported Ru/C (95.55% recovery, metal financing at 0 or 12% per year). Combinations: every component at the same magnitude, each in the direction that favours Ru, and the least favourable of the 64 sign combinations. No feasible Fe or Ru/C, no state of that catalyst within the 90 m³ limit.
 
 | Perturbation | Setting | Ru − Fe, descriptor | Os − Fe, descriptor | Ru − Fe, measured, bulk benchmark | Ru/C − Fe, measured, benchmark loop, 0%/y | Ru/C − Fe, measured, benchmark loop, 12%/y | Ru/C − Fe, measured, KAAP-type loop, 0%/y | Ru/C − Fe, measured, KAAP-type loop, 12%/y |
 |---|---|---|---|---|---|---|---|---|
@@ -320,7 +320,7 @@ Industrial, the reported value or range. Logical items compare a decision (yes o
 | C09 | staged 90 bar KAAP-type loop | Fe/Ru choice and staging | no | yes | - | – | same decision | no |
 | C10 | staged optima across pressure | Fe/Ru choice and staging | -0.9762 | below -0.5 | - | – | below the threshold | yes |
 | C11 | supported Ru/C optimum, 0 %/y | Fe/Ru choice and staging | 100 | 89.2–137.9 | bar | +0.0% | inside the range | yes |
-| C12 | supported Ru/C vs Fe, 12 %/y | Fe/Ru choice and staging | 2.133 | above 0 | USD/t | – | above the threshold | yes |
+| C12 | supported Ru/C vs Fe, 12 %/y | Fe/Ru choice and staging | 2.133 | above 0 | USD t⁻¹ | – | above the threshold | yes |
 | V01 | BASF NH3 saturation table (Ullmann Table 5) | separator vapour NH3 | 0.6024 | 0.8–1.2 | - | −39.8% | inside the range | no |
 
 ### Supplementary Table 5a | Leave-one-out validation of the Fe terrace-to-step bridge
@@ -381,7 +381,7 @@ Printed, value printed in the source. Derived, arithmetic on printed values. Sec
 | HANK18 | Hank et al., Sustainable Energy Fuels 2, 1244 (2018) | 10.1039/c8se00032h | 6 | 4 | 2 | 0 | 0 |
 | BOS20 | Bos, Kersten, Brilman, Appl. Energy 264, 114672 (2020) | 10.1016/j.apenergy.2020.114672 | 5 | 2 | 3 | 0 | 0 |
 | RIHKO10 | Rihko-Struckmann et al., Ind. Eng. Chem. Res. 49, 11073 (2010) | 10.1021/ie100508w | 6 | 2 | 4 | 0 | 0 |
-| PEREZFORTES16 | Perez-Fortes et al., Appl. Energy 161, 718 (2016) [H2 bought at 3090 EUR/t; electrolyser and capture outside the boundary] | 10.1016/j.apenergy.2015.07.067 | 28 | 24 | 4 | 0 | 0 |
+| PEREZFORTES16 | Perez-Fortes et al., Appl. Energy 161, 718 (2016) [H2 bought at 3090 EUR t⁻¹; electrolyser and capture outside the boundary] | 10.1016/j.apenergy.2015.07.067 | 28 | 24 | 4 | 0 | 0 |
 | SZIMA18 | Szima & Cormos, J. CO2 Util. 24, 555 (2018) [electrolyser inside; electrolyser CAPEX excluded] | 10.1016/j.jcou.2018.02.007 | 18 | 14 | 4 | 0 | 0 |
 | VANDAL13 | Van-Dal & Bouallou, J. Clean. Prod. 57, 38 (2013) [no economics] | 10.1016/j.jclepro.2013.06.008 | 10 | 5 | 5 | 0 | 0 |
 | NYARI22 | Nyari et al., Energy Convers. Manag. 271, 116200 (2022) [three CZA kinetic models: Kiss / Vanden Bussche-Froment (VD) / Slotboom] | 10.1016/j.enconman.2022.116200 | 12 | 10 | 1 | 0 | 1 |
@@ -416,7 +416,7 @@ M1, anchor loop (calibration point). M2, three-step variant of the anchor loop. 
 | GHSV (1/h, bed density 1.05 t/m3) | 616.5 | 677.3 | 13,052 | 14,076 | 10,500 | 1,249 | 24,782 | 15,174 | 2,047 | 13,161 | 28,917 | 12,022 |
 | STY (kg MeOH / L cat / h) | 0.0531 | 0.1061 | 0.945 | 0.5775 | 1.271 | 0.0531 | 1.3 | 1.399 | 0.1776 | 1.106 | 1.057 | 0.6845 |
 | Loop pressure drop (bar) | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 | 1.5 |
-| Net production cost (EUR/t, anchor prices and scale conventions) | 923.6 | 881.8 | 943.3 | 895.2 | 893.8 | 948.8 | 928.1 | 895.6 | 1,005 | 1,061 | 1,128 | 1,232 |
+| Net production cost (EUR t⁻¹, anchor prices and scale conventions) | 923.6 | 881.8 | 943.3 | 895.2 | 893.8 | 948.8 | 928.1 | 895.6 | 1,005 | 1,061 | 1,128 | 1,232 |
 
 ### Supplementary Table 6c | Reference values for the plant metrics of Supplementary Table 6b
 
@@ -439,9 +439,9 @@ An asterisk marks a pilot-plant value tabulated by Dieterich 2020.
 | Catalyst inventory (t, at the case's scale) | Campos 2869 / 1434; Perez-Fortes 44.5; Van-Dal 44.5; Nyari 7.11; Nieminen 3.49; Sollai 0.29; Cordero-Lanzac 105 |
 | GHSV (1/h, bed density 1.05 t/m3) | Campos 604; Perez-Fortes ~21000; SRC 6000-12000; Lurgi pilot\* 10500 |
 | STY (kg MeOH / L cat / h) | Campos 0.053; Perez-Fortes 1.31; Van-Dal 1.42; CO2 feed 0.4-0.8 (Dieterich); per kg: Nyari 1.04, Nieminen 0.65, Sollai 1.71, Cordero-Lanzac 0.31 |
-| Catalyst lifetime (y) | Campos 3; Perez-Fortes 1; Nyari 3; Nieminen 4; Sollai 4; Zhang 4; Ott 2-5; Dieterich 4-6; Bozzano 3-4; price 95.24 EUR/kg (PF, Nieminen, Sollai, Battaglia), 75 (Szima), 18.1 (Campos), 15 (Bos) |
+| Catalyst lifetime (y) | Campos 3; Perez-Fortes 1; Nyari 3; Nieminen 4; Sollai 4; Zhang 4; Ott 2-5; Dieterich 4-6; Bozzano 3-4; price 95.24 EUR kg⁻¹ (PF, Nieminen, Sollai, Battaglia), 75 (Szima), 18.1 (Campos), 15 (Bos) |
 | Loop pressure drop (bar) | Perez-Fortes 4.2; Van-Dal 4.6; Zhang 4; Schorn 1; Lurgi SRC loop 3.5-4, Toyo loop 3 (Dieterich) |
-| Net production cost (EUR/t, anchor prices and scale conventions) | Campos 920 (Table 7: 1071.8 M EUR/a = 924.0); 3-step 868 (871.2) |
+| Net production cost (EUR t⁻¹, anchor prices and scale conventions) | Campos 920 (Table 7: 1071.8 M EUR a⁻¹ = 924.0); 3-step 868 (871.2) |
 
 ### Supplementary Table 6d | Cost at each study's own prices, scale and finance
 
@@ -449,7 +449,7 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 
 | Case | Term | Model | Reference | Deviation | Reference basis | Attribution |
 |---|---|---|---|---|---|---|
-| B1 Campos 2022 one-step (calibration point; SI Table S19) | H2 | 615 | 663.4 | −7.3 % | SI Table S19: 769.50 M EUR/a | model prices pure H2 (0.1985 t/t). Campos prices the 31.1 t/h stream incl. 0.5 % N2 (2.0 t/h N2): model x 1.0698 = 657.9 |
+| B1 Campos 2022 one-step (calibration point; SI Table S19) | H2 | 615 | 663.4 | −7.3 % | SI Table S19: 769.50 M EUR a⁻¹ | model prices pure H2 (0.1985 t/t). Campos prices the 31.1 t/h stream incl. 0.5 % N2 (2.0 t/h N2): model x 1.0698 = 657.9 |
 |  | CO2 | 64.19 | 64.59 | −0.6 % | SI Table S19: 74.93 | 1.449 vs 1.460 t/t |
 |  | electricity | 17.93 | 10.91 | 64.3 % | SI Table S19: 12.66 (17.6 MW net of 29.82 MW generator) | model: compressors only, isothermal/0.8 (28.9 MW vs Campos 47.18 MW), no Rankine credit |
 |  | catalyst replacement | 0 | 14.92 | −100.0 % | SI Table S19: 17.31 | model: inside the constant residual |
@@ -457,7 +457,7 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 |  | ACC (CAPEX annuity) | 46.04 | 46.12 | −0.2 % | Table 7 | – |
 |  | indirect OPEX | 123.6 | 123.6 | −0.1 % | Table 7 (SI Table S19: 142.08) | same formula (Eq. 24) |
 |  | TOTAL | 923.6 | 924 | −0.0 % | Table 7 (text 920) | calibration identity |
-| B1 Campos 2022 one-step (calibration point; SI Table S19), with catalyst term (18.1 EUR/kg, 3 y) | catalyst replacement | 14.92 | 14.92 | −0.0 % | SI Table S19 | same 2869 t, 18.1 EUR/kg, 3 y |
+| B1 Campos 2022 one-step (calibration point; SI Table S19), with catalyst term (18.1 EUR kg⁻¹, 3 y) | catalyst replacement | 14.92 | 14.92 | −0.0 % | SI Table S19 | same 2869 t, 18.1 EUR kg⁻¹, 3 y |
 | B2 Campos 2022 three-step (out-of-sample design, same price basis; SI Table S19) | H2 | 595 | 640.1 | −7.0 % | SI: 742.51 | x 1.0698 for N2 = 636.6 |
 |  | CO2 | 62.01 | 62.33 | −0.5 % | SI: 72.30 | – |
 |  | catalyst replacement (with catalyst term) | 7.461 | 7.457 | 0.0 % | SI: 8.65 | – |
@@ -466,21 +466,21 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 |  | ACC | 37.08 | 35.6 | 4.1 % | Table 7 | – |
 |  | TOTAL | 881.8 | 871.2 | 1.2 % | Table 7 (text 868) | – |
 |  | TOTAL with catalyst term | 873.5 | 871.2 | 0.3 % | Table 7 | – |
-|  | saving vs one-step | 41.87 | 52.76 | −20.6 % | Table 7 | catalyst halved: 7.5 EUR/t in the reference, constant in the model |
+|  | saving vs one-step | 41.87 | 52.76 | −20.6 % | Table 7 | catalyst halved: 7.5 EUR t⁻¹ in the reference, constant in the model |
 |  | saving vs one-step, with catalyst term | 50.16 | 52.76 | −4.9 % | Table 7 | – |
 |  | recycle (kmol/h) | 20,950 | 22,580 | −7.2 % | Table 6 | – |
 |  | purge (kmol/h) | 427.6 | 456 | −6.2 % | SI Table S11 | – |
-| B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR/kg, 1 y) | H2 | 613.6 | 615.7 | −0.3 % | raw materials 95.9 % of VCP 283 M EUR/a | H2 use: model 0.1986 vs 0.199 t/t |
+| B3 Perez-Fortes 2016 at its own point and assumptions (primary; catalyst 95.24 EUR kg⁻¹, 1 y) | H2 | 613.6 | 615.7 | −0.3 % | raw materials 95.9 % of VCP 283 M EUR a⁻¹ | H2 use: model 0.1986 vs 0.199 t/t |
 |  | electricity + utilities | 20.23 | 16.69 | 21.2 % | utilities 2.6 % of VCP (net power) | model: compressors only, no turbine credit |
-|  | catalyst replacement | 9.615 | 9.63 | −0.2 % | consumables 1.5 % of VCP | 44.5 t x 95.24 EUR/kg / 1 y in both |
+|  | catalyst replacement | 9.615 | 9.63 | −0.2 % | consumables 1.5 % of VCP | 44.5 t x 95.24 EUR kg⁻¹ / 1 y in both |
 |  | capital (annuity at 8 %, 20 y) | 38.14 | 57.55 | −33.7 % | breakeven 723.6 minus VCP + FCP 666.05 | model FCI at 55.1 t/h vs TFCC 200 M EUR (see capex\_scale.csv) |
 |  | fixed O&M | 33.64 | 24.57 | 36.9 % | FCP 24.57 | model: anchor convention (labour + 0.081 FCI) |
 |  | residual direct + 10 % of NPC (anchor convention) | 126.2 | 0 | – | no such terms in the reference | common to every catalyst |
 |  | TOTAL, anchor convention | 841.4 | 723.6 | 16.3 % | NPV = 0 breakeven price (Table 5) | – |
 |  | TOTAL, like-for-like (feed + power + catalyst + capital + reference FCP) | 706.1 | 723.6 | −2.4 % | Table 5 | – |
 |  | TOTAL, like-for-like, catalyst in residual | 696.5 | 723.6 | −3.7 % | Table 5 | – |
-| B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR/t; CO2 credit 10 EUR/t) | H2 (electrolysis electricity) | 619.1 | 616.9 | 0.4 % | 92 % of VOC is electricity | Szima VOC electricity also nets the 0.79 MW surplus |
-|  | CO2 | −14.07 | −14.1 | −0.2 % | ETS credit 0.01 EUR/kg x 1.41 t/t (revenue) | – |
+| B4 Szima 2018 at its own point and assumptions (H2 = electrolysis electricity 3204 EUR t⁻¹; CO2 credit 10 EUR t⁻¹) | H2 (electrolysis electricity) | 619.1 | 616.9 | 0.4 % | 92 % of VOC is electricity | Szima VOC electricity also nets the 0.79 MW surplus |
+|  | CO2 | −14.07 | −14.1 | −0.2 % | ETS credit 0.01 EUR kg⁻¹ x 1.41 t/t (revenue) | – |
 |  | catalyst | 33.5 | 33.52 | −0.1 % | 5 % of VOC | charge matched by construction |
 |  | capital (annuity at 8 %, 25 y) | 66.62 | 56.58 | 17.8 % | CRF x (TFCC + WC) | – |
 |  | TOTAL, like-for-like (feed + power + catalyst + capital + reference FOC and other VOC) | 852.7 | 842 | 1.3 % | VOC + FOC + capital (derived 842) | model electricity = compression (no ORC / turbine credit) |
@@ -493,15 +493,15 @@ Euros per tonne of methanol. Like-for-like, feed, compression electricity, catal
 | B6 Nieminen 2019 gas-phase case at its own point and assumptions | H2 | 591.3 | 703 | −15.9 % | 0.234 t/t x 3000 (derived) | model H2 0.1971 t/t: the reference loses 89 kg/h H2 and 560 kg/h CO2 in flash gases (carbon efficiency 0.805 vs model 0.950) |
 |  | CO2 | 72.32 | 85 | −14.9 % | 1.706 x 50 (derived) | – |
 |  | TOTAL, like-for-like (+ reference fixed 150, CW 43, steam credit -50) | 923.8 | 1,028 | −10.1 % | production cost without the O2 credit (p18) | – |
-| B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR/MWh) | H2 1 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 299 | 254 | 17.7 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
-|  | H2 3 EUR/kg, CO2 40 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 735.6 | 691 | 6.5 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
-|  | H2 4.5 EUR/kg, CO2 0 EUR/t: like-for-like (feed + power + capital + reference O&M 33.9) | 965.9 | 921 | 4.9 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+| B7 Schorn 2021 Table 2 grid (300 MW, 8 %, 20 y, electricity 97.6 EUR MWh⁻¹) | H2 1 EUR kg⁻¹, CO2 0 EUR t⁻¹: like-for-like (feed + power + capital + reference O&M 33.9) | 299 | 254 | 17.7 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+|  | H2 3 EUR kg⁻¹, CO2 40 EUR t⁻¹: like-for-like (feed + power + capital + reference O&M 33.9) | 735.6 | 691 | 6.5 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
+|  | H2 4.5 EUR kg⁻¹, CO2 0 EUR t⁻¹: like-for-like (feed + power + capital + reference O&M 33.9) | 965.9 | 921 | 4.9 % | Table 2 cell; O&M = intercept 63 - capital 14.1 - power 15.0 | model H2 0.1905 vs 0.189 t/t (Schorn: no purge, 100 % carbon efficiency) |
 
 ### Supplementary Table 6e | Specific fixed capital of the model against reference plants
 
 The model is run at each study's own capacity and cost year.
 
-| Reference | Capacity (t/a) | Model FCI (M€) | Model FCI (€ per t/a) | Reference (€ per t/a) | Reference basis | Model / reference |
+| Reference | Capacity (t/a) | Model FCI (M EUR) | Model FCI (EUR per t a⁻¹) | Reference (EUR per t a⁻¹) | Reference basis | Model / reference |
 |---|---|---|---|---|---|---|
 | Campos 2022 one-step (anchor; FCI) | 1,160,000 | 415.4 | 358 | 359 | EUR2020 | 1.00 |
 | Campos 2022 three-step (FCI) | 1,160,000 | 334.5 | 288 | 277 | EUR2020 | 1.04 |
@@ -520,27 +520,27 @@ Groups whose STY leader is not the plant-cost leader, papers affected, pairwise 
 | Plant terms changed | Different winner | Papers | Inversions | Median regret | Flags changed | Winners changed |
 |---|---|---|---|---|---|---|
 | baseline | 15/40 | 9 | 304/1997 | 3.5 % | 0 | 0 |
-| catalyst 18.1 €/kg replaced every 3 y | 14/40 | 8 | 252/1997 | 3.0 % | 1 | 5 |
-| catalyst 18.1 €/kg replaced every 5 y | 14/40 | 8 | 272/1997 | 3.3 % | 1 | 3 |
+| catalyst 18.1 EUR kg⁻¹ replaced every 3 y | 14/40 | 8 | 252/1997 | 3.0 % | 1 | 5 |
+| catalyst 18.1 EUR kg⁻¹ replaced every 5 y | 14/40 | 8 | 272/1997 | 3.3 % | 1 | 3 |
 | loop ΔP 3.75 bar | 15/40 | 9 | 304/1997 | 3.6 % | 0 | 0 |
-| H₂ 1,549 €/t | 14/40 | 8 | 280/1997 | 3.2 % | 1 | 3 |
-| H₂ 3,090 €/t; CO₂ 0 €/t; electricity 95.1 €/MWh | 15/40 | 9 | 294/1997 | 3.5 % | 0 | 0 |
+| H₂ 1,549 EUR t⁻¹ | 14/40 | 8 | 280/1997 | 3.2 % | 1 | 3 |
+| H₂ 3,090 EUR t⁻¹; CO₂ 0 EUR t⁻¹; electricity 95.1 EUR MWh⁻¹ | 15/40 | 9 | 294/1997 | 3.5 % | 0 | 0 |
 | recycle-driven costs ×2.68 | 15/40 | 9 | 305/1997 | 4.0 % | 0 | 0 |
-| catalyst 95.24 €/kg replaced every 1 y | 7/40 | 4 | 120/1997 | 3.6 % | 8 | 11 |
-| catalyst 95.24 €/kg replaced every 4 y | 13/40 | 7 | 196/1997 | 1.5 % | 2 | 7 |
-| catalyst 95.24 €/kg replaced every 6 y | 14/40 | 8 | 215/1997 | 1.9 % | 1 | 6 |
+| catalyst 95.24 EUR kg⁻¹ replaced every 1 y | 7/40 | 4 | 120/1997 | 3.6 % | 8 | 11 |
+| catalyst 95.24 EUR kg⁻¹ replaced every 4 y | 13/40 | 7 | 196/1997 | 1.5 % | 2 | 7 |
+| catalyst 95.24 EUR kg⁻¹ replaced every 6 y | 14/40 | 8 | 215/1997 | 1.9 % | 1 | 6 |
 | loop ΔP 4.2 bar | 15/40 | 9 | 305/1997 | 3.6 % | 0 | 0 |
 | equipment split from Campos 2022 SI (11 items) | 15/40 | 9 | 305/1997 | 3.6 % | 0 | 0 |
 | loop ΔP 4.2 bar; recycle-driven costs ×10 | 16/40 | 10 | 299/1997 | 6.9 % | 3 | 4 |
-| catalyst 95.24 €/kg replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 10/40 | 6 | 165/1997 | 21.4 % | 5 | 9 |
-| catalyst 95.24 €/kg replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 14/40 | 8 | 220/1997 | 5.0 % | 1 | 6 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar | 14/40 | 8 | 257/1997 | 3.1 % | 1 | 4 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 14/40 | 8 | 264/1997 | 3.5 % | 1 | 3 |
-| catalyst 18.1 €/kg replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 €/t | 13/40 | 7 | 238/1997 | 2.5 % | 2 | 7 |
+| catalyst 95.24 EUR kg⁻¹ replaced every 1 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 10/40 | 6 | 165/1997 | 21.4 % | 5 | 9 |
+| catalyst 95.24 EUR kg⁻¹ replaced every 4 y; loop ΔP 4.2 bar; recycle-driven costs ×10 | 14/40 | 8 | 220/1997 | 5.0 % | 1 | 6 |
+| catalyst 18.1 EUR kg⁻¹ replaced every 3 y; loop ΔP 3.75 bar | 14/40 | 8 | 257/1997 | 3.1 % | 1 | 4 |
+| catalyst 18.1 EUR kg⁻¹ replaced every 3 y; loop ΔP 3.75 bar; recycle-driven costs ×2.68 | 14/40 | 8 | 264/1997 | 3.5 % | 1 | 3 |
+| catalyst 18.1 EUR kg⁻¹ replaced every 3 y; loop ΔP 3.75 bar; H₂ 1,549 EUR t⁻¹ | 13/40 | 7 | 238/1997 | 2.5 % | 2 | 7 |
 | recycle-driven costs ×0.8736 | 15/40 | 9 | 305/1997 | 3.5 % | 0 | 0 |
-| electricity 129.1 €/MWh | 15/40 | 9 | 306/1997 | 3.6 % | 0 | 0 |
+| electricity 129.1 EUR MWh⁻¹ | 15/40 | 9 | 306/1997 | 3.6 % | 0 | 0 |
 | capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
-| recycle-driven costs ×0.8736; electricity 129.1 €/MWh; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
+| recycle-driven costs ×0.8736; electricity 129.1 EUR MWh⁻¹; capital ×1.509 | 14/40 | 8 | 284/1997 | 3.5 % | 1 | 1 |
 
 ### Supplementary Table 7 | The 161 methanol comparison groups and the 81 of the primary analysis
 

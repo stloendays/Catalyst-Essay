@@ -43,13 +43,14 @@ RUN = HARNESS_12 / "outputs/nh3_final_1_2_20261013"          # canonical NH3-FIN
 SUP = ROOT / "analysis/supervisor_2026_09_20/nh3_1_2"
 V12 = "nh3_1_2"                                             # sub-folder of each ported ammonia analysis
 
-_UNITS = (("USD per tonne", "US dollars per tonne"), ("USD t⁻¹", "US dollars per tonne"),
-          ("USD kg⁻¹", "US dollars per kilogram"), ("USD MWh⁻¹", "US dollars per megawatt-hour"),
-          ("EUR t⁻¹", "euros per tonne"))
+_UNITS = (("USD t⁻¹ NH₃", "US dollars per tonne of NH₃"), ("USD per tonne", "US dollars per tonne"),
+          ("USD t⁻¹", "US dollars per tonne"), ("USD per kilogram", "US dollars per kilogram"),
+          ("USD kg⁻¹", "US dollars per kilogram"), ("USD per MWh", "US dollars per MWh"),
+          ("USD MWh⁻¹", "US dollars per megawatt-hour"), ("EUR t⁻¹", "euros per tonne"))
 
 
 def _canon_units(s):
-    """Map the abbreviated units of the main text onto the spelled-out forms the check templates use."""
+    """Map the abbreviated units of the main text and SI onto the spelled-out forms the check templates use."""
     for short, full in _UNITS:
         s = s.replace(short, full)
     return s
@@ -128,7 +129,7 @@ def main_section_h2(heading):
 
 # The former main-text Table 1 is the final table in Supplementary Note 7.
 _feru_match = re.search(r"\*\*Ru against fused iron on each kinetic basis\.\*\*(.*?)(?=^### |\Z)", raw_si, re.M | re.S)
-_feru_table = re.sub(r"\s+", " ", _feru_match.group(1)).replace("−", "-") if _feru_match else ""
+_feru_table = _canon_units(re.sub(r"\s+", " ", _feru_match.group(1)).replace("−", "-")) if _feru_match else ""
 
 # The first Results subsection is the screen/parity story; its headline is editorial.
 # Keep its numerical assertions active even when the heading wording changes.

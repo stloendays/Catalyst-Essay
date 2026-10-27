@@ -16,8 +16,8 @@ SHORT = {
          "catalyst, no metal recovery).",
     "2b": "Papers screened, extracted and scored under a protocol committed before extraction. Columns as in "
           "Supplementary Table 2.",
-    "3": "Layers are cumulative. Feasible, inside the 90 m³ bed limit. Surfaces below Fe (11.52 US dollars per tonne "
-         "of NH₃) are listed in order of cost under the linear bridge, with their cost under the element-anchored "
+    "3": "Layers are cumulative. Feasible, inside the 90 m³ bed limit. Surfaces below Fe (11.52 USD t⁻¹ "
+         "NH₃) are listed in order of cost under the linear bridge, with their cost under the element-anchored "
          "bridge. Pruned, excluded by the lower bound on cost before the full optimization. False prunes, pruned "
          "surfaces whose full optimization falls below Fe. The 101 surfaces containing Tc are not costed.",
     "4a": "Deviation, (model − industrial)/industrial for point values, the difference in °C for temperatures and the "
@@ -26,7 +26,7 @@ SHORT = {
           "Supplementary Table 4b. Converter items use the measured rate laws of fused iron and Ru/C inside their "
           "fitted pressure ranges. Four logical items have no numeric deviation, and C08 and C10 keep the scores of "
           "the original benchmark campaign.",
-    "4b": "Catalyst-dependent cost difference at the reoptimized optima (US dollars per tonne of NH₃, positive: Fe "
+    "4b": "Catalyst-dependent cost difference at the reoptimized optima (USD t⁻¹ NH₃, positive: Fe "
           "cheaper), with each model component perturbed in both directions by the deviations of Supplementary Table "
           "4a. Descriptor, descriptor kinetics. Measured, the rate laws of fused iron and Ru/C inside their fitted "
           "pressure ranges, for the benchmark bed and for supported Ru/C (95.55% recovery, metal financing at 0 or 12% "
