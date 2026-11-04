@@ -50,6 +50,31 @@ jobs:
           sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{lifecycle_cost_scenarios.csv,lifecycle_finance_sensitivity.csv,lifecycle_legacy_regression.csv,lifecycle_dcf_report.json} > /tmp/lifecycle_expected.sha
           python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_lifecycle_cashflow.py > /tmp/lifecycle_summary.json
           sha256sum -c /tmp/lifecycle_expected.sha
+      - name: Contract structures (owned, lease, consignment, buyback)
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_contract_structures.py
+      - name: Verify contract-model arithmetic and output determinism
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{contract_cost_surface.csv,contract_parity_thresholds.csv,contract_terms_report.json} > /tmp/contract_expected.sha
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_contract_structures.py > /tmp/contract_report_second.json
+          sha256sum -c /tmp/contract_expected.sha
+          git diff --exit-code -- provenance/ figures/composite/fig2/ docs/MANUSCRIPT_MAIN_TEXT.md
+      - name: Gate 90-bar Fe volume and conditional low-pressure engineering claims
+        run: python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_kaap_feasibility_audit.py
+      - name: Verify repeatability and locked mixed-bed publication gate
+        run: |
+          sha256sum analysis/nh3_ru_net_recovery_boundary_2026_10_12/{kaap_fe_volume_alpha_sweep.csv,kaap_fe_contract_contingency.csv,kaap_fe_effectiveness_parity.csv,kaap_feasibility_gate_report.json} > /tmp/kaap_gate.sha
+          python analysis/nh3_ru_net_recovery_boundary_2026_10_12/run_kaap_feasibility_audit.py > /tmp/kaap_gate_second.json
+          sha256sum -c /tmp/kaap_gate.sha
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("analysis/nh3_ru_net_recovery_boundary_2026_10_12/kaap_feasibility_gate_report.json")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          assert d["modeled_mask"]["serial_Fe_then_Ru_reactor_implemented"] is False
+          assert d["editorial_gate"]["Fe_retrofit_at_90bar_is_industrially_verified"] is False
+          assert d["editorial_gate"]["full_multibed_KAAP_process_economics_is_verified"] is False
+          assert d["editorial_gate"]["may_replace_frozen_manuscript_claims"] is False
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: nh3-ru-net-recovery-boundary
@@ -61,4 +86,10 @@ jobs:
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.csv
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.json
             analysis/nh3_ru_net_recovery_boundary_2026_10_12/lifecycle_*.png
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/contract_*.png
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/kaap_fe_*.csv
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/kaap_feasibility_gate_report.json
+            analysis/nh3_ru_net_recovery_boundary_2026_10_12/kaap_fe_model_feasibility_gate.png
           retention-days: 90
