@@ -1,0 +1,87 @@
+name: Leverage criterion
+
+# Reruns analysis/leverage_criterion_2026_10_12 (pre-registered in its PROTOCOL.md) on a GitHub runner:
+# the four systems through their frozen plant models, the Shapley and first-order decompositions, the scoring,
+# and the figure. Fails if a reproduction gate fails, if any case outcome or prediction differs from the committed
+# cases.csv, or if summary.json differs beyond floating-point agreement. Frozen inputs must stay untouched.
+
+on:
+  push:
+    paths:
+      - ".github/workflows/leverage-criterion.yml"
+      - "analysis/leverage_criterion_2026_10_12/**"
+  pull_request:
+    paths:
+      - ".github/workflows/leverage-criterion.yml"
+      - "analysis/leverage_criterion_2026_10_12/**"
+      - "data/meoh/**"
+      - "controls/**"
+      - "analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leverage-criterion-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONIOENCODING: utf-8
+      LEV_WORKERS: "4"
+      D: analysis/leverage_criterion_2026_10_12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -r requirements.txt pyyaml
+      - name: Check the frozen NH3 workbook
+        run: |
+          echo "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba  provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx" | sha256sum -c -
+      - name: Keep the committed outputs for comparison
+        run: |
+          mkdir -p /tmp/committed
+          cp $D/summary.json $D/cases.csv $D/meoh_pairwise.csv /tmp/committed/
+      - name: Rerun (gates abort on failure)
+        run: python $D/run_leverage_criterion.py > $D/run_stdout.txt
+      - name: Compare case outcomes and predictions exactly
+        run: |
+          python - <<'EOF'
+          import pandas as pd, sys
+          D = "analysis/leverage_criterion_2026_10_12"
+          bad = 0
+          for f, cols in (("cases.csv", ["case_id", "actual_inverted", "pred_L", "pred_F", "pred_D", "carrying_property"]),
+                          ("meoh_pairwise.csv", ["scenario", "group", "i", "j", "actual_inverted", "pred_L"])):
+              a = pd.read_csv(f"/tmp/committed/{f}", keep_default_na=False, dtype=str)[cols]   # empty cells stay ""
+              b = pd.read_csv(f"{D}/{f}", keep_default_na=False, dtype=str)[cols]
+              if len(a) != len(b):
+                  print(f, "row count", len(a), "vs", len(b)); bad += 1; continue
+              diff = (a.values != b.values).any(axis=1)
+              print(f, len(a), "rows,", int(diff.sum()), "differ")
+              bad += int(diff.sum())
+          sys.exit(1 if bad else 0)
+          EOF
+      - name: Compare the summary (counts exactly, numbers to rtol 1e-6)
+        run: python tools/compare_json_numbers.py /tmp/committed/summary.json $D/summary.json --ignore runtime_s workers
+      - name: Render the figure
+        run: python $D/make_figure.py
+      - name: Frozen inputs unchanged
+        run: git diff --exit-code -- provenance/ data/meoh/ controls/ analysis/meoh_literature_inversion_2026_10_05/ analysis/nh3_actual_ru_params_2026_10_07/ figures/composite/ docs/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: leverage-criterion
+          path: |
+            analysis/leverage_criterion_2026_10_12/*.csv
+            analysis/leverage_criterion_2026_10_12/*.json
+            analysis/leverage_criterion_2026_10_12/results_tables.md
+            analysis/leverage_criterion_2026_10_12/run_stdout.txt
+            analysis/leverage_criterion_2026_10_12/fig_attribution.*
+          retention-days: 90

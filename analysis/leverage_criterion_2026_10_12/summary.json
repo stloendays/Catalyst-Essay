@@ -1,0 +1,895 @@
+{
+ "protocol": {
+  "file": "PROTOCOL.md",
+  "committed_before_outcomes": "0c94d80"
+ },
+ "inputs_sha256_lf": {
+  "controls/au_tio2_rank_preservation_v1_1.py": "f55f12fe9ee0e172d2628d192e9720f7f978d15ab47e04b3a50c232528ebee92",
+  "controls/au_tio2_rank_preservation_v1_1_config.json": "9d9a2ee697cf80c402574c062b345eb0e09ea5453235da4207e0430eb050ca7a",
+  "provenance/discover_v1/source_harness/harness_core.py": "5dc24e9a1d8b89812384c8e087d594b639a1d65d3510fc4b5c89d766e2d7b334",
+  "provenance/discover_v1/source_harness/outputs/nh3_final_20260905T134204Z/results.json": "8e57544503095a3453eb7cae8e10ab0a53c2b2f559af6a55d553bbddbf7ffff1",
+  "provenance/nh3_final_1_1/source_harness/inputs/ammonia_activity_volcano_s1_v1.xlsx": "fc259c5311744cccb82a7bc80ba4529f9bd34c61ed7933890dac70f016dce9ba",
+  "data/meoh/meoh_d01_model.py": "e2b9eb8261f11246b1855954f555eef6b8d99c16c462562fc357eb1fff7a9db1",
+  "data/meoh/meoh_general_model.py": "9a1899ce2c0a9edaf7c92a3e5e757308b5bfdaf09311f09dee46ff2ff3c2b7ec",
+  "analysis/meoh_literature_inversion_2026_10_05/literature_candidates.csv": "f8c0da6851b59ffd26d1af48467598c65a3208d42429b4aea95848eddbee684d",
+  "analysis/leverage_criterion_2026_10_12/PROTOCOL.md": "e54cef3f8223a8eaf4b0634883e55bdb698bd3b751459fd7e63a38c291b52cba"
+ },
+ "gates": {
+  "au_draws_full_rank_preserved": 10000,
+  "nh3": {
+   "costs": {
+    "Ru": 22.03059478781101,
+    "Os": 25.83179725613286,
+    "Fe": 15.291704676621144
+   },
+   "hybrids_without_feasible_state": 0
+  },
+  "re_costs": {
+   "1wtRe_200C": 966.96,
+   "5wtRe_200C": 943.3,
+   "1wtRe_250C": 961.51,
+   "5wtRe_250C": 1258.17
+  },
+  "meoh": {
+   "leader_mismatches": {
+    "S5": 15,
+    "S6": 28
+   },
+   "pairwise_inversions": {
+    "S5": 304,
+    "S6": 707
+   },
+   "merged_selectivity_cases": 4,
+   "undefined_cases": [],
+   "unique_pairs": 59
+  }
+ },
+ "confusion": {
+  "C1_first_order": {
+   "Au nominal": {
+    "n": 4,
+    "actual_inverted": 0,
+    "TP": 0,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": null,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 1.0,
+    "majority_accuracy": 1.0,
+    "excluded": 0
+   },
+   "NH3": {
+    "n": 3,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 1,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3333333333333333,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "MeOH S5": {
+    "n": 40,
+    "actual_inverted": 15,
+    "TP": 14,
+    "FN": 1,
+    "FP": 3,
+    "TN": 22,
+    "accuracy": 0.9,
+    "sensitivity": 0.9333333333333333,
+    "specificity": 0.88,
+    "always_preserve_accuracy": 0.625,
+    "majority_accuracy": 0.625,
+    "excluded": 0
+   },
+   "MeOH S6": {
+    "n": 40,
+    "actual_inverted": 28,
+    "TP": 13,
+    "FN": 15,
+    "FP": 0,
+    "TN": 12,
+    "accuracy": 0.625,
+    "sensitivity": 0.4642857142857143,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3,
+    "majority_accuracy": 0.7,
+    "excluded": 0
+   },
+   "Re/TiO2": {
+    "n": 6,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.6666666666666666,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S5 + Re)": {
+    "n": 53,
+    "actual_inverted": 19,
+    "TP": 18,
+    "FN": 1,
+    "FP": 3,
+    "TN": 31,
+    "accuracy": 0.9245283018867925,
+    "sensitivity": 0.9473684210526315,
+    "specificity": 0.9117647058823529,
+    "always_preserve_accuracy": 0.6415094339622641,
+    "majority_accuracy": 0.6415094339622641,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S6 + Re)": {
+    "n": 53,
+    "actual_inverted": 32,
+    "TP": 17,
+    "FN": 15,
+    "FP": 0,
+    "TN": 21,
+    "accuracy": 0.7169811320754716,
+    "sensitivity": 0.53125,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.39622641509433965,
+    "majority_accuracy": 0.6037735849056604,
+    "excluded": 0
+   },
+   "Au draws": {
+    "n": 40000,
+    "actual_inverted": 0,
+    "predicted_inverted": 0,
+    "accuracy": 1.0
+   }
+  },
+  "C2_fixed_design": {
+   "Au nominal": {
+    "n": 4,
+    "actual_inverted": 0,
+    "TP": 0,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": null,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 1.0,
+    "majority_accuracy": 1.0,
+    "excluded": 0
+   },
+   "NH3": {
+    "n": 3,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 1,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3333333333333333,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "MeOH S5": {
+    "n": 40,
+    "actual_inverted": 15,
+    "TP": 15,
+    "FN": 0,
+    "FP": 0,
+    "TN": 25,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.625,
+    "majority_accuracy": 0.625,
+    "excluded": 0
+   },
+   "MeOH S6": {
+    "n": 40,
+    "actual_inverted": 28,
+    "TP": 7,
+    "FN": 21,
+    "FP": 0,
+    "TN": 12,
+    "accuracy": 0.475,
+    "sensitivity": 0.25,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3,
+    "majority_accuracy": 0.7,
+    "excluded": 0
+   },
+   "Re/TiO2": {
+    "n": 6,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.6666666666666666,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S5 + Re)": {
+    "n": 53,
+    "actual_inverted": 19,
+    "TP": 19,
+    "FN": 0,
+    "FP": 0,
+    "TN": 34,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.6415094339622641,
+    "majority_accuracy": 0.6415094339622641,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S6 + Re)": {
+    "n": 53,
+    "actual_inverted": 32,
+    "TP": 11,
+    "FN": 21,
+    "FP": 0,
+    "TN": 21,
+    "accuracy": 0.6037735849056604,
+    "sensitivity": 0.34375,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.39622641509433965,
+    "majority_accuracy": 0.6037735849056604,
+    "excluded": 0
+   },
+   "Au draws": {
+    "n": 40000,
+    "actual_inverted": 0,
+    "predicted_inverted": 0,
+    "accuracy": 1.0
+   }
+  },
+  "D_identity_check": {
+   "Au nominal": {
+    "n": 4,
+    "actual_inverted": 0,
+    "TP": 0,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": null,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 1.0,
+    "majority_accuracy": 1.0,
+    "excluded": 0
+   },
+   "NH3": {
+    "n": 3,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 1,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3333333333333333,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "MeOH S5": {
+    "n": 40,
+    "actual_inverted": 15,
+    "TP": 15,
+    "FN": 0,
+    "FP": 0,
+    "TN": 25,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.625,
+    "majority_accuracy": 0.625,
+    "excluded": 0
+   },
+   "MeOH S6": {
+    "n": 40,
+    "actual_inverted": 28,
+    "TP": 28,
+    "FN": 0,
+    "FP": 0,
+    "TN": 12,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.3,
+    "majority_accuracy": 0.7,
+    "excluded": 0
+   },
+   "Re/TiO2": {
+    "n": 6,
+    "actual_inverted": 2,
+    "TP": 2,
+    "FN": 0,
+    "FP": 0,
+    "TN": 4,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.6666666666666666,
+    "majority_accuracy": 0.6666666666666666,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S5 + Re)": {
+    "n": 53,
+    "actual_inverted": 19,
+    "TP": 19,
+    "FN": 0,
+    "FP": 0,
+    "TN": 34,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.6415094339622641,
+    "majority_accuracy": 0.6415094339622641,
+    "excluded": 0
+   },
+   "pooled (Au + NH3 + MeOH S6 + Re)": {
+    "n": 53,
+    "actual_inverted": 32,
+    "TP": 32,
+    "FN": 0,
+    "FP": 0,
+    "TN": 21,
+    "accuracy": 1.0,
+    "sensitivity": 1.0,
+    "specificity": 1.0,
+    "always_preserve_accuracy": 0.39622641509433965,
+    "majority_accuracy": 0.6037735849056604,
+    "excluded": 0
+   }
+  }
+ },
+ "meoh_all_pairs_C1": {
+  "S5": {
+   "n": 1976,
+   "actual_inverted": 304,
+   "TP": 263,
+   "FN": 41,
+   "FP": 193,
+   "TN": 1479,
+   "accuracy": 0.881578947368421,
+   "sensitivity": 0.8651315789473685,
+   "specificity": 0.8845693779904307,
+   "always_preserve_accuracy": 0.8461538461538461,
+   "majority_accuracy": 0.8461538461538461,
+   "excluded": 0
+  },
+  "S6": {
+   "n": 1976,
+   "actual_inverted": 707,
+   "TP": 214,
+   "FN": 493,
+   "FP": 142,
+   "TN": 1127,
+   "accuracy": 0.6786437246963563,
+   "sensitivity": 0.3026874115983027,
+   "specificity": 0.888100866824271,
+   "always_preserve_accuracy": 0.6422064777327935,
+   "majority_accuracy": 0.6422064777327935,
+   "excluded": 0
+  }
+ },
+ "bootstrap": {
+  "MeOH S5 C1": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 0.9,
+   "ci95": [
+    0.7741935483870968,
+    0.9795918367346939
+   ]
+  },
+  "MeOH S5 C2": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 1.0,
+   "ci95": [
+    1.0,
+    1.0
+   ]
+  },
+  "MeOH S5 all pairs C1": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 0.881578947368421,
+   "ci95": [
+    0.8469001218208722,
+    0.9601750146958905
+   ]
+  },
+  "MeOH S6 C1": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 0.625,
+   "ci95": [
+    0.4473684210526316,
+    0.7659574468085106
+   ]
+  },
+  "MeOH S6 C2": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 0.475,
+   "ci95": [
+    0.2894736842105263,
+    0.6170212765957447
+   ]
+  },
+  "MeOH S6 all pairs C1": {
+   "resamples": 10000,
+   "papers": 28,
+   "seed": 20261006,
+   "accuracy": 0.6786437246963563,
+   "ci95": [
+    0.6044691037655671,
+    0.7641928988235553
+   ]
+  }
+ },
+ "regret_explained": {
+  "NH3": {
+   "inverted_cases": 2,
+   "regret_sum": 17.278982690699998,
+   "regret_median_rel": 0.5649789561105,
+   "carrying_class_counts": {
+    "metal price / loading": 2
+   },
+   "carrying_share_median": 2.27786534929,
+   "upstream_share_median": -1.281054127765,
+   "pathway_pool_share_weighted": 0.12802303332584353,
+   "pathway_pool_share_median": 0.130203303189,
+   "C1_reproduced_share_of_regret": 1.174346275028762,
+   "C1_spearman_predicted_vs_actual_dlnC": 1.0
+  },
+  "MeOH S5": {
+   "inverted_cases": 15,
+   "regret_sum": 3062.973689093,
+   "regret_median_rel": 0.0354367095599,
+   "carrying_class_counts": {
+    "single-pass conversion": 8,
+    "selectivity CH4": 3,
+    "temperature / operating window": 3,
+    "selectivity CO": 1
+   },
+   "carrying_share_median": 1.52725227348,
+   "upstream_share_median": -0.176314309668,
+   "pathway_pool_share_weighted": 1.1051226064146014,
+   "pathway_pool_share_median": 1.17631430965,
+   "C1_reproduced_share_of_regret": 1.7451423327634343,
+   "C1_spearman_predicted_vs_actual_dlnC": 0.7829268292682928
+  },
+  "MeOH S6": {
+   "inverted_cases": 28,
+   "regret_sum": 47365.79663578,
+   "regret_median_rel": 0.223743834157,
+   "carrying_class_counts": {
+    "selectivity CO": 17,
+    "single-pass conversion": 6,
+    "selectivity CH4": 3,
+    "temperature / operating window": 2
+   },
+   "carrying_share_median": 1.38479798921,
+   "upstream_share_median": -0.028301874272449998,
+   "pathway_pool_share_weighted": 1.0074381503149277,
+   "pathway_pool_share_median": 1.0283018742699999,
+   "C1_reproduced_share_of_regret": 0.36979802636012865,
+   "C1_spearman_predicted_vs_actual_dlnC": 0.43621013133208264
+  },
+  "Re/TiO2": {
+   "inverted_cases": 2,
+   "regret_sum": 41.868292763999875,
+   "regret_median_rel": 0.022192399967899998,
+   "carrying_class_counts": {
+    "single-pass conversion": 2
+   },
+   "carrying_share_median": 1.91375679868,
+   "upstream_share_median": -0.257092765133,
+   "pathway_pool_share_weighted": 0.924443415837279,
+   "pathway_pool_share_median": 0.9254329977635001,
+   "C1_reproduced_share_of_regret": 1.4565826380945046,
+   "C1_spearman_predicted_vs_actual_dlnC": 1.0
+  }
+ },
+ "attribution": {
+  "Au / nominal / preserved": {
+   "cases": 4,
+   "classes": {
+    "upstream metric": {
+     "mean_pct_of_Ci": 70.749040227725,
+     "median_pct_of_Ci_where_present": 62.769144908,
+     "cases_with_class": 4,
+     "mean_share_of_abs_total": 1.0
+    }
+   }
+  },
+  "MeOH / S5 / preserved": {
+   "cases": 25,
+   "classes": {
+    "selectivity CH4": {
+     "mean_pct_of_Ci": 0.6027220978988679,
+     "median_pct_of_Ci_where_present": -0.10567346367515,
+     "cases_with_class": 8,
+     "mean_share_of_abs_total": 0.04218162679876
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": 6.529171870146668,
+     "median_pct_of_Ci_where_present": 0.0,
+     "cases_with_class": 21,
+     "mean_share_of_abs_total": -0.06259921062463107
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": 20.09406976071399,
+     "median_pct_of_Ci_where_present": 2.04818045527,
+     "cases_with_class": 25,
+     "mean_share_of_abs_total": 0.5662516042364856
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": -0.179870728502612,
+     "median_pct_of_Ci_where_present": -0.320691465774,
+     "cases_with_class": 7,
+     "mean_share_of_abs_total": -0.014263454519420802
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.6466624902116079,
+     "median_pct_of_Ci_where_present": 0.210468098283,
+     "cases_with_class": 25,
+     "mean_share_of_abs_total": 0.20892773822375318
+    }
+   }
+  },
+  "MeOH / S5 / inverted": {
+   "cases": 15,
+   "classes": {
+    "selectivity CH4": {
+     "mean_pct_of_Ci": -0.6828613594812,
+     "median_pct_of_Ci_where_present": -0.6394412754550001,
+     "cases_with_class": 8,
+     "mean_share_of_abs_total": -0.12410705483173799
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": 24.841325941440893,
+     "median_pct_of_Ci_where_present": 0.0,
+     "cases_with_class": 13,
+     "mean_share_of_abs_total": -0.01712392272697651
+    },
+    "selectivity CO+CH4": {
+     "mean_pct_of_Ci": -0.15520553071833335,
+     "median_pct_of_Ci_where_present": -1.1640414803875,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.013150147947613332
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": -61.80742084648252,
+     "median_pct_of_Ci_where_present": -1.5565076696,
+     "cases_with_class": 15,
+     "mean_share_of_abs_total": -0.2672660677873205
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": 25.864468760309663,
+     "median_pct_of_Ci_where_present": 0.956797540078,
+     "cases_with_class": 9,
+     "mean_share_of_abs_total": -0.09266051799187335
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 1.4890536491489328,
+     "median_pct_of_Ci_where_present": 0.422045912391,
+     "cases_with_class": 15,
+     "mean_share_of_abs_total": 0.11671825053034265
+    }
+   }
+  },
+  "MeOH / S6 / preserved": {
+   "cases": 12,
+   "classes": {
+    "selectivity CH4": {
+     "mean_pct_of_Ci": 3.690668127205583,
+     "median_pct_of_Ci_where_present": -0.480292273075,
+     "cases_with_class": 5,
+     "mean_share_of_abs_total": 0.11178064506600416
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": 214.8277848811083,
+     "median_pct_of_Ci_where_present": 2.4436541209,
+     "cases_with_class": 9,
+     "mean_share_of_abs_total": 0.23717392139164628
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": 15.385139659353,
+     "median_pct_of_Ci_where_present": 1.531092258155,
+     "cases_with_class": 12,
+     "mean_share_of_abs_total": 0.5184159728457334
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": 0.028244812275999998,
+     "median_pct_of_Ci_where_present": 0.0,
+     "cases_with_class": 3,
+     "mean_share_of_abs_total": 0.0014735100166916669
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.6898675254509508,
+     "median_pct_of_Ci_where_present": 0.08819283362945,
+     "cases_with_class": 12,
+     "mean_share_of_abs_total": 0.05223020215613175
+    }
+   }
+  },
+  "MeOH / S6 / inverted": {
+   "cases": 28,
+   "classes": {
+    "selectivity CH4": {
+     "mean_pct_of_Ci": 11.99164573798675,
+     "median_pct_of_Ci_where_present": -1.753593117305,
+     "cases_with_class": 12,
+     "mean_share_of_abs_total": -0.08984688516191715
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": 13.301018754435473,
+     "median_pct_of_Ci_where_present": -16.018250090400002,
+     "cases_with_class": 26,
+     "mean_share_of_abs_total": -0.36557411072821683
+    },
+    "selectivity CO+CH4": {
+     "mean_pct_of_Ci": 266.4061061221429,
+     "median_pct_of_Ci_where_present": 3729.68548571,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": 0.02626872199432143
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": -399.8230577973246,
+     "median_pct_of_Ci_where_present": 3.35038659521,
+     "cases_with_class": 28,
+     "mean_share_of_abs_total": 0.02203515151940158
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": 82.74825362763106,
+     "median_pct_of_Ci_where_present": -10.08279351797,
+     "cases_with_class": 16,
+     "mean_share_of_abs_total": -0.08775495973252785
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.636918368499825,
+     "median_pct_of_Ci_where_present": 0.29744008468350003,
+     "cases_with_class": 28,
+     "mean_share_of_abs_total": 0.02719483071271107
+    }
+   }
+  },
+  "NH3 / frozen / preserved": {
+   "cases": 1,
+   "classes": {
+    "metal price / loading": {
+     "mean_pct_of_Ci": 15.6081858672,
+     "median_pct_of_Ci_where_present": 15.6081858672,
+     "cases_with_class": 1,
+     "mean_share_of_abs_total": 0.904602217529
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": 0.693225345274,
+     "median_pct_of_Ci_where_present": 0.693225345274,
+     "cases_with_class": 1,
+     "mean_share_of_abs_total": 0.0401771986776
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.952786892219,
+     "median_pct_of_Ci_where_present": 0.952786892219,
+     "cases_with_class": 1,
+     "mean_share_of_abs_total": 0.055220583793
+    }
+   }
+  },
+  "NH3 / frozen / inverted": {
+   "cases": 2,
+   "classes": {
+    "metal price / loading": {
+     "mean_pct_of_Ci": -83.3699554525,
+     "median_pct_of_Ci_where_present": -83.3699554525,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.5854151668875001
+    },
+    "temperature / operating window": {
+     "mean_pct_of_Ci": 1.45586279603,
+     "median_pct_of_Ci_where_present": 1.45586279603,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.011209967585300004
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 46.2183105207,
+     "median_pct_of_Ci_where_present": 46.2183105207,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": 0.3336488029
+    }
+   }
+  },
+  "Re / D01 v3, 2 % purge / preserved": {
+   "cases": 4,
+   "classes": {
+    "metal price / loading": {
+     "mean_pct_of_Ci": -0.37212416294125,
+     "median_pct_of_Ci_where_present": -0.7442483258825,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.00822628022415
+    },
+    "selectivity CH4": {
+     "mean_pct_of_Ci": 26.840509934405,
+     "median_pct_of_Ci_where_present": 35.41468319965,
+     "cases_with_class": 4,
+     "mean_share_of_abs_total": 0.5701710374714999
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": -0.122597735549,
+     "median_pct_of_Ci_where_present": -0.48547782364,
+     "cases_with_class": 3,
+     "mean_share_of_abs_total": -0.030245330261775002
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": -2.9582978170475,
+     "median_pct_of_Ci_where_present": -3.2758293858350003,
+     "cases_with_class": 4,
+     "mean_share_of_abs_total": 0.05937104225949999
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.34144983223932496,
+     "median_pct_of_Ci_where_present": 0.33546525537219996,
+     "cases_with_class": 4,
+     "mean_share_of_abs_total": 0.0120371383989025
+    }
+   }
+  },
+  "Re / D01 v3, 2 % purge / inverted": {
+   "cases": 2,
+   "classes": {
+    "metal price / loading": {
+     "mean_pct_of_Ci": -0.709321590986,
+     "median_pct_of_Ci_where_present": -0.709321590986,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.07927755960050001
+    },
+    "selectivity CH4": {
+     "mean_pct_of_Ci": 2.934646489255,
+     "median_pct_of_Ci_where_present": 2.934646489255,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": 0.319238039703
+    },
+    "selectivity CO": {
+     "mean_pct_of_Ci": -0.72120603356,
+     "median_pct_of_Ci_where_present": -0.72120603356,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.0848269444903
+    },
+    "single-pass conversion": {
+     "mean_pct_of_Ci": -4.21978405572,
+     "median_pct_of_Ci_where_present": -4.21978405572,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": -0.4551220384385
+    },
+    "upstream metric": {
+     "mean_pct_of_Ci": 0.5453887706635,
+     "median_pct_of_Ci_where_present": 0.5453887706635,
+     "cases_with_class": 2,
+     "mean_share_of_abs_total": 0.06153541776785
+    }
+   }
+  }
+ },
+ "flags": {
+  "U_L_nonpositive": 0,
+  "U_D_nonpositive": 0,
+  "U_F_nonpositive": 0,
+  "D_identity_failures": 0,
+  "L_wrong": [
+   "MeOH S5 | 10.1016/j.fuel.2022.125878 | 30 bar | H2/CO2 3 | 12000 h-1",
+   "MeOH S5 | 10.1021/acscatal.9b01869 | 50 bar | H2/CO2 4 | 24000 h-1",
+   "MeOH S5 | 10.1021/acscatal.9b03305 | 50 bar | H2/CO2 4 | 24 NL/g/h",
+   "MeOH S5 | 10.1039/d0gc01597k | 50 bar | H2/CO2 4 | 21 NL/g/h",
+   "MeOH S6 | 10.1002/ente.201800747 | 40 bar | H2/CO2 3 | 21.6 NL/g/h",
+   "MeOH S6 | 10.1016/j.fuel.2023.127927 | 20 bar | H2/CO2 3 | 2.4 NL/g/h",
+   "MeOH S6 | 10.1016/j.fuel.2024.131111 | 40 bar | H2/CO2 5 | 12 NL/g/h",
+   "MeOH S6 | 10.1016/j.jcat.2012.05.020 | 30 bar | H2/CO2 3 | 13.4 NL/g/h",
+   "MeOH S6 | 10.1016/j.jes.2023.05.010 | 30 bar | H2/CO2 4 | 18000 h-1",
+   "MeOH S6 | 10.1021/acscatal.0c05628 | 50 bar | H2/CO2 4 | 21 NL/g/h",
+   "MeOH S6 | 10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h",
+   "MeOH S6 | 10.1021/acscatal.9b01869 | 50 bar | H2/CO2 4 | 24000 h-1",
+   "MeOH S6 | 10.1021/acscatal.9b03305 | 50 bar | H2/CO2 4 | 24 NL/g/h",
+   "MeOH S6 | 10.1021/cs500979c | 80 bar | H2/CO2 3 | 3600 h-1",
+   "MeOH S6 | 10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 4000 h-1",
+   "MeOH S6 | 10.1039/c6ra28305e | 30 bar | H2/CO2 3 | 3600 h-1",
+   "MeOH S6 | 10.1039/d0gc01597k | 50 bar | H2/CO2 4 | 21 NL/g/h",
+   "MeOH S6 | 10.1126/sciadv.abi6012 | 40 bar | H2/CO2 3 | 12 NL/g/h",
+   "MeOH S6 | 10.1126/sciadv.abi6012 | 40 bar | H2/CO2 3 | 24 NL/g/h"
+  ],
+  "F_wrong": [
+   "MeOH S6 | 10.1002/cctc.202000974 | 20 bar | H2/CO2 3 | 3.6 NL/g/h",
+   "MeOH S6 | 10.1002/ente.201800747 | 40 bar | H2/CO2 3 | 21.6 NL/g/h",
+   "MeOH S6 | 10.1016/j.apcata.2018.04.036 | 30 bar | H2/CO2 3 | 2.4 NL/g/h",
+   "MeOH S6 | 10.1016/j.fuel.2022.125878 | 30 bar | H2/CO2 3 | 12000 h-1",
+   "MeOH S6 | 10.1016/j.fuel.2023.127927 | 20 bar | H2/CO2 3 | 2.4 NL/g/h",
+   "MeOH S6 | 10.1016/j.fuel.2024.131111 | 40 bar | H2/CO2 5 | 12 NL/g/h",
+   "MeOH S6 | 10.1016/j.jcat.2012.05.020 | 30 bar | H2/CO2 3 | 13.4 NL/g/h",
+   "MeOH S6 | 10.1016/j.jes.2023.05.010 | 30 bar | H2/CO2 4 | 18000 h-1",
+   "MeOH S6 | 10.1021/acscatal.0c05628 | 50 bar | H2/CO2 4 | 21 NL/g/h",
+   "MeOH S6 | 10.1021/acscatal.1c03170 | 30 bar | H2/CO2 3 | 60 NL/g/h",
+   "MeOH S6 | 10.1021/acscatal.5c05984 | 100 bar | H2/CO2 4 | 10 NL/g/h",
+   "MeOH S6 | 10.1021/acscatal.9b01869 | 50 bar | H2/CO2 4 | 24000 h-1",
+   "MeOH S6 | 10.1021/acscatal.9b03305 | 50 bar | H2/CO2 4 | 24 NL/g/h",
+   "MeOH S6 | 10.1021/cs500979c | 80 bar | H2/CO2 3 | 3600 h-1",
+   "MeOH S6 | 10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 4000 h-1",
+   "MeOH S6 | 10.1039/c2cy20604h | 4 bar | H2/CO2 3.8 | 4000 h-1",
+   "MeOH S6 | 10.1039/c6ra28305e | 30 bar | H2/CO2 3 | 3600 h-1",
+   "MeOH S6 | 10.1039/d0gc01597k | 50 bar | H2/CO2 4 | 21 NL/g/h",
+   "MeOH S6 | 10.1126/sciadv.aaz2060 | 50 bar | H2/CO2 3.04 | 9 NL/g/h",
+   "MeOH S6 | 10.1126/sciadv.abi6012 | 40 bar | H2/CO2 3 | 12 NL/g/h",
+   "MeOH S6 | 10.1126/sciadv.abi6012 | 40 bar | H2/CO2 3 | 24 NL/g/h"
+  ]
+ },
+ "exploratory": {
+  "carrying_class_by_disagreement_kind": {
+   "S5": {
+    "other catalyst and temperature | single-pass conversion": 4,
+    "other catalyst, same temperature | selectivity CH4": 3,
+    "other catalyst, same temperature | selectivity CO": 1,
+    "other catalyst, same temperature | single-pass conversion": 2,
+    "other temperature | single-pass conversion": 2,
+    "other temperature | temperature / operating window": 3
+   },
+   "S6": {
+    "other catalyst and temperature | selectivity CO": 1,
+    "other catalyst and temperature | single-pass conversion": 3,
+    "other catalyst, same temperature | selectivity CH4": 3,
+    "other catalyst, same temperature | selectivity CO": 8,
+    "other catalyst, same temperature | single-pass conversion": 1,
+    "other temperature | selectivity CO": 8,
+    "other temperature | single-pass conversion": 2,
+    "other temperature | temperature / operating window": 2
+   }
+  },
+  "S6_C1_misses": {
+   "cases": 15,
+   "plant_leader_at_lower_purge": 15,
+   "median_purge_i": 0.042,
+   "median_purge_j": 0.011,
+   "O_L_positive": 14
+  },
+  "S6_C1_hits_inverted": {
+   "cases": 13,
+   "plant_leader_at_lower_purge": 9,
+   "median_purge_i": 0.046,
+   "median_purge_j": 0.029
+  },
+  "S5_purges": {
+   "all_at_grid_floor": true
+  },
+  "bansode_2013_cases": 16,
+  "merged_selectivity_cases": [
+   "MeOH S5 | 10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 10.6 NL/g/h",
+   "MeOH S5 | 10.1039/c2cy20604h | 360 bar | H2/CO2 3.8 | 10.6 NL/g/h",
+   "MeOH S6 | 10.1039/c2cy20604h | 100 bar | H2/CO2 3.8 | 10.6 NL/g/h",
+   "MeOH S6 | 10.1039/c2cy20604h | 360 bar | H2/CO2 3.8 | 10.6 NL/g/h"
+  ]
+ },
+ "runtime_s": 716.4,
+ "workers": 6
+}
