@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+PERF_ONLY = True   # batch 2 onwards; the first 19 papers were run with every non-characterisation figure
 sys.path.insert(0, str(HERE.parent / "extraction"))
 from llm_route import Router  # noqa: E402
 
@@ -99,7 +100,9 @@ def build(rxn, md_path, max_imgs=12):
         if any(w in c for w in perf):
             return 2
         return 0 if any(w in c for w in charac) else 1
-    chosen = sorted([f for f in figs if keep(f["caption"]) > 0], key=lambda f: -keep(f["caption"]))[:max_imgs]
+    # sample extension (2026-11-10): only figures whose caption names a performance quantity (fewer tokens)
+    floor = 2 if PERF_ONLY else 1
+    chosen = sorted([f for f in figs if keep(f["caption"]) >= floor], key=lambda f: -keep(f["caption"]))[:max_imgs]
     chosen = sorted(chosen, key=lambda f: f["file"])
     content = [{"type": "input_text", "text": md}]
     n = 0

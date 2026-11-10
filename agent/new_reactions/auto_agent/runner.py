@@ -102,10 +102,14 @@ TOOLS = [
 
 
 from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
+from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
+import strategies as sg  # noqa: E402
+NUS_LOCK = HERE / "nus.lock"
 
 
-class Run(DBMixin):
-    def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3):
+class Run(DBMixin, FullMixin):
+    def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
+                 n_max=20, extract_model="gpt-5.5"):
         self.ws = HERE / "runs" / name
         for d in ("pdf", "ocr", "extracted", "scripts"):
             (self.ws / d).mkdir(parents=True, exist_ok=True)
@@ -117,6 +121,18 @@ class Run(DBMixin):
         self.db_key = db_key
         if db_key:
             self.setup_db(HERE / "db" / "truth.json", db_key, budget_frac)
+        self.full, self.n_target, self.n_max = full, n_target, n_max
+        if full:
+            self.setup_full()
+            self.extract_model, self.extract_workers = extract_model, 4
+            self.extract_router = llm_route.Router(extract_model)   # API-YES first, then the advisor key
+
+            def probe(client):
+                for _ in client.responses.create(model=extract_model, input="Reply with OK.", store=False, stream=True,
+                                                 max_output_tokens=16):
+                    pass
+                return client._route
+            self.extract_route = self.extract_router.call(probe)    # moves on when a route refuses the model
         key = llm_route.api_yes_key(model)
         if key is None:
             raise SystemExit(f"API-YES does not serve {model}")
@@ -131,6 +147,7 @@ class Run(DBMixin):
 
     def write_ledger(self, status="running"):
         led = dict(status=status, reaction=self.reaction, model=self.model, route="api-yes",
+                   extract_model=getattr(self, "extract_model", None), extract_route=getattr(self, "extract_route", None),
                    start=self.start_iso, now=datetime.now().isoformat(timespec="seconds"),
                    wall_minutes=round((time.time() - self.t0) / 60, 1), tokens=self.tok,
                    tokens_total=sum(v for k, v in self.tok.items() if "calls" not in k),
@@ -228,8 +245,14 @@ class Run(DBMixin):
         if failed:
             lst = self.ws / "pdf" / "_nus_todo.txt"
             lst.write_text("\n".join(failed), encoding="utf-8")
-            subprocess.run(["cmd", "/c", NUS_FETCH, "fetch", "-f", str(lst), "-o", str(self.ws / "pdf"), "--headless"],
-                           capture_output=True, timeout=900)
+            while NUS_LOCK.exists() and time.time() - NUS_LOCK.stat().st_mtime < 1800:
+                time.sleep(5)
+            NUS_LOCK.write_text(str(os.getpid()))
+            try:
+                subprocess.run(["cmd", "/c", NUS_FETCH, "fetch", "-f", str(lst), "-o", str(self.ws / "pdf"), "--headless"],
+                               capture_output=True, timeout=900)
+            finally:
+                NUS_LOCK.unlink(missing_ok=True)
             man = self.ws / "pdf" / "manifest.csv"
             got = {}
             if man.exists():
@@ -337,10 +360,19 @@ class Run(DBMixin):
             instructions = METHOD_DB.format(max_turns=self.max_turns, n_papers=len({r["paper"] for r in self.db}),
                                             budget=self.budget, n_masked=self.n_masked)
             tools = DB_TOOLS + [t for t in TOOLS if t.get("name") in ("read_file", "write_file", "run_python", "finish")]
+        elif self.full:
+            instructions = METHOD_FULL.format(max_turns=self.max_turns, n_target=self.n_target, n_max=self.n_max)
+            tools = FULL_TOOLS + [sg.UPDATE_PLAN_TOOL]
         else:
             instructions = METHOD.format(max_turns=self.max_turns)
             tools = TOOLS
         items = [{"role": "user", "content": f"Reaction: {self.reaction}. Start now."}]
+        critic_rounds = 0
+        if self.full:
+            plan = sg.make_plan(self, instructions, tools)
+            items = [{"role": "user", "content": f"Reaction: {self.reaction}.\nYour plan (plan.json; mark progress with "
+                                                 "update_plan, revise a step if needed):\n"
+                                                 + json.dumps(plan, ensure_ascii=False) + "\nStart now."}]
         self.log({"start": self.reaction, "model": self.model})
         summary = None
         for turn in range(self.max_turns):
@@ -368,12 +400,25 @@ class Run(DBMixin):
             for c in calls:
                 args = json.loads(c.arguments or "{}")
                 t = time.time()
-                if c.name == "finish":
+                if c.name == "finish" and self.full and critic_rounds < 2:
+                    critic_rounds += 1
+                    res = sg.critique(self, critic_rounds)
+                    major = [i for i in res["issues"] if i["severity"] == "major"]
+                    if res["verdict"] == "pass" or not major:
+                        summary = args.get("summary", "")
+                        out_s = "ok (critic passed)"
+                    else:
+                        out_s = ("NOT FINISHED: an independent reviewer found major issues; fix report.md (and rerun tools if "
+                                 "needed), then call finish again:\n" + json.dumps(major, ensure_ascii=False))
+                elif c.name == "finish":
                     summary = args.get("summary", "")
                     out_s = "ok"
+                elif c.name == "update_plan":
+                    out_s = sg.update_plan(self, **args)
                 else:
                     try:
-                        out_s = getattr(self, "t_" + c.name)(**args)
+                        prefix = "f_" if self.full and hasattr(self, "f_" + c.name) else "t_"
+                        out_s = getattr(self, prefix + c.name)(**args)
                     except Exception as e:  # noqa: BLE001
                         out_s = f"ERROR {type(e).__name__}: {str(e)[:500]}"
                 dt = time.time() - t
@@ -399,5 +444,9 @@ if __name__ == "__main__":
     ap.add_argument("--max-turns", type=int, default=90)
     ap.add_argument("--db", default=None, help="pdh | ch4: masked literature database instead of downloading papers")
     ap.add_argument("--budget-frac", type=float, default=0.3)
+    ap.add_argument("--full", action="store_true", help="complete autonomous run from the reaction name")
+    ap.add_argument("--n-target", type=int, default=12)
+    ap.add_argument("--n-max", type=int, default=20)
+    ap.add_argument("--extract-model", default="gpt-5.5")
     a = ap.parse_args()
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac).run()
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model).run()

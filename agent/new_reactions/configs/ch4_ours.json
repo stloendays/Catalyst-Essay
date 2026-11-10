@@ -1,0 +1,171 @@
+{
+ "name": "CO2 methanation",
+ "parameter_set": "ours",
+ "metal_usd_per_kg": {
+  "Ru": 53852.5,
+  "Os": 142650.0,
+  "Fe": 8.0,
+  "Rh": 265243.65919095,
+  "Ir": 252383.36056351,
+  "Co": 56.28401553583051,
+  "Re": 5757.64,
+  "Mo": 91.22728409215301,
+  "Ni": 16.9094555095895,
+  "W": 149.97,
+  "Pd": 40670.694409279,
+  "Pt": 51508.71107755406,
+  "Cu": 13.889122517655,
+  "Ag": 1823.590345370992,
+  "Au": 128732.2322756058,
+  "Al": 3.9683,
+  "Bi": 44.092,
+  "Cd": 3.9,
+  "Cr": 13.007,
+  "Ga": 580.0,
+  "Hf": 3800.0,
+  "Hg": 50.0,
+  "In": 370.0,
+  "La": 1.1728,
+  "Mn": 0.45,
+  "Nb": 40.0,
+  "Pb": 2.3369,
+  "Sc": 5200.0,
+  "Sn": 35.274,
+  "Ta": 219.78,
+  "Ti": 12.0,
+  "Tl": 9300.0,
+  "V": 19.756,
+  "Y": 40.0,
+  "Zn": 3.2849,
+  "Zr": 22.0,
+  "Ce": 2.1005306603773586,
+  "Si": 2.866006,
+  "Mg": 2.5,
+  "Ca": 0.3637940925436203,
+  "K": 1.4455393066229791,
+  "Ba": 0.3569000679809653,
+  "B": 1.0
+ },
+ "finance": {
+  "crf": 0.0944,
+  "fixed_om_frac": 0.04
+ },
+ "prices": {
+  "gas_usd_per_GJ": 2.5,
+  "power_usd_kWh": 0.08
+ },
+ "species": {
+  "CO2": {
+   "MW": 44.01,
+   "price_usd_t": 100.0
+  },
+  "H2": {
+   "MW": 2.016,
+   "price_usd_t": 3000.0
+  },
+  "CH4": {
+   "MW": 16.043
+  },
+  "H2O": {
+   "MW": 18.015
+  }
+ },
+ "stoich": {
+  "nu": {
+   "CO2": -1,
+   "H2": -4,
+   "CH4": 1,
+   "H2O": 2
+  },
+  "key": "CO2",
+  "product": "CH4"
+ },
+ "thermo": {
+  "dH_J_mol": -165000.0,
+  "dS_J_molK": -172.8
+ },
+ "plant": {
+  "capacity_t_per_y": 50000,
+  "hours_per_y": 8000,
+  "P_bar": 20.0,
+  "feed_ratio": {
+   "H2": 4.0
+  },
+  "inert_ratio": 0.0,
+  "approach": 0.95,
+  "overall_conv": 0.98
+ },
+ "lab_feed": {
+  "default_y_key": 0.2,
+  "default_ratio": {
+   "H2": 4.0
+  }
+ },
+ "switches": {
+  "selectivity_loss": "converted_downstream"
+ },
+ "fixed_credits": [],
+ "lost_key_fuel_GJ_per_t": 0.0,
+ "energy": {
+  "pay_reaction_heat": false,
+  "furnace_eff": 1.0,
+  "e_proc_GJ_per_t_reactor_feed": 0.0,
+  "power_kWh_per_t_fresh": 60.0,
+  "power_kWh_per_t_recycle": 40.0,
+  "fresh_basis": "all"
+ },
+ "capex": {
+  "usd": 22426393.5,
+  "fixed_share": 0.5,
+  "throughput_share": 0.25,
+  "reactor_share": 0.25,
+  "reactor_basis": "catalyst"
+ },
+ "catalyst": {
+  "base_usd_kg": 20.0,
+  "life_y": 4.0,
+  "recoverable_metals": [
+   "Pt",
+   "Pd",
+   "Rh",
+   "Ru",
+   "Ir",
+   "Os",
+   "Au",
+   "Ag",
+   "Re"
+  ],
+  "metal_recovery": 0.95,
+  "metal_financing": 0.08
+ },
+ "regeneration": {
+  "enabled": false,
+  "t_regen_h": 0.0,
+  "t_cycle_min_h": 0.0,
+  "regen_GJ_per_t_cat": 0.0
+ },
+ "reference": {
+  "name": "Ni/Al2O3 (commercial methanation)",
+  "T_K": 623.15,
+  "X": 0.8,
+  "S": 0.99,
+  "r": 0.4,
+  "t_cycle_h": null,
+  "elements": [
+   [
+    "Ni",
+    20.0
+   ]
+  ]
+ },
+ "sources": {
+  "plant": "2-5 adiabatic stages with intercooling, 200-550 C, 20 bar reference case; >= 98 % CO2 conversion needs <300 C at 20 bar in the last stage (Goetz et al., Renew. Energy 85 (2016) 1371)",
+  "capex": "175 EUR/kW_SNG (Goetz 2016, consistent with Outotec; range 130 EUR/kW at 110 MW to 400 EUR/kW at 5 MW) x 1.33 USD/EUR (2014) x 96.4 MW_SNG (50 kt/y CH4 at 8000 h, HHV)",
+  "reference r": "GHSV 3500 h-1 inside the 2000-5000 h-1 of technical adiabatic fixed beds (Goetz Table 4), 20 % CO2 in the feed, bed density 1.0 kg/L (assumption), X 0.80 -> 0.40 kg CH4/kg/h",
+  "h2_usd_kg": "3 USD/kg: the anchor of Becker, Penev & Braun, J. Energy Resour. Technol. 2019 (132 USD/MWh SNG); grey ~2, electrolytic 5-7 (DOE Liftoff 2024)",
+  "co2_usd_t": "104 USD/t CO2 captured (Enterprise Products EPA application 2012) rounded to 100",
+  "catalyst": "Ni 20 wt%, base 20 USD/kg, life 4 y: assumptions (no open source found)",
+  "thermo": "standard formation data, dH298 -165.0 kJ/mol, dG298 -113.5 kJ/mol"
+ },
+ "common_notes": "crf 0.0944 = 7 %/y over 20 y (Enterprise Products PDH, EPA GHG permit application 2012). gas 2.5 USD/GJ = 2.60 USD/MMBtu paid by the PetroLogistics Catofin plant (SEC 424B4, 2012); Henry Hub 2024 2.19 USD/MMBtu (EIA). fixed O&M 4 %/y of capex, power 0.08 USD/kWh, metal recovery 0.95 and financing 0.08/y: assumptions as in the NH3/methanol chains."
+}
