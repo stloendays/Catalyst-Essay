@@ -121,12 +121,14 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--only", default="")
     ap.add_argument("--shard", default="0/1")
+    ap.add_argument("--outdir", default="raw")
+    ap.add_argument("--usage", default="token_usage.csv")
     ap.add_argument("--model", default="gpt-5.5")
     ap.add_argument("--effort", default="medium")
     a = ap.parse_args()
-    out = HERE / "raw" / a.rxn
+    out = HERE / a.outdir / a.rxn
     out.mkdir(parents=True, exist_ok=True)
-    usage_csv = HERE / "token_usage.csv"
+    usage_csv = HERE / a.usage
     sch = schema(a.rxn)
     system = SYSTEM.format(title=RXN[a.rxn]["title"], scope=RXN[a.rxn]["scope"])
     router = Router(a.model)

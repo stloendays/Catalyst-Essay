@@ -41,6 +41,10 @@ def pres_bar(d):
         return 1.01325
     if v is None:
         return None
+    m = re.search(r"10\s*\^?\s*([-+]?\d+)", u)
+    if m and ("×" in u or "x" in u):
+        v *= 10 ** int(m.group(1))
+        u = u[m.end():]
     for k, f in (("mpa", 10), ("kpa", 0.01), ("atm", 1.01325), ("psi", 0.0689476), ("bar", 1), ("pa", 1e-5)):
         if k in u:
             return v * f

@@ -8,7 +8,8 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMo
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling_core.types.doc import PictureItem, TableItem
 rxn = sys.argv[1]
-src = Path("pdf") / rxn; dst = Path("ocr") / rxn; dst.mkdir(parents=True, exist_ok=True)
+import os
+src = Path(os.environ.get("DOCLING_SRC", f"pdf/{rxn}")); dst = Path(os.environ.get("DOCLING_DST", f"ocr/{rxn}")); dst.mkdir(parents=True, exist_ok=True)
 opt = PdfPipelineOptions(do_ocr=True, do_table_structure=True, generate_picture_images=True, images_scale=float(sys.argv[2]) if len(sys.argv) > 2 else 4.0)
 opt.table_structure_options.mode = TableFormerMode.ACCURATE
 opt.table_structure_options.do_cell_matching = True

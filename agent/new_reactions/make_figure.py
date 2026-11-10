@@ -122,8 +122,8 @@ def bars(ax, items, unit):
 def main():
     pg = Page(183.0, 118.0)
     rows_y = {"pdh": 67.0, "ch4": 9.0}
-    for rxn, unit, xl, ylim in (("pdh", "USD t$^{-1}$ C$_3$H$_6$", "Lab productivity (kg C$_3$H$_6$ kg$^{-1}$ h$^{-1}$)", (780, 1600)),
-                                ("ch4", "USD t$^{-1}$ CH$_4$", "Lab productivity (kg CH$_4$ kg$^{-1}$ h$^{-1}$)", (1900, 2450))):
+    for rxn, unit, xl, ylim in (("pdh", "USD t$^{-1}$ C$_3$H$_6$", "Lab productivity (kg C$_3$H$_6$ kg$^{-1}$ h$^{-1}$)", (700, 1500)),
+                                ("ch4", "USD t$^{-1}$ CH$_4$", "Lab productivity (kg CH$_4$ kg$^{-1}$ h$^{-1}$)", (1800, 2300))):
         y0 = rows_y[rxn]
         s = json.loads((HERE / "results" / f"{rxn}_summary.json").read_text(encoding="utf-8"))
         rows = list(csv.DictReader(open(HERE / "results" / f"{rxn}_costs.csv", encoding="utf-8")))
