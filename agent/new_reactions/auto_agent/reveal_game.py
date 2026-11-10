@@ -19,8 +19,8 @@ Value of information of a masked cell, given the current knowledge (logged for e
            of the same paper (>= 3) or uniform 0.5-1, stability from the revealed cycle times or log-uniform 1-1000 h.
 Rule (S1 and S2 and S3):
   S1 an exact record exists;  S2 no non-exact record has a lower bound below the best exact cost;
-  S3 the laboratory optimum (highest lab rate) is the best exact record, or it is exact and backward() was called on
-     it (the selectivity it would need to match the choice).
+  S3 the laboratory optimum (highest lab rate) is the best exact record, or it is exact (its backward design - the
+     selectivity it would need to match the choice - is then a free fixed computation).
 Arms: none (rule not shown or enforced), gate (after the rule first holds a reveal runs only if its flip value is 1;
 rejected at 0 units; 3 consecutive rejections end the run), hard (the run ends at the first action after which the
 rule holds; the choice is the best exact record).
@@ -127,7 +127,7 @@ class Env:
         bc, br = self.best_exact()
         s1 = br is not None
         s2 = s1 and all(self.bounds(r)[0] >= bc - 1e-9 for r in self.recs if not self.exact(r))
-        s3 = s2 and (self.lab_best == br or (self.exact(self.lab_best) and self.lab_best in self.backward_done))
+        s3 = s2 and (self.lab_best == br or self.exact(self.lab_best))   # backward of the lab optimum is a free, fixed computation
         return s1, s2, s3
 
     def rule(self):
@@ -309,11 +309,11 @@ Decide what to reveal and when to stop, then call choose(rec_id) with the record
 RULE_TEXT = {
     "none": "",
     "gate": ("\n\nStop rule R = S1 and S2 and S3. S1: an exactly costed record exists. S2: no non-exact record has a lower bound below the "
-             "best exact cost. S3: the highest-lab-rate record is the best exact record, or it is exact and backward() was called on it. "
+             "best exact cost. S3: the highest-lab-rate record (the paper ranking's choice) is the best exact record, or it is exact. "
              "After R first holds, a reveal is executed only if it can change the choice; other reveals are rejected (0 units; three "
              "rejections in a row end the run)."),
     "hard": ("\n\nStop rule R = S1 and S2 and S3. S1: an exactly costed record exists. S2: no non-exact record has a lower bound below the "
-             "best exact cost. S3: the highest-lab-rate record is the best exact record, or it is exact and backward() was called on it. "
+             "best exact cost. S3: the highest-lab-rate record (the paper ranking's choice) is the best exact record, or it is exact. "
              "The run ends as soon as R holds, with the best exact record as the choice."),
 }
 REACTION = {"pdh": "non-oxidative propane dehydrogenation (propylene)", "ch4": "CO2 methanation (synthetic natural gas)"}

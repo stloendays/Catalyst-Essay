@@ -1,0 +1,50 @@
+{
+ "id": "REVEAL-V1-STOP",
+ "written": "2026-11-11T01:41:45",
+ "status": "written after the no-rule arm (120 runs, gpt-5.5) and before any gate/hard/weak-model run",
+ "motivation": "No-rule arm: methanation 60/60 correct with the rule first holding at 2 units and a median 18 units spent after it; PDH unlimited budget: rule at median 64 units (branch and bound 35), median 54 units after it, 118/118 cells revealed. Same pattern as DISCOVER C1 (post-rule RUN_MC).",
+ "rule": "R = S1 and S2 and S3 (reveal_game.Env.s123): S1 an exact record exists; S2 no non-exact record has a lower bound below the best exact cost; S3 the highest-lab-rate record is the best exact record or is exact.",
+ "arms": {
+  "gate": "after R first holds, a reveal runs only if its flip value is 1 (it can change the choice); rejected reveals cost 0; three consecutive rejections end the run",
+  "hard": "the run ends at the first action after which R holds; the choice is the best exact record"
+ },
+ "cells": {
+  "reactions": [
+   "pdh",
+   "ch4"
+  ],
+  "budgets": [
+   "0.1",
+   "0.3",
+   "inf"
+  ],
+  "arms": [
+   "gate",
+   "hard"
+  ],
+  "runs_per_cell": 20,
+  "seeds": "1-20 (same shuffles as the no-rule arm)",
+  "model": "gpt-5.5 (advisor key; API-YES refuses gpt-5.5)",
+  "weak_control": "gpt-5.4-mini, no-rule arm, same 6 cells x 20 runs"
+ },
+ "gates": {
+  "completion": ">= 19/20 runs end with a choice in every cell and arm",
+  "post_rule_spend": "median 0 units after R in gate and hard in every cell where R is reached",
+  "decision": "correct choices in gate and hard not more than 2/20 below the no-rule arm in the same cell",
+  "spend_unlimited": "median spend at the unlimited budget: PDH <= 45 units (no-rule 118, branch and bound 35); methanation <= 5 units (no-rule 20, branch and bound 2)",
+  "weak_model": "reported, not gated: completion, correct, median spend, post-rule spend"
+ },
+ "metrics": "reveal_analysis.py cell table (DISCOVER-V2-STOP layout); runs/ step logs with value of information (flip, expected regret reduction) per reveal",
+ "frozen_sha256": {
+  "auto_agent/reveal_game.py": "0effe24df2e85ca11ca351e7ac54453ab799cb30d117d3136ad296195ca3956c",
+  "auto_agent/reveal_analysis.py": "6adaec5ac57442e5516c8c652b7d2cf0d9df10b08c777cd9b859dfd640b2158b",
+  "plant_framework.py": "d500e5e46371356631e0b419ba27bb7cfe7de47e77f2b11f6fa5085db2386d70",
+  "configs/pdh_ours.json": "21f53d07ff96e11a4fe57579d76be3df100a13eb4855637080fc049dcb663912",
+  "configs/ch4_ours.json": "2674d96d99535b1b92a41e3e536c638ea0d918ca2e51c1becead49d2a77daebe",
+  "auto_agent/db/truth.json": "40731106517cc049cb9cd50446b6f75fc7106f0d3ddb7820cbbf91eda10e8563",
+  "analyze.py": "30c824770a292e8bbf7cd373c67c5b0b258baa0712adb950c51cabaef6ba0046",
+  "normalize.py": "32a3a2f2c5d1d6de0d79c760cf52a2df8d7d31efbd9d29d56a040218f0e8bf24",
+  "data/pdh_records.csv": "55fe9fafcfc339f7b321ae1e4b61bcb737a5cbc2bb2569a1b1b185e2285ace52",
+  "data/ch4_records.csv": "b219224f02bedd5324e4cc91f793ff770829883e53b458e1d9d565816f95d8cb"
+ }
+}
