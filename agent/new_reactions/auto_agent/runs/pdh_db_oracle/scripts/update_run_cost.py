@@ -1,0 +1,1 @@
+p='report.md';s=open(p,encoding='utf-8').read();s=s.replace('**7.5 wall-minutes** and **$3.04 USD-equivalent model cost**','**9.5 wall-minutes** and **$3.75 USD-equivalent model cost**');open(p,'w',encoding='utf-8').write(s);print('updated')

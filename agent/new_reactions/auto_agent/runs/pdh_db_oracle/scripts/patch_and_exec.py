@@ -1,0 +1,1 @@
+p='scripts/pdh_analysis.py';s=open(p).read();s=s.replace("try:return ast.literal_eval(row.composition_wt_pct)","try:return json.loads(row.composition_wt_pct)");open(p,'w').write(s);exec(compile(s,p,'exec'))
