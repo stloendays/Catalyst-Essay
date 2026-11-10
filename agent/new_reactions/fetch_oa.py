@@ -4,7 +4,8 @@ import json, re, sys, time, urllib.request
 from pathlib import Path
 import pypdfium2 as pdfium
 rxn = sys.argv[1]
-sel = json.load(open(f"selected_{rxn}.json", encoding="utf-8"))
+tag = sys.argv[2] if len(sys.argv) > 2 else ""
+sel = json.load(open(f"selected{tag}_{rxn}.json", encoding="utf-8"))
 out = Path("pdf") / rxn; out.mkdir(parents=True, exist_ok=True)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
       "Accept": "application/pdf,*/*"}
@@ -44,5 +45,5 @@ for p in sel:
         dst.unlink()
     res.append(dict(doi=doi, title=p["title"], status=status, url=used, pages=n if status == "ok" else None))
     print(status, doi, used and used[:70])
-json.dump(res, open(f"fetch_{rxn}.json", "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+json.dump(res, open(f"fetch{tag}_{rxn}.json", "w", encoding="utf-8"), indent=1, ensure_ascii=False)
 print(sum(r["status"] == "ok" for r in res), "/", len(res))

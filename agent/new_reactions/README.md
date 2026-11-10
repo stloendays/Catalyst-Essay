@@ -101,3 +101,24 @@ on the fully revealed database (`runs/<run>_oracle/`).
 
 The agent kept to the rules: its web searches were plant, price and TEA queries (trace.jsonl); it treated masked
 records as uncostable instead of guessing, and stated the residual risk of the masked cells.
+
+## Sample extension (in progress, 2026-11-10; advisor: this goes into the main text as the extension to new reactions)
+
+Target about 30 usable papers per reaction. The model difference between the hand-built chain and the agent's own
+plant model is reported as model uncertainty.
+
+- `search_more.py`: OpenAlex, open-access articles with the reaction in the title since 2010, minus the papers
+  already fetched. For methanation the title filter keeps only titles that contain "methanation" (OpenAlex stems the
+  word to "methane"; the stemmed first pass is kept as `screen_ch4_stemmed_discard.csv`).
+- `screen_llm.py`: title + abstract screening by gpt-5.6-sol through API-YES, 40 papers per call (37 calls,
+  0.43 M tokens). PDH 287 of 589 included (168 high confidence), methanation 515 of 762 (259 high).
+- `selected2_*.json`: 45 high-confidence non-Elsevier papers per reaction, by citations; `fetch2_*.json` download log.
+  `elsevier_candidates_*.txt`: high-confidence Elsevier papers (22 PDH, 125 methanation) that need the browser check.
+- `auto_agent/build_db.py` keeps record ids and paper codes stable; the 19-paper database used by the agent runs is
+  frozen as `auto_agent/db/truth_v1_19papers.json`.
+- `../extraction/llm_route.py`: "model not supported" (API-YES does not serve gpt-5.5 at present) now moves the call to
+  the next route, so extraction stays on gpt-5.5 for the whole data set.
+
+Next: Docling and gpt-5.5 extraction of the new papers (images only for figures whose caption names performance),
+then the same normalisation, self-check and analysis; the agent then only chooses what to reveal, and both frozen plant
+models cost the records.

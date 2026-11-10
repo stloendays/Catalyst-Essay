@@ -16,7 +16,7 @@ API_YES_URL = "http://127.0.0.1:8788/v1"
 API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
 HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1"), "agent")
 ROUTES = ("api-yes", "advisor-openai")
-EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "余额", "额度", "用完")
+EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "not supported", "余额", "额度", "用完")
 
 
 def api_yes_key(model: str) -> str | None:
