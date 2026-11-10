@@ -58,6 +58,12 @@ def process(rx):
             ocr[Path(d["pdf"]).stem[:60]] = d
     cfg = fw.load(rx, "ours")
     router = llm_route.Router("gpt-5.5")
+
+    def probe(client):        # API-YES lists gpt-5.5 but refuses it: move to the route that serves it before the parallel calls
+        for _ in client.responses.create(model="gpt-5.5", input="Reply with OK.", store=False, stream=True, max_output_tokens=16):
+            pass
+        return client._route
+    print("extraction route", router.call(probe), flush=True)
     t1 = time.time()
     rows = chain.extract(ws, lambda: router.client, "gpt-5.5", cfg["name"], cfg["stoich"]["key"], cfg["stoich"]["product"],
                          next(iter(cfg["lab_feed"]["default_ratio"]), None), SCOPE[rx], workers=6,
@@ -73,6 +79,10 @@ def process(rx):
     if (ws / "ocr_times.json").exists():
         old = json.loads((ws / "ocr_times.json").read_text())
     old.update({k: v for k, v in ocr.items()})
+    olog = ws / "ocr" / "ocr_log.json"            # written by ocr_docling.py itself, survives restarts
+    if olog.exists():
+        for d in json.loads(olog.read_text(encoding="utf-8")):
+            old.setdefault(Path(d["pdf"]).stem[:60], d)
     (ws / "ocr_times.json").write_text(json.dumps(old, indent=1), encoding="utf-8")
     ex = {r["paper"]: r for r in csv.DictReader(open(ws / "token_usage_extract.csv", encoding="utf-8"))}
     with open(ws / "per_paper.csv", "w", newline="", encoding="utf-8") as fh:
@@ -127,4 +137,24 @@ def curves(rx, ks=(5, 10, 20, 30), reps=20):
 
 
 if __name__ == "__main__":
-    {"process": process, "curves": curves}[sys.argv[1]](sys.argv[2])
+    if sys.argv[1] in ("process", "curves"):
+        {"process": process, "curves": curves}[sys.argv[1]](sys.argv[2])
+
+
+def table(rx):
+    """Rebuild per_paper.csv from ocr/ocr_log.json (Docling) and token_usage_extract.csv (extraction)."""
+    ws = HERE / "scale" / rx
+    ocr = {Path(d["pdf"]).stem[:60]: d for d in json.loads((ws / "ocr" / "ocr_log.json").read_text(encoding="utf-8"))}
+    ex = {r["paper"]: r for r in csv.DictReader(open(ws / "token_usage_extract.csv", encoding="utf-8"))}
+    with open(ws / "per_paper.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(["paper", "pages", "ocr_s", "extract_s", "prompt_tokens", "completion_tokens", "usd_gpt55", "n_records"])
+        for p in sorted(ex):
+            o, e = ocr.get(p, {}), ex[p]
+            w.writerow([p, o.get("pages"), o.get("seconds"), e["seconds"], e["prompt_tokens"], e["completion_tokens"],
+                        round(int(e["prompt_tokens"]) * 5e-6 + int(e["completion_tokens"]) * 30e-6, 4), e["n_records"]])
+    print(rx, len(ex), "papers in per_paper.csv;", sum(1 for p in ex if p in ocr), "with OCR time")
+
+
+if __name__ == "__main__" and sys.argv[1] == "table":
+    table(sys.argv[2])

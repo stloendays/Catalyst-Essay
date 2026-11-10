@@ -171,6 +171,9 @@ class Env:
                 out.append(dict(c, note="already revealed")); continue
             if self.budget is not None and self.spent >= self.budget:
                 out.append(dict(c, error="budget exhausted")); continue
+            if self.arm == "hard" and self.rule():
+                out.append(dict(c, error="not executed: the run ended when rule R held (hard stop)"))
+                continue
             v = self.voi(rid, field)
             if self.arm == "gate" and self.armed_at is not None and v["flip"] == 0:
                 self.consec_rejects += 1
