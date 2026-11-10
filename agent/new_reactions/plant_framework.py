@@ -40,7 +40,32 @@ def load(rxn, pset="ours"):
 
 
 # ------------------------------------------------------------------ thermodynamics
+FRAMEWORK_VERSION = "1.1"   # 1.0 van 't Hoff only; 1.1 adds the NCE equilibrium sources below
+REPO = HERE.parents[1]
+
+
+def _nce_nh3_K_dec(T):
+    """NH3 -> 1/2 N2 + 3/2 H2, K in bar^1, from the frozen NH3 harness (Gillespie-Beattie, ideal gas)."""
+    import sys
+    sys.path.insert(0, str(REPO / "provenance" / "nh3_final_1_2" / "source_harness"))
+    import harness_core as hc
+    return math.exp(hc.gillespie_beattie_dG_form(T) / (hc.K_B_EV * T))
+
+
+def _nce_meoh_K_rwgs(T):
+    """CO2 + H2 -> CO + H2O, dimensionless, from the methanol loop model (data/meoh/meoh_general_model.K_rwgs)."""
+    import sys
+    sys.path.insert(0, str(REPO / "data" / "meoh"))
+    import meoh_general_model as mg
+    return mg.K_rwgs(T)
+
+
+K_SOURCES = {"nce_nh3_gillespie_beattie": _nce_nh3_K_dec, "nce_meoh_K_rwgs": _nce_meoh_K_rwgs}
+
+
 def K_of(T, th):
+    if th.get("source") in K_SOURCES:
+        return K_SOURCES[th["source"]](T)
     return math.exp(-(th["dH_J_mol"] - T * th["dS_J_molK"]) / (R * T))
 
 

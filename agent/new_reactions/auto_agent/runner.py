@@ -195,7 +195,20 @@ class Run(DBMixin, FullMixin):
         url = ("https://api.openalex.org/works?search=" + urllib.parse.quote(query) + "&filter=title.search:"
                + urllib.parse.quote(title_terms) + f",is_oa:true,type:article,publication_year:{from_year}-2026,has_doi:true"
                + f"&sort=cited_by_count:desc&per-page={min(n, 50)}")
-        data = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "catalyst-essay-agent"}), timeout=60))
+        key = os.environ.get("OPENALEX_API_KEY")
+        if key:
+            url += "&api_key=" + urllib.parse.quote(key)
+        data = None
+        for wait in (0, 20, 60, 120):
+            time.sleep(wait)
+            try:
+                data = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "catalyst-essay-agent"}), timeout=60))
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429:
+                    raise
+        if data is None:
+            return self._search_crossref(query, title_terms, n, from_year)
         out = []
         for w in data["results"]:
             ab = w.get("abstract_inverted_index") or {}
@@ -204,6 +217,24 @@ class Run(DBMixin, FullMixin):
             out.append(dict(doi=(w.get("doi") or "").replace("https://doi.org/", ""), year=w.get("publication_year"),
                             title=w.get("title"), venue=(loc.get("source") or {}).get("display_name"),
                             cites=w.get("cited_by_count"), has_pdf=bool(loc.get("pdf_url")), abstract=abstract))
+        return json.dumps(out, ensure_ascii=False)
+
+    def _search_crossref(self, query, title_terms, n, from_year):
+        """Fallback when OpenAlex is rate-limited: Crossref works search (no key); OA status unknown (has_pdf None)."""
+        url = ("https://api.crossref.org/works?query.bibliographic=" + urllib.parse.quote(f"{title_terms} {query}")
+               + f"&filter=from-pub-date:{from_year},type:journal-article&rows={min(n, 50)}"
+               + "&select=DOI,title,issued,container-title,is-referenced-by-count,abstract")
+        data = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "catalyst-essay-agent"}), timeout=60))
+        out = []
+        for w in data["message"]["items"]:
+            title = (w.get("title") or [""])[0]
+            if not all(t.lower()[:6] in title.lower() for t in title_terms.split()):
+                continue
+            ab = re.sub(r"<[^>]+>", " ", w.get("abstract") or "")[:350]
+            out.append(dict(doi=w["DOI"].lower(), year=(w.get("issued", {}).get("date-parts") or [[None]])[0][0], title=title,
+                            venue=(w.get("container-title") or [""])[0], cites=w.get("is-referenced-by-count"), has_pdf=None,
+                            abstract=ab))
+        self.log({"search_fallback": "crossref", "n": len(out)})
         return json.dumps(out, ensure_ascii=False)
 
     def t_download_papers(self, dois):
@@ -280,7 +311,8 @@ class Run(DBMixin, FullMixin):
                                env=dict(os.environ, DOCLING_SRC=str(self.ws / "pdf"), DOCLING_DST=str(self.ws / "ocr")))
         finally:
             OCR_LOCK.unlink(missing_ok=True)
-        logs = [json.loads(l) for l in p.stdout.splitlines() if l.startswith("{")] if p.returncode == 0 else []
+        import ast
+        logs = [ast.literal_eval(l) for l in p.stdout.splitlines() if l.startswith("{")] if p.returncode == 0 else []
         files = sorted(x.name for x in (self.ws / "ocr").glob("*.md"))
         return json.dumps(dict(returncode=p.returncode, parsed_now=logs, md_files=files,
                                stderr_tail=p.stderr[-600:] if p.returncode else ""), default=str)
