@@ -424,7 +424,7 @@ def run_agent(rx, frac, arm, seed, model="gpt-5.5", max_turns=30):
     if chosen is None:
         chosen, ended_by = pick(env), "turn limit"
     sc = env.score(chosen)
-    rec = dict(rxn=rx, budget=frac, arm=arm, seed=seed, model=model, route=router.client._route, ended_by=ended_by, **sc,
+    rec = dict(rxn=rx, budget_frac=frac, arm=arm, seed=seed, model=model, route=router.client._route, ended_by=ended_by, **sc,
                turns=turns, tokens_in=tok_in, tokens_out=tok_out, tokens=tok_in + tok_out, seconds=round(time.time() - t0, 1),
                plant_model=env.model_id, timestamp=datetime.now().isoformat(timespec="seconds"))
     d = OUT / "runs"
@@ -433,7 +433,7 @@ def run_agent(rx, frac, arm, seed, model="gpt-5.5", max_turns=30):
                                                               encoding="utf-8")
     with open(OUT / "agent_runs.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(rec, default=str) + "\n")
-    print(json.dumps({k: rec[k] for k in ("rxn", "budget", "arm", "seed", "model", "correct", "regret_pct", "spent", "armed_at",
+    print(json.dumps({k: rec[k] for k in ("rxn", "budget_frac", "arm", "seed", "model", "correct", "regret_pct", "spent", "armed_at",
                                           "post_rule", "turns", "tokens", "ended_by")}, default=str), flush=True)
     return rec
 

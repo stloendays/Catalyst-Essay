@@ -167,5 +167,37 @@
   "catalyst": "Ni 20 wt%, base 20 USD/kg, life 4 y: assumptions (no open source found)",
   "thermo": "standard formation data, dH298 -165.0 kJ/mol, dG298 -113.5 kJ/mol"
  },
- "common_notes": "crf 0.0944 = 7 %/y over 20 y (Enterprise Products PDH, EPA GHG permit application 2012). gas 2.5 USD/GJ = 2.60 USD/MMBtu paid by the PetroLogistics Catofin plant (SEC 424B4, 2012); Henry Hub 2024 2.19 USD/MMBtu (EIA). fixed O&M 4 %/y of capex, power 0.08 USD/kWh, metal recovery 0.95 and financing 0.08/y: assumptions as in the NH3/methanol chains."
+ "common_notes": "crf 0.0944 = 7 %/y over 20 y (Enterprise Products PDH, EPA GHG permit application 2012). gas 2.5 USD/GJ = 2.60 USD/MMBtu paid by the PetroLogistics Catofin plant (SEC 424B4, 2012); Henry Hub 2024 2.19 USD/MMBtu (EIA). fixed O&M 4 %/y of capex, power 0.08 USD/kWh, metal recovery 0.95 and financing 0.08/y: assumptions as in the NH3/methanol chains.",
+ "uncertain": [
+  {
+   "path": "species.H2.price_usd_t",
+   "low": 2000.0,
+   "high": 6000.0,
+   "why": "grey ~2 USD/kg; electrolytic 5-7 USD/kg (DOE Liftoff 2024)"
+  },
+  {
+   "path": "species.CO2.price_usd_t",
+   "low": 50.0,
+   "high": 104.0,
+   "why": "assumption to Enterprise CCS 104 USD/t"
+  },
+  {
+   "path": "capex.usd",
+   "low": 16659606.6,
+   "high": 128150820.0,
+   "why": "Goetz 2016: 130 EUR/kW (110 MW) to 1000 EUR/kW (other studies)"
+  },
+  {
+   "path": "plant.P_bar",
+   "low": 1.01325,
+   "high": 30.0,
+   "why": "Goetz 2016: 1-100 bar"
+  },
+  {
+   "path": "catalyst.life_y",
+   "low": 1.0,
+   "high": 8.0,
+   "why": "assumption"
+  }
+ ]
 }

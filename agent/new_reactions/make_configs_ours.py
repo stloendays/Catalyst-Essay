@@ -63,6 +63,20 @@ ch4 = dict(
                    r=q["reference"]["r"], t_cycle_h=None, elements=q["reference"]["elements"]),
     sources=q["_sources"], common_notes=c["_notes"])
 
+pdh["uncertain"] = [
+    dict(path="species.C3H8.price_usd_t", low=373.0, high=650.0, why="EIA Mont Belvieu 2023 to Asian contract level"),
+    dict(path="prices.gas_usd_per_GJ", low=2.0, high=12.0, why="Henry Hub 2024 to European/Asian gas"),
+    dict(path="capex.usd", low=0.65e9, high=1.95e9, why="Enterprise capex x0.5-1.5"),
+    dict(path="plant.approach", low=0.8, high=0.95, why="assumption"),
+    dict(path="plant.P_bar", low=1.0, high=3.0, why="Oleflex 1-3 bar (Moffat 2023)"),
+    dict(path="catalyst.life_y", low=1.0, high=5.0, why="assumption around the 3-y replacement"),
+    dict(path="regeneration.t_regen_h", low=0.25, high=2.0, why="assumption")]
+ch4["uncertain"] = [
+    dict(path="species.H2.price_usd_t", low=2000.0, high=6000.0, why="grey ~2 USD/kg; electrolytic 5-7 USD/kg (DOE Liftoff 2024)"),
+    dict(path="species.CO2.price_usd_t", low=50.0, high=104.0, why="assumption to Enterprise CCS 104 USD/t"),
+    dict(path="capex.usd", low=130 * 1.33 * 96354, high=1000 * 1.33 * 96354, why="Goetz 2016: 130 EUR/kW (110 MW) to 1000 EUR/kW (other studies)"),
+    dict(path="plant.P_bar", low=1.01325, high=30.0, why="Goetz 2016: 1-100 bar"),
+    dict(path="catalyst.life_y", low=1.0, high=8.0, why="assumption")]
 (HERE / "configs").mkdir(exist_ok=True)
 for name, cfg in (("pdh", pdh), ("ch4", ch4)):
     (HERE / "configs" / f"{name}_ours.json").write_text(json.dumps(cfg, indent=1), encoding="utf-8")

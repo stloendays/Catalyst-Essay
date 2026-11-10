@@ -164,7 +164,7 @@ class LeanMixin:
                                traceable=ver["traceable"]), default=str)
 
     def write_report(self, decision=""):
-        a = self.analysis
+        a = json.loads(json.dumps(self.analysis, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
         s, ver = a["summary"], a["verify"]
         cand = list(csv.DictReader(open(self.ws / "candidates.csv", encoding="utf-8"))) if (self.ws / "candidates.csv").exists() else []
         log = list(csv.DictReader(open(self.ws / "paper_log.csv", encoding="utf-8"))) if (self.ws / "paper_log.csv").exists() else []
