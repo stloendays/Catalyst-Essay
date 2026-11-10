@@ -1,0 +1,160 @@
+{
+ "common": {
+  "crf": 0.1019,
+  "fixed_om_frac": 0.04,
+  "gas_usd_per_GJ": 8.0,
+  "power_usd_kWh": 0.08,
+  "metal_recovery": 0.95,
+  "metal_financing": 0.08,
+  "recoverable_metals": [
+   "Pt",
+   "Pd",
+   "Rh",
+   "Ru",
+   "Ir",
+   "Os",
+   "Au",
+   "Ag",
+   "Re"
+  ],
+  "_notes": "crf: 8 %/y over 20 y. Gas, power, recovery and financing as in the NH3/methanol chains; DRAFT, sources in SOURCES.md",
+  "metal_usd_per_kg": {
+   "Ru": 53852.5,
+   "Os": 142650.0,
+   "Fe": 8.0,
+   "Rh": 265243.65919095,
+   "Ir": 252383.36056351,
+   "Co": 56.28401553583051,
+   "Re": 5757.64,
+   "Mo": 91.22728409215301,
+   "Ni": 16.9094555095895,
+   "W": 149.97,
+   "Pd": 40670.694409279,
+   "Pt": 51508.71107755406,
+   "Cu": 13.889122517655,
+   "Ag": 1823.590345370992,
+   "Au": 128732.2322756058,
+   "Al": 3.9683,
+   "Bi": 44.092,
+   "Cd": 3.9,
+   "Cr": 13.007,
+   "Ga": 580.0,
+   "Hf": 3800.0,
+   "Hg": 50.0,
+   "In": 370.0,
+   "La": 1.1728,
+   "Mn": 0.45,
+   "Nb": 40.0,
+   "Pb": 2.3369,
+   "Sc": 5200.0,
+   "Sn": 35.274,
+   "Ta": 219.78,
+   "Ti": 12.0,
+   "Tl": 9300.0,
+   "V": 19.756,
+   "Y": 40.0,
+   "Zn": 3.2849,
+   "Zr": 22.0,
+   "Ce": 2.1005306603773586,
+   "Si": 2.866006,
+   "Mg": 2.5,
+   "Ca": 0.3637940925436203,
+   "K": 1.4455393066229791,
+   "Ba": 0.3569000679809653,
+   "B": 1.0
+  }
+ },
+ "pdh": {
+  "thermo": {
+   "dH_J_mol": 129000.0,
+   "dS_J_molK": 138.6,
+   "_note": "van 't Hoff fit to equilibrium conversion of pure propane at 1 bar: 0.32 (550 C), 0.50 (600 C), 0.68 (650 C)"
+  },
+  "plant": {
+   "capacity_t_per_y": 600000,
+   "hours_per_y": 8000,
+   "P_bar": 1.5,
+   "h2_ratio": 0.5,
+   "approach": 0.9
+  },
+  "prices": {
+   "propane_usd_t": 550.0
+  },
+  "h2_credit_GJ_per_t_H2": 120.0,
+  "light_ends_GJ_per_t": 47.0,
+  "furnace_eff": 0.85,
+  "e_proc_GJ_per_t_feed": 0.9,
+  "power_kWh_per_t_feed": 30.0,
+  "capex": {
+   "usd": 1000000000.0,
+   "fixed_share": 0.4,
+   "throughput_share": 0.35,
+   "reactor_share": 0.25
+  },
+  "catalyst_base_usd_kg": 20.0,
+  "catalyst_life_y": 3.0,
+  "regen_GJ_per_t_cat": 1.5,
+  "t_regen_h": 0.5,
+  "t_cycle_min_h": 0.25,
+  "reference": {
+   "name": "Pt-Sn/Al2O3 (Oleflex-type)",
+   "T_K": 893.15,
+   "X": 0.35,
+   "S": 0.9,
+   "r": 0.75,
+   "t_cycle_h": 144.0,
+   "elements": [
+    [
+     "Pt",
+     0.3
+    ],
+    [
+     "Sn",
+     0.3
+    ]
+   ]
+  }
+ },
+ "ch4": {
+  "plant": {
+   "capacity_t_per_y": 50000,
+   "hours_per_y": 8000,
+   "approach": 0.95,
+   "overall_conv": 0.99,
+   "P_bar": 10.0,
+   "inert_ratio": 0.0
+  },
+  "prices": {
+   "h2_usd_kg": 3.0,
+   "co2_usd_t": 50.0
+  },
+  "power_kWh_per_t_fresh": 60.0,
+  "power_kWh_per_t_recycle": 40.0,
+  "capex": {
+   "usd": 120000000.0,
+   "fixed_share": 0.5,
+   "recycle_share": 0.25,
+   "reactor_share": 0.25
+  },
+  "catalyst_base_usd_kg": 20.0,
+  "catalyst_life_y": 4.0,
+  "reference": {
+   "name": "Ni/Al2O3 (commercial methanation)",
+   "T_K": 623.15,
+   "X": 0.8,
+   "S": 0.99,
+   "r": 0.6,
+   "elements": [
+    [
+     "Ni",
+     20.0
+    ]
+   ]
+  },
+  "thermo": {
+   "dH_J_mol": -165000.0,
+   "dS_J_molK": -172.8,
+   "_note": "dH298 = -165.0 kJ/mol, dG298 = -113.5 kJ/mol (standard formation data); constant-dH van 't Hoff"
+  }
+ }
+}
