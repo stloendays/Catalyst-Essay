@@ -104,12 +104,13 @@ TOOLS = [
 from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
 from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
+from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
 NUS_LOCK = HERE / "nus.lock"
 
 
-class Run(DBMixin, FullMixin):
+class Run(DBMixin, FullMixin, LeanMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.5"):
+                 n_max=20, extract_model="gpt-5.5", lean=None):
         self.ws = HERE / "runs" / name
         for d in ("pdf", "ocr", "extracted", "scripts"):
             (self.ws / d).mkdir(parents=True, exist_ok=True)
@@ -121,8 +122,8 @@ class Run(DBMixin, FullMixin):
         self.db_key = db_key
         if db_key:
             self.setup_db(HERE / "db" / "truth.json", db_key, budget_frac)
-        self.full, self.n_target, self.n_max = full, n_target, n_max
-        if full:
+        self.full, self.n_target, self.n_max, self.lean = full or bool(lean), n_target, n_max, lean
+        if self.full:
             self.setup_full()
             self.extract_model, self.extract_workers = extract_model, 4
             self.extract_router = llm_route.Router(extract_model)   # API-YES first, then the advisor key
@@ -133,11 +134,7 @@ class Run(DBMixin, FullMixin):
                     pass
                 return client._route
             self.extract_route = self.extract_router.call(probe)    # moves on when a route refuses the model
-        key = llm_route.api_yes_key(model)
-        if key is None:
-            raise SystemExit(f"API-YES does not serve {model}")
-        import openai
-        self.client = openai.OpenAI(api_key=key, base_url=llm_route.API_YES_URL, timeout=1800)
+        self.router = llm_route.Router(model)        # API-YES first, then the advisor key (llm_route order)
 
     # ------------------------------------------------------------ bookkeeping
     def log(self, rec):
@@ -146,7 +143,7 @@ class Run(DBMixin, FullMixin):
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
     def write_ledger(self, status="running"):
-        led = dict(status=status, reaction=self.reaction, model=self.model, route="api-yes",
+        led = dict(status=status, reaction=self.reaction, model=self.model, route=getattr(getattr(self, "router", None), "client", None) and self.router.client._route,
                    extract_model=getattr(self, "extract_model", None), extract_route=getattr(self, "extract_route", None),
                    start=self.start_iso, now=datetime.now().isoformat(timespec="seconds"),
                    wall_minutes=round((time.time() - self.t0) / 60, 1), tokens=self.tok,
@@ -175,7 +172,8 @@ class Run(DBMixin, FullMixin):
         for attempt in range(4):
             try:
                 out, text, final = [], [], None
-                for ev in self.client.responses.create(**kw):
+                client = self.router.client
+                for ev in client.responses.create(**kw):
                     if ev.type == "response.output_item.done":
                         out.append(ev.item)
                     elif ev.type == "response.output_text.delta":
@@ -186,9 +184,12 @@ class Run(DBMixin, FullMixin):
                     raise RuntimeError("stream ended without a final response")
                 return out, "".join(text), final
             except Exception as e:  # noqa: BLE001
-                self.log({"error": f"{type(e).__name__}: {str(e)[:300]}", "attempt": attempt})
+                self.log({"error": f"{type(e).__name__}: {str(e)[:300]}", "attempt": attempt, "route": self.router.client._route})
+                if llm_route.is_exhausted(e) and self.router.order:
+                    self.router._next()
+                    continue
                 time.sleep(10 * (attempt + 1))
-        raise RuntimeError("API-YES call failed 4 times")
+        raise RuntimeError("LLM call failed 4 times")
 
     # ------------------------------------------------------------ tools
     def t_search_papers(self, query, title_terms, n, from_year):
@@ -392,6 +393,11 @@ class Run(DBMixin, FullMixin):
             instructions = METHOD_DB.format(max_turns=self.max_turns, n_papers=len({r["paper"] for r in self.db}),
                                             budget=self.budget, n_masked=self.n_masked)
             tools = DB_TOOLS + [t for t in TOOLS if t.get("name") in ("read_file", "write_file", "run_python", "finish")]
+        elif self.lean:
+            self.setup_lean(self.lean)
+            instructions = METHOD_LEAN.format(reaction=self.cfg["name"], key=self.cfg["stoich"]["key"], product=self.cfg["stoich"]["product"],
+                                              n_target=self.n_target, n_max=self.n_max, max_turns=self.max_turns)
+            tools = LEAN_TOOLS
         elif self.full:
             instructions = METHOD_FULL.format(max_turns=self.max_turns, n_target=self.n_target, n_max=self.n_max)
             tools = FULL_TOOLS + [sg.UPDATE_PLAN_TOOL]
@@ -400,7 +406,7 @@ class Run(DBMixin, FullMixin):
             tools = TOOLS
         items = [{"role": "user", "content": f"Reaction: {self.reaction}. Start now."}]
         critic_rounds = 0
-        if self.full:
+        if self.full and not self.lean:
             plan = sg.make_plan(self, instructions, tools)
             items = [{"role": "user", "content": f"Reaction: {self.reaction}.\nYour plan (plan.json; mark progress with "
                                                  "update_plan, revise a step if needed):\n"
@@ -432,7 +438,7 @@ class Run(DBMixin, FullMixin):
             for c in calls:
                 args = json.loads(c.arguments or "{}")
                 t = time.time()
-                if c.name == "finish" and self.full and critic_rounds < 2:
+                if c.name == "finish" and self.full and not self.lean and critic_rounds < 2:
                     critic_rounds += 1
                     res = sg.critique(self, critic_rounds)
                     major = [i for i in res["issues"] if i["severity"] == "major"]
@@ -449,7 +455,8 @@ class Run(DBMixin, FullMixin):
                     out_s = sg.update_plan(self, **args)
                 else:
                     try:
-                        prefix = "f_" if self.full and hasattr(self, "f_" + c.name) else "t_"
+                        prefix = ("l_" if self.lean and hasattr(self, "l_" + c.name) else
+                                  "f_" if self.full and hasattr(self, "f_" + c.name) else "t_")
                         out_s = getattr(self, prefix + c.name)(**args)
                     except Exception as e:  # noqa: BLE001
                         out_s = f"ERROR {type(e).__name__}: {str(e)[:500]}"
@@ -464,6 +471,8 @@ class Run(DBMixin, FullMixin):
             if summary is not None:
                 break
         self.write_ledger("finished" if summary is not None else "turn limit")
+        if self.lean and getattr(self, "analysis", None):
+            self.write_report(decision=summary or "")
         self.log({"end": summary})
         print(json.dumps(json.loads((self.ws / "ledger.json").read_text()), indent=1))
 
@@ -480,5 +489,6 @@ if __name__ == "__main__":
     ap.add_argument("--n-target", type=int, default=12)
     ap.add_argument("--n-max", type=int, default=20)
     ap.add_argument("--extract-model", default="gpt-5.5")
+    ap.add_argument("--lean", default=None, help="pdh|ch4|nh3dec|rwgs|etoh: lean autonomous run with the fixed plant model")
     a = ap.parse_args()
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model).run()
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean).run()

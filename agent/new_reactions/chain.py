@@ -27,6 +27,7 @@ from pathlib import Path
 
 from scipy.optimize import brentq
 
+import nce_metrics as nm
 import normalize as nz
 import plant_framework as fw
 
@@ -195,7 +196,8 @@ def normalise(ws, cfg):
                 gates["selectivity > 1"] += 1
             rows.append(dict(paper=f.stem, idx=i, catalyst=x["catalyst_name"], elements=json.dumps([[e[0], e[1]] for e in els]),
                              T_K=T, P_bar=P, y_key=y, y_h2=y_co, X=X, S=S, r=r, r_src=r_src, t_cycle_h=tcyc, kd_h=kd,
-                             X0=X0, Xf=Xf, stab_h=td, source=x["data_source_type"], location=x["location"], usable=ok))
+                             X0=X0, Xf=Xf, stab_h=td, source=x["data_source_type"], location=x["location"], page=x.get("page"),
+                             sv=f"{nz.num(x['space_velocity'])} {x['space_velocity'].get('unit') or ''}".strip(), usable=ok))
     with open(Path(ws) / "records.csv", "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, list(rows[0]))
         w.writeheader()
@@ -258,23 +260,13 @@ def analyse(ws, cfg, rows, tag="main"):
         r["rec"]["xeq_lab"] = fw.lab_xeq(cfg, r["rec"])
         r["cost"], d = fw.cost(cfg, r["rec"], detail=True)
         r["Xp"] = d["Xp"]
-    # groups: same paper, pressure, feed
-    G = defaultdict(list)
-    for r in recs:
-        G[(r["paper"], round(r["P_bar"], 1), round(r["y_key"] or 0, 2))].append(r)
-    G = {k: v for k, v in G.items() if len({(x["catalyst"], round(x["T_K"])) for x in v}) >= 2}
-    rank = {}
-    for mname, fn in (("productivity", lambda r: r["r"]), ("conversion", lambda r: r["X"]), ("selectivity", lambda r: r["S"])):
-        s = dict(groups=len(G), differ=0, other_catalyst=0, other_temperature=0, regret_gt_1pct=0, max_regret_pct=0.0)
-        for m in G.values():
-            best, top = min(m, key=lambda r: r["cost"]), max(m, key=fn)
-            if top is not best and top["cost"] > best["cost"] + 1e-9:
-                reg = (top["cost"] - best["cost"]) / best["cost"]
-                s["differ"] += 1
-                s["other_catalyst" if top["catalyst"] != best["catalyst"] else "other_temperature"] += 1
-                s["regret_gt_1pct"] += reg > 0.01
-                s["max_regret_pct"] = max(s["max_regret_pct"], round(100 * reg, 2))
-        rank[mname] = s
+    # NCE metrics (nce_metrics.py, calibrated on the NCE methanol and NH3 tables): comparison group = paper, pressure,
+    # feed ratio and space velocity; lab metric = productivity (as STY / rate in NCE), conversion, selectivity
+    import pandas as pd
+    df = pd.DataFrame([dict(paper=r["paper"], catalyst=re.sub(r"\s+", "", str(r["catalyst"]).lower()),
+                            group=f"{r['paper']} | {round(r['P_bar'], 1)} bar | y {round(r['y_key'] or 0, 3)} | co {round(r['y_h2'] or 0, 3)} | sv {r.get('sv', '')}",
+                            productivity=r["r"], conversion=r["X"], selectivity=r["S"], cost=r["cost"]) for r in recs])
+    rank = {m: nm.metrics(df, lab=m) for m in ("productivity", "conversion", "selectivity")}
     # attribution and elasticities
     props = {"selectivity": ("S",), "activity": ("X", "r", "xeq_lab"), "temperature": ("T_K",), "metal": ("components",),
              "stability": ("t_cycle_h",)}
@@ -320,7 +312,7 @@ def analyse(ws, cfg, rows, tag="main"):
                        largest=max(d_ref["parts"], key=d_ref["parts"].get)),
         cheapest=dict(paper=best["paper"], catalyst=best["catalyst"], T_C=round(best["T_K"] - 273.15), cost=round(best["cost"], 2)),
         cost_quantiles=dict(min=round(costs[0], 1), median=round(st.median(costs), 1), max=round(costs[-1], 1)),
-        below_reference=sum(c < c_ref for c in costs), ranking=rank, attribution_share=attribution,
+        below_reference=int(sum(c < c_ref for c in costs)), ranking=rank, attribution_share=attribution,
         cost_change_at_reference={k: round(v, 3) for k, v in el.items()},
         selectivity_needed_reachable=sum(1 for s in need if s), records_X_below_half_Xp=sum(1 for r in recs if r["X"] < 0.5 * r["Xp"]))
     with open(Path(ws) / f"costs_{tag}.csv", "w", newline="", encoding="utf-8") as fh:
@@ -348,7 +340,7 @@ def sensitivity(ws, cfg, rows):
             out.append(dict(param=u["path"], side=side, value=u[side], ref_cost=s["reference"]["cost"],
                             largest=s["reference"]["largest"],
                             largest_share=round(s["reference"]["parts"][s["reference"]["largest"]] / s["reference"]["cost"], 3),
-                            productivity_leader_differs=s["ranking"]["productivity"]["differ"],
+                            productivity_leader_differs=s["ranking"]["productivity"]["point_level"].get("changed", 0),
                             cheapest=s["cheapest"]["catalyst"], below_reference=s["below_reference"]))
     for p in ("costs_sens.csv", "summary_sens.json"):
         (Path(ws) / p).unlink(missing_ok=True)
