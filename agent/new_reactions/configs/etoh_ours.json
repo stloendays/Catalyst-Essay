@@ -1,0 +1,199 @@
+{
+ "name": "ethanol dehydration to ethylene",
+ "parameter_set": "ours",
+ "metal_usd_per_kg": {
+  "Ru": 53852.5,
+  "Os": 142650.0,
+  "Fe": 8.0,
+  "Rh": 265243.65919095,
+  "Ir": 252383.36056351,
+  "Co": 56.28401553583051,
+  "Re": 5757.64,
+  "Mo": 91.22728409215301,
+  "Ni": 16.9094555095895,
+  "W": 149.97,
+  "Pd": 40670.694409279,
+  "Pt": 51508.71107755406,
+  "Cu": 13.889122517655,
+  "Ag": 1823.590345370992,
+  "Au": 128732.2322756058,
+  "Al": 3.9683,
+  "Bi": 44.092,
+  "Cd": 3.9,
+  "Cr": 13.007,
+  "Ga": 580.0,
+  "Hf": 3800.0,
+  "Hg": 50.0,
+  "In": 370.0,
+  "La": 1.1728,
+  "Mn": 0.45,
+  "Nb": 40.0,
+  "Pb": 2.3369,
+  "Sc": 5200.0,
+  "Sn": 35.274,
+  "Ta": 219.78,
+  "Ti": 12.0,
+  "Tl": 9300.0,
+  "V": 19.756,
+  "Y": 40.0,
+  "Zn": 3.2849,
+  "Zr": 22.0,
+  "Ce": 2.1005306603773586,
+  "Si": 2.866006,
+  "Mg": 2.5,
+  "Ca": 0.3637940925436203,
+  "K": 1.4455393066229791,
+  "Ba": 0.3569000679809653,
+  "B": 1.0
+ },
+ "finance": {
+  "crf": 0.0944,
+  "fixed_om_frac": 0.04
+ },
+ "prices": {
+  "gas_usd_per_GJ": 8.0,
+  "power_usd_kWh": 0.08
+ },
+ "species": {
+  "C2H5OH": {
+   "MW": 46.069,
+   "price_usd_t": 716.1
+  },
+  "C2H4": {
+   "MW": 28.054
+  },
+  "H2O": {
+   "MW": 18.015
+  }
+ },
+ "stoich": {
+  "nu": {
+   "C2H5OH": -1,
+   "C2H4": 1,
+   "H2O": 1
+  },
+  "key": "C2H5OH",
+  "product": "C2H4"
+ },
+ "thermo": {
+  "dH_J_mol": 45600.0,
+  "dS_J_molK": 125.2
+ },
+ "plant": {
+  "capacity_t_per_y": 200000,
+  "hours_per_y": 8000,
+  "P_bar": 2.0,
+  "feed_ratio": {},
+  "inert_ratio": 0.0,
+  "approach": 0.98,
+  "overall_conv": 1.0
+ },
+ "lab_feed": {
+  "default_y_key": 0.1,
+  "default_ratio": {
+   "H2O": 0.0
+  }
+ },
+ "switches": {
+  "selectivity_loss": "lost"
+ },
+ "fixed_credits": [],
+ "lost_key_fuel_GJ_per_t": 26.8,
+ "energy": {
+  "pay_reaction_heat": true,
+  "furnace_eff": 0.85,
+  "e_proc_GJ_per_t_reactor_feed": 1.3,
+  "power_kWh_per_t_fresh": 40.0,
+  "power_kWh_per_t_recycle": 40.0,
+  "fresh_basis": "key"
+ },
+ "capex": {
+  "usd": 333600000.0,
+  "fixed_share": 0.5,
+  "throughput_share": 0.3,
+  "reactor_share": 0.2,
+  "reactor_basis": "catalyst"
+ },
+ "catalyst": {
+  "base_usd_kg": 5.0,
+  "life_y": 2.0,
+  "recoverable_metals": [
+   "Pt",
+   "Pd",
+   "Rh",
+   "Ru",
+   "Ir",
+   "Os",
+   "Au",
+   "Ag",
+   "Re"
+  ],
+  "metal_recovery": 0.9555,
+  "metal_financing": 0.08
+ },
+ "regeneration": {
+  "enabled": false,
+  "t_regen_h": 0.0,
+  "t_cycle_min_h": 0.0,
+  "regen_GJ_per_t_cat": 0.0
+ },
+ "reference": {
+  "name": "activated alumina (Chematur-type)",
+  "T_K": 673.15,
+  "X": 0.99,
+  "S": 0.97,
+  "r": 0.3,
+  "t_cycle_h": null,
+  "elements": [
+   [
+    "Al",
+    52.9
+   ]
+  ]
+ },
+ "uncertain": [
+  {
+   "path": "species.C2H5OH.price_usd_t",
+   "low": 646.0,
+   "high": 1190.0,
+   "why": "Brazil 0.51 USD/L to EU 0.74 EUR/L (Haro Table 9, 2012)"
+  },
+  {
+   "path": "capex.usd",
+   "low": 17800000.0,
+   "high": 500300000.0,
+   "why": "from Haro's fixed capital alone (no other fixed costs) to 1.5 x the calibrated value"
+  },
+  {
+   "path": "energy.e_proc_GJ_per_t_reactor_feed",
+   "low": 0.6,
+   "high": 2.6,
+   "why": "assumption x0.5-2"
+  },
+  {
+   "path": "reference.r",
+   "low": 0.1,
+   "high": 1.0,
+   "why": "assumption: LHSV 0.3-2 h-1"
+  },
+  {
+   "path": "catalyst.life_y",
+   "low": 0.5,
+   "high": 5.0,
+   "why": "assumption"
+  }
+ ],
+ "sources": {
+  "thermo": "standard data: dH298 +45.6 kJ/mol; dG298 = 68.4 - 228.6 + 168.5 = +8.3 kJ/mol (gas-phase formation free energies) -> dS 125.2 J/mol/K; constant-dH van 't Hoff",
+  "species.C2H5OH.price_usd_t": "Brazil 0.51-0.62 USD/L (Haro et al., Fuel Process. Technol. 114 (2013) 35, Table 9, Sept 2012) midpoint / 0.789 kg/L; no 2023-2025 open series found",
+  "reference.X, S": "99 % conversion, 97 % selectivity (IRENA/IEA-ETSAP Tech Brief I13, 2013, p.6, citing Chematur)",
+  "reference.elements": "alumina or silica-alumina (IRENA p.6); activated alumina, Al content of Al2O3",
+  "ethanol use check": "1.74 t hydrated ethanol per t C2H4 (IRENA p.6) vs 1.64 t/t stoichiometric",
+  "plant.capacity_t_per_y": "200 kt/y (Braskem Triunfo, IRENA p.6)",
+  "plant.P_bar": "assumption 2 bar",
+  "energy": "minimum 1.6 GJ/t (IRENA); e_proc calibrated to Haro's steam generator 38 MWth for 2386 kmol/h ethanol (Table 6) ~ 1.3 GJ per t ethanol feed; power assumption",
+  "capex.usd": "calibrated: 333.6 M USD makes the reference plant cost equal Haro's ~1,760 EUR/t C2H4 with EU ethanol 0.73 EUR/L (Fig. 10, 2012, x 1.285 USD/EUR); it carries all non-ethanol fixed costs (Haro's FCI alone, Fig. 8, 21.3 M EUR for ~470 kt/y scaled to 200 kt/y = 17.8 M USD, is the low end)",
+  "catalyst": "base 5 USD/kg (alumina), life 2 y: assumptions; Haro Table 8 catalyst 113 EUR/kg (zeolite) as upper bound",
+  "check": "Haro: about 1.76 EUR/kg C2H4 with EU ethanol (2012), ethanol 85-91 % of the cost; IRENA: Brazil ~1200 USD/t, ethanol 60-75 %"
+ }
+}
