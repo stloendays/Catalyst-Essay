@@ -81,6 +81,10 @@ def main(rx, runs):
                                 spearman_vs_hand=spearmanr([ok[k] for k in ok], [hand[k] for k in ok]).statistic if len(ok) > 2 else None,
                                 tea=tea, tea_within=n_in, tea_n=len(tea), tea_far=far,
                                 tea_pass=(n_in >= hold["pass_rule"]["min_within"] and not far) if tea else None,
+                                # pass_rule text: pass = all within; partial = two within and none beyond twice the tolerance
+                                tea_verdict=(None if not tea else "pass" if n_in == len(tea) else
+                                             "partial" if n_in == len(tea) - 1 and not far else "fail"),
+                                attribution_share=a.get("attribution_share"),
                                 costs=costs)
     keys = list(builds)
     pair = {}

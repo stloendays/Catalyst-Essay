@@ -1,0 +1,27 @@
+parameter,value,unit,source,location,type,low,high
+reference_capacity,600000,t C3H6/y,assumption scaled to public PDH projects,typical single-train PDH scale; selected for reference plant,assumption,450000,750000
+stream_factor,8000,h/y,assumption,continuous petrochemical plant onstream factor,assumption,7600,8400
+base_installed_capex,900000000,USD,https://www.hydrocarbonprocessing.com/news/2019/09/enterprise-to-build-second-propane-dehydrogenation-plant/,news report of Enterprise PDH2 project capacity/cost; used as Gulf Coast PDH analogue,published,700000000,1200000000
+capex_reference_capacity,750000,t C3H6/y,https://www.hydrocarbonprocessing.com/news/2019/09/enterprise-to-build-second-propane-dehydrogenation-plant/,news report states PDH2 plant capacity around 750000 t/y,published,600000,900000
+capital_charge_factor,0.117,1/y,assumption,10 percent real WACC and 20 year life CRF,assumption,0.085,0.16
+propane_price,520,USD/t,https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=eer_epllpa_pf4_y44mb_dpg&f=M,EIA Mont Belvieu propane spot price series converted from USD/gal using liquid propane density,published,350,800
+liquid_propane_density,4.24,lb/gal,https://www.engineeringtoolbox.com/propane-butane-mix-d_1043.html,liquid propane density near ambient storage conditions,published,4.1,4.4
+natural_gas_price,3.8,USD/MMBtu,https://www.eia.gov/dnav/ng/hist/rngwhhdM.htm,EIA Henry Hub natural gas monthly spot price series; rounded current-cycle value,published,2.5,7.0
+electricity_price,0.08,USD/kWh,https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a,EIA Electric Power Monthly Table 5.6.A industrial retail prices; rounded Gulf Coast/US industrial value,published,0.05,0.12
+reaction_enthalpy,125.0,kJ/mol C3H8,https://webbook.nist.gov/,NIST Chemistry WebBook standard formation enthalpies for propane and propylene; H2 zero,published,120,130
+equilibrium_Kp_873K,0.35,bar,10.1016/B978-0-444-89888-9.50011-9,PDH equilibrium near 873 K represented as Kp for C3H8=C3H6+H2; shortcut fit,assumption,0.2,0.6
+furnace_efficiency,0.85,fraction,assumption,fired heater efficiency after heat recovery,assumption,0.75,0.92
+heat_recovery,0.65,fraction,assumption,feed effluent heat recovery fraction,assumption,0.45,0.8
+separation_electricity_base,0.25,GJ/t C3H6,assumption,shortcut compression/refrigeration/propylene splitter electricity at moderate conversion,assumption,0.12,0.6
+recycle_electricity_coeff,0.15,GJ/t C3H6,assumption,extra electricity coefficient multiplying (1-X)/X for recycle/compression/separation,assumption,0.05,0.35
+fixed_other_cost,45,USD/t C3H6,assumption,labor overhead maintenance not otherwise captured,assumption,25,90
+support_catalyst_price,25,USD/kg catalyst,assumption,formed oxide/zeolite support catalyst manufacturing cost excluding precious metals,assumption,8,80
+pt_price,38000,USD/kg Pt,https://www.lme.com/en/metals/precious/lbma-platinum,LBMA platinum price converted from USD/troy oz to USD/kg; rounded,measured,25000,60000
+rh_price,150000,USD/kg Rh,https://matthey.com/products-and-markets/pgms-and-circularity/pgm-management/price-charts,rhodium PGM price chart converted from USD/troy oz to USD/kg; rounded,measured,80000,300000
+ga_price,400,USD/kg Ga,https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-gallium.pdf,USGS Mineral Commodity Summary gallium price range rounded,published,250,800
+zn_price,3,USD/kg Zn,https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-zinc.pdf,USGS Mineral Commodity Summary zinc price rounded,published,2,5
+in_price,300,USD/kg In,https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-indium.pdf,USGS Mineral Commodity Summary indium price rounded,published,180,550
+sn_price,35,USD/kg Sn,https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-tin.pdf,USGS Mineral Commodity Summary tin price rounded,published,20,60
+cr_price,12,USD/kg Cr,https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-chromium.pdf,USGS chromium price rounded,published,6,20
+regeneration_cost_fraction,0.005,fraction of catalyst value per t_cycle,assumption,inert/fuel/air handling cost per short regeneration cycle,assumption,0.001,0.02
+replacement_life_default,16000,h,assumption,default full catalyst replacement interval when no deactivation data are reported,assumption,8000,32000

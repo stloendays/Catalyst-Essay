@@ -1,0 +1,35 @@
+parameter,value,unit,source,location,type,low,high
+reference_capacity,750000,t C3H6/y,https://www.enterpriseproducts.com/news-releases/enterprise-products-partners-l-p-announces-start-up-of-second-propane-dehydrogenation-plant,Enterprise Products PDH 2 startup release states design capacity to consume 35000 barrels/day of propane and produce 1650000 pounds/day of polymer grade propylene,published,,
+propane_price,0.750,USD/gal,https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?f=a&n=pet&s=eer_epllpa_pf4_y44mb_dpg,EIA Mont Belvieu propane spot price annual series: 2025 value,published,,
+propane_density,4.24,lb/gal,https://www.eia.gov/energyexplained/propane/propane-and-the-environment.php,EIA propane explained conversion that one gallon propane weighs about 4.24 pounds,published,,
+natural_gas_price,3.5,USD/MMBtu,https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm,EIA Henry Hub annual spot price series recent value rounded for industrial fuel,published,,
+industrial_electricity_price,0.096,USD/kWh,https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a,EIA Electric Power Monthly Table 5.6.A average price to ultimate customers industrial sector rounded,published,,
+reaction_enthalpy,124.3,kJ/mol C3H6,https://webbook.nist.gov/chemistry/,NIST Chemistry WebBook standard gas enthalpies of formation for propane propene and hydrogen combined as C3H8 -> C3H6 + H2,published,,
+reference_Kp_T,873.15,K,https://doi.org/10.1002/aic.690420915,Plant-relevant PDH equilibrium represented by van't Hoff fit; center set near published PDH equilibrium conversions at about 600 C,published,,
+reference_Kp,0.50,bar,assumption,Chosen to reproduce about 0.58 equilibrium conversion for pure propane at 600 C and 1 bar; sensitivity varied,assumption,0.25,1.0
+equilibrium_dH,124300,J/mol,https://webbook.nist.gov/chemistry/,Same NIST enthalpy basis used in van't Hoff extrapolation,published,,
+plant_capex_reference,1200000000,USD,assumption,Order-of-magnitude installed ISBL plus OSBL for a 750 kt/y US PDH plant; varied because public announcements rarely isolate installed PDH cost,assumption,800000000,1800000000
+capital_recovery_factor,0.12,1/y,assumption,Nominal real annualization plus taxes/insurance for a large petrochemical asset,assumption,0.08,0.18
+capacity_factor_hours,8000,h/y,assumption,Continuous petrochemical plant onstream time allowing turnarounds,assumption,7600,8400
+fixed_OM_fraction,0.04,1/y,assumption,Fixed O&M as fraction of installed capital,assumption,0.02,0.06
+furnace_efficiency,0.85,fraction,assumption,Fired heater efficiency for endothermic reactor heat supply,assumption,0.75,0.90
+heat_recovery_fraction,0.75,fraction,assumption,Feed-effluent heat recovery fraction for hot reactor effluent,assumption,0.60,0.85
+propane_cp,2.3,kJ/kg/K,assumption,Mean gas heat capacity of propane-rich reactor feed from ambient to PDH temperature,assumption,2.0,2.7
+separation_base_power,60,kWh/t C3H6,assumption,Base refrigeration/compression/separation electricity for propylene-propane splitter section,assumption,35,100
+recycle_power_coeff,12,kWh/t per (1/X-1),assumption,Incremental recycle compression/refrigeration electricity with low per-pass conversion,assumption,5,25
+support_catalyst_cost,20,USD/kg,assumption,Prepared oxide/zeolite support and fabrication cost excluding expensive metals,assumption,5,80
+catalyst_life,3,y,assumption,Nominal catalyst make-up life; regeneration cycles treated as inventory not full replacement,assumption,1,5
+regen_swing_factor_coeff,4,h,assumption,Extra catalyst inventory/regenerator swing factor coefficient 1+coeff/t_cycle_h,assumption,0,24
+Pt_price,33000,USD/kg,https://www.kitco.com/charts/platinum,Kitco platinum spot chart rounded to kg basis,published,,
+Ru_price,16000,USD/kg,assumption,Ruthenium metal price rounded; sensitivity broad because records with Ru are few/low loading,assumption,5000,50000
+Rh_price,140000,USD/kg,assumption,Rhodium metal price rounded; no usable Rh record in final cost set,assumption,50000,300000
+Ga_price,500,USD/kg,assumption,Specialty gallium metal price rounded for catalyst costing,assumption,200,1500
+In_price,250,USD/kg,assumption,Indium metal price rounded for catalyst costing,assumption,100,700
+Co_price,35,USD/kg,assumption,Cobalt metal price rounded,assumption,15,80
+Cu_price,10,USD/kg,assumption,Copper metal price rounded,assumption,5,20
+Zn_price,3,USD/kg,assumption,Zinc metal price rounded,assumption,1,8
+Sn_price,30,USD/kg,assumption,Tin metal price rounded,assumption,15,60
+Fe_price,1,USD/kg,assumption,Iron metal price rounded,assumption,0.3,3
+Cr_price,10,USD/kg,assumption,Chromium metal price rounded,assumption,5,20
+Al_price,3,USD/kg,assumption,Aluminum content cost rounded,assumption,1,5
+other_metal_price,50,USD/kg,assumption,Fallback for unlisted metals in catalyst composition,assumption,5,500
