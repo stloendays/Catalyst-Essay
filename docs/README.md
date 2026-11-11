@@ -55,6 +55,10 @@ Frozen scientific source bundles are under [`../provenance/`](../provenance/). C
 
 Use [`VERSION_REGISTRY.md`](VERSION_REGISTRY.md) for the full naming registry.
 
+## Latest supervisor guidance
+
+- [`SUPERVISOR_FEEDBACK_2026-11-11.md`](SUPERVISOR_FEEDBACK_2026-11-11.md) — NCE paper positioning, AI-led autonomous modeling, PDH / CO₂ methanation end-to-end validation, ammonia / methanol blind tests, cross-reaction scaling and stage-level labor/cost accounting.
+
 ## Detailed audit and provenance records
 
 Key records include:
