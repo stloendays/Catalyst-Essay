@@ -1,0 +1,82 @@
+{
+ "rxn": "pdh",
+ "written": "2026-11-11T18:42:36",
+ "note": "Evaluation side only. Never copied into an agent workspace. Chosen before the first AI build.",
+ "sources": [
+  {
+   "name": "PetroLogistics LP Form 10-K FY2012 (Catofin plant, Houston)",
+   "url": "https://www.sec.gov/Archives/edgar/data/0001523733/000110465913018856/a12-28443_110k.htm"
+  },
+  {
+   "name": "PetroLogistics LP 424B4 prospectus 2012 (same plant)",
+   "url": "https://www.sec.gov/Archives/edgar/data/1523733/000104746912005401/a2209406z424b4.htm"
+  },
+  {
+   "name": "Enterprise Products Mont Belvieu PDH, EPA GHG PSD permit application, Dec 2012 (and EPA statement of basis)",
+   "url": "https://archive.epa.gov/region6/6pd/air/pd-r/ghg/web/pdf/enterprise-propane-dehydrogenation-app.pdf"
+  }
+ ],
+ "dois": [],
+ "url_fragments": [
+  "edgar/data/0001523733",
+  "edgar/data/1523733",
+  "petrologistics",
+  "region6/6pd/air/pd-r/ghg",
+  "enterprise-propane",
+  "stloendays",
+  "catalyst-essay"
+ ],
+ "keyword_sets": [
+  [
+   "enterprise",
+   "propane dehydrogenation",
+   "1,300,000,000"
+  ],
+  [
+   "enterprise",
+   "pdh",
+   "1.654 billion"
+  ]
+ ],
+ "targets": {
+  "propane per t propylene": {
+   "quantity": "feed_t_per_t",
+   "value": 1.2,
+   "tol": 0.05,
+   "source": "PetroLogistics 10-K FY2012 MD&A: 1.0 lb propylene per 1.2 lb propane"
+  },
+  "purchased energy GJ per t": {
+   "quantity": "energy_GJ_per_t",
+   "value": 17.5,
+   "tol": 0.35,
+   "source": "PetroLogistics 424B4: 9.96 M MMBtu natural gas for ~601 kt propylene; EPA application heat-duty cap ~27 GJ/t is an upper bound"
+  },
+  "installed capital per annual t": {
+   "quantity": "capex_usd_per_t_y",
+   "value": 1733.3333333333333,
+   "tol": [
+    -0.3,
+    0.5
+   ],
+   "source": "Enterprise EPA application s6.1: 1.30 bn USD (2012) for 750 kt/y; tolerance AACE class 4 (-30/+50 %)"
+  }
+ },
+ "reported_not_gated": {
+  "production cost 2012 USD/t (no by-product credit)": {
+   "value": 882,
+   "basis": "PetroLogistics 10-K: 504.2 M USD / 571.5 kt; propane at 1.00 USD/gal"
+  },
+  "propane share of production cost": {
+   "value": 0.75,
+   "basis": "PetroLogistics 10-K, 2012 prices"
+  },
+  "capital recovery factor": {
+   "value": 0.0944,
+   "basis": "Enterprise: 7 %, 20 y"
+  }
+ },
+ "pass_rule": {
+  "min_within": 3,
+  "rule": "pass = all three targets within tolerance; partial = two within and none beyond twice the tolerance; fail otherwise"
+ }
+}
