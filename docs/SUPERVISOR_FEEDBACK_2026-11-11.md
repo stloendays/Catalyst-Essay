@@ -8,7 +8,7 @@
 
 Do not freeze the paper's final identity, title, narrative emphasis or contribution ordering at this stage. The existing NCE paper and its question provide the working context and continuity point, but the immediate priority is to define the next research tasks and connect them to prior models, data, code and benchmark cases. The paper may change its emphasis once the new results are available.
 
-The supervisor has made the AI role explicit: **AI is one of the core contributions of the research work and should take over the complete research pipeline**, not merely extract numerical information from papers. How this capability is ultimately positioned in the paper is left open until the results are available.
+The supervisor has made the AI role explicit: **AI is one of the core contributions of the current research work and should take over the complete research pipeline**, not merely extract numerical information from papers. How this capability is ultimately positioned in the paper is left open until the results are available.
 
 The scaling axis must also change. The main scaling experiment should be the **number of distinct reactions**, not simply the number of papers for one reaction. Extending one reaction from dozens to hundreds of papers mostly increases evidence volume; extending to 10+ different reactions can reveal which reaction classes are sensitive to catalyst ranking and which are dominated by feedstock, energy, separation or other process costs.
 
@@ -118,7 +118,41 @@ These are useful starting points, but they do not yet establish that the request
 
 Automation is not equivalent to AI decision-making. AI-generated code is not, by itself, evidence that a model is physically or industrially correct.
 
-## 5. Required validation design
+## 5. Continuity with previous work: preserve, reuse and isolate
+
+This is not a restart. Freeze the existing assets first, then build the new autonomous modeling capability on top of them.
+
+### 5.1 Ammonia and methanol: preserve as internal benchmark cases
+
+- Preserve the previously hand-built ammonia and methanol models, parameters, results, scripts and provenance.
+- Use them as internal blind-test references to check whether AI can independently reconstruct comparable cost conclusions, ranking behavior and bottleneck explanations from public evidence.
+- To prevent answer leakage, the agent must not read the hand-built model code, private configurations, analysis reports or target rankings. Keep the reference material on the independent evaluation side.
+- Compare more than the final ranking: include system boundary, key assumptions, operating conditions, cost breakdown and uncertainty. These hand-built models are internal project references, not substitutes for external TEA validation.
+
+### 5.2 PDH and CO₂ methanation: preserve current data and models as development/reference assets
+
+- Preserve the PR #122 literature set, download logs, OCR, extraction outputs, normalized records, self-checks, parameter provenance, cost outputs and analysis results.
+- The current baseline contains 19 papers, 438 extracted records and 314 records usable by the original plant models. These assets can support extraction audits, model comparisons and traceable old/new result differences.
+- Preserve the existing hand-built/pre-designed PDH and methanation plant models and parameter sets as independent comparison models. Do not overwrite them or hand them to the agent as its answer.
+- The new agent should independently search the literature, extract evidence and build reaction-specific models. A controlled rerun on the same public papers can make comparison easier; old extracted records are useful for discrepancy checks but should not automatically be treated as a flawless gold standard before row-level verification.
+- Published TEA / industrial validation remains independent. The old hand-built model cannot be used to prove that the AI model is correct.
+
+### 5.3 Reuse generic infrastructure and NCE evaluation conventions
+
+- Reuse generic components already developed: OpenAlex search, PDF download, Docling OCR, figure processing, LLM extraction, unit normalization, physical plausibility checks, source-location tracking and the run ledger.
+- Reuse the NCE evaluation logic for laboratory-versus-plant ranking, mismatch classification, regret, cost attribution/sensitivity and backward design, so new results remain comparable with previous work. Extend metrics only where reaction-specific features require it.
+- Generic numerical infrastructure (Python, property/thermodynamic libraries, ODE solvers and optimizers) may remain deterministic. Reaction-specific mechanism, kinetics, reactor, flowsheet and cost-model choices should be made and justified by the agent from evidence.
+- Log AI decisions/modeling separately from deterministic code execution. Do not count automatic tool execution as an AI scientific decision.
+
+### 5.4 Versioning and continuity requirements
+
+- Preserve the old baseline with commit IDs, file hashes, parameter versions, data snapshots and reports. Do not overwrite the original branch.
+- Develop the autonomous workflow on a separate branch and run directory. For every run, log the agent-visible inputs, hidden references, generated model code, parameter sources, outputs and human Inspect interventions.
+- Before comparing old and new results, check that the paper cohort, record filters, units, system boundary and cost convention match. Otherwise label them as different cohorts/model versions rather than attributing numerical differences directly to model capability.
+
+**Continuity principle:** previous work supplies data, benchmarks, evaluation methods and reusable infrastructure; the new work adds autonomous selection and construction of reaction-specific models. Do not use the old model as the agent's fixed answer, but do not discard the research value already invested in the old models and datasets.
+
+## 6. Required validation design
 
 ### 5.1 External validation: PDH and CO₂ methanation
 
