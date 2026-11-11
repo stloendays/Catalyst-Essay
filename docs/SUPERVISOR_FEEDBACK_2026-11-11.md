@@ -6,9 +6,9 @@
 
 ## 1. Executive summary
 
-The paper's scientific identity does not change. Its central chemical-engineering question remains whether laboratory catalyst leaders remain the plant-level optimum after kinetic, reactor, process and techno-economic propagation, and why rankings change when they do.
+Do not freeze the paper's final identity, title, narrative emphasis or contribution ordering at this stage. The existing NCE paper and its question provide the working context and continuity point, but the immediate priority is to define the next research tasks and connect them to prior models, data, code and benchmark cases. The paper may change its emphasis once the new results are available.
 
-The supervisor has now made the AI role explicit: **AI is one of the paper's core contributions and should take over the complete research pipeline**, not merely extract numerical information from papers.
+The supervisor has made the AI role explicit: **AI is one of the core contributions of the research work and should take over the complete research pipeline**, not merely extract numerical information from papers. How this capability is ultimately positioned in the paper is left open until the results are available.
 
 The scaling axis must also change. The main scaling experiment should be the **number of distinct reactions**, not simply the number of papers for one reaction. Extending one reaction from dozens to hundreds of papers mostly increases evidence volume; extending to 10+ different reactions can reveal which reaction classes are sensitive to catalyst ranking and which are dominated by feedstock, energy, separation or other process costs.
 
@@ -26,20 +26,20 @@ The immediate sequence is:
 
 **Transcript note:** This is the user-supplied speech transcript. Homophones and possible ASR errors have not been silently corrected.
 
-## 3. Interpretation for the NCE paper
+## 3. Interpretation for the research work (paper framing remains open)
 
-### 3.1 Preserve the paper's scientific question
+### 3.1 Keep continuity with prior work; leave the paper framing open
 
-The paper remains *Laboratory catalyst leaders are often not the plant-level optimum*. It should not be reframed as a generic autonomous-agent or tool-orchestration paper.
+*Laboratory catalyst leaders are often not the plant-level optimum* is the current project context and a useful entry point to the prior work, not a fixed commitment to the final title or manuscript emphasis. The paper may change its focus, contribution ordering or narrative after the next experiments. At this stage, do not decide the final paper framing; prioritize a coherent sequence of research tasks that reuses and tests the existing work.
 
-The chemical-engineering questions remain:
+The inherited scientific questions that the next tasks can build on include:
 
 - Does the laboratory ranking predict the economically preferred catalyst at the plant level?
 - If it does not, where does the ranking change along the multiscale chain?
 - Which catalyst properties actually control plant cost, and which are attenuated by feedstock cost, equilibrium, recycle, separation, equipment or operating constraints?
 - Do these relationships differ across reaction types and process pathways?
 
-AI is a core contribution because it makes this cross-scale, cross-reaction analysis autonomous and repeatable. It must strengthen the chemical-engineering story, not replace it.
+The supervisor wants AI to be a core contribution of the research work by taking over the full pipeline. The eventual paper-level framing and relative emphasis remain open; decide those after the end-to-end experiments, external validation and blind tests produce evidence.
 
 ### 3.2 Scaling by reactions, not papers
 
