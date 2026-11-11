@@ -105,13 +105,15 @@ from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
 from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
 from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
+from build_mode import AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, STAGES, BuildMixin  # noqa: E402
 NUS_LOCK = HERE / "nus.lock"
 
 
-class Run(DBMixin, FullMixin, LeanMixin):
+class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.5", lean=None):
-        self.ws = HERE / "runs" / name
+                 n_max=20, extract_model="gpt-5.5", lean=None, build=None):
+        self.build = build
+        self.ws = (AGENT_ROOT / name) if build else (HERE / "runs" / name)   # build runs live outside the repository
         for d in ("pdf", "ocr", "extracted", "scripts"):
             (self.ws / d).mkdir(parents=True, exist_ok=True)
         self.reaction, self.model, self.max_turns = reaction, model, max_turns
@@ -123,8 +125,9 @@ class Run(DBMixin, FullMixin, LeanMixin):
         if db_key:
             self.setup_db(HERE / "db" / "truth.json", db_key, budget_frac)
         self.full, self.n_target, self.n_max, self.lean = full or bool(lean), n_target, n_max, lean
-        if self.full:
-            self.setup_full()
+        if self.full or build:
+            if not build:
+                self.setup_full()
             self.extract_model, self.extract_workers = extract_model, 4
             self.extract_router = llm_route.Router(extract_model)   # API-YES first, then the advisor key
 
@@ -134,6 +137,9 @@ class Run(DBMixin, FullMixin, LeanMixin):
                     pass
                 return client._route
             self.extract_route = self.extract_router.call(probe)    # moves on when a route refuses the model
+        if build:
+            hp = HERE / "holdout" / f"{build}.json"
+            self.setup_build(build, json.loads(hp.read_text(encoding="utf-8")) if hp.exists() else {})
         self.router = llm_route.Router(model)        # API-YES first, then the advisor key (llm_route order)
 
     # ------------------------------------------------------------ bookkeeping
@@ -393,6 +399,12 @@ class Run(DBMixin, FullMixin, LeanMixin):
             instructions = METHOD_DB.format(max_turns=self.max_turns, n_papers=len({r["paper"] for r in self.db}),
                                             budget=self.budget, n_masked=self.n_masked)
             tools = DB_TOOLS + [t for t in TOOLS if t.get("name") in ("read_file", "write_file", "run_python", "finish")]
+        elif self.build:
+            instructions = METHOD_BUILD.format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
+                                               n_max=self.n_max, max_turns=self.max_turns)
+            keep = ("search_papers", "screen_papers", "download_papers", "ocr_papers", "extract_papers", "read_file", "write_file", "finish")
+            tools = BUILD_TOOLS + [t for t in FULL_TOOLS + TOOLS if t.get("name") in keep and t.get("type") == "function"]
+            tools = list({t.get("name", t["type"]): t for t in tools}.values()) + [t for t in TOOLS if t.get("name") == "run_python"]
         elif self.lean:
             self.setup_lean(self.lean)
             instructions = METHOD_LEAN.format(reaction=self.cfg["name"], key=self.cfg["stoich"]["key"], product=self.cfg["stoich"]["product"],
@@ -455,7 +467,8 @@ class Run(DBMixin, FullMixin, LeanMixin):
                     out_s = sg.update_plan(self, **args)
                 else:
                     try:
-                        prefix = ("l_" if self.lean and hasattr(self, "l_" + c.name) else
+                        prefix = ("b_" if self.build and hasattr(self, "b_" + c.name) else
+                                  "l_" if self.lean and hasattr(self, "l_" + c.name) else
                                   "f_" if self.full and hasattr(self, "f_" + c.name) else "t_")
                         out_s = getattr(self, prefix + c.name)(**args)
                     except Exception as e:  # noqa: BLE001
@@ -470,6 +483,8 @@ class Run(DBMixin, FullMixin, LeanMixin):
             self.write_ledger()
             if summary is not None:
                 break
+        if self.build:
+            self.finish_build()
         self.write_ledger("finished" if summary is not None else "turn limit")
         if self.lean and getattr(self, "analysis", None):
             self.write_report(decision=summary or "")
@@ -490,5 +505,6 @@ if __name__ == "__main__":
     ap.add_argument("--n-max", type=int, default=20)
     ap.add_argument("--extract-model", default="gpt-5.5")
     ap.add_argument("--lean", default=None, help="pdh|ch4|nh3dec|rwgs|etoh: lean autonomous run with the fixed plant model")
+    ap.add_argument("--build", default=None, help="pdh|ch4|nh3|meoh: the agent builds the plant model itself (workspace D:/agent_runs)")
     a = ap.parse_args()
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean).run()
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build).run()

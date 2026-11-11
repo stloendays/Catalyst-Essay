@@ -15,18 +15,20 @@ from pathlib import Path
 API_YES_URL = "http://127.0.0.1:8788/v1"
 API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
 HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1"), "agent")
-ROUTES = ("api-yes", "advisor-openai")
+XIEXIU_CREDENTIAL = "4626141b-2c5d-4933-8fef-f38fec7160af"   # API-YES credential "邪修gpt" (user, 2026-11-11: use this key)
+ROUTES = ("api-yes-xiexiu", "api-yes", "advisor-openai")
 EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "not supported", "余额", "额度", "用完")
 
 
-def api_yes_key(model: str) -> str | None:
-    """The enabled API-YES proxy key whose model list contains `model`, or None if the gateway does not serve it."""
+def api_yes_key(model: str, credential: str | None = None) -> str | None:
+    """The enabled API-YES proxy key whose model list contains `model` (optionally only proxies of one credential),
+    or None if the gateway does not serve it."""
     try:
         proxies = json.loads(API_YES_CONFIG.read_text(encoding="utf-8"))["proxies"]
     except (OSError, ValueError, KeyError):
         return None
     for p in proxies:
-        if not p.get("enabled"):
+        if not p.get("enabled") or (credential and p.get("credentialId") != credential):
             continue
         req = urllib.request.Request(API_YES_URL + "/models", headers={"Authorization": "Bearer " + p["key"]})
         try:
@@ -41,7 +43,12 @@ def api_yes_key(model: str) -> str | None:
 def make_client(route: str, model: str):
     """An OpenAI client for `route`, or None if that route cannot serve `model` right now."""
     import openai
-    if route == "api-yes":
+    if route == "api-yes-xiexiu":
+        key = api_yes_key(model, XIEXIU_CREDENTIAL)
+        if key is None:
+            return None
+        client = openai.OpenAI(api_key=key, base_url=API_YES_URL, timeout=1800)
+    elif route == "api-yes":
         key = api_yes_key(model)
         if key is None:
             return None
@@ -73,7 +80,7 @@ def is_exhausted(err: Exception) -> bool:
 class Router:
     """Hands out the current client and moves to the next route when the current one is exhausted."""
 
-    def __init__(self, model: str, start: str = "api-yes"):
+    def __init__(self, model: str, start: str = "api-yes-xiexiu"):
         self.model = model
         self.order = list(ROUTES[ROUTES.index(start):])
         self.client = None
