@@ -154,7 +154,7 @@ This is not a restart. Freeze the existing assets first, then build the new auto
 
 ## 6. Required validation design
 
-### 5.1 External validation: PDH and CO₂ methanation
+### 6.1 External validation: PDH and CO₂ methanation
 
 For each reaction, compare the AI-built model against published TEA or a traceable industrial case. Compare more than the final USD/t value:
 
@@ -167,7 +167,7 @@ For each reaction, compare the AI-built model against published TEA or a traceab
 
 When results differ, identify whether the cause is model structure, parameter choice, system boundary or source convention. Do not tune assumptions after seeing the answer merely to force agreement.
 
-### 5.2 Internal blind validation: ammonia and methanol
+### 6.2 Internal blind validation: ammonia and methanol
 
 The previously hand-built ammonia and methanol cases should become internal benchmark sets.
 
@@ -181,7 +181,7 @@ Recommended protocol:
 
 Reproducing the key conclusions without answer leakage would be strong evidence for the automation pipeline. Differences must be diagnosed, not hidden by reporting only whether the final ranking happens to match.
 
-## 6. Cost, time, tokens and human-labor accounting
+## 7. Cost, time, tokens and human-labor accounting
 
 The supervisor wants every stage to report its resource cost and efficiency. Record at least:
 
@@ -212,7 +212,7 @@ The existing ledger records search, download, OCR, extraction and a combined dow
 
 The manual baseline must use the same task scope and quality standard as the AI run. The extraction baseline must not be applied to all modeling work without a separate measurement.
 
-## 7. Existing plan that now needs revision
+## 8. Existing plan that now needs revision
 
 **agent/new_reactions/PLAN_AI_CHAIN.md** still describes an older setup in which the agent mainly chooses papers, masked cells, stopping points and catalyst conditions while plant models and cost formulas remain fixed.
 
@@ -227,7 +227,7 @@ That is inconsistent with the 2026-11-11 guidance. The revised plan should state
 
 This guidance record does not itself change any frozen scientific model, manuscript number or PR #122 result.
 
-## 8. Open technical questions
+## 9. Open technical questions
 
 1. **Boundary of autonomous modeling:** Which generic property databases, thermodynamic libraries, solvers and engineering templates may the agent use? Which reaction-specific decisions must be made by the agent?
 2. **TEA acceptance criteria:** What tolerances apply to total cost, balances, operating conditions and cost breakdown? How should different published system boundaries be reconciled?
@@ -237,7 +237,7 @@ This guidance record does not itself change any frozen scientific model, manuscr
 6. **Reaction selection:** How will the 10+ reactions be chosen to represent process diversity and evidence availability, rather than to favor easy or inversion-rich examples?
 7. **Cross-reaction metrics:** How should rank-change magnitude and cost-driver patterns be compared without directly ranking different products by incomparable USD/t values?
 
-## 9. Immediate execution order
+## 10. Immediate execution order
 
 - [ ] Freeze the AI-autonomous task definition and input boundary for PDH and CO₂ methanation.
 - [ ] Preserve the existing hand-built plant models separately as references; do not expose them to the agent.
@@ -248,7 +248,7 @@ This guidance record does not itself change any frozen scientific model, manuscr
 - [ ] Decide whether to expand to 10+ reactions based on model quality and blind-validation results.
 - [ ] Send the supervisor a concise plan focused on the difficult model interfaces, validation criteria and likely failure modes.
 
-## 10. References
+## 11. References
 
 - NCE manuscript page in Notion: [2026-10-26 manuscript record](https://app.notion.com/p/405c0ee7c03e81d3876df7061eefd39).
 - GitHub repository: [stloendays/Catalyst-Essay](https://github.com/stloendays/Catalyst-Essay).
