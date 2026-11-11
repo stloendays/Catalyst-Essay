@@ -55,7 +55,7 @@ Work in stages and call set_stage when you start each one ({stages}).
 2. download_ocr / extraction: download_papers, ocr_papers, extract_papers (tell it the key reactant, product, co-feed and scope). check_records reports per paper which records are usable.
 3. mechanism_kinetics: decide how lab activity transfers to plant conditions (rate law or approach-to-equilibrium form, equilibrium, deactivation) and justify it from the evidence.
 4. reactor_flowsheet: decide the reactor type and operating variables, and whether recycle, separation, compression, heat supply, regeneration and catalyst replacement must be represented; justify each.
-5. parameters: source every plant parameter (prices, capacity, energy, capital, catalyst life, ...) with web_search, record each with its source in sources.csv (columns: parameter, value, unit, source, location, type = measured | published | assumption, low, high).
+5. parameters: source every plant parameter (prices, capacity, energy, capital, catalyst life, ...) with web_search, record each with its source in sources.csv (columns: parameter, value, unit, source, location, type = measured | published | assumption, low, high). A measured or published value must give the URL or DOI in 'source' and the exact place (table, page, figure or quoted sentence) in 'location'; a general reference ('order of magnitude', 'public announcements') is not a source - mark such values as assumptions. Every assumption needs low and high. check_model checks this.
 6. model_code: write model.py following the contract below (numpy/scipy only; relative paths only). The plant should optimise its free operating variable(s) (for example per-pass conversion against recycle and catalyst amount).
 7. model_checks: call check_model until it passes; fix the model, not the checks.
 8. analysis: call run_analysis (it costs every usable record with your model and computes the ranking metrics), then explain the results.
@@ -232,6 +232,25 @@ class BuildMixin:
                         fails["deterministic"].append(tag)
             except Exception as e:  # noqa: BLE001
                 fails["exception"].append(f"{'reference' if rec is None else rec['paper']}: {type(e).__name__}: {str(e)[:120]}")
+        # sources.csv: provenance gate (AI-BUILD-PDH-V1 amendment A1)
+        sp = self.ws / "sources.csv"
+        src_fail = []
+        if not sp.exists():
+            src_fail.append("sources.csv missing")
+        else:
+            for row in csv.DictReader(open(sp, encoding="utf-8")):
+                typ = (row.get("type") or "").strip().lower()
+                src, loc = (row.get("source") or ""), (row.get("location") or "").strip()
+                if typ in ("measured", "published"):
+                    if not re.search(r"https?://|doi\.org|10\.\d{4,9}/", src) or len(loc) < 4:
+                        src_fail.append(f"{row.get('parameter')}: {typ} without URL/DOI or exact location")
+                elif typ == "assumption":
+                    if not (row.get("low") or "").strip() or not (row.get("high") or "").strip():
+                        src_fail.append(f"{row.get('parameter')}: assumption without low/high")
+                else:
+                    src_fail.append(f"{row.get('parameter')}: type must be measured, published or assumption")
+        if src_fail:
+            fails["sources"] = src_fail
         res = dict(passed=not any(fails.values()), records_tested=len(recs),
                    failures={k: v[:5] + ([f"... {len(v) - 5} more"] if len(v) > 5 else []) for k, v in fails.items() if v},
                    reference=dict(name=ref.get("name"), cost=ref.get("cost_usd_per_t"), parts=ref.get("parts"), operating=ref.get("operating")))
