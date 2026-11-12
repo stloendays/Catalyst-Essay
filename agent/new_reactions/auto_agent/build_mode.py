@@ -14,18 +14,29 @@ agent) are blocked in download_papers and audited afterwards in the web-search t
 Stage ledger: the agent declares its stage (set_stage); agent tokens, extraction tokens and wall time accrue to it.
 
 Model contract (model.py written by the agent):
-  REACTION = {"key": <formula>, "product": <formula>, "cofeed": <formula or None>, "MW": {formula: g/mol}}
+  REACTION = {"key": <formula>, "product": <formula>, "cofeed": <formula or None>, "MW": {formula: g/mol},
+              "nu": {formula: stoichiometric coefficient}}  # reactants negative, products positive
   def reference() -> dict            # the industrial reference plant, same keys as plant_cost(), plus "name"
   def plant_cost(rec: dict) -> dict  # rec: T_K, P_bar, X, S, r (kg product/kg cat/h, lab), y_key, y_cofeed, t_cycle_h,
                                      #      components [[element, wt% or None], ...], catalyst
       returns {"cost_usd_per_t": float,
                "parts": {"feed": .., "energy": .., "capital": .., "catalyst": .., "other": ..},   # USD/t, sum = cost
                "operating": {"T_K": .., "P_bar": .., "per_pass_conversion": ..},
-               "balances": {"key_feed_t_per_t": .., "energy_GJ_per_t": .., "capex_usd": .., "capacity_t_per_y": ..}}
+               "balances": {"key_feed_t_per_t": .., "energy_GJ_per_t": .., "capex_usd": .., "capacity_t_per_y": ..},
+               "physics": {"reactor": {"T_K": .., "P_bar": .., "feed_mol_frac": {formula: y},
+                           "per_pass_conversion": .., "heat_duty_GJ_per_t": ..},  # + added, - removed
+                           "boundary": {"in_t_per_t": {formula: tonnes}, "out_t_per_t": {formula: tonnes}},
+                           "units": [{"name": .., "type": .., "purchased_energy_GJ_per_t": ..,
+                                      "internal_fuel_GJ_per_t": .., "capex_usd": .., ...type fields}]}}
+  Unit types: reactor, furnace, compressor, separation, knockout, heat_exchanger, regenerator, pump, offsites, other.
+  Compressor fields: kmol_per_t, T_in_K, P_in_bar, P_out_bar, power_GJ_per_t.
+  Separation fields: feed {kmol_per_t, mol_frac}, outlets [{kmol_per_t, mol_frac}], optional recovered_heat_GJ_per_t.
+  Knockout field: cooling_duty_GJ_per_t. All units must match the submitted flowsheet; energy/capital sum over units.
 """
 from __future__ import annotations
 
 import csv
+import hashlib
 import importlib.util
 import json
 import math
@@ -41,7 +52,12 @@ NR = HERE.parent
 sys.path.insert(0, str(NR))
 import chain  # noqa: E402
 import nce_metrics as nm  # noqa: E402
+try:
+    from .physics_gate import check_flowsheet, check_physics
+except ImportError:  # runner.py is also invoked directly
+    from physics_gate import check_flowsheet, check_physics
 
+BUILD_MODE_VERSION = "V2-flowsheet-physics"
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
           "model_code", "model_checks", "analysis", "report"]
@@ -54,24 +70,28 @@ Work in stages and call set_stage when you start each one ({stages}).
 1. search / screening: find experimental catalyst papers on this reaction ({n_target} papers with usable data, at most {n_max} downloads) and screen them with explicit criteria; say why papers are excluded.
 2. download_ocr / extraction: download_papers, ocr_papers, extract_papers (tell it the key reactant, product, co-feed and scope). check_records reports per paper which records are usable.
 3. mechanism_kinetics: decide how lab activity transfers to plant conditions (rate law or approach-to-equilibrium form, equilibrium, deactivation) and justify it from the evidence.
-4. reactor_flowsheet: decide the reactor type and operating variables, and whether recycle, separation, compression, heat supply, regeneration and catalyst replacement must be represented; justify each.
-5. parameters: source every plant parameter (prices, capacity, energy, capital, catalyst life, ...) with web_search, record each with its source in sources.csv (columns: parameter, value, unit, source, location, type = measured | published | assumption, low, high). A measured or published value must give the URL or DOI in 'source' and the exact place (table, page, figure or quoted sentence) in 'location'; a general reference ('order of magnitude', 'public announcements') is not a source - mark such values as assumptions. Every assumption needs low and high. check_model checks this.
-6. model_code: write model.py following the contract below (numpy/scipy only; relative paths only). The plant should optimise its free operating variable(s) (for example per-pass conversion against recycle and catalyst amount).
-7. model_checks: call check_model until it passes; fix the model, not the checks.
+4. reactor_flowsheet: draw the whole process before any costing, parameter sourcing or model code. Decide the reactor type and operating variables. Write flowsheet.json and call submit_flowsheet until it passes. Format: {{"units": [{{"name": "unit name", "type": "reactor", "purpose": "purpose", "inlets": ["feed"], "outlets": ["product"]}}], "streams": [{{"name": "feed", "from": "boundary", "to": "unit name", "species": ["formula"]}}, {{"name": "product", "from": "unit name", "to": "boundary", "species": ["formula"]}}], "checklist": {{category: {{"included": ["unit name"]}} or {{"excluded": "reason of at least 40 characters"}}}}, "diagram": "mermaid or ascii block diagram"}}. Go through every checklist category: feed_preparation (pressurisation, vaporisation, preheat), reactor_heat_supply_or_removal, catalyst_regeneration, product_compression, separation_and_purification, recycle, heat_recovery, utilities_and_offsites. Either include units for it or state why this process does not need it. Every unit needs inlet/outlet streams and must be reachable from a boundary inlet. Parameters are then sourced per unit. Resubmit any revised flowsheet.
+5. parameters: source every plant parameter per flowsheet unit (prices, capacity, energy, capital, catalyst life, ...) with web_search, record each with its source in sources.csv (columns: parameter, value, unit, source, location, type = measured | published | assumption, low, high). A measured or published value must give the URL or DOI in 'source' and the exact place (table, page, figure or quoted sentence) in 'location'; a general reference ('order of magnitude', 'public announcements') is not a source - mark such values as assumptions. Every assumption needs low and high. check_model checks this.
+6. model_code: write model.py following the contract below (numpy/scipy only; relative paths only). The plant should optimise its free operating variable(s) (for example per-pass conversion against recycle and catalyst amount). plant_cost computes each unit's duty from its own mass and energy balance at the plant's operating point: recycle, compression and separation duties must change with per-pass conversion. Return the physics block; purchased energy and capital are sums over all flowsheet units.
+7. model_checks: call check_model until it passes; it includes the independent physics gate (mass, elements, equilibrium, reaction heat, heat supply, compression, separation and unit accounting) on the reference and first 40 records. Use the fixed thermochemistry; fix the model, not the checks.
 8. analysis: call run_analysis (it costs every usable record with your model and computes the ranking metrics), then explain the results.
 9. report: write report.md: papers and exclusions; model choices with their justification (mechanism, kinetics, reactor, flowsheet, what is and is not represented); parameter table (sources.csv); reference plant cost and breakdown; ranking results with denominators; the controlling catalyst property; sensitivity of the conclusion to the uncertain parameters (run your model); what the evidence could not support. Then call finish.
 
 Model contract (model.py):
-  REACTION = {{"key": <formula>, "product": <formula>, "cofeed": <formula or None>, "MW": {{formula: g/mol}}}}
+  REACTION = {{"key": <formula>, "product": <formula>, "cofeed": <formula or None>, "MW": {{formula: g/mol}}, "nu": {{formula: stoichiometric coefficient}}}}  # reactants negative, products positive; element-balanced
   def reference() -> dict   # the industrial reference plant (published plant data): same keys as plant_cost, plus "name" and "record" = the reference catalyst written as a plant_cost input
   def plant_cost(rec) -> dict
      rec: T_K, P_bar, X (lab conversion of the key reactant), S (lab selectivity), r (lab productivity, kg product per kg catalyst per h), y_key, y_cofeed (lab feed mole fractions), t_cycle_h (hours to lose 10 % activity, or None), components ([[element, wt% or None], ...]), catalyst (name)
      returns {{"cost_usd_per_t": .., "parts": {{"feed": .., "energy": .., "capital": .., "catalyst": .., "other": ..}}, "operating": {{"T_K": .., "P_bar": .., "per_pass_conversion": ..}}, "balances": {{"key_feed_t_per_t": .., "energy_GJ_per_t": .. (purchased fuel and electricity as primary energy), "capex_usd": .. (installed capital of the plant), "capacity_t_per_y": ..}}}}  (USD per tonne of product; parts sum to the cost)
+     Also return "physics": {{"reactor": {{"T_K": .., "P_bar": .., "feed_mol_frac": {{formula: y}}, "per_pass_conversion": .., "heat_duty_GJ_per_t": ..}}, "boundary": {{"in_t_per_t": {{formula: t per t product}}, "out_t_per_t": {{formula: t per t product}}}}, "units": [{{"name": .., "type": .., "purchased_energy_GJ_per_t": .., "internal_fuel_GJ_per_t": .., "capex_usd": .., ...type fields}}]}}. Reactor heat duty is positive for heat added, negative for heat removed. Unit types: reactor, furnace, compressor, separation, knockout, heat_exchanger, regenerator, pump, offsites, other. Compressor fields: kmol_per_t, T_in_K, P_in_bar, P_out_bar, power_GJ_per_t. Separation fields: feed {{"kmol_per_t": .., "mol_frac": {{formula: y}}}}, outlets [same stream format], optional recovered_heat_GJ_per_t. Knockout field: cooling_duty_GJ_per_t. Units must exactly match the submitted flowsheet. Energy and capital sum over units; do not double count recovered heat/internal fuel as purchased energy. Species without fixed thermo data fail; the model may not supply its own thermo data.
 
 Rules: never invent numbers or sources; every cost the report quotes must come from your model, not be copied from a study. Reply with tool calls; keep text to one line per turn. Budget about {max_turns} turns."""
 
 BUILD_TOOLS = [
     {"type": "web_search"},
+    {"type": "function", "name": "submit_flowsheet", "strict": True,
+     "description": "Validate flowsheet.json before parameter sourcing or model code; write flowsheet.md and log the accepted hash. Resubmit revisions.",
+     "parameters": {"type": "object", "additionalProperties": False, "required": [], "properties": {}}},
     {"type": "function", "name": "set_stage", "strict": True, "description": "Declare the stage you are starting (for the time and cost ledger).",
      "parameters": {"type": "object", "additionalProperties": False, "required": ["stage", "note"],
                     "properties": {"stage": {"type": "string", "enum": STAGES}, "note": {"type": "string"}}}},
@@ -80,7 +100,7 @@ BUILD_TOOLS = [
      "parameters": {"type": "object", "additionalProperties": False, "required": ["key", "product", "cofeed"],
                     "properties": {"key": {"type": "string"}, "product": {"type": "string"}, "cofeed": {"type": "string"}}}},
     {"type": "function", "name": "check_model", "strict": True,
-     "description": "Import model.py and test the contract on the reference plant and every usable record: finite positive cost, parts sum to the cost, per-pass conversion in (0, 1], key feed >= stoichiometric minimum, cost non-increasing in selectivity and in activity, deterministic. Returns pass/fail per check and the reference plant.",
+     "description": "Require a submitted flowsheet; import model.py and test the contract on the reference plant and every usable record. Includes independent physics checks on the reference and first 40 records: elements, mass, equilibrium, heat, compression, separation, unit accounting and flowsheet consistency. Also checks finite positive cost, parts sum, conversion range, stoichiometry, monotonicity and determinism. Returns failures and reference plant.",
      "parameters": {"type": "object", "additionalProperties": False, "required": [], "properties": {}}},
     {"type": "function", "name": "run_analysis", "strict": True,
      "description": "Cost every usable record with model.py and compute: lab vs plant ranking (catalyst level and operating-point level, other catalyst vs same catalyst at another temperature, regret, paper bootstrap), one-at-a-time attribution (selectivity, activity, temperature, stability, metal) and cost changes at the reference. Writes costs.csv and analysis.json; returns the summary.",
@@ -95,6 +115,9 @@ class BuildMixin:
         self.stage, self.stage_t0 = "search", time.time()
         self.stage_rows = []
         self.stage_tok0 = dict(self.tok)
+        self.flowsheet_ok_time = None
+        self.flowsheet_sha256 = None
+        self.log({"build_mode_version": BUILD_MODE_VERSION})
 
     # ---------------- ledger
     def _close_stage(self):
@@ -118,7 +141,34 @@ class BuildMixin:
         return json.dumps(dict(stage=stage))
 
     # ---------------- guarded script runner and download block
+    def b_submit_flowsheet(self):
+        path = self.ws / "flowsheet.json"
+        failures = check_flowsheet(path)
+        self.flowsheet_ok_time = None
+        self.flowsheet_sha256 = None
+        if failures:
+            self.log({"flowsheet_rejected": failures, "time": datetime.now().isoformat()})
+            return json.dumps(dict(passed=False, failures=failures))
+        flowsheet = json.loads(path.read_text(encoding="utf-8"))
+        rows = [flowsheet["diagram"], "", "| Unit | Type | Purpose | Inlets | Outlets |",
+                "| --- | --- | --- | --- | --- |"]
+        for u in flowsheet["units"]:
+            values = [u["name"], u["type"], u["purpose"], ", ".join(u["inlets"]), ", ".join(u["outlets"])]
+            rows.append("| " + " | ".join(str(v).replace("|", "\\|").replace("\n", " ") for v in values) + " |")
+        (self.ws / "flowsheet.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+        self.flowsheet_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+        self.flowsheet_ok_time = datetime.now().isoformat()
+        self.log({"flowsheet_submitted": self.flowsheet_sha256[:16], "time": self.flowsheet_ok_time})
+        return json.dumps(dict(passed=True, failures=[], sha256=self.flowsheet_sha256[:16]))
+
+    def b_write_file(self, path, content):
+        if Path(path).name.lower() == "model.py" and not getattr(self, "flowsheet_ok_time", None):
+            return "draw the flowsheet first: write flowsheet.json and pass submit_flowsheet"
+        return self.t_write_file(path, content)
+
     def b_run_python(self, name, code, timeout_s):
+        if "model.py" in code.lower() and not getattr(self, "flowsheet_ok_time", None):
+            return "draw the flowsheet first: write flowsheet.json and pass submit_flowsheet"
         if re.search(r"[A-Za-z]:[\\/]", code) or ".." in re.sub(r"\.\.\.", "", code) or "os.chdir" in code:
             return "rejected: use relative paths inside the workspace only (no drive letters, no '..', no chdir)"
         return self.t_run_python(name, code, timeout_s)
@@ -195,6 +245,17 @@ class BuildMixin:
 
     def b_check_model(self):
         checks, ref = {}, None
+        fp = self.ws / "flowsheet.json"
+        flow_fail = check_flowsheet(fp)
+        if not getattr(self, "flowsheet_ok_time", None):
+            flow_fail.insert(0, "draw the flowsheet first: write flowsheet.json and pass submit_flowsheet")
+        elif fp.exists() and hashlib.sha256(fp.read_bytes()).hexdigest() != self.flowsheet_sha256:
+            flow_fail.insert(0, "flowsheet changed: pass submit_flowsheet again")
+        if flow_fail:
+            res = dict(passed=False, failures={"flowsheet": flow_fail[:5]})
+            (self.ws / "model_check.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+            return json.dumps(res)
+        flowsheet = json.loads(fp.read_text(encoding="utf-8"))
         try:
             m = self._load_model()
             ref = m.reference()
@@ -204,12 +265,14 @@ class BuildMixin:
             return json.dumps(dict(passed=False, error=f"{type(e).__name__}: {str(e)[:400]}"))
         recs = self._records()
         fails = {k: [] for k in ("finite_positive", "parts_sum", "conversion_range", "stoichiometry", "monotone_selectivity",
-                                 "monotone_activity", "deterministic", "exception")}
+                                 "monotone_activity", "deterministic", "exception", "physics")}
         for i, rec in enumerate([None] + recs):
             try:
                 out = ref if rec is None else m.plant_cost(rec)
                 c = out["cost_usd_per_t"]
                 tag = "reference" if rec is None else f"{rec['paper']}#{rec['idx']}"
+                if i <= 40:
+                    fails["physics"].extend(f"{tag}: {failure}" for failure in check_physics(m, out, flowsheet))
                 if not (math.isfinite(c) and c > 0):
                     fails["finite_positive"].append(tag)
                 if abs(sum(out["parts"].values()) - c) > 0.005 * abs(c):

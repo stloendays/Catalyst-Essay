@@ -44,6 +44,50 @@ def within(v, target, tol):
     return lo <= v <= hi
 
 
+def scaled_target(target, capacity):
+    """Log-log interpolation; end slopes extrapolate within 0.5x--2x end values."""
+    if "scale_curve" not in target:
+        return target["value"]
+    points = sorted((float(c), float(v)) for c, v in target["scale_curve"])
+    if (len(points) < 2 or any(not math.isfinite(x) or x <= 0 for pt in points for x in pt)
+            or any(a[0] == b[0] for a, b in zip(points, points[1:]))):
+        raise ValueError("scale_curve requires at least two distinct positive capacities and positive finite values")
+    if capacity is None or not math.isfinite(capacity) or capacity <= 0:
+        raise ValueError("scale_curve requires positive finite balances.capacity_t_per_y")
+    i = next((i for i in range(len(points)-1) if capacity <= points[i+1][0]), len(points)-2)
+    (c0, v0), (c1, v1) = points[i:i+2]
+    log_value = math.log(v0) + math.log(capacity/c0) * math.log(v1/v0) / math.log(c1/c0)
+    if capacity < points[0][0] or capacity > points[-1][0]:
+        end = points[0][1] if capacity < points[0][0] else points[-1][1]
+        log_value = min(math.log(2*end), max(math.log(.5*end), log_value))
+    return math.exp(log_value)
+
+
+def evaluate_targets(ref, targets):
+    """Read held-out quantities from the reference output, including boundary feeds."""
+    b = ref["balances"]
+    tea = {}
+    for name, t in targets.items():
+        quantity = t["quantity"]
+        if quantity.startswith("boundary_in:"):
+            got = ref.get("physics", {}).get("boundary", {}).get("in_t_per_t", {}).get(quantity.split(":", 1)[1])
+        else:
+            got = {"feed_t_per_t": b.get("key_feed_t_per_t"), "energy_GJ_per_t": b.get("energy_GJ_per_t"),
+                   "capex_usd_per_t_y": (b.get("capex_usd") or 0) / max(b.get("capacity_t_per_y") or 1, 1),
+                   "feed_share": ref["parts"].get("feed", 0) / ref["cost_usd_per_t"],
+                   "capital_share": ref["parts"].get("capital", 0) / ref["cost_usd_per_t"],
+                   "total_cost": ref["cost_usd_per_t"]}.get(quantity)
+        value = scaled_target(t, b.get("capacity_t_per_y"))
+        tea[name] = dict(model=got, target=value, tol=t["tol"],
+                         within=False if got is None else within(got, value, t["tol"]), source=t["source"])
+        if got is None:
+            tea[name]["reason"] = "not reported"
+        if "scale_curve" in t:
+            tea[name]["scaled_target"] = value
+            tea[name]["scale_curve"] = t["scale_curve"]
+    return tea
+
+
 def main(rx, runs):
     hold = json.loads((HERE / "holdout" / f"{rx}.json").read_text(encoding="utf-8"))
     recs = common_records(rx)
@@ -63,16 +107,7 @@ def main(rx, runs):
         a = json.loads(an_path.read_text(encoding="utf-8")) if an_path.exists() else {}
         ok = {k: v for k, v in costs.items() if math.isfinite(v)}
         cheapest = min(ok, key=ok.get) if ok else None
-        b = ref["balances"]
-        tea = {}
-        for name, t in hold.get("targets", {}).items():
-            got = {"feed_t_per_t": b.get("key_feed_t_per_t"), "energy_GJ_per_t": b.get("energy_GJ_per_t"),
-                   "capex_usd_per_t_y": (b.get("capex_usd") or 0) / max(b.get("capacity_t_per_y") or 1, 1),
-                   "feed_share": ref["parts"].get("feed", 0) / ref["cost_usd_per_t"],
-                   "capital_share": ref["parts"].get("capital", 0) / ref["cost_usd_per_t"],
-                   "total_cost": ref["cost_usd_per_t"]}.get(t["quantity"])
-            tea[name] = dict(model=got, target=t["value"], tol=t["tol"], within=None if got is None else within(got, t["value"], t["tol"]),
-                             source=t["source"])
+        tea = evaluate_targets(ref, hold.get("targets", {}))
         n_in = sum(1 for v in tea.values() if v["within"])
         far = [k for k, v in tea.items() if v["model"] is not None and not within(v["model"], v["target"], [x * 2 for x in v["tol"]] if isinstance(v["tol"], list) else v["tol"] * 2)]
         builds[str(run)] = dict(reference_cost=ref["cost_usd_per_t"], parts=ref["parts"], largest=max(ref["parts"], key=ref["parts"].get),
@@ -81,7 +116,7 @@ def main(rx, runs):
                                 spearman_vs_hand=spearmanr([ok[k] for k in ok], [hand[k] for k in ok]).statistic if len(ok) > 2 else None,
                                 tea=tea, tea_within=n_in, tea_n=len(tea), tea_far=far,
                                 tea_pass=(n_in >= hold["pass_rule"]["min_within"] and not far) if tea else None,
-                                # pass_rule text: pass = all within; partial = two within and none beyond twice the tolerance
+                                # pass_rule text generalized: all within / all but one within, none beyond twice tolerance
                                 tea_verdict=(None if not tea else "pass" if n_in == len(tea) else
                                              "partial" if n_in == len(tea) - 1 and not far else "fail"),
                                 attribution_share=a.get("attribution_share"),

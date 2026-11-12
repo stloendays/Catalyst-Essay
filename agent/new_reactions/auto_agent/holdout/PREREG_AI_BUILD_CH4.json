@@ -1,0 +1,40 @@
+{
+ "id": "AI-BUILD-CH4-V2",
+ "written": "2026-11-12T13:36:11",
+ "guidance": "docs/SUPERVISOR_FEEDBACK_2026-11-11.md and the supervisor's reply of 2026-11-11 (PDH first, then methanation, then NH3/MeOH blind tests; validation TEA held out; tolerances and the disagreement rule fixed in advance).",
+ "change_from_pdh": "build mode V2 (user decision 2026-11-12): the agent draws the process first (flowsheet.json with an 8-category checklist, submit_flowsheet) and may write model.py only afterwards; model energy and capital are sums over the flowsheet units; check_model adds a physics-consistency gate (element and mass balance, per-pass conversion <= equilibrium + 0.03 with NIST Shomate thermo, reaction heat, heat supply, isothermal minimum compression work, minimum separation work, unit-sum accounting). The three PDH builds keep their V1 results.",
+ "task": "runner.py --build ch4 --reaction 'CO2 methanation (CO2 + 4 H2 -> CH4 + 2 H2O)'",
+ "agent": {
+  "model": "gpt-5.5",
+  "route": "API-YES credential 邪修gpt",
+  "extraction_model": "gpt-5.5",
+  "max_turns": 110,
+  "n_target_papers": 12,
+  "n_max_downloads": 20,
+  "workspace": "D:/agent_runs/<run> (outside the repository); scripts restricted to relative paths"
+ },
+ "not_visible_to_the_agent": [
+  "agent/new_reactions/plant_models.py, plant_framework.py, configs/*, params*.json, SOURCES.md, results/*",
+  "auto_agent/holdout/*",
+  "the NCE repository and its PRs (url fragments audited)"
+ ],
+ "builds": "3 independent builds ch4_b1..b3 (separate workspaces); a build that fails check_model at finish or whose holdout audit finds a leak is invalid and replaced; every replacement is reported",
+ "diagnostic": "one PDH build with V2 (pdh_v2_d1) to see whether flowsheet-first closes the PDH energy gap; reported as a diagnostic, it does not replace or join the three V1 PDH builds",
+ "validation": "evaluate_builds.py against holdout/ch4.json (H2 and CO2 t/t +-5 %, purchased primary energy GJ/t +-35 %, capital per annual t -30/+50 % on the D5.9 scale curve at the build's capacity); pass/partial/fail as in pass_rule",
+ "agreement_rule": {
+  "per_conclusion": "largest cost item, controlling catalyst property, cheapest catalyst on the common record set (the 255 PR #122 CH4 records): robust = 3/3, majority = 2/3, model-dependent = no majority; all three builds reported",
+  "quantitative": "reference-cost spread max/min - 1 <= 20 % and every pairwise Spearman of record costs >= 0.8 is called consistent",
+  "primary_build": "the build with the median reference cost, fixed before the holdout comparison is looked at",
+  "selection": "no selection of builds by TEA fit"
+ },
+ "ledger": "stage_ledger.csv per build; human_log.csv (every human intervention with type and minutes)",
+ "frozen_sha256": {
+  "runner.py": "2886f29c8e6e403bfc8fb84615a988dd1cb915d8a7d32a52038ba0d3123507b8",
+  "build_mode.py": "421d23e2a15808a9b89eb7adfc098df182f5e3d50dab51252adc4736cf031a88",
+  "physics_gate.py": "814548b95353bb3b40aeae6a4450882a58e49edf5520799b87c703afc5ffe13c",
+  "full_mode.py": "ce8513f172a13a50122433ed4f03b9f97c299eb33deba7a3cceabf8b92a10f58",
+  "evaluate_builds.py": "069bcfc5563bc65a6770391e5a20e6dc45e0b9c895ccf2c37c7db59c630e6efb",
+  "audit_holdout.py": "78a29916adcc124bf4a90f2304f8c01577241ea6afec97f9646fda51fdcbd7a5",
+  "holdout/ch4.json": "c751b1623c2f886d8c5fa62b0735b85fccb12fcfa985d16243d3487b9ace340e"
+ }
+}
