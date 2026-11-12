@@ -6,6 +6,7 @@ Writes evaluation/<rxn>_builds.json and prints the preregistered verdicts.
 Usage: python evaluate_builds.py <rxn> <run_dir> [<run_dir> ...]
 """
 import importlib.util
+import csv
 import json
 import math
 import statistics as st
@@ -15,6 +16,7 @@ from itertools import combinations
 from pathlib import Path
 
 from scipy.stats import spearmanr
+import numpy as np
 
 HERE = Path(__file__).resolve().parent
 NR = HERE.parent
@@ -26,13 +28,47 @@ import plant_framework as fw  # noqa: E402
 def load_model(run):
     spec = importlib.util.spec_from_file_location(f"m{time.time_ns()}", Path(run) / "model.py")
     m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+    sys.path.insert(0, str(Path(run)))
+    prior = sys.modules.pop("atomic", None)
+    try:
+        if (Path(run) / "atomic.py").exists():
+            from atomic_layer import load_atomic
+            sys.modules["atomic"] = load_atomic(Path(run))
+        exec(compile((Path(run)/"model.py").read_text(encoding="utf-8"), str(Path(run)/"model.py"), "exec"), m.__dict__)
+    finally:
+        sys.path.pop(0)
+        sys.modules.pop("atomic", None)
+        if prior is not None:
+            sys.modules["atomic"] = prior
     return m
 
 
-def common_records(rx):
+def common_records(rx, runs=None):
     out = []
-    for r in an.load(rx):
+    try:
+        loaded = an.load(rx)
+    except (FileNotFoundError, KeyError):
+        if not runs:
+            raise
+        sets = []
+        for run in runs:
+            mapped = {}
+            with (Path(run) / "records.csv").open(encoding="utf-8") as fh:
+                for r in csv.DictReader(fh):
+                    if str(r.get("usable", "True")).lower() not in ("true", "1"):
+                        continue
+                    key = (r["paper"], "".join(r["catalyst"].lower().split()), round(float(r["T_K"])))
+                    def num(k, fallback=None):
+                        v = r.get(k, fallback)
+                        return None if v in (None, "", "None") else float(v)
+                    mapped[key] = dict(key="|".join(map(str, key)), paper=r["paper"], idx=int(r.get("idx", 0)),
+                        catalyst=r["catalyst"], T_K=num("T_K"), P_bar=num("P_bar"), X=num("X"), S=num("S"),
+                        r=num("r", r.get("r_kg_kg_h")), y_key=num("y_key"), y_cofeed=num("y_h2", r.get("y_cofeed")),
+                        t_cycle_h=num("t_cycle_h"), components=json.loads(r.get("elements", r.get("components", "[]"))))
+            sets.append(mapped)
+        shared = set.intersection(*(set(x) for x in sets))
+        return [sets[0][k] for k in sorted(shared)]
+    for r in loaded:
         out.append(dict(key=f"{r['paper']}#{r['idx']}", catalyst=r["catalyst"], T_K=r["T_K"], P_bar=r["P_bar"], X=r["X"], S=r["S"],
                         r=r["r_kg_kg_h"], y_key=r["y_key"], y_cofeed=r["y_h2"], t_cycle_h=r["t_cycle_h"],
                         components=[[c["element"], c["wt_pct"]] for c in r["components"]], rec=r["rec"]))
@@ -63,13 +99,40 @@ def scaled_target(target, capacity):
     return math.exp(log_value)
 
 
-def evaluate_targets(ref, targets):
+def evaluate_targets(ref, targets, run=None):
     """Read held-out quantities from the reference output, including boundary feeds."""
     b = ref["balances"]
     tea = {}
     for name, t in targets.items():
         quantity = t["quantity"]
-        if quantity.startswith("boundary_in:"):
+        if quantity == "atomic_optimum_D":
+            got = None
+            if run:
+                if "conditions" in t:
+                    from atomic_layer import load_atomic, descriptor_grid, optimum
+                    a = load_atomic(Path(run))
+                    got = optimum(a, descriptor_grid(a), t["conditions"])[0]["D"]
+                elif (Path(run) / "three_optima.json").exists():
+                    got = json.loads((Path(run) / "three_optima.json").read_text(encoding="utf-8"))["atomic_optimum"]["D"]
+        elif quantity == "atomic_opt_weaker_than_ref_eV":
+            got = None
+            if run and "conditions" in t:
+                from atomic_layer import load_atomic, descriptor_grid, optimum
+                a = load_atomic(Path(run))
+                d_opt = optimum(a, descriptor_grid(a), t["conditions"])[0]["D"]
+                d_ref = a.DESCRIPTORS.get(t["ref_metal"], {}).get("value")
+                sign = {"more_negative": 1.0, "more_positive": -1.0}.get(a.ATOMIC.get("stronger_binding"))
+                if d_ref is not None and sign is not None:
+                    got = sign * (float(d_opt) - float(d_ref))
+        elif quantity == "nh3_equiv_t_per_t":   # key feed + purchased furnace fuel as key-feed LHV equivalent
+            units = ref.get("physics", {}).get("units", [])
+            feed = ref.get("physics", {}).get("boundary", {}).get("in_t_per_t", {}).get(t.get("species", "NH3"))
+            got = None if feed is None else feed + sum(u.get("purchased_energy_GJ_per_t", 0) for u in units
+                                                      if u.get("type") == "furnace") / t.get("fuel_lhv_GJ_per_t", 18.6)
+        elif quantity == "fired_plus_power_GJ_per_t":
+            units = ref.get("physics", {}).get("units", [])
+            got = (b.get("energy_GJ_per_t") or 0) + sum(u.get("internal_fuel_GJ_per_t", 0) for u in units)
+        elif quantity.startswith("boundary_in:"):
             got = ref.get("physics", {}).get("boundary", {}).get("in_t_per_t", {}).get(quantity.split(":", 1)[1])
         else:
             got = {"feed_t_per_t": b.get("key_feed_t_per_t"), "energy_GJ_per_t": b.get("energy_GJ_per_t"),
@@ -78,8 +141,10 @@ def evaluate_targets(ref, targets):
                    "capital_share": ref["parts"].get("capital", 0) / ref["cost_usd_per_t"],
                    "total_cost": ref["cost_usd_per_t"]}.get(quantity)
         value = scaled_target(t, b.get("capacity_t_per_y"))
-        tea[name] = dict(model=got, target=value, tol=t["tol"],
-                         within=False if got is None else within(got, value, t["tol"]), source=t["source"])
+        tea[name] = dict(model=got, target=value, tol=t.get("tol"),
+                         within=False if got is None else abs(got-value) <= t["tol_abs"] if "tol_abs" in t else within(got, value, t["tol"]), source=t["source"])
+        if "tol_abs" in t:
+            tea[name]["tol_abs"] = t["tol_abs"]
         if got is None:
             tea[name]["reason"] = "not reported"
         if "scale_curve" in t:
@@ -88,11 +153,94 @@ def evaluate_targets(ref, targets):
     return tea
 
 
+def hidden_atomic_reference(run, hold):
+    """Report-only: signed reverse branch from harness internals, never agent-visible.
+
+Condition.logtof clips negative synthesis rates to -300. It cannot be negated
+to obtain decomposition. Solve the same quasi-equilibrium reduction on its
+physical reverse branch with nonnegative intermediate ratios instead.
+"""
+    try:
+        from scipy.optimize import brentq
+        from atomic_layer import load_atomic, descriptor_grid
+        root = NR.parents[1] / "provenance" / "nh3_final_1_2" / "source_harness"
+        spec = importlib.util.spec_from_file_location("hidden_nh3_reference", root / "harness_core.py")
+        hc = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = hc
+        spec.loader.exec_module(hc)
+        books = list(root.rglob("*.xlsx"))
+        if not books:
+            return dict(status="unavailable", reason="source_harness activity workbook absent; Condition.logtof clips negative synthesis flux, so it cannot directly give decomposition")
+        src = hc.parse_activity_workbook(books[0])
+        ctx = hc.KineticContext(src["fits"], src["median_freqs"], src["gasrec"], "gillespie_beattie", "ideal")
+        a = load_atomic(Path(run))
+        grid = descriptor_grid(a)
+        import yaml
+        cfg = yaml.safe_load((root / "configs" / "nh3_final_1_2.yaml").read_text(encoding="utf-8"))
+        hg = cfg["numerics"]["descriptor_grid_eV"]
+        lo, hi = max(float(grid[0]), float(hg["start"])), min(float(grid[-1]), float(hg["stop"]))
+        if lo >= hi:
+            raise ValueError("agent and harness descriptor ranges do not overlap")
+        grid = np.linspace(lo, hi, 201)
+        conds = [x["conditions"] for x in hold.get("targets", {}).values() if x.get("quantity") in ("atomic_optimum_D", "atomic_opt_weaker_than_ref_eV") and "conditions" in x]
+        if not conds:
+            conds = [json.loads((Path(run)/"three_optima.json").read_text(encoding="utf-8"))["atomic_optimum"]["conditions"]]
+        results = []
+        for cond in conds:
+            t, p = cond["T_K"], cond["p_bar"]
+            c = ctx.condition(t, p.get("N2", 0), p.get("H2", 0), p.get("NH3", 0))
+            def reverse_logtof(d):
+                g = {s: aa*d+bb for s, (aa, bb) in c.g_linear.items()}
+                exp = c._exp
+                qn = exp(-g["N2"]/c.kT)*c.pN2
+                qh = exp(-g["H"]/c.kT)*math.sqrt(c.pH2)
+                qa = exp(-(g["NH3"]-c.G_NH3_g_form)/c.kT)*c.pNH3
+                def ks(ts, rs, ps):
+                    top = max(g[ts], rs, ps)
+                    return c.pref*exp(-(top-rs)/c.kT), c.pref*exp(-(top-ps)/c.kT)
+                f2, r2 = ks("N-N", g["N2"], 2*g["N"])
+                f4, r4 = ks("N-H", g["N"]+g["H"], g["NH"])
+                f5, r5 = ks("NH-H", g["NH"]+g["H"], g["NH2"])
+                f6, r6 = ks("NH2-H", g["NH2"]+g["H"], g["NH3"])
+                if qh <= 0:
+                    raise ValueError("reverse reduction requires positive H2 seed pressure")
+                def ratios(j):
+                    z = (j+r6*qa)/(f6*qh)
+                    y = (j+r5*z)/(f5*qh)
+                    x = (j+r4*y)/(f4*qh)
+                    return x, y, z
+                # Ratios are affine in j: find the first physically admissible lower bound.
+                r0, r1 = np.array(ratios(0)), np.array(ratios(1))
+                slope = r1-r0
+                lower = max(-v/s for v, s in zip(r0, slope) if s > 0)
+                def balance(j):
+                    x = ratios(j)[0]
+                    return j-2*(f2*qn-r2*x*x)
+                if balance(0) <= 0:
+                    return -300.
+                j = brentq(lambda u: balance(lower*u), 0., 1., xtol=1e-13)*lower
+                x, y, z = ratios(j)
+                vacancy = 1/(1+qn+qh+qa+x+y+z)
+                # synthesis j counts NH3; one decomposition extent consumes two NH3.
+                return math.log10(max(-j*vacancy**2/2, 1e-300))
+            vals = [reverse_logtof(float(d)) for d in grid]
+            av = [a.logtof(float(d), t, p) for d in grid]
+            results.append(dict(conditions=cond, argmax_D=float(grid[int(np.argmax(vals))]),
+                spearman=float(spearmanr(av, vals).statistic), descriptor_range=[float(grid[0]), float(grid[-1])],
+                method="physical reverse branch of harness quasi-equilibrium reduction; ideal gas, Gillespie-Beattie reference; per overall decomposition extent"))
+        return dict(status="computed_report_only", results=results)
+    except Exception as exc:
+        return dict(status="unavailable", reason=f"{type(exc).__name__}: {exc}; no forward-clipped logtof used as decomposition proxy")
+
+
 def main(rx, runs):
     hold = json.loads((HERE / "holdout" / f"{rx}.json").read_text(encoding="utf-8"))
-    recs = common_records(rx)
-    cfg = fw.load(rx, "ours")
-    hand = {x["key"]: fw.cost(cfg, dict(x["rec"], xeq_lab=fw.lab_xeq(cfg, x["rec"]))) for x in recs}
+    recs = common_records(rx, runs)
+    try:
+        cfg = fw.load(rx, "ours")
+        hand = {x["key"]: fw.cost(cfg, dict(x["rec"], xeq_lab=fw.lab_xeq(cfg, x["rec"]))) for x in recs if "rec" in x}
+    except (FileNotFoundError, KeyError):
+        hand = {}
     builds = {}
     for run in runs:
         m = load_model(run)
@@ -107,20 +255,27 @@ def main(rx, runs):
         a = json.loads(an_path.read_text(encoding="utf-8")) if an_path.exists() else {}
         ok = {k: v for k, v in costs.items() if math.isfinite(v)}
         cheapest = min(ok, key=ok.get) if ok else None
-        tea = evaluate_targets(ref, hold.get("targets", {}))
+        allt = evaluate_targets(ref, hold.get("targets", {}), run)
+        tea = {k: v for k, v in allt.items() if not hold["targets"][k].get("group")}
+        grouped = {k: v for k, v in allt.items() if hold["targets"][k].get("group")}
         n_in = sum(1 for v in tea.values() if v["within"])
-        far = [k for k, v in tea.items() if v["model"] is not None and not within(v["model"], v["target"], [x * 2 for x in v["tol"]] if isinstance(v["tol"], list) else v["tol"] * 2)]
+        far = [k for k, v in tea.items() if v["model"] is not None and
+               (abs(v["model"]-v["target"]) > 2*v["tol_abs"] if "tol_abs" in v else
+                not within(v["model"], v["target"], [x * 2 for x in v["tol"]] if isinstance(v["tol"], list) else v["tol"] * 2))]
         builds[str(run)] = dict(reference_cost=ref["cost_usd_per_t"], parts=ref["parts"], largest=max(ref["parts"], key=ref["parts"].get),
                                 cheapest_common=cheapest, cheapest_catalyst=next((x["catalyst"] for x in recs if x["key"] == cheapest), None),
                                 n_costed=len(ok), top_attribution=max(a.get("attribution_share", {"?": 0}), key=a.get("attribution_share", {"?": 0}).get),
-                                spearman_vs_hand=spearmanr([ok[k] for k in ok], [hand[k] for k in ok]).statistic if len(ok) > 2 else None,
+                                spearman_vs_hand=spearmanr([ok[k] for k in ok if k in hand], [hand[k] for k in ok if k in hand]).statistic if len(set(ok) & set(hand)) > 2 else None,
                                 tea=tea, tea_within=n_in, tea_n=len(tea), tea_far=far,
                                 tea_pass=(n_in >= hold["pass_rule"]["min_within"] and not far) if tea else None,
                                 # pass_rule text generalized: all within / all but one within, none beyond twice tolerance
                                 tea_verdict=(None if not tea else "pass" if n_in == len(tea) else
                                              "partial" if n_in == len(tea) - 1 and not far else "fail"),
+                                group_targets=grouped,
                                 attribution_share=a.get("attribution_share"),
                                 costs=costs)
+        if hold.get("hidden_reference", {}).get("atomic") == "nh3_harness_decomposition":
+            builds[str(run)]["hidden_atomic_reference"] = hidden_atomic_reference(run, hold)
     keys = list(builds)
     pair = {}
     for a_, b_ in combinations(keys, 2):
@@ -142,6 +297,7 @@ def main(rx, runs):
     median_build = sorted(keys, key=lambda k: builds[k]["reference_cost"])[len(keys) // 2]
     out = dict(rxn=rx, builds={k: {kk: vv for kk, vv in v.items() if kk != "costs"} for k, v in builds.items()},
                agreement=concl, primary_build_median_reference=median_build, holdout_pass_rule=hold["pass_rule"])
+    out["common_record_count"] = len(recs)
     (HERE / "evaluation").mkdir(exist_ok=True)
     (HERE / "evaluation" / f"{rx}_builds.json").write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
     print(json.dumps(out, indent=1, default=str)[:6000])

@@ -105,13 +105,16 @@ from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
 from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
 from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
-from build_mode import AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, STAGES, BuildMixin  # noqa: E402
+from build_mode import AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, STAGES, BuildMixin, ATOMIC_TOOLS, ATOMIC_PROMPT  # noqa: E402
 NUS_LOCK = HERE / "nus.lock"
 
 
 class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None):
+                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None, atomic=False):
+        if atomic and not build:
+            raise ValueError("--atomic requires --build")
+        self.atomic = atomic
         self.build = build
         self.ws = (AGENT_ROOT / name) if build else (HERE / "runs" / name)   # build runs live outside the repository
         for d in ("pdf", "ocr", "extracted", "scripts"):
@@ -402,8 +405,12 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         elif self.build:
             instructions = METHOD_BUILD.format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
                                                n_max=self.n_max, max_turns=self.max_turns)
+            if self.atomic:
+                instructions += ATOMIC_PROMPT
             keep = ("search_papers", "screen_papers", "download_papers", "ocr_papers", "extract_papers", "read_file", "write_file", "finish")
             tools = BUILD_TOOLS + [t for t in FULL_TOOLS + TOOLS if t.get("name") in keep and t.get("type") == "function"]
+            if self.atomic:
+                tools += ATOMIC_TOOLS
             tools = list({t.get("name", t["type"]): t for t in tools}.values()) + [t for t in TOOLS if t.get("name") == "run_python"]
         elif self.lean:
             self.setup_lean(self.lean)
@@ -450,7 +457,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             for c in calls:
                 args = json.loads(c.arguments or "{}")
                 t = time.time()
-                if c.name == "finish" and self.full and not self.lean and critic_rounds < 2:
+                if c.name == "finish" and self.build and self.build_finish_errors():
+                    out_s = "NOT FINISHED: " + json.dumps(self.build_finish_errors())
+                elif c.name == "finish" and self.full and not self.lean and not self.build and critic_rounds < 2:
                     critic_rounds += 1
                     res = sg.critique(self, critic_rounds)
                     major = [i for i in res["issues"] if i["severity"] == "major"]
@@ -506,5 +515,8 @@ if __name__ == "__main__":
     ap.add_argument("--extract-model", default="gpt-5.6-sol")
     ap.add_argument("--lean", default=None, help="pdh|ch4|nh3dec|rwgs|etoh: lean autonomous run with the fixed plant model")
     ap.add_argument("--build", default=None, help="pdh|ch4|nh3|meoh: the agent builds the plant model itself (workspace D:/agent_runs)")
+    ap.add_argument("--atomic", action="store_true", help="with --build: literature-built atomic model and three optima")
     a = ap.parse_args()
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build).run()
+    if a.atomic and not a.build:
+        ap.error("--atomic requires --build")
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build, a.atomic).run()

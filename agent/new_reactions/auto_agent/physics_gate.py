@@ -9,6 +9,12 @@ from pathlib import Path
 from scipy.optimize import brentq
 
 R = 8.314462618
+COMPRESSOR_MAX_ISOTHERMAL = 2.5  # Maximum shaft work relative to reversible isothermal work.
+MIN_PRIMARY_EFFICIENCY = .30  # Minimum primary-energy-to-shaft conversion efficiency.
+BOUNDARY_STATE_RTOL = .01  # Boundary inlet pressure and temperature agreement.
+EXOTHERMIC_PREHEAT_FRACTION = .05  # Purchased preheat fraction requiring external evidence.
+COMPRESSOR_CAPEX_PER_KW = (200, 8000)  # Installed compressor capital per shaft kW.
+FURNACE_CAPEX_PER_KW = (50, 3000)  # Installed furnace capital per purchased-duty kW.
 T0 = 298.15
 # NIST Chemistry WebBook SRD 69, gas phase thermochemistry, SI units:
 # https://webbook.nist.gov/cgi/cbook.cgi?ID=C<CAS digits>&Units=SI&Mask=1
@@ -271,7 +277,7 @@ def check_flowsheet(path):
     return failures
 
 
-def check_physics(model_module, out, flowsheet):
+def check_physics(model_module, out, flowsheet, basis=None):
     """Check one output, failing closed on malformed/missing/nonfinite physical fields."""
     failures = []
 
@@ -355,6 +361,9 @@ def check_physics(model_module, out, flowsheet):
             power = _number(u["power_GJ_per_t"], 0)
             require(power + 1e-10 >= wmin, f"compressor power below isothermal minimum {wmin:g}")
             require(energy + 1e-10 >= power, "compressor purchased energy below power")
+            if basis is not None:
+                require(power <= COMPRESSOR_MAX_ISOTHERMAL * wmin + 1e-10, "compressor_upper: power exceeds 2.5 times isothermal minimum")
+                require(energy <= power / MIN_PRIMARY_EFFICIENCY + 1e-10, "compressor_upper: purchased energy exceeds power / 0.30")
         elif typ == "separation":
             def stream(s):
                 n = _number(s["kmol_per_t"], 0)
@@ -399,4 +408,45 @@ def check_physics(model_module, out, flowsheet):
         for u in units:
             require(u["type"] == types[u["name"]], f"unit {u['name']} type differs from flowsheet")
     check("flowsheet_consistency", consistency)
+    if basis is not None:
+        def boundary_states():
+            feeds = basis["feeds"]
+            for stream in flowsheet["streams"]:
+                if stream["from"] == "boundary":
+                    require(set(stream["species"]) <= set(feeds), "boundary species absent from basis feeds")
+                    for u in units:
+                        if u["name"] == stream["to"] and u["type"] == "compressor":
+                            for sp in stream["species"]:
+                                for field, uf in (("P_bar", "P_in_bar"), ("T_K", "T_in_K")):
+                                    v = feeds[sp][field]["value"]
+                                    require(abs(u[uf] - v) <= BOUNDARY_STATE_RTOL * abs(v), f"boundary_feed_state: {u['name']} {sp} {uf} differs from basis")
+        check("boundary_feed_state", boundary_states)
+        def preheat():
+            duty = reactor["heat_duty_GJ_per_t"]
+            bought = sum(u["purchased_energy_GJ_per_t"] for u in units if u["type"] == "furnace")
+            if duty < 0 and bought > EXOTHERMIC_PREHEAT_FRACTION * abs(duty):
+                from_basis = basis.get("purchased_preheat_reason") or {}
+                require(from_basis.get("type") in ("measured", "published"), "exothermic reactor buys preheat")
+                try:
+                    from .basis_gate import evidence
+                except ImportError:
+                    from basis_gate import evidence
+                evidence(from_basis)
+        check("exothermic_preheat", preheat)
+        def capital():
+            hours = _number(basis["operating_hours_per_y"]["value"], positive=True)
+            capacity = _number(basis["capacity_t_per_y"]["value"], positive=True)
+            require(abs(out["balances"]["capacity_t_per_y"] - capacity) <= .01 * capacity, "capacity differs from basis")
+            for u in units:
+                if u["type"] not in ("compressor", "furnace"):
+                    continue
+                duty = u["power_GJ_per_t"] if u["type"] == "compressor" else u["purchased_energy_GJ_per_t"]
+                kw = duty * capacity / hours / .0036
+                if kw <= 0:
+                    require(u["capex_usd"] == 0, "nonzero equipment capital at zero power")
+                    continue
+                ratio = u["capex_usd"] / kw
+                lo, hi = COMPRESSOR_CAPEX_PER_KW if u["type"] == "compressor" else FURNACE_CAPEX_PER_KW
+                require(lo <= ratio <= hi, f"capital_plausibility: {u['name']} {ratio:g} USD/kW outside [{lo}, {hi}]")
+        check("capital_plausibility", capital)
     return failures

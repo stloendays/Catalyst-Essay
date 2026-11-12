@@ -146,6 +146,8 @@ def validate():
     assert any("no thermo data for He" in f for f in check_physics(mod, unknown, flow))
     print("Additional checks: PASS (formula parser, flowsheet graph, compressor, separation, missing thermo)")
     validate_build_integration(mod, out, flow)
+    from tests_v3.validate_v3 import validate_upper_bounds
+    validate_upper_bounds(mod, out, flow)
     outside = [label for label, _, _, _, ok in rows if not ok]
     if outside:
         print("Outside literature windows (fixed thermo retained): " + "; ".join(outside), flush=True)
@@ -160,6 +162,7 @@ def validate_build_integration(model, out, flow):
         def __init__(self, ws):
             self.ws, self.events, self.tok = ws, [], {}
             self.setup_build("toy", {})
+            self.build_version = "V2-flowsheet-physics"  # Explicit legacy workspace compatibility test.
 
         def log(self, event):
             self.events.append(event)
@@ -180,7 +183,7 @@ def validate_build_integration(model, out, flow):
 
     with tempfile.TemporaryDirectory(prefix="physics-build-") as tmp:
         h = Harness(Path(tmp))
-        assert h.events[0] == {"build_mode_version": "V2-flowsheet-physics"}
+        assert h.events[0] == {"build_mode_version": "V3-five-layer"}
         assert "draw the flowsheet first" in h.b_write_file("./model.py", "x")
         assert "draw the flowsheet first" in h.b_run_python("x", "open('model.py')", 1)
         assert "flowsheet" in json.loads(h.b_check_model())["failures"]

@@ -27,6 +27,27 @@ def audit(run_dir, rxn):
         if p.exists():
             texts.append((f, p.read_text(encoding="utf-8", errors="replace").lower()))
     hits = []
+    for p in run.rglob("*"):
+        if not p.is_file() or p.name == "holdout_audit.json" or "__pycache__" in p.parts:
+            continue
+        name = str(p.relative_to(run))
+        if __import__("re").match(r".*_builds\.json", p.name.lower()):
+            hits.append(dict(where=name, match="evaluation output filename"))
+        if p.name != "trace.jsonl":
+            try:
+                if "holdout" in p.read_text(encoding="utf-8").lower():
+                    hits.append(dict(where=name, match="holdout string in workspace file"))
+            except (UnicodeError, OSError):
+                pass
+        else:
+            for line in p.read_text(encoding="utf-8").splitlines():
+                entry = json.loads(line)
+                # System logging/download-block entries and tool definitions are not agent-written content.
+                args = entry.get("args", {})
+                if entry.get("tool") in ("write_file", "run_python") and "holdout" in json.dumps(args).lower():
+                    hits.append(dict(where="trace agent content", match="holdout"))
+                if "holdout" in str(entry.get("message", "")).lower():
+                    hits.append(dict(where="trace agent message", match="holdout"))
     for where, t in texts:
         for n in needles:
             if n and n in t:
