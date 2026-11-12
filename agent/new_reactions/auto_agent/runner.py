@@ -111,7 +111,7 @@ NUS_LOCK = HERE / "nus.lock"
 
 class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.5", lean=None, build=None):
+                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None):
         self.build = build
         self.ws = (AGENT_ROOT / name) if build else (HERE / "runs" / name)   # build runs live outside the repository
         for d in ("pdf", "ocr", "extracted", "scripts"):
@@ -132,7 +132,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             self.extract_router = llm_route.Router(extract_model)   # API-YES first, then the advisor key
 
             def probe(client):
-                for _ in client.responses.create(model=extract_model, input="Reply with OK.", store=False, stream=True,
+                for _ in client.responses.create(model=extract_model, input=[{"role": "user", "content": "Reply with OK."}], store=False, stream=True,
                                                  max_output_tokens=16):
                     pass
                 return client._route
@@ -503,7 +503,7 @@ if __name__ == "__main__":
     ap.add_argument("--full", action="store_true", help="complete autonomous run from the reaction name")
     ap.add_argument("--n-target", type=int, default=12)
     ap.add_argument("--n-max", type=int, default=20)
-    ap.add_argument("--extract-model", default="gpt-5.5")
+    ap.add_argument("--extract-model", default="gpt-5.6-sol")
     ap.add_argument("--lean", default=None, help="pdh|ch4|nh3dec|rwgs|etoh: lean autonomous run with the fixed plant model")
     ap.add_argument("--build", default=None, help="pdh|ch4|nh3|meoh: the agent builds the plant model itself (workspace D:/agent_runs)")
     a = ap.parse_args()

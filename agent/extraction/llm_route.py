@@ -15,8 +15,11 @@ from pathlib import Path
 API_YES_URL = "http://127.0.0.1:8788/v1"
 API_YES_CONFIG = Path.home() / "AppData" / "Roaming" / "api-yes" / "api-yes.json"
 HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Catalyst_Economic_Leverage_Automation_Harness_v0.1"), "agent")
-XIEXIU_CREDENTIAL = "4626141b-2c5d-4933-8fef-f38fec7160af"   # API-YES credential "邪修gpt" (user, 2026-11-11: use this key)
-ROUTES = ("api-yes-xiexiu", "api-yes", "advisor-openai")
+PERSONAL_CREDENTIAL = "69d4b1ee-f6fe-4fe3-ac95-75e3f539fbfa"  # API-YES credential "GPT-个人" (user, 2026-11-13: use gpt-5.6 from it)
+XIEXIU_CREDENTIAL = "4626141b-2c5d-4933-8fef-f38fec7160af"   # API-YES credential "邪修gpt" (user, 2026-11-11)
+CREDENTIAL_ROUTES = {"api-yes-personal": PERSONAL_CREDENTIAL, "api-yes-xiexiu": XIEXIU_CREDENTIAL}
+ROUTES = ("api-yes-personal", "api-yes-xiexiu", "api-yes", "advisor-openai")
+DEFAULT_MODEL = "gpt-5.6-sol"   # served by GPT-个人 (ChatGPT account: list input only); 邪修gpt serves plain "gpt-5.6"
 EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "not supported", "余额", "额度", "用完")
 
 
@@ -43,8 +46,8 @@ def api_yes_key(model: str, credential: str | None = None) -> str | None:
 def make_client(route: str, model: str):
     """An OpenAI client for `route`, or None if that route cannot serve `model` right now."""
     import openai
-    if route == "api-yes-xiexiu":
-        key = api_yes_key(model, XIEXIU_CREDENTIAL)
+    if route in CREDENTIAL_ROUTES:
+        key = api_yes_key(model, CREDENTIAL_ROUTES[route])
         if key is None:
             return None
         client = openai.OpenAI(api_key=key, base_url=API_YES_URL, timeout=1800)
@@ -80,7 +83,7 @@ def is_exhausted(err: Exception) -> bool:
 class Router:
     """Hands out the current client and moves to the next route when the current one is exhausted."""
 
-    def __init__(self, model: str, start: str = "api-yes-xiexiu"):
+    def __init__(self, model: str, start: str = ROUTES[0]):
         self.model = model
         self.order = list(ROUTES[ROUTES.index(start):])
         self.client = None

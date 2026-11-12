@@ -60,7 +60,7 @@ def process(rx):
     router = llm_route.Router("gpt-5.5")
 
     def probe(client):        # API-YES lists gpt-5.5 but refuses it: move to the route that serves it before the parallel calls
-        for _ in client.responses.create(model="gpt-5.5", input="Reply with OK.", store=False, stream=True, max_output_tokens=16):
+        for _ in client.responses.create(model="gpt-5.5", input=[{"role": "user", "content": "Reply with OK."}], store=False, stream=True, max_output_tokens=16):
             pass
         return client._route
     print("extraction route", router.call(probe), flush=True)
