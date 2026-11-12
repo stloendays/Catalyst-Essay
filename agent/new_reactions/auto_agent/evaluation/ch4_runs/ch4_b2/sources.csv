@@ -1,0 +1,46 @@
+parameter,value,unit,source,location,type,low,high
+plant_capacity,50000,t CH4/y,assumption,Reference commercial e-methane module size selected for catalyst comparison rather than copied from a plant,assumption,10000,200000
+stream_factor,0.90,fraction,assumption,Typical continuous chemical plant onstream fraction used for screening,assumption,0.80,0.95
+plant_life,20,y,assumption,Economic life for discounted annualization,assumption,15,30
+capital_recovery_factor,0.10,1/y,assumption,Approximate CRF including cost of capital and depreciation for screening,assumption,0.07,0.15
+h2_price,2.0,USD/kg,https://www.energy.gov/documents/hydrogen-shot-introduction-0,DOE Hydrogen Shot page states target to reduce clean hydrogen cost to $1 per 1 kilogram in one decade; base uses nearer-term delivered low-carbon assumption above target,published,1.0,5.0
+co2_price,50,USD/t,https://www.energy.gov/sites/default/files/2021-06/2019%20-%20Meeting%20the%20Dual%20Challenge%20Vol%20II%20Chapter%202.pdf,NPC Meeting the Dual Challenge Vol II Chapter 2 describes CO2 capture transport and storage cost curves in dollars per tonne CO2; base is low-purity-source delivered CO2 screening assumption,published,20,150
+electricity_price,0.0938,USD/kWh,https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_06_a,EIA Electric Power Monthly Table 5.6.A August 2026 United States industrial average price in cents per kWh,published,0.05,0.18
+primary_energy_factor_electricity,3.0,GJ primary/GJ electricity,assumption,Approximate grid primary energy conversion factor for reporting purchased primary energy,assumption,2.0,3.5
+fuel_price,6.0,USD/GJ,assumption,Screening price for natural gas or purchased heat where trim firing is required,assumption,3.0,12.0
+reactor_pressure_default,20,bar,assumption,Industrial methanation loop pressure when lab pressure is missing or near-atmospheric,assumption,5,30
+reactor_pressure_max,30,bar,assumption,Upper pressure bound for moderate-pressure methanation equipment,assumption,10,60
+product_pressure,30,bar,assumption,Pipeline injection/delivery pressure target for methane product,assumption,10,70
+feed_inlet_pressure,1,bar,assumption,Fresh gas delivery boundary pressure before plant compression,assumption,1,10
+compressor_efficiency,0.72,fraction,assumption,Adiabatic/isothermal-equivalent efficiency for screening compressors,assumption,0.60,0.85
+recycle_pressure_drop_fraction,0.10,fraction,assumption,Loop/separation pressure drop fraction restored by recycle compressor,assumption,0.03,0.20
+membrane_pressure_drop_fraction,0.10,fraction,assumption,Pressure drop through purification block,assumption,0.03,0.20
+purge_fraction,0.02,fraction of unreacted gas,assumption,Small purge to prevent inert/byproduct accumulation in recycle loop,assumption,0.005,0.08
+methane_recovery,1.0,fraction,assumption,Idealized methane recovery to product to keep catalyst ranking focused on conversion/selectivity/activity,assumption,0.98,0.999
+feed_effluent_HX_effectiveness,0.70,fraction,assumption,Gas-gas exchanger effectiveness for feed preheat screening,assumption,0.50,0.85
+minimum_per_pass_conversion,0.03,fraction,assumption,Lower optimization bound to avoid unrealistic infinite recycle,assumption,0.01,0.10
+maximum_process_conversion,0.90,fraction,assumption,Upper single-pass conversion bound before hot-spot and equilibrium risk dominate,assumption,0.70,0.97
+approach_margin,0.98,fraction of equilibrium,assumption,Maximum allowed fraction of estimated equilibrium conversion,assumption,0.90,0.995
+reactor_base_capex,12000000,USD,assumption,Installed cooled fixed-bed reactor island at reference scale,assumption,5000000,30000000
+compressor_base_capex,3000000,USD,assumption,Installed compression allowance at reference scale,assumption,1000000,10000000
+separation_base_capex,8000000,USD,assumption,Installed membrane/dryer/knockout purification allowance at reference scale,assumption,3000000,20000000
+heat_exchanger_base_capex,4000000,USD,assumption,Installed heat recovery/cooling/trim heater allowance at reference scale,assumption,1000000,12000000
+offsites_fraction,0.25,fraction of ISBL capex,assumption,Offsites/utilities fraction of inside-battery-limits installed capital,assumption,0.10,0.50
+scaling_exponent,0.65,dimensionless,assumption,Six-tenths style scaling exponent for installed equipment costs,assumption,0.55,0.75
+reference_capacity_for_capex,50000,t CH4/y,assumption,Base capacity for equipment-cost scaling,assumption,25000,100000
+support_catalyst_price,20,USD/kg,assumption,Prepared support and catalyst manufacture cost excluding expensive metals,assumption,5,100
+nickel_price,17.26,USD/kg,https://www.imarcgroup.com/nickel-pricing-report,IMARC September 2026 North America nickel price summary reports USD 17.26/kg,published,10,30
+cobalt_price,35,USD/kg,https://www.usgs.gov/publications/mineral-commodity-summaries-2026,USGS Mineral Commodity Summaries 2026 cobalt chapter gives 5-year salient statistics and prices; rounded screening value,assumption,20,80
+iron_price,1,USD/kg,assumption,Bulk iron oxide/iron salt contribution negligible compared with catalyst fabrication,assumption,0.5,5
+magnesium_price,4,USD/kg,assumption,Bulk magnesium compound contribution screening value,assumption,1,10
+ruthenium_price,61093,USD/kg,https://matthey.com/products-and-markets/pgms-and-circularity/pgm-management,Johnson Matthey PGM prices table on 12 Nov 2026 lists Ruthenium $1900 per troy ounce converted to $61093/kg,published,30000,120000
+rhodium_price,299000,USD/kg,https://matthey.com/products-and-markets/pgms-and-circularity/pgm-management,Johnson Matthey PGM prices table on 12 Nov 2026 lists Rhodium $9300 per troy ounce converted to about $299000/kg,published,150000,500000
+platinum_price,49961,USD/kg,https://matthey.com/products-and-markets/pgms-and-circularity/pgm-management,Johnson Matthey PGM prices table on 12 Nov 2026 lists Platinum $1554 per troy ounce converted to $49961/kg,published,25000,90000
+palladium_price,33661,USD/kg,https://matthey.com/products-and-markets/pgms-and-circularity/pgm-management,Johnson Matthey PGM prices table on 12 Nov 2026 lists Palladium $1047 per troy ounce converted to $33661/kg,published,15000,80000
+catalyst_life_default,2.0,y,assumption,Default replacement life for records without time-on-stream data,assumption,0.5,5.0
+catalyst_installation_factor,1.5,dimensionless,assumption,Catalyst loading; disposal; activation and make-up multiplier,assumption,1.1,3.0
+reactor_heat_of_methanation,-0.180,GJ/kmol CH4,assumption,Fixed model thermochemistry approximation for CO2 + 4H2 to CH4 + 2H2O at screening conditions,assumption,-0.190,-0.165
+rwgs_heat,0.041,GJ/kmol CO,assumption,Heat for side CO formation CO2+H2 to CO+H2O at screening conditions,assumption,0.035,0.045
+cooling_energy_fraction,0.01,GJ purchased/GJ heat removed,assumption,Auxiliary cooling power per heat removed,assumption,0.003,0.03
+separation_energy,0.15,GJ/t CH4,assumption,Membrane/vacuum/drying auxiliary energy for methane purification,assumption,0.05,0.5
+other_om_fraction,0.04,fraction of capex/y,assumption,Maintenance labor and overhead as annual fraction of installed capital,assumption,0.02,0.08

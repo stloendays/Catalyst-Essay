@@ -1,0 +1,50 @@
+{
+  "units": [
+    {"name": "CO2 feed compressor", "type": "compressor", "purpose": "Pressurise fresh CO2 feed from battery limit to reactor loop pressure.", "inlets": ["fresh CO2"], "outlets": ["compressed CO2"]},
+    {"name": "H2 feed compressor", "type": "compressor", "purpose": "Pressurise fresh hydrogen feed from battery limit to reactor loop pressure.", "inlets": ["fresh H2"], "outlets": ["compressed H2"]},
+    {"name": "Feed mixer", "type": "other", "purpose": "Mix compressed fresh feeds with recycle gas to the reactor stoichiometric feed ratio.", "inlets": ["compressed CO2", "compressed H2", "recycle gas compressed"], "outlets": ["mixed feed"]},
+    {"name": "Feed effluent heat exchanger", "type": "heat_exchanger", "purpose": "Recover hot reactor effluent sensible heat to preheat mixed reactor feed.", "inlets": ["mixed feed", "hot reactor effluent"], "outlets": ["preheated feed", "partly cooled effluent"]},
+    {"name": "Trim feed heater", "type": "furnace", "purpose": "Add any remaining heat needed to reach catalyst inlet temperature during startup or low heat-recovery operation.", "inlets": ["preheated feed"], "outlets": ["reactor feed"]},
+    {"name": "Methanation reactor", "type": "reactor", "purpose": "Cooled packed-bed catalytic reactor converting CO2 and H2 to methane and water; catalyst inventory is set by literature activity and conversion target is limited by equilibrium.", "inlets": ["reactor feed"], "outlets": ["hot reactor effluent"]},
+    {"name": "Reactor heat recovery", "type": "heat_exchanger", "purpose": "Remove the exothermic methanation heat from the reactor by generating steam from boiler feed water; thermal coupling to the reactor is represented in the model duty.", "inlets": ["boiler feed water"], "outlets": ["export steam"]},
+    {"name": "Product cooler condenser", "type": "knockout", "purpose": "Cool reacted gas below its dew point and condense liquid water produced by methanation.", "inlets": ["partly cooled effluent"], "outlets": ["dry gas", "condensed water"]},
+    {"name": "Gas separation", "type": "separation", "purpose": "Separate methane product from unreacted H2 and CO2 and carbon monoxide byproduct; recover unreacted reactants for recycle and reject a purge.", "inlets": ["dry gas"], "outlets": ["raw methane product", "recycle gas", "purge gas"]},
+    {"name": "Recycle compressor", "type": "compressor", "purpose": "Restore pressure lost through the reactor, coolers and separator for the recycle gas.", "inlets": ["recycle gas"], "outlets": ["recycle gas compressed"]},
+    {"name": "Product compressor", "type": "compressor", "purpose": "Compress methane product from separation pressure to pipeline delivery pressure.", "inlets": ["raw methane product"], "outlets": ["pipeline methane"]},
+    {"name": "Utilities and offsites", "type": "offsites", "purpose": "Cooling water, steam system, controls, flare/vent handling and plant infrastructure supporting all process units.", "inlets": ["condensed water", "purge gas", "export steam"], "outlets": ["waste water", "vent", "utility condensate"]}
+  ],
+  "streams": [
+    {"name": "fresh CO2", "from": "boundary", "to": "CO2 feed compressor", "species": ["CO2"]},
+    {"name": "fresh H2", "from": "boundary", "to": "H2 feed compressor", "species": ["H2"]},
+    {"name": "compressed CO2", "from": "CO2 feed compressor", "to": "Feed mixer", "species": ["CO2"]},
+    {"name": "compressed H2", "from": "H2 feed compressor", "to": "Feed mixer", "species": ["H2"]},
+    {"name": "recycle gas compressed", "from": "Recycle compressor", "to": "Feed mixer", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "mixed feed", "from": "Feed mixer", "to": "Feed effluent heat exchanger", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "preheated feed", "from": "Feed effluent heat exchanger", "to": "Trim feed heater", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "reactor feed", "from": "Trim feed heater", "to": "Methanation reactor", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "hot reactor effluent", "from": "Methanation reactor", "to": "Feed effluent heat exchanger", "species": ["CO2", "H2", "CH4", "H2O", "CO"]},
+    {"name": "boiler feed water", "from": "boundary", "to": "Reactor heat recovery", "species": ["H2O"]},
+    {"name": "export steam", "from": "Reactor heat recovery", "to": "Utilities and offsites", "species": ["H2O"]},
+    {"name": "partly cooled effluent", "from": "Feed effluent heat exchanger", "to": "Product cooler condenser", "species": ["CO2", "H2", "CH4", "H2O", "CO"]},
+    {"name": "dry gas", "from": "Product cooler condenser", "to": "Gas separation", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "condensed water", "from": "Product cooler condenser", "to": "Utilities and offsites", "species": ["H2O"]},
+    {"name": "raw methane product", "from": "Gas separation", "to": "Product compressor", "species": ["CH4"]},
+    {"name": "recycle gas", "from": "Gas separation", "to": "Recycle compressor", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "purge gas", "from": "Gas separation", "to": "Utilities and offsites", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "pipeline methane", "from": "Product compressor", "to": "boundary", "species": ["CH4"]},
+    {"name": "waste water", "from": "Utilities and offsites", "to": "boundary", "species": ["H2O"]},
+    {"name": "vent", "from": "Utilities and offsites", "to": "boundary", "species": ["CO2", "H2", "CH4", "CO"]},
+    {"name": "utility condensate", "from": "Utilities and offsites", "to": "boundary", "species": ["H2O"]}
+  ],
+  "checklist": {
+    "feed_preparation": {"included": ["CO2 feed compressor", "H2 feed compressor", "Feed mixer", "Feed effluent heat exchanger", "Trim feed heater"]},
+    "reactor_heat_supply_or_removal": {"included": ["Methanation reactor", "Reactor heat recovery", "Product cooler condenser"]},
+    "catalyst_regeneration": {"excluded": "Methanation catalysts in the screened literature are operated as reduced fixed-bed catalysts; no periodic oxidative regeneration chemistry is part of the continuous plant, so catalyst decay is represented by replacement and cycle-average activity rather than an in-situ regeneration unit."},
+    "product_compression": {"included": ["Product compressor"]},
+    "separation_and_purification": {"included": ["Product cooler condenser", "Gas separation"]},
+    "recycle": {"included": ["Gas separation", "Recycle compressor", "Feed mixer"]},
+    "heat_recovery": {"included": ["Feed effluent heat exchanger", "Reactor heat recovery"]},
+    "utilities_and_offsites": {"included": ["Utilities and offsites"]}
+  },
+  "diagram": "flowchart LR\n  CO2[Fresh CO2] --> C1[CO2 feed compressor]\n  H2[Fresh H2] --> C2[H2 feed compressor]\n  C1 --> M[Feed mixer]\n  C2 --> M\n  RC[Recycle compressor] --> M\n  M --> HX[Feed-effluent heat exchanger]\n  HX --> TH[Trim feed heater]\n  TH --> R[Methanation reactor]\n  R --> HX\n  BFW[Boiler feed water] --> WHB[Reactor heat recovery]\n  WHB --> U[Utilities/offsites]\n  HX --> KO[Product cooler condenser]\n  KO --> SEP[Gas separation]\n  KO --> W[Waste water]\n  SEP --> RC\n  SEP --> PC[Product compressor]\n  PC --> P[Pipeline methane]\n  SEP --> U"
+}
