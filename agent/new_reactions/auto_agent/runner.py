@@ -433,6 +433,8 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         self.log({"start": self.reaction, "model": self.model})
         summary = None
         for turn in range(self.max_turns):
+            if self.build:
+                compact_history(items, keep_last=KEEP_FULL_TURNS)
             if turn == self.max_turns - 8:
                 items.append({"role": "user", "content": "Eight tool turns left: write report.md now and finish."})
             out, text, final = self.respond(items, instructions, tools, effort="medium")
@@ -499,6 +501,34 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             self.write_report(decision=summary or "")
         self.log({"end": summary})
         print(json.dumps(json.loads((self.ws / "ledger.json").read_text()), indent=1))
+
+
+_COMPACTED = set()
+KEEP_FULL_TURNS = 60   # amendment A2 (2026-11-13): older tool outputs / long tool arguments are compacted in the resent history
+
+
+def compact_history(items, keep_last=KEEP_FULL_TURNS):
+    """Generic context compaction for long build runs (history is resent every turn with store=False): tool outputs and long
+    tool arguments (file contents, code) older than the last `keep_last` tool calls are cut to a short head. The full text stays
+    in the workspace files and trace.jsonl; the agent can re-read any file."""
+    calls = [i for i, it in enumerate(items) if isinstance(it, dict) and it.get("type") in ("function_call_output", "function_call")]
+    old = set(calls[:-2 * keep_last]) if len(calls) > 2 * keep_last else set()
+    for i in old:
+        it = items[i]
+        if id(it) in _COMPACTED:
+            continue
+        if it["type"] == "function_call_output" and len(it.get("output", "")) > 600:
+            it["output"] = it["output"][:500] + " ...[older output compacted; re-run the tool or read the file]"
+        elif it["type"] == "function_call" and len(it.get("arguments", "")) > 1500:
+            try:
+                a = json.loads(it["arguments"])
+                for k, v in list(a.items()):
+                    if isinstance(v, str) and len(v) > 400:
+                        a[k] = v[:300] + " ...[compacted]"
+                it["arguments"] = json.dumps(a, ensure_ascii=False)
+            except (ValueError, AttributeError):
+                pass
+        _COMPACTED.add(id(it))   # tracked outside the item: unknown keys would be rejected by the API
 
 
 if __name__ == "__main__":
