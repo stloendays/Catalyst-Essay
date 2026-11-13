@@ -1,0 +1,83 @@
+parameter,value,unit,source,location,type,low,high
+basis.capacity_t_per_y,100000,t/y,basis.json,capacity_t_per_y,assumption,50000,500000
+basis.operating_hours_per_y,8000,h/y,basis.json,operating_hours_per_y,assumption,7500,8400
+basis.feeds.CO2.T_K,298.15,K,basis.json,feeds.CO2.T_K,assumption,288.15,313.15
+basis.feeds.CO2.P_bar,0.9,bar,basis.json,feeds.CO2.P_bar,assumption,0.5,30
+basis.feeds.CO2.purity_mol_frac,0.995,fraction,basis.json,feeds.CO2.purity_mol_frac,assumption,0.98,0.999
+basis.feeds.H2.T_K,298.15,K,basis.json,feeds.H2.T_K,assumption,288.15,313.15
+basis.feeds.H2.P_bar,0.9,bar,basis.json,feeds.H2.P_bar,assumption,0.5,30
+basis.feeds.H2.purity_mol_frac,0.999,fraction,basis.json,feeds.H2.purity_mol_frac,assumption,0.995,0.9999
+basis.product.CH3OH.P_bar,2,bar,basis.json,product.CH3OH.P_bar,assumption,1,5
+basis.product.CH3OH.purity_mol_frac,0.999,fraction,basis.json,product.CH3OH.purity_mol_frac,assumption,0.995,0.9999
+basis.utilities.cooling_water_supply_temperature,298.15,K,basis.json,utilities.cooling_water_supply_temperature,assumption,288.15,303.15
+basis.utilities.cooling_water_return_temperature,313.15,K,basis.json,utilities.cooling_water_return_temperature,assumption,308.15,323.15
+basis.utilities.low_pressure_steam_pressure,4,bar,basis.json,utilities.low_pressure_steam_pressure,assumption,3,10
+price.electricity,80,USD/MWh,prices.json:electricity,prices.electricity,price_table,40,150
+price.hydrogen,3,USD/kg,prices.json:hydrogen,prices.hydrogen,price_table,1.5,7
+price.carbon_dioxide,100,USD/t,prices.json:carbon_dioxide,prices.carbon_dioxide,price_table,20,200
+price.catalyst_support_and_manufacturing,20,USD/kg,prices.json:catalyst_support_and_manufacturing,prices.catalyst_support_and_manufacturing,price_table,5,100
+price.metal_Cu,13.889122517655,USD/kg,prices.json:metal_Cu,prices.metal_Cu,price_table,6.9445612588275,27.77824503531
+price.metal_Zn,3.2849,USD/kg,prices.json:metal_Zn,prices.metal_Zn,price_table,1.64245,6.5698
+price.metal_Zr,22,USD/kg,prices.json:metal_Zr,prices.metal_Zr,price_table,11,44
+price.metal_In,370,USD/kg,prices.json:metal_In,prices.metal_In,price_table,185,740
+price.metal_Pd,40670.694409279,USD/kg,prices.json:metal_Pd,prices.metal_Pd,price_table,20335.3472046395,81341.388818558
+price.metal_Pt,51508.71107755406,USD/kg,prices.json:metal_Pt,prices.metal_Pt,price_table,25754.35553877703,103017.42215510811
+price.metal_Co,56.28401553583051,USD/kg,prices.json:metal_Co,prices.metal_Co,price_table,28.142007767915256,112.56803107166103
+price.metal_Au,128732.2322756058,USD/kg,prices.json:metal_Au,prices.metal_Au,price_table,64366.1161378029,257464.4645512116
+price.metal_Rh,265243.65919095,USD/kg,prices.json:metal_Rh,prices.metal_Rh,price_table,132621.829595475,530487.3183819
+price.metal_Ni,16.9094555095895,USD/kg,prices.json:metal_Ni,prices.metal_Ni,price_table,8.45472775479475,33.818911019179
+price.metal_Sn,35.274,USD/kg,prices.json:metal_Sn,prices.metal_Sn,price_table,17.637,70.548
+price.metal_Cr,13.007,USD/kg,prices.json:metal_Cr,prices.metal_Cr,price_table,6.5035,26.014
+price.metal_Ce,2.1005306603773586,USD/kg,prices.json:metal_Ce,prices.metal_Ce,price_table,1.0502653301886793,4.201061320754717
+price.metal_Al,3.9683,USD/kg,prices.json:metal_Al,prices.metal_Al,price_table,1.98415,7.9366
+price.metal_Si,2.866006,USD/kg,prices.json:metal_Si,prices.metal_Si,price_table,1.433003,5.732012
+price.metal_Ga,580,USD/kg,prices.json:metal_Ga,prices.metal_Ga,price_table,290,1160
+price.metal_Fe,8,USD/kg,prices.json:metal_Fe,prices.metal_Fe,price_table,4,16
+price.capital_recovery_factor,0.0944,1/y,prices.json:capital_recovery_factor,prices.capital_recovery_factor,price_table,0.08,0.13
+price.fixed_om_fraction_of_capex,0.04,1/y,prices.json:fixed_om_fraction_of_capex,prices.fixed_om_fraction_of_capex,price_table,0.02,0.06
+compressor.isentropic_efficiency,0.75,fraction,,industrial compressor design basis,assumption,0.65,0.85
+compressor.gamma_CO2,1.30,ratio,,ideal-gas engineering approximation,assumption,1.25,1.35
+compressor.gamma_H2,1.40,ratio,,ideal-gas engineering approximation,assumption,1.35,1.42
+compressor.gamma_recycle,1.35,ratio,,mixed-gas engineering approximation,assumption,1.28,1.40
+recycle.pressure_drop_fraction,0.05,fraction,,reactor-loop pressure-drop allowance,assumption,0.02,0.10
+recycle.purge_min_fraction,0.005,fraction,,optimization bound preventing inert accumulation,assumption,0.002,0.02
+recycle.purge_max_fraction,0.20,fraction,,optimization bound limiting reactant loss,assumption,0.10,0.40
+separation.methanol_recovery,0.995,fraction,,column recovery design target,assumption,0.98,0.999
+separation.dissolved_CO2_fraction_of_reactor_feed,0.001,fraction,,pressure-dependent liquid entrainment proxy,assumption,0.0001,0.005
+heat_recovery.feed_effluent_fraction,0.75,fraction,,temperature-approach and fouling allowance,assumption,0.60,0.90
+thermo.gas_cp_GJ_per_kmol_K,0.000033,GJ/kmol/K,,mean syngas heat-capacity approximation,assumption,0.000028,0.000040
+utilities.cooling_electricity_fraction,0.025,GJ electricity/GJ removed,,cooling-water pumping and fan allowance,assumption,0.01,0.06
+separation.distillation_base_GJ_per_t_methanol,1.2,GJ/t,,methanol-water purification duty allowance,assumption,0.8,2.0
+separation.stabilization_GJ_per_kmol_dissolved_CO2,0.02,GJ/kmol,,dissolved-CO2 flashing and stabilization heat proxy,assumption,0.01,0.05
+pump.column_outlet_pressure_bar,1.2,bar,,purification-column liquid outlet pressure,assumption,1.0,1.8
+offsites.energy_GJ_per_t,0.05,GJ/t,,storage and balance-of-plant electricity allowance,assumption,0.02,0.12
+catalyst.default_life_h,16000,h,,two-year continuous-service assumption,assumption,4000,40000
+catalyst.average_activity_factor,0.95,fraction,,linear decline to ten percent activity loss over a cycle,assumption,0.90,1.0
+catalyst.unspecified_active_fraction,0.10,mass fraction,,cost proxy where paper omits component loading,assumption,0.01,0.30
+capital.scale_exponent,0.60,dimensionless,,six-tenths scaling rule,assumption,0.50,0.75
+capital.compressor_USD_per_kW,2000,USD/kW,,installed compressor cost allowance,assumption,1000,4000
+capital.compressor_min_USD,1000000,USD,,minimum installed compressor train cost,assumption,500000,3000000
+capital.mixer_reference_USD,500000,USD,,installed mixing and piping allowance,assumption,200000,1500000
+capital.heat_exchanger_USD_per_kW,500,USD/kW,,installed high-pressure exchanger allowance,assumption,250,1000
+capital.heat_exchanger_min_USD,750000,USD,,minimum installed exchanger cost,assumption,300000,2000000
+capital.reactor_fixed_USD,5000000,USD,,high-pressure cooled reactor fixed allowance,assumption,2500000,12000000
+capital.reactor_volume_reference_USD,5000000,USD,,reactor volume-dependent reference allowance,assumption,2000000,12000000
+capital.reactor_heat_removal_USD_per_kW,300,USD/kW,,boiling-water cooling surface allowance,assumption,150,700
+catalyst.bulk_density_kg_per_m3,1000,kg/m3,,shaped catalyst bulk-density assumption,assumption,600,1400
+capital.knockout_reference_USD,3000000,USD,,condenser and high-pressure separator reference cost,assumption,1500000,7000000
+capital.splitter_reference_USD,300000,USD,,purge control and piping allowance,assumption,100000,1000000
+capital.column_reference_USD,8000000,USD,,methanol purification column reference cost,assumption,4000000,16000000
+capital.pump_reference_USD,500000,USD,,product pump installed allowance,assumption,200000,1500000
+capital.offsites_fixed_USD,5000000,USD,,storage and utility fixed allowance,assumption,2500000,12000000
+capital.offsites_fraction_direct,0.10,fraction,,balance-of-plant fraction of direct equipment cost,assumption,0.05,0.25
+capital.reference_capacity_t_per_y,100000,t/y,,cost-correlation reference capacity,assumption,50000,200000
+capital.reference_gas_kmol_per_t,200,kmol/t,,cost-correlation reference recycle throughput,assumption,80,500
+capital.reference_liquid_kmol_per_t,70,kmol/t,,cost-correlation reference crude-liquid throughput,assumption,50,100
+thermo.methanol_reaction_heat_kJ_per_mol,-58.7,kJ/mol,,effective fixed-thermochemistry heat at 493 K for contracted methanol reaction,assumption,-62,-55
+thermo.rwgs_reaction_heat_kJ_per_mol,41.2,kJ/mol,,standard reverse-water-gas-shift heat approximation,assumption,38,43
+thermo.equilibrium_reaction_entropy_J_per_mol_K,-194.5,J/mol/K,,effective gas-phase equilibrium entropy including heat-capacity correction,assumption,-205,-185
+thermo.equilibrium_reaction_heat_kJ_per_mol,-49.5,kJ/mol,,gas-phase equilibrium enthalpy approximation,assumption,-52,-47
+capital.reactor_reference_m3,20,m3,,reference packed catalyst volume for scaling,assumption,5,100
+thermo.reaction_heat_temperature_coefficient_kJ_per_mol_K,-0.055,kJ/mol/K,,linear heat-capacity correction over catalyst test temperatures,assumption,-0.08,-0.03
+pump.isentropic_efficiency,0.70,fraction,,liquid pump efficiency allowance,assumption,0.55,0.85
+pump.methanol_density_kg_per_m3,792,kg/m3,,ambient liquid methanol density approximation,assumption,760,810

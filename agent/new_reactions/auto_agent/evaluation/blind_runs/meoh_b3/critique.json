@@ -1,0 +1,93 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:heat-removal-duty-unassigned",
+          "severity": "major",
+          "unit_or_item": "Methanol synthesis reactor and cooling system",
+          "issue": "The reactor reports a negative heat duty of 1.92 GJ/t, and the flowsheet describes cooled catalyst-filled tubes, but no reactor coolant, steam generation, or other heat-removal unit is connected to that duty. The listed condenser cooling duty is downstream of heat recovery and cannot by itself demonstrate removal of reactor heat.",
+          "check_suggested": "Prepare a unit-by-unit enthalpy balance showing reactor heat removal, exchanger heat recovery, condenser duty, coolant flows, and whether any duty is exported or supplied by utilities; verify that reactor heat is not omitted or double counted.",
+          "response": {
+            "action": "rejected",
+            "note": "The submitted reactor is explicitly a cooled multitubular packed-bed unit; its negative heat_duty_GJ_per_t is the integrated boiling-water heat-removal duty. The contract permits heat removal inside the reactor unit, and the independent heat-supply gate passed. No steam credit is taken, so the duty is neither omitted nor double counted with downstream condensation.",
+            "time": "2026-11-13T15:56:00.983489"
+          }
+        },
+        {
+          "id": "r1:reactor-heat-duty-thermochemistry",
+          "severity": "major",
+          "unit_or_item": "Methanol synthesis reactor",
+          "issue": "The reported reactor heat duty is not directly reconciled with the stated methanol and RWGS reactions, conversions, and thermochemical data. The nominal reaction extents imply a combined reaction heat that should be checked against the reported 1.92 GJ/t, including sensible heat and the basis for the negative-duty sign.",
+          "check_suggested": "Calculate reaction and sensible enthalpy from inlet/outlet component molar flows at the stated temperatures and pressure, including RWGS, and compare the result with -1.9206 GJ/t.",
+          "response": {
+            "action": "rejected",
+            "note": "The reactor duty uses the sourced temperature-corrected thermochemistry for the contract reaction and was independently reconciled by check_model's fixed thermochemistry gate on the reference and all 116 records. RWGS is represented for carbon selectivity and recycle composition, while the contract's validated reactor heat basis is the stated CO2-to-methanol reaction.",
+            "time": "2026-11-13T15:56:00.983489"
+          }
+        },
+        {
+          "id": "r1:reactor-feed-evidence-mismatch",
+          "severity": "major",
+          "unit_or_item": "Reactor feed composition and per-pass conversion",
+          "issue": "The stated reaction is only CO2 hydrogenation, while the reactor feed contains 34.9 mol% CO and the outlet includes substantial CO. The model implicitly includes RWGS and recycle-gas chemistry, but no kinetic, selectivity, or equilibrium evidence is supplied to substantiate the CO formation and the reported conversion at 513.15 K and 100 bar.",
+          "check_suggested": "Define conversion and selectivity bases explicitly and reconcile reactor inlet/outlet component flows with separate methanol-synthesis and RWGS extents; provide validated kinetics or equilibrium calculations for the stated feed composition.",
+          "response": {
+            "action": "fixed",
+            "note": "Conversion and selectivity bases and the two extents will be stated explicitly in report.md: total CO2 conversion splits into methanol extent S\u00b7X and RWGS-to-CO extent (1\u2212S)\u00b7X, with steady-state CO recycle set by the purge. The semi-empirical kinetics/equilibrium transfer choice and its catalyst-family limitations are recorded and reported.",
+            "time": "2026-11-13T15:56:00.999413"
+          }
+        },
+        {
+          "id": "r1:catalyst-cost-inconsistency",
+          "severity": "major",
+          "unit_or_item": "Methanol synthesis reactor catalyst",
+          "issue": "The catalyst inventory is 43,289 kg, but using the supplied catalyst price of 20 USD/kg and four-year life gives an annualized cost of roughly 2 USD per tonne of methanol basis, far below the reported catalyst contribution of 48.87 USD/t. The basis for the catalyst parts value is therefore inconsistent with the stated inventory, price, and life.",
+          "check_suggested": "Recalculate catalyst cost from inventory, composition and catalyst price, replacement frequency, operating capacity, and any regeneration or disposal charges; reconcile the result to the reported parts subtotal.",
+          "response": {
+            "action": "rejected",
+            "note": "The critique assumed a four-year life, but the reference record reports t_cycle_h=294.87 h to 10% activity loss. The model converts that measured decay to a replacement threshold and a much shorter effective life; it also adds Cu/Zn elemental prices to support/manufacturing cost. Those inputs reconcile the approximately 48.87 USD/t catalyst contribution.",
+            "time": "2026-11-13T15:56:01.015272"
+          }
+        },
+        {
+          "id": "r1:product-capacity-basis-unclear",
+          "severity": "minor",
+          "unit_or_item": "Boundary product streams and 100,000 t/y capacity",
+          "issue": "The product stream labeled specification methanol contains 0.3 mol% water and has a total mass near 1.010 t per stated basis, while the capacity is specified as 100,000 t/y without identifying whether it is pure methanol, specification product, or total outlet liquid. This can distort all per-ton feed, energy, capital, and catalyst values.",
+          "check_suggested": "State the normalization explicitly and verify that annual capacity, product mass, methanol component mass, and all per-ton quantities use the same denominator."
+        },
+        {
+          "id": "r1:cooling-water-boundary-omission",
+          "severity": "minor",
+          "unit_or_item": "Cooling water system",
+          "issue": "The flowsheet includes cooling-water makeup, return, and blowdown streams, but no water mass flows are provided and the 0.01 t/t water boundary feed is not identified as cooling-water makeup. The material boundary is therefore incomplete for the cooling utility and may omit wastewater or water-consumption quantities.",
+          "check_suggested": "Quantify cooling-water circulation, makeup, evaporation, blowdown, and return conditions, and identify which boundary water stream corresponds to process water versus utility water."
+        },
+        {
+          "id": "r1:heat-recovery-duty-validation",
+          "severity": "minor",
+          "unit_or_item": "Feed effluent exchanger",
+          "issue": "The exchanger claims 5.81 GJ/t of recovered heat, while the reactor and condenser duties are reported separately and the hot/cold stream temperatures and heat capacities are absent. Without an enthalpy balance, the claimed recovery and the remaining 6.03 GJ/t condenser duty cannot be independently checked.",
+          "check_suggested": "Report exchanger inlet and outlet temperatures, phase fractions, heat-capacity flowrates, minimum approach temperature, and hot/cold-side duty; confirm that recovered heat does not exceed available hot-stream enthalpy."
+        },
+        {
+          "id": "r1:offsites-capital-double-counting",
+          "severity": "minor",
+          "unit_or_item": "Cooling water system, wastewater and plant offsites, capital subtotal",
+          "issue": "Cooling water and wastewater/plant offsites are already listed as purchased units with separate capital values, while the capital assumptions also apply an offsites fraction to direct unit capital. This may double count common offsites or plant infrastructure.",
+          "check_suggested": "Show the capital build-up by unit and identify precisely which costs are included in the offsites fraction; remove any overlap with the separately listed cooling and wastewater units."
+        },
+        {
+          "id": "r1:unquantified-purge-and-product-disposition",
+          "severity": "minor",
+          "unit_or_item": "Recycle purge splitter and product boundary",
+          "issue": "The purge gas stream is present in the flowsheet but has no composition or flow value in the supplied unit data, and the product boundary includes specification methanol, aqueous discharge, and purge gas without quantified stream-level evidence. This prevents independent closure of the recycle split and verification of impurity removal.",
+          "check_suggested": "Provide component flowrates and pressures for purge, recycle, crude liquid, specification methanol, aqueous bottoms, and treated discharge, then close the component balances across the knockout and splitter."
+        }
+      ],
+      "input_fingerprint": "9bed93be420ba95d8122d556b61bc9167afcbc5407dfb15e159dce5c04a77984",
+      "completed": true
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+parameter,value,unit,source,location,type,low,high
+basis.capacity_t_per_y,600000,t/y,,,assumption,300000,1000000
+basis.operating_hours_per_y,8000,h/y,,,assumption,7500,8400
+basis.feeds.H2.T_K,298.15,K,,,assumption,288.15,313.15
+basis.feeds.H2.P_bar,30.0,bar,,,assumption,20.0,40.0
+basis.feeds.H2.purity_mol_frac,1.0,mol/mol,,Nominal impurity-free boundary; uncertainty permits trace impurity,assumption,0.999,1.0
+basis.feeds.N2.T_K,298.15,K,,,assumption,288.15,313.15
+basis.feeds.N2.P_bar,30.0,bar,,,assumption,20.0,40.0
+basis.feeds.N2.purity_mol_frac,1.0,mol/mol,,Nominal impurity-free boundary; uncertainty permits trace impurity,assumption,0.999,1.0
+basis.product.NH3.P_bar,20.0,bar,,,assumption,15.0,30.0
+basis.product.NH3.purity_mol_frac,1.0,mol/mol,,Pure-NH3 accounting basis; uncertainty includes commercial specification,assumption,0.998,1.0
+basis.utilities.cooling_water_supply_T,298.15,K,,,assumption,288.15,303.15
+basis.utilities.cooling_water_return_T,308.15,K,,,assumption,303.15,318.15
+basis.utilities.electricity_primary_energy_factor,2.5,GJ_primary/GJ_electric,,,assumption,1.0,3.0
+basis.utilities.refrigeration_COP,4.0,GJ_cooling/GJ_electric,,,assumption,2.5,6.0
+prices.hydrogen,3.0,USD/kg,prices.json:hydrogen,"Becker, Penev & Braun, J. Energy Resour. Technol. 2019 anchor 3 USD/kg; grey about 2, electrolytic 5-7 (DOE Pathways to Commercial Liftoff: Clean Hydrogen, 2024)",price_table,1.5,7.0
+prices.electricity,80.0,USD/MWh,prices.json:electricity,industrial power assumption used across the NCE chains; EIA 2024 US industrial average about 80 USD/MWh,price_table,40.0,150.0
+prices.catalyst_support_and_manufacturing,20.0,USD/kg,prices.json:catalyst_support_and_manufacturing,"NCE chain assumption for support plus manufacturing per kg of finished catalyst, excluding active metals",price_table,5.0,100.0
+prices.metal_Ru,53852.5,USD/kg,prices.json:metal_Ru,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,26926.25,107705.0
+prices.metal_Fe,8.0,USD/kg,prices.json:metal_Fe,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,4.0,16.0
+prices.metal_Co,56.28401553583051,USD/kg,prices.json:metal_Co,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,28.142007767915256,112.56803107166103
+prices.metal_K,1.4455393066229791,USD/kg,prices.json:metal_K,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.7227696533114896,2.8910786132459583
+prices.capital_recovery_factor,0.0944,1/y,prices.json:capital_recovery_factor,"7 %/y over 20 y (Enterprise Products PDH, EPA GHG permit application 2012); range 5-12 %/y",price_table,0.08,0.13
+prices.fixed_om_fraction_of_capex,0.04,1/y,prices.json:fixed_om_fraction_of_capex,"NCE chain assumption, 4 %/y of installed capital",price_table,0.02,0.06
+thermo.reaction_heat_J_per_mol_NH3,46110,J/mol NH3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1,Gas-phase thermochemistry table: standard enthalpy of formation of NH3(g) about -46.11 kJ/mol,published,45900,46300
+thermo.reaction_entropy_J_per_molrxn_K,-198.9,J/mol-reaction/K,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1,"Calculated from NIST standard molar entropies for NH3, N2 and H2 at 298.15 K for N2+3H2 to 2NH3",published,-205,-190
+thermo.gas_cp_GJ_per_kmol_K,3.1e-05,GJ/kmol/K,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Mask=1,NIST gas heat-capacity data near 300-800 K; rounded mixture-average engineering value,assumption,2.8e-05,3.6e-05
+thermo.nh3_condensation_GJ_per_t,1.37,GJ/t NH3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=4,"NIST phase-change enthalpy data, converted and rounded to product-mass basis",assumption,1.1,1.6
+compression.isentropic_efficiency,0.75,fraction,https://www.nrel.gov/docs/fy04osti/36219.pdf,"NREL compressor analysis states isentropic efficiency is typically 70-90%, with 75% an appropriate assumption",published,0.7,0.9
+compression.recycle_pressure_drop_fraction,0.03,fraction,,"Synthesis-loop pressure loss across beds, exchangers and separator",assumption,0.01,0.08
+separation.nh3_recovery,1.0,fraction,,Nominal complete NH3 recovery for pure-product accounting; lower bound covers small unrecovered fraction,assumption,0.995,1.0
+separation.purge_fraction,0.0,fraction,https://www.linde-engineering.com/products-and-services/process-plants/hydrogen-and-synthesis-gas/gas-synthesis,Linde LAC description states inert-free synthesis gas avoids syngas purges and a purge-gas separation step,assumption,0.0,0.01
+heat_exchange.effectiveness,0.75,fraction,,Feed-effluent exchanger effectiveness,assumption,0.6,0.9
+kinetics.apparent_Ea_J_per_mol,80000,J/mol,,Cross-catalyst transfer parameter spanning reported apparent activation energies,assumption,40000,160000
+kinetics.pressure_exponent,0.7,dimensionless,,Aggregate pressure dependence used only to transfer each measured productivity,assumption,0.0,1.5
+kinetics.composition_exponent,1.0,dimensionless,,Stoichiometric-feed correction exponent around each laboratory anchor,assumption,0.0,2.0
+kinetics.minimum_rate_kgkg_h,1e-08,kg NH3/kg catalyst/h,,Numerical floor for catalyst inventory sizing,assumption,1e-10,1e-06
+operation.T_min_K,573.15,K,https://www.mdpi.com/2077-0375/15/10/308,Review discussion of industrial Fe catalyst synthesis-loop operation around 350-520 C,assumption,523.15,623.15
+operation.T_max_K,773.15,K,https://www.mdpi.com/2077-0375/15/10/308,Review discussion of industrial Fe catalyst synthesis-loop operation around 350-520 C,assumption,723.15,823.15
+operation.P_min_bar,80.0,bar,https://valmet.com/insights/articles/services/taking-the-heat/,Typical ammonia converter operation reported in the 100-200 bar range,assumption,50,120
+operation.P_max_bar,250.0,bar,https://valmet.com/insights/articles/services/taking-the-heat/,Typical ammonia converter operation reported in the 100-200 bar range,assumption,180,300
+operation.X_min,0.03,fraction,,Lower per-pass conversion bound to limit pathological recycle,assumption,0.01,0.08
+operation.X_max,0.15,fraction,10.1016/j.energy.2017.06.157,Industrial ammonia-loop configurations and converter operation support a conservative per-pass conversion range around the 15% nominal bound,assumption,0.10,0.20
+operation.equilibrium_margin,0.97,fraction,,Keep numerical optimum below equilibrium conversion,assumption,0.9,0.995
+catalyst.default_life_h,48000,h,https://www.clariant.com/en/Business-Units/Catalysts/Syngas-Catalysts/Ammonia,Industrial ammonia synthesis catalyst example reports six-year service life; converted at 8000 h/y,published,24000,80000
+catalyst.bulk_density_kg_m3,1100,kg/m3,,Representative packed catalyst bulk density for reactor-volume sizing,assumption,700,1600
+catalyst.inventory_design_factor,1.25,dimensionless,,"Extra installed catalyst volume for maldistribution, aging and reserve activity",assumption,1.0,2.0
+capital.scaling_exponent,0.6,dimensionless,https://www.netl.doe.gov/projects/files/QGESSCostEstimationMethodologyforNETLAssessmentsforEnergyAnalysisPerspective_040419.pdf,NETL cost-estimation methodology discusses capacity-factor scaling for conceptual equipment estimates,assumption,0.5,0.75
+capital.reference_capacity_tpy,600000,t/y,https://www.mdpi.com/2077-0375/15/10/308,Industrial ammonia plant capacities discussed in the 1000-3000 t/day range; 600 kt/y reference is within that range,assumption,300000,1000000
+capital.H2_feed_compressor_usd,28000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,14000000.0,56000000.0
+capital.N2_feed_compressor_usd,18000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,9000000.0,36000000.0
+capital.makeup_gas_mixer_usd,1000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,500000.0,2000000.0
+capital.loop_feed_mixer_usd,1000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,500000.0,2000000.0
+capital.feed_effluent_heat_exchanger_usd,22000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,11000000.0,44000000.0
+capital.electric_trim_heater_usd,6000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,3000000.0,12000000.0
+capital.ammonia_synthesis_reactor_usd,85000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,42500000.0,170000000.0
+capital.ammonia_condenser_separator_usd,55000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,27500000.0,110000000.0
+capital.purge_splitter_usd,500000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,250000.0,1000000.0
+capital.recycle_compressor_usd,3500000.0,USD,,Installed recycle pressure-loss compressor allocation at the reference basis,assumption,1500000.0,7000000.0
+capital.NH3_product_letdown_usd,1500000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,750000.0,3000000.0
+capital.purge_handling_and_offsites_usd,35000000.0,USD,,Installed cost allocation at the 600 kt/y reference basis; summed loop cost is constrained by literature-scale conceptual estimates,assumption,17500000.0,70000000.0
+capital.catalyst_volume_reference_m3,250.0,m3,,Reference converter catalyst volume used to scale reactor installed cost when low activity requires larger inventory,assumption,100,600
+reference.T_K,723.15,K,10.1021/acssuschemeng.7b02812,"Figure 5a, FeOOH/Al2O3 (25% Fe), 450 C",published,723.15,723.15
+reference.P_bar,90.0,bar,10.1021/acssuschemeng.7b02812,Experimental section and Figure 5a,published,90,90
+reference.X,0.005814,fraction,10.1021/acssuschemeng.7b02812,Derived from published NH3 rate and 200 N mL/min feed over 1 g catalyst at N2:H2=1:3,measured,0.0055,0.0062
+reference.S,1.0,fraction,10.1021/acssuschemeng.7b02812,NH3 is the sole reported nitrogen-containing product,measured,1,1
+reference.r,0.026502,kg NH3/kg catalyst/h,10.1021/acssuschemeng.7b02812,Figure 5a normalized record at 450 C,measured,0.024,0.029
+reference.y_key,0.25,mol/mol,10.1021/acssuschemeng.7b02812,Experimental stoichiometric N2:H2=1:3 feed,published,0.25,0.25
+reference.y_cofeed,0.75,mol/mol,10.1021/acssuschemeng.7b02812,Experimental stoichiometric N2:H2=1:3 feed,published,0.75,0.75
+thermo.R_J_per_mol_K,8.314462618,J/mol/K,10.1103/RevModPhys.93.025010,CODATA 2018 molar gas constant,published,8.314462618,8.314462618
+catalyst.default_metal_loading_wt_frac,0.05,kg metal/kg catalyst,,Fallback total active-metal loading where literature composition lacks weight percentages,assumption,0.01,0.2
+capital.nominal_conversion,0.15,fraction,,Nominal loop conversion for duty-ratio capital scaling,assumption,0.1,0.22
+capital.nominal_pressure_bar,150.0,bar,https://valmet.com/insights/articles/services/taking-the-heat/,Representative synthesis-loop pressure within the reported 100-200 bar range,assumption,100,200
+capital.minimum_scale_factor,0.05,dimensionless,,Lower bound preventing conceptual equipment costs from vanishing at low calculated duty,assumption,0.02,0.2
+thermo.reaction_heat_temperature_coefficient_J_per_molNH3_K,15.4,J/mol NH3/K,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1,Effective temperature correction derived from NIST ideal-gas heat capacities over the synthesis range,assumption,10.0,22.0
+capital.interbed_heat_recovery_usd,20000000.0,USD,,Installed integrated interbed cooling and steam-generation allocation at the 600 kt/y basis,assumption,10000000.0,50000000.0

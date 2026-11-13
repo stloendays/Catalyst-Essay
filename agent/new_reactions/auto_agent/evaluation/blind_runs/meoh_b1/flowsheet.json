@@ -1,0 +1,47 @@
+{
+  "units": [
+    {"name":"CO2 feed compressor","type":"compressor","purpose":"Compress fresh captured CO2 from the battery-limit pressure to reactor pressure.","inlets":["fresh CO2"],"outlets":["compressed CO2"]},
+    {"name":"H2 feed compressor","type":"compressor","purpose":"Compress fresh hydrogen from the battery-limit pressure to reactor pressure.","inlets":["fresh H2"],"outlets":["compressed H2"]},
+    {"name":"Feed mixer","type":"other","purpose":"Combine fresh CO2, fresh H2 and compressed recycle gas at the selected stoichiometric feed ratio.","inlets":["compressed CO2","compressed H2","compressed recycle"],"outlets":["mixed reactor feed"]},
+    {"name":"Feed-effluent heat exchanger","type":"heat_exchanger","purpose":"Recover sensible heat from reactor effluent to preheat the mixed reactor feed.","inlets":["mixed reactor feed","hot reactor effluent"],"outlets":["recovered preheated feed","partly cooled effluent"]},
+    {"name":"Electric trim preheater","type":"heat_exchanger","purpose":"Supply only the residual sensible heat needed to reach catalyst inlet temperature, including startup capability.","inlets":["recovered preheated feed"],"outlets":["reactor inlet feed"]},
+    {"name":"Cooled fixed-bed reactor","type":"reactor","purpose":"Convert CO2 and H2 to methanol and water while removing exothermic reaction heat by boiling-water cooling.","inlets":["reactor inlet feed"],"outlets":["hot reactor effluent"]},
+    {"name":"Effluent condenser and knockout","type":"knockout","purpose":"Cool reactor effluent and condense crude methanol, water and a small pressure-dependent dissolved CO2 load from unreacted gas and CO byproduct.","inlets":["partly cooled effluent"],"outlets":["crude methanol liquid","separator gas"]},
+    {"name":"Recycle purge splitter","type":"other","purpose":"Purge CO and feed impurities while returning most uncondensed CO2 and H2 to the reactor loop.","inlets":["separator gas"],"outlets":["purge gas","recycle gas"]},
+    {"name":"Recycle compressor","type":"compressor","purpose":"Restore recycle gas pressure after loop pressure drop.","inlets":["recycle gas"],"outlets":["compressed recycle"]},
+    {"name":"Methanol purification column","type":"separation","purpose":"Purify condensed crude methanol to the product specification and reject reaction water, methanol loss and dissolved CO2.","inlets":["crude methanol liquid"],"outlets":["purified methanol","aqueous bottoms"]},
+    {"name":"Methanol product pump","type":"pump","purpose":"Deliver liquid methanol from column pressure to the specified product battery-limit pressure.","inlets":["purified methanol"],"outlets":["pressurized methanol"]},
+    {"name":"Product storage and offsites","type":"offsites","purpose":"Provide product storage, cooling-water circulation, electrical distribution and balance-of-plant services.","inlets":["pressurized methanol"],"outlets":["methanol product"]}
+  ],
+  "streams": [
+    {"name":"fresh CO2","from":"boundary","to":"CO2 feed compressor","species":["CO2"]},
+    {"name":"compressed CO2","from":"CO2 feed compressor","to":"Feed mixer","species":["CO2"]},
+    {"name":"fresh H2","from":"boundary","to":"H2 feed compressor","species":["H2"]},
+    {"name":"compressed H2","from":"H2 feed compressor","to":"Feed mixer","species":["H2"]},
+    {"name":"compressed recycle","from":"Recycle compressor","to":"Feed mixer","species":["CO2","H2","CO"]},
+    {"name":"mixed reactor feed","from":"Feed mixer","to":"Feed-effluent heat exchanger","species":["CO2","H2","CO"]},
+    {"name":"recovered preheated feed","from":"Feed-effluent heat exchanger","to":"Electric trim preheater","species":["CO2","H2","CO"]},
+    {"name":"reactor inlet feed","from":"Electric trim preheater","to":"Cooled fixed-bed reactor","species":["CO2","H2","CO"]},
+    {"name":"hot reactor effluent","from":"Cooled fixed-bed reactor","to":"Feed-effluent heat exchanger","species":["CO2","H2","CH3OH","H2O","CO"]},
+    {"name":"partly cooled effluent","from":"Feed-effluent heat exchanger","to":"Effluent condenser and knockout","species":["CO2","H2","CH3OH","H2O","CO"]},
+    {"name":"crude methanol liquid","from":"Effluent condenser and knockout","to":"Methanol purification column","species":["CH3OH","H2O","CO2"]},
+    {"name":"separator gas","from":"Effluent condenser and knockout","to":"Recycle purge splitter","species":["CO2","H2","CO"]},
+    {"name":"purge gas","from":"Recycle purge splitter","to":"boundary","species":["CO2","H2","CO"]},
+    {"name":"recycle gas","from":"Recycle purge splitter","to":"Recycle compressor","species":["CO2","H2","CO"]},
+    {"name":"purified methanol","from":"Methanol purification column","to":"Methanol product pump","species":["CH3OH"]},
+    {"name":"aqueous bottoms","from":"Methanol purification column","to":"boundary","species":["H2O","CH3OH","CO2"]},
+    {"name":"pressurized methanol","from":"Methanol product pump","to":"Product storage and offsites","species":["CH3OH"]},
+    {"name":"methanol product","from":"Product storage and offsites","to":"boundary","species":["CH3OH"]}
+  ],
+  "checklist": {
+    "feed_preparation":{"included":["CO2 feed compressor","H2 feed compressor","Feed mixer","Feed-effluent heat exchanger","Electric trim preheater"]},
+    "reactor_heat_supply_or_removal":{"included":["Cooled fixed-bed reactor"]},
+    "catalyst_regeneration":{"excluded":"No common in-situ regeneration protocol is supported across the diverse catalyst literature; catalyst decay is represented by replacement and average-cycle inventory instead."},
+    "product_compression":{"included":["Methanol product pump"]},
+    "separation_and_purification":{"included":["Effluent condenser and knockout","Methanol purification column"]},
+    "recycle":{"included":["Recycle purge splitter","Recycle compressor","Feed mixer"]},
+    "heat_recovery":{"included":["Feed-effluent heat exchanger","Cooled fixed-bed reactor"]},
+    "utilities_and_offsites":{"included":["Product storage and offsites"]}
+  },
+  "diagram":"flowchart LR; CO2[Fresh CO2]-->C1[CO2 feed compressor]; H2[Fresh H2]-->C2[H2 feed compressor]; C1-->M[Feed mixer]; C2-->M; RC[Recycle compressor]-->M; M-->HX[Feed-effluent heat exchanger]; HX-->EH[Electric trim preheater]; EH-->R[Cooled fixed-bed reactor]; R-->HX; HX-->KO[Effluent condenser and knockout]; KO-->L[Crude liquid]; KO-->G[Separator gas]; G-->SP[Recycle purge splitter]; SP-->PG[Purge boundary]; SP-->RC; L-->D[Methanol purification column]; D-->W[Aqueous bottoms boundary]; D-->P[Methanol product pump]; P-->O[Product storage and offsites]; O-->MP[Methanol product boundary]"
+}

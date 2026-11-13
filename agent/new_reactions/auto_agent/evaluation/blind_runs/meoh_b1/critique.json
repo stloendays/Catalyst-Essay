@@ -1,0 +1,106 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:mass-balance-001",
+          "severity": "major",
+          "unit_or_item": "Overall battery-limit material balance",
+          "issue": "The reported boundary streams do not conserve elemental balances. Using the stated molecular weights, carbon in the fresh CO2 is about 44.8 kmol/t, while carbon in the listed CH3OH, CO, and CO2 outputs is about 61 kmol/t. Hydrogen and oxygen balances are also inconsistent despite the total mass flows appearing nearly equal, indicating a species or molecular-weight accounting error.",
+          "check_suggested": "Recalculate C/H/O balances independently from all boundary streams and verify whether the reported basis, species masses, or molecular weights are incorrect.",
+          "response": {
+            "action": "rejected",
+            "note": "The independent physics gate verifies C/H/O and total mass closure. The critique divided 2.61 t CO2 by an incorrect basis: 2.61 t / 44.0095 kg kmol\u22121 is about 59.4 kmol C, not 44.8 kmol; the reported carbon outputs close to that value.",
+            "time": "2026-11-13T15:33:09.432592"
+          }
+        },
+        {
+          "id": "r1:reaction-network-002",
+          "severity": "major",
+          "unit_or_item": "Reaction model and reactor heat duty",
+          "issue": "The declared reaction includes only CO2 hydrogenation, but the reactor feed contains 44.2 mol% CO and the boundary output contains substantial CO. No reaction extent or source/sink accounting for CO is provided. The RWGS heat parameter exists but is not reflected in the reported reactor duty; using only methanol formation heat gives approximately the stated 1.84 GJ/t, while simultaneous RWGS would materially change the net duty.",
+          "check_suggested": "Define all reactor reactions and extents, including RWGS if applicable, then reconcile reactor outlet composition, elemental balances, conversion, and heat duty.",
+          "response": {
+            "action": "rejected",
+            "note": "The contract declares the desired methanol stoichiometry, while selectivity creates a lumped RWGS CO material extent. The reactor artifact now reports both extents and explicitly labels the fixed contracted reaction-heat scope; the independent element, stoichiometry and heat gates pass.",
+            "time": "2026-11-13T15:33:09.441666"
+          }
+        },
+        {
+          "id": "r1:recycle-balance-003",
+          "severity": "major",
+          "unit_or_item": "Recycle purge splitter and recycle loop",
+          "issue": "The recycle compressor throughput is 3683.7 kmol/t, but the listed fresh feeds and boundary products do not provide a traceable steady-state gas balance for this recycle flow. The purge fraction, separator-gas composition, purge flow, and recycle flow are not reported consistently enough to verify accumulation or closure of CO2, H2, and CO.",
+          "check_suggested": "Report separator-gas, purge, and recycle component flowrates and verify steady-state component balances around the knockout, splitter, compressor, mixer, and reactor.",
+          "response": {
+            "action": "fixed",
+            "note": "The splitter and mixer artifacts now report separator-gas, purge, recycle and reactor-feed component kmol per tonne together with purge fraction, allowing direct steady-state CO2/H2/CO loop closure; the independent flowsheet check passes.",
+            "time": "2026-11-13T15:33:09.451664"
+          }
+        },
+        {
+          "id": "r1:heat-integration-004",
+          "severity": "major",
+          "unit_or_item": "Feed-effluent heat exchanger and condenser/knockout",
+          "issue": "The heat exchanger is credited with 18.73 GJ/t recovered while the knockout is separately assigned 22.37 GJ/t cooling duty, but it is unclear whether the latter is total reactor-effluent cooling or only residual cooling after heat recovery. This can double-count cooling duty. The exchanger also appears to recover far more heat than the 1.84 GJ/t reactor reaction duty, so the sensible-heat source and temperature levels require explicit verification.",
+          "check_suggested": "Provide hot- and cold-side inlet/outlet temperatures, enthalpy flows, exchanger duty, residual condenser duty, and minimum approach temperatures; confirm that no duty is counted in both units.",
+          "response": {
+            "action": "fixed",
+            "note": "The condenser duty was corrected to residual sensible heat after exchanger recovery plus latent condensation only; recovered sensible heat is no longer added again to the knockout duty, and unit energy accounting passes.",
+            "time": "2026-11-13T15:33:09.467559"
+          }
+        },
+        {
+          "id": "r1:separation-duty-005",
+          "severity": "major",
+          "unit_or_item": "Methanol purification column",
+          "issue": "The 7.03 GJ/t separation duty is dominated by an empirical stabilization term based on reactor-feed kmol, although that term is not linked to a defined pressure letdown, flash, dissolved-gas quantity, or enthalpy balance. With a crude liquid containing about 36 mol% methanol and 63 mol% water, the duty needs a stream-specific separation calculation rather than an arbitrary recycle-throughput proxy.",
+          "check_suggested": "Perform a component and enthalpy-based flash/distillation calculation at specified feed and column pressures, recoveries, reflux or boilup, and outlet specifications; separately quantify any gas-stabilization duty.",
+          "response": {
+            "action": "fixed",
+            "note": "The arbitrary reactor-feed stabilization term was replaced by a duty proportional only to the explicitly calculated dissolved-CO2 liquid load, while methanol-water purification retains a separate per-product duty; separation feed and outlet component balances are reported.",
+            "time": "2026-11-13T15:33:09.467559"
+          }
+        },
+        {
+          "id": "r1:catalyst-accounting-006",
+          "severity": "major",
+          "unit_or_item": "Catalyst inventory and replacement cost",
+          "issue": "The flowsheet checklist states that catalyst replacement and average-cycle inventory are included, but no catalyst unit, catalyst mass, packed volume, active formulation, loading, replacement frequency, or catalyst purchase flow is present in the unit list. The catalyst contribution of 15.53 per t therefore cannot be audited, and the life and activity sensitivities do not demonstrate an associated reactor-performance or inventory calculation.",
+          "check_suggested": "Add catalyst inventory and replacement logic tied to reactor volume, bulk density, catalyst composition, operating hours, life, activity decay, and replacement cost, and reconcile it to the reported catalyst contribution.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor unit now exposes catalyst inventory, packed volume, composition-derived purchase price, life, average activity factor and annual replacement mass, all tied to transferred productivity and the reported catalyst cost contribution.",
+            "time": "2026-11-13T15:33:09.489256"
+          }
+        },
+        {
+          "id": "r1:battery-limit-007",
+          "severity": "minor",
+          "unit_or_item": "Product pressure and product pump",
+          "issue": "The basis specifies a 2 bar methanol product pressure, but column pressure, storage pressure, pump suction pressure, pump discharge pressure, and pump efficiency are not specified. The product-pressure sensitivity produces exactly zero change, indicating that the pump duty and possibly the product pressure state are disconnected from the battery-limit definition.",
+          "check_suggested": "Specify column, pump suction, pump discharge, and storage pressures and calculate pump power from liquid flow, pressure rise, density, and efficiency; verify that product-pressure sensitivity propagates.",
+          "response": {
+            "action": "fixed",
+            "note": "The product pump now uses column outlet pressure, product battery-limit pressure, methanol density and pump efficiency; its reported inlet/outlet pressures and power respond to product-pressure sensitivity.",
+            "time": "2026-11-13T15:33:09.499352"
+          }
+        },
+        {
+          "id": "r1:normalization-008",
+          "severity": "minor",
+          "unit_or_item": "Per-tonne basis and product quantity",
+          "issue": "Most unit data are labeled per t, but the reported methanol product boundary flow is 1.005 t/t rather than exactly 1 t/t. It is unclear whether costs and energy are normalized to crude methanol, purified methanol, final stored methanol, or an internal reference throughput.",
+          "check_suggested": "Declare one normalization basis and rescale all boundary flows, unit duties, costs, and capacity consistently to one tonne of final stored methanol.",
+          "response": {
+            "action": "rejected",
+            "note": "The denominator is explicitly one tonne of final stored methanol. Boundary CH3OH is 1.005 t because it includes exactly 1.000 t product plus 0.005 t aqueous loss required for mass closure; the returned normalization block now reports both quantities separately.",
+            "time": "2026-11-13T15:33:09.499352"
+          }
+        }
+      ],
+      "input_fingerprint": "c15f62cbe285702fddba4322a910b9579e67d38b52ac28197f4442bbd5fc0143",
+      "completed": true
+    }
+  ]
+}

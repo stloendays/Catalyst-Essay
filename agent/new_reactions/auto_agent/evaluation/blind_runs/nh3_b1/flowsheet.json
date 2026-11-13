@@ -1,0 +1,330 @@
+{
+  "units": [
+    {
+      "name": "makeup_compressor",
+      "type": "compressor",
+      "purpose": "Compress fresh N2 and H2 from near-ambient battery-limit pressure to synthesis-loop pressure.",
+      "inlets": [
+        "fresh_feed"
+      ],
+      "outlets": [
+        "compressed_makeup"
+      ]
+    },
+    {
+      "name": "feed_mixer",
+      "type": "other",
+      "purpose": "Mix compressed makeup gas with recompressed recycle gas.",
+      "inlets": [
+        "compressed_makeup",
+        "compressed_recycle"
+      ],
+      "outlets": [
+        "cold_loop_feed"
+      ]
+    },
+    {
+      "name": "feed_effluent_exchanger",
+      "type": "heat_exchanger",
+      "purpose": "Recover converter-effluent sensible heat to preheat synthesis gas without purchased preheat.",
+      "inlets": [
+        "cold_loop_feed",
+        "hot_recovered_effluent"
+      ],
+      "outlets": [
+        "preheated_feed",
+        "cooled_recovered_effluent"
+      ]
+    },
+    {
+      "name": "ammonia_converter",
+      "type": "reactor",
+      "purpose": "Adiabatic catalytic fixed-bed conversion of N2 and H2 to NH3 at the catalyst record temperature and optimized per-pass conversion.",
+      "inlets": [
+        "preheated_feed"
+      ],
+      "outlets": [
+        "hot_converter_effluent"
+      ]
+    },
+    {
+      "name": "waste_heat_boiler",
+      "type": "heat_exchanger",
+      "purpose": "Remove exothermic reaction heat and recover it internally before feed-effluent exchange and condensation.",
+      "inlets": [
+        "hot_converter_effluent"
+      ],
+      "outlets": [
+        "hot_recovered_effluent"
+      ]
+    },
+    {
+      "name": "ammonia_condenser",
+      "type": "knockout",
+      "purpose": "Cool loop gas and condense synthesized ammonia for phase separation.",
+      "inlets": [
+        "cooled_recovered_effluent"
+      ],
+      "outlets": [
+        "two_phase_effluent"
+      ]
+    },
+    {
+      "name": "ammonia_separator",
+      "type": "separation",
+      "purpose": "Separate condensed liquid NH3 product from unreacted N2/H2 recycle gas.",
+      "inlets": [
+        "two_phase_effluent"
+      ],
+      "outlets": [
+        "liquid_ammonia",
+        "separator_gas"
+      ]
+    },
+    {
+      "name": "purge_splitter",
+      "type": "other",
+      "purpose": "Purge a small fraction of separator gas to prevent impurity accumulation and send the remainder to recycle.",
+      "inlets": [
+        "separator_gas"
+      ],
+      "outlets": [
+        "purge_gas",
+        "recycle_gas"
+      ]
+    },
+    {
+      "name": "recycle_compressor",
+      "type": "compressor",
+      "purpose": "Restore recycle-loop pressure drop before mixing with makeup feed.",
+      "inlets": [
+        "recycle_gas"
+      ],
+      "outlets": [
+        "compressed_recycle"
+      ]
+    },
+    {
+      "name": "product_letdown_storage",
+      "type": "other",
+      "purpose": "Let down and condition pressurized liquid ammonia to the product battery-limit state without product compression.",
+      "inlets": [
+        "liquid_ammonia"
+      ],
+      "outlets": [
+        "ammonia_product"
+      ]
+    },
+    {
+      "name": "utilities_offsites",
+      "type": "offsites",
+      "purpose": "Provide cooling-water circulation, controls, storage allowance, and common synthesis-loop offsites.",
+      "inlets": [
+        "utility_supply"
+      ],
+      "outlets": [
+        "utility_return"
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "fresh_feed",
+      "from": "boundary",
+      "to": "makeup_compressor",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "compressed_makeup",
+      "from": "makeup_compressor",
+      "to": "feed_mixer",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "compressed_recycle",
+      "from": "recycle_compressor",
+      "to": "feed_mixer",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "cold_loop_feed",
+      "from": "feed_mixer",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "preheated_feed",
+      "from": "feed_effluent_exchanger",
+      "to": "ammonia_converter",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "hot_converter_effluent",
+      "from": "ammonia_converter",
+      "to": "waste_heat_boiler",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "hot_recovered_effluent",
+      "from": "waste_heat_boiler",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "cooled_recovered_effluent",
+      "from": "feed_effluent_exchanger",
+      "to": "ammonia_condenser",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "two_phase_effluent",
+      "from": "ammonia_condenser",
+      "to": "ammonia_separator",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "liquid_ammonia",
+      "from": "ammonia_separator",
+      "to": "product_letdown_storage",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "separator_gas",
+      "from": "ammonia_separator",
+      "to": "purge_splitter",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "purge_gas",
+      "from": "purge_splitter",
+      "to": "boundary",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "recycle_gas",
+      "from": "purge_splitter",
+      "to": "recycle_compressor",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "ammonia_product",
+      "from": "product_letdown_storage",
+      "to": "boundary",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "utility_supply",
+      "from": "boundary",
+      "to": "utilities_offsites",
+      "species": [
+        "H2O"
+      ]
+    },
+    {
+      "name": "utility_return",
+      "from": "utilities_offsites",
+      "to": "boundary",
+      "species": [
+        "H2O"
+      ]
+    }
+  ],
+  "checklist": {
+    "feed_preparation": {
+      "included": [
+        "makeup_compressor",
+        "feed_mixer",
+        "feed_effluent_exchanger"
+      ]
+    },
+    "reactor_heat_supply_or_removal": {
+      "included": [
+        "ammonia_converter",
+        "waste_heat_boiler",
+        "feed_effluent_exchanger"
+      ]
+    },
+    "catalyst_regeneration": {
+      "excluded": "The synthesis catalysts are modeled as periodically replaced rather than regenerated in situ because the screened papers do not establish an industrial regeneration cycle."
+    },
+    "product_compression": {
+      "excluded": "Ammonia leaves the high-pressure loop as condensed liquid above the specified 20 bar product boundary pressure, so letdown rather than product compression is required."
+    },
+    "separation_and_purification": {
+      "included": [
+        "ammonia_condenser",
+        "ammonia_separator",
+        "product_letdown_storage"
+      ]
+    },
+    "recycle": {
+      "included": [
+        "purge_splitter",
+        "recycle_compressor",
+        "feed_mixer"
+      ]
+    },
+    "heat_recovery": {
+      "included": [
+        "waste_heat_boiler",
+        "feed_effluent_exchanger"
+      ]
+    },
+    "utilities_and_offsites": {
+      "included": [
+        "utilities_offsites"
+      ]
+    }
+  },
+  "diagram": "boundary N2+H2 -> makeup_compressor -> feed_mixer -> feed_effluent_exchanger -> ammonia_converter -> waste_heat_boiler -> feed_effluent_exchanger -> ammonia_condenser -> ammonia_separator -> liquid NH3 -> product_letdown_storage -> boundary NH3; separator gas -> purge_splitter -> purge boundary + recycle_compressor -> feed_mixer; boundary utilities -> utilities_offsites -> boundary return"
+}
