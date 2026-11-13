@@ -456,8 +456,8 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             for c in calls:
                 args = json.loads(c.arguments or "{}")
                 t = time.time()
-                if c.name == "finish" and self.build and self.build_finish_errors():
-                    out_s = "NOT FINISHED: " + json.dumps(self.build_finish_errors())
+                if c.name == "finish" and self.build and finish_errors(self):
+                    out_s = "NOT FINISHED: " + json.dumps(finish_errors(self))
                 elif c.name == "finish" and self.full and not self.lean and not self.build and critic_rounds < 2:
                     critic_rounds += 1
                     res = sg.critique(self, critic_rounds)
@@ -478,8 +478,11 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                         prefix = ("b_" if self.build and hasattr(self, "b_" + c.name) else
                                   "l_" if self.lean and hasattr(self, "l_" + c.name) else
                                   "f_" if self.full and hasattr(self, "f_" + c.name) else "t_")
+                        sealed = seal_snapshot(self.ws) if (self.build and c.name in AGENT_WRITERS) else None
                         out_s = run_with_deadline(lambda: getattr(self, prefix + c.name)(**args),
                                                   TOOL_TIMEOUT_S if (self.build and c.name in TIMED_TOOLS) else None)
+                        if sealed is not None:
+                            out_s += seal_restore(self.ws, sealed)
                     except ToolTimeout:
                         out_s = (f"ERROR timeout: {c.name} exceeded {TOOL_TIMEOUT_S} s while executing your model.py/atomic.py; "
                                  "make them faster (vectorise, cache solutions, fewer grid points or solver iterations) and call it again")
@@ -511,6 +514,44 @@ TIMED_TOOLS = {"check_model", "check_atomic", "run_analysis", "run_three_optima"
 
 class ToolTimeout(Exception):
     pass
+
+
+# Outputs that only the fixed tools write (gate results). An agent edit through write_file/run_python is reverted, so a gate
+# result cannot be forged (nh3dec_b6 turn 206, 2026-11-13: the agent wrote its own empty evidence_debt.json).
+SEALED_OUTPUTS = ("model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
+                  "atomic_check.json", "three_optima.json")
+AGENT_WRITERS = {"write_file", "run_python"}
+
+
+def seal_snapshot(ws):
+    return {n: ((ws / n).read_bytes() if (ws / n).exists() else None) for n in SEALED_OUTPUTS}
+
+
+def seal_restore(ws, snap):
+    changed = []
+    for n, b in snap.items():
+        p = ws / n
+        now = p.read_bytes() if p.exists() else None
+        if now != b:
+            changed.append(n)
+            if b is None:
+                p.unlink()
+            else:
+                p.write_bytes(b)
+    if not changed:
+        return ""
+    return ("\n[reverted] " + ", ".join(changed) + " are written only by the fixed tools (check_model, assess_assumptions, "
+            "resolve_debt, request_critique/respond_critique, run_sensitivity, run_analysis, check_atomic, run_three_optima); "
+            "your change to them was undone. Call the tool instead.")
+
+
+def finish_errors(h):
+    """build_finish_errors that reports unreadable or malformed tool outputs as errors instead of ending the run
+    (nh3dec_b6, 2026-11-13: KeyError on a hand-written evidence_debt.json ended the build at finish)."""
+    try:
+        return h.build_finish_errors()
+    except Exception as e:  # noqa: BLE001
+        return [f"tool outputs unreadable ({type(e).__name__}: {str(e)[:200]}); rerun the tools that write them"]
 
 
 def run_tree(cmd, cwd, timeout):
