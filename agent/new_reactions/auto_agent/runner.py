@@ -388,13 +388,10 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def t_run_python(self, name, code, timeout_s):
         p = self.path(f"scripts/{re.sub(r'[^A-Za-z0-9_]+', '_', name)}.py")
         p.write_text(code, encoding="utf-8")
-        try:
-            r = subprocess.run(["bash", PY.replace("\\", "/"), str(p)], cwd=str(self.ws), capture_output=True, text=True,
-                               timeout=min(max(timeout_s, 10), 900), encoding="utf-8", errors="replace")
-            out = (r.stdout or "") + ("\n[stderr]\n" + r.stderr[-3000:] if r.stderr else "") + f"\n[exit {r.returncode}]"
-        except subprocess.TimeoutExpired:
-            out = "[timeout]"
-        return out
+        rc, so, se = run_tree(["bash", PY.replace("\\", "/"), str(p)], str(self.ws), min(max(timeout_s, 10), 900))
+        if rc is None:
+            return "[timeout]"
+        return (so or "") + ("\n[stderr]\n" + se[-3000:] if se else "") + f"\n[exit {rc}]"
 
     # ------------------------------------------------------------ loop
     def run(self):
@@ -514,6 +511,27 @@ TIMED_TOOLS = {"check_model", "check_atomic", "run_analysis", "run_three_optima"
 
 class ToolTimeout(Exception):
     pass
+
+
+def run_tree(cmd, cwd, timeout):
+    """subprocess.run with a timeout that ends the whole process tree. On Windows, killing only the direct child (bash)
+    leaves the interpreter it started alive and holding the output pipe, so the call never returns (nh3dec_b6 turn 261,
+    2026-11-13: 42 min past a 900 s limit). Returns (returncode, stdout, stderr); returncode None on timeout."""
+    p = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                         errors="replace")
+    try:
+        so, se = p.communicate(timeout=timeout)
+        return p.returncode, so, se
+    except subprocess.TimeoutExpired:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(p.pid)], capture_output=True)
+        else:
+            p.kill()
+        try:
+            p.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass
+        return None, "", ""
 
 
 def run_with_deadline(fn, seconds):
