@@ -67,11 +67,21 @@ def validate_upper_bounds(mod, out, flow):
     bad["physics"]["units"].append(dict(name="furnace", type="furnace", purchased_energy_GJ_per_t=2,
         internal_fuel_GJ_per_t=0, capex_usd=2*1e5/8000/.0036*500))
     cases.append(("exothermic purchased preheat", bad, "exothermic_preheat"))
+    bad = copy.deepcopy(ext)
+    bad["physics"]["units"].append(dict(name="regen", type="regenerator", purchased_energy_GJ_per_t=0,
+        internal_fuel_GJ_per_t=0, capex_usd=0))
+    f_zero = copy.deepcopy(f)
+    f_zero["units"].append(dict(name="regen", type="regenerator"))
+    cases.append(("zero-duty regenerator without evidence", bad, "zero_duty"))
     print("V3 toy with basis: PASS")
     for label, value, check in cases:
-        failures = check_physics(mod, value, f, b)
+        failures = check_physics(mod, value, f_zero if label.startswith("zero-duty") else f, b)
         assert any(check in s for s in failures), (label, failures)
         print(f"V3 broken {label}: rejected [{check}]")
+    ok = copy.deepcopy(b)
+    ok["zero_duty_evidence"] = {"regen": dict(type="published", source="https://example.org/toy", location="Table 2", low=None, high=None)}
+    assert not any("zero_duty" in x for x in check_physics(mod, cases[-1][1], f_zero, ok))
+    print("V3.1 zero-duty regenerator with published evidence: accepted")
 
 
 class Harness(bm.BuildMixin):
@@ -118,7 +128,7 @@ def validate():
         assert json.loads(h.b_submit_flowsheet())["passed"]
         params = {k: v["value"] for k, v in basis_values(b).items()}
         params.update(important=10., irrelevant=1.)
-        (ws/"sources.csv").write_text("parameter,value,unit,source,location,type,low,high\nimportant,10,USD/t,,,assumption,0,30\nirrelevant,1,-,,,assumption,0,2\n", encoding="utf-8")
+        (ws/"sources.csv").write_text("parameter,value,unit,source,location,type,low,high\nimportant,10,USD,,,assumption,0,30\nirrelevant,1,-,,,assumption,0,2\n", encoding="utf-8")
         model = "import copy\nREACTION="+repr(reaction)+"\nPARAMS="+repr(params)+"\nOUT="+repr(out)+"\nREC="+repr(h._records()[0])+"\n"+'''
 def reference():
     o=copy.deepcopy(OUT)
@@ -150,7 +160,25 @@ def plant_cost(rec):
         h.b_respond_critique(critique["issues"][0]["id"], "rejected", "The fixture is intentionally synthetic; conversion was checked.")
         (ws/"report.md").write_text("Uncertainty: important", encoding="utf-8")
         (ws/"analysis.json").write_text("{}", encoding="utf-8")
+        assert any("sensitivity" in x for x in h.build_finish_errors())
+        sens = json.loads(h.b_run_sensitivity())
+        assert sens["parameters"][0]["parameter"] == "important" and sens["parameters"][0]["cost_swing_pct"] > 20, sens
         assert not h.build_finish_errors(), h.build_finish_errors()
+        print("V3.1 deterministic run_sensitivity: top item important, finish requires current sensitivity.json: PASS")
+        # price table: cited rows pass, self-set prices fail
+        import shutil
+        shutil.copyfile(Path(bm.__file__).with_name("prices.json"), ws/"prices.json")
+        src = (ws/"sources.csv").read_text(encoding="utf-8")
+        nl = chr(10)
+        (ws/"sources.csv").write_text(src + "h2_price,3.0,USD/kg,prices.json:hydrogen,,price_table,," + nl, encoding="utf-8")
+        assert bm.price_failures(ws) == [], bm.price_failures(ws)
+        (ws/"sources.csv").write_text(src + "h2_price,5.0,USD/kg,https://example.org,Table 1,published,," + nl, encoding="utf-8")
+        assert bm.price_failures(ws) and "prices.json" in bm.price_failures(ws)[0]
+        (ws/"sources.csv").write_text(src + "h2_price,2.0,USD/kg,prices.json:hydrogen,,price_table,," + nl, encoding="utf-8")
+        assert bm.price_failures(ws)
+        (ws/"sources.csv").write_text(src, encoding="utf-8")
+        (ws/"prices.json").unlink()
+        print("V3.1 price table: cited row accepted; published self-set price and altered table value rejected: PASS")
         h.b_request_critique()
         assert "at most two" in h.b_request_critique()
         print("Dry V3: submit/check PASS; debt exactly important (27.2727% cost swing), irrelevant unchanged; finish blocked before debt/critic responses; resolve+report PASS; critic tokens=24/14, third round refused")

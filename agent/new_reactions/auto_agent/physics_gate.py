@@ -15,6 +15,8 @@ BOUNDARY_STATE_RTOL = .01  # Boundary inlet pressure and temperature agreement.
 EXOTHERMIC_PREHEAT_FRACTION = .05  # Purchased preheat fraction requiring external evidence.
 COMPRESSOR_CAPEX_PER_KW = (200, 8000)  # Installed compressor capital per shaft kW.
 FURNACE_CAPEX_PER_KW = (50, 3000)  # Installed furnace capital per purchased-duty kW.
+ZERO_DUTY_TYPES = ("regenerator", "furnace", "separation")  # Zero energy/heat duty needs measured/published evidence.
+ZERO_DUTY_EPS = 1e-6  # GJ/t below which a unit counts as zero duty.
 T0 = 298.15
 # NIST Chemistry WebBook SRD 69, gas phase thermochemistry, SI units:
 # https://webbook.nist.gov/cgi/cbook.cgi?ID=C<CAS digits>&Units=SI&Mask=1
@@ -449,4 +451,20 @@ def check_physics(model_module, out, flowsheet, basis=None):
                 lo, hi = COMPRESSOR_CAPEX_PER_KW if u["type"] == "compressor" else FURNACE_CAPEX_PER_KW
                 require(lo <= ratio <= hi, f"capital_plausibility: {u['name']} {ratio:g} USD/kW outside [{lo}, {hi}]")
         check("capital_plausibility", capital)
+        def zero_duty():
+            proofs = basis.get("zero_duty_evidence") or {}
+            try:
+                from .basis_gate import evidence
+            except ImportError:
+                from basis_gate import evidence
+            for u in units:
+                if u["type"] not in ZERO_DUTY_TYPES:
+                    continue
+                duty = sum(_number(u.get(k, 0), 0) for k in ("purchased_energy_GJ_per_t", "internal_fuel_GJ_per_t", "recovered_heat_GJ_per_t"))
+                if duty <= ZERO_DUTY_EPS:
+                    ev = proofs.get(u["name"])
+                    require(isinstance(ev, dict) and ev.get("type") in ("measured", "published"),
+                            f"zero_duty: {u['type']} {u['name']} has zero energy/heat duty without measured/published evidence in basis.zero_duty_evidence")
+                    evidence(ev)
+        check("zero_duty", zero_duty)
     return failures

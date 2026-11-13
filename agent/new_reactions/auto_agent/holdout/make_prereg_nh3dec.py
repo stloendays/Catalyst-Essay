@@ -8,15 +8,17 @@ H = Path(__file__).resolve().parent
 A = H.parent
 ROUTE = A.parents[1] / "extraction" / "llm_route.py"
 FROZEN = ["runner.py", "build_mode.py", "physics_gate.py", "basis_gate.py", "atomic_layer.py", "mkm_solver.py", "full_mode.py",
-          "evaluate_builds.py", "audit_holdout.py", "holdout/nh3dec.json"]
+          "evaluate_builds.py", "audit_holdout.py", "prices.json", "holdout/nh3dec.json"]
 
 prereg = {
-    "id": "AI-BUILD-NH3DEC-V3", "written": datetime.now().isoformat(timespec="seconds"),
+    "id": "AI-BUILD-NH3DEC-V3.1", "written": datetime.now().isoformat(timespec="seconds"),
     "guidance": ("docs/SUPERVISOR_FEEDBACK_2026-11-11.md (AI takes over the modeling, validation TEA held out, disagreement rule fixed in "
                  "advance); user 2026-11-13: build mode V3 after the five-layer design (Notion 40), model gpt-5.6-sol via API-YES "
                  "credential GPT-personal, and ammonia decomposition as the new reaction that covers the three optima (atomic, laboratory, "
                  "industrial) of the NCE paper."),
-    "build_mode": ("V3-five-layer (docs/V3_FIVE_LAYER_DESIGN.md): design basis with evidence (basis.json), PARAMS contract, decisions log, "
+    "build_mode": ("V3.1-five-layer (docs/V3_FIVE_LAYER_DESIGN.md; V3.1 = user 2026-11-13: zero energy/heat duty of a regenerator, "
+                   "furnace or separation unit needs measured/published evidence; one fixed price table prices.json that the agent cites "
+                   "and may not change; deterministic run_sensitivity (no LLM); critic on a different model, gpt-5.6-luna): design basis with evidence (basis.json), PARAMS contract, decisions log, "
                    "physics gate with V2 lower bounds plus upper bounds and capital plausibility, evidence debt from assumption sensitivity "
                    "(10 % of cost or energy) that must be resolved before finish, one independent critic (fresh context, artefacts only, "
                    "at most 2 rounds); --atomic: literature-built atomic.py on the generic mkm_solver.py, check_atomic, run_three_optima. "
@@ -24,7 +26,7 @@ prereg = {
                    "ammonia decomposition is its first test."),
     "task": "runner.py <run> 'ammonia decomposition to hydrogen (2 NH3 -> N2 + 3 H2)' --build nh3dec --atomic",
     "agent": {"model": "gpt-5.6-sol", "route": "API-YES credential GPT-personal (fallback: credential 邪修gpt, then other routes)",
-              "extraction_model": "gpt-5.6-sol", "critic_model": "gpt-5.6-sol (separate call, fresh context)", "max_turns": 140,
+              "extraction_model": "gpt-5.6-sol", "critic_model": "gpt-5.6-luna (separate call, fresh context, artefacts only)", "max_turns": 140,
               "n_target_papers": 12, "n_max_downloads": 20,
               "workspace": "D:/agent_runs/<run> (outside the repository); scripts restricted to relative paths"},
     "not_visible_to_the_agent": [

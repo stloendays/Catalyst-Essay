@@ -183,7 +183,7 @@ def validate_build_integration(model, out, flow):
 
     with tempfile.TemporaryDirectory(prefix="physics-build-") as tmp:
         h = Harness(Path(tmp))
-        assert h.events[0] == {"build_mode_version": "V3-five-layer"}
+        assert h.events[0] == {"build_mode_version": build_mode.BUILD_MODE_VERSION}
         assert "draw the flowsheet first" in h.b_write_file("./model.py", "x")
         assert "draw the flowsheet first" in h.b_run_python("x", "open('model.py')", 1)
         assert "flowsheet" in json.loads(h.b_check_model())["failures"]

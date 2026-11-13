@@ -65,7 +65,8 @@ try:
 except ImportError:  # runner.py is also invoked directly
     from physics_gate import check_flowsheet, check_physics
 
-BUILD_MODE_VERSION = "V3-five-layer"
+BUILD_MODE_VERSION = "V3.1-five-layer"
+CRITIC_MODEL = "gpt-5.6-luna"   # user 2026-11-13: the critic is a different model from the builder
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
           "model_code", "model_checks", "feedback", "atomic_model", "analysis", "report"]
@@ -83,7 +84,7 @@ Work in stages and call set_stage when you start each one ({stages}).
 6. model_code: write model.py following the contract below (numpy/scipy only; relative paths only). The plant should optimise its free operating variable(s) (for example per-pass conversion against recycle and catalyst amount). plant_cost computes each unit's duty from its own mass and energy balance at the plant's operating point: recycle, compression and separation duties must change with per-pass conversion. Return the physics block; purchased energy and capital are sums over all flowsheet units.
 7. model_checks: call check_model until it passes; it includes the independent physics gate (mass, elements, equilibrium, reaction heat, heat supply, compression, separation and unit accounting) on the reference and first 40 records. Use the fixed thermochemistry; fix the model, not the checks.
 8. analysis: call run_analysis (it costs every usable record with your model and computes the ranking metrics), then explain the results.
-9. report: write report.md: papers and exclusions; model choices with their justification (mechanism, kinetics, reactor, flowsheet, what is and is not represented); parameter table (sources.csv); reference plant cost and breakdown; ranking results with denominators; the controlling catalyst property; sensitivity of the conclusion to the uncertain parameters (run your model); what the evidence could not support. Then call finish.
+9. report: write report.md: papers and exclusions; model choices with their justification (mechanism, kinetics, reactor, flowsheet, what is and is not represented); parameter table (sources.csv); reference plant cost and breakdown; ranking results with denominators; the controlling catalyst property; sensitivity of the conclusion to the uncertain parameters (the run_sensitivity table); what the evidence could not support. Then call finish.
 
 Model contract (model.py):
   REACTION = {{"key": <formula>, "product": <formula>, "cofeed": <formula or None>, "MW": {{formula: g/mol}}, "nu": {{formula: stoichiometric coefficient}}}}  # reactants negative, products positive; element-balanced
@@ -141,6 +142,16 @@ After model_checks and before analysis, set_stage feedback: run assess_assumptio
 debt item, resolve_debt by narrowed (edit evidence/ranges then rerun check_model and assess_assumptions) or
 kept_as_uncertainty (note >= 40 characters and list the item in report.md). request_critique then respond_critique to
 each major issue with fixed or rejected and a reason. At most two critique rounds. Recheck and reassess after edits.
+Zero duty: a regenerator, furnace or separation unit whose purchased energy, internal fuel and recovered heat are all
+zero fails the physics gate unless basis.json has zero_duty_evidence {unit name: measured/published evidence} for it.
+Prices: every price (USD per t, kg, GJ, MWh, kWh, MMBtu or m3 of any feed, product, fuel, utility, metal or catalyst
+material) must be cited from the fixed price table prices.json in the workspace: a sources.csv row with type price_table,
+source prices.json:<key>, and the table's value and unit. You may not set, change or replace prices; combine table entries
+in model.py if needed (for example catalyst material cost from metal and support prices). basis.json holds no prices.
+The capital charge and fixed O&M also come from the table (capital_recovery_factor, fixed_om_fraction_of_capex),
+cited the same way as prices.
+Sensitivity: after run_analysis call run_sensitivity (deterministic: every sourced range, assumption and price-table
+range one at a time, on the reference cost and on the record ranking). Report its table; do not run your own sensitivity.
 Fix the model, not the checks. Feedback uses only internal signals.
 """
 METHOD_BUILD += V3_PROMPT.replace("{", "{{").replace("}", "}}")
@@ -175,7 +186,8 @@ BUILD_TOOLS += [
                alternatives={"type": "array", "items": _str}, reason=_str, evidence={"type": "array", "items": _str})),
     _tool("assess_assumptions", "Probe all source/basis assumptions after check_model; write evidence_debt.json."),
     _tool("resolve_debt", "Resolve an assessed evidence debt.", dict(item=_str, action={"type": "string", "enum": ["narrowed", "kept_as_uncertainty"]}, note=_str, evidence=_str)),
-    _tool("request_critique", "Request independent artifact-only process review (at most two rounds)."),
+    _tool("request_critique", "Request independent artifact-only process review by a different model (at most two rounds)."),
+    _tool("run_sensitivity", "After run_analysis: deterministic one-at-a-time sensitivity over all sourced ranges, assumptions and price-table ranges, on reference cost/energy and on the record ranking; writes sensitivity.json."),
     _tool("respond_critique", "Respond to a critic issue.", dict(id=_str, action={"type": "string", "enum": ["fixed", "rejected"]}, note=_str)),
 ]
 ATOMIC_TOOLS = [_tool("check_atomic", "Validate atomic.py thermodynamics, volcano, provenance and plant link."),
@@ -195,6 +207,9 @@ class BuildMixin:
             version = "V2-flowsheet-physics" if (self.ws / "model.py").exists() else BUILD_MODE_VERSION
             vp.write_text(json.dumps({"version": version}), encoding="utf-8")
         self.build_version = json.loads(vp.read_text(encoding="utf-8"))["version"]
+        if self.build_version.startswith("V3") and (HERE / "prices.json").exists():
+            import shutil
+            shutil.copyfile(HERE / "prices.json", self.ws / "prices.json")   # fixed price table: the agent cites, never sets
         if getattr(self, "atomic", False):
             import shutil
             shutil.copyfile(HERE / "mkm_solver.py", self.ws / "mkm_solver.py")
@@ -414,8 +429,12 @@ class BuildMixin:
                 elif typ == "assumption":
                     if not (row.get("low") or "").strip() or not (row.get("high") or "").strip():
                         src_fail.append(f"{row.get('parameter')}: assumption without low/high")
+                elif typ == "price_table" and self._is_v3():
+                    pass                                   # checked against prices.json below
                 else:
-                    src_fail.append(f"{row.get('parameter')}: type must be measured, published or assumption")
+                    src_fail.append(f"{row.get('parameter')}: type must be measured, published, assumption or price_table")
+            if self._is_v3() and (self.ws / "prices.json").exists():
+                src_fail += price_failures(self.ws)
         if src_fail:
             fails["sources"] = src_fail
         if self._is_v3():
@@ -627,8 +646,8 @@ class BuildMixin:
 
     def _critic_call(self, payload):
         import llm_route
-        router = llm_route.Router(self.model)
-        response = router.call(lambda client: client.responses.create(model=self.model, store=False,
+        router = llm_route.Router(CRITIC_MODEL)
+        response = router.call(lambda client: client.responses.create(model=CRITIC_MODEL, store=False,
             instructions=CRITIC_INSTRUCTIONS, input=[{"role": "user", "content": json.dumps(payload)}],
             text={"format": {"type": "json_object"}}))
         return json.loads(response.output_text), response.usage.input_tokens, response.usage.output_tokens
@@ -681,9 +700,12 @@ class BuildMixin:
                 errors.append("missing " + name)
         if errors:
             return errors
-        for name in ("report.md", "analysis.json"):
+        for name in ("report.md", "analysis.json", "sensitivity.json"):
             if not (self.ws / name).exists():
                 errors.append("missing " + name)
+        sp = self.ws / "sensitivity.json"
+        if sp.exists() and json.loads(sp.read_text(encoding="utf-8")).get("input_fingerprint") != self._fingerprint():
+            errors.append("rerun run_sensitivity after input changes")
         check = json.loads((self.ws / "model_check.json").read_text(encoding="utf-8"))
         debt = json.loads((self.ws / "evidence_debt.json").read_text(encoding="utf-8"))
         if not check.get("passed") or check.get("input_fingerprint") != self._fingerprint():
@@ -711,6 +733,11 @@ class BuildMixin:
                     errors.append("run current " + name)
         return errors
 
+    def b_run_sensitivity(self):
+        if not (self.ws / "analysis.json").exists():
+            return "refused: run_analysis first"
+        return json.dumps(run_sensitivity(self), default=str)
+
     def b_check_atomic(self):
         try:
             from .atomic_layer import check_atomic
@@ -724,3 +751,101 @@ class BuildMixin:
         except ImportError:
             from atomic_layer import three_optima
         return json.dumps(three_optima(self), default=str)
+
+
+PRICE_UNIT = re.compile(r"usd\s*(\d{4}\s*)?/\s*(t|tonne|kg|gj|mwh|kwh|mmbtu|m3|nm3|scm)\b", re.I)
+
+
+def price_failures(ws):
+    """Every price-type sources.csv row must quote the fixed price table (user 2026-11-13: AI cites, never sets prices)."""
+    table = json.loads((Path(ws) / "prices.json").read_text(encoding="utf-8"))["prices"]
+    out = []
+    with (Path(ws) / "sources.csv").open(encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            typ = (row.get("type") or "").strip().lower()
+            is_price = bool(PRICE_UNIT.search(row.get("unit") or ""))
+            if typ == "price_table":
+                key = (row.get("source") or "").strip().removeprefix("prices.json:")
+                if key not in table:
+                    out.append(f"{row.get('parameter')}: unknown price key {key!r}")
+                    continue
+                t = table[key]
+                try:
+                    ok = math.isclose(float(row["value"]), float(t["value"]), rel_tol=1e-9)
+                except (TypeError, ValueError):
+                    ok = False
+                if not ok or (row.get("unit") or "").strip() != t["unit"]:
+                    out.append(f"{row.get('parameter')}: value/unit must equal prices.json {key} ({t['value']} {t['unit']})")
+            elif is_price:
+                out.append(f"{row.get('parameter')}: prices must come from prices.json (type price_table), not {typ or 'blank'}")
+    return out
+
+
+def _sensitivity_items(h):
+    """(key, low, high, kind) for every ranged parameter: assumptions, published with low/high, price-table ranges."""
+    pj = h.ws / "prices.json"
+    table = json.loads(pj.read_text(encoding="utf-8"))["prices"] if pj.exists() else {}
+    items = []
+    for key, leaf in h._parameters().items():
+        ev = leaf["evidence"]
+        typ = (ev.get("type") or "").strip().lower()
+        if typ == "price_table":
+            t = table[(ev.get("source") or "").strip().removeprefix("prices.json:")]
+            lo, hi = float(t["low"]), float(t["high"])
+        else:
+            try:
+                lo, hi = float(ev.get("low")), float(ev.get("high"))
+            except (TypeError, ValueError):
+                continue
+        if math.isfinite(lo) and math.isfinite(hi) and lo < hi:
+            items.append((key, lo, hi, typ))
+    return items
+
+
+def run_sensitivity(h, max_records=80):
+    from scipy.stats import spearmanr
+    m = h._load_model()
+    recs = h._records()
+    if len(recs) > max_records:            # deterministic thinning, keeps the record order
+        step = len(recs) / max_records
+        recs = [recs[int(i * step)] for i in range(max_records)]
+
+    def evaluate():
+        ref = m.reference()
+        costs = []
+        for r in recs:
+            try:
+                costs.append(float(m.plant_cost(r)["cost_usd_per_t"]))
+            except Exception:  # noqa: BLE001
+                costs.append(math.nan)
+        return float(ref["cost_usd_per_t"]), float(ref["balances"]["energy_GJ_per_t"]), costs
+
+    def cheapest(costs):
+        ok = [(c, i) for i, c in enumerate(costs) if math.isfinite(c)]
+        return re.sub(r"\s+", "", str(recs[min(ok)[1]]["catalyst"]).lower()) if ok else None
+
+    c0, e0, k0 = evaluate()
+    rows = []
+    for key, lo, hi, kind in _sensitivity_items(h):
+        old = m.PARAMS[key]
+        res = {}
+        try:
+            for tag, v in (("low", lo), ("high", hi)):
+                m.PARAMS[key] = v
+                c, e, k = evaluate()
+                fin = [i for i in range(len(k)) if math.isfinite(k[i]) and math.isfinite(k0[i])]
+                res[tag] = dict(value=v, cost=c, energy=e, cheapest=cheapest(k),
+                                spearman=float(spearmanr([k[i] for i in fin], [k0[i] for i in fin]).statistic) if len(fin) > 2 else None)
+        finally:
+            m.PARAMS[key] = old
+        swing = max(res["low"]["cost"], res["high"]["cost"], c0) - min(res["low"]["cost"], res["high"]["cost"], c0)
+        rows.append(dict(parameter=key, kind=kind, low=res["low"], high=res["high"], cost_swing_pct=100 * swing / c0,
+                         cheapest_changes=any(res[t]["cheapest"] != cheapest(k0) for t in res),
+                         min_spearman=min((res[t]["spearman"] for t in res if res[t]["spearman"] is not None), default=None)))
+    rows.sort(key=lambda r: -r["cost_swing_pct"])
+    out = dict(input_fingerprint=h._fingerprint(), reference_cost=c0, reference_energy_GJ_per_t=e0, n_records=len(recs),
+               base_cheapest=cheapest(k0), parameters=rows,
+               conclusion_robust=dict(cheapest_unchanged=sum(not r["cheapest_changes"] for r in rows), n=len(rows),
+                                      ranking_spearman_min=min((r["min_spearman"] for r in rows if r["min_spearman"] is not None), default=None)))
+    (h.ws / "sensitivity.json").write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
+    return dict(out, parameters=rows[:15])

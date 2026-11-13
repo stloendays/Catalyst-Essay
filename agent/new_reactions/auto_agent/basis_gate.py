@@ -27,7 +27,7 @@ def basis_values(basis, prefix="basis"):
                 out[path] = x
             else:
                 for k, v in x.items():
-                    if k not in ("evidence", "purchased_preheat_reason"):
+                    if k not in ("evidence", "purchased_preheat_reason", "zero_duty_evidence"):
                         walk(v, path + "." + k)
     walk(basis, prefix)
     return out
@@ -61,6 +61,8 @@ def check_basis(path):
         for v in b["utilities"].values():
             if not v.get("unit"):
                 raise ValueError("utility unit missing")
+            if "usd" in v["unit"].lower():
+                raise ValueError("prices are not basis values: cite them from prices.json in sources.csv (type price_table)")
         for name, leaf in basis_values(b).items():
             v = leaf["value"]
             if isinstance(v, bool) or not isinstance(v, (float, int)) or not math.isfinite(v):
@@ -68,6 +70,10 @@ def check_basis(path):
             evidence(leaf["evidence"], v)
         if b.get("purchased_preheat_reason") is not None:
             evidence(b["purchased_preheat_reason"])
+        for name, ev in (b.get("zero_duty_evidence") or {}).items():
+            if not isinstance(ev, dict) or ev.get("type") not in ("measured", "published"):
+                raise ValueError("zero_duty_evidence " + name + " must be measured/published")
+            evidence(ev)
         return []
     except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
         return ["basis: " + str(exc)]
