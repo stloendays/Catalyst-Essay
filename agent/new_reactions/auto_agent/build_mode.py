@@ -647,9 +647,18 @@ class BuildMixin:
     def _critic_call(self, payload):
         import llm_route
         router = llm_route.Router(CRITIC_MODEL)
-        response = router.call(lambda client: client.responses.create(model=CRITIC_MODEL, store=False,
-            instructions=CRITIC_INSTRUCTIONS, input=[{"role": "user", "content": json.dumps(payload)}],
-            text={"format": {"type": "json_object"}}))
+
+        def call(client):   # API-YES ChatGPT-account routes accept only streamed Responses calls
+            done = None
+            for ev in client.responses.create(model=CRITIC_MODEL, store=False, stream=True,
+                                              instructions=CRITIC_INSTRUCTIONS, input=[{"role": "user", "content": json.dumps(payload)}],
+                                              text={"format": {"type": "json_object"}}):
+                if getattr(ev, "type", "") == "response.completed":
+                    done = ev.response
+            if done is None:
+                raise ValueError("critic stream ended without a completed response")
+            return done
+        response = router.call(call)
         return json.loads(response.output_text), response.usage.input_tokens, response.usage.output_tokens
 
     def b_request_critique(self):
