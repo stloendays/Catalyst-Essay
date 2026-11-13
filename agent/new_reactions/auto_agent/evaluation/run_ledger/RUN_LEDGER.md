@@ -12,8 +12,8 @@
 | smoke | 氨分解 | 1 | 0 | 1 | 0 | 0.0 | 0 | 0.0 |
 | test | CO2 制甲醇（盲测） | 3 | 3 | 0 | 0 | 15.5 | 90 | 2.5 |
 | test | NH3 合成（盲测） | 6 | 3 | 3 | 0 | 43.5 | 252 | 5.1 |
-| test | 氨分解 | 6 | 0 | 6 | 0 | 98.9 | 534 | 15.1 |
-| 合计 | | 28 | | | | 177.9 | 1,017 | 29.9 |
+| test | 氨分解 | 9 | 2 | 7 | 0 | 133.8 | 727 | 20.6 |
+| 合计 | | 31 | | | | 212.7 | 1,210 | 35.4 |
 
 ## 逐次运行
 
@@ -47,3 +47,6 @@
 | nh3dec_b4 | 氨分解 | test | V3.1-five-layer | invalid: stopped by the operator at turn 288/300 after about 3 h inside one fixed tool (A2 code, no tool deadline) | gpt-5.6-sol / api-yes-xiexiu | 288 | 24,877,980 | 265,778 | 27,502 | 132.4 | 164.4 | 9 / 332 / 86 | Co:164 Ru:142 K:62 Ce:58 Ba:23 Ni:21 Mo:5 Fe:4 La:4 Li:3 |
 | nh3dec_b5 | 氨分解 | test | V3.1-five-layer | invalid: holdout leak: opened the held-out TEA paper by web search (turn 62); held-out abstracts in search results (A6) | gpt-5.6-sol / api-yes-xiexiu | 219 | 15,909,180 | 268,935 | 43,694 | 87.6 | 195.3 | 12 / 356 / 116 | Ru:192 Co:132 K:110 Ni:84 Ce:26 Cs:20 La:11 Ga:10 Ba:5 Mo:5 |
 | nh3dec_b6 | 氨分解 | test | V3.1-five-layer | invalid: harness crash at finish: KeyError on an evidence_debt.json the agent wrote itself (fixed in A5) | gpt-5.6-sol / api-yes-xiexiu | 291 | 23,904,912 | 237,845 | 24,771 | 126.7 | 297.7 | 11 / 248 / 82 | Co:78 Ru:75 K:66 Li:52 Ni:47 Ba:24 Pd:21 Fe:13 Mo:13 Ce:12 |
+| nh3dec_b7 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 162 | 10,343,018 | 330,195 | 22,965 | 61.6 | 97.8 | 12 / 538 / 113 | Co:249 Ru:195 K:62 Ce:59 Li:50 Ni:30 Ba:23 Fe:12 La:6 Mo:5 |
+| nh3dec_b8 | 氨分解 | test | V3.1-five-layer | invalid: turn limit 300 (replaced by nh3dec_b10) | gpt-5.6-sol / api-yes-xiexiu | 300 | 19,645,804 | 176,764 | 0 | 103.5 | 141.8 | 7 / 245 / 36 | Ni:109 Fe:96 K:35 Ca:31 Co:20 Ru:13 Mg:4 |
+| nh3dec_b9 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 84 | 4,099,068 | 235,972 | 24,362 | 27.6 | 92.2 | 15 / 522 / 93 | Ru:186 Co:121 Li:99 Ni:96 Mn:66 Ca:62 Fe:29 Kr:10 Ba:10 Cs:8 |
