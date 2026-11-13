@@ -12,8 +12,8 @@
 | smoke | 氨分解 | 1 | 0 | 1 | 0 | 0.0 | 0 | 0.0 |
 | test | CO2 制甲醇（盲测） | 3 | 3 | 0 | 0 | 15.5 | 90 | 2.5 |
 | test | NH3 合成（盲测） | 6 | 3 | 3 | 0 | 43.5 | 252 | 5.1 |
-| test | 氨分解 | 9 | 2 | 7 | 0 | 133.8 | 727 | 20.6 |
-| 合计 | | 31 | | | | 212.7 | 1,210 | 35.4 |
+| test | 氨分解 | 10 | 3 | 7 | 0 | 158.9 | 859 | 23.5 |
+| 合计 | | 32 | | | | 237.8 | 1,343 | 38.4 |
 
 ## 逐次运行
 
@@ -50,3 +50,4 @@
 | nh3dec_b7 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 162 | 10,343,018 | 330,195 | 22,965 | 61.6 | 97.8 | 12 / 538 / 113 | Co:249 Ru:195 K:62 Ce:59 Li:50 Ni:30 Ba:23 Fe:12 La:6 Mo:5 |
 | nh3dec_b8 | 氨分解 | test | V3.1-five-layer | invalid: turn limit 300 (replaced by nh3dec_b10) | gpt-5.6-sol / api-yes-xiexiu | 300 | 19,645,804 | 176,764 | 0 | 103.5 | 141.8 | 7 / 245 / 36 | Ni:109 Fe:96 K:35 Ca:31 Co:20 Ru:13 Mg:4 |
 | nh3dec_b9 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 84 | 4,099,068 | 235,972 | 24,362 | 27.6 | 92.2 | 15 / 522 / 93 | Ru:186 Co:121 Li:99 Ni:96 Mn:66 Ca:62 Fe:29 Kr:10 Ba:10 Cs:8 |
+| nh3dec_b10 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 273 | 24,702,524 | 309,507 | 30,023 | 132.8 | 175.8 | 16 / 401 / 88 | Ru:161 Ni:130 Nd:49 Fe:42 Na:18 Co:10 Mg:4 Cs:4 K:1 Ca:1 |

@@ -1,0 +1,386 @@
+{
+  "units": [
+    {
+      "name": "fresh_ammonia_conditioner",
+      "type": "other",
+      "purpose": "Let down delivered liquid ammonia to reactor pressure and provide controlled vaporisation before mixing with recycle.",
+      "inlets": [
+        "fresh_nh3"
+      ],
+      "outlets": [
+        "conditioned_fresh_nh3"
+      ]
+    },
+    {
+      "name": "feed_recycle_mixer",
+      "type": "other",
+      "purpose": "Combine fresh ammonia with recovered unconverted ammonia recycle.",
+      "inlets": [
+        "conditioned_fresh_nh3",
+        "recycle_nh3_vapor"
+      ],
+      "outlets": [
+        "mixed_ammonia_feed"
+      ]
+    },
+    {
+      "name": "feed_effluent_exchanger",
+      "type": "heat_exchanger",
+      "purpose": "Recover sensible heat from reactor effluent to preheat mixed ammonia feed and reduce purchased furnace duty.",
+      "inlets": [
+        "mixed_ammonia_feed",
+        "hot_reactor_effluent"
+      ],
+      "outlets": [
+        "preheated_ammonia_feed",
+        "partly_cooled_effluent"
+      ]
+    },
+    {
+      "name": "fired_heater",
+      "type": "furnace",
+      "purpose": "Burn PSA tail hydrogen with purchased natural-gas backup and supplied oxygen to provide endothermic reactor heat.",
+      "inlets": [
+        "psa_tail_fuel",
+        "purchased_natural_gas",
+        "combustion_oxygen"
+      ],
+      "outlets": [
+        "hot_furnace_flue_gas"
+      ]
+    },
+    {
+      "name": "tubular_fixed_bed_reactor",
+      "type": "reactor",
+      "purpose": "Decompose ammonia over packed catalyst in externally heated tubes at the optimized temperature and per-pass conversion.",
+      "inlets": [
+        "preheated_ammonia_feed",
+        "hot_furnace_flue_gas"
+      ],
+      "outlets": [
+        "hot_reactor_effluent",
+        "cooled_flue_gas"
+      ]
+    },
+    {
+      "name": "refrigeration_condenser",
+      "type": "heat_exchanger",
+      "purpose": "Cool cracked gas to the basis refrigeration temperature for partial NH3 condensation; the modeled recovery is an uncertain split varied from zero to near-complete recovery.",
+      "inlets": [
+        "partly_cooled_effluent"
+      ],
+      "outlets": [
+        "chilled_two_phase_effluent"
+      ]
+    },
+    {
+      "name": "ammonia_knockout",
+      "type": "knockout",
+      "purpose": "Separate condensed unconverted ammonia from the hydrogen-nitrogen gas.",
+      "inlets": [
+        "chilled_two_phase_effluent"
+      ],
+      "outlets": [
+        "recovered_liquid_nh3",
+        "raw_h2_n2_gas"
+      ]
+    },
+    {
+      "name": "recycle_pump_vaporizer",
+      "type": "pump",
+      "purpose": "Pressurize and revaporize recovered ammonia for recycle to the feed mixer.",
+      "inlets": [
+        "recovered_liquid_nh3"
+      ],
+      "outlets": [
+        "recycle_nh3_vapor"
+      ]
+    },
+    {
+      "name": "hydrogen_psa",
+      "type": "separation",
+      "purpose": "Vacuum-pressure-swing adsorption (VPSA) at low feed pressure to recover high-purity hydrogen from nitrogen-rich cracked gas; packaged vacuum/compression power is included in this separation unit.",
+      "inlets": [
+        "raw_h2_n2_gas"
+      ],
+      "outlets": [
+        "low_pressure_h2_product",
+        "psa_tail_gas"
+      ]
+    },
+    {
+      "name": "tail_gas_splitter",
+      "type": "other",
+      "purpose": "Send the combustible fraction of PSA tail gas to the fired heater and purge the remaining nitrogen-rich gas to prevent inert accumulation.",
+      "inlets": [
+        "psa_tail_gas"
+      ],
+      "outlets": [
+        "psa_tail_fuel",
+        "nitrogen_rich_purge"
+      ]
+    },
+    {
+      "name": "hydrogen_product_compressor",
+      "type": "compressor",
+      "purpose": "Compress purified hydrogen from PSA pressure to the specified product delivery pressure.",
+      "inlets": [
+        "low_pressure_h2_product"
+      ],
+      "outlets": [
+        "compressed_h2_product"
+      ]
+    },
+    {
+      "name": "utility_offsites",
+      "type": "offsites",
+      "purpose": "Provide plant cooling-water circulation and account for common utility and auxiliary facilities.",
+      "inlets": [
+        "cooling_water_makeup"
+      ],
+      "outlets": [
+        "cooling_water_return"
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "fresh_nh3",
+      "from": "boundary",
+      "to": "fresh_ammonia_conditioner",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "conditioned_fresh_nh3",
+      "from": "fresh_ammonia_conditioner",
+      "to": "feed_recycle_mixer",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "recycle_nh3_vapor",
+      "from": "recycle_pump_vaporizer",
+      "to": "feed_recycle_mixer",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "mixed_ammonia_feed",
+      "from": "feed_recycle_mixer",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "preheated_ammonia_feed",
+      "from": "feed_effluent_exchanger",
+      "to": "tubular_fixed_bed_reactor",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "hot_reactor_effluent",
+      "from": "tubular_fixed_bed_reactor",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "partly_cooled_effluent",
+      "from": "feed_effluent_exchanger",
+      "to": "refrigeration_condenser",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "chilled_two_phase_effluent",
+      "from": "refrigeration_condenser",
+      "to": "ammonia_knockout",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "recovered_liquid_nh3",
+      "from": "ammonia_knockout",
+      "to": "recycle_pump_vaporizer",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "raw_h2_n2_gas",
+      "from": "ammonia_knockout",
+      "to": "hydrogen_psa",
+      "species": [
+        "H2",
+        "N2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "low_pressure_h2_product",
+      "from": "hydrogen_psa",
+      "to": "hydrogen_product_compressor",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "psa_tail_gas",
+      "from": "hydrogen_psa",
+      "to": "tail_gas_splitter",
+      "species": [
+        "H2",
+        "N2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "psa_tail_fuel",
+      "from": "tail_gas_splitter",
+      "to": "fired_heater",
+      "species": [
+        "H2",
+        "N2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "nitrogen_rich_purge",
+      "from": "tail_gas_splitter",
+      "to": "boundary",
+      "species": [
+        "H2",
+        "N2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "purchased_natural_gas",
+      "from": "boundary",
+      "to": "fired_heater",
+      "species": [
+        "CH4"
+      ]
+    },
+    {
+      "name": "combustion_oxygen",
+      "from": "boundary",
+      "to": "fired_heater",
+      "species": [
+        "O2"
+      ]
+    },
+    {
+      "name": "compressed_h2_product",
+      "from": "hydrogen_product_compressor",
+      "to": "boundary",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "hot_furnace_flue_gas",
+      "from": "fired_heater",
+      "to": "tubular_fixed_bed_reactor",
+      "species": [
+        "CO2",
+        "H2O",
+        "N2",
+        "O2"
+      ]
+    },
+    {
+      "name": "cooled_flue_gas",
+      "from": "tubular_fixed_bed_reactor",
+      "to": "boundary",
+      "species": [
+        "CO2",
+        "H2O",
+        "N2",
+        "O2"
+      ]
+    },
+    {
+      "name": "cooling_water_makeup",
+      "from": "boundary",
+      "to": "utility_offsites",
+      "species": [
+        "H2O"
+      ]
+    },
+    {
+      "name": "cooling_water_return",
+      "from": "utility_offsites",
+      "to": "boundary",
+      "species": [
+        "H2O"
+      ]
+    }
+  ],
+  "checklist": {
+    "feed_preparation": {
+      "included": [
+        "fresh_ammonia_conditioner",
+        "feed_recycle_mixer",
+        "feed_effluent_exchanger"
+      ]
+    },
+    "reactor_heat_supply_or_removal": {
+      "included": [
+        "fired_heater",
+        "tubular_fixed_bed_reactor"
+      ]
+    },
+    "catalyst_regeneration": {
+      "excluded": "The surveyed catalysts are evaluated by replacement life because no common demonstrated in-situ regeneration protocol is supported across the literature catalyst families."
+    },
+    "product_compression": {
+      "included": [
+        "hydrogen_product_compressor"
+      ]
+    },
+    "separation_and_purification": {
+      "included": [
+        "refrigeration_condenser",
+        "ammonia_knockout",
+        "hydrogen_psa"
+      ]
+    },
+    "recycle": {
+      "included": [
+        "ammonia_knockout",
+        "recycle_pump_vaporizer",
+        "feed_recycle_mixer",
+        "tail_gas_splitter"
+      ]
+    },
+    "heat_recovery": {
+      "included": [
+        "feed_effluent_exchanger"
+      ]
+    },
+    "utilities_and_offsites": {
+      "included": [
+        "utility_offsites",
+        "fired_heater"
+      ]
+    }
+  },
+  "diagram": "flowchart LR\n  NH3[Fresh liquid NH3] --> C[Fresh ammonia conditioner]\n  C --> M[Feed/recycle mixer]\n  K[Ammonia knockout] --> P[Recycle pump/vaporizer]\n  P --> M\n  M --> HX[Feed-effluent exchanger]\n  HX --> R[Tubular fixed-bed reactor]\n  F[Fired heater] -->|hot flue gas heat| R\n  R --> HX\n  HX --> RC[Refrigeration condenser]\n  RC --> K\n  K --> PSA[Hydrogen PSA]\n  PSA --> HC[H2 product compressor]\n  HC --> H2[30 bar high-purity H2]\n  PSA --> TS[Tail-gas splitter]\n  TS --> F\n  TS --> PURGE[N2-rich purge]\n  NG[Natural gas + oxygen] --> F\n  R --> FLUE[Cooled flue gas]\n  U[Utility offsites] -. cooling/refrigeration duty .-> RC\n  U -. electricity duty .-> HC"
+}

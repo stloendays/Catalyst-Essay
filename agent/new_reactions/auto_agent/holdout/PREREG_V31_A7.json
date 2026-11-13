@@ -1,0 +1,21 @@
+{
+ "id": "V3.1-A7",
+ "written": "2026-11-14T05:31:55",
+ "amends": "PREREG_V31_A6.json",
+ "written_after_results": true,
+ "change": "Amendment A7 (2026-11-14), written AFTER the NH3-decomposition evaluation of nh3dec_b7, b9, b10. It changes no reported\nverdict; it fixes two defects of the fixed record-normalisation code (chain.normalise, shared with PR #122) for runs started\nfrom now on.\n\nFound while diagnosing an empty common record set: (1) a space velocity written 'cm3 gcat-1 h-1' matched no volume test and\nwas read as a mass WHSV, so the derived rate was about 1000 times too high (51 records of nh3dec_b7, paper\n10.1002/cctc.202200688, up to 3444 kg/kg/h); the > 50 kg/kg/h unit gate covered printed rates only. (2) A rate derived from\nspace velocity x conversion x selectivity used moles of key reactant times the product molar mass, without the product/key\nstoichiometric ratio (1.5 for 2 NH3 -> N2 + 3 H2, 2 for N2 + 3 H2 -> 2 NH3 with N2 as key; 1 for PDH, CO2 methanation,\nCO2-to-methanol and ethanol dehydration, which are therefore unchanged). Changes: normalize.sv_unit maps cm3/cm^3/cc/sccm to\nml and dm3/nl to l; derived rates get the same 50 kg/kg/h unit gate; the ratio comes from the reaction equation given to the\nrun (build_mode.parse_equation). Effect on the reported NH3-decomposition and NH3 blind builds: their own derived lab rates\nare low by the stoichiometric ratio (and nh3dec_b7 has the 51 inflated records); the blind-test scoring uses the paper's\nfrozen record set and is unaffected; the TEA quantities come from each build's reference plant.",
+ "frozen_sha256": {
+  "runner.py": "c8f659436a1a077b3c7c0626d7c25cc1dcaa1335058136a5e944265323a28346",
+  "build_mode.py": "a1c69460c6effee598282385c3e81ca368b60b9d989887a70c9b292bbf46e410",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "7c87bc98bfba5c3bb2de29c74db5ac4e87cfda685aec2b2b8fd67641fb599e40",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed",
+  "../chain.py": "5df8d6679802f6cfebd90b7d91cc975e176eed7429e5333d255c0b246596ff57",
+  "../normalize.py": "18c98514d2d129e67e355b90d928ef99b5120bec064965ede50f361582649cba"
+ }
+}

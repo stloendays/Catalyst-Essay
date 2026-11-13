@@ -1,0 +1,1179 @@
+{
+  "input_fingerprint": "5691cff1cc2fe9fb4c7fb5f197f1098a58fe537a755aa6fa5fe6cbdedbce9542",
+  "evidence_fingerprint": "03eb1b6f57eb425317813c5074870be37a11f16f1e374cfbcd9f348632a2a19e",
+  "previous_evidence_fingerprint": "03eb1b6f57eb425317813c5074870be37a11f16f1e374cfbcd9f348632a2a19e",
+  "reference": {
+    "cost": 4762.441650557053,
+    "energy": 107.92609706431286
+  },
+  "items": [
+    {
+      "item": "basis.utilities.electricity_primary_energy_factor",
+      "low": 1.0,
+      "high": 3.2,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 43.17043882572514
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 138.14540424232047
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 88.00000000000001,
+      "energy_swing_GJ_per_t": 94.97496541659532,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Primary-energy accounting varies with generation mix and convention; retain 1.0\u20133.2 because no uniquely applicable marginal US industrial factor was found.",
+      "evidence": "OpenAlex search for electricity primary-energy factors returned context-specific studies, not an ammonia-cracker-specific factor."
+    },
+    {
+      "item": "recuperator_effectiveness",
+      "low": 0.5,
+      "high": 0.9,
+      "low_result": {
+        "cost": 4868.729354379122,
+        "energy": 116.78330523164222
+      },
+      "high_result": {
+        "cost": 4695.778672056202,
+        "energy": 102.42526492563968
+      },
+      "cost_swing_pct": 3.6315548832538584,
+      "energy_swing_pct": 13.303585227812528,
+      "energy_swing_GJ_per_t": 14.358040306002536,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Recuperator effectiveness depends on exchanger area, pressure drop and approach temperature; retain the broad 0.50\u20130.90 design range.",
+      "evidence": "DOI:10.1016/j.ijheatmasstransfer.2013.10.008 demonstrates geometry-specific gas-to-gas exchanger performance."
+    },
+    {
+      "item": "electric_heater_efficiency",
+      "low": 0.85,
+      "high": 0.99,
+      "low_result": {
+        "cost": 4859.142029052381,
+        "energy": 117.45302682062233
+      },
+      "high_result": {
+        "cost": 4728.949990317719,
+        "energy": 104.63474388119022
+      },
+      "cost_swing_pct": 2.733724595228027,
+      "energy_swing_pct": 11.876907706385166,
+      "energy_swing_GJ_per_t": 12.818282939432109,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Equipment-boundary electric-to-heat efficiency depends on insulation and electrical losses; retain 0.85\u20130.99 as explicit uncertainty.",
+      "evidence": "OpenAlex electric-heater search found application-specific results and no transferable ammonia-cracker industrial value."
+    },
+    {
+      "item": "default_catalyst_life_h",
+      "low": 1000.0,
+      "high": 40000.0,
+      "low_result": {
+        "cost": 10655.956872265933,
+        "energy": 165.77718172785566
+      },
+      "high_result": {
+        "cost": 3914.0566244066185,
+        "energy": 100.44163185415248
+      },
+      "cost_swing_pct": 141.5639443492337,
+      "energy_swing_pct": 60.53730436927587,
+      "energy_swing_GJ_per_t": 65.33554987370319,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Published time-on-stream tests do not establish commercial replacement life; retain 1,000\u201340,000 h and flag life as a dominant evidence gap.",
+      "evidence": "OpenAlex stability search found DOI:10.1002/ente.202400678, while extracted papers mostly report short laboratory stability tests."
+    },
+    {
+      "item": "catalyst_inventory_factor",
+      "low": 1.05,
+      "high": 1.75,
+      "low_result": {
+        "cost": 4601.713931093194,
+        "energy": 105.3968886286116
+      },
+      "high_result": {
+        "cost": 5148.600958773784,
+        "energy": 113.5481321394976
+      },
+      "cost_swing_pct": 11.483332874359139,
+      "energy_swing_pct": 7.552615847887734,
+      "energy_swing_GJ_per_t": 8.15124351088599,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Loading, containment, spares and handling are absent from activity papers; retain the 1.05\u20131.75 installed-to-bare catalyst multiplier.",
+      "evidence": "OpenAlex scale-up search found no transferable installed catalyst inventory factor for ammonia decomposition."
+    },
+    {
+      "item": "catalyst_void_and_scale_factor",
+      "low": 1.2,
+      "high": 5.0,
+      "low_result": {
+        "cost": 4350.508629246966,
+        "energy": 101.16209101777291
+      },
+      "high_result": {
+        "cost": 6144.633278146821,
+        "energy": 125.97795033696738
+      },
+      "cost_swing_pct": 37.67237019460385,
+      "energy_swing_pct": 22.993381577031155,
+      "energy_swing_GJ_per_t": 24.815859319194473,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Pellet dilution, binder, maldistribution and heat-transfer reserve are unquantified in powder tests; retain the 1.2\u20135.0 scale penalty.",
+      "evidence": "OpenAlex scale-up search found no ammonia-decomposition study quantitatively linking powder productivity to industrial bed inventory."
+    }
+  ],
+  "probes": [
+    {
+      "item": "basis.capacity_t_per_y",
+      "low": 10000.0,
+      "high": 200000.0,
+      "low_result": {
+        "cost": 4947.067358238646,
+        "energy": 107.09121721904306
+      },
+      "high_result": {
+        "cost": 4668.427985463218,
+        "energy": 108.376174749067
+      },
+      "cost_swing_pct": 5.850767174078375,
+      "energy_swing_pct": 1.1905901954911262,
+      "energy_swing_GJ_per_t": 1.284957530023945,
+      "changed": true
+    },
+    {
+      "item": "basis.operating_hours_per_y",
+      "low": 7000.0,
+      "high": 8500.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.4416505570525,
+        "energy": 107.9260970643127
+      },
+      "cost_swing_pct": 1.9097235588525192e-14,
+      "energy_swing_pct": 1.4483929848224915e-13,
+      "energy_swing_GJ_per_t": 1.5631940186722204e-13,
+      "changed": false
+    },
+    {
+      "item": "basis.feeds.NH3.T_K",
+      "low": 273.15,
+      "high": 313.15,
+      "low_result": {
+        "cost": 4773.228863437395,
+        "energy": 108.77347145881114
+      },
+      "high_result": {
+        "cost": 4755.945174027731,
+        "energy": 107.4170221972723
+      },
+      "cost_swing_pct": 0.3629165599885688,
+      "energy_swing_pct": 1.2568315712654163,
+      "energy_swing_GJ_per_t": 1.3564492615388417,
+      "changed": true
+    },
+    {
+      "item": "basis.feeds.NH3.P_bar",
+      "low": 8.0,
+      "high": 20.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "basis.feeds.NH3.purity_mol_frac",
+      "low": 0.995,
+      "high": 1.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "basis.product.H2.purity_mol_frac",
+      "low": 0.999,
+      "high": 0.99999,
+      "low_result": {
+        "cost": 4762.504007077319,
+        "energy": 107.93096587508309
+      },
+      "high_result": {
+        "cost": 4762.435420747948,
+        "energy": 107.92561066525423
+      },
+      "cost_swing_pct": 0.0014401505446912607,
+      "energy_swing_pct": 0.0049619229959480884,
+      "energy_swing_GJ_per_t": 0.005355209828863394,
+      "changed": true
+    },
+    {
+      "item": "basis.utilities.cooling_water_supply_temperature",
+      "low": 288.15,
+      "high": 308.15,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "basis.utilities.chilled_water_supply_temperature",
+      "low": 273.15,
+      "high": 288.15,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "basis.utilities.electricity_primary_energy_factor",
+      "low": 1.0,
+      "high": 3.2,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 43.17043882572514
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 138.14540424232047
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 88.00000000000001,
+      "energy_swing_GJ_per_t": 94.97496541659532,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "reactor_pressure_bar",
+      "low": 5.0,
+      "high": 15.0,
+      "low_result": {
+        "cost": 4817.782832512941,
+        "energy": 112.39443176534797
+      },
+      "high_result": {
+        "cost": 4733.571476643463,
+        "energy": 105.73135560268194
+      },
+      "cost_swing_pct": 1.7682391102813444,
+      "energy_swing_pct": 6.173739571714079,
+      "energy_swing_GJ_per_t": 6.66307616266603,
+      "changed": true
+    },
+    {
+      "item": "nh3_knockout_recovery",
+      "low": 0.98,
+      "high": 1.0,
+      "low_result": {
+        "cost": 4791.4705792025425,
+        "energy": 106.18257114964436
+      },
+      "high_result": {
+        "cost": 4752.249017578765,
+        "energy": 108.58561978382535
+      },
+      "cost_swing_pct": 0.8235599405021491,
+      "energy_swing_pct": 2.2265686423822224,
+      "energy_swing_GJ_per_t": 2.4030486341809905,
+      "changed": true
+    },
+    {
+      "item": "psa_h2_recovery",
+      "low": 0.95,
+      "high": 1.0,
+      "low_result": {
+        "cost": 4904.404932718158,
+        "energy": 111.1007345125659
+      },
+      "high_result": {
+        "cost": 4672.5218770940355,
+        "energy": 105.91556884904745
+      },
+      "cost_swing_pct": 4.8689952053690755,
+      "energy_swing_pct": 4.804366881189654,
+      "energy_swing_GJ_per_t": 5.185165663518447,
+      "changed": true
+    },
+    {
+      "item": "psa_h2_purity",
+      "low": 0.999,
+      "high": 0.99999,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "recuperator_effectiveness",
+      "low": 0.5,
+      "high": 0.9,
+      "low_result": {
+        "cost": 4868.729354379122,
+        "energy": 116.78330523164222
+      },
+      "high_result": {
+        "cost": 4695.778672056202,
+        "energy": 102.42526492563968
+      },
+      "cost_swing_pct": 3.6315548832538584,
+      "energy_swing_pct": 13.303585227812528,
+      "energy_swing_GJ_per_t": 14.358040306002536,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "electric_heater_efficiency",
+      "low": 0.85,
+      "high": 0.99,
+      "low_result": {
+        "cost": 4859.142029052381,
+        "energy": 117.45302682062233
+      },
+      "high_result": {
+        "cost": 4728.949990317719,
+        "energy": 104.63474388119022
+      },
+      "cost_swing_pct": 2.733724595228027,
+      "energy_swing_pct": 11.876907706385166,
+      "energy_swing_GJ_per_t": 12.818282939432109,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "compressor_isentropic_efficiency",
+      "low": 0.6,
+      "high": 0.85,
+      "low_result": {
+        "cost": 4779.537538794817,
+        "energy": 109.27719205125241
+      },
+      "high_result": {
+        "cost": 4754.244008683892,
+        "energy": 107.29028765844984
+      },
+      "cost_swing_pct": 0.531104252121726,
+      "energy_swing_pct": 1.84098605142608,
+      "energy_swing_GJ_per_t": 1.9869043928025718,
+      "changed": true
+    },
+    {
+      "item": "compressor_stage_pressure_ratio",
+      "low": 2.0,
+      "high": 4.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "psa_electricity_MWh_per_t_H2",
+      "low": 0.05,
+      "high": 0.6,
+      "low_result": {
+        "cost": 4746.4416505570525,
+        "energy": 106.1260970643137
+      },
+      "high_result": {
+        "cost": 4790.441650557053,
+        "energy": 111.07609706431286
+      },
+      "cost_swing_pct": 0.9238958338703072,
+      "energy_swing_pct": 4.586471793795595,
+      "energy_swing_GJ_per_t": 4.949999999999164,
+      "changed": true
+    },
+    {
+      "item": "pump_electricity_MWh_per_t_recycle",
+      "low": 0.0005,
+      "high": 0.01,
+      "low_result": {
+        "cost": 4761.9027303074645,
+        "energy": 107.89961950638327
+      },
+      "high_result": {
+        "cost": 4765.302936854561,
+        "energy": 108.06641000033981
+      },
+      "cost_swing_pct": 0.07139628779911815,
+      "energy_swing_pct": 0.1545413931323305,
+      "energy_swing_GJ_per_t": 0.16679049395654033,
+      "changed": true
+    },
+    {
+      "item": "offsites_electricity_MWh_per_t_H2",
+      "low": 0.03,
+      "high": 0.2,
+      "low_result": {
+        "cost": 4758.441650557053,
+        "energy": 107.4760970643127
+      },
+      "high_result": {
+        "cost": 4772.041650557053,
+        "energy": 109.00609706431747
+      },
+      "cost_swing_pct": 0.2855678031962594,
+      "energy_swing_pct": 1.4176367362687574,
+      "energy_swing_GJ_per_t": 1.530000000004776,
+      "changed": true
+    },
+    {
+      "item": "nh3_vaporization_GJ_per_t_NH3",
+      "low": 1.1,
+      "high": 1.6,
+      "low_result": {
+        "cost": 4690.53137678081,
+        "energy": 102.12534249864405
+      },
+      "high_result": {
+        "cost": 4821.239649559957,
+        "energy": 112.7048997763361
+      },
+      "cost_swing_pct": 2.7445642880235184,
+      "energy_swing_pct": 9.802594150502573,
+      "energy_swing_GJ_per_t": 10.57955727769206,
+      "changed": true
+    },
+    {
+      "item": "feed_sensible_heat_kJ_per_kmol_K",
+      "low": 60.0,
+      "high": 110.0,
+      "low_result": {
+        "cost": 4749.438997619455,
+        "energy": 107.0322921799921
+      },
+      "high_result": {
+        "cost": 4807.6638371307445,
+        "energy": 107.46476145449859
+      },
+      "cost_swing_pct": 1.2225837875510517,
+      "energy_swing_pct": 0.8281638163827442,
+      "energy_swing_GJ_per_t": 0.8938048843207582,
+      "changed": true
+    },
+    {
+      "item": "product_sensible_heat_kJ_per_kmol_K",
+      "low": 45.0,
+      "high": 90.0,
+      "low_result": {
+        "cost": 4771.208423290898,
+        "energy": 105.82475083764474
+      },
+      "high_result": {
+        "cost": 4796.327000130194,
+        "energy": 110.7799401459067
+      },
+      "cost_swing_pct": 0.7115121204514381,
+      "energy_swing_pct": 4.591279999043402,
+      "energy_swing_GJ_per_t": 4.955189308261964,
+      "changed": true
+    },
+    {
+      "item": "minimum_approach_temperature_K",
+      "low": 15.0,
+      "high": 60.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "default_catalyst_life_h",
+      "low": 1000.0,
+      "high": 40000.0,
+      "low_result": {
+        "cost": 10655.956872265933,
+        "energy": 165.77718172785566
+      },
+      "high_result": {
+        "cost": 3914.0566244066185,
+        "energy": 100.44163185415248
+      },
+      "cost_swing_pct": 141.5639443492337,
+      "energy_swing_pct": 60.53730436927587,
+      "energy_swing_GJ_per_t": 65.33554987370319,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "minimum_catalyst_life_h",
+      "low": 100.0,
+      "high": 2000.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "catalyst_inventory_factor",
+      "low": 1.05,
+      "high": 1.75,
+      "low_result": {
+        "cost": 4601.713931093194,
+        "energy": 105.3968886286116
+      },
+      "high_result": {
+        "cost": 5148.600958773784,
+        "energy": 113.5481321394976
+      },
+      "cost_swing_pct": 11.483332874359139,
+      "energy_swing_pct": 7.552615847887734,
+      "energy_swing_GJ_per_t": 8.15124351088599,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "catalyst_void_and_scale_factor",
+      "low": 1.2,
+      "high": 5.0,
+      "low_result": {
+        "cost": 4350.508629246966,
+        "energy": 101.16209101777291
+      },
+      "high_result": {
+        "cost": 6144.633278146821,
+        "energy": 125.97795033696738
+      },
+      "cost_swing_pct": 37.67237019460385,
+      "energy_swing_pct": 22.993381577031155,
+      "energy_swing_GJ_per_t": 24.815859319194473,
+      "changed": true,
+      "status": "open"
+    },
+    {
+      "item": "reactor_base_capex_usd",
+      "low": 7000000.0,
+      "high": 40000000.0,
+      "low_result": {
+        "cost": 4735.561650557052,
+        "energy": 107.9260970643137
+      },
+      "high_result": {
+        "cost": 4846.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 2.3282175013531474,
+      "energy_swing_pct": 7.768653282229728e-13,
+      "energy_swing_GJ_per_t": 8.384404281969182e-13,
+      "changed": true
+    },
+    {
+      "item": "vaporizer_base_capex_usd",
+      "low": 1000000.0,
+      "high": 8000000.0,
+      "low_result": {
+        "cost": 4755.704521720675,
+        "energy": 107.92718204983191
+      },
+      "high_result": {
+        "cost": 4779.284469240815,
+        "energy": 107.92338513035217
+      },
+      "cost_swing_pct": 0.4951230744713081,
+      "energy_swing_pct": 0.0035180735549783103,
+      "energy_swing_GJ_per_t": 0.003796919479739813,
+      "changed": true
+    },
+    {
+      "item": "recuperator_base_capex_usd",
+      "low": 2000000.0,
+      "high": 12000000.0,
+      "low_result": {
+        "cost": 4747.728956404073,
+        "energy": 108.19542793017041
+      },
+      "high_result": {
+        "cost": 4796.59080753807,
+        "energy": 107.32204158318918
+      },
+      "cost_swing_pct": 1.025983197679326,
+      "energy_swing_pct": 0.8092448172760166,
+      "energy_swing_GJ_per_t": 0.8733863469812349,
+      "changed": true
+    },
+    {
+      "item": "heater_base_capex_usd",
+      "low": 3000000.0,
+      "high": 20000000.0,
+      "low_result": {
+        "cost": 4736.927759826486,
+        "energy": 108.1472488341358
+      },
+      "high_result": {
+        "cost": 4823.546941257764,
+        "energy": 107.41394283600849
+      },
+      "cost_swing_pct": 1.8187977467639145,
+      "energy_swing_pct": 0.6794519750772899,
+      "energy_swing_GJ_per_t": 0.7333059981273067,
+      "changed": true
+    },
+    {
+      "item": "chiller_base_capex_usd",
+      "low": 1500000.0,
+      "high": 12000000.0,
+      "low_result": {
+        "cost": 4755.687131301255,
+        "energy": 108.05550890517385
+      },
+      "high_result": {
+        "cost": 4783.983062954752,
+        "energy": 107.52178606093442
+      },
+      "cost_swing_pct": 0.5941475765941897,
+      "energy_swing_pct": 0.4945262163250385,
+      "energy_swing_GJ_per_t": 0.5337228442394348,
+      "changed": true
+    },
+    {
+      "item": "knockout_base_capex_usd",
+      "low": 300000.0,
+      "high": 3000000.0,
+      "low_result": {
+        "cost": 4759.012918158442,
+        "energy": 107.98836293176598
+      },
+      "high_result": {
+        "cost": 4772.224016983117,
+        "energy": 107.75009507278166
+      },
+      "cost_swing_pct": 0.27740179920377006,
+      "energy_swing_pct": 0.22076945749491164,
+      "energy_swing_GJ_per_t": 0.23826785898431524,
+      "changed": true
+    },
+    {
+      "item": "recycle_pump_base_capex_usd",
+      "low": 150000.0,
+      "high": 2000000.0,
+      "low_result": {
+        "cost": 4761.467407108529,
+        "energy": 107.96627270454753
+      },
+      "high_result": {
+        "cost": 4766.604949633543,
+        "energy": 107.75524899321319
+      },
+      "cost_swing_pct": 0.1078762303452591,
+      "energy_swing_pct": 0.19552612118327625,
+      "energy_swing_GJ_per_t": 0.21102371133434872,
+      "changed": true
+    },
+    {
+      "item": "psa_base_capex_usd",
+      "low": 8000000.0,
+      "high": 50000000.0,
+      "low_result": {
+        "cost": 4721.588686283087,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4864.57406124197,
+        "energy": 107.9260970643137
+      },
+      "cost_swing_pct": 3.002354368838494,
+      "energy_swing_pct": 7.768653282229728e-13,
+      "energy_swing_GJ_per_t": 8.384404281969182e-13,
+      "changed": true
+    },
+    {
+      "item": "compressor_base_capex_usd",
+      "low": 5000000.0,
+      "high": 30000000.0,
+      "low_result": {
+        "cost": 4743.433830394584,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4811.318902403403,
+        "energy": 107.9260970643137
+      },
+      "cost_swing_pct": 1.4254258002484528,
+      "energy_swing_pct": 7.768653282229728e-13,
+      "energy_swing_GJ_per_t": 8.384404281969182e-13,
+      "changed": true
+    },
+    {
+      "item": "offsites_fraction_of_direct_capex",
+      "low": 0.15,
+      "high": 0.45,
+      "low_result": {
+        "cost": 4742.888033753906,
+        "energy": 108.01826282106028
+      },
+      "high_result": {
+        "cost": 4801.532206244979,
+        "energy": 107.74405736914959
+      },
+      "cost_swing_pct": 1.2313887873925622,
+      "energy_swing_pct": 0.25406779209970914,
+      "energy_swing_GJ_per_t": 0.2742054519106887,
+      "changed": true
+    },
+    {
+      "item": "mixer_base_capex_usd",
+      "low": 100000.0,
+      "high": 1000000.0,
+      "low_result": {
+        "cost": 4761.936365921341,
+        "energy": 107.92617843397946
+      },
+      "high_result": {
+        "cost": 4764.968073669898,
+        "energy": 107.92569022596851
+      },
+      "cost_swing_pct": 0.06365868541827426,
+      "energy_swing_pct": 0.0004523539942880528,
+      "energy_swing_GJ_per_t": 0.0004882080109496201,
+      "changed": true
+    },
+    {
+      "item": "capacity_scaling_exponent",
+      "low": 0.55,
+      "high": 0.8,
+      "low_result": {
+        "cost": 4759.591116020873,
+        "energy": 108.141412905186
+      },
+      "high_result": {
+        "cost": 4767.250547605971,
+        "energy": 107.58066651747805
+      },
+      "cost_swing_pct": 0.16082993025651207,
+      "energy_swing_pct": 0.519565149635499,
+      "energy_swing_GJ_per_t": 0.560746387707951,
+      "changed": true
+    },
+    {
+      "item": "reference_capacity_t_per_y",
+      "low": 50000.0,
+      "high": 50000.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "capital_activity_multiplier",
+      "low": 0.0,
+      "high": 0.5,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "reactor_reference_catalyst_kg",
+      "low": 20000.0,
+      "high": 500000.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "ambient_temperature_K",
+      "low": 288.15,
+      "high": 308.15,
+      "low_result": {
+        "cost": 4760.115797564714,
+        "energy": 107.74483327260435
+      },
+      "high_result": {
+        "cost": 4764.759161812117,
+        "energy": 108.10736085602777
+      },
+      "cost_swing_pct": 0.09749965643904356,
+      "energy_swing_pct": 0.3359035425948789,
+      "energy_swing_GJ_per_t": 0.3625275834234145,
+      "changed": true
+    },
+    {
+      "item": "reactor_pressure_drop_bar",
+      "low": 0.05,
+      "high": 1.0,
+      "low_result": {
+        "cost": 4761.345110230561,
+        "energy": 107.84055610616413
+      },
+      "high_result": {
+        "cost": 4768.643691929814,
+        "energy": 108.41258519423145
+      },
+      "cost_swing_pct": 0.15325293693413525,
+      "energy_swing_pct": 0.5300192480104734,
+      "energy_swing_GJ_per_t": 0.5720290880673247,
+      "changed": true
+    },
+    {
+      "item": "compression_heat_capacity_ratio",
+      "low": 1.35,
+      "high": 1.42,
+      "low_result": {
+        "cost": 4761.372735887272,
+        "energy": 107.84270937688483
+      },
+      "high_result": {
+        "cost": 4762.853376613103,
+        "energy": 107.95825339281743
+      },
+      "cost_swing_pct": 0.031089949955773646,
+      "energy_swing_pct": 0.10705845858925739,
+      "energy_swing_GJ_per_t": 0.11554401593259911,
+      "changed": true
+    },
+    {
+      "item": "gas_constant_kJ_per_kmol_K",
+      "low": 8.314462618,
+      "high": 8.314462618,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "reaction_heat_GJ_per_kmol_NH3",
+      "low": 0.045,
+      "high": 0.048,
+      "low_result": {
+        "cost": 4753.955614950243,
+        "energy": 106.93396040970838
+      },
+      "high_result": {
+        "cost": 4776.91505735496,
+        "energy": 109.61488670168987
+      },
+      "cost_swing_pct": 0.48209393603868794,
+      "energy_swing_pct": 2.484038953418223,
+      "energy_swing_GJ_per_t": 2.6809262919814927,
+      "changed": true
+    },
+    {
+      "item": "maximum_recycle_ratio",
+      "low": 5.0,
+      "high": 50.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "minimum_per_pass_conversion",
+      "low": 0.1,
+      "high": 0.4,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609688652148
+      },
+      "high_result": {
+        "cost": 4762.4416505570525,
+        "energy": 107.92609688834561
+      },
+      "cost_swing_pct": 1.9097235588525192e-14,
+      "energy_swing_pct": 1.647343718529351e-07,
+      "energy_swing_GJ_per_t": 1.777913780642848e-07,
+      "changed": true
+    },
+    {
+      "item": "equilibrium_margin",
+      "low": 0.9,
+      "high": 0.995,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "reaction_entropy_kJ_per_kmol_K",
+      "low": 190.0,
+      "high": 205.0,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 107.92609706431286
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 0.0,
+      "energy_swing_GJ_per_t": 0.0,
+      "changed": false
+    },
+    {
+      "item": "reaction_heat_capacity_increment_kJ_per_kmol_K",
+      "low": 14.0,
+      "high": 20.0,
+      "low_result": {
+        "cost": 4755.735275246922,
+        "energy": 107.14215459869155
+      },
+      "high_result": {
+        "cost": 4770.647343684153,
+        "energy": 108.8840539707882
+      },
+      "cost_swing_pct": 0.3131181341715083,
+      "energy_swing_pct": 1.6139742096470524,
+      "energy_swing_GJ_per_t": 1.741899372096654,
+      "changed": true
+    },
+    {
+      "item": "maximum_per_pass_conversion",
+      "low": 0.5,
+      "high": 0.85,
+      "low_result": {
+        "cost": 4774.00295602322,
+        "energy": 114.4640680560751
+      },
+      "high_result": {
+        "cost": 4762.4416505570525,
+        "energy": 107.92609756915498
+      },
+      "cost_swing_pct": 0.24276004441576388,
+      "energy_swing_pct": 6.057822129773017,
+      "energy_swing_GJ_per_t": 6.537970991762251,
+      "changed": true
+    }
+  ],
+  "previous_items": [
+    {
+      "item": "basis.utilities.electricity_primary_energy_factor",
+      "low": 1.0,
+      "high": 3.2,
+      "low_result": {
+        "cost": 4762.441650557053,
+        "energy": 43.17043882572514
+      },
+      "high_result": {
+        "cost": 4762.441650557053,
+        "energy": 138.14540424232047
+      },
+      "cost_swing_pct": 0.0,
+      "energy_swing_pct": 88.00000000000001,
+      "energy_swing_GJ_per_t": 94.97496541659532,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Primary-energy accounting varies with generation mix and convention; retain 1.0\u20133.2 because no uniquely applicable marginal US industrial factor was found.",
+      "evidence": "OpenAlex search for electricity primary-energy factors returned context-specific studies, not an ammonia-cracker-specific factor."
+    },
+    {
+      "item": "recuperator_effectiveness",
+      "low": 0.5,
+      "high": 0.9,
+      "low_result": {
+        "cost": 4868.729354379122,
+        "energy": 116.78330523164222
+      },
+      "high_result": {
+        "cost": 4695.778672056202,
+        "energy": 102.42526492563968
+      },
+      "cost_swing_pct": 3.6315548832538584,
+      "energy_swing_pct": 13.303585227812528,
+      "energy_swing_GJ_per_t": 14.358040306002536,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Recuperator effectiveness depends on exchanger area, pressure drop and approach temperature; retain the broad 0.50\u20130.90 design range.",
+      "evidence": "DOI:10.1016/j.ijheatmasstransfer.2013.10.008 demonstrates geometry-specific gas-to-gas exchanger performance."
+    },
+    {
+      "item": "electric_heater_efficiency",
+      "low": 0.85,
+      "high": 0.99,
+      "low_result": {
+        "cost": 4859.142029052381,
+        "energy": 117.45302682062233
+      },
+      "high_result": {
+        "cost": 4728.949990317719,
+        "energy": 104.63474388119022
+      },
+      "cost_swing_pct": 2.733724595228027,
+      "energy_swing_pct": 11.876907706385166,
+      "energy_swing_GJ_per_t": 12.818282939432109,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Equipment-boundary electric-to-heat efficiency depends on insulation and electrical losses; retain 0.85\u20130.99 as explicit uncertainty.",
+      "evidence": "OpenAlex electric-heater search found application-specific results and no transferable ammonia-cracker industrial value."
+    },
+    {
+      "item": "default_catalyst_life_h",
+      "low": 1000.0,
+      "high": 40000.0,
+      "low_result": {
+        "cost": 10655.956872265933,
+        "energy": 165.77718172785566
+      },
+      "high_result": {
+        "cost": 3914.0566244066185,
+        "energy": 100.44163185415248
+      },
+      "cost_swing_pct": 141.5639443492337,
+      "energy_swing_pct": 60.53730436927587,
+      "energy_swing_GJ_per_t": 65.33554987370319,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Published time-on-stream tests do not establish commercial replacement life; retain 1,000\u201340,000 h and flag life as a dominant evidence gap.",
+      "evidence": "OpenAlex stability search found DOI:10.1002/ente.202400678, while extracted papers mostly report short laboratory stability tests."
+    },
+    {
+      "item": "catalyst_inventory_factor",
+      "low": 1.05,
+      "high": 1.75,
+      "low_result": {
+        "cost": 4601.713931093194,
+        "energy": 105.3968886286116
+      },
+      "high_result": {
+        "cost": 5148.600958773784,
+        "energy": 113.5481321394976
+      },
+      "cost_swing_pct": 11.483332874359139,
+      "energy_swing_pct": 7.552615847887734,
+      "energy_swing_GJ_per_t": 8.15124351088599,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Loading, containment, spares and handling are absent from activity papers; retain the 1.05\u20131.75 installed-to-bare catalyst multiplier.",
+      "evidence": "OpenAlex scale-up search found no transferable installed catalyst inventory factor for ammonia decomposition."
+    },
+    {
+      "item": "catalyst_void_and_scale_factor",
+      "low": 1.2,
+      "high": 5.0,
+      "low_result": {
+        "cost": 4350.508629246966,
+        "energy": 101.16209101777291
+      },
+      "high_result": {
+        "cost": 6144.633278146821,
+        "energy": 125.97795033696738
+      },
+      "cost_swing_pct": 37.67237019460385,
+      "energy_swing_pct": 22.993381577031155,
+      "energy_swing_GJ_per_t": 24.815859319194473,
+      "changed": true,
+      "status": "kept_as_uncertainty",
+      "note": "Pellet dilution, binder, maldistribution and heat-transfer reserve are unquantified in powder tests; retain the 1.2\u20135.0 scale penalty.",
+      "evidence": "OpenAlex scale-up search found no ammonia-decomposition study quantitatively linking powder productivity to industrial bed inventory."
+    }
+  ]
+}

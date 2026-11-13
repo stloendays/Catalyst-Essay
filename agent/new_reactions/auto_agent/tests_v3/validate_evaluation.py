@@ -15,6 +15,9 @@ def _validate():
         before = json.loads((Path(tempfile.gettempdir()) / f"v3_{rx}_before.json").read_text(encoding="utf-8"))
         after = json.loads((ev.HERE / "evaluation" / f"{rx}_builds.json").read_text(encoding="utf-8"))
         assert after.pop("common_record_count") == (59 if rx == "pdh" else 255)
+        for b in after["builds"].values():  # field added with the grouped (atomic) targets; empty for PDH/CH4
+            if b.get("group_targets") == {}:
+                b.pop("group_targets")
         assert before == after, rx
         for name, result in after["builds"].items():
             print(f"{Path(name).name}: cost={result['reference_cost']:.12g}; {result['tea_within']}/{result['tea_n']}; verdict={result['tea_verdict']}; unchanged")

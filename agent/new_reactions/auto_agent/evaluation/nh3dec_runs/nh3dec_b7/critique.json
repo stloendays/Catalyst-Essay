@@ -1,0 +1,115 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:mass-stoichiometry-boundary",
+          "severity": "major",
+          "unit_or_item": "Boundary feed/product balance",
+          "issue": "The stated reaction stoichiometry requires approximately 5.67 t NH3 and 4.67 t N2 per tonne H2, but the boundary reports 5.6319 t NH3 in and only 4.6319 t N2 out for 1 t H2. The reported boundary quantities therefore do not satisfy elemental balances.",
+          "check_suggested": "Recalculate all boundary mass flows from a component molar balance using consistent molecular weights, overall NH3 conversion, product recovery, and purge/loss assumptions.",
+          "response": {
+            "action": "rejected",
+            "note": "The critic used rounded textbook mass ratios. With the declared molecular weights, 2 NH3 = 34.062 kg, 3 H2 = 6.048 kg and N2 = 28.014 kg, giving exactly 5.631944 t NH3 reacted and 4.631944 t N2 per tonne gross H2; separator losses and unrecovered H2 are now also explicitly closed.",
+            "time": "2026-11-14T00:23:23.735727"
+          }
+        },
+        {
+          "id": "r1:psa-recovery-not-applied",
+          "severity": "major",
+          "unit_or_item": "U10 Hydrogen PSA",
+          "issue": "The stated PSA H2 recovery is 75%, but the PSA feed contains 496.03 kmol H2 and the purified-H2 outlet also contains 496.03 kmol H2, with no H2 in the tail gas. This represents 100% H2 recovery and conflicts with the stated recovery basis.",
+          "check_suggested": "Apply the 75% H2 recovery to the PSA feed H2 flow, place unrecovered H2 in the tail gas, and verify that outlet component flows and total mass balance close.",
+          "response": {
+            "action": "fixed",
+            "note": "The PSA now uses a sourced 85% H2 recovery; gross reactor H2 is 1/0.85 times exported product, unrecovered H2 is explicitly placed in the quantified PSA tail outlet, and compressor flow remains exported product only.",
+            "time": "2026-11-14T00:23:23.748639"
+          }
+        },
+        {
+          "id": "r1:recycle-and-loss-balance",
+          "severity": "major",
+          "unit_or_item": "U7/U8/U9 ammonia recovery loop",
+          "issue": "The flowsheet states 99.5% ammonia condensation recovery and trace ammonia losses, but the quantified PSA feed contains no NH3, the tail-gas composition is not quantified, and the boundary reports zero NH3 out. The recycle flow is also not explicitly provided, preventing closure of the 65% per-pass conversion loop.",
+          "check_suggested": "Quantify reactor residual NH3, condenser recovery, recycle NH3, purge/loss NH3, and tail-gas NH3; verify fresh-feed flow against the stated overall conversion.",
+          "response": {
+            "action": "fixed",
+            "note": "Residual reactor NH3, 99.5% condenser recovery, recycle kmol, separator NH3 loss, PSA-feed NH3, and boundary NH3 loss are now explicitly quantified in U7, U8, U9, U10, and the boundary balance.",
+            "time": "2026-11-14T00:23:23.765720"
+          }
+        },
+        {
+          "id": "r1:feed-state-mismatch",
+          "severity": "minor",
+          "unit_or_item": "NH3 feed specification",
+          "issue": "The reactor physics uses a pure NH3 feed at 20 bar, while the basis specifies 99.9 mol% NH3 entering at 22 bar and the boundary lists only NH3. Impurities and the 2-bar feed pressure margin are not propagated into the reactor or separation balances.",
+          "check_suggested": "Use one feed composition and pressure basis consistently, or explicitly quantify inert/impurity flows and pressure losses through each unit."
+        },
+        {
+          "id": "r1:heat-duty-double-counting",
+          "severity": "major",
+          "unit_or_item": "U5 electric reaction furnace and U6 reactor",
+          "issue": "U5 reports 18.699 GJ/t furnace heat duty while U6 separately reports 17.809 GJ/t reactor heat duty for the same reaction section. The furnace description says it supplies the reactor endothermic duty, so these appear to be duplicate representations unless the two duties are clearly separated into reaction, sensible heating, and losses.",
+          "check_suggested": "Construct a unit-by-unit enthalpy balance defining whether U6 duty is a thermodynamic requirement and U5 duty is its supplied utility, rather than summing both as independent duties.",
+          "response": {
+            "action": "rejected",
+            "note": "U6 heat_duty is the thermodynamic reaction requirement; U5 is the supplying electric furnace and only U5 purchased electricity enters cost/energy sums. Added reactor_heat_supplied and feed_trim_heat_supplied fields make this requirement-versus-utility distinction explicit.",
+            "time": "2026-11-14T00:23:23.783682"
+          }
+        },
+        {
+          "id": "r1:heat-integration-inconsistency",
+          "severity": "major",
+          "unit_or_item": "U3 recuperator, U4 vaporizer/trim heater, U5 furnace, U7 condenser",
+          "issue": "The recuperator reports 19.892 GJ/t recovered heat, exceeding the reactor duty of 17.809 GJ/t, while U4 has zero heat duty despite being a vaporizer and trim heater. U7 reports 22.236 GJ/t cooling duty, but the split between recuperated heat, feed vaporization/sensible heating, and external cooling is not closed.",
+          "check_suggested": "Perform a hot/cold composite or stream enthalpy balance with inlet/outlet temperatures, phase changes, minimum approach temperatures, and explicit residual U4/U5 duties; ensure recovered heat is not counted both as available heat and as external furnace duty.",
+          "response": {
+            "action": "fixed",
+            "note": "Added hot-side sensible cooling, recovered heat, total feed heating requirement, heat received from U3, external U4 trim requirement, and the U5 split between reactor and feed-trim supply. Recovered heat is internal and is never counted as purchased energy.",
+            "time": "2026-11-14T00:23:23.799113"
+          }
+        },
+        {
+          "id": "r1:energy-summary-basis",
+          "severity": "major",
+          "unit_or_item": "parts.energy and unit energy fields",
+          "issue": "The sum of listed purchased-energy values is approximately 62 GJ/t, whereas parts.energy is 545.37. The latter is close to costing only the electricity component rather than the listed primary-energy values, so the summary appears to mix electric energy, primary energy, and/or cost bases without a clear label.",
+          "check_suggested": "Reconcile the summary to the unit fields and label separate totals for purchased electricity, primary-energy equivalent, fuel, and utility costs; verify the electricity primary-energy factor is applied only once.",
+          "response": {
+            "action": "rejected",
+            "note": "parts.energy is USD per tonne, not GJ per tonne. balances.energy_GJ_per_t is the primary-energy total and equals the sum of unit purchased_energy_GJ_per_t; unit electric_GJ_per_t fields are final electricity used for the price calculation.",
+            "time": "2026-11-14T00:23:23.815667"
+          }
+        },
+        {
+          "id": "r1:catalyst-sizing-and-life",
+          "severity": "major",
+          "unit_or_item": "U6 catalyst inventory",
+          "issue": "The reported catalyst inventory is 21,597 kg per tonne-per-hour product basis, but no catalyst composition, active-metal loading, bed volume, residence-time basis, or explicit replacement calculation is provided. The inventory is not transparently linked to the stated productivity reference of 1 kg H2/kg catalyst/h or the 8,000 h cycle life.",
+          "check_suggested": "Report catalyst mass, bed volume from bulk density, actual space velocity/productivity, active-metal loading, deactivation profile, replacement frequency, and annual catalyst consumption; verify that catalyst cost and life charges use the same basis.",
+          "response": {
+            "action": "fixed",
+            "note": "U6 now reports effective transferred productivity, catalyst mass, bed volume from sourced bulk density, replacement-cycle hours, and annual replacements; catalyst cost uses extracted elemental loadings, fixed price-table metal/support costs, inventory factor, outage availability, and the same replacement basis.",
+            "time": "2026-11-14T00:23:23.833210"
+          }
+        },
+        {
+          "id": "r1:reactor-feed-throughput-basis",
+          "severity": "minor",
+          "unit_or_item": "U6 reactor feed and capacity basis",
+          "issue": "The reactor feed is 508.75 kmol NH3 per tonne H2, corresponding to a large recycle throughput, but the capacity and equipment sizing basis is stated as tonnes of H2 per year without showing the associated fresh-feed, recycle, gas volumetric, and reactor-hourly flows.",
+          "check_suggested": "Convert the annual H2 capacity to hourly fresh and recycle component flows at reactor temperature and pressure, and use those flows consistently for reactor, exchanger, condenser, knockout, and compressor sizing."
+        },
+        {
+          "id": "r1:separation-and-compression-duty-basis",
+          "severity": "minor",
+          "unit_or_item": "U10 PSA and U11 product compressor",
+          "issue": "The compressor receives 496.03 kmol/t purified H2 at 19 bar and compresses it to 200 bar, but the PSA outlet composition and recovery conflict with the stated 75% recovery. Consequently, compressor flow, PSA sizing, and the reported 3.924 GJ/t electric power cannot be validated against a consistent product basis.",
+          "check_suggested": "First close the PSA component balance and define product purity and flow; then recalculate compressor stages, intercooling, efficiency, inlet temperature, and specific power on the resulting H2 flow."
+        }
+      ],
+      "input_fingerprint": "bd53f049cf1bd2ca654be199116fa848653bdc56a3624335de6ec1168070507c",
+      "completed": true
+    }
+  ]
+}

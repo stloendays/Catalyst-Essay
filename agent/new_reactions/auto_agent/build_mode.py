@@ -311,7 +311,9 @@ class BuildMixin:
     def _card_cfg(self, key, product, cofeed):
         names = {key, product} | ({cofeed} if cofeed and cofeed != "none" else set())
         species = {s: {"MW": self.formula_mw(s)} for s in names if s}
-        return {"stoich": {"key": key, "product": product}, "species": species,
+        nu = parse_equation(getattr(self, "reaction", ""))
+        ratio = abs(nu[product] / nu[key]) if nu.get(product) and nu.get(key) else 1.0
+        return {"stoich": {"key": key, "product": product, "product_per_key": ratio}, "species": species,
                 "lab_feed": {"default_y_key": None, "default_ratio": ({cofeed: None} if cofeed and cofeed != "none" else {})}}
 
     def b_check_records(self, key, product, cofeed):
@@ -763,6 +765,22 @@ class BuildMixin:
 
 
 PRICE_UNIT = re.compile(r"usd\s*(\d{4}\s*)?/\s*(t|tonne|kg|gj|mwh|kwh|mmbtu|m3|nm3|scm)\b", re.I)
+
+
+def parse_equation(text):
+    """Stoichiometric coefficients from the reaction text given to the run, e.g. '... (2 NH3 -> N2 + 3 H2)':
+    {'NH3': -2, 'N2': 1, 'H2': 3}; {} if no equation is found. Generic: used only to convert a key-reactant flow into
+    product mass when a rate is derived from space velocity x conversion (chain.normalise)."""
+    m = re.search(r"([A-Za-z0-9 .+]+?)\s*(?:->|→|=>)\s*([A-Za-z0-9 .+]+)", text or "")
+    if not m:
+        return {}
+    nu = {}
+    for side, sign in ((m.group(1), -1), (m.group(2), 1)):
+        for term in side.split("+"):
+            t = re.fullmatch(r"\s*(\d*\.?\d*)\s*([A-Z][A-Za-z0-9]*)\s*", term)
+            if t:
+                nu[t.group(2)] = nu.get(t.group(2), 0) + sign * (float(t.group(1)) if t.group(1) else 1.0)
+    return nu
 
 
 def price_failures(ws):

@@ -1,0 +1,193 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:mass_balance_stoichiometry",
+          "severity": "major",
+          "unit_or_item": "boundary mass flows",
+          "issue": "The boundary feed of 5.6321 t NH3 per t H2 and product of 4.6321 t N2 per t H2 do not satisfy the reaction stoichiometry. Producing 1 t H2 requires approximately 5.667 t NH3 and produces approximately 4.667 t N2, so the stated boundary streams understate NH3 and N2 by about 0.6%.",
+          "check_suggested": "Recalculate all boundary and internal molar flows from a single atom-balanced basis, including fresh feed, reacted NH3, recycle, PSA outlets, tail gas, and product recovery.",
+          "response": {
+            "action": "rejected",
+            "note": "The critic used rounded molecular weights incorrectly. With MW(NH3)=17.03052 and MW(H2)=2.01588, 2 NH3 -> 3 H2 requires 5.63212096 t NH3/t H2 and produces 4.63212096 t N2/t H2; the independent elemental and mass gates pass.",
+            "time": "2026-11-14T01:43:19.252842"
+          }
+        },
+        {
+          "id": "r1:pressure_basis_inconsistency",
+          "severity": "major",
+          "unit_or_item": "reactor, feed, compressor inlet",
+          "issue": "The reactor pressure is given as 1.01325 bar in physics, 1.5 bar in the modeling basis, and the compressor inlet is 0.81325 bar after the stated 0.2 bar reactor pressure drop. This conflicts with the 10 bar delivered ammonia feed and no pressure-control, letdown, or recompression equipment is shown.",
+          "check_suggested": "Define the pressure of every major stream and add or identify valves, regulators, compressors, or vacuum equipment required to connect the 10 bar feed, reactor, knockout, PSA, and compressor inlet.",
+          "response": {
+            "action": "fixed",
+            "note": "The plant reactor pressure is now fixed at 10 bar, aligned with delivered NH3; the 0.2 bar pressure drop gives a 9.8 bar PSA/compressor inlet, eliminating the unmodeled letdown/vacuum inconsistency.",
+            "time": "2026-11-14T01:43:19.267972"
+          }
+        },
+        {
+          "id": "r1:ammonia_condensation_feasibility",
+          "severity": "major",
+          "unit_or_item": "effluent chiller and ammonia knockout",
+          "issue": "At the stated reactor/outlet pressure near 0.8\u20131.3 bar, ammonia condensation requires temperatures near or below its low-pressure saturation range, whereas the chilled-water supply is 278.15 K. The stated chiller therefore cannot plausibly condense the unreacted ammonia at the specified pressure.",
+          "check_suggested": "Perform a vapor-liquid equilibrium calculation for NH3/H2/N2 at the actual knockout pressure and temperature, then specify refrigeration temperature, refrigeration duty, or a higher-pressure separation scheme consistent with condensation.",
+          "response": {
+            "action": "fixed",
+            "note": "Raising the reactor and knockout pressure to approximately 10 bar makes NH3 condensation at the 278.15 K chilled-water basis feasible; pressure sensitivity is retained from 5 to 15 bar.",
+            "time": "2026-11-14T01:43:19.284178"
+          }
+        },
+        {
+          "id": "r1:psa_pressure_and_feed_definition",
+          "severity": "major",
+          "unit_or_item": "hydrogen PSA",
+          "issue": "The PSA feed is specified as 661.4 kmol/t at 0.75 H2 and 0.25 N2, but no PSA feed pressure or feed compression is provided. The preceding separation is near atmospheric pressure, while a conventional pressure-swing separation of H2/N2 generally requires a defined elevated adsorption pressure. The model also assumes essentially perfect H2 recovery and purity without a pressure-cycle or adsorbent performance basis.",
+          "check_suggested": "Specify PSA adsorption and desorption pressures, cycle configuration, feed compression, product pressure, recovery/purity tradeoff, and verify the power and capital against the resulting gas flow.",
+          "response": {
+            "action": "fixed",
+            "note": "The separation unit now explicitly reports PSA feed pressure and temperature at approximately 9.8 bar and 278.15 K. PSA electricity, capital, purity and recovery remain parameterized and sensitivity-tested.",
+            "time": "2026-11-14T01:43:19.297065"
+          }
+        },
+        {
+          "id": "r1:psa_mass_split_and_tailgas_loss",
+          "severity": "major",
+          "unit_or_item": "hydrogen PSA and tailgas_and_offsites",
+          "issue": "The PSA feed and two outlet flows close exactly, with one outlet being pure H2 and the other pure N2. This leaves no explicit H2 in the tail gas despite the stated tailgas_h2_loss_fraction of 0.10, and the stated PSA H2 recovery of 1.0 is inconsistent with a tail-gas H2 loss assumption.",
+          "check_suggested": "Provide complete outlet component flowrates and enforce the selected PSA recovery and purity values in the material balance; reconcile H2 losses with product yield and off-gas composition.",
+          "response": {
+            "action": "fixed",
+            "note": "Unused contradictory tailgas-loss and residual-NH3 parameters were removed. The central model now transparently uses ideal internal H2 recovery, with the price/energy consequence of 95-100% recovery tested in sensitivity.",
+            "time": "2026-11-14T01:43:19.306816"
+          }
+        },
+        {
+          "id": "r1:heat_duty_reconciliation",
+          "severity": "major",
+          "unit_or_item": "reactor, vaporizer, recuperator, electric trim heater",
+          "issue": "The reactor heat duty is 17.043 GJ/t, while the electric heater supplies 20.923 GJ/t and the recuperator recovers 11.640 GJ/t. The relationship between reaction duty, feed sensible/vaporization duty, heat losses, exchanger recovery, and heater duty is not explicitly closed. The reaction enthalpy basis also gives a different duty when applied to the stated reacted NH3 flow.",
+          "check_suggested": "Prepare a stream-by-stream enthalpy balance around the vaporizer, recuperator, heater, reactor, and cooler, separating reaction heat, sensible heat, phase change, heat loss, and recovered heat; verify that the reaction duty uses the same reacted-NH3 basis as the mass balance.",
+          "response": {
+            "action": "rejected",
+            "note": "The independent heat gate passes. Reactor duty is temperature-corrected reaction heat; recuperator recovery offsets feed sensible duty; the trim heater supplies reaction heat plus unrecovered sensible heat divided by heater efficiency; vaporization is separately assigned to the vaporizer.",
+            "time": "2026-11-14T01:43:19.312109"
+          }
+        },
+        {
+          "id": "r1:energy_accounting_labeling",
+          "severity": "minor",
+          "unit_or_item": "purchased_energy fields",
+          "issue": "The unit purchased-energy values appear to be primary-energy equivalents for electricity, while heat duties and compressor power are delivered/electric values. For example, compressor purchased energy is about 2.5 times the listed shaft power. This convention is not stated consistently at unit level and could cause double counting or misinterpretation.",
+          "check_suggested": "Label each energy field as electric input, shaft power, thermal duty, or primary-energy equivalent, and show the conversion factor once in the total-energy calculation.",
+          "response": {
+            "action": "fixed",
+            "note": "Compressor output now separately reports shaft/electric input and the primary-energy factor; unit purchased-energy fields consistently remain primary-energy equivalents used in the plant total.",
+            "time": "2026-11-14T01:43:19.322348"
+          }
+        },
+        {
+          "id": "r1:catalyst_inventory_and_life_basis",
+          "severity": "major",
+          "unit_or_item": "ammonia decomposition reactor and catalyst cost",
+          "issue": "The reported catalyst cost and sensitivity results cannot be independently reconciled from the supplied unit data: catalyst mass, active-metal loading, catalyst formulation, replacement quantity, and annual replacement schedule are not provided in the reactor unit record. The assumed catalyst life spans orders of magnitude and dominates cost and energy sensitivity, while no commercial-bed residence-time, GHSV, deactivation, or regeneration basis is shown.",
+          "check_suggested": "Provide catalyst formulation and active-metal loading, installed catalyst mass, bed volume, operating throughput, deactivation criterion, replacement inventory, and annualized replacement calculation; verify that reactor sizing and catalyst cost use the same basis.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor unit now exposes installed catalyst mass, catalyst price, catalyst life, gross H2 throughput and effective productivity. Composition/loading comes from each record and replacement life and scale-up factors remain explicit dominant uncertainties.",
+            "time": "2026-11-14T01:43:19.341648"
+          }
+        }
+      ],
+      "input_fingerprint": "ba946204cd9644a6405d2693a856aeb1f076c2f7391587182c8f26c07b7730a5",
+      "completed": true
+    },
+    {
+      "issues": [
+        {
+          "id": "r2:mass-balance-psa-perfect-separation",
+          "severity": "major",
+          "unit_or_item": "hydrogen_psa",
+          "issue": "The PSA feed is specified as 75 mol% H2 and 25 mol% N2, while the outlets are exactly 100% H2 and 100% N2 with 100% H2 recovery. This conflicts with the stated 0.9999 product-purity target and represents perfect separation with no hydrogen loss or purge requirement.",
+          "check_suggested": "Reconcile PSA outlet flowrates and compositions using simultaneous H2 recovery, product purity, tail-gas composition, and any residual NH3; verify that total H2 and N2 balances close.",
+          "response": {
+            "action": "fixed",
+            "note": "PSA now uses 98% H2 recovery and the basis product purity of 0.9999; N2 impurity is assigned to product, remaining H2/N2 to tail gas, and all outlet flowrates/compositions close simultaneously.",
+            "time": "2026-11-14T02:22:01.092278"
+          }
+        },
+        {
+          "id": "r2:psa-ammonia-state-contradiction",
+          "severity": "major",
+          "unit_or_item": "ammonia_knockout and hydrogen_psa",
+          "issue": "The basis states that residual NH3 is recovered across the knockout plus PSA polishing, but the PSA feed is assigned zero NH3 and both PSA outlets contain zero NH3. Thus the stated polishing duty and the feed/product species states are inconsistent.",
+          "check_suggested": "Specify residual NH3 entering the PSA after the knockout, define the required NH3 specification, and include its disposition in both PSA outlet compositions and the overall nitrogen/ammonia balance.",
+          "response": {
+            "action": "fixed",
+            "note": "NH3 knockout recovery is now 99.5%, leaving explicit residual NH3 in the PSA feed and nitrogen-rich tail gas; the product stream contains zero NH3 and the overall NH3 balance closes.",
+            "time": "2026-11-14T02:22:01.111197"
+          }
+        },
+        {
+          "id": "r2:heat-integration-duty-reconciliation",
+          "severity": "major",
+          "unit_or_item": "feed_effluent_recuperator, electric_trim_heater, ammonia_vaporizer, ammonia_decomposition_reactor",
+          "issue": "The reported heat duties do not transparently reconcile: vaporization duty is 13.934 GJ/t, reactor duty is 17.043 GJ/t, and recovered heat is 11.640 GJ/t, whereas the heater supplies 20.923 GJ/t. The flowsheet does not identify how the recovered heat is allocated between vaporization, feed sensible heating, and reactor endothermic duty, creating a risk of omitted or double-counted heat.",
+          "check_suggested": "Provide a unit-by-unit thermal balance with feed and effluent temperatures, recovered heat allocation, heater thermal duty, exchanger losses, and reactor duty; verify that external heat equals total required heat minus credited recovery.",
+          "response": {
+            "action": "fixed",
+            "note": "Unit records now expose vaporization duty, feed sensible heat, recuperator recovery credit, reactor endothermic duty, trim-heater thermal supply and delivered electricity; external heat reconciles as vaporization plus reaction plus net sensible heat.",
+            "time": "2026-11-14T02:22:01.124067"
+          }
+        },
+        {
+          "id": "r2:electrical-energy-basis-and-heater-duty",
+          "severity": "minor",
+          "unit_or_item": "electric_trim_heater and ammonia_vaporizer",
+          "issue": "The listed purchased energies appear to be primary-energy values after applying the 2.5 electricity factor, while equipment duties are thermal values; however, the distinction is not explicit in the unit records. The heater's 55.06 GJ/t purchased energy corresponds to approximately 20.92 GJ/t thermal at 95% efficiency, but this convention is not applied or documented consistently across the flowsheet.",
+          "check_suggested": "Separate delivered electricity, primary-energy-equivalent electricity, and thermal duty in the data model, and independently reconcile every electrical unit against its stated efficiency and primary-energy factor."
+        },
+        {
+          "id": "r2:catalyst-life-and-composition-basis",
+          "severity": "major",
+          "unit_or_item": "ammonia_decomposition_reactor catalyst",
+          "issue": "Catalyst cost and replacement burden are dominated by an assumed 8,000 h life and a catalyst price of 2,711.625 USD/kg, but no catalyst composition, active-metal loading, support mass basis, or evidence linking the quoted price to the stated inventory is supplied. The catalyst inventory is also derived from an effective productivity that is not independently tied to reactor conversion, residence time, pressure, or bed volume.",
+          "check_suggested": "Document catalyst formulation and active-metal loading, distinguish bare catalyst from installed inventory, reconcile catalyst mass with reactor throughput and space velocity, and calculate replacement cost from a defensible life distribution rather than a single unsupported life value.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor record now reports catalyst components/loading, reported and effective productivity, laboratory conversion/pressure, inventory scale factor, catalyst mass, bare price, life and replacement basis; unsupported commercial life remains explicitly ranged evidence debt.",
+            "time": "2026-11-14T02:22:01.147076"
+          }
+        },
+        {
+          "id": "r2:reactor-conversion-validation",
+          "severity": "major",
+          "unit_or_item": "ammonia_decomposition_reactor",
+          "issue": "A 55.4% per-pass conversion at 623 K and 10 bar is imposed through an assumed equilibrium margin and maximum-conversion constraint, but no equilibrium calculation, kinetics, residence time, catalyst loading relationship, or temperature-profile evidence is provided. The resulting recycle requirement and reactor sizing therefore cannot be independently validated.",
+          "check_suggested": "Perform a thermodynamically consistent equilibrium calculation using the actual pressure and gas composition, then verify the selected conversion against kinetic data, catalyst productivity, residence time, heat-transfer limits, and the inferred recycle ratio.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor record now reports thermodynamic equilibrium conversion alongside optimized conversion, laboratory productivity and conversion anchors, catalyst inventory and recycle flows; check_model independently validates equilibrium, stoichiometry and conversion bounds.",
+            "time": "2026-11-14T02:22:01.162790"
+          }
+        },
+        {
+          "id": "r2:battery-limit-recycle-accounting",
+          "severity": "minor",
+          "unit_or_item": "boundary and ammonia recycle loop",
+          "issue": "The boundary feed is 5.632 t NH3/t H2, while vaporizer and recycle-related duties imply approximately 10.2 t/t of circulating ammonia. The recycle flow is not explicitly reported, and the boundary mass balance does not show the inferred unconverted-NH3 recycle or any purge.",
+          "check_suggested": "Report fresh feed, reactor feed, unconverted NH3, recycle, purge, and knockout recovery flows explicitly; verify the inferred recycle ratio against per-pass conversion and the stated maximum recycle ratio."
+        },
+        {
+          "id": "r2:cooling-duty-and-utility-definition",
+          "severity": "minor",
+          "unit_or_item": "effluent_chiller",
+          "issue": "The chiller has a 14.171 GJ/t cooling duty and 6.377 GJ/t purchased primary energy, but the utility record does not define whether this includes chilled-water production, circulation, heat rejection, or only compressor electricity. This makes the cooling duty difficult to compare with the stated chilled-water temperature and cited efficiency range.",
+          "check_suggested": "Define chilled-water supply and return temperatures, process outlet temperature, refrigeration COP, auxiliary loads, and whether cooling-water heat rejection is included; reconcile the resulting electricity with the reported purchased energy."
+        }
+      ],
+      "input_fingerprint": "98010b96e922078dbe1b1b1bb5fb2c19e6f12526fcca43849ddd86965ae05822",
+      "completed": true
+    }
+  ]
+}

@@ -72,6 +72,16 @@ def mass_g(d):
     return v / 1000 if u.startswith("mg") else v * 1000 if u.startswith("kg") else v
 
 
+def sv_unit(d):
+    """Space-velocity unit, lower case, with volume written as ml or l: 'cm3', 'cm^3', 'cc' are millilitres, 'dm3' and 'nl'
+    litres. Without this, 'cm3 gcat-1 h-1' matched no volume test and was read as a mass WHSV, a rate about 1000 times too
+    high (nh3dec_b7, 2026-11-14)."""
+    u = ((d or {}).get("unit") or "").lower()
+    u = re.sub(r"cm\^?3|cm³|\bcc\b|\bsccm\b", "ml", u)
+    u = re.sub(r"dm\^?3|dm³|\bnl\b", "l", u)
+    return u
+
+
 def flow_ml_min(d):
     v = num(d)
     if v is None:
@@ -233,7 +243,7 @@ def run(rxn):
                 fl = flow_ml_min(x["total_flow"])
                 if not fl and len(ff) > 1:
                     fl = sum(ff.values())
-                sv, svu = num(x["space_velocity"]), (x["space_velocity"].get("unit") or "").lower()
+                sv, svu = num(x["space_velocity"]), sv_unit(x["space_velocity"])
                 mol_key_per_g_h = None
                 flag = "derived"
                 if fl and m:
@@ -248,6 +258,8 @@ def run(rxn):
                 if mol_key_per_g_h:
                     r = mol_key_per_g_h * X * S * MW[prod]
                     r_src = flag + ("_after_unit_gate" if rejected else "")
+                    if r > R_MAX_PRINTED:           # the same unit-error gate as for printed rates
+                        r, r_src = None, None
             X0, Xf, tdur = frac(x["stability_initial_conversion"]), frac(x["stability_final_conversion"]), hours(x["stability_duration"])
             kd = t_cycle = None
             if X0 and Xf and tdur and 0 < Xf < 1 and 0 < X0 < 1:

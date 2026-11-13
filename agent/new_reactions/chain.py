@@ -172,7 +172,7 @@ def normalise(ws, cfg):
                 m, fl = nz.mass_g(x["catalyst_mass"]), nz.flow_ml_min(x["total_flow"])
                 if not fl and len(ff) > 1:
                     fl = sum(ff.values())
-                sv, svu = nz.num(x["space_velocity"]), (x["space_velocity"].get("unit") or "").lower()
+                sv, svu = nz.num(x["space_velocity"]), nz.sv_unit(x["space_velocity"])
                 mol = None
                 if fl and m:
                     mol, r_src = fl * y * 60 / 22414 / m, "derived"
@@ -183,7 +183,10 @@ def normalise(ws, cfg):
                 elif sv and x["space_velocity_basis"] == "per_volume_catalyst" and "h" in svu and "g" not in svu:
                     mol, r_src = sv * y / 22.414 / nz.RHO_BED_KG_L / 1000, "derived_rho"
                 if mol:
-                    r = mol * X * S * nz.MW[product]
+                    r = mol * X * S * cfg["stoich"].get("product_per_key", 1.0) * nz.MW[product]
+                    if r > nz.R_MAX_PRINTED:        # the same unit-error gate as for printed rates
+                        gates["derived rate > 50 kg/kg/h (unit error)"] += 1
+                        r, r_src = None, None
             X0, Xf, td = nz.frac(x["stability_initial_conversion"]), nz.frac(x["stability_final_conversion"]), nz.hours(x["stability_duration"])
             kd = tcyc = None
             if X0 and Xf and td and 0 < Xf < 1 and 0 < X0 < 1:
