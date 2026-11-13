@@ -12,9 +12,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 
-def audit(run_dir, rxn):
+def audit(run_dir, rxn, holdout_path=None, output_dir=None):
     run = Path(run_dir)
-    h = json.loads((HERE / "holdout" / f"{rxn}.json").read_text(encoding="utf-8"))
+    h = json.loads((Path(holdout_path) if holdout_path else HERE / "holdout" / f"{rxn}.json").read_text(encoding="utf-8"))
     needles = [d.lower() for d in h.get("dois", [])] + [u.lower() for u in h.get("url_fragments", [])]
     keysets = [[k.lower() for k in ks] for ks in h.get("keyword_sets", [])]
     texts = []
@@ -59,7 +59,9 @@ def audit(run_dir, rxn):
     # candidates.csv lists search results the agent saw only as titles; a hit there alone is a warning, not a leak
     leak = [x for x in hits if x["where"] != "candidates.csv"]
     res = dict(run=str(run), rxn=rxn, leak=bool(leak), hits=hits[:30], downloads_blocked=blocked)
-    (run / "holdout_audit.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    dest = Path(output_dir) if output_dir else run
+    dest.mkdir(exist_ok=True, parents=True)
+    (dest / "holdout_audit.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     print(json.dumps(res, indent=1))
     return res
 

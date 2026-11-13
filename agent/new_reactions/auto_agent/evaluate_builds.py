@@ -101,6 +101,8 @@ def scaled_target(target, capacity):
 
 def evaluate_targets(ref, targets, run=None):
     """Read held-out quantities from the reference output, including boundary feeds."""
+    if not targets:
+        return {}
     b = ref["balances"]
     tea = {}
     for name, t in targets.items():
@@ -153,6 +155,121 @@ def evaluate_targets(ref, targets, run=None):
     return tea
 
 
+def full_harness_decomposition(condition, grid, ts_shift_eV=None):
+    """Seven-step mean-field MKM using the harness scaling energies (report only).
+
+    The workbook supplies TS fits for N2 dissociation and all three N-H steps,
+    but NO adsorption TS fits. Complete the three adsorption/desorption steps
+    with a shared TS at max(reactant, product), kBT/h. This explicit barrierless
+    closure is an assumption, not additional DFT evidence. All six adsorbates
+    occupy one site. Solve log(theta_i/theta_*) plus log(overall extent/s).
+    Each step is oriented toward decomposition and its positive net flux is
+    constrained to the stoichiometric multiple of one common flux. Equations
+    log(r_forward)=logaddexp(log(r_reverse),log(nu*J)) avoid subtracting large
+    near-equilibrium gross rates. No fixed rate-determining step is imposed.
+    """
+    from scipy.optimize import least_squares
+    from scipy.special import logsumexp
+    names = ['NH3', 'NH2', 'NH', 'N', 'N2', 'H', '*']
+    # forward reactants/products and multiplicity per 2NH3 -> N2+3H2 extent
+    definitions = [({'NH3_g':1,'*':1},{'NH3':1},None,2),
+                   ({'NH3':1,'*':1},{'NH2':1,'H':1},'NH2-H',2),
+                   ({'NH2':1,'*':1},{'NH':1,'H':1},'NH-H',2),
+                   ({'NH':1,'*':1},{'N':1,'H':1},'N-H',2),
+                   ({'N':2},{'N2':1,'*':1},'N-N',1),
+                   ({'N2':1},{'N2_g':1,'*':1},None,1),
+                   ({'H':2},{'H2_g':1,'*':2},None,3)]
+    gaslog = {'NH3_g':math.log(condition.pNH3), 'N2_g':math.log(condition.pN2), 'H2_g':math.log(condition.pH2)}
+    driving = -2*condition.G_NH3_g_form+condition.kT*(gaslog['N2_g']+3*gaslog['H2_g']-2*gaslog['NH3_g'])
+    if driving >= 0:
+        raise ValueError('conditions do not support positive net decomposition')
+    old_solution = None
+    rows = []
+    for descriptor in grid:
+        g = {s:a*float(descriptor)+b for s,(a,b) in condition.g_linear.items()}
+        g.update({'*':0.,'N2_g':0.,'H2_g':0.,'NH3_g':condition.G_NH3_g_form})
+        constants=[]
+        for step_index,(react,prod,ts,nu) in enumerate(definitions):
+            er=sum(g[s]*v for s,v in react.items());ep=sum(g[s]*v for s,v in prod.items())
+            top=max(er,ep,g[ts]) if ts else max(er,ep)
+            top += (ts_shift_eV or {}).get(ts or f'adsorption_{step_index}', 0.)
+            constants.append((math.log(condition.pref)-(top-er)/condition.kT,
+                              math.log(condition.pref)-(top-ep)/condition.kT))
+        def residual(z):
+            ls=logsumexp(np.r_[z[:6],0.])
+            logs=dict(zip(names,np.r_[z[:6],0.]-ls));logs.update(gaslog)
+            result=[]
+            for (react,prod,_,nu),(lf,lr) in zip(definitions,constants):
+                forward=lf+sum(v*logs[s] for s,v in react.items())
+                reverse=lr+sum(v*logs[s] for s,v in prod.items())
+                result.append(forward-np.logaddexp(reverse,z[6]+math.log(nu)))
+            return np.asarray(result)
+        best=None
+        # Continuation and two physically distinct surface seeds.
+        for seed in ([old_solution] if old_solution is not None else []) + [np.r_[np.zeros(6),-15.],np.r_[np.full(6,-8.),-30.]]:
+            fit=least_squares(residual,np.clip(seed,-690,690),bounds=(-700,700),
+                              xtol=1e-12,ftol=1e-12,gtol=1e-12,max_nfev=800)
+            err=float(np.linalg.norm(residual(fit.x),np.inf))
+            if best is None or err<best[0]:
+                best=(err,fit.x)
+            if err<1e-8:
+                break
+        err,z=best
+        if err>1e-7:
+            raise RuntimeError(f'full MKM not converged at E_N={descriptor}: log-flux residual={err}')
+        old_solution=z
+        ls=logsumexp(np.r_[z[:6],0.])
+        cover=dict(zip(names,map(float,np.exp(np.r_[z[:6],0.]-ls))))
+        rows.append(dict(D=float(descriptor),TOF_extent_per_site_s=math.exp(float(z[6])),
+                         log10_TOF=float(z[6]/math.log(10)),coverages=cover,log_flux_residual=err))
+    return dict(method='full_mkm_barrierless_adsorption',argmax_D=rows[int(np.argmax([r['log10_TOF'] for r in rows]))]['D'],
+                max_log_flux_residual=max(r['log_flux_residual'] for r in rows),curve=rows,
+                adsorption_assumption='missing adsorption TS supplied by max(reactant,product), common kBT/h; not a uniquely specified full harness MKM')
+
+
+def qe_reverse_logtof(c, d):
+    g = {s: aa*d+bb for s, (aa, bb) in c.g_linear.items()}
+    exp = c._exp
+    qn = exp(-g["N2"]/c.kT)*c.pN2
+    qh = exp(-g["H"]/c.kT)*math.sqrt(c.pH2)
+    qa = exp(-(g["NH3"]-c.G_NH3_g_form)/c.kT)*c.pNH3
+    def ks(ts, rs, ps):
+        top = max(g[ts], rs, ps)
+        return c.pref*exp(-(top-rs)/c.kT), c.pref*exp(-(top-ps)/c.kT)
+    f2, r2 = ks("N-N", g["N2"], 2*g["N"])
+    f4, r4 = ks("N-H", g["N"]+g["H"], g["NH"])
+    f5, r5 = ks("NH-H", g["NH"]+g["H"], g["NH2"])
+    f6, r6 = ks("NH2-H", g["NH2"]+g["H"], g["NH3"])
+    if qh <= 0:
+        raise ValueError("reverse reduction requires positive H2 seed pressure")
+    def ratios(j):
+        z = (j+r6*qa)/(f6*qh)
+        y = (j+r5*z)/(f5*qh)
+        x = (j+r4*y)/(f4*qh)
+        return x, y, z
+    # Ratios are affine in j: find the first physically admissible lower bound.
+    r0 = np.array(ratios(0))
+    # Analytic affine slopes; subtracting ratios(1)-ratios(0)
+    # loses all precision when equilibrium ratios are very large.
+    az = 1/(f6*qh)
+    ay = (1+r5*az)/(f5*qh)
+    ax = (1+r4*ay)/(f4*qh)
+    if 2*(f2*qn-r2*r0[0]**2) >= 0:
+        return -300.
+    # Solve for x=theta_N/theta_* rather than nearly cancelling
+    # j at its positivity bound. 2*ax*r2*x^2+x-(b+2*ax*f2*qn)=0.
+    const = r0[0]+2*ax*f2*qn
+    coeff = 2*ax*r2
+    x = 2*const/(1+math.sqrt(1+4*coeff*const))
+    j = (x-r0[0])/ax if abs(x-r0[0])>1e-8*(x+r0[0]) else 2*(f2*qn-r2*x*x)
+    # Recover downstream ratios by addition on the reverse branch.
+    y = (f4*qh*x-j)/r4
+    z = (f5*qh*y-j)/r5
+    vacancy = 1/(1+qn+qh+qa+x+y+z)
+    # synthesis j counts NH3; one decomposition extent consumes two NH3.
+    return math.log10(max(-j*vacancy**2/2, 1e-300))
+
+
 def hidden_atomic_reference(run, hold):
     """Report-only: signed reverse branch from harness internals, never agent-visible.
 
@@ -161,7 +278,6 @@ to obtain decomposition. Solve the same quasi-equilibrium reduction on its
 physical reverse branch with nonnegative intermediate ratios instead.
 """
     try:
-        from scipy.optimize import brentq
         from atomic_layer import load_atomic, descriptor_grid
         root = NR.parents[1] / "provenance" / "nh3_final_1_2" / "source_harness"
         spec = importlib.util.spec_from_file_location("hidden_nh3_reference", root / "harness_core.py")
@@ -185,56 +301,34 @@ physical reverse branch with nonnegative intermediate ratios instead.
         conds = [x["conditions"] for x in hold.get("targets", {}).values() if x.get("quantity") in ("atomic_optimum_D", "atomic_opt_weaker_than_ref_eV") and "conditions" in x]
         if not conds:
             conds = [json.loads((Path(run)/"three_optima.json").read_text(encoding="utf-8"))["atomic_optimum"]["conditions"]]
+        conds = list({json.dumps(c, sort_keys=True):c for c in conds}.values())
         results = []
         for cond in conds:
             t, p = cond["T_K"], cond["p_bar"]
             c = ctx.condition(t, p.get("N2", 0), p.get("H2", 0), p.get("NH3", 0))
-            def reverse_logtof(d):
-                g = {s: aa*d+bb for s, (aa, bb) in c.g_linear.items()}
-                exp = c._exp
-                qn = exp(-g["N2"]/c.kT)*c.pN2
-                qh = exp(-g["H"]/c.kT)*math.sqrt(c.pH2)
-                qa = exp(-(g["NH3"]-c.G_NH3_g_form)/c.kT)*c.pNH3
-                def ks(ts, rs, ps):
-                    top = max(g[ts], rs, ps)
-                    return c.pref*exp(-(top-rs)/c.kT), c.pref*exp(-(top-ps)/c.kT)
-                f2, r2 = ks("N-N", g["N2"], 2*g["N"])
-                f4, r4 = ks("N-H", g["N"]+g["H"], g["NH"])
-                f5, r5 = ks("NH-H", g["NH"]+g["H"], g["NH2"])
-                f6, r6 = ks("NH2-H", g["NH2"]+g["H"], g["NH3"])
-                if qh <= 0:
-                    raise ValueError("reverse reduction requires positive H2 seed pressure")
-                def ratios(j):
-                    z = (j+r6*qa)/(f6*qh)
-                    y = (j+r5*z)/(f5*qh)
-                    x = (j+r4*y)/(f4*qh)
-                    return x, y, z
-                # Ratios are affine in j: find the first physically admissible lower bound.
-                r0, r1 = np.array(ratios(0)), np.array(ratios(1))
-                slope = r1-r0
-                lower = max(-v/s for v, s in zip(r0, slope) if s > 0)
-                def balance(j):
-                    x = ratios(j)[0]
-                    return j-2*(f2*qn-r2*x*x)
-                if balance(0) <= 0:
-                    return -300.
-                j = brentq(lambda u: balance(lower*u), 0., 1., xtol=1e-13)*lower
-                x, y, z = ratios(j)
-                vacancy = 1/(1+qn+qh+qa+x+y+z)
-                # synthesis j counts NH3; one decomposition extent consumes two NH3.
-                return math.log10(max(-j*vacancy**2/2, 1e-300))
-            vals = [reverse_logtof(float(d)) for d in grid]
+            vals = [qe_reverse_logtof(c, float(d)) for d in grid]
             av = [a.logtof(float(d), t, p) for d in grid]
-            results.append(dict(conditions=cond, argmax_D=float(grid[int(np.argmax(vals))]),
+            qe = dict(conditions=cond, argmax_D=float(grid[int(np.argmax(vals))]),
                 spearman=float(spearmanr(av, vals).statistic), descriptor_range=[float(grid[0]), float(grid[-1])],
-                method="physical reverse branch of harness quasi-equilibrium reduction; ideal gas, Gillespie-Beattie reference; per overall decomposition extent"))
+                method="qe_reverse", curve=[dict(D=float(d),log10_TOF=float(v)) for d,v in zip(grid,vals)])
+            try:
+                full = full_harness_decomposition(c, grid)
+                full['spearman'] = float(spearmanr(av,[r['log10_TOF'] for r in full['curve']]).statistic)
+            except Exception as exc:
+                full = dict(status='unavailable', reason=f'{type(exc).__name__}: {exc}')
+            # The adsorption TS are absent from the harness. A completed full MKM
+            # is a sensitivity check, not sufficient evidence to replace QE.
+            results.append(dict(conditions=cond,argmax_D=qe['argmax_D'],method='qe_reverse',
+                                spearman=qe['spearman'],descriptor_range=qe['descriptor_range'],
+                                qe_reverse=qe,full_mkm=full,
+                                selection_reason='retain QE primary: full MKM requires unprovided adsorption kinetics; report both'))
         return dict(status="computed_report_only", results=results)
     except Exception as exc:
         return dict(status="unavailable", reason=f"{type(exc).__name__}: {exc}; no forward-clipped logtof used as decomposition proxy")
 
 
-def main(rx, runs):
-    hold = json.loads((HERE / "holdout" / f"{rx}.json").read_text(encoding="utf-8"))
+def main(rx, runs, holdout_path=None, output_dir=None):
+    hold = json.loads((Path(holdout_path) if holdout_path else HERE / "holdout" / f"{rx}.json").read_text(encoding="utf-8"))
     recs = common_records(rx, runs)
     try:
         cfg = fw.load(rx, "ours")
@@ -298,9 +392,11 @@ def main(rx, runs):
     out = dict(rxn=rx, builds={k: {kk: vv for kk, vv in v.items() if kk != "costs"} for k, v in builds.items()},
                agreement=concl, primary_build_median_reference=median_build, holdout_pass_rule=hold["pass_rule"])
     out["common_record_count"] = len(recs)
-    (HERE / "evaluation").mkdir(exist_ok=True)
-    (HERE / "evaluation" / f"{rx}_builds.json").write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
+    dest = Path(output_dir) if output_dir else HERE / "evaluation"
+    dest.mkdir(exist_ok=True, parents=True)
+    (dest / f"{rx}_builds.json").write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
     print(json.dumps(out, indent=1, default=str)[:6000])
+    return out
 
 
 if __name__ == "__main__":
