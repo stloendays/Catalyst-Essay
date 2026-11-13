@@ -481,7 +481,11 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                         prefix = ("b_" if self.build and hasattr(self, "b_" + c.name) else
                                   "l_" if self.lean and hasattr(self, "l_" + c.name) else
                                   "f_" if self.full and hasattr(self, "f_" + c.name) else "t_")
-                        out_s = getattr(self, prefix + c.name)(**args)
+                        out_s = run_with_deadline(lambda: getattr(self, prefix + c.name)(**args),
+                                                  TOOL_TIMEOUT_S if (self.build and c.name in TIMED_TOOLS) else None)
+                    except ToolTimeout:
+                        out_s = (f"ERROR timeout: {c.name} exceeded {TOOL_TIMEOUT_S} s while executing your model.py/atomic.py; "
+                                 "make them faster (vectorise, cache solutions, fewer grid points or solver iterations) and call it again")
                     except Exception as e:  # noqa: BLE001
                         out_s = f"ERROR {type(e).__name__}: {str(e)[:500]}"
                 dt = time.time() - t
@@ -501,6 +505,45 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             self.write_report(decision=summary or "")
         self.log({"end": summary})
         print(json.dumps(json.loads((self.ws / "ledger.json").read_text()), indent=1))
+
+
+TOOL_TIMEOUT_S = 900   # amendment A3 (2026-11-13): fixed tools that execute the agent's code get a deadline
+TIMED_TOOLS = {"check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
+               "check_records", "submit_flowsheet"}
+
+
+class ToolTimeout(Exception):
+    pass
+
+
+def run_with_deadline(fn, seconds):
+    """Run fn() in the main thread; after `seconds` interrupt it (KeyboardInterrupt at the next Python bytecode) and raise
+    ToolTimeout. A hung tool would otherwise block the whole build (nh3dec_b1, 2026-11-13: 30 min at full CPU in one tool)."""
+    if not seconds:
+        return fn()
+    import _thread
+    import threading
+    state = {"fired": False, "done": False}
+    lock = threading.Lock()
+
+    def fire():
+        with lock:
+            if not state["done"]:
+                state["fired"] = True
+                _thread.interrupt_main()
+    timer = threading.Timer(seconds, fire)
+    timer.daemon = True
+    timer.start()
+    try:
+        return fn()
+    except KeyboardInterrupt:
+        if state["fired"]:
+            raise ToolTimeout() from None
+        raise
+    finally:
+        with lock:
+            state["done"] = True
+        timer.cancel()
 
 
 _COMPACTED = set()

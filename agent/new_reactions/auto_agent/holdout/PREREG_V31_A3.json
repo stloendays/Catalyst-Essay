@@ -1,0 +1,30 @@
+{
+ "id": "V3.1-A3",
+ "written": "2026-11-13T13:00:11",
+ "amends": "PREREG_V31_A2.json",
+ "change": "Amendment A3 (2026-11-13 13:10), before any V3.1 build output was evaluated.\n\nObserved: nh3dec_b1 stopped making progress at turn 137 inside a fixed tool that executes the agent's own atomic.py/model.py\n(30 min at full CPU, no output). Change for builds started from now on: fixed tools that execute agent code (check_model,\ncheck_atomic, run_analysis, run_three_optima, run_sensitivity, assess_assumptions, check_records, submit_flowsheet) get a\n900 s deadline; on timeout the agent receives an error asking it to make its code faster. nh3dec_b1 was stopped by the\noperator (it was at turn 137 of 140 and would have ended at the turn limit) and is replaced; nh3dec_b3 ended at the 140-turn\nlimit in the report stage and is replaced (nh3dec_b5). nh3dec_b4 and nh3dec_b5 started under A2 and keep running unchanged.\nDecisions confirmed by the user on 2026-11-13 (\"我觉得可以，你就这样做吧\"): the fixed price table as generic infrastructure;\nNH3-decomposition mass tolerance +-12 %; CO2 methanation used only as the basis for the V3 changes, validation carried by NH3\ndecomposition and the two blind tests.",
+ "tool_timeout_s": 900,
+ "invalid_so_far": {
+  "nh3dec_b1": "stopped by the operator at turn 137 (hung in a fixed tool)",
+  "nh3dec_b2": "turn limit (140)",
+  "nh3dec_b3": "turn limit (140) in report",
+  "nh3_b1..b3 (first start)": "stopped before A2, not evaluated"
+ },
+ "replacements": {
+  "nh3dec_b2": "nh3dec_b4",
+  "nh3dec_b3": "nh3dec_b5",
+  "nh3dec_b1": "nh3dec_b6"
+ },
+ "frozen_sha256": {
+  "runner.py": "0be78d6d1c54475387c2f7b3663b3d1a7ca7169da365723ca4961d96d392ca14",
+  "build_mode.py": "cbcb69569cc20373a51b2694ff2677d233daa44789a2249aef146901804b5427",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "7c87bc98bfba5c3bb2de29c74db5ac4e87cfda685aec2b2b8fd67641fb599e40",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed"
+ }
+}
