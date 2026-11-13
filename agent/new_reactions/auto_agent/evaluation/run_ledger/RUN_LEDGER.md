@@ -12,8 +12,8 @@
 | smoke | 氨分解 | 1 | 0 | 1 | 0 | 0.0 | 0 | 0.0 |
 | test | CO2 制甲醇（盲测） | 3 | 3 | 0 | 0 | 15.5 | 90 | 2.5 |
 | test | NH3 合成（盲测） | 6 | 3 | 3 | 0 | 43.5 | 252 | 5.1 |
-| test | 氨分解 | 6 | 1 | 4 | 1 | 96.4 | 521 | 15.0 |
-| 合计 | | 28 | | | | 175.3 | 1,005 | 29.8 |
+| test | 氨分解 | 6 | 0 | 6 | 0 | 98.9 | 534 | 15.1 |
+| 合计 | | 28 | | | | 177.9 | 1,017 | 29.9 |
 
 ## 逐次运行
 
@@ -45,5 +45,5 @@
 | nh3dec_b2 | 氨分解 | test | V3.1-five-layer | invalid: turn limit 140 in atomic_model | gpt-5.6-sol / api-yes-xiexiu | 140 | 10,822,336 | 307,190 | 24,799 | 63.3 | 75.1 | 12 / 530 / 73 | Co:247 Ru:137 K:105 Li:66 Ni:53 Ba:17 Fe:15 Na:15 Y:7 Mg:1 |
 | nh3dec_b3 | 氨分解 | test | V3.1-five-layer | invalid: turn limit 140 in report | gpt-5.6-sol / api-yes-xiexiu | 140 | 11,890,900 | 233,820 | 0 | 66.5 | 86.9 | 11 / 382 / 47 | Co:152 Ni:109 Ru:60 Li:50 Fe:15 La:6 Ce:1 Ba:1 Pd:1 |
 | nh3dec_b4 | 氨分解 | test | V3.1-five-layer | invalid: stopped by the operator at turn 288/300 after about 3 h inside one fixed tool (A2 code, no tool deadline) | gpt-5.6-sol / api-yes-xiexiu | 288 | 24,877,980 | 265,778 | 27,502 | 132.4 | 164.4 | 9 / 332 / 86 | Co:164 Ru:142 K:62 Ce:58 Ba:23 Ni:21 Mo:5 Fe:4 La:4 Li:3 |
-| nh3dec_b5 | 氨分解 | test | V3.1-five-layer | valid | gpt-5.6-sol / api-yes-xiexiu | 219 | 15,909,180 | 268,935 | 43,694 | 87.6 | 195.3 | 12 / 356 / 116 | Ru:192 Co:132 K:110 Ni:84 Ce:26 Cs:20 La:11 Ga:10 Ba:5 Mo:5 |
-| nh3dec_b6 | 氨分解 | test | V3.1-five-layer | running | gpt-5.6-sol / api-yes-xiexiu | 272 | 21,381,005 | 228,809 | 24,771 | 113.8 | 292.0 | 11 / 248 / 82 | Co:78 Ru:75 K:66 Li:52 Ni:47 Ba:24 Pd:21 Fe:13 Mo:13 Ce:12 |
+| nh3dec_b5 | 氨分解 | test | V3.1-five-layer | invalid: holdout leak: opened the held-out TEA paper by web search (turn 62); held-out abstracts in search results (A6) | gpt-5.6-sol / api-yes-xiexiu | 219 | 15,909,180 | 268,935 | 43,694 | 87.6 | 195.3 | 12 / 356 / 116 | Ru:192 Co:132 K:110 Ni:84 Ce:26 Cs:20 La:11 Ga:10 Ba:5 Mo:5 |
+| nh3dec_b6 | 氨分解 | test | V3.1-five-layer | invalid: harness crash at finish: KeyError on an evidence_debt.json the agent wrote itself (fixed in A5) | gpt-5.6-sol / api-yes-xiexiu | 291 | 23,904,912 | 237,845 | 24,771 | 126.7 | 297.7 | 11 / 248 / 82 | Co:78 Ru:75 K:66 Li:52 Ni:47 Ba:24 Pd:21 Fe:13 Mo:13 Ce:12 |

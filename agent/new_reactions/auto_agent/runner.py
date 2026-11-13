@@ -227,7 +227,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             out.append(dict(doi=(w.get("doi") or "").replace("https://doi.org/", ""), year=w.get("publication_year"),
                             title=w.get("title"), venue=(loc.get("source") or {}).get("display_name"),
                             cites=w.get("cited_by_count"), has_pdf=bool(loc.get("pdf_url")), abstract=abstract))
-        return json.dumps(out, ensure_ascii=False)
+        return json.dumps(drop_holdout(getattr(self, "holdout", None), out), ensure_ascii=False)
 
     def _search_crossref(self, query, title_terms, n, from_year):
         """Fallback when OpenAlex is rate-limited: Crossref works search (no key); OA status unknown (has_pdf None)."""
@@ -245,7 +245,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                             venue=(w.get("container-title") or [""])[0], cites=w.get("is-referenced-by-count"), has_pdf=None,
                             abstract=ab))
         self.log({"search_fallback": "crossref", "n": len(out)})
-        return json.dumps(out, ensure_ascii=False)
+        return json.dumps(drop_holdout(getattr(self, "holdout", None), out), ensure_ascii=False)
 
     def t_download_papers(self, dois):
         import pypdfium2 as pdfium
@@ -450,6 +450,12 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                     self.log({"turn": turn, "message": text[:1500]})
                 elif o.type == "web_search_call":
                     self.log({"turn": turn, "web_search": str(getattr(o, "action", ""))[:300]})
+                    hit = holdout_hit(getattr(self, "holdout", None), str(getattr(o, "action", "")))
+                    if self.build and hit:
+                        self.log({"turn": turn, "holdout_hit": hit})
+                        self.write_ledger("invalid: holdout leak")
+                        print(f"stopped: web search reached a held-out source ({hit})")
+                        return
             if not calls:
                 items.append({"role": "user", "content": "Continue with the tools; call finish when report.md is written."})
                 continue
@@ -514,6 +520,26 @@ TIMED_TOOLS = {"check_model", "check_atomic", "run_analysis", "run_three_optima"
 
 class ToolTimeout(Exception):
     pass
+
+
+def holdout_needles(holdout):
+    h = holdout or {}
+    return [d.lower() for d in h.get("dois", [])] + [u.lower() for u in h.get("url_fragments", [])]
+
+
+def holdout_hit(holdout, text):
+    """First held-out DOI or URL fragment in text (a web-search action), else None. A build whose web search reaches a
+    held-out source is invalid under the preregistration, so it is stopped at once instead of spending the rest of its
+    turns (nh3dec_b5 turn 62 opened the held-out TEA paper; nh3dec_b4 opened the held-out cracking-plant study)."""
+    t = (text or "").lower()
+    return next((n for n in holdout_needles(holdout) if n in t), None)
+
+
+def drop_holdout(holdout, results):
+    """Remove held-out works from literature-search results, so their titles and abstracts never reach the agent (V3.1
+    showed them in search results and blocked only the download; every nh3dec build saw two held-out abstracts)."""
+    needles = holdout_needles(holdout)
+    return [r for r in results if not any(n in json.dumps(r, ensure_ascii=False).lower() for n in needles)]
 
 
 # Outputs that only the fixed tools write (gate results). An agent edit through write_file/run_python is reverted, so a gate

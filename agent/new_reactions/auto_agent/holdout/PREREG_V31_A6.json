@@ -1,0 +1,40 @@
+{
+ "id": "V3.1-A6",
+ "written": "2026-11-13T23:07:20",
+ "amends": "PREREG_V31_A5.json",
+ "change": "Amendment A6 (2026-11-13 19:10), before any NH3-decomposition TEA or atomic result was evaluated.\n\nObserved (holdout audit, run with the frozen audit_holdout.py and unchanged leak rule): every NH3-decomposition build b1-b6\nhas hits. Two held-out works (10.1007/s11244-016-0653-4, 10.1038/ncomms9619, added to the blocking list in V3.1) appeared\nwith title and abstract in the literature-search results; their download was blocked, but the abstracts reached the agent.\nIn addition nh3dec_b5 opened the held-out TEA paper (10.1002/ese3.70618) through web search at turn 62, and nh3dec_b4\nopened the held-out cracking-plant study. Under the preregistered rule all six are invalid (b5 was the only one that had\nfinished). The blind builds nh3_b1..b3 and meoh_b1..b3 have no hits.\nChanges for builds started from now on: (1) the literature search drops held-out works from its results (they never reach\nthe agent or candidates.csv); (2) a build whose web search opens or queries a held-out DOI or URL fragment is stopped at\nonce and recorded as invalid (holdout leak), instead of spending its remaining turns; it is replaced. The audit, the\nleak rule, targets, tolerances and the agent's instructions are unchanged. Replacements: nh3dec_b7, b8, b9.",
+ "invalid_so_far": {
+  "nh3dec_b1": "hung in a fixed tool; holdout abstracts in search results",
+  "nh3dec_b2": "turn limit (140); holdout abstracts in search results",
+  "nh3dec_b3": "turn limit (140); holdout abstracts in search results",
+  "nh3dec_b4": "stopped after about 3 h in one tool; opened the held-out cracking-plant study",
+  "nh3dec_b5": "holdout leak: opened the held-out TEA paper (turn 62); holdout abstracts in search results",
+  "nh3dec_b6": "harness crash at finish; holdout abstracts in search results",
+  "nh3_b1..b3 (first start)": "stopped before A2, not evaluated"
+ },
+ "valid_blind_builds_audited_clean": [
+  "nh3_b1",
+  "nh3_b2",
+  "nh3_b3",
+  "meoh_b1",
+  "meoh_b2",
+  "meoh_b3"
+ ],
+ "replacements": [
+  "nh3dec_b7",
+  "nh3dec_b8",
+  "nh3dec_b9"
+ ],
+ "frozen_sha256": {
+  "runner.py": "c8f659436a1a077b3c7c0626d7c25cc1dcaa1335058136a5e944265323a28346",
+  "build_mode.py": "cbcb69569cc20373a51b2694ff2677d233daa44789a2249aef146901804b5427",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "7c87bc98bfba5c3bb2de29c74db5ac4e87cfda685aec2b2b8fd67641fb599e40",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed"
+ }
+}

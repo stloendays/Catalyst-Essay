@@ -29,6 +29,7 @@ INVALID = {
     "nh3dec_b2": "turn limit 140 in atomic_model",
     "nh3dec_b3": "turn limit 140 in report",
     "nh3dec_b4": "stopped by the operator at turn 288/300 after about 3 h inside one fixed tool (A2 code, no tool deadline)",
+    "nh3dec_b5": "holdout leak: opened the held-out TEA paper by web search (turn 62); held-out abstracts in search results (A6)",
     "nh3dec_b6": "harness crash at finish: KeyError on an evidence_debt.json the agent wrote itself (fixed in A5)",
     "nh3_b1_stopped_140turns": "stopped during extraction before A2 (started with 140 turns); not evaluated",
     "nh3_b2_stopped_140turns": "stopped during extraction before A2 (started with 140 turns); not evaluated",
