@@ -184,7 +184,11 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             kw["include"] = ["reasoning.encrypted_content"]
         if schema:
             kw["text"] = {"format": {"type": "json_schema", "name": "records", "strict": True, "schema": schema}}
-        for attempt in range(4):
+        # A9: a stable cache key per run lets the gateway reuse the cached prefix (probe 2026-11-14 on the personal
+        # credential: 0 cached tokens without a key, 12288 of 12525 with one)
+        kw["prompt_cache_key"] = f"{self.ws.name}-{'agent' if tools else 'plain'}"
+        attempt = 0
+        while attempt < 4:
             try:
                 out, text, final = [], [], None
                 client = self.router.client
@@ -200,10 +204,15 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 return out, "".join(text), final
             except Exception as e:  # noqa: BLE001
                 self.log({"error": f"{type(e).__name__}: {str(e)[:300]}", "attempt": attempt, "route": self.router.client._route})
+                if "prompt_cache_key" in str(e) and kw.pop("prompt_cache_key", None):
+                    continue
                 if llm_route.is_exhausted(e) and self.router.order:
                     self.router._next()
                     continue
-                time.sleep(10 * (attempt + 1))
+                if llm_route.is_exhausted(e) and llm_route.wait_for_reset(e):
+                    continue
+                attempt += 1
+                time.sleep(10 * attempt)
         raise RuntimeError("LLM call failed 4 times")
 
     # ------------------------------------------------------------ tools

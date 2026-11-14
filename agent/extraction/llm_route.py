@@ -85,6 +85,22 @@ def is_exhausted(err: Exception) -> bool:
     return status in (402, 429, 503) or any(w in text for w in EXHAUSTED_WORDS)
 
 
+def wait_for_reset(err) -> bool:
+    """With LLM_WAIT_ON_LIMIT=1: if err is a usage limit carrying a reset time within MAX_WAIT_S, sleep until just after the
+    reset and return True (the caller retries the same route); otherwise return False."""
+    if not WAIT_ON_LIMIT:
+        return False
+    import re
+    import time
+    m = re.search(r"resets_at['\"]?:\s*(\d{9,})", str(err))
+    wait = int(m.group(1)) - time.time() + 60 if m else None
+    if wait is None or not 0 < wait <= MAX_WAIT_S:
+        return False
+    print(f"  usage limit reached; waiting {wait / 60:.0f} min for the reset", flush=True)
+    time.sleep(wait)
+    return True
+
+
 class Router:
     """Hands out the current client and moves to the next route when the current one is exhausted."""
 
@@ -113,15 +129,8 @@ class Router:
             except Exception as e:  # noqa: BLE001 - classified below
                 if not is_exhausted(e):
                     raise
-                if WAIT_ON_LIMIT and not self.order:
-                    import re
-                    import time
-                    m = re.search(r"resets_at['\"]?:\s*(\d{9,})", str(e))
-                    wait = int(m.group(1)) - time.time() + 60 if m else None
-                    if wait is not None and 0 < wait <= MAX_WAIT_S:
-                        print(f"  route {self.client._route} at its usage limit; waiting {wait / 60:.0f} min for the reset", flush=True)
-                        time.sleep(wait)
-                        continue
+                if not self.order and wait_for_reset(e):
+                    continue
                 print(f"  route {self.client._route} exhausted ({type(e).__name__}: {str(e)[:160]}); switching",
                       flush=True)
                 self._next()

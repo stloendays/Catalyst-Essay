@@ -8,6 +8,8 @@ prompt cache can be reused (references: SWE-agent history processors; Lindenbaue
 OpenHands condensers). A2 kept 60 calls, A8 30, both re-cut the prefix every turn.
 (2) routing: LLM_ROUTES restricts calls to the listed API-YES credentials (user: test on the personal account quota only);
 LLM_WAIT_ON_LIMIT=1 waits for a usage-limit reset (at most 6 h) instead of failing the run.
+(3) every agent request carries a stable prompt_cache_key per run; on the personal credential the gateway then serves the
+repeated prefix from its cache (probe: 0 of 12525 input tokens cached without a key, 12288 with one).
 """
 import hashlib
 import json
