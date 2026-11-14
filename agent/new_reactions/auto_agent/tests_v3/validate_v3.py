@@ -68,6 +68,15 @@ def validate_upper_bounds(mod, out, flow):
         internal_fuel_GJ_per_t=0, capex_usd=2*1e5/8000/.0036*500))
     cases.append(("exothermic purchased preheat", bad, "exothermic_preheat"))
     bad = copy.deepcopy(ext)
+    bad["physics"]["units"].append(dict(name="trim", type="heat_exchanger", purchased_energy_GJ_per_t=2,
+        internal_fuel_GJ_per_t=0, capex_usd=1e5))
+    cases.append(("exothermic preheat in a heat exchanger", bad, "exothermic_preheat"))
+    cooler = copy.deepcopy(ext)
+    cooler["physics"]["units"].append(dict(name="trim", type="heat_exchanger", service="cooling", purchased_energy_GJ_per_t=2,
+        internal_fuel_GJ_per_t=0, capex_usd=1e5))
+    assert not any("exothermic_preheat" in x for x in check_physics(mod, cooler, f, b)), "cooling exchanger must not count as preheat"
+    print("V3.2 cooling exchanger with purchased energy: not counted as preheat")
+    bad = copy.deepcopy(ext)
     bad["physics"]["units"].append(dict(name="regen", type="regenerator", purchased_energy_GJ_per_t=0,
         internal_fuel_GJ_per_t=0, capex_usd=0))
     f_zero = copy.deepcopy(f)

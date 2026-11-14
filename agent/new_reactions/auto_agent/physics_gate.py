@@ -425,7 +425,11 @@ def check_physics(model_module, out, flowsheet, basis=None):
         check("boundary_feed_state", boundary_states)
         def preheat():
             duty = reactor["heat_duty_GJ_per_t"]
-            bought = sum(u["purchased_energy_GJ_per_t"] for u in units if u["type"] == "furnace")
+            # V3.2 (2026-11-14, found on the development reaction CO2 methanation): purchased heat counts from furnaces and from
+            # heat exchangers / other units unless they declare service 'cooling'; a trim heater typed heat_exchanger
+            # previously escaped this check
+            bought = sum(u["purchased_energy_GJ_per_t"] for u in units if u["type"] == "furnace" or
+                         (u["type"] in ("heat_exchanger", "other") and u.get("service") != "cooling"))
             if duty < 0 and bought > EXOTHERMIC_PREHEAT_FRACTION * abs(duty):
                 from_basis = basis.get("purchased_preheat_reason") or {}
                 require(from_basis.get("type") in ("measured", "published"), "exothermic reactor buys preheat")
