@@ -11,7 +11,9 @@ Workspace: runs/<run_name>/ ; trace: runs/<run_name>/trace.jsonl ; ledger: runs/
 from __future__ import annotations
 
 import argparse
+import lean_chem
 import base64
+import hashlib
 import csv
 import json
 import os
@@ -106,15 +108,16 @@ from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
 from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
 from build_mode import (AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, METHOD_BUILD_V33, METHOD_BUILD_V331, STAGES, BuildMixin, ATOMIC_TOOLS,  # noqa: E402
-                        ATOMIC_PROMPT, stage_handoff)
+                        ATOMIC_PROMPT, stage_handoff, lean_tools)
 NUS_LOCK = HERE / "nus.lock"
 
 
 class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None, atomic=False, max_usd=None):
+                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None, atomic=False, max_usd=None, reuse_extraction=False):
         if atomic and not build:
             raise ValueError("--atomic requires --build")
+        self.reuse_extraction = reuse_extraction
         self.atomic = atomic
         self.max_usd = max_usd if max_usd is not None else (MAX_USD_PER_BUILD if build else None)
         self.build = build
@@ -130,6 +133,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         if db_key:
             self.setup_db(HERE / "db" / "truth.json", db_key, budget_frac)
         self.full, self.n_target, self.n_max, self.lean = full or bool(lean), n_target, n_max, lean
+        if build:
+            hp = HERE / "holdout" / f"{build}.json"
+            self.setup_build(build, json.loads(hp.read_text(encoding="utf-8")) if hp.exists() else {})
         if self.full or build:
             if not build:
                 self.setup_full()
@@ -142,9 +148,6 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                     pass
                 return client._route
             self.extract_route = self.extract_router.call(probe)    # moves on when a route refuses the model
-        if build:
-            hp = HERE / "holdout" / f"{build}.json"
-            self.setup_build(build, json.loads(hp.read_text(encoding="utf-8")) if hp.exists() else {})
         self.router = llm_route.Router(model)        # API-YES first, then the advisor key (llm_route order)
 
     # ------------------------------------------------------------ bookkeeping
@@ -391,7 +394,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         return json.dumps(dict(file=f"extracted/{paper_stem}.json", n_records=len(data["records"]), images=len(chosen),
                                notes=data.get("notes", "")[:600]))
 
-    def t_read_file(self, path, start, n):
+    def t_read_file(self, path, start, n, force=False):
+        if lean_chem.enabled(self):
+            return lean_chem.read_file(self, path, start, n, force)
         lines = self.path(path).read_text(encoding="utf-8", errors="replace").splitlines()
         return f"[{len(lines)} lines]\n" + "\n".join(lines[max(0, start):max(0, start) + min(n, 400)])
 
@@ -399,7 +404,25 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         p = self.path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8")
-        return f"wrote {path} ({len(content)} chars)"
+        return f"wrote {path} ({len(content)} chars)" + self._model_import_check()
+
+    def _model_import_check(self):
+        """V3.4: when model.py changed, import it and call reference() in a subprocess (no LLM). ch4_v33_t3 spent
+        10 turns on three NameErrors left by text patches that only check_model found."""
+        if not (self.build and lean_chem.enabled(self)):
+            return ""
+        mp = self.ws / "model.py"
+        if not mp.exists():
+            return ""
+        sha = hashlib.sha256(mp.read_bytes()).hexdigest()
+        if sha == getattr(self, "_model_sha_checked", None):
+            return ""
+        self._model_sha_checked = sha
+        code = "import model\nr = model.reference()\nprint('model.py import check: reference cost', round(r['cost_usd_per_t'], 2))"
+        rc, so, se = run_tree(["bash", PY.replace("\\", "/"), "-c", code], str(self.ws), 120)
+        if rc == 0:
+            return "\n" + (so or "").strip()[-200:]
+        return "\nmodel.py import check FAILED:\n" + ((se or so or "[timeout]")[-1200:])
 
     def t_run_python(self, name, code, timeout_s):
         p = self.path(f"scripts/{re.sub(r'[^A-Za-z0-9_]+', '_', name)}.py")
@@ -407,7 +430,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         rc, so, se = run_tree(["bash", PY.replace("\\", "/"), str(p)], str(self.ws), min(max(timeout_s, 10), 900))
         if rc is None:
             return "[timeout]"
-        return (so or "") + ("\n[stderr]\n" + se[-3000:] if se else "") + f"\n[exit {rc}]"
+        return (so or "") + ("\n[stderr]\n" + se[-3000:] if se else "") + f"\n[exit {rc}]" + self._model_import_check()
 
     # ------------------------------------------------------------ loop
     def run(self):
@@ -426,6 +449,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             if self.atomic:
                 tools += ATOMIC_TOOLS
             tools = list({t.get("name", t["type"]): t for t in tools}.values()) + [t for t in TOOLS if t.get("name") == "run_python"]
+            if lean_chem.enabled(self):
+                tools = lean_tools(tools)
+                instructions += lean_chem.PROMPT
         elif self.lean:
             self.setup_lean(self.lean)
             instructions = METHOD_LEAN.format(reaction=self.cfg["name"], key=self.cfg["stoich"]["key"], product=self.cfg["stoich"]["product"],
@@ -448,6 +474,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         summary = None
         budget_stop = budget_warned = False
         for turn in range(self.max_turns):
+            self._turn = turn + 1
             if self.build and getattr(self, "reset_pending", None):
                 items = [items[0], {"role": "user", "content": stage_handoff(self, self.reset_pending)}]
                 self.log({"turn": turn, "context_reset": self.reset_pending})
@@ -466,7 +493,14 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                     budget_warned = True
                     items.append({"role": "user", "content": f"Budget: {spent:.0f} of {self.max_usd:.0f} USD used. Write report.md "
                                                              "now and finish; the run stops at the budget."})
-            out, text, final = self.respond(items, instructions, tools, effort="medium")
+            request_tools = tools
+            if self.build and lean_chem.enabled(self):
+                warning = lean_chem.turn_warning(self)
+                if warning:
+                    items.append({"role": "user", "content": warning})
+                request_tools = lean_chem.stage_tools(tools, self.stage)
+                self._history = items
+            out, text, final = self.respond(items, instructions, request_tools, effort="medium")
             u = final.usage
             self.tok["agent_in"] += u.input_tokens
             self.tok["agent_cached_in"] += getattr(getattr(u, "input_tokens_details", None), "cached_tokens", 0) or 0
@@ -493,6 +527,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 items.append({"role": "user", "content": "Continue with the tools; call finish when report.md is written."})
                 continue
             for c in calls:
+                self._call_id = c.call_id
                 args = json.loads(c.arguments or "{}")
                 t = time.time()
                 if c.name == "finish" and self.build and finish_errors(self):
@@ -721,8 +756,9 @@ if __name__ == "__main__":
     ap.add_argument("--extract-model", default="gpt-5.6-sol")
     ap.add_argument("--lean", default=None, help="pdh|ch4|nh3dec|rwgs|etoh: lean autonomous run with the fixed plant model")
     ap.add_argument("--build", default=None, help="pdh|ch4|nh3|meoh: the agent builds the plant model itself (workspace D:/agent_runs)")
+    ap.add_argument("--reuse-extraction", action="store_true", help="opt in to V3.4 PDF/prompt/model extraction cache")
     ap.add_argument("--atomic", action="store_true", help="with --build: literature-built atomic model and three optima")
     a = ap.parse_args()
     if a.atomic and not a.build:
         ap.error("--atomic requires --build")
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build, a.atomic, a.max_usd).run()
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build, a.atomic, a.max_usd, a.reuse_extraction).run()

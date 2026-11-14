@@ -65,7 +65,9 @@ try:
 except ImportError:  # runner.py is also invoked directly
     from physics_gate import check_flowsheet, check_physics
 
-BUILD_MODE_VERSION = "V3.3.1-engineering-ledger"
+import lean_chem
+
+BUILD_MODE_VERSION = "V3.4-lean-chem"
 CRITIC_MODEL = "gpt-5.6-luna"   # user 2026-11-13: the critic is a different model from the builder
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
@@ -293,6 +295,15 @@ class BuildMixin:
         self.log({"stage": stage, "note": note[:300]})
         return json.dumps(dict(stage=stage))
 
+    def b_workspace_digest(self):
+        return lean_chem.digest(self)
+
+    def b_resolve_debts(self, items):
+        return json.dumps([self.b_resolve_debt(**item) for item in items])
+
+    def b_respond_critiques(self, items):
+        return json.dumps([self.b_respond_critique(**item) for item in items])
+
     # ---------------- guarded script runner and download block
     def b_submit_flowsheet(self):
         path = self.ws / "flowsheet.json"
@@ -317,6 +328,8 @@ class BuildMixin:
             values = [u["name"], u["type"], u["purpose"], ", ".join(u["inlets"]), ", ".join(u["outlets"])]
             rows.append("| " + " | ".join(str(v).replace("|", "\\|").replace("\n", " ") for v in values) + " |")
         (self.ws / "flowsheet.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+        if lean_chem.enabled(self):
+            (self.ws / "model_skeleton.py").write_text(lean_chem.skeleton(flowsheet), encoding="utf-8")
         self.flowsheet_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
         self.flowsheet_ok_time = datetime.now().isoformat()
         self.log({"flowsheet_submitted": self.flowsheet_sha256[:16], "time": self.flowsheet_ok_time})
@@ -351,6 +364,8 @@ class BuildMixin:
         return self.f_screen_papers(criteria)
 
     def b_extract_papers(self, reaction, key_reactant, product, cofeed, scope):
+        if lean_chem.enabled(self) and getattr(self, "reuse_extraction", False):
+            return lean_chem.extract_papers(self, reaction, key_reactant, product, None if cofeed.lower() == "none" else cofeed, scope)
         return self.f_extract_papers(reaction, key_reactant, product, cofeed, scope)
 
     # ---------------- records with a minimal reaction card (no plant parameters)
@@ -448,7 +463,7 @@ class BuildMixin:
                 c = out["cost_usd_per_t"]
                 tag = "reference" if rec is None else f"{rec['paper']}#{rec['idx']}"
                 if i <= 40:
-                    fails["physics"].extend(f"{tag}: {failure}" for failure in check_physics(
+                    fails["physics"].extend((failure if lean_chem.enabled(self) else f"{tag}: {failure}") for failure in check_physics(
                         m, out, flowsheet, **({"basis": self._basis(), "ledger": self.build_version >= "V3.3.1"} if self._is_v3() else {})))
                 if not (math.isfinite(c) and c > 0):
                     fails["finite_positive"].append(tag)
@@ -503,6 +518,15 @@ class BuildMixin:
         res = dict(passed=not any(fails.values()), records_tested=len(recs),
                    failures={k: v[:5] + ([f"... {len(v) - 5} more"] if len(v) > 5 else []) for k, v in fails.items() if v},
                    reference=dict(name=ref.get("name"), cost=ref.get("cost_usd_per_t"), parts=ref.get("parts"), operating=ref.get("operating")))
+        if lean_chem.enabled(self):
+            tags = ["reference"] + [f"{r['paper']}#{r['idx']}" for r in recs]
+            for name, messages in fails.items():
+                if name == "physics":
+                    continue
+                fails[name] = [next((msg[len(tag) + 2:] if msg.startswith(tag + ": ") else name
+                                    for tag in tags if msg == tag or msg.startswith(tag + ": ")), msg)
+                               for msg in messages]
+            res["failures"] = lean_chem.diagnosis(fails)
         res["input_fingerprint"] = self._fingerprint()
         if self.build_version >= "V3.3.1":
             write_ledgers(self.ws, ref)
@@ -711,7 +735,7 @@ class BuildMixin:
         def call(client):   # API-YES ChatGPT-account routes accept only streamed Responses calls
             done = None
             for ev in client.responses.create(model=CRITIC_MODEL, store=False, stream=True,
-                                              instructions=CRITIC_INSTRUCTIONS, input=[{"role": "user", "content": json.dumps(payload)}],
+                                              instructions=CRITIC_INSTRUCTIONS + (lean_chem.CRITIC_ADDENDUM if lean_chem.enabled(self) else ""), input=[{"role": "user", "content": json.dumps(payload)}],
                                               text={"format": {"type": "json_object"}}):
                 if getattr(ev, "type", "") == "response.completed":
                     done = ev.response
@@ -998,3 +1022,17 @@ def run_sensitivity(h, max_records=80):
                                       ranking_spearman_min=min((r["min_spearman"] for r in rows if r["min_spearman"] is not None), default=None)))
     (h.ws / "sensitivity.json").write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
     return dict(out, parameters=rows[:15])
+
+
+def lean_tools(tools):
+    import copy
+    result = copy.deepcopy(tools)
+    read = next(t for t in result if t.get("name") == "read_file")
+    read["parameters"]["properties"]["force"] = {"type": "boolean"}
+    read["parameters"]["required"].append("force")
+    result.append(_tool("workspace_digest", "Compact deterministic workspace state; use to re-orient."))
+    for single, batch in (("resolve_debt", "resolve_debts"), ("respond_critique", "respond_critiques")):
+        schema = next(t["parameters"] for t in result if t.get("name") == single)
+        result.append(_tool(batch, "Apply existing single actions in order and return combined results.",
+                            dict(items={"type": "array", "items": copy.deepcopy(schema)})))
+    return result
