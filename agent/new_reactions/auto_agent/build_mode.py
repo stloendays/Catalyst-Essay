@@ -260,7 +260,10 @@ class BuildMixin:
         if stage != self.stage:
             self._close_stage()
             self.stage = stage
-            if self.build_version >= "V3.3" and stage in MILESTONE_STAGES:
+            done = self.__dict__.setdefault("milestones_done", set())
+            if self.build_version >= "V3.3" and stage in MILESTONE_STAGES and stage not in done:
+                # once per milestone: ch4_v33_t3 went back and forth between model_code and analysis and was reset 9 times
+                done.add(stage)
                 self.reset_pending = stage
         getattr(self, "stage_notes", []).append(f"{stage}: {note[:400]}")
         self.log({"stage": stage, "note": note[:300]})

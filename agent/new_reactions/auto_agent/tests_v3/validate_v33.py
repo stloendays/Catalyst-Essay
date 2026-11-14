@@ -33,6 +33,11 @@ with tempfile.TemporaryDirectory() as tmp:
     text = bm.stage_handoff(h, "model_code")
     assert "capacity 100 kt/y" in text and "adiabatic fixed bed" in text and "model_check.json passed" in text, text
     print("milestone handoff: notes, decisions and gate status carried: PASS")
+    h.reset_pending = None
+    h.b_set_stage("model_checks", "checks")
+    h.b_set_stage("model_code", "back to the code")
+    assert not h.reset_pending, "a milestone resets the context only on its first entry"
+    print("milestone reset only once per stage: PASS")
     snap = runner.seal_snapshot(ws)
     (ws / "unitops.py").write_text("tampered", encoding="utf-8")
     msg = runner.seal_restore(ws, snap)

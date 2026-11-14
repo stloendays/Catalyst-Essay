@@ -1,0 +1,98 @@
+{
+ "rxn": "ch4",
+ "builds": {
+  "D:/agent_runs/ch4_v33_t3": {
+   "reference_cost": 2069.1033047070164,
+   "parts": {
+    "feed": 1818.4536363899024,
+    "energy": 60.37852882359074,
+    "capital": 133.1218341217299,
+    "catalyst": 0.7417485405519721,
+    "other": 56.40755683124149
+   },
+   "largest": "feed",
+   "cheapest_common": "10_1038_s41467_024_47403_4#6",
+   "cheapest_catalyst": "CeAlOx/Ni/Ni-foam",
+   "n_costed": 255,
+   "top_attribution": "selectivity",
+   "spearman_vs_hand": 0.8014325958066375,
+   "tea": {
+    "H2 per t CH4": {
+     "model": 0.512854943844387,
+     "target": 0.505,
+     "tol": 0.05,
+     "within": true,
+     "source": "D5.9 Table 4-1 p.35 (measured, Falkenhagen: 708 kW H2 -> 549 kW SNG, HHV) and Table 5-2 p.68 (5 MW design: 6450 kW H2)"
+    },
+    "CO2 per t CH4": {
+     "model": 2.798888048567414,
+     "target": 2.785,
+     "tol": 0.05,
+     "within": true,
+     "source": "D5.9 Table 5-2 p.68: 460 m3(STP)/h CO2 per 5 MW SNG (design); Audi Werlte 2.8 t/t as support"
+    },
+    "purchased energy GJ per t": {
+     "model": 7.150088939635745,
+     "target": 3.84,
+     "tol": 0.35,
+     "within": false,
+     "source": "D5.9 Table 5-2 / p.70: methanation electricity 0.29 kWh/m3 SNG (25 kW/MW) = 1.46 GJe/t, primary at 0.38; CO2 supply and grid injection outside the boundary"
+    },
+    "installed capital per annual t": {
+     "model": 1410.1889207810373,
+     "target": 684.2003952683084,
+     "tol": [
+      -0.3,
+      0.5
+     ],
+     "within": false,
+     "source": "D5.9 p.63, Table 1-2 p.7, Table 5-1 p.67: optimised Falkenhagen design 720 / ~475 / 360 EUR/kW SNG at 5 / 10 / 50 MW (EUR2017, 1.1297 USD/EUR); methanation unit only; tolerance AACE class 4",
+     "scaled_target": 684.2003952683084,
+     "scale_curve": [
+      [
+       2595,
+       1567
+      ],
+      [
+       5190,
+       1035
+      ],
+      [
+       25950,
+       784
+      ]
+     ]
+    }
+   },
+   "tea_within": 2,
+   "tea_n": 4,
+   "tea_far": [
+    "purchased energy GJ per t",
+    "installed capital per annual t"
+   ],
+   "tea_pass": false,
+   "tea_verdict": "fail",
+   "group_targets": {},
+   "attribution_share": {
+    "selectivity": 0.671,
+    "activity": 0.31,
+    "temperature": 0.01,
+    "stability": 0.002,
+    "metal": 0.007
+   }
+  }
+ },
+ "agreement": {
+  "largest cost item": "robust (all agree)",
+  "controlling catalyst property": "robust (all agree)",
+  "cheapest catalyst (common records)": "robust (all agree)",
+  "reference cost spread max/min-1": 0.0,
+  "pairwise Spearman (common records)": {}
+ },
+ "primary_build_median_reference": "D:/agent_runs/ch4_v33_t3",
+ "holdout_pass_rule": {
+  "min_within": 4,
+  "rule": "pass = all four targets within tolerance; partial = three within and none beyond twice the tolerance; fail otherwise. Capital target = log-log interpolation of scale_curve at the build's capacity (evaluate_builds.py)."
+ },
+ "common_record_count": 255
+}
