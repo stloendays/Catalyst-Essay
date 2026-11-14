@@ -111,10 +111,11 @@ NUS_LOCK = HERE / "nus.lock"
 
 class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
     def __init__(self, name, reaction, model, max_turns, db_key=None, budget_frac=0.3, full=False, n_target=12,
-                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None, atomic=False):
+                 n_max=20, extract_model="gpt-5.6-sol", lean=None, build=None, atomic=False, max_usd=None):
         if atomic and not build:
             raise ValueError("--atomic requires --build")
         self.atomic = atomic
+        self.max_usd = max_usd if max_usd is not None else (MAX_USD_PER_BUILD if build else None)
         self.build = build
         self.ws = (AGENT_ROOT / name) if build else (HERE / "runs" / name)   # build runs live outside the repository
         for d in ("pdf", "ocr", "extracted", "scripts"):
@@ -122,7 +123,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         self.reaction, self.model, self.max_turns = reaction, model, max_turns
         self.t0 = time.time()
         self.start_iso = datetime.now().isoformat(timespec="seconds")
-        self.tok = {"agent_in": 0, "agent_out": 0, "extract_in": 0, "extract_out": 0, "agent_calls": 0, "extract_calls": 0}
+        self.tok = {"agent_in": 0, "agent_cached_in": 0, "agent_out": 0, "extract_in": 0, "extract_out": 0, "agent_calls": 0, "extract_calls": 0}
         self.tool_time = {}
         self.db_key = db_key
         if db_key:
@@ -151,15 +152,20 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         with open(self.ws / "trace.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
+    def usd_now(self):
+        """Spend so far at the gpt-5.5 list price (5 USD per M input, 30 per M output; the same basis as the ledger)."""
+        return ((self.tok["agent_in"] + self.tok["extract_in"]) * 5 + (self.tok["agent_out"] + self.tok["extract_out"]) * 30
+                + (self.tok.get("critic_in", 0)) * 5 + (self.tok.get("critic_out", 0)) * 30) / 1e6
+
     def write_ledger(self, status="running"):
         led = dict(status=status, reaction=self.reaction, model=self.model, route=getattr(getattr(self, "router", None), "client", None) and self.router.client._route,
                    extract_model=getattr(self, "extract_model", None), extract_route=getattr(self, "extract_route", None),
                    start=self.start_iso, now=datetime.now().isoformat(timespec="seconds"),
                    wall_minutes=round((time.time() - self.t0) / 60, 1), tokens=self.tok,
-                   tokens_total=sum(v for k, v in self.tok.items() if "calls" not in k),
+                   tokens_total=sum(v for k, v in self.tok.items() if "calls" not in k and "cached" not in k),
                    tool_seconds={k: round(v, 1) for k, v in self.tool_time.items()},
                    reveal_budget=getattr(self, "budget", None), reveal_spent=getattr(self, "spent", None),
-                   usd_equivalent_at_gpt55_list_price=round(((self.tok["agent_in"] + self.tok["extract_in"]) * 5
+                   usd_cap=self.max_usd, usd_equivalent_at_gpt55_list_price=round(((self.tok["agent_in"] + self.tok["extract_in"]) * 5
                                                              + (self.tok["agent_out"] + self.tok["extract_out"]) * 30) / 1e6, 2))
         (self.ws / "ledger.json").write_text(json.dumps(led, indent=1), encoding="utf-8")
 
@@ -429,14 +435,26 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                                                  + json.dumps(plan, ensure_ascii=False) + "\nStart now."}]
         self.log({"start": self.reaction, "model": self.model})
         summary = None
+        budget_stop = budget_warned = False
         for turn in range(self.max_turns):
             if self.build:
                 compact_history(items, keep_last=KEEP_FULL_TURNS)
             if turn == self.max_turns - 8:
                 items.append({"role": "user", "content": "Eight tool turns left: write report.md now and finish."})
+            if self.max_usd:
+                spent = self.usd_now()
+                if spent >= self.max_usd:
+                    self.log({"turn": turn, "budget_limit_usd": self.max_usd, "spent_usd": round(spent, 2)})
+                    budget_stop = True
+                    break
+                if spent >= BUDGET_WARN * self.max_usd and not budget_warned:
+                    budget_warned = True
+                    items.append({"role": "user", "content": f"Budget: {spent:.0f} of {self.max_usd:.0f} USD used. Write report.md "
+                                                             "now and finish; the run stops at the budget."})
             out, text, final = self.respond(items, instructions, tools, effort="medium")
             u = final.usage
             self.tok["agent_in"] += u.input_tokens
+            self.tok["agent_cached_in"] += getattr(getattr(u, "input_tokens_details", None), "cached_tokens", 0) or 0
             self.tok["agent_out"] += u.output_tokens
             self.tok["agent_calls"] += 1
             calls = []
@@ -506,7 +524,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 break
         if self.build:
             self.finish_build()
-        self.write_ledger("finished" if summary is not None else "turn limit")
+        self.write_ledger("finished" if summary is not None else "budget limit" if budget_stop else "turn limit")
         if self.lean and getattr(self, "analysis", None):
             self.write_report(decision=summary or "")
         self.log({"end": summary})
@@ -632,7 +650,9 @@ def run_with_deadline(fn, seconds):
 
 
 _COMPACTED = set()
-KEEP_FULL_TURNS = 60   # amendment A2 (2026-11-13): older tool outputs / long tool arguments are compacted in the resent history
+MAX_USD_PER_BUILD = 60.0   # A8 (user 2026-11-14: "怎么这么贵？下次设个上限"): hard per-build spend cap, list-price basis
+BUDGET_WARN = 0.85         # at 85 % of the cap the agent is told to write the report and finish
+KEEP_FULL_TURNS = 30   # 60 until A8 (2026-11-14, cost); amendment A2 (2026-11-13): older tool outputs / long tool arguments are compacted in the resent history
 
 
 def compact_history(items, keep_last=KEEP_FULL_TURNS):
@@ -665,6 +685,8 @@ if __name__ == "__main__":
     ap.add_argument("reaction")
     ap.add_argument("--model", default="gpt-5.6-sol")
     ap.add_argument("--max-turns", type=int, default=90)
+    ap.add_argument("--max-usd", type=float, default=None,
+                    help=f"stop the run when its spend (gpt-5.5 list-price equivalent) reaches this; build default {MAX_USD_PER_BUILD}")
     ap.add_argument("--db", default=None, help="pdh | ch4: masked literature database instead of downloading papers")
     ap.add_argument("--budget-frac", type=float, default=0.3)
     ap.add_argument("--full", action="store_true", help="complete autonomous run from the reaction name")
@@ -677,4 +699,4 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.atomic and not a.build:
         ap.error("--atomic requires --build")
-    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build, a.atomic).run()
+    Run(a.name, a.reaction, a.model, a.max_turns, a.db, a.budget_frac, a.full, a.n_target, a.n_max, a.extract_model, a.lean, a.build, a.atomic, a.max_usd).run()
