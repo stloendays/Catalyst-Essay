@@ -652,21 +652,32 @@ def run_with_deadline(fn, seconds):
 _COMPACTED = set()
 MAX_USD_PER_BUILD = 60.0   # A8 (user 2026-11-14: "怎么这么贵？下次设个上限"): hard per-build spend cap, list-price basis
 BUDGET_WARN = 0.85         # at 85 % of the cap the agent is told to write the report and finish
-KEEP_FULL_TURNS = 30   # 60 until A8 (2026-11-14, cost); amendment A2 (2026-11-13): older tool outputs / long tool arguments are compacted in the resent history
+# A9 (2026-11-14): observation masking with batched eviction. Only the last KEEP_FULL_TURNS tool outputs stay in full (SWE-agent
+# keeps the last 5 observations; Lindenbauer et al. 2025, "The Complexity Trap", arXiv 2508.21433: masking old observations
+# halves cost at equal solve rate). Older outputs are masked in batches of MASK_BATCH, so the resent prefix is unchanged
+# between batches and the provider's prompt cache can be reused (per-turn eviction rewrites the prefix every call).
+# History: A2 kept 60 tool calls, A8 30.
+KEEP_FULL_TURNS = 10
+MASK_BATCH = 20
 
 
-def compact_history(items, keep_last=KEEP_FULL_TURNS):
+def compact_history(items, keep_last=KEEP_FULL_TURNS, batch=MASK_BATCH):
     """Generic context compaction for long build runs (history is resent every turn with store=False): tool outputs and long
-    tool arguments (file contents, code) older than the last `keep_last` tool calls are cut to a short head. The full text stays
-    in the workspace files and trace.jsonl; the agent can re-read any file."""
-    calls = [i for i, it in enumerate(items) if isinstance(it, dict) and it.get("type") in ("function_call_output", "function_call")]
-    old = set(calls[:-2 * keep_last]) if len(calls) > 2 * keep_last else set()
+    tool arguments (file contents, code) older than the last `keep_last` tool calls are cut to a short head, in batches of
+    `batch` calls. The agent's own messages and the call names stay; the full text stays in the workspace files and
+    trace.jsonl, and the agent can re-read any file."""
+    outs = [i for i, it in enumerate(items) if isinstance(it, dict) and it.get("type") == "function_call_output"]
+    n_mask = ((len(outs) - keep_last) // batch) * batch if len(outs) > keep_last else 0
+    if not n_mask:
+        return
+    limit = outs[n_mask - 1]
+    old = [i for i in range(limit + 1) if isinstance(items[i], dict) and items[i].get("type") in ("function_call_output", "function_call")]
     for i in old:
         it = items[i]
         if id(it) in _COMPACTED:
             continue
-        if it["type"] == "function_call_output" and len(it.get("output", "")) > 600:
-            it["output"] = it["output"][:500] + " ...[older output compacted; re-run the tool or read the file]"
+        if it["type"] == "function_call_output" and len(it.get("output", "")) > 400:
+            it["output"] = it["output"][:300] + " ...[older output masked; re-run the tool or read the file]"
         elif it["type"] == "function_call" and len(it.get("arguments", "")) > 1500:
             try:
                 a = json.loads(it["arguments"])

@@ -18,7 +18,12 @@ HARNESS_AGENT = os.path.join(os.environ.get("NH3_HARNESS", r"D:\论文-AI4S\Cata
 PERSONAL_CREDENTIAL = "69d4b1ee-f6fe-4fe3-ac95-75e3f539fbfa"  # API-YES credential "GPT-个人" (user, 2026-11-13: use gpt-5.6 from it)
 XIEXIU_CREDENTIAL = "4626141b-2c5d-4933-8fef-f38fec7160af"   # API-YES credential "邪修gpt" (user, 2026-11-11)
 CREDENTIAL_ROUTES = {"api-yes-personal": PERSONAL_CREDENTIAL, "api-yes-xiexiu": XIEXIU_CREDENTIAL}
-ROUTES = ("api-yes-personal", "api-yes-xiexiu", "api-yes", "advisor-openai")
+ALL_ROUTES = ("api-yes-personal", "api-yes-xiexiu", "api-yes", "advisor-openai")
+# LLM_ROUTES="api-yes-personal" limits every call to the listed routes (user 2026-11-14: test on the personal account quota only)
+ROUTES = tuple(r for r in os.environ.get("LLM_ROUTES", "").split(",") if r in ALL_ROUTES) or ALL_ROUTES
+# LLM_WAIT_ON_LIMIT=1: when the last route reports a usage limit with a reset time, wait for the reset instead of failing
+WAIT_ON_LIMIT = os.environ.get("LLM_WAIT_ON_LIMIT") == "1"
+MAX_WAIT_S = 6 * 3600
 DEFAULT_MODEL = "gpt-5.6-sol"   # served by GPT-个人 (ChatGPT account: list input only); 邪修gpt serves plain "gpt-5.6"
 EXHAUSTED_WORDS = ("quota", "credit", "insufficient", "balance", "billing", "exhaust", "not supported", "余额", "额度", "用完")
 
@@ -108,6 +113,15 @@ class Router:
             except Exception as e:  # noqa: BLE001 - classified below
                 if not is_exhausted(e):
                     raise
+                if WAIT_ON_LIMIT and not self.order:
+                    import re
+                    import time
+                    m = re.search(r"resets_at['\"]?:\s*(\d{9,})", str(e))
+                    wait = int(m.group(1)) - time.time() + 60 if m else None
+                    if wait is not None and 0 < wait <= MAX_WAIT_S:
+                        print(f"  route {self.client._route} at its usage limit; waiting {wait / 60:.0f} min for the reset", flush=True)
+                        time.sleep(wait)
+                        continue
                 print(f"  route {self.client._route} exhausted ({type(e).__name__}: {str(e)[:160]}); switching",
                       flush=True)
                 self._next()
