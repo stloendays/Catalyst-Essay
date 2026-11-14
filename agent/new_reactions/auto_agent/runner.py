@@ -195,6 +195,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         while attempt < 4:
             try:
                 out, text, final = [], [], None
+                self.router.before_call()
                 client = self.router.client
                 for ev in client.responses.create(**kw):
                     if ev.type == "response.output_item.done":
@@ -205,6 +206,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                         final = ev.response
                 if final is None:
                     raise RuntimeError("stream ended without a final response")
+                self.router.account(getattr(final, "usage", None))
                 return out, "".join(text), final
             except Exception as e:  # noqa: BLE001
                 self.log({"error": f"{type(e).__name__}: {str(e)[:300]}", "attempt": attempt, "route": self.router.client._route})
