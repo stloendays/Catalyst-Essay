@@ -1,8 +1,6 @@
-"""Amendment A8 (2026-11-14), cost control for runs started from now on (user: "怎么这么贵？下次设个上限").
+"""Amendment A8 (2026-11-14), cost control for runs started from now on .
 
-Observed: all runs so far used 237.8 M tokens, 1,343 USD at the gpt-5.5 list price; 83 % of it is agent input (the history
-is resent every turn), and 51 % (683 USD) went to runs that ended invalid (turn limits, hung tools, harness crash, holdout
-leaks). Changes: a hard per-build spend cap (default 60 USD, list-price equivalent, --max-usd); at 85 % of the cap the agent is
+Observed: most input tokens are the agent history resent every turn, and runs that end invalid waste a whole build. Changes: a hard per-build spend cap (default 60 USD, list-price equivalent, --max-usd); at 85 % of the cap the agent is
 told to write its report and finish; a build that reaches the cap stops with status "budget limit" (invalid, replaced and
 reported, like a turn limit). History compaction keeps the last 30 tool calls in full (was 60). Cached input tokens are now
 recorded (agent_cached_in) where the gateway reports them. Modelling instructions, gates, prices, holdouts, targets and

@@ -659,7 +659,7 @@ def run_with_deadline(fn, seconds):
 
 
 _COMPACTED = set()
-MAX_USD_PER_BUILD = 60.0   # A8 (user 2026-11-14: "怎么这么贵？下次设个上限"): hard per-build spend cap, list-price basis
+MAX_USD_PER_BUILD = 60.0   # A8 (2026-11-14): hard per-build spend cap, list-price basis
 BUDGET_WARN = 0.85         # at 85 % of the cap the agent is told to write the report and finish
 # A9 (2026-11-14): observation masking with batched eviction. Only the last KEEP_FULL_TURNS tool outputs stay in full (SWE-agent
 # keeps the last 5 observations; Lindenbauer et al. 2025, "The Complexity Trap", arXiv 2508.21433: masking old observations

@@ -1,7 +1,8 @@
 """Raw-data ledger of every AI modelling run (advisor 2026-11-13: for each run record the reaction, the materials, the
 tokens and the cost; part of the experiment's raw data). Deterministic, read-only on the run folders; rerun at any time.
 
-    cfpy run_ledger.py            -> evaluation/run_ledger/RUN_LEDGER.csv, RUN_STAGES.csv, RUN_LEDGER.md
+    cfpy run_ledger.py            -> evaluation/run_ledger/RUN_LEDGER.csv, RUN_STAGES.csv, RUN_LEDGER.md  (runs from SINCE on)
+    cfpy run_ledger.py --local    -> D:/论文-AI4S/work/run_ledger_local/ (all runs; local only, not in the repository)
 
 Sources per run folder: ledger.json (model, routes, tokens, wall time, status, USD at the gpt-5.5 list price as written by
 runner.py), stage_ledger.csv (per stage), build_version.json, records.csv (papers, records, catalysts, elements),
@@ -18,6 +19,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOTS = [Path("D:/agent_runs"), HERE / "runs"]
 OUT = HERE / "evaluation" / "run_ledger"
+LOCAL_OUT = Path("D:/论文-AI4S/work/run_ledger_local")
+SINCE = "2026-11-14T11:00"   # repository ledger starts with the A9 harness (first run ch4_v31_t1); earlier runs stay local
 
 RXN_KEYS = [("propane dehydrogenation", "pdh"), ("methanation", "ch4"), ("ammonia decomposition", "nh3dec"),
             ("ammonia synthesis", "nh3"), ("methanol", "meoh"), ("ethanol", "etoh")]
@@ -130,23 +133,24 @@ def fmt(x, nd=0):
         return "" if x is None else str(x)
 
 
-def main():
+def main(local=False):
+    out_dir = LOCAL_OUT if local else OUT
     rows, stages = [], []
     for root in ROOTS:
         for run in sorted(p for p in root.iterdir() if p.is_dir()):
             r, s = one(run)
-            if r:
+            if r and (local or (r["start"] or "") >= SINCE):
                 rows.append(r)
                 stages += s
     rows.sort(key=lambda r: (r["role"], r["reaction_key"], r["start"] or ""))
-    OUT.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     cols = list(dict.fromkeys(k for r in rows for k in r))
-    with (OUT / "RUN_LEDGER.csv").open("w", newline="", encoding="utf-8-sig") as f:
+    with (out_dir / "RUN_LEDGER.csv").open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, cols)
         w.writeheader()
         w.writerows(rows)
     scols = list(dict.fromkeys(k for s in stages for k in s))
-    with (OUT / "RUN_STAGES.csv").open("w", newline="", encoding="utf-8-sig") as f:
+    with (out_dir / "RUN_STAGES.csv").open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, scols)
         w.writeheader()
         w.writerows(stages)
@@ -182,10 +186,11 @@ def main():
         L.append(f"| {r['run']} | {r['reaction_cn']} | {r['role']} | {r['build_mode']} | {r['validity']} | {r['model']} / "
                  f"{r['route']} | {r['agent_calls']} | {fmt(tin)} | {fmt(tout)} | {fmt(crit)} | {fmt(r['usd_at_gpt55_list'], 1)} | "
                  f"{fmt(r['wall_minutes'], 1)} | {mat} | {r.get('elements_top', '')} |")
-    (OUT / "RUN_LEDGER.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    print(f"{len(rows)} runs, {len(stages)} stage rows -> {OUT}")
+    (out_dir / "RUN_LEDGER.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"{len(rows)} runs, {len(stages)} stage rows -> {out_dir}")
     print(f"total tokens {tot[0] / 1e6:.1f} M, USD at gpt-5.5 list {tot[1]:,.0f}, wall {tot[2]:.1f} h")
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(local="--local" in sys.argv)
