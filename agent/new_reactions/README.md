@@ -122,3 +122,16 @@ plant model is reported as model uncertainty.
 Next: Docling and gpt-5.5 extraction of the new papers (images only for figures whose caption names performance),
 then the same normalisation, self-check and analysis; the agent then only chooses what to reveal, and both frozen plant
 models cost the records.
+
+
+## V3.3 performance roadmap (2026-11-14)
+
+The next development priority is **V3.3.1 Engineering Audit**, not a new agent architecture.
+
+- [Performance improvement roadmap](auto_agent/docs/V3_3_PERFORMANCE_ROADMAP.md)
+- [V3 five-layer design](auto_agent/docs/V3_FIVE_LAYER_DESIGN.md)
+- [CH4 harness evaluation](auto_agent/evaluation/ch4_v31_test/CH4_HARNESS_TEST.md)
+
+The audit first reconciles the model boundary with the D5.9 reference boundary (notably CO2 supply, SNG purification, cooling utilities and methanation-unit-only CAPEX). It then produces per-unit Energy and CAPEX ledgers with independent calculations. Do not alter reference values or tolerances to force a pass.
+
+After the boundary and engineering audit, run at least three independent builds on frozen inputs before making a version-performance claim. V3.4 process-topology optimization and V3.5 decision-aware resource allocation remain future proposals, not implemented capabilities.
