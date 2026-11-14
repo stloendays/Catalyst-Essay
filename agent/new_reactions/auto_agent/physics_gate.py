@@ -18,6 +18,18 @@ FURNACE_CAPEX_PER_KW = (50, 3000)  # Installed furnace capital per purchased-dut
 ZERO_DUTY_TYPES = ("regenerator", "furnace", "separation")  # Zero energy/heat duty needs measured/published evidence.
 ZERO_DUTY_EPS = 1e-6  # GJ/t below which a unit counts as zero duty.
 T0 = 298.15
+# V3.3.1 engineering-ledger checks (2026-11-14; found on the development reaction CO2 methanation, ch4_v33_t3, written per
+# unit type and valid for any process). A cooling duty is not purchased energy: cooling water and air coolers need about
+# 1.5-2 % of the rejected heat as pump and fan electricity (unitops.cooling_utility); the limits allow twice that.
+COOLING_MAX_ELECTRIC_FRACTION = {"cooling_water": .03, "air": .04}
+REFRIGERATION_MIN_SECOND_LAW = .25        # refrigeration COP at least a quarter of Carnot
+COOLING_MEDIA = ("cooling_water", "air", "refrigeration")
+SEPARATION_ENERGY_METHODS = ("unitops.separator_energy", "published_factor")
+SOURCE_PRESSURE_RATIO_MIN = .5            # a per-volume energy factor measured on a feed below half the unit's feed pressure
+                                          # already contains feed compression
+BOUNDARY_ROLES = ("feed_conditioning", "reaction", "heat_integration", "separation", "recycle", "product_conditioning",
+                  "utilities", "offsites")
+CAPEX_METHODS = ("power_based", "duty_based", "size_based", "plant_specific_cost_share", "published_unit_cost", "vendor_quote")
 # NIST Chemistry WebBook SRD 69, gas phase thermochemistry, SI units:
 # https://webbook.nist.gov/cgi/cbook.cgi?ID=C<CAS digits>&Units=SI&Mask=1
 # Columns: formation enthalpy kJ/mol, entropy J/mol/K (1 bar), Cp J/mol/K at 298.15 K.
@@ -279,8 +291,10 @@ def check_flowsheet(path):
     return failures
 
 
-def check_physics(model_module, out, flowsheet, basis=None):
-    """Check one output, failing closed on malformed/missing/nonfinite physical fields."""
+def check_physics(model_module, out, flowsheet, basis=None, ledger=False):
+    """Check one output, failing closed on malformed/missing/nonfinite physical fields. ledger=True (build mode V3.3.1 and
+    later, with basis) adds the engineering-ledger checks: boundary roles, cooling utilities, separation energy basis and
+    capital basis."""
     failures = []
 
     def check(label, fn):
@@ -385,7 +399,7 @@ def check_physics(model_module, out, flowsheet, basis=None):
                 a, b = feed.get(s, 0), outputs.get(s, 0)
                 require(abs(a - b) <= .02 * max(a, b), f"separation component {s} imbalance > 2%")
             wmin = R * T0 * 1000 * (mix_out - mix_in) / 1e9
-            supply = energy + fuel + _number(u.get("recovered_heat_GJ_per_t", 0), 0)
+            supply = energy + fuel + _number(u.get("recovered_heat_GJ_per_t", 0), 0) + _letdown_exergy(u)
             require(supply + 1e-10 >= wmin, f"separation energy below mixing minimum {wmin:g}")
         elif typ == "knockout":
             _number(u["cooling_duty_GJ_per_t"], 0)
@@ -465,10 +479,125 @@ def check_physics(model_module, out, flowsheet, basis=None):
                 if u["type"] not in ZERO_DUTY_TYPES:
                     continue
                 duty = sum(_number(u.get(k, 0), 0) for k in ("purchased_energy_GJ_per_t", "internal_fuel_GJ_per_t", "recovered_heat_GJ_per_t"))
+                if u["type"] == "separation":
+                    duty += _letdown_exergy(u)      # a pressure-driven separation is driven by its feed pressure (V3.3.1)
                 if duty <= ZERO_DUTY_EPS:
                     ev = proofs.get(u["name"])
                     require(isinstance(ev, dict) and ev.get("type") in ("measured", "published"),
                             f"zero_duty: {u['type']} {u['name']} has zero energy/heat duty without measured/published evidence in basis.zero_duty_evidence")
                     evidence(ev)
         check("zero_duty", zero_duty)
+        if ledger:
+            ledger_checks(units, out, basis, failures)
     return failures
+
+
+def _letdown_exergy(u):
+    """Pressure exergy released by separation outlets that leave below the feed pressure, GJ per t (ideal gas, T0):
+    sum n R T0 ln(P_feed / P_outlet). Zero unless the feed (feed.P_bar or P_in_bar) and outlet pressures (P_bar) are given."""
+    feed = u.get("feed") or {}
+    pin = feed.get("P_bar", u.get("P_in_bar"))
+    if pin is None:
+        return 0.
+    pin = _number(pin, positive=True)
+    total = 0.
+    for o in u.get("outlets") or []:
+        if o.get("P_bar") is None:
+            continue
+        pout = _number(o["P_bar"], positive=True)
+        if pout < pin:
+            total += _number(o["kmol_per_t"], 0) * 1000 * R * T0 * math.log(pin / pout) / 1e9
+    return total
+
+
+def ledger_checks(units, out, basis, failures):
+    """V3.3.1 engineering-ledger checks; generic per unit type."""
+    def check(label, fn):
+        try:
+            fn()
+        except (KeyError, TypeError, ValueError, AttributeError, ZeroDivisionError, OverflowError) as e:
+            failures.append(f"{label}: {e}")
+
+    def require(condition, message):
+        if not condition:
+            raise ValueError(message)
+
+    def roles():
+        bad = [u["name"] for u in units if u.get("boundary_role") not in BOUNDARY_ROLES]
+        require(not bad, f"units without boundary_role in {BOUNDARY_ROLES}: {bad[:5]}")
+    check("ledger boundary_role", roles)
+
+    def cooling(u):
+        duty = _number(u.get("cooling_duty_GJ_per_t", 0), 0)
+        energy = _number(u["purchased_energy_GJ_per_t"], 0)
+        if duty <= ZERO_DUTY_EPS:
+            return
+        medium = u.get("cooling_medium")
+        require(medium in COOLING_MEDIA, f"cooling duty {duty:g} GJ/t without cooling_medium in {COOLING_MEDIA}")
+        if medium == "refrigeration":
+            t = _number(u["T_process_out_K"], positive=True)
+            t_evap, t_cond = t - 5., T0 + 10.
+            require(t_cond > t_evap, "refrigeration above ambient: use cooling_water or air")
+            limit = 1 / (REFRIGERATION_MIN_SECOND_LAW * t_evap / (t_cond - t_evap)) + COOLING_MAX_ELECTRIC_FRACTION["cooling_water"]
+        else:
+            limit = COOLING_MAX_ELECTRIC_FRACTION[medium]
+        bound = duty * limit / MIN_PRIMARY_EFFICIENCY
+        require(energy <= bound + 1e-10,
+                f"cooling_utility: purchased energy {energy:g} GJ/t for a {medium} duty of {duty:g} GJ/t exceeds {bound:g} "
+                f"(a cooling duty is not purchased energy; use unitops.cooling_utility)")
+    for u in units:
+        if u["type"] in ("heat_exchanger", "knockout", "other") and (u.get("service") == "cooling" or u["type"] == "knockout"):
+            check(f"ledger unit {u['name']} cooling", lambda u=u: cooling(u))
+
+    def separation(u):
+        energy = _number(u["purchased_energy_GJ_per_t"], 0)
+        if energy <= ZERO_DUTY_EPS:
+            return
+        method = u.get("energy_method")
+        require(method in SEPARATION_ENERGY_METHODS, f"separation energy {energy:g} GJ/t without energy_method in {SEPARATION_ENERGY_METHODS}")
+        pin = _number((u.get("feed") or {}).get("P_bar", u.get("P_in_bar")), positive=True)
+        if method == "published_factor":
+            src = _number(u["source_feed_P_bar"], positive=True)
+            require(src >= SOURCE_PRESSURE_RATIO_MIN * pin,
+                    f"separation_pressure: energy factor from a source with feed at {src:g} bar applied to a feed at {pin:g} bar "
+                    f"(the factor contains feed compression; compute the energy from stream pressures with unitops.separator_energy)")
+        else:
+            require(energy + 1e-10 >= _number(u["power_GJ_per_t"], 0), "separation purchased energy below its compression power")
+    for u in units:
+        if u["type"] == "separation":
+            check(f"ledger unit {u['name']} separation", lambda u=u: separation(u))
+
+    def capital():
+        capacity = _number(basis["capacity_t_per_y"]["value"], positive=True)
+        shares = {}
+        for u in units:
+            capex = _number(u["capex_usd"], 0)
+            if capex <= 0:
+                continue
+            b = u.get("capex_basis")
+            require(isinstance(b, dict), f"{u['name']}: capital without capex_basis")
+            require(b.get("method") in CAPEX_METHODS, f"{u['name']}: capex_basis.method not in {CAPEX_METHODS}")
+            _number(b["cost_year"], positive=True)
+            require(isinstance(b.get("installed"), bool), f"{u['name']}: capex_basis.installed must be true or false")
+            if b["installed"] and _number(b.get("installation_factor", 1), 0) > 1 + 1e-9:
+                raise ValueError(f"capital_double_count: {u['name']} installed cost multiplied by an installation factor again")
+            if b["method"] == "plant_specific_cost_share":
+                share, plant = _number(b["share"], 0), _number(b["plant_cost_usd"], positive=True)
+                require(share <= 1, f"{u['name']}: share > 1")
+                require(capex <= share * plant * 1.02 + 1e-6,
+                        f"capital_double_count: {u['name']} capital {capex:.4g} exceeds its share {share:g} of the plant cost "
+                        f"{plant:.4g} (a plant-level cost already prices the whole plant; do not rescale its shares with internal flows)")
+                key = round(plant, 2)
+                shares[key] = shares.get(key, 0) + share
+                missing = [k for k in ("source_cost_usd", "source_capacity", "scale_exponent") if k not in b]
+                require(not missing, f"capital_scaling: {u['name']} plant-level cost without {missing} (state the source plant's "
+                                     f"cost and capacity and scale it to the model capacity with scaled_capex)")
+                expect = _number(b["source_cost_usd"], positive=True) * (capacity / _number(b["source_capacity"], positive=True)) ** _number(b["scale_exponent"], positive=True)
+                if b.get("cost_index_base") and b.get("cost_index_now"):
+                    expect *= _number(b["cost_index_now"], positive=True) / _number(b["cost_index_base"], positive=True)
+                require(abs(plant - expect) <= .02 * expect,
+                        f"capital_scaling: {u['name']} plant_cost_usd {plant:.4g} != source cost scaled to the model capacity {expect:.4g}")
+        for plant, total in shares.items():
+            require(total <= 1 + 1e-6, f"capital_double_count: shares of plant cost {plant:.4g} sum to {total:g} > 1")
+    check("ledger capital_basis", capital)
+

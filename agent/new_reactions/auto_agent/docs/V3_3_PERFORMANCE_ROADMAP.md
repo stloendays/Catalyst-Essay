@@ -130,19 +130,21 @@ V3.3 的 211 轮、151 min、约 USD 41 是当前观察值；缓存命中 74%。
 
 ### Phase 0 — Freeze the baseline（不改模型）
 
-- [ ] 冻结当前 V3.3 prompt、代码、unitops、physics gate、flowsheet、basis、sources 和运行输入的 hash。
-- [ ] 保存 V3.1/V3.2/V3.3 历史结果，不覆盖旧数据。
-- [ ] 从 D5.9 原文建立能耗和 CAPEX 的系统边界映射表。
-- [ ] 明确 final energy、purchased energy 和 primary energy 的换算口径。
+- [x] 冻结当前 V3.3 prompt、代码、unitops、physics gate、flowsheet、basis、sources 和运行输入的 hash。
+- [x] 保存 V3.1/V3.2/V3.3 历史结果，不覆盖旧数据。
+- [x] 从 D5.9 原文建立能耗和 CAPEX 的系统边界映射表。
+- [x] 明确 final energy、purchased energy 和 primary energy 的换算口径。
 
 ### Phase 1 — V3.3.1 Engineering Audit（最高优先级）
 
-- [ ] 输出逐单元 Energy Ledger 和 CAPEX Ledger。
-- [ ] 对 CO2 压缩、SNG 精制、冷却分别做手算。
-- [ ] 核实参考工厂的设备边界和公用工程边界。
-- [ ] 检查 recycle flow、热回收、内部燃料和设备成本是否重复计入。
-- [ ] 只修正已被证据确认的模型错误；不改参考值和容差。
-- [ ] 为每项修正增加 regression test。
+- [x] 输出逐单元 Energy Ledger 和 CAPEX Ledger。
+- [x] 对 CO2 压缩、SNG 精制、冷却分别做手算。
+- [x] 核实参考工厂的设备边界和公用工程边界。
+- [x] 检查 recycle flow、热回收、内部燃料和设备成本是否重复计入。
+- [x] 只修正已被证据确认的模型错误；不改参考值和容差。
+- [x] 为每项修正增加 regression test。
+
+完成记录（2026-11-14）：`holdout/FREEZE_V33_BASELINE.json`（基线哈希）、`evaluation/ch4_v33_test/V331_ENGINEERING_AUDIT.md`（边界映射、逐单元账、手算、修改与回放测试）、`holdout/PREREG_V31_A10.json`（V3.3.1 冻结）。边界核对结论：CO2 压缩在 D5.9 甲烷化单元边界内，能耗超标来自冷却按 COP 10 计电和分离电耗重复计入压缩两处模型错误。
 
 ### Phase 2 — V3.3.2 Reproducibility（工程审计通过后）
 

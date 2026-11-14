@@ -22,7 +22,7 @@ class H(bm.BuildMixin):
 with tempfile.TemporaryDirectory() as tmp:
     ws = Path(tmp)
     h = H(ws)
-    assert h.build_version == "V3.3-process-design"
+    assert h.build_version == bm.BUILD_MODE_VERSION and h.build_version >= "V3.3"
     assert (ws / "unitops.py").exists() and (ws / "physics_gate.py").exists()
     h.b_set_stage("parameters", "prices cited from prices.json; capacity 100 kt/y from source X")
     assert not getattr(h, "reset_pending", None)

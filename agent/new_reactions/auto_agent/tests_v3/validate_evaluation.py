@@ -18,6 +18,8 @@ def _validate():
         for b in after["builds"].values():  # field added with the grouped (atomic) targets; empty for PDH/CH4
             if b.get("group_targets") == {}:
                 b.pop("group_targets")
+            b.pop("energy_ledger", None)   # V3.3.1 per-unit ledgers: added reporting fields, no score or verdict change
+            b.pop("capex_ledger", None)
         assert before == after, rx
         for name, result in after["builds"].items():
             print(f"{Path(name).name}: cost={result['reference_cost']:.12g}; {result['tea_within']}/{result['tea_n']}; verdict={result['tea_verdict']}; unchanged")

@@ -368,6 +368,13 @@ def main(rx, runs, holdout_path=None, output_dir=None):
                                 group_targets=grouped,
                                 attribution_share=a.get("attribution_share"),
                                 costs=costs)
+        try:   # per-unit engineering ledgers of the reference plant (V3.3.1 audit; evaluation side, read-only)
+            from unitops import energy_ledger, capex_ledger
+            units = ref["physics"]["units"]
+            builds[str(run)]["energy_ledger"] = energy_ledger(units)
+            builds[str(run)]["capex_ledger"] = capex_ledger(units, ref["balances"]["capacity_t_per_y"])
+        except (KeyError, TypeError, ValueError, ZeroDivisionError, ImportError):
+            pass
         if hold.get("hidden_reference", {}).get("atomic") == "nh3_harness_decomposition":
             builds[str(run)]["hidden_atomic_reference"] = hidden_atomic_reference(run, hold)
     keys = list(builds)

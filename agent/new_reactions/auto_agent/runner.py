@@ -105,7 +105,7 @@ from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
 from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
 from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
-from build_mode import (AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, METHOD_BUILD_V33, STAGES, BuildMixin, ATOMIC_TOOLS,  # noqa: E402
+from build_mode import (AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, METHOD_BUILD_V33, METHOD_BUILD_V331, STAGES, BuildMixin, ATOMIC_TOOLS,  # noqa: E402
                         ATOMIC_PROMPT, stage_handoff)
 NUS_LOCK = HERE / "nus.lock"
 
@@ -416,7 +416,8 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                                             budget=self.budget, n_masked=self.n_masked)
             tools = DB_TOOLS + [t for t in TOOLS if t.get("name") in ("read_file", "write_file", "run_python", "finish")]
         elif self.build:
-            instructions = (METHOD_BUILD_V33 if self.build_version >= "V3.3" else METHOD_BUILD).format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
+            instructions = (METHOD_BUILD_V331 if self.build_version >= "V3.3.1" else METHOD_BUILD_V33 if self.build_version >= "V3.3"
+                            else METHOD_BUILD).format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
                                                n_max=self.n_max, max_turns=self.max_turns)
             if self.atomic:
                 instructions += ATOMIC_PROMPT

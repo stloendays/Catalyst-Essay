@@ -1,0 +1,25 @@
+{
+ "id": "V3.1-A10",
+ "written": "2026-11-14T23:57:38",
+ "amends": "PREREG_V31_A9.json",
+ "build_mode_version": "V3.3.1-engineering-ledger",
+ "unit_library": "UO-1.1",
+ "change": "Amendment A10 (2026-11-14), build mode V3.3.1-engineering-ledger and unit library UO-1.1, for builds started from now on.\nFound in the engineering audit of the development build ch4_v33_t3 (CO2 methanation; docs/TRAIN_TEST_SPLIT.md section 6;\nevaluation/ch4_v33_test/V331_ENGINEERING_AUDIT.md). Generic, written per unit type; no holdout, target, tolerance or price\nchange. (1) unitops: cooling_utility (pump/fan or refrigeration electricity from first principles), separator_energy\n(compression only for outlets that must be raised in pressure; letdown exergy drives the separation), plant_cost_share,\nenergy_ledger, capex_ledger. (2) physics gate ledger checks for V3.3.1 builds: boundary_role, cooling_medium and cooling\nelectricity limits, separation energy_method and source feed pressure, capex_basis (cost year, installed, no second\ninstallation factor, plant-level shares within share and summing to <= 1, source plant cost/capacity/exponent). (3) all\nversions: separation outlets given with pressures count their letdown exergy against the mixing minimum. (4) check_model\nwrites energy_ledger.csv and capex_ledger.csv; evaluate_builds records both ledgers (no score change).",
+ "frozen_sha256": {
+  "runner.py": "ce2b680a169233ced004e05185c323cd4e7f7ec2074ceeeb973400286f1e6188",
+  "build_mode.py": "ba217edbf22208e328ff73117bbf80551f014574459ada64c32dcbd3dd5a5f1d",
+  "physics_gate.py": "04b5a1f45386eed676be85be3c78a7982cac28836f025eb8136bdb63a6744f3d",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "unitops.py": "e50fe13820c2028021f86fa4f9c289584790ed8555401d12035d8d25d3ed4856",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "4068850388ec8fd72749c5a14912d05d7388780cfb22bf492cb0e171b7f03423",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed",
+  "../chain.py": "5df8d6679802f6cfebd90b7d91cc975e176eed7429e5333d255c0b246596ff57",
+  "../normalize.py": "18c98514d2d129e67e355b90d928ef99b5120bec064965ede50f361582649cba",
+  "../../extraction/llm_route.py": "65353ac8b696427b01ba6b47733b67c7343d523affffa7ff07e2d19faa08ba8e",
+  "tests_v3/validate_v331.py": "7f4e1446bed21dc48056f0a1974981ca23fddf2441dedd74e49701cd73c6fff0"
+ }
+}

@@ -117,7 +117,8 @@ def fixtures():
         balances=dict(key_feed_t_per_t=mw("CO2")/mw("CH4"), energy_GJ_per_t=1, capex_usd=1e6, capacity_t_per_y=1e5),
         physics=dict(reactor=dict(T_K=573, P_bar=1, feed_mol_frac=dict(CO2=.2, H2=.8), per_pass_conversion=.9, heat_duty_GJ_per_t=-12),
             boundary=dict(in_t_per_t=dict(CO2=mw("CO2")/mw("CH4"), H2=4*mw("H2")/mw("CH4")), out_t_per_t=dict(CH4=1, H2O=2*mw("H2O")/mw("CH4"))),
-            units=[dict(name="reactor", type="reactor", purchased_energy_GJ_per_t=1, internal_fuel_GJ_per_t=0, capex_usd=1e6)]))
+            units=[dict(name="reactor", type="reactor", purchased_energy_GJ_per_t=1, internal_fuel_GJ_per_t=0, capex_usd=1e6,
+                       boundary_role="reaction", capex_basis=dict(method="size_based", size_basis="toy", cost_year=2024, installed=True))]))
     flow = dict(units=[dict(name="reactor", type="reactor", purpose="conversion and cooling", inlets=["feed"], outlets=["product"])],
         streams=[dict(name="feed", **{"from": "boundary", "to": "reactor"}, species=["CO2", "H2"]),
                  dict(name="product", **{"from": "reactor", "to": "boundary"}, species=["CH4", "H2O"])],
