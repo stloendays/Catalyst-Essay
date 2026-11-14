@@ -369,7 +369,11 @@ def main(rx, runs, holdout_path=None, output_dir=None):
                                 attribution_share=a.get("attribution_share"),
                                 costs=costs)
         try:   # per-unit engineering ledgers of the reference plant (V3.3.1 audit; evaluation side, read-only)
-            from unitops import energy_ledger, capex_ledger
+            import importlib.util as _iu   # the harness library by path: a build's own frozen unitops.py may shadow it
+            _sp = _iu.spec_from_file_location("harness_unitops", HERE / "unitops.py")
+            _uo = _iu.module_from_spec(_sp)
+            _sp.loader.exec_module(_uo)
+            energy_ledger, capex_ledger = _uo.energy_ledger, _uo.capex_ledger
             units = ref["physics"]["units"]
             builds[str(run)]["energy_ledger"] = energy_ledger(units)
             builds[str(run)]["capex_ledger"] = capex_ledger(units, ref["balances"]["capacity_t_per_y"])
