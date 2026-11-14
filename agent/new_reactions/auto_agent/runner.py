@@ -105,7 +105,8 @@ from db_mode import DB_TOOLS, METHOD_DB, DBMixin  # noqa: E402
 from full_mode import FULL_TOOLS, METHOD_FULL, FullMixin  # noqa: E402
 import strategies as sg  # noqa: E402
 from lean_mode import LEAN_TOOLS, METHOD_LEAN, LeanMixin  # noqa: E402
-from build_mode import AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, STAGES, BuildMixin, ATOMIC_TOOLS, ATOMIC_PROMPT  # noqa: E402
+from build_mode import (AGENT_ROOT, BUILD_TOOLS, METHOD_BUILD, METHOD_BUILD_V33, STAGES, BuildMixin, ATOMIC_TOOLS,  # noqa: E402
+                        ATOMIC_PROMPT, stage_handoff)
 NUS_LOCK = HERE / "nus.lock"
 
 
@@ -415,7 +416,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                                             budget=self.budget, n_masked=self.n_masked)
             tools = DB_TOOLS + [t for t in TOOLS if t.get("name") in ("read_file", "write_file", "run_python", "finish")]
         elif self.build:
-            instructions = METHOD_BUILD.format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
+            instructions = (METHOD_BUILD_V33 if self.build_version >= "V3.3" else METHOD_BUILD).format(reaction=self.reaction, stages=", ".join(STAGES), n_target=self.n_target,
                                                n_max=self.n_max, max_turns=self.max_turns)
             if self.atomic:
                 instructions += ATOMIC_PROMPT
@@ -446,6 +447,10 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
         summary = None
         budget_stop = budget_warned = False
         for turn in range(self.max_turns):
+            if self.build and getattr(self, "reset_pending", None):
+                items = [items[0], {"role": "user", "content": stage_handoff(self, self.reset_pending)}]
+                self.log({"turn": turn, "context_reset": self.reset_pending})
+                self.reset_pending = None
             if self.build:
                 compact_history(items, keep_last=KEEP_FULL_TURNS)
             if turn == self.max_turns - 8:
@@ -572,7 +577,7 @@ def drop_holdout(holdout, results):
 # Outputs that only the fixed tools write (gate results). An agent edit through write_file/run_python is reverted, so a gate
 # result cannot be forged (nh3dec_b6 turn 206, 2026-11-13: the agent wrote its own empty evidence_debt.json).
 SEALED_OUTPUTS = ("model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
-                  "atomic_check.json", "three_optima.json")
+                  "atomic_check.json", "three_optima.json", "unitops.py", "physics_gate.py", "mkm_solver.py", "prices.json")
 AGENT_WRITERS = {"write_file", "run_python"}
 
 

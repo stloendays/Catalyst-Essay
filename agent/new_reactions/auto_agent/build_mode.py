@@ -65,7 +65,7 @@ try:
 except ImportError:  # runner.py is also invoked directly
     from physics_gate import check_flowsheet, check_physics
 
-BUILD_MODE_VERSION = "V3.2-five-layer"
+BUILD_MODE_VERSION = "V3.3-process-design"
 CRITIC_MODEL = "gpt-5.6-luna"   # user 2026-11-13: the critic is a different model from the builder
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
@@ -154,7 +154,28 @@ Sensitivity: after run_analysis call run_sensitivity (deterministic: every sourc
 range one at a time, on the reference cost and on the record ranking). Report its table; do not run your own sensitivity.
 Fix the model, not the checks. Feedback uses only internal signals.
 """
+
+V33_PROMPT = """
+
+Process design procedure (V3.3; generic, apply to every process; Douglas hierarchy, onion model):
+L1-L2 input/output: battery-limit feed and product states follow industrial practice for these chemicals (delivery pressure,
+phase, purity) with evidence; decide the fate of every by-product and inert.
+L3 reactor and recycle: the plant operating point (T, P, conversion) comes from plant, pilot or TEA evidence, or from
+optimising your kinetic model - never copy a laboratory test condition as the plant operating point. Recycle unconverted
+reactant unless you show it is uneconomic; inerts and by-products leave through a purge or a separation (recycle_loop).
+L4 separation: choose each separation by phase, volatility or adsorption; take duties from balances, not round numbers.
+L5 heat integration: reaction heat of an exothermic reactor preheats feed or raises steam; a heating duty is met first by
+feed-effluent exchange (heat_recovery), then by burning purge, tail or off-gas in a fired heater (fired_heater burns
+internal fuel first), and only the remainder by purchased fuel; electric heating needs evidence that it is the practice.
+unitops.py (fixed, generic, same thermo data as the physics gate) provides compressor, isothermal_work, pump,
+sensible_heat, latent_heat, reaction_heat, stream_lhv, fired_heater, heat_recovery, recycle_loop, split, mole_fractions,
+scaled_capex and annual_capital_charge. Use them in model.py (from unitops import ...) instead of writing your own; physics
+units then agree with the gate. unitops.py and physics_gate.py in the workspace are read-only.
+At the start of stages mechanism_kinetics, model_code and analysis the conversation history is condensed to a handoff
+(stage notes, decisions, gate status, file list): put what you will need into files, decisions and set_stage notes.
+"""
 METHOD_BUILD += V3_PROMPT.replace("{", "{{").replace("}", "}}")
+METHOD_BUILD_V33 = METHOD_BUILD + V33_PROMPT.replace("{", "{{").replace("}", "}}")
 
 ATOMIC_PROMPT = """
 atomic_model: build the atom-scale link from the literature: choose the descriptor and the elementary-step mechanism,
@@ -210,9 +231,13 @@ class BuildMixin:
         if self.build_version.startswith("V3") and (HERE / "prices.json").exists():
             import shutil
             shutil.copyfile(HERE / "prices.json", self.ws / "prices.json")   # fixed price table: the agent cites, never sets
+        import shutil
         if getattr(self, "atomic", False):
-            import shutil
             shutil.copyfile(HERE / "mkm_solver.py", self.ws / "mkm_solver.py")
+        if self.build_version >= "V3.3":
+            for name in ("unitops.py", "physics_gate.py"):   # fixed generic library and its thermo data (read-only copies)
+                shutil.copyfile(HERE / name, self.ws / name)
+        self.stage_notes = []
         self.tok.setdefault("critic_in", 0)
         self.tok.setdefault("critic_out", 0)
         self.log({"build_mode_version": self.build_version})
@@ -235,6 +260,9 @@ class BuildMixin:
         if stage != self.stage:
             self._close_stage()
             self.stage = stage
+            if self.build_version >= "V3.3" and stage in MILESTONE_STAGES:
+                self.reset_pending = stage
+        getattr(self, "stage_notes", []).append(f"{stage}: {note[:400]}")
         self.log({"stage": stage, "note": note[:300]})
         return json.dumps(dict(stage=stage))
 
@@ -765,6 +793,51 @@ class BuildMixin:
 
 
 PRICE_UNIT = re.compile(r"usd\s*(\d{4}\s*)?/\s*(t|tonne|kg|gj|mwh|kwh|mmbtu|m3|nm3|scm)\b", re.I)
+
+
+MILESTONE_STAGES = ("mechanism_kinetics", "model_code", "analysis")
+
+
+def stage_handoff(h, stage):
+    """Condensed state that replaces the conversation history when a milestone stage starts (V3.3). Deterministic: stage
+    notes, workspace files, gate status and recorded decisions; the agent re-reads any file it needs."""
+    ws = h.ws
+    skip = ("trace.jsonl", "ledger.json", "stage_ledger.csv", "token_usage_extract.csv")
+    files = sorted(p for p in ws.iterdir() if p.is_file() and p.suffix in (".json", ".csv", ".md", ".py", ".jsonl")
+                   and p.name not in skip)
+    status = {}
+    for name in ("model_check.json", "atomic_check.json"):
+        f = ws / name
+        if f.exists():
+            try:
+                status[name + " passed"] = json.loads(f.read_text(encoding="utf-8")).get("passed")
+            except ValueError:
+                status[name] = "unreadable"
+    status["flowsheet accepted"] = bool(getattr(h, "flowsheet_ok_time", None))
+    debt = ws / "evidence_debt.json"
+    if debt.exists():
+        try:
+            status["open evidence debt"] = [x["item"] for x in json.loads(debt.read_text(encoding="utf-8")).get("items", [])
+                                            if x.get("status") == "open"]
+        except ValueError:
+            pass
+    decisions = []
+    dp = ws / "decisions.jsonl"
+    if dp.exists():
+        for line in dp.read_text(encoding="utf-8").splitlines()[-30:]:
+            try:
+                d = json.loads(line)
+                decisions.append(f"{d.get('topic')}: {str(d.get('choice'))[:160]}")
+            except ValueError:
+                pass
+    nl = chr(10)
+    notes = (nl + "- ").join(getattr(h, "stage_notes", [])[-12:]) or "none"
+    dec = (nl + "- ").join(decisions) or "none"
+    listing = ", ".join(f"{p.name} ({p.stat().st_size // 1024} kB)" for p in files)
+    return ("Context reset at the start of stage " + stage + ": the earlier conversation was condensed to save tokens; the "
+            "full record is in the workspace files. Continue from here." + nl + "Stage notes so far:" + nl + "- " + notes + nl
+            + "Decisions recorded:" + nl + "- " + dec + nl + "Gate status: " + json.dumps(status, ensure_ascii=False) + nl
+            + "Workspace files: " + listing + nl + "Read the files you need (read_file) before editing them.")
 
 
 def parse_equation(text):
