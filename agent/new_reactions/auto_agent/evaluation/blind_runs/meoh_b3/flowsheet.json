@@ -1,0 +1,50 @@
+{
+  "units": [
+    {"name":"CO2 feed compressor","type":"compressor","purpose":"Compress purchased CO2 from battery-limit pressure to synthesis pressure.","inlets":["fresh CO2"],"outlets":["compressed CO2"]},
+    {"name":"H2 feed compressor","type":"compressor","purpose":"Compress purchased hydrogen from battery-limit pressure to synthesis pressure.","inlets":["fresh H2"],"outlets":["compressed H2"]},
+    {"name":"Synthesis feed mixer","type":"other","purpose":"Mix fresh compressed feeds with compressed recycle gas.","inlets":["compressed CO2","compressed H2","compressed recycle"],"outlets":["mixed synthesis feed"]},
+    {"name":"Feed effluent exchanger","type":"heat_exchanger","purpose":"Recover reactor-effluent heat to preheat synthesis feed without purchased preheat.","inlets":["mixed synthesis feed","hot reactor effluent"],"outlets":["preheated synthesis feed","partly cooled reactor effluent"]},
+    {"name":"Methanol synthesis reactor","type":"reactor","purpose":"Convert CO2 and H2 to methanol and water in cooled catalyst-filled tubes while also allowing RWGS to CO.","inlets":["preheated synthesis feed"],"outlets":["hot reactor effluent"]},
+    {"name":"Effluent condenser","type":"heat_exchanger","purpose":"Cool reactor effluent after heat recovery to condense methanol and water.","inlets":["partly cooled reactor effluent","cooling water to condenser"],"outlets":["two phase effluent","warm cooling water from condenser"]},
+    {"name":"High pressure knockout","type":"knockout","purpose":"Separate condensed crude methanol and water from unreacted synthesis gas and CO.","inlets":["two phase effluent"],"outlets":["crude methanol liquid","uncondensed recycle gas"]},
+    {"name":"Recycle purge splitter","type":"other","purpose":"Purge CO and feed impurities while returning most unreacted gas to synthesis.","inlets":["uncondensed recycle gas"],"outlets":["purge gas","recycle gas"]},
+    {"name":"Recycle compressor","type":"compressor","purpose":"Restore recycle-loop pressure drop before remixing recycle with fresh feeds.","inlets":["recycle gas"],"outlets":["compressed recycle"]},
+    {"name":"Methanol purification","type":"separation","purpose":"Distill crude condensate to specification methanol and an aqueous bottoms stream.","inlets":["crude methanol liquid"],"outlets":["specification methanol","aqueous bottoms"]},
+    {"name":"Cooling water system","type":"offsites","purpose":"Supply and reject condenser cooling duty through the plant cooling-water utility.","inlets":["cooling water makeup","warm cooling water from condenser"],"outlets":["cooling water to condenser","cooling water blowdown"]},
+    {"name":"Wastewater treatment and plant offsites","type":"offsites","purpose":"Treat aqueous methanol-process bottoms and account for common plant infrastructure.","inlets":["aqueous bottoms"],"outlets":["treated aqueous discharge"]}
+  ],
+  "streams": [
+    {"name":"fresh CO2","from":"boundary","to":"CO2 feed compressor","species":["CO2"]},
+    {"name":"compressed CO2","from":"CO2 feed compressor","to":"Synthesis feed mixer","species":["CO2"]},
+    {"name":"fresh H2","from":"boundary","to":"H2 feed compressor","species":["H2"]},
+    {"name":"compressed H2","from":"H2 feed compressor","to":"Synthesis feed mixer","species":["H2"]},
+    {"name":"compressed recycle","from":"Recycle compressor","to":"Synthesis feed mixer","species":["CO2","H2","CO"]},
+    {"name":"mixed synthesis feed","from":"Synthesis feed mixer","to":"Feed effluent exchanger","species":["CO2","H2","CO"]},
+    {"name":"preheated synthesis feed","from":"Feed effluent exchanger","to":"Methanol synthesis reactor","species":["CO2","H2","CO"]},
+    {"name":"hot reactor effluent","from":"Methanol synthesis reactor","to":"Feed effluent exchanger","species":["CO2","H2","CH3OH","H2O","CO"]},
+    {"name":"partly cooled reactor effluent","from":"Feed effluent exchanger","to":"Effluent condenser","species":["CO2","H2","CH3OH","H2O","CO"]},
+    {"name":"cooling water makeup","from":"boundary","to":"Cooling water system","species":["H2O"]},
+    {"name":"cooling water to condenser","from":"Cooling water system","to":"Effluent condenser","species":["H2O"]},
+    {"name":"warm cooling water from condenser","from":"Effluent condenser","to":"Cooling water system","species":["H2O"]},
+    {"name":"two phase effluent","from":"Effluent condenser","to":"High pressure knockout","species":["CO2","H2","CH3OH","H2O","CO"]},
+    {"name":"crude methanol liquid","from":"High pressure knockout","to":"Methanol purification","species":["CH3OH","H2O"]},
+    {"name":"uncondensed recycle gas","from":"High pressure knockout","to":"Recycle purge splitter","species":["CO2","H2","CO"]},
+    {"name":"recycle gas","from":"Recycle purge splitter","to":"Recycle compressor","species":["CO2","H2","CO"]},
+    {"name":"purge gas","from":"Recycle purge splitter","to":"boundary","species":["CO2","H2","CO"]},
+    {"name":"specification methanol","from":"Methanol purification","to":"boundary","species":["CH3OH","H2O"]},
+    {"name":"aqueous bottoms","from":"Methanol purification","to":"Wastewater treatment and plant offsites","species":["H2O","CH3OH"]},
+    {"name":"treated aqueous discharge","from":"Wastewater treatment and plant offsites","to":"boundary","species":["H2O","CH3OH"]},
+    {"name":"cooling water blowdown","from":"Cooling water system","to":"boundary","species":["H2O"]}
+  ],
+  "checklist": {
+    "feed_preparation":{"included":["CO2 feed compressor","H2 feed compressor","Synthesis feed mixer","Feed effluent exchanger"]},
+    "reactor_heat_supply_or_removal":{"included":["Methanol synthesis reactor"]},
+    "catalyst_regeneration":{"excluded":"No in-situ regeneration is assumed because the literature does not establish a common regeneration protocol across catalyst families; spent catalyst is periodically replaced and annualized."},
+    "product_compression":{"excluded":"Specification methanol leaves distillation as a pressurized liquid at the required 5 bar battery-limit condition, so no separate product compressor is required."},
+    "separation_and_purification":{"included":["Effluent condenser","High pressure knockout","Methanol purification"]},
+    "recycle":{"included":["Recycle purge splitter","Recycle compressor","Synthesis feed mixer"]},
+    "heat_recovery":{"included":["Feed effluent exchanger"]},
+    "utilities_and_offsites":{"included":["Cooling water system","Wastewater treatment and plant offsites"]}
+  },
+  "diagram":"flowchart LR\nCO2[Fresh CO2]-->C1[CO2 feed compressor]\nH2[Fresh H2]-->C2[H2 feed compressor]\nC1-->M[Mixer]\nC2-->M\nRC[Recycle compressor]-->M\nM-->HX[Feed-effluent exchanger]\nHX-->R[Cooled fixed-bed reactor]\nR-->HX\nHX-->COND[Effluent condenser]\nCOND-->KO[High-pressure knockout]\nKO-->D[Methanol purification]\nD-->P[Specification methanol]\nD-->WW[Wastewater treatment/offsites]\nKO-->S[Purge splitter]\nS-->PG[Purge gas]\nS-->RC\nCW[Cooling-water system]-->COND\nCOND-->CW"
+}

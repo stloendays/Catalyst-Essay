@@ -1,0 +1,45 @@
+{
+  "units": [
+    {"name": "U1 Fresh ammonia pump", "type": "pump", "purpose": "Raise liquid fresh ammonia to the reactor-loop pressure and overcome plant pressure losses.", "inlets": ["fresh_NH3"], "outlets": ["pressurized_fresh_NH3"]},
+    {"name": "U2 Feed-recycle mixer", "type": "other", "purpose": "Combine pressurized fresh ammonia with recovered liquid ammonia recycle.", "inlets": ["pressurized_fresh_NH3", "recycle_NH3"], "outlets": ["mixed_liquid_NH3"]},
+    {"name": "U3 Feed-effluent recuperator", "type": "heat_exchanger", "purpose": "Recover reactor-effluent sensible heat to warm and partly vaporize the mixed ammonia feed.", "inlets": ["mixed_liquid_NH3", "hot_reactor_effluent"], "outlets": ["recuperated_NH3", "cooled_reactor_effluent"]},
+    {"name": "U4 Ammonia vaporizer and trim heater", "type": "heat_exchanger", "purpose": "Complete ammonia vaporization and provide controlled feed temperature with electric trim heat when recuperation is insufficient.", "inlets": ["recuperated_NH3"], "outlets": ["vaporized_NH3"]},
+    {"name": "U5 Electric reaction furnace", "type": "furnace", "purpose": "Supply feed superheat and the endothermic reaction duty to the externally heated reactor tubes.", "inlets": ["vaporized_NH3"], "outlets": ["furnace_heated_NH3"]},
+    {"name": "U6 Packed-bed ammonia decomposition reactor", "type": "reactor", "purpose": "Convert ammonia over the selected literature catalyst to nitrogen and hydrogen at optimized temperature and per-pass conversion.", "inlets": ["furnace_heated_NH3"], "outlets": ["hot_reactor_effluent"]},
+    {"name": "U7 Ammonia condenser", "type": "heat_exchanger", "purpose": "Cool recuperator effluent and condense residual ammonia using cooling water.", "inlets": ["cooled_reactor_effluent"], "outlets": ["two_phase_effluent"]},
+    {"name": "U8 Ammonia knockout drum", "type": "knockout", "purpose": "Separate condensed ammonia from the hydrogen-nitrogen product gas.", "inlets": ["two_phase_effluent"], "outlets": ["recovered_liquid_NH3", "crude_H2_N2_gas"]},
+    {"name": "U9 Ammonia recycle pump", "type": "pump", "purpose": "Return recovered liquid ammonia to the feed mixer and restore recycle-loop pressure loss.", "inlets": ["recovered_liquid_NH3"], "outlets": ["recycle_NH3"]},
+    {"name": "U10 Hydrogen PSA", "type": "separation", "purpose": "Recover high-purity hydrogen from nitrogen, residual ammonia, and unrecovered hydrogen.", "inlets": ["crude_H2_N2_gas"], "outlets": ["purified_H2", "PSA_tail_gas"]},
+    {"name": "U11 Hydrogen product compressor", "type": "compressor", "purpose": "Compress purified hydrogen from reactor-loop pressure to the battery-limit delivery pressure.", "inlets": ["purified_H2"], "outlets": ["compressed_product_H2"]},
+    {"name": "U12 Utilities and offsites", "type": "offsites", "purpose": "Provide cooling-water circulation, electrical distribution, controls, and safe handling of the nitrogen-rich PSA tail gas.", "inlets": ["PSA_tail_gas"], "outlets": ["N2_rich_tail_gas"]}
+  ],
+  "streams": [
+    {"name": "fresh_NH3", "from": "boundary", "to": "U1 Fresh ammonia pump", "species": ["NH3"]},
+    {"name": "pressurized_fresh_NH3", "from": "U1 Fresh ammonia pump", "to": "U2 Feed-recycle mixer", "species": ["NH3"]},
+    {"name": "recycle_NH3", "from": "U9 Ammonia recycle pump", "to": "U2 Feed-recycle mixer", "species": ["NH3"]},
+    {"name": "mixed_liquid_NH3", "from": "U2 Feed-recycle mixer", "to": "U3 Feed-effluent recuperator", "species": ["NH3"]},
+    {"name": "recuperated_NH3", "from": "U3 Feed-effluent recuperator", "to": "U4 Ammonia vaporizer and trim heater", "species": ["NH3"]},
+    {"name": "vaporized_NH3", "from": "U4 Ammonia vaporizer and trim heater", "to": "U5 Electric reaction furnace", "species": ["NH3"]},
+    {"name": "furnace_heated_NH3", "from": "U5 Electric reaction furnace", "to": "U6 Packed-bed ammonia decomposition reactor", "species": ["NH3"]},
+    {"name": "hot_reactor_effluent", "from": "U6 Packed-bed ammonia decomposition reactor", "to": "U3 Feed-effluent recuperator", "species": ["NH3", "N2", "H2"]},
+    {"name": "cooled_reactor_effluent", "from": "U3 Feed-effluent recuperator", "to": "U7 Ammonia condenser", "species": ["NH3", "N2", "H2"]},
+    {"name": "two_phase_effluent", "from": "U7 Ammonia condenser", "to": "U8 Ammonia knockout drum", "species": ["NH3", "N2", "H2"]},
+    {"name": "recovered_liquid_NH3", "from": "U8 Ammonia knockout drum", "to": "U9 Ammonia recycle pump", "species": ["NH3"]},
+    {"name": "crude_H2_N2_gas", "from": "U8 Ammonia knockout drum", "to": "U10 Hydrogen PSA", "species": ["NH3", "N2", "H2"]},
+    {"name": "purified_H2", "from": "U10 Hydrogen PSA", "to": "U11 Hydrogen product compressor", "species": ["H2"]},
+    {"name": "PSA_tail_gas", "from": "U10 Hydrogen PSA", "to": "U12 Utilities and offsites", "species": ["NH3", "N2", "H2"]},
+    {"name": "compressed_product_H2", "from": "U11 Hydrogen product compressor", "to": "boundary", "species": ["H2"]},
+    {"name": "N2_rich_tail_gas", "from": "U12 Utilities and offsites", "to": "boundary", "species": ["NH3", "N2", "H2"]}
+  ],
+  "checklist": {
+    "feed_preparation": {"included": ["U1 Fresh ammonia pump", "U2 Feed-recycle mixer", "U3 Feed-effluent recuperator", "U4 Ammonia vaporizer and trim heater"]},
+    "reactor_heat_supply_or_removal": {"included": ["U5 Electric reaction furnace", "U6 Packed-bed ammonia decomposition reactor"]},
+    "catalyst_regeneration": {"excluded": "No cross-catalyst regeneration protocol is supported by the selected experiments; catalyst replacement and life are costed instead, avoiding an invented zero-duty regenerator."},
+    "product_compression": {"included": ["U11 Hydrogen product compressor"]},
+    "separation_and_purification": {"included": ["U7 Ammonia condenser", "U8 Ammonia knockout drum", "U10 Hydrogen PSA"]},
+    "recycle": {"included": ["U2 Feed-recycle mixer", "U8 Ammonia knockout drum", "U9 Ammonia recycle pump"]},
+    "heat_recovery": {"included": ["U3 Feed-effluent recuperator"]},
+    "utilities_and_offsites": {"included": ["U12 Utilities and offsites"]}
+  },
+  "diagram": "flowchart LR\nB1[Boundary NH3] --> U1[Fresh NH3 pump] --> U2[Feed-recycle mixer] --> U3[Feed-effluent recuperator] --> U4[Vaporizer/trim heater] --> U5[Electric furnace] --> U6[Packed-bed reactor]\nU6 -->|hot effluent| U3\nU3 --> U7[NH3 condenser] --> U8[Knockout drum]\nU8 -->|liquid NH3| U9[Recycle pump] --> U2\nU8 -->|H2/N2 gas| U10[Hydrogen PSA]\nU10 -->|H2| U11[Product compressor] --> B2[Boundary H2]\nU10 -->|tail gas| U12[Utilities/offsites] --> B3[Boundary tail gas]"
+}

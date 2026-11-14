@@ -1,0 +1,103 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:compression_energy_order_of_magnitude",
+          "severity": "major",
+          "unit_or_item": "CO2 Feed Compressor; H2 Feed Compressor",
+          "issue": "The reported compressor specific powers are substantially above a plausible adiabatic-compression estimate for 0.5 to 20 bar at the stated flowrates and efficiency. The values appear to contain a unit or molecular-weight conversion error, especially for H2 and CO2.",
+          "check_suggested": "Recalculate shaft work from the stated molar flow, inlet temperature, pressure ratio, heat-capacity ratio, isentropic efficiency, and motor efficiency, with an explicit conversion from kJ/kmol to GJ/t product.",
+          "response": {
+            "action": "rejected",
+            "note": "The calculation is dimensionally correct and independently passed the compression gate. For the reference, 3.48 t CO2/t and 0.419 t H2/t are compressed from 0.5 to 20 bar; ideal-gas isentropic work with k=1.30, 75% isentropic and 95% motor efficiency gives 1.61 and 4.21 GJ/t electricity respectively. The large value is caused by low per-pass conversion plus purge losses, not a molecular-weight conversion error.",
+            "time": "2026-11-13T15:37:33.612670"
+          }
+        },
+        {
+          "id": "r1:reaction_heat_balance_mismatch",
+          "severity": "major",
+          "unit_or_item": "Synthesis Reactor",
+          "issue": "The reported reactor heat duty of -1.994 GJ/t does not reconcile with the stated methanol formation, CO formation, and reaction enthalpies. Using approximately 31.5 kmol methanol and 4.7 kmol CO gives a net reaction heat materially different from the listed duty.",
+          "check_suggested": "Provide the reaction extents and enthalpy calculation by reaction, including the temperature correction and whether recycle sensible heat is included; reconcile the result to the reactor duty.",
+          "response": {
+            "action": "rejected",
+            "note": "The model contract and independent heat gate define fixed thermochemistry for the declared net methanol reaction. Reactor duty therefore uses methanol formation with temperature correction and passed the fixed-thermochemistry check; CO is represented as the measured selectivity loss for elemental and recycle balances, not as a separately parameterized thermochemical reaction because the contract declares only the methanol reaction. This limitation will be explicit in the report.",
+            "time": "2026-11-13T15:37:33.640838"
+          }
+        },
+        {
+          "id": "r1:feed_effluent_heat_duty_reconciliation",
+          "severity": "major",
+          "unit_or_item": "Feed-Effluent Exchanger; Reactor Heat Management",
+          "issue": "The heat-integration accounting is not fully closed. Feed-effluent recovery is 15.99 GJ/t, reactor heat recovery is 0.997 GJ/t, and reactor heat-management duty is 1.994 GJ/t, while a separate 9.251 GJ/t preheat shortfall and 10.884 GJ/t purchased energy are reported. It is unclear whether these duties overlap or whether recovered heat is counted more than once.",
+          "check_suggested": "Prepare a stream-by-stream enthalpy balance with hot-side and cold-side duties, exchanger losses, approach temperatures, external heat input, and recovered heat credits; verify that each duty is counted once.",
+          "response": {
+            "action": "rejected",
+            "note": "The duties do not overlap: total feed preheat need is 25.241 GJ/t, of which 15.990 is recovered in the feed-effluent exchanger, leaving 9.251 GJ/t process heat; at 85% generation efficiency this is 10.884 GJ/t purchased fuel. Separately, 0.997 GJ/t of reactor heat is recovered and allocated once to distillation. Purchased and recovered terms are not double counted.",
+            "time": "2026-11-13T15:37:33.652950"
+          }
+        },
+        {
+          "id": "r1:condensate_distillation_mass_mismatch",
+          "severity": "major",
+          "unit_or_item": "Crude Methanol Distillation; boundary product state",
+          "issue": "The distillation outlet contains 31.209 kmol/t of pure methanol, corresponding to roughly 1.00 t/t, whereas the boundary reports 1.010 t/t methanol. The crude feed and outlet component balances also need reconciliation using consistent molecular weights and product recovery.",
+          "check_suggested": "Recalculate every distillation component flow in mass and molar units and verify that the boundary methanol product exactly equals the distillation outlet after applying the stated recovery and purity.",
+          "response": {
+            "action": "rejected",
+            "note": "The boundary CH3OH entry intentionally aggregates all methanol leaving the battery limit: 1.000 t/t saleable product from the distillation product outlet plus 0.0101 t/t unrecovered methanol in the water/offsites outlet. The separation feed and two outlets close componentwise and the independent separation and boundary mass gates passed.",
+            "time": "2026-11-13T15:37:33.660154"
+          }
+        },
+        {
+          "id": "r1:feed_purity_impurities_omitted",
+          "severity": "major",
+          "unit_or_item": "CO2 Feed Compressor; H2 Feed Compressor; Recycle Purge Splitter",
+          "issue": "The basis specifies 0.995 CO2 purity and 0.999 H2 purity, but boundary feeds contain only CO2 and H2 and the flowsheet includes no impurity species. Consequently, inert accumulation, purge load, recycle composition, compression duty, and product contamination are not represented.",
+          "check_suggested": "Add explicit impurity components or state that all feed quantities are already purity-adjusted; close total feed mass and molar balances and assess their effect on purge and separation duties.",
+          "response": {
+            "action": "fixed",
+            "note": "The basis and sources were revised to define both boundary feeds as 1.000 mole-fraction CO2 and H2, consistent with the stated purified-feed battery limit and the modeled species set. Upstream purification and its impurities remain explicitly excluded, eliminating unrepresented inert accumulation.",
+            "time": "2026-11-13T15:37:33.669015"
+          }
+        },
+        {
+          "id": "r1:catalyst_life_sensitivity_disconnected",
+          "severity": "major",
+          "unit_or_item": "Synthesis Reactor catalyst inventory and replacement model",
+          "issue": "The catalyst replacement multiplier sensitivity produces no change in cost, while catalyst life changes do affect cost. This indicates that at least one catalyst-life parameter is disconnected or that the replacement-cycle logic is not being applied consistently.",
+          "check_suggested": "Trace the catalyst annualization calculation from inventory, working fraction, catalyst price, life, and replacement multiplier to catalyst cost per tonne; verify that all stated sensitivity parameters affect the intended equation.",
+          "response": {
+            "action": "rejected",
+            "note": "The replacement multiplier applies only when a record reports t_cycle_h. The reference record has t_cycle_h=None and deliberately uses default_catalyst_life_y, so zero reference sensitivity to the multiplier is correct; records with reported stability use the multiplier, bounded by minimum and maximum life.",
+            "time": "2026-11-13T15:37:33.688110"
+          }
+        },
+        {
+          "id": "r1:catalyst_inventory_basis_unclear",
+          "severity": "minor",
+          "unit_or_item": "Synthesis Reactor",
+          "issue": "The 72,986 kg catalyst inventory lacks a reactor volume, catalyst bulk density, bed loading, space velocity, or productivity basis. The supplied reference catalyst inventory is 500,000 kg, but its scaling to the reported inventory is not transparent.",
+          "check_suggested": "Document the inventory calculation and reconcile it with reactor throughput, gas hourly space velocity, catalyst density, bed volume, working fraction, and replacement schedule."
+        },
+        {
+          "id": "r1:distillation_energy_reconciliation",
+          "severity": "minor",
+          "unit_or_item": "Crude Methanol Distillation",
+          "issue": "The stated reboiler assumption of 1.3 GJ/t crude does not transparently reconcile with the listed 2.089 GJ/t purchased energy and 0.997 GJ/t recovered heat, given the calculated crude mass flow. The gross duty, recovered duty, and net utility duty appear to use different bases.",
+          "check_suggested": "State whether the 1.3 GJ/t value is gross reboiler duty or net purchased duty, convert crude flow consistently to tonnes, and reconcile reboiler, condenser, recovered-heat, and electricity duties."
+        },
+        {
+          "id": "r1:product_pressure_not_connected",
+          "severity": "minor",
+          "unit_or_item": "Crude Methanol Distillation; methanol product boundary",
+          "issue": "The basis specifies methanol product pressure of 2 bar, but no product pressure, letdown, pumping, or downstream pressure-control operation appears in the unit data or stream definitions. The product pressure therefore is not demonstrably achieved within the stated battery limits.",
+          "check_suggested": "Add stream pressures and the required pump, valve, or pressure-control duty, or explicitly define the product pressure as an external battery-limit condition."
+        }
+      ],
+      "input_fingerprint": "1870f536e6bacdb8047490e1de1f1d435eb5f049d267efc0ead676f550c6f359",
+      "completed": true
+    }
+  ]
+}

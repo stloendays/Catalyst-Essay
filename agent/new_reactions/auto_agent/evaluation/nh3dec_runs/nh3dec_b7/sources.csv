@@ -1,0 +1,78 @@
+parameter,value,unit,source,location,type,low,high
+price.ammonia,445.0,USD/t,prices.json:ammonia,fixed price-table entry,price_table,300.0,900.0
+price.electricity,80.0,USD/MWh,prices.json:electricity,fixed price-table entry,price_table,40.0,150.0
+price.catalyst_support_and_manufacturing,20.0,USD/kg,prices.json:catalyst_support_and_manufacturing,fixed price-table entry,price_table,5.0,100.0
+price.metal_Ru,53852.5,USD/kg,prices.json:metal_Ru,fixed price-table entry,price_table,26926.25,107705.0
+price.metal_Fe,8.0,USD/kg,prices.json:metal_Fe,fixed price-table entry,price_table,4.0,16.0
+price.metal_Co,56.28401553583051,USD/kg,prices.json:metal_Co,fixed price-table entry,price_table,28.142007767915256,112.56803107166103
+price.metal_Ni,16.9094555095895,USD/kg,prices.json:metal_Ni,fixed price-table entry,price_table,8.45472775479475,33.818911019179
+price.metal_Ce,2.1005306603773586,USD/kg,prices.json:metal_Ce,fixed price-table entry,price_table,1.0502653301886793,4.201061320754717
+price.metal_Ba,0.3569000679809653,USD/kg,prices.json:metal_Ba,fixed price-table entry,price_table,0.17845003399048265,0.7138001359619306
+price.metal_K,1.4455393066229791,USD/kg,prices.json:metal_K,fixed price-table entry,price_table,0.7227696533114896,2.8910786132459583
+price.metal_Mo,91.22728409215301,USD/kg,prices.json:metal_Mo,fixed price-table entry,price_table,45.61364204607651,182.45456818430603
+price.capital_recovery_factor,0.0944,1/y,prices.json:capital_recovery_factor,fixed price-table entry,price_table,0.08,0.13
+price.fixed_om_fraction_of_capex,0.04,1/y,prices.json:fixed_om_fraction_of_capex,fixed price-table entry,price_table,0.02,0.06
+thermo.deltaH_kJ_per_mol_NH3,46.11,kJ/mol NH3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1#Thermo-Gas,Gas-phase thermochemistry table: standard enthalpy of formation of NH3(g); reaction value is its negative,published,45.5,46.7
+thermo.deltaS_J_per_molK_NH3,99.0,J/mol NH3/K,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1#Thermo-Gas; https://webbook.nist.gov/cgi/cbook.cgi?ID=C1333740&Mask=1#Thermo-Gas; https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Mask=1#Thermo-Gas,Gas-phase thermochemistry tables: standard molar entropies combined by reaction stoichiometry,published,95.0,103.0
+process.NH3_latent_heat_kJ_per_mol,23.35,kJ/mol,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1#Thermo-Gas,Enthalpy of vaporization table near the normal boiling point,published,22.0,24.5
+kinetics.activation_energy_kJ_per_mol,85.0,kJ/mol,DOI:10.1039/D0CY00686F,Results around Table 4: apparent activation energies 75 and 96 kJ/mol,published,75.0,96.0
+kinetics.NH3_order,0.5,1,DOI:10.1039/D0CY00686F,Kinetic-model discussion: half-order ammonia dependence,published,0.3,0.8
+kinetics.H2_inhibition_order,1.2,1,DOI:10.1039/D0CY00686F,Kinetic-model discussion: negative hydrogen order in the fitted expression,published,0.8,1.5
+process.overall_NH3_conversion,0.99,fraction,https://www.energy.gov/sites/default/files/2024-04/hfto-webinar-hydrogen-carriers-for-bulk-storage-and-transport-of-hydrogen.pdf,"Slide 16, Current status assumptions: ammonia cracker efficiency 99%",published,0.95,0.999
+process.PSA_H2_recovery,0.85,fraction,https://www.nrel.gov/docs/fy09osti/46267.pdf,PSA discussion: 70 mol% hydrogen feed has typical 85% hydrogen recovery and 99.9 vol% product purity,published,0.75,0.90
+capex.reference_capacity_t_per_y,36500.0,t H2/y,https://www.energy.gov/sites/default/files/2024-04/hfto-webinar-hydrogen-carriers-for-bulk-storage-and-transport-of-hydrogen.pdf,"Slide 16: central production case at 100 tonne/day H2, converted using 365 d/y",published,30000.0,100000.0
+capex.reference_installed_capital_usd,42505296.61016949,USD,https://www.energy.gov/sites/default/files/2024-04/hfto-webinar-hydrogen-carriers-for-bulk-storage-and-transport-of-hydrogen.pdf,"Derived from slide 16 central case: $0.11/kg H2 capital component at 100 t/day, divided by prices.json capital_recovery_factor 0.0944",published,30932203.38983051,77203389.83050847
+process.compressor_isentropic_efficiency,0.75,fraction,https://docs.nlr.gov/docs/fy07osti/41705.pdf,Section 2.1 and Figure 2 discussion: representative compressor isentropic efficiency about 75%,published,0.65,0.85
+process.reactor_pressure_bar,20.0,bar,https://www.energy.gov/documents/fcto-hydrogen-carriers-workshop-2019-anlpdf,Page 9: ammonia cracked at 20 bar and 800 C on a Ni catalyst,published,10.0,30.0
+process.loop_pressure_drop_bar,1.0,bar,,Engineering assumption used consistently across all catalyst records,assumption,0.3,2.0
+process.NH3_condensation_recovery,0.995,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.98,0.999
+process.PSA_specific_electricity_kWh_per_kg_H2,0.5,kWh/kg H2,,Net PSA valve/control and feed-conditioning electricity set above reversible mixing minimum for the modeled H2/N2/NH3 split,assumption,0.35,1.0
+process.electric_heater_efficiency,0.95,fraction,https://www.nrel.gov/docs/fy08osti/41589.pdf,"Page 35, Resistance Heating and Melting: efficiency can reach close to 100%",published,0.90,0.99
+process.recuperator_effectiveness,0.8,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.6,0.9
+process.heat_loss_fraction,0.05,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.02,0.15
+process.pump_efficiency,0.7,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.5,0.85
+process.compressor_inlet_T_K,303.15,K,,Engineering assumption used consistently across all catalyst records,assumption,288.15,323.15
+process.gas_Cp_kJ_per_kmolK,30.0,kJ/kmol/K,,Engineering assumption used consistently across all catalyst records,assumption,27.0,36.0
+process.NH3_liquid_Cp_kJ_per_kgK,4.7,kJ/kg/K,,Engineering assumption used consistently across all catalyst records,assumption,4.3,5.2
+process.cooling_electricity_fraction,0.02,GJ electric/GJ heat removed,,Engineering assumption used consistently across all catalyst records,assumption,0.005,0.05
+process.fresh_feed_pump_specific_kWh_per_t_NH3,0.2,kWh/t NH3,,Engineering assumption used consistently across all catalyst records,assumption,0.05,0.6
+process.recycle_pump_specific_kWh_per_t_NH3,0.3,kWh/t NH3,,Engineering assumption used consistently across all catalyst records,assumption,0.05,1.0
+process.minimum_per_pass_conversion,0.1,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.05,0.3
+process.maximum_per_pass_conversion_fraction_of_equilibrium,0.95,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.85,0.99
+kinetics.rate_floor_kg_per_kg_h,1e-06,kg H2/kg catalyst/h,,Engineering assumption used consistently across all catalyst records,assumption,1e-08,0.0001
+deactivation.default_t_cycle_h,8000.0,h,,Engineering assumption used consistently across all catalyst records,assumption,2000.0,24000.0
+deactivation.replacement_outage_h,48.0,h,,Engineering assumption used consistently across all catalyst records,assumption,12.0,168.0
+catalyst.bulk_density_kg_per_m3,800.0,kg/m3,,Engineering assumption used consistently across all catalyst records,assumption,400.0,1400.0
+catalyst.inventory_factor,1.1,fraction,,Engineering assumption used consistently across all catalyst records,assumption,1.0,1.5
+catalyst.replacement_labor_fraction,0.2,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.05,0.5
+capex.scale_exponent,0.65,1,,Engineering assumption used consistently across all catalyst records,assumption,0.55,0.8
+capex.reactor_activity_exponent,0.35,1,,Engineering assumption used consistently across all catalyst records,assumption,0.2,0.7
+capex.minimum_load_fraction,0.2,fraction,,Engineering assumption used consistently across all catalyst records,assumption,0.1,0.5
+capex.fraction.U1 Fresh ammonia pump,0.015,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.0075,0.0225
+capex.fraction.U2 Feed-recycle mixer,0.005,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.0025,0.0075
+capex.fraction.U3 Feed-effluent recuperator,0.1,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.05,0.15000000000000002
+capex.fraction.U4 Ammonia vaporizer and trim heater,0.05,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.025,0.07500000000000001
+capex.fraction.U5 Electric reaction furnace,0.13,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.065,0.195
+capex.fraction.U6 Packed-bed ammonia decomposition reactor,0.22,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.11,0.33
+capex.fraction.U7 Ammonia condenser,0.06,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.03,0.09
+capex.fraction.U8 Ammonia knockout drum,0.02,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.01,0.03
+capex.fraction.U9 Ammonia recycle pump,0.01,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.005,0.015
+capex.fraction.U10 Hydrogen PSA,0.2,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.1,0.30000000000000004
+capex.fraction.U11 Hydrogen product compressor,0.12,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.06,0.18
+capex.fraction.U12 Utilities and offsites,0.07,fraction,,Allocation of published total reference capital among accepted flowsheet units; fractions sum to one,assumption,0.035,0.10500000000000001
+basis.capacity_t_per_y,30000.0,t H2/y,,,assumption,10000.0,100000.0
+basis.operating_hours_per_y,8000.0,h/y,,,assumption,7000.0,8400.0
+basis.feeds.NH3.T_K,298.15,K,,,assumption,273.15,313.15
+basis.feeds.NH3.P_bar,22.0,bar,,Assumed two-bar margin above the published 20-bar reactor pressure,assumption,20.5,30.0
+basis.feeds.NH3.purity_mol_frac,0.999,fraction,,,assumption,0.995,0.9999
+basis.product.H2.P_bar,200.0,bar,https://www.nrel.gov/hydrogen/hitrf-animation?print=,Infrastructure section: low-pressure hydrogen storage up to 200 bar,published,30.0,415.0
+basis.product.H2.purity_mol_frac,0.99999,fraction,,,assumption,0.999,0.999999
+basis.utilities.cooling_water_supply_temperature,298.15,K,,,assumption,288.15,303.15
+basis.utilities.cooling_water_return_temperature,308.15,K,,,assumption,303.15,318.15
+basis.utilities.electricity_primary_energy_factor,2.5255,GJ_primary/GJ_electric,https://www.eia.gov/electricity/annual/pdf/epa.pdf,Table 8.1: 2024 average generation heat rate 8617 Btu/kWh divided by electricity heat content 3412 Btu/kWh,published,1.0,3.15
+capex.reference_catalyst_productivity_kg_per_kg_h,1.0,kg H2/kg catalyst/h,,Reference reactor-size normalization; varied deterministically in sensitivity,assumption,0.2,5.0
+capex.reference_per_pass_conversion,0.8,fraction,,Reference process-load normalization for recycle-sensitive equipment,assumption,0.5,0.9
+kinetics.H2_regularization_bar,0.1,bar,,Finite hydrogen-pressure regularization for transfer of negative-order kinetics from product-free inlets,assumption,0.03,0.3
+thermo.reaction_deltaCp_J_per_molK_NH3,14.75,J/mol NH3/K,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Mask=1#Thermo-Gas; https://webbook.nist.gov/cgi/cbook.cgi?ID=C1333740&Mask=1#Thermo-Gas; https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Mask=1#Thermo-Gas,Average reaction heat-capacity increment over 500-900 K calculated from the listed Shomate heat-capacity correlations,published,10.0,18.0
+capex.furnace_min_usd_per_kW,300.0,USD/kW,,Engineering lower-bound assumption for installed industrial electric process-heater power section,assumption,50.0,500.0
+process.maximum_absolute_per_pass_conversion,0.65,fraction,,Conservative packed-bed design cap retaining recycle and margin from high-conversion thermal gradients,assumption,0.5,0.8

@@ -1,0 +1,160 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:mass-balance-001",
+          "severity": "major",
+          "unit_or_item": "overall material balance",
+          "issue": "The reported boundary streams are not demonstrably consistent with the stated NH3 product basis and reaction stoichiometry. The outlet NH3 is 1.0001005 t/t while residual N2 and H2 imply a different reaction extent; the implied N2 and H2 consumption do not match the NH3 produced within rounding tolerance.",
+          "check_suggested": "Recalculate all component balances from kmol using a single defined basis, including fresh feeds, reactor conversion, recycle, purge, liquid NH3, gas NH3, and product recovery; report residual closure errors.",
+          "response": {
+            "action": "rejected",
+            "note": "The boundary uses one kmol basis consistently: NH3 outlet includes sale product plus the small purge loss, and fresh N2/H2 equal stoichiometric consumption plus their purge losses; check_model independently passes total mass and elemental closure.",
+            "time": "2026-11-13T14:39:30.189309"
+          }
+        },
+        {
+          "id": "r1:reactor-conversion-002",
+          "severity": "major",
+          "unit_or_item": "ammonia_converter and ammonia_knockout",
+          "issue": "The stated 0.3819 per-pass conversion does not appear consistent with the knockout feed and outlet compositions. The NH3 increase across the converter/separator implies a different N2 conversion than the reported value, depending on whether conversion is based on N2, reaction extent, or total loop feed.",
+          "check_suggested": "Define conversion explicitly and reconcile reactor inlet/outlet component kmol, reaction extent, NH3 formation, and the knockout streams using the stoichiometric reaction.",
+          "response": {
+            "action": "fixed",
+            "note": "Added explicit reactor inlet/outlet component kmol per tonne and reaction extent to the ammonia_converter unit; N2 conversion is now directly auditable as reaction_extent/inlet_N2 and remains consistent with knockout feed.",
+            "time": "2026-11-13T14:39:30.205239"
+          }
+        },
+        {
+          "id": "r1:product-spec-003",
+          "severity": "major",
+          "unit_or_item": "liquid_ammonia and product boundary",
+          "issue": "The basis specifies a product NH3 purity of 0.995 mol fraction, but the knockout liquid outlet is reported as pure NH3 and no downstream purification or impurity specification is provided. The product state therefore does not match the stated battery-limit product specification.",
+          "check_suggested": "Provide liquid-product composition and demonstrate that the knockout alone achieves 0.995 mol fraction, or add and size the required purification/finishing operation.",
+          "response": {
+            "action": "rejected",
+            "note": "The specified 0.995 NH3 mole fraction is a minimum product purity, not an exact impurity target; the modeled condensed outlet is pure NH3 and therefore exceeds the specification, now stated explicitly in product_and_offsites fields.",
+            "time": "2026-11-13T14:39:30.216979"
+          }
+        },
+        {
+          "id": "r1:feed-state-004",
+          "severity": "minor",
+          "unit_or_item": "hydrogen_feed and nitrogen_feed",
+          "issue": "Feed temperature, pressure, and purity are all unsupported assumptions in basis.json and sources.csv, despite being material battery-limit states. The evidence file contains sensitivity results but does not establish the selected central feed states.",
+          "check_suggested": "Add source or supplier specification evidence for each feed state, or clearly label the results as scenario assumptions and propagate the selected states consistently through the balance."
+        },
+        {
+          "id": "r1:product-pressure-005",
+          "severity": "minor",
+          "unit_or_item": "product_and_offsites",
+          "issue": "The checklist states that ammonia is let down to 20 bar, but the flowsheet has no explicit letdown valve, product cooler, flash, or pressure-control operation. Product pressure is therefore asserted rather than represented by a unit or stream state.",
+          "check_suggested": "Add the pressure letdown and any associated flashing/cooling duty, or explicitly document that product pressure reduction is included within product_and_offsites."
+        },
+        {
+          "id": "r1:energy-total-006",
+          "severity": "major",
+          "unit_or_item": "parts.energy and evidence_debt reference",
+          "issue": "The reported parts energy of 27.078 GJ/t is inconsistent with the evidence reference energy of 3.046 GJ/t and with the listed compressor and heat duties. The listed purchased compressor energy totals about 2.998 GJ/t before other electricity, while the reactor and recovered-heat duties do not explain a 27 GJ/t total.",
+          "check_suggested": "Reconstruct the energy total from every unit, distinguishing electric energy, primary-energy equivalent, reaction heat, recovered heat, cooling duty, and exported heat; verify that no duty is counted multiple times or converted with an incorrect factor.",
+          "response": {
+            "action": "rejected",
+            "note": "27.0 is USD/t in parts.energy, whereas 3.04 is primary-energy GJ/t in balances.energy_GJ_per_t; these are different quantities. Unit energy sums pass the independent accounting gate.",
+            "time": "2026-11-13T14:39:30.230099"
+          }
+        },
+        {
+          "id": "r1:heat-integration-007",
+          "severity": "major",
+          "unit_or_item": "feed_effluent_exchanger, waste_heat_boiler, final_product_cooler",
+          "issue": "Heat duties are not closed across the integrated loop. The converter duty is 3.109 GJ/t, while reported recovered duties are 2.176 and 0.2625 GJ/t and the final cooler duty is 1.283 GJ/t, with no stream enthalpies, temperature approaches, utility duties, or exported-heat accounting to show how these quantities coexist without omission or double counting.",
+          "check_suggested": "Prepare a stream-by-stream enthalpy balance around the converter, boiler, feed-effluent exchanger, cooler, and separation system, including hot/cold-side duties, temperature approaches, utility consumption, and heat export.",
+          "response": {
+            "action": "fixed",
+            "note": "Corrected the final-cooler duty so feed-effluent sensible heat recovery is subtracted before residual sensible cooling is added; waste-heat recovery, feed preheat recovery, and final cooling now partition reaction and sensible duties without double counting.",
+            "time": "2026-11-13T14:39:30.232688"
+          }
+        },
+        {
+          "id": "r1:compressor-duty-008",
+          "severity": "major",
+          "unit_or_item": "hydrogen_feed_compressor and nitrogen_feed_compressor",
+          "issue": "The compressor records list purchased energy values approximately 2.5 times their listed shaft/power values, consistent with the primary-electricity factor, but the naming does not identify whether purchased_energy is electric or primary energy. This creates ambiguity and potential double counting in the total energy.",
+          "check_suggested": "Label compressor power as shaft, motor input, purchased electricity, or primary energy and apply the electricity primary factor exactly once in the consolidated energy balance.",
+          "response": {
+            "action": "fixed",
+            "note": "Added explicit shaft_electricity_GJ_per_t and primary_energy_factor fields to every compressor; power_GJ_per_t is shaft electricity and purchased_energy_GJ_per_t is its primary-energy equivalent, applied exactly once.",
+            "time": "2026-11-13T14:39:30.253484"
+          }
+        },
+        {
+          "id": "r1:cooling-duty-009",
+          "severity": "minor",
+          "unit_or_item": "final_product_cooler",
+          "issue": "The cooler reports 1.283 GJ/t cooling duty and 0.0481 GJ/t purchased energy, which corresponds to a cooling-electricity factor of about 0.0375 GJ/GJ, near the upper end of the stated 0.005\u20130.04 range. No cooling medium flow, temperature approach, condensation duty, or utility basis is supplied.",
+          "check_suggested": "Verify the cooler duty from sensible and latent enthalpy changes at the stated loop pressure and report the utility calculation separately from process heat removal."
+        },
+        {
+          "id": "r1:recycle-separation-010",
+          "severity": "major",
+          "unit_or_item": "ammonia_knockout and purge_splitter",
+          "issue": "The knockout outlet totals are internally close in kmol, but the purge split fraction and purge/recycle stream quantities are not reported. Consequently, the stated fresh-feed requirement, boundary outlet balance, and recycle-compressor flow cannot be independently verified.",
+          "check_suggested": "Report purge and recycle component kmol flows and pressure/temperature states, and close each component balance around the knockout and purge splitter.",
+          "response": {
+            "action": "fixed",
+            "note": "Added purge fraction and component-resolved purge and recycle kmol flows to purge_splitter, while knockout already reports feed and both outlets; the component balances can now be independently reconstructed.",
+            "time": "2026-11-13T14:39:30.265733"
+          }
+        },
+        {
+          "id": "r1:catalyst-inventory-011",
+          "severity": "major",
+          "unit_or_item": "ammonia_converter catalyst inventory",
+          "issue": "The 747,725 kg catalyst inventory is not reconciled with the stated reference inventory, reference rate, throughput, activity loss, or cycle life. The supplied rate basis and cycle assumptions would imply a different relationship between inventory, production rate, and replacement frequency.",
+          "check_suggested": "Show the catalyst sizing equation, active-volume or mass-transfer basis, throughput used, activity factor, cycle replacement interval, and resulting annual catalyst consumption.",
+          "response": {
+            "action": "fixed",
+            "note": "Added production rate, effective productivity after average activity loss, catalyst inventory, cycle hours, and annual replacement mass to the converter output, exposing the complete catalyst sizing equation.",
+            "time": "2026-11-13T14:39:30.277496"
+          }
+        },
+        {
+          "id": "r1:catalyst-cost-012",
+          "severity": "major",
+          "unit_or_item": "parts.catalyst and catalyst pricing",
+          "issue": "The catalyst cost contribution cannot be reproduced from the listed inventory, cycle life, and support/manufacturing price. No catalyst formulation or active-metal loading is supplied, yet the source table contains many metal prices and the reported catalyst contribution is material.",
+          "check_suggested": "Specify catalyst composition and loading, distinguish initial fill from annual replacement, apply the stated cycle life and operating hours, and reconcile the resulting cost per tonne with parts.catalyst.",
+          "response": {
+            "action": "fixed",
+            "note": "Added catalyst price, inventory, cycle life, and annual replacement to converter output; the reference record explicitly supplies 70 wt% Fe and 1 wt% K, with remaining support/manufacturing cost from prices.json.",
+            "time": "2026-11-13T14:39:30.286666"
+          }
+        },
+        {
+          "id": "r1:capital-reconciliation-013",
+          "severity": "minor",
+          "unit_or_item": "unit capex and parts.capital",
+          "issue": "The sum of listed unit capex is approximately 163 million USD, while the capital part appears to include annualized capital plus fixed O&M. The calculation is not documented, and it is unclear whether product_and_offsites already includes utilities or whether those costs are also embedded elsewhere.",
+          "check_suggested": "Show the capex subtotal, capital recovery factor, fixed-O&M factor, annual production basis, and inclusion/exclusion of offsites; reconcile exactly to parts.capital without double counting."
+        },
+        {
+          "id": "r1:equipment-sizing-014",
+          "severity": "minor",
+          "unit_or_item": "compressors, converter, exchangers, and knockout",
+          "issue": "Equipment capex values are provided without design flow rates, pressure drops, temperatures, heat-transfer areas, compressor stages, or sizing margins. This prevents checking whether the costs correspond to the listed duties and whether units are missing or duplicated.",
+          "check_suggested": "Provide design flow, inlet/outlet pressure and temperature, duty or power, sizing basis, and installed-cost scope for each major item."
+        },
+        {
+          "id": "r1:battery-limit-015",
+          "severity": "minor",
+          "unit_or_item": "battery limit and utilities",
+          "issue": "The battery limit excludes upstream H2 and N2 production but the model includes nitrogen embodied electricity as a sensitivity parameter. This mixes upstream environmental energy with in-boundary process energy and may contaminate the reported plant energy total.",
+          "check_suggested": "Separate cradle-to-gate feed embodied energy from in-battery-limit purchased utilities and report them as distinct metrics."
+        }
+      ],
+      "input_fingerprint": "fd232b74b5571644ba47e2f6e76a4342106c1a43dca630e86b171fce03e64925",
+      "completed": true
+    }
+  ]
+}

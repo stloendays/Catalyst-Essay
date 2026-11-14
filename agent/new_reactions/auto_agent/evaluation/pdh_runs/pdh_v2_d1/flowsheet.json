@@ -1,0 +1,424 @@
+{
+  "units": [
+    {
+      "name": "fresh_propane_pressurisation",
+      "type": "compressor",
+      "purpose": "raise fresh propane to reactor-loop pressure",
+      "inlets": [
+        "fresh_propane"
+      ],
+      "outlets": [
+        "pressurised_fresh_propane"
+      ]
+    },
+    {
+      "name": "recycle_mixer",
+      "type": "other",
+      "purpose": "mix fresh propane with recovered propane recycle",
+      "inlets": [
+        "pressurised_fresh_propane",
+        "propane_recycle"
+      ],
+      "outlets": [
+        "mixed_propane_feed"
+      ]
+    },
+    {
+      "name": "feed_vaporiser",
+      "type": "heat_exchanger",
+      "purpose": "vaporise and warm liquid propane feed before heat recovery",
+      "inlets": [
+        "mixed_propane_feed"
+      ],
+      "outlets": [
+        "vapour_feed"
+      ]
+    },
+    {
+      "name": "feed_effluent_exchanger",
+      "type": "heat_exchanger",
+      "purpose": "recover sensible heat from hot reactor effluent to preheat feed",
+      "inlets": [
+        "vapour_feed",
+        "hot_reactor_effluent"
+      ],
+      "outlets": [
+        "preheated_feed",
+        "partly_cooled_effluent"
+      ]
+    },
+    {
+      "name": "charge_furnace",
+      "type": "furnace",
+      "purpose": "supply endothermic PDH heat and final preheat to reactor inlet temperature",
+      "inlets": [
+        "preheated_feed",
+        "fuel_gas"
+      ],
+      "outlets": [
+        "reactor_feed",
+        "flue_gas"
+      ]
+    },
+    {
+      "name": "PDH_reactor",
+      "type": "reactor",
+      "purpose": "non-oxidative propane dehydrogenation to propylene and hydrogen",
+      "inlets": [
+        "reactor_feed",
+        "regenerated_catalyst"
+      ],
+      "outlets": [
+        "hot_reactor_effluent",
+        "spent_catalyst"
+      ]
+    },
+    {
+      "name": "catalyst_regenerator",
+      "type": "regenerator",
+      "purpose": "periodically burn coke and restore catalyst activity; costed as regeneration/replacement allowance",
+      "inlets": [
+        "spent_catalyst",
+        "regeneration_air"
+      ],
+      "outlets": [
+        "regenerated_catalyst",
+        "regeneration_flue_gas"
+      ]
+    },
+    {
+      "name": "effluent_cooler_knockout",
+      "type": "knockout",
+      "purpose": "cool reactor effluent after heat recovery and remove condensable C3 liquid from light gas",
+      "inlets": [
+        "partly_cooled_effluent",
+        "cooling_water"
+      ],
+      "outlets": [
+        "cooled_effluent",
+        "cooling_water_return"
+      ]
+    },
+    {
+      "name": "product_compressor",
+      "type": "compressor",
+      "purpose": "compress cooled reactor effluent to downstream separation pressure",
+      "inlets": [
+        "cooled_effluent"
+      ],
+      "outlets": [
+        "compressed_effluent"
+      ]
+    },
+    {
+      "name": "hydrogen_recovery",
+      "type": "separation",
+      "purpose": "remove hydrogen-rich light gas before C3 splitter",
+      "inlets": [
+        "compressed_effluent"
+      ],
+      "outlets": [
+        "hydrogen_product",
+        "C3_liquid"
+      ]
+    },
+    {
+      "name": "C3_splitter",
+      "type": "separation",
+      "purpose": "separate polymer-grade propylene product from unreacted propane recycle",
+      "inlets": [
+        "C3_liquid"
+      ],
+      "outlets": [
+        "propylene_product",
+        "propane_recycle",
+        "purge_propane_byproduct"
+      ]
+    },
+    {
+      "name": "utilities_offsites",
+      "type": "offsites",
+      "purpose": "cooling water, flare, controls, storage, and balance-of-plant capital/utility allowance",
+      "inlets": [
+        "flue_gas",
+        "regeneration_flue_gas",
+        "cooling_water_return"
+      ],
+      "outlets": [
+        "stack_gas",
+        "wastewater"
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "fresh_propane",
+      "from": "boundary",
+      "to": "fresh_propane_pressurisation",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "pressurised_fresh_propane",
+      "from": "fresh_propane_pressurisation",
+      "to": "recycle_mixer",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "propane_recycle",
+      "from": "C3_splitter",
+      "to": "recycle_mixer",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "mixed_propane_feed",
+      "from": "recycle_mixer",
+      "to": "feed_vaporiser",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "vapour_feed",
+      "from": "feed_vaporiser",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "preheated_feed",
+      "from": "feed_effluent_exchanger",
+      "to": "charge_furnace",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "fuel_gas",
+      "from": "boundary",
+      "to": "charge_furnace",
+      "species": [
+        "CH4"
+      ]
+    },
+    {
+      "name": "reactor_feed",
+      "from": "charge_furnace",
+      "to": "PDH_reactor",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "hot_reactor_effluent",
+      "from": "PDH_reactor",
+      "to": "feed_effluent_exchanger",
+      "species": [
+        "C3H8",
+        "C3H6",
+        "H2"
+      ]
+    },
+    {
+      "name": "spent_catalyst",
+      "from": "PDH_reactor",
+      "to": "catalyst_regenerator",
+      "species": [
+        "C"
+      ]
+    },
+    {
+      "name": "regenerated_catalyst",
+      "from": "catalyst_regenerator",
+      "to": "PDH_reactor",
+      "species": [
+        "C"
+      ]
+    },
+    {
+      "name": "regeneration_air",
+      "from": "boundary",
+      "to": "catalyst_regenerator",
+      "species": [
+        "O2",
+        "N2"
+      ]
+    },
+    {
+      "name": "regeneration_flue_gas",
+      "from": "catalyst_regenerator",
+      "to": "utilities_offsites",
+      "species": [
+        "CO2",
+        "N2",
+        "O2"
+      ]
+    },
+    {
+      "name": "partly_cooled_effluent",
+      "from": "feed_effluent_exchanger",
+      "to": "effluent_cooler_knockout",
+      "species": [
+        "C3H8",
+        "C3H6",
+        "H2"
+      ]
+    },
+    {
+      "name": "cooling_water",
+      "from": "boundary",
+      "to": "effluent_cooler_knockout",
+      "species": [
+        "H2O"
+      ]
+    },
+    {
+      "name": "cooled_effluent",
+      "from": "effluent_cooler_knockout",
+      "to": "product_compressor",
+      "species": [
+        "C3H8",
+        "C3H6",
+        "H2"
+      ]
+    },
+    {
+      "name": "cooling_water_return",
+      "from": "effluent_cooler_knockout",
+      "to": "utilities_offsites",
+      "species": [
+        "H2O"
+      ]
+    },
+    {
+      "name": "compressed_effluent",
+      "from": "product_compressor",
+      "to": "hydrogen_recovery",
+      "species": [
+        "C3H8",
+        "C3H6",
+        "H2"
+      ]
+    },
+    {
+      "name": "hydrogen_product",
+      "from": "hydrogen_recovery",
+      "to": "boundary",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "C3_liquid",
+      "from": "hydrogen_recovery",
+      "to": "C3_splitter",
+      "species": [
+        "C3H8",
+        "C3H6"
+      ]
+    },
+    {
+      "name": "propylene_product",
+      "from": "C3_splitter",
+      "to": "boundary",
+      "species": [
+        "C3H6"
+      ]
+    },
+    {
+      "name": "purge_propane_byproduct",
+      "from": "C3_splitter",
+      "to": "boundary",
+      "species": [
+        "C3H8"
+      ]
+    },
+    {
+      "name": "flue_gas",
+      "from": "charge_furnace",
+      "to": "utilities_offsites",
+      "species": [
+        "CO2",
+        "H2O",
+        "N2"
+      ]
+    },
+    {
+      "name": "stack_gas",
+      "from": "utilities_offsites",
+      "to": "boundary",
+      "species": [
+        "CO2",
+        "H2O",
+        "N2",
+        "O2"
+      ]
+    },
+    {
+      "name": "wastewater",
+      "from": "utilities_offsites",
+      "to": "boundary",
+      "species": [
+        "H2O"
+      ]
+    }
+  ],
+  "checklist": {
+    "feed_preparation": {
+      "included": [
+        "fresh_propane_pressurisation",
+        "recycle_mixer",
+        "feed_vaporiser",
+        "feed_effluent_exchanger",
+        "charge_furnace"
+      ]
+    },
+    "reactor_heat_supply_or_removal": {
+      "included": [
+        "charge_furnace",
+        "PDH_reactor"
+      ]
+    },
+    "catalyst_regeneration": {
+      "included": [
+        "catalyst_regenerator"
+      ]
+    },
+    "product_compression": {
+      "included": [
+        "product_compressor"
+      ]
+    },
+    "separation_and_purification": {
+      "included": [
+        "hydrogen_recovery",
+        "C3_splitter",
+        "effluent_cooler_knockout"
+      ]
+    },
+    "recycle": {
+      "included": [
+        "recycle_mixer",
+        "C3_splitter"
+      ]
+    },
+    "heat_recovery": {
+      "included": [
+        "feed_effluent_exchanger",
+        "effluent_cooler_knockout"
+      ]
+    },
+    "utilities_and_offsites": {
+      "included": [
+        "utilities_offsites"
+      ]
+    }
+  },
+  "diagram": "flowchart LR\n  FP[fresh propane]-->COMP[fresh_propane_pressurisation]\n  COMP-->MIX[recycle_mixer]\n  SPLIT[C3_splitter]--propane recycle-->MIX\n  MIX-->VAP[feed_vaporiser]\n  VAP-->FEE[feed_effluent_exchanger]\n  FEE-->FURN[charge_furnace]\n  FURN-->RXN[PDH_reactor]\n  RXN--hot effluent-->FEE\n  RXN--spent catalyst-->REG[catalyst_regenerator]\n  REG--regenerated catalyst-->RXN\n  FEE-->KO[effluent_cooler_knockout]\n  KO-->PC[product_compressor]\n  PC-->H2SEP[hydrogen_recovery]\n  H2SEP-->H2[hydrogen product]\n  H2SEP-->SPLIT\n  SPLIT-->PP[propylene product]\n  SPLIT-->PURGE[purge/fuel propane byproduct]\n  FURN-->OFF[utilities_offsites]\n  REG-->OFF"
+}

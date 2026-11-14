@@ -1,0 +1,47 @@
+{
+  "units": [
+    {"name":"CO2 feed compressor","type":"compressor","purpose":"pressurise purchased dry CO2 feed to methanation loop pressure","inlets":["CO2 feed"],"outlets":["compressed CO2"]},
+    {"name":"H2 feed compressor","type":"compressor","purpose":"pressurise purchased dry H2 feed to methanation loop pressure","inlets":["H2 feed"],"outlets":["compressed H2"]},
+    {"name":"Recycle compressor","type":"compressor","purpose":"restore pressure of recycled unreacted gas after separation and purge","inlets":["recycle gas"],"outlets":["compressed recycle"]},
+    {"name":"Feed mixer","type":"other","purpose":"mix fresh CO2, fresh H2 and recycle to the reactor feed ratio","inlets":["compressed CO2","compressed H2","compressed recycle"],"outlets":["mixed feed"]},
+    {"name":"Feed effluent heat exchanger","type":"heat_exchanger","purpose":"recover reactor effluent sensible heat to preheat mixed feed","inlets":["mixed feed","hot reactor effluent"],"outlets":["preheated feed","cooled reactor effluent"]},
+    {"name":"Trim preheater","type":"furnace","purpose":"raise feed from heat-recovery outlet to reactor inlet temperature during start-up or low heat recovery","inlets":["preheated feed"],"outlets":["reactor feed"]},
+    {"name":"Cooled methanation reactor","type":"reactor","purpose":"convert CO2 and H2 to CH4 and water over the literature catalyst while removing exothermic heat","inlets":["reactor feed"],"outlets":["hot reactor effluent"]},
+    {"name":"Effluent cooler and water knockout","type":"knockout","purpose":"cool reacted gas below the water dew point and remove liquid water","inlets":["cooled reactor effluent"],"outlets":["dry gas","waste water"]},
+    {"name":"Methane purification membrane","type":"separation","purpose":"recover pipeline-grade CH4-rich product from unreacted CO2/H2 and any CO byproduct","inlets":["dry gas"],"outlets":["raw methane product","tail gas"]},
+    {"name":"Product compressor","type":"compressor","purpose":"compress purified methane product to delivery pressure","inlets":["raw methane product"],"outlets":["methane product"]},
+    {"name":"Recycle purge splitter","type":"separation","purpose":"split tail gas into a small purge that prevents inert/byproduct buildup and a recycle stream","inlets":["tail gas"],"outlets":["purge gas","recycle gas"]},
+    {"name":"Utilities and offsites","type":"offsites","purpose":"cooling water, instrument air, controls, flare, wastewater handling and site infrastructure","inlets":["purge gas","waste water"],"outlets":["vent and wastewater"]}
+  ],
+  "streams": [
+    {"name":"CO2 feed","from":"boundary","to":"CO2 feed compressor","species":["CO2"]},
+    {"name":"H2 feed","from":"boundary","to":"H2 feed compressor","species":["H2"]},
+    {"name":"compressed CO2","from":"CO2 feed compressor","to":"Feed mixer","species":["CO2"]},
+    {"name":"compressed H2","from":"H2 feed compressor","to":"Feed mixer","species":["H2"]},
+    {"name":"compressed recycle","from":"Recycle compressor","to":"Feed mixer","species":["CO2","H2","CH4","CO"]},
+    {"name":"mixed feed","from":"Feed mixer","to":"Feed effluent heat exchanger","species":["CO2","H2","CH4","CO"]},
+    {"name":"preheated feed","from":"Feed effluent heat exchanger","to":"Trim preheater","species":["CO2","H2","CH4","CO"]},
+    {"name":"reactor feed","from":"Trim preheater","to":"Cooled methanation reactor","species":["CO2","H2","CH4","CO"]},
+    {"name":"hot reactor effluent","from":"Cooled methanation reactor","to":"Feed effluent heat exchanger","species":["CO2","H2","CH4","CO","H2O"]},
+    {"name":"cooled reactor effluent","from":"Feed effluent heat exchanger","to":"Effluent cooler and water knockout","species":["CO2","H2","CH4","CO","H2O"]},
+    {"name":"dry gas","from":"Effluent cooler and water knockout","to":"Methane purification membrane","species":["CO2","H2","CH4","CO"]},
+    {"name":"waste water","from":"Effluent cooler and water knockout","to":"Utilities and offsites","species":["H2O"]},
+    {"name":"raw methane product","from":"Methane purification membrane","to":"Product compressor","species":["CH4","CO2","H2"]},
+    {"name":"methane product","from":"Product compressor","to":"boundary","species":["CH4","CO2","H2"]},
+    {"name":"tail gas","from":"Methane purification membrane","to":"Recycle purge splitter","species":["CO2","H2","CH4","CO"]},
+    {"name":"purge gas","from":"Recycle purge splitter","to":"Utilities and offsites","species":["CO2","H2","CH4","CO"]},
+    {"name":"recycle gas","from":"Recycle purge splitter","to":"Recycle compressor","species":["CO2","H2","CH4","CO"]},
+    {"name":"vent and wastewater","from":"Utilities and offsites","to":"boundary","species":["CO2","H2","CH4","CO","H2O"]}
+  ],
+  "checklist": {
+    "feed_preparation":{"included":["CO2 feed compressor","H2 feed compressor","Feed mixer","Feed effluent heat exchanger","Trim preheater"]},
+    "reactor_heat_supply_or_removal":{"included":["Cooled methanation reactor","Effluent cooler and water knockout"]},
+    "catalyst_regeneration":{"excluded":"No separate regeneration unit is included because the screened CO2 methanation papers generally report stable fixed-bed operation or only short deactivation tests; catalyst loss is represented economically by replacement frequency instead."},
+    "product_compression":{"included":["Product compressor"]},
+    "separation_and_purification":{"included":["Effluent cooler and water knockout","Methane purification membrane"]},
+    "recycle":{"included":["Recycle purge splitter","Recycle compressor"]},
+    "heat_recovery":{"included":["Feed effluent heat exchanger"]},
+    "utilities_and_offsites":{"included":["Utilities and offsites"]}
+  },
+  "diagram":"flowchart LR\n  CO2[CO2 feed] --> C1[CO2 feed compressor]\n  H2[H2 feed] --> C2[H2 feed compressor]\n  REC[recycle gas] --> RC[Recycle compressor]\n  C1 --> M[Feed mixer]\n  C2 --> M\n  RC --> M\n  M --> HX[Feed-effluent heat exchanger]\n  HX --> PH[Trim preheater]\n  PH --> R[Cooled methanation reactor]\n  R --> HX\n  HX --> KO[Effluent cooler and water knockout]\n  KO --> SEP[Methane purification membrane]\n  KO --> W[Waste water]\n  SEP --> PC[Product compressor]\n  PC --> PROD[Methane product]\n  SEP --> SPL[Recycle purge splitter]\n  SPL --> REC\n  SPL --> PURGE[Purge gas]\n  W --> OS[Utilities and offsites]\n  PURGE --> OS\n  OS --> OUT[vent and wastewater]"
+}

@@ -1,0 +1,117 @@
+{
+  "battery_limit": "Gate-to-gate ammonia cracking plant. Boundary inlet is anhydrous NH3 plus purchased electricity and cooling-water services; boundary products are compressed high-purity H2, an N2-rich PSA tail stream, and trace NH3 losses. Upstream ammonia manufacture, downstream H2 use, nitrogen credit, land, financing outside the fixed capital charge, and distribution are excluded.",
+  "capacity_t_per_y": {
+    "value": 30000.0,
+    "evidence": {
+      "type": "assumption",
+      "source": "",
+      "location": "",
+      "low": 10000.0,
+      "high": 100000.0
+    }
+  },
+  "operating_hours_per_y": {
+    "value": 8000.0,
+    "evidence": {
+      "type": "assumption",
+      "source": "",
+      "location": "",
+      "low": 7000.0,
+      "high": 8400.0
+    }
+  },
+  "feeds": {
+    "NH3": {
+      "T_K": {
+        "value": 298.15,
+        "evidence": {
+          "type": "assumption",
+          "source": "",
+          "location": "",
+          "low": 273.15,
+          "high": 313.15
+        }
+      },
+      "P_bar": {
+        "value": 22.0,
+        "evidence": {
+          "type": "assumption",
+          "source": "",
+          "location": "Two-bar feed margin above the published 20-bar reactor pressure",
+          "low": 20.5,
+          "high": 30.0
+        }
+      },
+      "purity_mol_frac": {
+        "value": 0.999,
+        "evidence": {
+          "type": "assumption",
+          "source": "",
+          "location": "",
+          "low": 0.995,
+          "high": 0.9999
+        }
+      }
+    }
+  },
+  "product": {
+    "H2": {
+      "P_bar": {
+        "value": 200.0,
+        "evidence": {
+          "type": "published",
+          "source": "https://www.nrel.gov/hydrogen/hitrf-animation?print=",
+          "location": "Infrastructure section: low-pressure hydrogen storage up to 200 bar",
+          "low": 30.0,
+          "high": 415.0
+        }
+      },
+      "purity_mol_frac": {
+        "value": 0.99999,
+        "evidence": {
+          "type": "assumption",
+          "source": "",
+          "location": "",
+          "low": 0.999,
+          "high": 0.999999
+        }
+      }
+    }
+  },
+  "utilities": {
+    "cooling_water_supply_temperature": {
+      "value": 298.15,
+      "unit": "K",
+      "evidence": {
+        "type": "assumption",
+        "source": "",
+        "location": "",
+        "low": 288.15,
+        "high": 303.15
+      }
+    },
+    "cooling_water_return_temperature": {
+      "value": 308.15,
+      "unit": "K",
+      "evidence": {
+        "type": "assumption",
+        "source": "",
+        "location": "",
+        "low": 303.15,
+        "high": 318.15
+      }
+    },
+    "electricity_primary_energy_factor": {
+      "value": 2.5255,
+      "unit": "GJ primary/GJ electric",
+      "evidence": {
+        "type": "published",
+        "source": "https://www.eia.gov/electricity/annual/pdf/epa.pdf",
+        "location": "Table 8.1: 8617 Btu/kWh average heat rate divided by 3412 Btu/kWh electricity heat content",
+        "low": 1.0,
+        "high": 3.15
+      }
+    }
+  },
+  "purchased_preheat_reason": null
+}

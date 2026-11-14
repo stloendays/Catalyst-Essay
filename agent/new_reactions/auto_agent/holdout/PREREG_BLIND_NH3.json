@@ -1,0 +1,28 @@
+{
+ "guidance": "docs/SUPERVISOR_FEEDBACK_2026-11-11.md sections 5.1 and 6.2 (branch supervisor/2026-11-11-nce-ai-modeling): freeze the hand-built models; the agent sees only the reaction, the objective and public evidence; compare costs, operating conditions, cost breakdown, lab-vs-plant rankings, bottleneck conclusions, system boundary, key assumptions and uncertainty; diagnose differences instead of only reporting whether a ranking matched.",
+ "build_mode": "V3.1-five-layer, identical code to AI-BUILD-NH3DEC-V3.1 (model gpt-5.6-sol, critic gpt-5.6-luna, fixed prices.json)",
+ "not_visible_to_the_agent": [
+  "the hand-built model code, configs, parameters, reports and rankings (data/meoh/*, analysis/*, provenance/*, agent/nh3_field/*, configs/*)",
+  "auto_agent/holdout/*, blind_eval.py, evaluate_builds.py",
+  "the paper's repository and derived documents (url fragments and keyword sets in holdout/<rxn>.json)"
+ ],
+ "builds": "3 independent builds <rxn>_b1..b3; a build failing check_model at finish or with a holdout leak is invalid, replaced and reported",
+ "evaluation": "blind_eval.py <rxn> on the paper's own record set (converted to the contract input; denominators reported): lab-vs-plant disagreement counts with the paper's grouping and > 5 % cost-gap rule, paper bootstrap CI, per-group agreement with the hand verdicts, record-cost Spearman vs the hand model, reference-plant breakdown and operating point vs the hand reference, bottleneck conclusions, rule-based difference diagnosis (boundary / structure / parameters / data / numerics), and agreement across the three builds (spread <= 20 %, pairwise Spearman >= 0.8, robust / majority / model-dependent per conclusion, median-reference primary build). No TEA gate. No selection of builds by fit.",
+ "ledger": "stage_ledger.csv per build (incl. critic tokens); human_log.csv",
+ "id": "BLIND-NH3-V3.1",
+ "written": "2026-11-13T11:31:23",
+ "task": "runner.py <run> 'ammonia synthesis from N2 and H2 (N2 + 3 H2 -> 2 NH3)' --build nh3 --atomic",
+ "hand_reference": "NCE ammonia harness 1.2 (provenance/nh3_final_1_2/source_harness, configs/nh3_final_1_2.yaml): 12/44 printed-primary groups (8/44 above 5 %); atomic layer: intrinsic order Ru > Os > Fe, strict-scaling optimum E_N -1.18 eV; the harness cost is a reduced catalyst-dependent cost (no purchased H2/N2)",
+ "frozen_sha256": {
+  "runner.py": "1abc4d4a278df2945c8f7a9177a0bbd86d2688d506797d5f86883777564025fa",
+  "build_mode.py": "cbcb69569cc20373a51b2694ff2677d233daa44789a2249aef146901804b5427",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed",
+  "holdout/nh3.json": "6dc590135141daaa93fb7cbcdfa749e4f2c3fd396cd6ff03987f365ec892d4b7",
+  "../../extraction/llm_route.py": "b5d8a6bebf15d310d5edc2c2bd078a7edd5922f12ca7bbb006432d397e7ef6bc"
+ }
+}

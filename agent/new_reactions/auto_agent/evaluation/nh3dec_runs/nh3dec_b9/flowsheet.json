@@ -1,0 +1,315 @@
+{
+  "units": [
+    {
+      "name": "ammonia_vaporizer",
+      "type": "heat_exchanger",
+      "purpose": "Vaporize combined fresh and recycled liquid ammonia before heat recovery",
+      "inlets": [
+        "mixed_liquid_ammonia"
+      ],
+      "outlets": [
+        "mixed_ammonia_feed"
+      ]
+    },
+    {
+      "name": "recycle_mixer",
+      "type": "other",
+      "purpose": "Mix delivered liquid ammonia with recovered liquid ammonia recycle",
+      "inlets": [
+        "fresh_liquid_ammonia",
+        "pressurized_ammonia_recycle"
+      ],
+      "outlets": [
+        "mixed_liquid_ammonia"
+      ]
+    },
+    {
+      "name": "feed_effluent_recuperator",
+      "type": "heat_exchanger",
+      "purpose": "Recover reactor effluent sensible heat into the mixed ammonia feed",
+      "inlets": [
+        "mixed_ammonia_feed",
+        "hot_reactor_effluent"
+      ],
+      "outlets": [
+        "recuperated_ammonia_feed",
+        "partly_cooled_reactor_effluent"
+      ]
+    },
+    {
+      "name": "electric_trim_heater",
+      "type": "furnace",
+      "purpose": "Supply feed trim heat and externally supplied reactor endothermic duty electrically",
+      "inlets": [
+        "recuperated_ammonia_feed"
+      ],
+      "outlets": [
+        "hot_ammonia_feed"
+      ]
+    },
+    {
+      "name": "ammonia_decomposition_reactor",
+      "type": "reactor",
+      "purpose": "Decompose ammonia to hydrogen and nitrogen over a packed catalyst bed",
+      "inlets": [
+        "hot_ammonia_feed"
+      ],
+      "outlets": [
+        "hot_reactor_effluent"
+      ]
+    },
+    {
+      "name": "effluent_chiller",
+      "type": "heat_exchanger",
+      "purpose": "Cool recuperated effluent to condense unreacted ammonia",
+      "inlets": [
+        "partly_cooled_reactor_effluent"
+      ],
+      "outlets": [
+        "chilled_reactor_effluent"
+      ]
+    },
+    {
+      "name": "ammonia_knockout",
+      "type": "knockout",
+      "purpose": "Separate condensed unreacted ammonia from hydrogen and nitrogen product gas",
+      "inlets": [
+        "chilled_reactor_effluent"
+      ],
+      "outlets": [
+        "liquid_ammonia_recycle",
+        "ammonia_depleted_gas"
+      ]
+    },
+    {
+      "name": "ammonia_recycle_pump",
+      "type": "pump",
+      "purpose": "Return condensed ammonia to feed pressure",
+      "inlets": [
+        "liquid_ammonia_recycle"
+      ],
+      "outlets": [
+        "pressurized_ammonia_recycle"
+      ]
+    },
+    {
+      "name": "hydrogen_psa",
+      "type": "separation",
+      "purpose": "Produce high-purity hydrogen from nitrogen-rich cracked gas while rejecting residual ammonia",
+      "inlets": [
+        "ammonia_depleted_gas"
+      ],
+      "outlets": [
+        "low_pressure_hydrogen",
+        "psa_tail_gas"
+      ]
+    },
+    {
+      "name": "hydrogen_product_compressor",
+      "type": "compressor",
+      "purpose": "Compress purified hydrogen to the battery-limit delivery pressure",
+      "inlets": [
+        "low_pressure_hydrogen"
+      ],
+      "outlets": [
+        "compressed_hydrogen_product"
+      ]
+    },
+    {
+      "name": "tailgas_and_offsites",
+      "type": "offsites",
+      "purpose": "Handle nitrogen-rich PSA tail gas and provide plant controls, cooling circulation and common facilities",
+      "inlets": [
+        "psa_tail_gas"
+      ],
+      "outlets": [
+        "nitrogen_rich_offgas"
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "fresh_liquid_ammonia",
+      "from": "boundary",
+      "to": "recycle_mixer",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "pressurized_ammonia_recycle",
+      "from": "ammonia_recycle_pump",
+      "to": "recycle_mixer",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "mixed_ammonia_feed",
+      "from": "ammonia_vaporizer",
+      "to": "feed_effluent_recuperator",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "recuperated_ammonia_feed",
+      "from": "feed_effluent_recuperator",
+      "to": "electric_trim_heater",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "hot_ammonia_feed",
+      "from": "electric_trim_heater",
+      "to": "ammonia_decomposition_reactor",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "hot_reactor_effluent",
+      "from": "ammonia_decomposition_reactor",
+      "to": "feed_effluent_recuperator",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "partly_cooled_reactor_effluent",
+      "from": "feed_effluent_recuperator",
+      "to": "effluent_chiller",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "chilled_reactor_effluent",
+      "from": "effluent_chiller",
+      "to": "ammonia_knockout",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "liquid_ammonia_recycle",
+      "from": "ammonia_knockout",
+      "to": "ammonia_recycle_pump",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "ammonia_depleted_gas",
+      "from": "ammonia_knockout",
+      "to": "hydrogen_psa",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "low_pressure_hydrogen",
+      "from": "hydrogen_psa",
+      "to": "hydrogen_product_compressor",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "compressed_hydrogen_product",
+      "from": "hydrogen_product_compressor",
+      "to": "boundary",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "psa_tail_gas",
+      "from": "hydrogen_psa",
+      "to": "tailgas_and_offsites",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "nitrogen_rich_offgas",
+      "from": "tailgas_and_offsites",
+      "to": "boundary",
+      "species": [
+        "NH3",
+        "H2",
+        "N2"
+      ]
+    },
+    {
+      "name": "mixed_liquid_ammonia",
+      "from": "recycle_mixer",
+      "to": "ammonia_vaporizer",
+      "species": [
+        "NH3"
+      ]
+    }
+  ],
+  "checklist": {
+    "feed_preparation": {
+      "included": [
+        "ammonia_vaporizer",
+        "recycle_mixer",
+        "feed_effluent_recuperator",
+        "electric_trim_heater"
+      ]
+    },
+    "reactor_heat_supply_or_removal": {
+      "included": [
+        "electric_trim_heater",
+        "ammonia_decomposition_reactor"
+      ]
+    },
+    "catalyst_regeneration": {
+      "excluded": "No online regenerator is installed because the available stability evidence supports replacement during scheduled shutdowns; catalyst life and replacement cost are represented explicitly."
+    },
+    "product_compression": {
+      "included": [
+        "hydrogen_product_compressor"
+      ]
+    },
+    "separation_and_purification": {
+      "included": [
+        "effluent_chiller",
+        "ammonia_knockout",
+        "hydrogen_psa"
+      ]
+    },
+    "recycle": {
+      "included": [
+        "ammonia_knockout",
+        "ammonia_recycle_pump",
+        "recycle_mixer"
+      ]
+    },
+    "heat_recovery": {
+      "included": [
+        "feed_effluent_recuperator"
+      ]
+    },
+    "utilities_and_offsites": {
+      "included": [
+        "tailgas_and_offsites",
+        "effluent_chiller",
+        "electric_trim_heater"
+      ]
+    }
+  },
+  "diagram": "flowchart LR\n B1[Boundary NH3] --> M[recycle_mixer] --> V[ammonia_vaporizer] --> HX[feed_effluent_recuperator] --> EH[electric_trim_heater] --> R[ammonia_decomposition_reactor] --> HX\n HX --> C[effluent_chiller] --> K[ammonia_knockout]\n K --> P[ammonia_recycle_pump] --> M\n K --> PSA[hydrogen_psa] --> HC[hydrogen_product_compressor] --> B2[Boundary H2]\n PSA --> O[tailgas_and_offsites] --> B3[Boundary N2-rich offgas]"
+}

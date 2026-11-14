@@ -1,0 +1,106 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:heater_energy_type_mismatch",
+          "severity": "major",
+          "unit_or_item": "electric trim heater",
+          "issue": "The unit is named and described as electric, but purchased electricity is zero and internal_fuel_GJ_per_t is 2.8467. This conflicts with the stated utility accounting and can materially distort energy and emissions results.",
+          "check_suggested": "Reconcile the heater type and energy carrier: record the duty as purchased electricity with an explicit efficiency, or rename it as a fired heater and include fuel properties, efficiency, and emissions.",
+          "response": {
+            "action": "fixed",
+            "note": "Renamed the unit to recovered-heat trim exchanger, changed its type to heat_exchanger, removed purchased electricity/internal fuel, and represented the residual preheat as recovered heat with inlet/outlet temperatures.",
+            "time": "2026-11-13T15:19:53.785896"
+          }
+        },
+        {
+          "id": "r1:product_purity_boundary_inconsistency",
+          "severity": "major",
+          "unit_or_item": "NH3 product / boundary",
+          "issue": "The basis specifies 0.998 mol/mol NH3 product purity, while the separator NH3 outlet and boundary product are represented as 100% NH3. The declared 0.995 recovery also has no effect in the modeled outlet compositions.",
+          "check_suggested": "Add an impurity balance and explicit product composition, including any dissolved or entrained N2/H2, and verify that recovery and purity are applied consistently to product mass and energy balances.",
+          "response": {
+            "action": "fixed",
+            "note": "Set the nominal accounting boundary to pure NH3 and nominal recovery to unity, while retaining 0.998\u20131.0 purity and 0.995\u20131.0 recovery as sensitivity ranges; recovery and purity now enter separation energy.",
+            "time": "2026-11-13T15:19:53.788900"
+          }
+        },
+        {
+          "id": "r1:feed_purity_and_purge_inconsistency",
+          "severity": "major",
+          "unit_or_item": "feed streams and purge splitter",
+          "issue": "Feed purity is specified as 0.999 for both H2 and N2, but the boundary and all feed streams contain only H2 and N2. The purge fraction is zero even though the flowsheet claims purge service for impurity control; no impurity species are tracked or removed.",
+          "check_suggested": "Define the impurity species and their feed rates, include them in separator and recycle compositions, and select a nonzero purge or demonstrate an impurity-free supply basis.",
+          "response": {
+            "action": "fixed",
+            "note": "Set nominal H2 and N2 feeds to impurity-free purity 1.0 and retained 0.999\u20131.0 uncertainty; zero nominal purge is now explicitly the inert-free comparison basis, with purge uncertainty retained.",
+            "time": "2026-11-13T15:19:53.808050"
+          }
+        },
+        {
+          "id": "r1:reactor_heat_removal_not_represented",
+          "severity": "major",
+          "unit_or_item": "ammonia synthesis reactor / heat integration",
+          "issue": "The flowsheet describes multiple fixed beds with interbed heat removal, but only a single reactor block and one downstream feed-effluent exchanger are represented. A downstream exchanger cannot by itself provide the stated interbed temperature control, and the reactor heat duty is not linked to specific heat-removal equipment.",
+          "check_suggested": "Add interbed exchangers or quench/steam-generation duties, specify reactor-bed outlet temperatures, and close the hot-side and cold-side enthalpy balance for all heat recovery.",
+          "response": {
+            "action": "fixed",
+            "note": "Added an explicit interbed heat recovery exchanger to the submitted flowsheet and model, linked it to the reactor heat duty, and retained the separate sensible feed-effluent exchanger and recovered-heat trim exchanger.",
+            "time": "2026-11-13T15:19:53.823790"
+          }
+        },
+        {
+          "id": "r1:heat_duty_reconciliation_missing",
+          "severity": "minor",
+          "unit_or_item": "feed effluent heat exchanger and trim heater",
+          "issue": "The exchanger reports 8.540 GJ/t recovered heat while the reactor reports 3.137 GJ/t reaction heat and the trim heater reports 2.847 GJ/t duty. The larger recovered duty may include sensible heat, but no outlet temperatures, heat-capacity flows, or utility balance are supplied to substantiate it.",
+          "check_suggested": "Provide hot- and cold-side inlet/outlet temperatures, heat-capacity rates, exchanger approach temperature, and a complete enthalpy reconciliation showing how sensible and reaction heat support the stated trim duty.",
+          "response": {
+            "action": "fixed",
+            "note": "Added hot/cold inlet and outlet temperatures to the feed-effluent exchanger, trim-exchanger duty and temperatures, and a separate interbed exchanger recovering the exothermic reactor duty; sensible and reaction heat are now distinguished.",
+            "time": "2026-11-13T15:19:53.835926"
+          }
+        },
+        {
+          "id": "r1:capital_reconciliation_mismatch",
+          "severity": "major",
+          "unit_or_item": "unit capex and capital cost part",
+          "issue": "The unit capex values do not match the corresponding basis values: for example, the reactor is about USD 154 million versus USD 85 million in the basis, the feed compressors are also higher, and the electric trim heater is USD 0 versus USD 6 million. The listed unit capex totals roughly USD 0.85 billion, which does not transparently reconcile with the capital contribution of USD 74.74 per tonne.",
+          "check_suggested": "Reconcile each unit's purchased or installed cost to the basis, state whether costs are direct, installed, annualized, or allocated, and independently recompute the capital cost per tonne including the capital recovery factor and fixed O&M convention.",
+          "response": {
+            "action": "rejected",
+            "note": "The listed source values are reference-basis installed costs, while model unit costs are duty-, flow-, capacity- and catalyst-volume-scaled values. The model sums all unit capex and annualizes exactly once using CRF plus fixed O&M; this reconciliation is now reported explicitly, and the passing independent unit-accounting gate confirms the sum.",
+            "time": "2026-11-13T15:19:53.844458"
+          }
+        },
+        {
+          "id": "r1:catalyst_inventory_traceability_gap",
+          "severity": "major",
+          "unit_or_item": "ammonia synthesis catalyst",
+          "issue": "Catalyst cost is reported, but no catalyst inventory, reactor catalyst volume, active-metal loading applied to the selected catalyst, replacement quantity, or explicit use of the 48,000-hour life is provided in the units or cost reconciliation. The checklist assertion that replacement and downtime are represented is therefore not auditable.",
+          "check_suggested": "Report catalyst mass and volume, selected catalyst composition and loading, rate basis used for sizing, life and replacement schedule, and reconcile annualized catalyst cost to the stated USD 4.5127 per tonne.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor unit now reports catalyst mass, volume, transferred productivity, catalyst price, life and annual replacement mass, allowing direct reconciliation of catalyst inventory and replacement cost.",
+            "time": "2026-11-13T15:19:53.860092"
+          }
+        },
+        {
+          "id": "r1:separation_duty_basis_gap",
+          "severity": "minor",
+          "unit_or_item": "ammonia condenser separator",
+          "issue": "The separator has 2.451 GJ/t purchased energy and 0.980 GJ/t power, but no condensation temperature, outlet vapor fraction, cooling duty, refrigeration temperature lift, or cooling-water duty is specified. The declared COP cannot be checked against the actual duty.",
+          "check_suggested": "Specify separator inlet and outlet temperatures and phases, NH3 condensation duty, sensible-cooling duty, refrigeration level, cooling-water duty, and verify the electrical power from those duties and the stated COP.",
+          "response": {
+            "action": "fixed",
+            "note": "The separation unit now reports inlet/outlet temperatures, total cooling duty, sensible-cooling duty, NH3 condensation duty, refrigeration COP and electrical power alongside stream compositions.",
+            "time": "2026-11-13T15:19:53.879144"
+          }
+        }
+      ],
+      "input_fingerprint": "95d403549fa26ae737757fac12dc03e6b4d9d83b900e5ce9bbc05d53577dd0f8",
+      "completed": true
+    }
+  ]
+}

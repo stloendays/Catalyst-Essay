@@ -1,0 +1,120 @@
+parameter,value,unit,source,location,type,low,high
+basis.capacity_t_per_y,1000000,t/y,,,assumption,200000,1500000
+basis.operating_hours_per_y,8000,h/y,,,assumption,7200,8400
+basis.feeds.H2.T_K,298.15,K,,,assumption,288.15,313.15
+basis.feeds.H2.P_bar,30.0,bar,,,assumption,20.0,40.0
+basis.feeds.H2.purity_mol_frac,0.999,fraction,,,assumption,0.995,0.9999
+basis.feeds.N2.T_K,298.15,K,,,assumption,288.15,313.15
+basis.feeds.N2.P_bar,30.0,bar,,,assumption,20.0,40.0
+basis.feeds.N2.purity_mol_frac,0.999,fraction,,,assumption,0.995,0.9999
+basis.product.NH3.P_bar,20.0,bar,,,assumption,10.0,30.0
+basis.product.NH3.purity_mol_frac,0.995,fraction,,,assumption,0.99,0.999
+basis.utilities.cooling_water_supply_temperature,298.15,K,,,assumption,288.15,303.15
+basis.utilities.cooling_water_return_temperature,308.15,K,,,assumption,303.15,318.15
+basis.utilities.electric_motor_efficiency,0.95,fraction,,,assumption,0.9,0.98
+kinetic.activation_energy_J_per_mol,100000,J/mol,,,assumption,60000,160000
+kinetic.pressure_order_total,1.0,dimensionless,,,assumption,0.5,1.5
+kinetic.max_rate_scale,1000,dimensionless,,,assumption,100,10000
+operation.loop_pressure_min_bar,80,bar,,,assumption,50,100
+operation.loop_pressure_max_bar,250,bar,https://www.thyssenkrupp-uhde.com/en/products-and-technologies/fertilizer-technologies/ammonia-plants/ammonia-technology-dual-pressure-synthesis-a30-synthesis,Technology description states synthesis-loop operating pressure up to 210 bar; range retains higher conventional-loop designs.,published,210,300
+operation.pressure_grid_points,8,count,,,assumption,5,12
+operation.conversion_grid_points,32,count,,,assumption,20,60
+operation.min_conversion,0.02,fraction,,,assumption,0.01,0.05
+operation.equilibrium_fraction_limit,0.95,fraction,,,assumption,0.85,0.99
+operation.purge_fraction,0.02,fraction,,,assumption,0.005,0.05
+operation.nh3_condensation_recovery,0.995,fraction,,,assumption,0.98,0.9995
+compressor.isentropic_efficiency,0.75,fraction,https://midstreamcalculator.com/engineering/compressors/centrifugal-efficiency-fundamentals.html,Typical Ranges section gives isentropic efficiency of 72-82% for centrifugal compressors.,published,0.72,0.82
+compressor.gamma_h2,1.4,dimensionless,,,assumption,1.35,1.42
+compressor.gamma_n2,1.4,dimensionless,,,assumption,1.35,1.42
+compressor.gamma_loop,1.35,dimensionless,,,assumption,1.25,1.4
+compressor.recycle_pressure_ratio,1.05,ratio,,,assumption,1.02,1.12
+energy.electricity_primary_factor,2.5,GJ_primary/GJ_electric,,,assumption,2.0,3.0
+heat.reaction_enthalpy_J_per_mol_NH3,-46110,J/mol NH3,,,assumption,-47000,-45000
+heat.feed_effluent_recovery_fraction,0.75,fraction,,,assumption,0.55,0.9
+heat.waste_heat_recovery_fraction,0.7,fraction,,,assumption,0.5,0.85
+heat.cooling_electricity_GJ_per_GJ_removed,0.015,GJ electric/GJ heat,,,assumption,0.005,0.04
+heat.sensible_cooling_GJ_per_t,0.35,GJ/t NH3,,,assumption,0.15,0.7
+catalyst.default_cycle_h,24000,h,,,assumption,8000,60000
+catalyst.activity_loss_fraction_at_cycle,0.1,fraction,,,assumption,0.05,0.25
+catalyst.reference_inventory_kg,2000000,kg,,,assumption,500000,5000000
+catalyst.reference_rate_kg_per_kg_h,0.12,kg/kg/h,,,assumption,0.03,0.5
+capital.scale_exponent,0.65,dimensionless,,,assumption,0.55,0.75
+capital.pressure_exponent,0.25,dimensionless,,,assumption,0.15,0.4
+capital.reference_capacity_t_per_y,1000000,t/y,,,assumption,500000,1500000
+capital.reference_pressure_bar,150,bar,,,assumption,100,200
+capital.hydrogen_feed_compressor_usd,25000000,USD,,,assumption,12000000,50000000
+capital.nitrogen_feed_compressor_usd,18000000,USD,,,assumption,8000000,35000000
+capital.synthesis_gas_mixer_usd,1000000,USD,,,assumption,300000,3000000
+capital.feed_effluent_exchanger_usd,12000000,USD,,,assumption,6000000,25000000
+capital.ammonia_converter_usd,45000000,USD,,,assumption,20000000,90000000
+capital.waste_heat_boiler_usd,18000000,USD,,,assumption,8000000,35000000
+capital.final_product_cooler_usd,15000000,USD,,,assumption,7000000,30000000
+capital.ammonia_knockout_usd,6000000,USD,,,assumption,2500000,12000000
+capital.purge_splitter_usd,500000,USD,,,assumption,150000,1500000
+capital.recycle_compressor_usd,7500000,USD,,,assumption,3500000,18000000
+capital.product_and_offsites_usd,38000000,USD,,,assumption,18000000,75000000
+capital.reactor_activity_scale_exponent,0.6,dimensionless,,,assumption,0.45,0.75
+capital.reactor_min_scale,0.35,fraction,,,assumption,0.2,0.6
+capital.offsites_capacity_exponent,0.6,dimensionless,,,assumption,0.5,0.7
+operation.reference_T_K,700,K,,,assumption,650,750
+operation.reference_P_bar,150,bar,,,assumption,100,220
+operation.reference_X,0.15,fraction,,,assumption,0.08,0.25
+operation.reference_selectivity,1.0,fraction,,,assumption,0.99,1.0
+operation.reference_y_N2,0.25,fraction,,,assumption,0.24,0.26
+operation.reference_y_H2,0.75,fraction,,,assumption,0.74,0.76
+price.natural_gas,2.5,USD/GJ,prices.json:natural_gas,"PetroLogistics Catofin plant gas cost 2.60 USD/MMBtu (SEC 424B4, 2012); Henry Hub 2024 average 2.19 USD/MMBtu (EIA)",price_table,2.0,12.0
+price.electricity,80.0,USD/MWh,prices.json:electricity,industrial power assumption used across the NCE chains; EIA 2024 US industrial average about 80 USD/MWh,price_table,40.0,150.0
+price.hydrogen,3.0,USD/kg,prices.json:hydrogen,"Becker, Penev & Braun, J. Energy Resour. Technol. 2019 anchor 3 USD/kg; grey about 2, electrolytic 5-7 (DOE Pathways to Commercial Liftoff: Clean Hydrogen, 2024)",price_table,1.5,7.0
+price.carbon_dioxide,100.0,USD/t,prices.json:carbon_dioxide,"104 USD/t CO2 captured, Enterprise Products EPA GHG permit application 2012, rounded",price_table,20.0,200.0
+price.propane,408.0,USD/t,prices.json:propane,"EIA Mont Belvieu propane spot 2024, 0.778 USD/gal at 4.2 lb/gal",price_table,300.0,700.0
+price.ammonia,445.0,USD/t,prices.json:ammonia,"Tampa CFR ammonia, March 2024 contract settlement (trade press summary)",price_table,300.0,900.0
+price.ethanol,716.1,USD/t,prices.json:ethanol,"Haro et al. 2013, Table 9 (Brazilian hydrated ethanol)",price_table,500.0,1000.0
+price.catalyst_support_and_manufacturing,20.0,USD/kg,prices.json:catalyst_support_and_manufacturing,"NCE chain assumption for support plus manufacturing per kg of finished catalyst, excluding active metals",price_table,5.0,100.0
+price.metal_Ru,53852.5,USD/kg,prices.json:metal_Ru,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,26926.25,107705.0
+price.metal_Os,142650.0,USD/kg,prices.json:metal_Os,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,71325.0,285300.0
+price.metal_Fe,8.0,USD/kg,prices.json:metal_Fe,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,4.0,16.0
+price.metal_Rh,265243.65919095,USD/kg,prices.json:metal_Rh,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,132621.829595475,530487.3183819
+price.metal_Ir,252383.36056351,USD/kg,prices.json:metal_Ir,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,126191.680281755,504766.72112702
+price.metal_Co,56.28401553583051,USD/kg,prices.json:metal_Co,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,28.142007767915256,112.56803107166103
+price.metal_Re,5757.64,USD/kg,prices.json:metal_Re,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,2878.82,11515.28
+price.metal_Mo,91.22728409215301,USD/kg,prices.json:metal_Mo,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,45.61364204607651,182.45456818430603
+price.metal_Ni,16.9094555095895,USD/kg,prices.json:metal_Ni,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,8.45472775479475,33.818911019179
+price.metal_W,149.97,USD/kg,prices.json:metal_W,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,74.985,299.94
+price.metal_Pd,40670.694409279,USD/kg,prices.json:metal_Pd,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,20335.3472046395,81341.388818558
+price.metal_Pt,51508.71107755406,USD/kg,prices.json:metal_Pt,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,25754.35553877703,103017.42215510811
+price.metal_Cu,13.889122517655,USD/kg,prices.json:metal_Cu,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,6.9445612588275,27.77824503531
+price.metal_Ag,1823.590345370992,USD/kg,prices.json:metal_Ag,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,911.795172685496,3647.180690741984
+price.metal_Au,128732.2322756058,USD/kg,prices.json:metal_Au,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,64366.1161378029,257464.4645512116
+price.metal_Al,3.9683,USD/kg,prices.json:metal_Al,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.98415,7.9366
+price.metal_Bi,44.092,USD/kg,prices.json:metal_Bi,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,22.046,88.184
+price.metal_Cd,3.9,USD/kg,prices.json:metal_Cd,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.95,7.8
+price.metal_Cr,13.007,USD/kg,prices.json:metal_Cr,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,6.5035,26.014
+price.metal_Ga,580.0,USD/kg,prices.json:metal_Ga,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,290.0,1160.0
+price.metal_Hf,3800.0,USD/kg,prices.json:metal_Hf,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1900.0,7600.0
+price.metal_Hg,50.0,USD/kg,prices.json:metal_Hg,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,25.0,100.0
+price.metal_In,370.0,USD/kg,prices.json:metal_In,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,185.0,740.0
+price.metal_La,1.1728,USD/kg,prices.json:metal_La,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.5864,2.3456
+price.metal_Mn,0.45,USD/kg,prices.json:metal_Mn,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.225,0.9
+price.metal_Nb,40.0,USD/kg,prices.json:metal_Nb,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,20.0,80.0
+price.metal_Pb,2.3369,USD/kg,prices.json:metal_Pb,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.16845,4.6738
+price.metal_Sc,5200.0,USD/kg,prices.json:metal_Sc,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,2600.0,10400.0
+price.metal_Sn,35.274,USD/kg,prices.json:metal_Sn,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,17.637,70.548
+price.metal_Ta,219.78,USD/kg,prices.json:metal_Ta,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,109.89,439.56
+price.metal_Ti,12.0,USD/kg,prices.json:metal_Ti,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,6.0,24.0
+price.metal_Tl,9300.0,USD/kg,prices.json:metal_Tl,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,4650.0,18600.0
+price.metal_V,19.756,USD/kg,prices.json:metal_V,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,9.878,39.512
+price.metal_Y,40.0,USD/kg,prices.json:metal_Y,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,20.0,80.0
+price.metal_Zn,3.2849,USD/kg,prices.json:metal_Zn,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.64245,6.5698
+price.metal_Zr,22.0,USD/kg,prices.json:metal_Zr,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,11.0,44.0
+price.metal_Ce,2.1005306603773586,USD/kg,prices.json:metal_Ce,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.0502653301886793,4.201061320754717
+price.metal_Si,2.866006,USD/kg,prices.json:metal_Si,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.433003,5.732012
+price.metal_Mg,2.5,USD/kg,prices.json:metal_Mg,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,1.25,5.0
+price.metal_Ca,0.3637940925436203,USD/kg,prices.json:metal_Ca,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.18189704627181014,0.7275881850872405
+price.metal_K,1.4455393066229791,USD/kg,prices.json:metal_K,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.7227696533114896,2.8910786132459583
+price.metal_Ba,0.3569000679809653,USD/kg,prices.json:metal_Ba,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.17845003399048265,0.7138001359619306
+price.metal_B,1.0,USD/kg,prices.json:metal_B,"frozen NH3 harness prices (Ru, Os, Fe, Rh, Ir, Co, Re, Mo, Ni, W, Pd, Pt, Cu, Ag, Au) + USGS Mineral Commodity Summaries 2026 per kg contained element; see analysis/meoh_catalyst_cost_2026_10_06/catalyst_prices.py (per kg contained element)",price_table,0.5,2.0
+price.capital_recovery_factor,0.0944,1/y,prices.json:capital_recovery_factor,"7 %/y over 20 y (Enterprise Products PDH, EPA GHG permit application 2012); range 5-12 %/y",price_table,0.08,0.13
+price.fixed_om_fraction_of_capex,0.04,1/y,prices.json:fixed_om_fraction_of_capex,"NCE chain assumption, 4 %/y of installed capital",price_table,0.02,0.06
+feed.nitrogen_embodied_electricity_kWh_per_kg,0.20,kWh/kg,,,assumption,0.10,0.40
+heat.reaction_entropy_J_per_mol_reaction_K,-210.1,J/mol reaction/K,,,assumption,-220,-198
+heat.delta_cp_J_per_mol_NH3_K,-16.0,J/mol NH3/K,,,assumption,-22,-10

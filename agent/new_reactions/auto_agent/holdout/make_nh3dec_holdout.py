@@ -1,0 +1,76 @@
+"""Writes holdout/nh3dec.json (run before the first ammonia-decomposition AI build).
+
+Sources chosen from holdout/nh3dec_holdout_research.md (2026-11-13). The hand-built model (configs/nh3dec_ours.json, HS420 /
+Engie design line) is a hidden reference; the holdout avoids its sources and the Engie design line (Makhloufi 2021, Richard 2024).
+Tolerance of the mass target: +-12 %, the spread of independent designs (Fluor/Port of Rotterdam 6.67 t/t, -8 %; Ishimoto 2020
+8.11 t/t, +11 %) around the primary design (Mehr 2026, 7.28 t/t); set before any build.
+"""
+import json
+from datetime import datetime
+from pathlib import Path
+
+H = Path(__file__).resolve().parent
+USD_EUR_2015 = 1.1095
+
+hold = {
+    "rxn": "nh3dec", "written": datetime.now().isoformat(timespec="seconds"),
+    "note": "Evaluation side only. Never copied into an agent workspace. Chosen before the first AI build.",
+    "sources": [
+        {"name": "Mehr et al., Energy Sci. Eng. 14 (2026) 4197 (centralised NH3 cracker, 1000 t/d NH3, PSA, CC BY)",
+         "url": "https://doi.org/10.1002/ese3.70618"},
+        {"name": "Ishimoto et al., Int. J. Hydrogen Energy (2020) (large-scale NH3 cracking + PSA capital, accepted manuscript)",
+         "url": "https://doi.org/10.1016/j.ijhydene.2020.09.017"},
+        {"name": "Hansgen, Vlachos, Chen, Nat. Chem. 2 (2010) 484 (NH3 decomposition volcano vs N binding energy)",
+         "url": "https://doi.org/10.1038/nchem.626"},
+        {"name": "Fluor / Port of Rotterdam (2023) large-scale industrial ammonia cracking plant, executive summary (cross-check)",
+         "url": "https://www.portofrotterdam.com/sites/default/files/2023-05/large-scale-industrial-ammonia-cracking-plant.pdf"}],
+    "dois": ["10.1002/ese3.70618", "10.1016/j.ijhydene.2020.09.017", "10.1016/j.ijhydene.2025.150904", "10.1038/nchem.626",
+             "10.1016/j.jcat.2004.12.013", "10.1063/1.3589260", "10.1038/ncomms9619",
+             # added 2026-11-13 (user: more papers into the blocking list): reviews that reproduce the decomposition volcano,
+             # the paper that states the peak shift, and Hellman 2009 as a precaution (full text not checked)
+             "10.1021/acs.iecr.1c00843", "10.1007/s11244-016-0653-4", "10.1016/j.apcata.2012.08.045", "10.1016/j.susc.2008.10.059"],
+    "url_fragments": ["ese3.70618", "11250/2764352", "isimoto2020lsp", "0198cc827bb1-0fe4540b-4d31-4949-845d-f470cc190c8e",
+                      "day1_1140_ishimoto", "s0360319925039047",
+                      "figshare.com/articles/journal_contribution/techno-economic_comparison_of_ammonia_cracking", "29938448",
+                      "large-scale-industrial-ammonia-cracking-plant", "nchem.626", "jcat.2004.12.013", "ncomms9619",
+                      "osti.gov/pages/servlets/purl/1239294", "stloendays", "catalyst-essay",
+                      "acs.iecr.1c00843", "s11244-016-0653-4", "j.apcata.2012.08.045", "j.susc.2008.10.059"],
+    "keyword_sets": [["1000 mtpd", "137 mtpd"], ["0.78 kg h2", "ammonia"], ["642.7", "ammonia"], ["8.36", "pipeline-grade"],
+                     ["142.8", "nh3", "cracking"], ["400 kwh/t-nh3", "cracking"], ["we-net", "nh3 cracking"],
+                     ["20,000 tons of ammonia", "1 million tons of hydrogen"], ["fluor", "ammonia cracking", "pre-feasibility"],
+                     ["49.95", "psa", "ammonia"], ["134 kcal", "nitrogen"], ["ni-pt-pt", "ammonia"],
+                     ["heat of nitrogen chemisorption", "volcano", "ammonia decomposition"],
+                     ["optimal ammonia synthesis catalyst is not the optimal ammonia decomposition catalyst"]],
+    "targets": {
+        "NH3 incl. fuel per t H2": {
+            "quantity": "nh3_equiv_t_per_t", "value": 7.28, "tol": 0.12,
+            "definition": "boundary_in:NH3 + sum of furnace purchased_energy_GJ_per_t / 18.6 (purchased fuel counted as NH3 LHV equivalent)",
+            "source": "Mehr 2026 p.4209 s3.3.2 (1000 t/d NH3 -> 137.4 t/d H2), p.4207 s3.2.2 (PSA purge covers the furnace at full load); "
+                      "tolerance = independent-design spread (Fluor 6.67, Ishimoto 8.11)"},
+        "fired duty + primary electricity GJ per t H2": {
+            "quantity": "fired_plus_power_GJ_per_t", "value": 45.6, "tol": 0.35,
+            "definition": "balances.energy_GJ_per_t (purchased, primary) + sum of units internal_fuel_GJ_per_t",
+            "source": "Mehr 2026: purge LHV <= 35.0 GJ/t (PSA recovery 81 %, Table 6 p.4204) + 1.12 kWh/kg H2 (abstract, p.4210) / 0.38"},
+        "installed capital per annual t H2": {
+            "quantity": "capex_usd_per_t_y", "value": 4030, "tol": [-0.30, 0.50],
+            "scale_curve": [[29600, 6370], [59200, 5070], [118300, 4030]],
+            "source": f"Ishimoto 2020 accepted manuscript Table 8: 430 MEUR2015 for 120 t-NH3/h cracking + PSA, Fig. 6 H2 yield, 8000 h, "
+                      f"scale exponent 0.67 (Table 6), {USD_EUR_2015} USD/EUR"},
+        "atomic optimum: binding weaker than Ru, eV": {
+            "group": "atomic", "quantity": "atomic_opt_weaker_than_ref_eV", "ref_metal": "Ru", "value": 0.33, "tol_abs": 0.20,
+            "conditions": {"T_K": 850.0, "p_bar": {"NH3": 0.99, "H2": 0.0075, "N2": 0.0025}},
+            "definition": "argmax over D of the build's atomic.logtof at the conditions, expressed as how much weaker (eV, positive = weaker) "
+                          "the optimum binds N than the build's own descriptor value for Ru (ATOMIC['stronger_binding'] gives the sign)",
+            "source": "Hansgen 2010 Nat. Chem. Table 1 / Fig. 1: optimum Q_N 134 vs Ru(0001) 141.6 kcal/mol at 850 K, NH3 feed (0.33 eV); "
+                      "conditions here = about 1 % conversion of pure NH3 at 1 bar"}},
+    "reported_not_gated": {
+        "Fluor / Port of Rotterdam NH3 t/t H2": 6.67, "Ishimoto NH3 t/t H2": 8.11, "Ishimoto fired duty GJ/t": 52.6,
+        "Balasubramanian 2025 capex USD2024/(t/y) at 20.8 kt/y": 2504,
+        "direction": "the decomposition optimum moves to stronger N binding (towards Fe) as NH3/H2 falls (Boisen 2005 via Simonsen 2012)",
+        "hand-built model (hidden)": {"NH3_t_per_t": 8.39, "fired_plus_power_GJ_per_t": 54.1, "capex_usd_per_t_y": 7045}},
+    "hidden_reference": {"atomic": "nh3_harness_decomposition"},
+    "pass_rule": {"min_within": 3,
+                  "rule": "plant targets (no 'group'): pass = all three within tolerance; partial = two within and none beyond twice the "
+                          "tolerance; fail otherwise. The atomic target (group 'atomic') is judged separately: within / outside."}}
+(H / "nh3dec.json").write_text(json.dumps(hold, indent=1, ensure_ascii=False), encoding="utf-8")
+print("written nh3dec.json")

@@ -1,0 +1,213 @@
+{
+ "name": "reverse water-gas shift to CO",
+ "parameter_set": "ours",
+ "metal_usd_per_kg": {
+  "Ru": 53852.5,
+  "Os": 142650.0,
+  "Fe": 8.0,
+  "Rh": 265243.65919095,
+  "Ir": 252383.36056351,
+  "Co": 56.28401553583051,
+  "Re": 5757.64,
+  "Mo": 91.22728409215301,
+  "Ni": 16.9094555095895,
+  "W": 149.97,
+  "Pd": 40670.694409279,
+  "Pt": 51508.71107755406,
+  "Cu": 13.889122517655,
+  "Ag": 1823.590345370992,
+  "Au": 128732.2322756058,
+  "Al": 3.9683,
+  "Bi": 44.092,
+  "Cd": 3.9,
+  "Cr": 13.007,
+  "Ga": 580.0,
+  "Hf": 3800.0,
+  "Hg": 50.0,
+  "In": 370.0,
+  "La": 1.1728,
+  "Mn": 0.45,
+  "Nb": 40.0,
+  "Pb": 2.3369,
+  "Sc": 5200.0,
+  "Sn": 35.274,
+  "Ta": 219.78,
+  "Ti": 12.0,
+  "Tl": 9300.0,
+  "V": 19.756,
+  "Y": 40.0,
+  "Zn": 3.2849,
+  "Zr": 22.0,
+  "Ce": 2.1005306603773586,
+  "Si": 2.866006,
+  "Mg": 2.5,
+  "Ca": 0.3637940925436203,
+  "K": 1.4455393066229791,
+  "Ba": 0.3569000679809653,
+  "B": 1.0
+ },
+ "finance": {
+  "crf": 0.0944,
+  "fixed_om_frac": 0.04
+ },
+ "prices": {
+  "gas_usd_per_GJ": 8.0,
+  "power_usd_kWh": 0.08
+ },
+ "species": {
+  "CO2": {
+   "MW": 44.01,
+   "price_usd_t": 100.0
+  },
+  "H2": {
+   "MW": 2.016,
+   "price_usd_t": 3000.0
+  },
+  "CO": {
+   "MW": 28.01
+  },
+  "H2O": {
+   "MW": 18.015
+  }
+ },
+ "stoich": {
+  "nu": {
+   "CO2": -1,
+   "H2": -1,
+   "CO": 1,
+   "H2O": 1
+  },
+  "key": "CO2",
+  "product": "CO"
+ },
+ "thermo": {
+  "source": "nce_meoh_K_rwgs",
+  "dH_J_mol": 41200.0
+ },
+ "plant": {
+  "capacity_t_per_y": 100000,
+  "hours_per_y": 8000,
+  "P_bar": 11.0,
+  "feed_ratio": {
+   "H2": 2.25
+  },
+  "inert_ratio": 0.0,
+  "approach": 0.95,
+  "overall_conv": 0.98
+ },
+ "lab_feed": {
+  "default_y_key": 0.25,
+  "default_ratio": {
+   "H2": 3.0
+  }
+ },
+ "switches": {
+  "selectivity_loss": "lost"
+ },
+ "fixed_credits": [],
+ "lost_key_fuel_GJ_per_t": 0.0,
+ "energy": {
+  "pay_reaction_heat": true,
+  "furnace_eff": 0.85,
+  "e_proc_GJ_per_t_reactor_feed": 2.0,
+  "power_kWh_per_t_fresh": 60.0,
+  "power_kWh_per_t_recycle": 40.0,
+  "fresh_basis": "all"
+ },
+ "capex": {
+  "usd": 76000000.0,
+  "fixed_share": 0.5,
+  "throughput_share": 0.3,
+  "reactor_share": 0.2,
+  "reactor_basis": "catalyst"
+ },
+ "catalyst": {
+  "base_usd_kg": 20.0,
+  "life_y": 3.0,
+  "recoverable_metals": [
+   "Pt",
+   "Pd",
+   "Rh",
+   "Ru",
+   "Ir",
+   "Os",
+   "Au",
+   "Ag",
+   "Re"
+  ],
+  "metal_recovery": 0.9555,
+  "metal_financing": 0.08
+ },
+ "regeneration": {
+  "enabled": false,
+  "t_regen_h": 0.0,
+  "t_cycle_min_h": 0.0,
+  "regen_GJ_per_t_cat": 0.0
+ },
+ "reference": {
+  "name": "Ni/ZrO2 on FeCrAl, electrified RWGS (Topsoe eREACT)",
+  "T_K": 1173.15,
+  "X": 0.6,
+  "S": 0.995,
+  "r": 1.0,
+  "t_cycle_h": null,
+  "elements": [
+   [
+    "Ni",
+    10.0
+   ]
+  ]
+ },
+ "uncertain": [
+  {
+   "path": "species.H2.price_usd_t",
+   "low": 2000.0,
+   "high": 6000.0,
+   "why": "grey ~2 USD/kg; electrolytic 5-7 USD/kg (DOE Liftoff 2024, S)"
+  },
+  {
+   "path": "species.CO2.price_usd_t",
+   "low": 17.3,
+   "high": 104.0,
+   "why": "Zang 2021 17.3-38.6 USD/t; Enterprise CCS 104 USD/t"
+  },
+  {
+   "path": "capex.usd",
+   "low": 38000000.0,
+   "high": 152000000.0,
+   "why": "capacity basis of the 76 M USD not stated: x0.5-2"
+  },
+  {
+   "path": "prices.gas_usd_per_GJ",
+   "low": 2.5,
+   "high": 22.2,
+   "why": "US gas to electric heating at 0.08 USD/kWh"
+  },
+  {
+   "path": "reference.r",
+   "low": 0.3,
+   "high": 3.0,
+   "why": "assumption"
+  },
+  {
+   "path": "plant.P_bar",
+   "low": 1.0,
+   "high": 25.0,
+   "why": "Adelung 1-5 bar optimum (S); Zang 24.5 bar"
+  }
+ ],
+ "sources": {
+  "thermo": "K_rwgs(T) from data/meoh/meoh_general_model.py (methanol loop model), ideal gas; dH 41.2 kJ/mol for the heat duty",
+  "plant": "Topsoe eREACT whitepaper: 900 C, 10 barg, H2:CO2 = 2.25, CH4 slip < 0.2 % above 900 C (https://www.topsoe.com/hubfs/DOWNLOADS/DOWNLOADS%20-%20White%20papers/19549%20Electrical%20Reverse%20Shift%20Whitepaper_FINAL.pdf)",
+  "plant.capacity_t_per_y": "assumption 100 kt/y CO",
+  "reference.S": "CH4 slip < 0.2 % (eREACT whitepaper) -> CO selectivity 0.995",
+  "reference.X": "assumption 0.60 per pass (equilibrium about 0.66 at 900 C, 11 bar, H2/CO2 2.25 in this model)",
+  "reference.elements": "Ni on ZrO2-coated FeCrAl (eREACT whitepaper); 10 wt % assumption",
+  "species.H2.price_usd_t": "3 USD/kg, the anchor of the methanation model (Becker, Penev & Braun 2019)",
+  "species.CO2.price_usd_t": "100 USD/t as in the methanation model (Enterprise Products EPA application: 104 USD/t captured)",
+  "capex.usd": "RWGS reaction area installed equipment 76 M USD (Zang, Sun, Elgowainy, Wang, Environ. Sci. Technol. 2021, doi 10.1021/acs.est.0c08674, OSTI 1807681 l.361-366); plant capacity basis not stated -> range x0.5-2",
+  "energy": "assumptions: fired heater 85 %, 2 GJ/t CO2 preheat/separation, power 60 + 40 x recycle kWh/t",
+  "catalyst": "life 3 y (Zang l.255: catalysts replaced every three years); base 20 USD/kg assumption",
+  "check": "no open per-tonne CO cost with a breakdown was found; the check is the stoichiometric floor (H2 + CO2) and the share of capital"
+ }
+}

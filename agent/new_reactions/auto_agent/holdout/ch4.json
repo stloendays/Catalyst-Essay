@@ -1,0 +1,143 @@
+{
+ "rxn": "ch4",
+ "written": "2026-11-12T13:36:11",
+ "note": "Evaluation side only. Never copied into an agent workspace. Chosen before the first AI build.",
+ "sources": [
+  {
+   "name": "STORE&GO D5.9 Final report on evaluation of technologies and processes (DVGW-EBI/KIT, v2.0, 2020)",
+   "url": "https://www.storeandgo.info/fileadmin/downloads/deliverables_2020/20200713-STOREandGO_D5.9_DVGW_Final_report_on_evaluation_of_technologies_and_processes.pdf"
+  },
+  {
+   "name": "Schlautmann et al., Chem. Ing. Tech. 93 (2021) 568 (same data)",
+   "url": "https://doi.org/10.1002/cite.202000187"
+  },
+  {
+   "name": "Electrochaea P2G-BioCat final report, ForskEL 2014-1-12164 (capital cross-check)",
+   "url": "https://energiforskning.dk/sites/energiforskning.dk/files/slutrapporter/12164_final_report_p2g_biocat.pdf"
+  }
+ ],
+ "dois": [
+  "10.1002/cite.202000187",
+  "10.1016/j.apenergy.2020.114780"
+ ],
+ "url_fragments": [
+  "storeandgo",
+  "cordis.europa.eu/project/id/691797",
+  "cite.202000187",
+  "publikationen.bibliothek.kit.edu/1000130144",
+  "s0306261920302920",
+  "12164_final_report_p2g_biocat",
+  "energiforskning.dk/sites/energiforskning.dk/files/slutrapporter/12164",
+  "database.co2value.eu/projects/7",
+  "stloendays",
+  "catalyst-essay"
+ ],
+ "keyword_sets": [
+  [
+   "falkenhagen",
+   "720 €/kw"
+  ],
+  [
+   "falkenhagen",
+   "3740"
+  ],
+  [
+   "falkenhagen",
+   "360 €/kw"
+  ],
+  [
+   "solothurn",
+   "380 €/kw"
+  ],
+  [
+   "store&go",
+   "methanation",
+   "capex"
+  ],
+  [
+   "460 m³/h",
+   "6450"
+  ],
+  [
+   "25 kw/mw",
+   "methanation"
+  ],
+  [
+   "falkenhagen",
+   "0.8 kwh/m³"
+  ],
+  [
+   "biocat",
+   "63.54"
+  ],
+  [
+   "avedøre",
+   "methanation",
+   "dkk"
+  ]
+ ],
+ "targets": {
+  "H2 per t CH4": {
+   "quantity": "boundary_in:H2",
+   "value": 0.505,
+   "tol": 0.05,
+   "source": "D5.9 Table 4-1 p.35 (measured, Falkenhagen: 708 kW H2 -> 549 kW SNG, HHV) and Table 5-2 p.68 (5 MW design: 6450 kW H2)"
+  },
+  "CO2 per t CH4": {
+   "quantity": "boundary_in:CO2",
+   "value": 2.785,
+   "tol": 0.05,
+   "source": "D5.9 Table 5-2 p.68: 460 m3(STP)/h CO2 per 5 MW SNG (design); Audi Werlte 2.8 t/t as support"
+  },
+  "purchased energy GJ per t": {
+   "quantity": "energy_GJ_per_t",
+   "value": 3.84,
+   "tol": 0.35,
+   "source": "D5.9 Table 5-2 / p.70: methanation electricity 0.29 kWh/m3 SNG (25 kW/MW) = 1.46 GJe/t, primary at 0.38; CO2 supply and grid injection outside the boundary"
+  },
+  "installed capital per annual t": {
+   "quantity": "capex_usd_per_t_y",
+   "value": 784,
+   "tol": [
+    -0.3,
+    0.5
+   ],
+   "scale_curve": [
+    [
+     2595,
+     1567
+    ],
+    [
+     5190,
+     1035
+    ],
+    [
+     25950,
+     784
+    ]
+   ],
+   "source": "D5.9 p.63, Table 1-2 p.7, Table 5-1 p.67: optimised Falkenhagen design 720 / ~475 / 360 EUR/kW SNG at 5 / 10 / 50 MW (EUR2017, 1.1297 USD/EUR); methanation unit only; tolerance AACE class 4"
+  }
+ },
+ "reported_not_gated": {
+  "measured methanation electricity at demo scale, primary GJ/t": {
+   "value": 10.6,
+   "basis": "D5.9 Table 4-2 p.39: 0.8 kWh/m3 SNG at Falkenhagen (0.58 MW), /0.38; Solothurn 1.0 kWh/m3 -> 13.2"
+  },
+  "BioCat 50 MWe methanation capital USD/(t/y)": {
+   "value": [
+    560,
+    700
+   ],
+   "basis": "BioCat final report Fig. 1.8 p.24: 63.54 MDKK"
+  },
+  "hand-built model capital USD/(t/y)": {
+   "value": 449,
+   "basis": "configs/ch4_ours.json (Goetz 2016, 175 EUR/kW); below the -30 % band of this holdout"
+  }
+ },
+ "pass_rule": {
+  "min_within": 4,
+  "rule": "pass = all four targets within tolerance; partial = three within and none beyond twice the tolerance; fail otherwise. Capital target = log-log interpolation of scale_curve at the build's capacity (evaluate_builds.py)."
+ }
+}

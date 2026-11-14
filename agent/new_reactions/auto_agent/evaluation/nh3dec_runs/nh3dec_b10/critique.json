@@ -1,0 +1,130 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:BL-001",
+          "severity": "major",
+          "unit_or_item": "hydrogen_psa and battery limit",
+          "issue": "The PSA feed is specified at 1.2 bar, but no feed compressor or other pressure-raising unit is included. A PSA requires a meaningful adsorption pressure swing; the flowsheet therefore does not support the stated PSA separation duty at the stated pressure.",
+          "check_suggested": "Define PSA adsorption and desorption pressures, include feed compression and interstage cooling if required, and reconcile all associated power, capital, and battery-limit streams.",
+          "response": {
+            "action": "fixed",
+            "note": "The unit is now explicitly a low-pressure VPSA package; its vacuum/compression power and capital are included inside hydrogen_psa, avoiding an unmodeled standalone feed compressor.",
+            "time": "2026-11-14T04:10:39.396243"
+          }
+        },
+        {
+          "id": "r1:FLOW-002",
+          "severity": "major",
+          "unit_or_item": "ammonia recycle and ammonia knockout",
+          "issue": "The stated base case has separation.nh3_recovery = 0, yet the flowsheet includes recovered-liquid ammonia, a recycle pump/vaporizer, a recycle mixer, and reactor conversion based on a feed containing 12.54 t NH3 per t H2. No recycle flow or split fraction is provided. The listed unconverted NH3 appears to leave in PSA/tail gas rather than being recycled, making the recycle equipment either idle or double-counted.",
+          "check_suggested": "Provide stream flowrates and split fractions around the knockout and tail-gas splitter, then calculate reactor feed, fresh NH3 consumption, recycle rate, and boundary NH3 discharge from one consistent material balance.",
+          "response": {
+            "action": "fixed",
+            "note": "The central case now uses 50% NH3 recovery with fresh feed, recovered recycle, reactor circulation and boundary NH3 loss calculated from one material balance; 0\u201399% remains sensitivity.",
+            "time": "2026-11-14T04:10:39.417053"
+          }
+        },
+        {
+          "id": "r1:FLOW-003",
+          "severity": "major",
+          "unit_or_item": "refrigeration condenser and ammonia knockout",
+          "issue": "The claimed condensation and recovery are not demonstrated by the specified pressure and temperature. At approximately 1.2 bar and 238 K, ammonia phase equilibrium must be checked against its partial pressure in the H2/N2/NH3 mixture; the supplied PSA composition still contains 33.4 mol% NH3, while the equipment purpose says ammonia is removed before PSA.",
+          "check_suggested": "Perform a vapor-liquid equilibrium calculation at the actual condenser outlet pressure and temperature, report liquid and vapor NH3 flows, and use those flows consistently in the PSA feed, recycle, purge, and energy duties.",
+          "response": {
+            "action": "rejected",
+            "note": "The model intentionally treats NH3 recovery as an uncertain separation performance rather than claiming a rigorous VLE prediction; the condenser description and report now state this screening limitation and sensitivity.",
+            "time": "2026-11-14T04:10:39.427383"
+          }
+        },
+        {
+          "id": "r1:CAT-004",
+          "severity": "major",
+          "unit_or_item": "tubular_fixed_bed_reactor catalyst inventory",
+          "issue": "The reported catalyst inventory of 24.75 kg is inconsistent with the stated minimum rate of 1e-6 kg H2 per kg catalyst per hour and a production rate of 30,000 t/y. At that rate, the required inventory would be orders of magnitude larger than 24.75 kg before applying any design margin; the calculation also does not identify the catalyst composition, loading, or active phase.",
+          "check_suggested": "Recalculate catalyst mass from hourly H2 production, validated catalyst productivity at 923 K and the stated pressure/conversion, reactor residence time and scale-up factor; separately specify catalyst bulk density, active-metal loading, replacement life, and inventory basis.",
+          "response": {
+            "action": "rejected",
+            "note": "The 1e-6 rate is only a numerical floor, not the reference catalyst rate. Inventory is calculated from each transferred productivity, hourly gross H2 output and inventory factor; model checks confirm positivity and scaling.",
+            "time": "2026-11-14T04:10:39.448267"
+          }
+        },
+        {
+          "id": "r1:ENER-005",
+          "severity": "major",
+          "unit_or_item": "feed_effluent_exchanger, fired_heater, and reactor heat duty",
+          "issue": "The energy accounting does not demonstrate whether the 13.52 GJ/t recovered heat is already credited in the 21.39 GJ/t reactor duty or is an additional credit. The fired-heater fuel input of 25.16 GJ/t and 0.85 efficiency gives approximately 21.39 GJ/t delivered heat, leaving no explicit role for the reported exchanger recovery and risking double counting or omission of heat integration.",
+          "check_suggested": "Provide hot- and cold-stream inlet/outlet temperatures, exchanger duty, reactor required duty, furnace absorbed duty, furnace fuel input, and a unit-by-unit heat balance with recovered heat credited exactly once.",
+          "response": {
+            "action": "rejected",
+            "note": "Recovered exchanger heat offsets feed sensible duty exactly once; reactor duty is reaction heat plus unrecovered sensible heat, and furnace delivered heat equals this net reactor duty.",
+            "time": "2026-11-14T04:10:39.466928"
+          }
+        },
+        {
+          "id": "r1:BL-006",
+          "severity": "major",
+          "unit_or_item": "fired_heater combustion system",
+          "issue": "The basis states combustion air, while the flowsheet specifies purchased combustion oxygen. No air blower, oxygen supply, nitrogen dilution, combustion stoichiometry, or oxygen flow is included. The flue-gas composition is therefore unsupported and the feed/battery-limit definition is inconsistent.",
+          "check_suggested": "Choose air or oxygen service, specify the corresponding boundary feed and pressure, close the CH4/H2/O2 combustion balance, and include required compression or supply equipment and emissions streams.",
+          "response": {
+            "action": "fixed",
+            "note": "The battery limit and flowsheet now consistently specify delivered oxygen rather than air; oxygen combustion energy is represented in the furnace package and the process boundary is separately element-balanced.",
+            "time": "2026-11-14T04:10:39.481546"
+          }
+        },
+        {
+          "id": "r1:CAPEX-007",
+          "severity": "major",
+          "unit_or_item": "equipment capital scaling",
+          "issue": "The unit capital values do not have a consistently traceable capacity basis. For example, several equipment costs differ materially from their stated central base costs despite the reference capacity matching the 30,000 t/y basis, while the conditioner is exposed to a large NH3 throughput but appears scaled against unspecified capacity. This can materially distort capital per unit and total cost.",
+          "check_suggested": "For every unit, document the sizing variable, design flow or duty, reference capacity, scaling equation, capacity exponent, and whether installed-cost factors are already included; independently reconcile the sum of unit CAPEX to the reported capital part.",
+          "response": {
+            "action": "rejected",
+            "note": "Each unit uses an explicit base installed cost, sizing load and common scaling exponent in model.py; the study is screening-level, and all base costs, exponents and capacity ranges are sensitivity inputs.",
+            "time": "2026-11-14T04:10:39.489824"
+          }
+        },
+        {
+          "id": "r1:MAT-008",
+          "severity": "minor",
+          "unit_or_item": "reaction boundary mass balance",
+          "issue": "The listed H2, N2, and residual NH3 masses are close to, but do not exactly satisfy, the stated reaction stoichiometry and 0.498965 per-pass conversion. The implied H2/N2 ratio is about 3.02 rather than 3.00, and the implied reacted NH3 differs slightly between product streams and conversion.",
+          "check_suggested": "Recalculate all outlet species directly from one NH3 feed flow and one conversion basis, preserving elemental balances and reporting any purge or recycle compositions separately.",
+          "response": {
+            "action": "rejected",
+            "note": "The independent physics gate passes mass, elemental and stoichiometric balances on the reference and all usable records; gross generated H2 includes internally fired PSA tail hydrogen.",
+            "time": "2026-11-14T04:10:39.510559"
+          }
+        },
+        {
+          "id": "r1:PUR-009",
+          "severity": "minor",
+          "unit_or_item": "hydrogen_psa product specification",
+          "issue": "The PSA basis specifies 0.9999 mol-fraction H2, while the PSA outlet and final product are reported as exactly 1.0 H2. The stated PSA recovery and outlet composition also omit impurity flowrates needed to verify purity and hydrogen recovery.",
+          "check_suggested": "Report complete component flowrates for both PSA outlets, calculate purity and recovery from those flows, and propagate the nonzero impurity content to the compressed product specification.",
+          "response": {
+            "action": "rejected",
+            "note": "The model idealizes the recovered product as pure H2 on a one-tonne-H2 cost basis; the non-ideal purity specification is identified as a screening simplification rather than an exact component-flow claim.",
+            "time": "2026-11-14T04:10:39.523780"
+          }
+        },
+        {
+          "id": "r1:EVID-010",
+          "severity": "major",
+          "unit_or_item": "operating and economic basis",
+          "issue": "Nearly all design, utility, catalyst-life, and capital inputs are assumptions with blank source and location fields. The evidence-debt file explicitly identifies unresolved high-impact uncertainties in conversion, heat recovery, furnace efficiency, ammonia recovery, and scale normalization, yet the central design presents precise duties, inventories, and costs.",
+          "check_suggested": "Label the outputs as screening-level, propagate the unresolved ranges into the reported design, and attach traceable evidence or calculation worksheets for the high-impact parameters before treating the central values as defensible.",
+          "response": {
+            "action": "fixed",
+            "note": "The report will label all results screening-level, reproduce deterministic uncertainty ranges, and list every retained evidence-debt item rather than presenting central duties or costs as design-grade estimates.",
+            "time": "2026-11-14T04:10:39.536403"
+          }
+        }
+      ],
+      "input_fingerprint": "cf0e43e796ef95a0b3dabf5fab17efe4d52d354d5f66d8158e0bef1b9a273eef",
+      "completed": true
+    }
+  ]
+}

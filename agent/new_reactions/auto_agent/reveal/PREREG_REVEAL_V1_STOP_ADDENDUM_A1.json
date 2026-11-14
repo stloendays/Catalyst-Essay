@@ -1,0 +1,10 @@
+{
+ "id": "REVEAL-V1-STOP addendum A1",
+ "written": "2026-11-11T02:28:22",
+ "finding": "The first 120 hard-arm runs checked rule R after each reveal call; agents revealed many cells in one call (up to 255), so cells after the point where R held were executed and charged (methanation: R at 2 units, median spend 20). This contradicts the preregistered definition ('the run ends at the first action after which R holds'; one cell = one action).",
+ "correction": "Env.reveal now checks R before every cell in the hard arm and does not execute or charge cells after R holds. No other change.",
+ "archived": "reveal/archive_hard_batch_flaw/ (120 runs, step logs); excluded from the cell table",
+ "gate_arm_unaffected": "the gate check was already per cell",
+ "reveal_game_sha256_after": "a2b1809bd9eaf1d441b59f534dfb5a27cc41150b340997d828a329f5be9e5db3",
+ "written_before_rerun": true
+}

@@ -1,0 +1,29 @@
+{
+ "id": "V3.1-A2",
+ "written": "2026-11-13T12:29:19",
+ "amends": [
+  "PREREG_AI_BUILD_NH3DEC.json",
+  "PREREG_AI_BUILD_NH3DEC_A1.json",
+  "PREREG_BLIND_NH3.json",
+  "PREREG_BLIND_MEOH.json"
+ ],
+ "change": "Amendment A2 (2026-11-13), written before any model output of the V3.1 builds was evaluated.\n\nObserved: the V3.1 workflow (design basis, physics gate with upper bounds and zero-duty rule, evidence debt, critic, atomic layer,\ndeterministic sensitivity) needs more tool turns than V2: nh3dec_b2 reached the 140-turn limit in the atomic_model stage\n(66 calls in model_checks), with about 10.6 M resent input tokens. Change, for every build from now on (replacement builds of\nNH3 decomposition and all blind builds): max_turns 300, and a generic history compaction in runner.py (tool outputs and long\ntool arguments older than the last 60 tool calls are cut to a short head; files and trace.jsonl keep the full text). A build\nthat ends at the turn limit is invalid and is replaced; every replacement is reported. Nothing in the agent's instructions,\ntools, gates, price table, holdouts, targets, tolerances or agreement rules changes.\nAlso recorded: the API-YES credential GPT-personal reached its usage limit at about 12:00 (reset 16:03); calls fell back to\nthe credential 邪修gpt with the same model name, as the route order in llm_route.py prescribes.",
+ "max_turns": 300,
+ "history_compaction_keep_last_tool_calls": 60,
+ "invalid_so_far": {
+  "nh3dec_b2": "turn limit (140) in atomic_model",
+  "nh3_b1, nh3_b2, nh3_b3": "stopped by the operator during extraction (started with 140 turns, before A2); not evaluated"
+ },
+ "frozen_sha256": {
+  "runner.py": "847094c7295c368a5bdaa79919797d4c07a0cbd7b2449930bd308130c11d1b99",
+  "build_mode.py": "cbcb69569cc20373a51b2694ff2677d233daa44789a2249aef146901804b5427",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "7c87bc98bfba5c3bb2de29c74db5ac4e87cfda685aec2b2b8fd67641fb599e40",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed"
+ }
+}

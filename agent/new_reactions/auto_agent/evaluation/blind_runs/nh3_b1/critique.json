@@ -1,0 +1,118 @@
+{
+  "rounds": [
+    {
+      "issues": [
+        {
+          "id": "r1:mass-balance-reactor-separator",
+          "severity": "major",
+          "unit_or_item": "ammonia_converter; ammonia_separator",
+          "issue": "The stated reactor conversion, reactor feed composition, separator feed composition, product flow, and recycle-gas flow are mutually inconsistent. With 298.192 kmol/t entering at 25/75 mol% N2/H2 and 58.718 kmol/t NH3 formed, the implied single-pass conversion is about 0.394, not 0.329; the reported separator feed composition also does not follow the stoichiometric outlet composition.",
+          "check_suggested": "Recalculate component flows across the reactor and separator from one consistent extent of reaction, verify total kmol and elemental balances, and reconcile the stated per-pass conversion.",
+          "response": {
+            "action": "rejected",
+            "note": "The critique treated separator-feed total moles as reactor-inlet total moles. In the model, reactor inlet is loop_N+loop_H; reaction reduces total moles by twice the extent, yielding the smaller separator feed. The independent element, mass, conversion and separation checks pass after recalculation.",
+            "time": "2026-11-13T14:21:46.361705"
+          }
+        },
+        {
+          "id": "r1:product-purity-boundary",
+          "severity": "major",
+          "unit_or_item": "boundary; ammonia_product",
+          "issue": "The product boundary state specifies 0.999 NH3 mol fraction, while out_t_per_t and the separator product outlet are exactly pure NH3. Feed purity assumptions are likewise not reflected in the boundary mass balance.",
+          "check_suggested": "Include impurity component flows and product recovery/purity explicitly, then confirm that feed consumption and product mass close at the specified purity.",
+          "response": {
+            "action": "fixed",
+            "note": "The basis now explicitly idealizes N2, H2 and NH3 boundary species at unity purity, consistent with the modeled species set and boundary mass balance; broader purity ranges remain sensitivity assumptions.",
+            "time": "2026-11-13T14:21:46.377058"
+          }
+        },
+        {
+          "id": "r1:heat-duty-recovery-double-count",
+          "severity": "major",
+          "unit_or_item": "ammonia_converter; waste_heat_boiler; feed_effluent_exchanger",
+          "issue": "The reactor duty magnitude is 3.092 GJ/t, whereas the cited reaction heat is 2.708 GJ/t. Reported recovered heats of 2.164 and 1.731 GJ/t sum to 3.895 GJ/t, exceeding the available reactor heat if both are credited independently.",
+          "check_suggested": "Prepare a stream-by-stream enthalpy balance with signs, sensible heat, reaction heat, exchanger losses, and utility heat; ensure sequential recovery duties are not added as independent heat sources.",
+          "response": {
+            "action": "fixed",
+            "note": "Heat recovery is now sequential: the feed-effluent exchanger and waste-heat boiler divide the recoverable reactor heat, so their recovered-heat entries sum to no more than the available recoverable duty.",
+            "time": "2026-11-13T14:21:46.394561"
+          }
+        },
+        {
+          "id": "r1:energy-total-reconciliation",
+          "severity": "major",
+          "unit_or_item": "parts.energy; unit energy fields",
+          "issue": "The sum of listed unit purchased energies is approximately 7.003 GJ/t, consistent with the evidence-debt reference energy, but parts.energy is 62.251 GJ/t with no documented additional contribution or unit basis.",
+          "check_suggested": "Reconcile parts.energy to the unit ledger and state whether feed chemical energy, primary-energy factors, or another quantity is included; verify that no feed energy or electricity is double counted.",
+          "response": {
+            "action": "rejected",
+            "note": "parts.energy is an annualized operating cost in USD per tonne, as required by the model contract, whereas unit purchased_energy fields and balances.energy_GJ_per_t are energy quantities; 62.74 USD/t and roughly 7 GJ/t therefore are not quantities to sum directly.",
+            "time": "2026-11-13T14:21:46.411461"
+          }
+        },
+        {
+          "id": "r1:catalyst-inventory-and-cost",
+          "severity": "major",
+          "unit_or_item": "catalyst; ammonia_converter",
+          "issue": "No catalyst inventory or replacement unit appears in the unit list, despite a 100 m3 reactor, 1000 kg/m3 catalyst density, stated catalyst life, and catalyst cost contribution. The listed metal loading assumptions are also mutually impossible if applied together: Ru 0.05, Fe 0.8, Co 0.4, and Mo 0.2 sum to 1.45 kg/kg catalyst.",
+          "check_suggested": "Define the actual catalyst formulation, inventory, support mass, replacement frequency, and accounting basis; enforce loadings summing to no more than one and reconcile the resulting catalyst cost with parts.catalyst.",
+          "response": {
+            "action": "fixed",
+            "note": "The reactor unit now reports catalyst inventory, volume, material price and life explicitly. Unknown active-metal loading assumptions are conditional alternatives selected by catalyst identity, not simultaneous loadings; reported loadings are normalized if their sum exceeds unity.",
+            "time": "2026-11-13T14:21:46.428768"
+          }
+        },
+        {
+          "id": "r1:compressor-duty-basis",
+          "severity": "minor",
+          "unit_or_item": "makeup_compressor; recycle_compressor",
+          "issue": "The compressor fields mix purchased energy, primary-energy-adjusted energy, and shaft power without an explicit convention. For example, makeup purchased energy is about 2.5 times the listed power, while the recycle relationship is not equally transparent.",
+          "check_suggested": "Label electric shaft work, purchased electricity, and primary energy separately and independently verify both compressor duties from gas flow, pressure ratio, temperature, efficiency, staging, and intercooling.",
+          "response": {
+            "action": "fixed",
+            "note": "Each compressor now reports shaft power in GJ/t and kW, purchased primary energy separately, installed USD/kW and capex; the independent compression check passes.",
+            "time": "2026-11-13T14:21:46.433766"
+          }
+        },
+        {
+          "id": "r1:refrigeration-phase-duty",
+          "severity": "major",
+          "unit_or_item": "ammonia_condenser",
+          "issue": "A condenser temperature of 248.15 K, 150 bar loop pressure, 1.37 GJ/t condensation duty, and an assumed COP of 3 are not tied to a vapor-liquid equilibrium or refrigeration-cycle calculation. The knockout designation alone does not establish complete NH3 recovery at the stated product purity.",
+          "check_suggested": "Perform a pressure-specific NH3/N2/H2 phase-equilibrium calculation, define condenser and separator pressures and temperatures, calculate actual vapor and liquid compositions, and size refrigeration duty from enthalpy differences.",
+          "response": {
+            "action": "rejected",
+            "note": "A full multicomponent EOS/VLE fit is not supportable from the catalyst papers and lies beyond this comparative screening model. The reduced-order condensation/refrigeration duty is explicitly bounded, retained as evidence debt and propagated by deterministic sensitivity; the independent separation-energy floor passes.",
+            "time": "2026-11-13T14:21:46.455013"
+          }
+        },
+        {
+          "id": "r1:capital-unit-scaling",
+          "severity": "major",
+          "unit_or_item": "makeup_compressor; recycle_compressor; ammonia_condenser",
+          "issue": "Displayed unit capital values do not transparently reconcile with the stated base capital assumptions and installed compressor cost. The recycle compressor has only about 0.3 MW implied shaft duty but a displayed capital of about 0.6 million USD, while the makeup compressor has about 22 MW implied duty and about 44.6 million USD; the underlying scaling and pressure factors are undocumented and differ from the basis entries.",
+          "check_suggested": "Show equipment sizing, train count, pressure-rating factors, installed-cost correlations, and scaling from the basis values for each major item; compare compressor costs on a consistent installed basis.",
+          "response": {
+            "action": "fixed",
+            "note": "Compressor units now expose shaft kW and the installed USD/kW correlation; all equipment capex remains in the unit ledger, scales with capacity/pressure/throughput, and reconciles exactly to total installed capital.",
+            "time": "2026-11-13T14:21:46.474658"
+          }
+        },
+        {
+          "id": "r1:purge-and-impurity-control",
+          "severity": "minor",
+          "unit_or_item": "purge_splitter; recycle loop",
+          "issue": "The purge fraction is zero, while the flowsheet purpose states that purge prevents impurity accumulation. With feed purities below unity, a zero purge would accumulate inerts unless impurities are explicitly excluded from the material model.",
+          "check_suggested": "Either model feed impurities and specify a nonzero purge based on an inert balance, or explicitly justify their exclusion and remove the impurity-control claim.",
+          "response": {
+            "action": "fixed",
+            "note": "The purge fraction was restored to 1% with a 0.2\u20135% sensitivity range; boundary feeds are modeled as pure species, so the purge represents robustness to trace inerts rather than an unclosed explicit impurity balance.",
+            "time": "2026-11-13T14:21:46.488919"
+          }
+        }
+      ],
+      "input_fingerprint": "880ba57d99efdc1e875f2693026971ab2d461741939992c1e39e004dbd079edb",
+      "completed": true
+    }
+  ]
+}

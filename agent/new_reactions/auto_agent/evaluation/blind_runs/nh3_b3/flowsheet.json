@@ -1,0 +1,373 @@
+{
+  "units": [
+    {
+      "name": "H2 feed compressor",
+      "type": "compressor",
+      "purpose": "Compress purified hydrogen from battery-limit pressure to synthesis-loop pressure",
+      "inlets": [
+        "H2 feed"
+      ],
+      "outlets": [
+        "compressed H2"
+      ]
+    },
+    {
+      "name": "N2 feed compressor",
+      "type": "compressor",
+      "purpose": "Compress purified nitrogen from battery-limit pressure to synthesis-loop pressure",
+      "inlets": [
+        "N2 feed"
+      ],
+      "outlets": [
+        "compressed N2"
+      ]
+    },
+    {
+      "name": "makeup gas mixer",
+      "type": "other",
+      "purpose": "Combine stoichiometric compressed makeup hydrogen and nitrogen",
+      "inlets": [
+        "compressed H2",
+        "compressed N2"
+      ],
+      "outlets": [
+        "makeup gas"
+      ]
+    },
+    {
+      "name": "loop feed mixer",
+      "type": "other",
+      "purpose": "Combine makeup gas with compressed recycle gas",
+      "inlets": [
+        "makeup gas",
+        "compressed recycle gas"
+      ],
+      "outlets": [
+        "combined loop feed"
+      ]
+    },
+    {
+      "name": "feed effluent heat exchanger",
+      "type": "heat_exchanger",
+      "purpose": "Recover reactor-effluent sensible heat into the combined loop feed",
+      "inlets": [
+        "combined loop feed",
+        "temperature-controlled reactor effluent"
+      ],
+      "outlets": [
+        "preheated loop feed",
+        "cooled reactor effluent"
+      ]
+    },
+    {
+      "name": "recovered-heat trim exchanger",
+      "type": "heat_exchanger",
+      "purpose": "Use recovered reactor heat or steam to supply residual steady-state feed preheat without purchased fuel",
+      "inlets": [
+        "preheated loop feed"
+      ],
+      "outlets": [
+        "reactor feed"
+      ]
+    },
+    {
+      "name": "ammonia synthesis reactor",
+      "type": "reactor",
+      "purpose": "Convert N2 and H2 to NH3 in multiple fixed catalyst beds with interbed heat removal",
+      "inlets": [
+        "reactor feed"
+      ],
+      "outlets": [
+        "hot reactor effluent"
+      ]
+    },
+    {
+      "name": "interbed heat recovery exchanger",
+      "type": "heat_exchanger",
+      "purpose": "Represent integrated interbed cooling and converter outlet steam generation for temperature control",
+      "inlets": [
+        "hot reactor effluent"
+      ],
+      "outlets": [
+        "temperature-controlled reactor effluent"
+      ]
+    },
+    {
+      "name": "ammonia condenser separator",
+      "type": "separation",
+      "purpose": "Cool the high-pressure loop gas, condense NH3, and separate liquid ammonia from unreacted gas",
+      "inlets": [
+        "cooled reactor effluent"
+      ],
+      "outlets": [
+        "crude liquid ammonia",
+        "separator gas"
+      ]
+    },
+    {
+      "name": "purge splitter",
+      "type": "other",
+      "purpose": "Purge a small gas fraction to prevent accumulation of feed impurities while sending the balance to recycle",
+      "inlets": [
+        "separator gas"
+      ],
+      "outlets": [
+        "purge gas",
+        "recycle gas"
+      ]
+    },
+    {
+      "name": "recycle compressor",
+      "type": "compressor",
+      "purpose": "Restore recycle-gas pressure losses and return unreacted N2 and H2 to the loop",
+      "inlets": [
+        "recycle gas"
+      ],
+      "outlets": [
+        "compressed recycle gas"
+      ]
+    },
+    {
+      "name": "NH3 product letdown",
+      "type": "other",
+      "purpose": "Reduce liquid-ammonia pressure to the product battery-limit pressure",
+      "inlets": [
+        "crude liquid ammonia"
+      ],
+      "outlets": [
+        "NH3 product"
+      ]
+    },
+    {
+      "name": "purge handling and offsites",
+      "type": "offsites",
+      "purpose": "Safely meter and route the small hydrogen-rich purge and provide loop electrical/cooling-water infrastructure",
+      "inlets": [
+        "purge gas"
+      ],
+      "outlets": [
+        "treated purge"
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "name": "H2 feed",
+      "from": "boundary",
+      "to": "H2 feed compressor",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "N2 feed",
+      "from": "boundary",
+      "to": "N2 feed compressor",
+      "species": [
+        "N2"
+      ]
+    },
+    {
+      "name": "compressed H2",
+      "from": "H2 feed compressor",
+      "to": "makeup gas mixer",
+      "species": [
+        "H2"
+      ]
+    },
+    {
+      "name": "compressed N2",
+      "from": "N2 feed compressor",
+      "to": "makeup gas mixer",
+      "species": [
+        "N2"
+      ]
+    },
+    {
+      "name": "makeup gas",
+      "from": "makeup gas mixer",
+      "to": "loop feed mixer",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "combined loop feed",
+      "from": "loop feed mixer",
+      "to": "feed effluent heat exchanger",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "preheated loop feed",
+      "from": "feed effluent heat exchanger",
+      "to": "recovered-heat trim exchanger",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "reactor feed",
+      "from": "recovered-heat trim exchanger",
+      "to": "ammonia synthesis reactor",
+      "species": [
+        "N2",
+        "H2"
+      ]
+    },
+    {
+      "name": "hot reactor effluent",
+      "from": "ammonia synthesis reactor",
+      "to": "interbed heat recovery exchanger",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "cooled reactor effluent",
+      "from": "feed effluent heat exchanger",
+      "to": "ammonia condenser separator",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "crude liquid ammonia",
+      "from": "ammonia condenser separator",
+      "to": "NH3 product letdown",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "separator gas",
+      "from": "ammonia condenser separator",
+      "to": "purge splitter",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "purge gas",
+      "from": "purge splitter",
+      "to": "purge handling and offsites",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "recycle gas",
+      "from": "purge splitter",
+      "to": "recycle compressor",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "compressed recycle gas",
+      "from": "recycle compressor",
+      "to": "loop feed mixer",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "NH3 product",
+      "from": "NH3 product letdown",
+      "to": "boundary",
+      "species": [
+        "NH3"
+      ]
+    },
+    {
+      "name": "treated purge",
+      "from": "purge handling and offsites",
+      "to": "boundary",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    },
+    {
+      "name": "temperature-controlled reactor effluent",
+      "from": "interbed heat recovery exchanger",
+      "to": "feed effluent heat exchanger",
+      "species": [
+        "N2",
+        "H2",
+        "NH3"
+      ]
+    }
+  ],
+  "checklist": {
+    "feed_preparation": {
+      "included": [
+        "H2 feed compressor",
+        "N2 feed compressor",
+        "makeup gas mixer",
+        "loop feed mixer",
+        "feed effluent heat exchanger",
+        "recovered-heat trim exchanger"
+      ]
+    },
+    "reactor_heat_supply_or_removal": {
+      "included": [
+        "ammonia synthesis reactor",
+        "interbed heat recovery exchanger",
+        "feed effluent heat exchanger",
+        "recovered-heat trim exchanger"
+      ]
+    },
+    "catalyst_regeneration": {
+      "excluded": "The compared ammonia catalysts are replaced at end of life rather than regenerated continuously; replacement and downtime are represented in catalyst cost and availability assumptions."
+    },
+    "product_compression": {
+      "excluded": "Ammonia leaves the high-pressure separator above the specified 20 bar product pressure, so a letdown valve is required but no product compressor is thermodynamically necessary."
+    },
+    "separation_and_purification": {
+      "included": [
+        "ammonia condenser separator",
+        "NH3 product letdown"
+      ]
+    },
+    "recycle": {
+      "included": [
+        "purge splitter",
+        "recycle compressor",
+        "loop feed mixer"
+      ]
+    },
+    "heat_recovery": {
+      "included": [
+        "interbed heat recovery exchanger",
+        "feed effluent heat exchanger",
+        "recovered-heat trim exchanger"
+      ]
+    },
+    "utilities_and_offsites": {
+      "included": [
+        "purge handling and offsites",
+        "recovered-heat trim exchanger",
+        "ammonia condenser separator"
+      ]
+    }
+  },
+  "diagram": "flowchart LR\nH2[H2 feed] --> C1[H2 feed compressor]\nN2[N2 feed] --> C2[N2 feed compressor]\nC1 --> M1[makeup gas mixer]\nC2 --> M1\nM1 --> M2[loop feed mixer]\nRC[recycle compressor] --> M2\nM2 --> HX[feed-effluent heat exchanger]\nHX --> EH[recovered-heat trim exchanger]\nEH --> R[ammonia synthesis reactor]\nR --> HX\nHX --> S[ammonia condenser separator]\nS --> L[NH3 product letdown]\nL --> P[NH3 product]\nS --> PS[purge splitter]\nPS --> RC\nPS --> O[purge handling and offsites]\nO --> V[treated purge]"
+}

@@ -1,0 +1,22 @@
+{
+ "id": "V3.1-A8",
+ "written": "2026-11-14T11:19:18",
+ "amends": "PREREG_V31_A7.json",
+ "change": "Amendment A8 (2026-11-14), cost control for runs started from now on.\n\nObserved: most input tokens are the agent history resent every turn, and runs that end invalid waste a whole build. Changes: a hard per-build spend cap (default 60 USD, list-price equivalent, --max-usd); at 85 % of the cap the agent is\ntold to write its report and finish; a build that reaches the cap stops with status \"budget limit\" (invalid, replaced and\nreported, like a turn limit). History compaction keeps the last 30 tool calls in full (was 60). Cached input tokens are now\nrecorded (agent_cached_in) where the gateway reports them. Modelling instructions, gates, prices, holdouts, targets and\ntolerances are unchanged.",
+ "max_usd_per_build": 60.0,
+ "history_keep_last_tool_calls": 30,
+ "frozen_sha256": {
+  "runner.py": "8ff22127dff979e964f63f964b902039fba77b58d4ff14987b1d2c067e1bebce",
+  "build_mode.py": "a1c69460c6effee598282385c3e81ca368b60b9d989887a70c9b292bbf46e410",
+  "physics_gate.py": "90d379561fcf6724ee2a1c7169ef3b9abdc827b92be6fee31f9bf729ecafc483",
+  "basis_gate.py": "296fb846a7865602d4541c521936de5c429a2732479b30f3cd0db805d7c7daba",
+  "atomic_layer.py": "c33ac38f5b01009f49ed4472bf9b5e9a3ca3bd884736c061a7dfa9ea573ccbe5",
+  "mkm_solver.py": "11ef7dfc9e2c3190608a319eb6137d0613052c60988a2df9d7187093ddea6959",
+  "prices.json": "65673a9f7e9eefff1e02bf337b77cc3f80e6ba1b83b9b6c9fa0468216ec388c2",
+  "evaluate_builds.py": "7c87bc98bfba5c3bb2de29c74db5ac4e87cfda685aec2b2b8fd67641fb599e40",
+  "audit_holdout.py": "6ebc562dfc0284416bbf0b445ad1c83036c0258e768d29724e2ba8c3ddf7dcdd",
+  "blind_eval.py": "6da21925c41ba0a799f0402e944188c0ece2dedf05a13ec00190f348b85029ed",
+  "../chain.py": "5df8d6679802f6cfebd90b7d91cc975e176eed7429e5333d255c0b246596ff57",
+  "../normalize.py": "18c98514d2d129e67e355b90d928ef99b5120bec064965ede50f361582649cba"
+ }
+}

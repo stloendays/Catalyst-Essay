@@ -1,0 +1,78 @@
+{
+ "llm": {
+  "pdh": {
+   "calls": 17,
+   "prompt": 294611,
+   "completion": 148852,
+   "seconds": 1468.7,
+   "usd": 5.938615
+  },
+  "ch4": {
+   "calls": 15,
+   "prompt": 373853,
+   "completion": 245420,
+   "seconds": 2010.9999999999995,
+   "usd": 9.231864999999999
+  }
+ },
+ "llm_total_usd": 15.17048,
+ "llm_total_tokens": 1062736,
+ "stages": [
+  {
+   "stage": "1 search + AI screening (OpenAlex, both reactions)",
+   "start": "2026-11-10T20:01:33+08:00",
+   "end": "2026-11-10T20:09:02+08:00",
+   "minutes": 7.5,
+   "note": "33 + 24 papers selected from 260 OpenAlex hits; 1 computational paper slipped through"
+  },
+  {
+   "stage": "2 download (OA routes, then NUS EZproxy headless)",
+   "start": "2026-11-10T20:04:24+08:00",
+   "end": "2026-11-10T20:13:28+08:00",
+   "minutes": 9.1,
+   "note": "19 of 35 tried; Elsevier ScienceDirect bot check and RSC/MDPI crawl blocks skipped"
+  },
+  {
+   "stage": "0 one-time setup: Docling GPU env (torch 2.8 cu128)",
+   "start": "2026-11-10T20:03:13+08:00",
+   "end": "2026-11-10T20:09:16+08:00",
+   "minutes": 6.0,
+   "note": "one-time, ran in parallel with stages 1-2"
+  },
+  {
+   "stage": "3a OCR Docling, first run (2x images)",
+   "start": "2026-11-10T20:14:34+08:00",
+   "end": "2026-11-10T20:22:27+08:00",
+   "minutes": 7.9,
+   "note": "superseded: figure crops too small"
+  },
+  {
+   "stage": "4a LLM extraction, first run",
+   "start": "2026-11-10T20:23:54+08:00",
+   "end": "2026-11-10T20:35:20+08:00",
+   "minutes": 11.4,
+   "note": "superseded: too few / low-resolution figures"
+  },
+  {
+   "stage": "3b OCR Docling, final (4x images)",
+   "start": "2026-11-10T20:35:48+08:00",
+   "end": "2026-11-10T20:43:16+08:00",
+   "minutes": 7.5,
+   "note": "251 pages, 19 PDFs, RTX 5060"
+  },
+  {
+   "stage": "4b LLM extraction, final (6 parallel)",
+   "start": "2026-11-10T20:43:16+08:00",
+   "end": "2026-11-10T20:52:44+08:00",
+   "minutes": 9.5,
+   "note": "gpt-5.5, advisor key; 18 calls"
+  },
+  {
+   "stage": "5 normalise + self-check + plant models + analysis + sensitivity",
+   "start": "2026-11-10T20:52:53+08:00",
+   "end": "2026-11-10T21:01:00+08:00",
+   "minutes": 8.1,
+   "note": "model code written during stages 3-4"
+  }
+ ]
+}

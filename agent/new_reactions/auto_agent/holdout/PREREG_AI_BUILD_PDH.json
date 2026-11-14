@@ -1,0 +1,37 @@
+{
+ "id": "AI-BUILD-PDH-V1",
+ "written": "2026-11-11T18:42:36",
+ "guidance": "docs/SUPERVISOR_FEEDBACK_2026-11-11.md (PR #123) and the supervisor's reply of 2026-11-11: validation TEA held out; tolerances set by us; rule for disagreeing builds fixed in advance; PDH first, then methanation, then NH3/MeOH blind tests.",
+ "task": "runner.py --build pdh: from the reaction name the agent searches, screens, extracts, chooses mechanism/kinetics/reactor/flowsheet, sources parameters, writes model.py (contract in build_mode.py), passes check_model, runs the ranking analysis, writes the report.",
+ "agent": {
+  "model": "gpt-5.5",
+  "route": "API-YES credential 邪修gpt",
+  "extraction_model": "gpt-5.5",
+  "max_turns": 90,
+  "n_target_papers": 12,
+  "n_max_downloads": 20,
+  "workspace": "D:/agent_runs/<run> (outside the repository); scripts restricted to relative paths"
+ },
+ "not_visible_to_the_agent": [
+  "agent/new_reactions/plant_models.py, plant_framework.py, configs/*, params*.json, SOURCES.md, results/*",
+  "auto_agent/holdout/*",
+  "the NCE repository and its PRs (url fragments audited)"
+ ],
+ "builds": "3 independent builds (separate workspaces, no shared files); a build that fails check_model at finish or whose holdout audit finds a leak is invalid and replaced by a new build; every replacement is reported",
+ "validation": "evaluate_builds.py against holdout/pdh.json targets (propane t/t +-5 %, purchased energy GJ/t +-35 %, capital per annual t -30/+50 %); pass/partial/fail as in pass_rule; total cost and shares reported, not gated",
+ "agreement_rule": {
+  "per_conclusion": "largest cost item, controlling catalyst property, cheapest catalyst on the common record set (the 59 PR #122 PDH records): robust = 3/3 agree, majority = 2/3, model-dependent = no majority; all three builds reported",
+  "quantitative": "reference-cost spread max/min - 1 and pairwise Spearman of record costs on the common set; spread <= 20 % and every Spearman >= 0.8 is called consistent",
+  "primary_build": "the build with the median reference cost, fixed before the holdout comparison is looked at",
+  "selection": "no selection of builds by TEA fit"
+ },
+ "ledger": "stage_ledger.csv (agent and extraction tokens, wall time, USD at gpt-5.5 list price per stage); human_log.csv (every human intervention with type and minutes; infrastructure fixes listed separately)",
+ "frozen_sha256": {
+  "runner.py": "2886f29c8e6e403bfc8fb84615a988dd1cb915d8a7d32a52038ba0d3123507b8",
+  "build_mode.py": "5dfe5b389360325f9973e8fb6575d2998a46f73f48c4969bd57a4172c3aadb0f",
+  "full_mode.py": "ce8513f172a13a50122433ed4f03b9f97c299eb33deba7a3cceabf8b92a10f58",
+  "evaluate_builds.py": "5095c08195dc4e4fa404658e219249104eebeb5cc7eeea70e1b7b7163281b868",
+  "audit_holdout.py": "78a29916adcc124bf4a90f2304f8c01577241ea6afec97f9646fda51fdcbd7a5",
+  "holdout/pdh.json": "193cacf26df14d91dedf330ce19d5f75ba0fab41d0759b84996fecf81e89b246"
+ }
+}

@@ -1,0 +1,44 @@
+{
+  "units": [
+    {"name":"hydrogen_feed_compressor","type":"compressor","purpose":"Compress purchased hydrogen from battery-limit pressure to synthesis-loop pressure","inlets":["hydrogen_feed"],"outlets":["compressed_hydrogen"]},
+    {"name":"nitrogen_feed_compressor","type":"compressor","purpose":"Compress purchased nitrogen from battery-limit pressure to synthesis-loop pressure","inlets":["nitrogen_feed"],"outlets":["compressed_nitrogen"]},
+    {"name":"synthesis_gas_mixer","type":"other","purpose":"Combine stoichiometric fresh feeds with unreacted recycle gas","inlets":["compressed_hydrogen","compressed_nitrogen","compressed_recycle"],"outlets":["loop_feed"]},
+    {"name":"feed_effluent_exchanger","type":"heat_exchanger","purpose":"Recover converter-effluent sensible heat to preheat synthesis-loop feed","inlets":["loop_feed","boiler_cooled_effluent"],"outlets":["preheated_loop_feed","heat_recovered_effluent"]},
+    {"name":"ammonia_converter","type":"reactor","purpose":"Catalytically convert nitrogen and hydrogen to ammonia in an equilibrium-limited multibed converter","inlets":["preheated_loop_feed"],"outlets":["hot_converter_effluent"]},
+    {"name":"waste_heat_boiler","type":"heat_exchanger","purpose":"Remove exothermic reaction heat and recover it as useful steam-equivalent heat","inlets":["hot_converter_effluent"],"outlets":["boiler_cooled_effluent"]},
+    {"name":"final_product_cooler","type":"heat_exchanger","purpose":"Cool synthesis gas sufficiently to condense ammonia for phase separation","inlets":["heat_recovered_effluent"],"outlets":["partly_condensed_effluent"]},
+    {"name":"ammonia_knockout","type":"knockout","purpose":"Separate condensed liquid ammonia from unreacted hydrogen and nitrogen","inlets":["partly_condensed_effluent"],"outlets":["liquid_ammonia","unreacted_loop_gas"]},
+    {"name":"purge_splitter","type":"other","purpose":"Remove a small purge to prevent accumulation of feed impurities and route the remainder to recycle","inlets":["unreacted_loop_gas"],"outlets":["purge_gas","recycle_gas"]},
+    {"name":"recycle_compressor","type":"compressor","purpose":"Restore recycle-gas pressure losses before remixing with fresh synthesis gas","inlets":["recycle_gas"],"outlets":["compressed_recycle"]},
+    {"name":"product_and_offsites","type":"offsites","purpose":"Provide synthesis-loop utility distribution, controls, storage allowance, and product battery-limit handling","inlets":["liquid_ammonia"],"outlets":["ammonia_product"]}
+  ],
+  "streams": [
+    {"name":"hydrogen_feed","from":"boundary","to":"hydrogen_feed_compressor","species":["H2"]},
+    {"name":"compressed_hydrogen","from":"hydrogen_feed_compressor","to":"synthesis_gas_mixer","species":["H2"]},
+    {"name":"nitrogen_feed","from":"boundary","to":"nitrogen_feed_compressor","species":["N2"]},
+    {"name":"compressed_nitrogen","from":"nitrogen_feed_compressor","to":"synthesis_gas_mixer","species":["N2"]},
+    {"name":"compressed_recycle","from":"recycle_compressor","to":"synthesis_gas_mixer","species":["H2","N2","NH3"]},
+    {"name":"loop_feed","from":"synthesis_gas_mixer","to":"feed_effluent_exchanger","species":["H2","N2","NH3"]},
+    {"name":"preheated_loop_feed","from":"feed_effluent_exchanger","to":"ammonia_converter","species":["H2","N2","NH3"]},
+    {"name":"hot_converter_effluent","from":"ammonia_converter","to":"waste_heat_boiler","species":["H2","N2","NH3"]},
+    {"name":"boiler_cooled_effluent","from":"waste_heat_boiler","to":"feed_effluent_exchanger","species":["H2","N2","NH3"]},
+    {"name":"heat_recovered_effluent","from":"feed_effluent_exchanger","to":"final_product_cooler","species":["H2","N2","NH3"]},
+    {"name":"partly_condensed_effluent","from":"final_product_cooler","to":"ammonia_knockout","species":["H2","N2","NH3"]},
+    {"name":"liquid_ammonia","from":"ammonia_knockout","to":"product_and_offsites","species":["NH3"]},
+    {"name":"unreacted_loop_gas","from":"ammonia_knockout","to":"purge_splitter","species":["H2","N2","NH3"]},
+    {"name":"purge_gas","from":"purge_splitter","to":"boundary","species":["H2","N2","NH3"]},
+    {"name":"recycle_gas","from":"purge_splitter","to":"recycle_compressor","species":["H2","N2","NH3"]},
+    {"name":"ammonia_product","from":"product_and_offsites","to":"boundary","species":["NH3"]}
+  ],
+  "checklist": {
+    "feed_preparation":{"included":["hydrogen_feed_compressor","nitrogen_feed_compressor","synthesis_gas_mixer","feed_effluent_exchanger"]},
+    "reactor_heat_supply_or_removal":{"included":["ammonia_converter","waste_heat_boiler"]},
+    "catalyst_regeneration":{"excluded":"Ammonia-synthesis catalysts are replaced during planned turnarounds; no continuous in-situ regeneration unit is justified inside this battery limit."},
+    "product_compression":{"excluded":"Condensed ammonia leaves at adequate pressure and is let down to the specified 20 bar product state, so no product compressor is required."},
+    "separation_and_purification":{"included":["final_product_cooler","ammonia_knockout","purge_splitter"]},
+    "recycle":{"included":["purge_splitter","recycle_compressor","synthesis_gas_mixer"]},
+    "heat_recovery":{"included":["waste_heat_boiler","feed_effluent_exchanger"]},
+    "utilities_and_offsites":{"included":["product_and_offsites"]}
+  },
+  "diagram":"H2 -> hydrogen_feed_compressor --\\n                                  > synthesis_gas_mixer -> feed_effluent_exchanger -> ammonia_converter -> waste_heat_boiler -> feed_effluent_exchanger -> final_product_cooler -> ammonia_knockout -> liquid NH3 -> product_and_offsites -> product\\nN2 -> nitrogen_feed_compressor --/                                                                                                                         \\-> gas -> purge_splitter -> purge + recycle_compressor --recycle--> mixer"
+}

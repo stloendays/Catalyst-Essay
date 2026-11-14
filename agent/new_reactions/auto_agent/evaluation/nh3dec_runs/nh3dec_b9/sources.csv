@@ -1,0 +1,72 @@
+parameter,value,unit,source,location,type,low,high
+basis.capacity_t_per_y,50000,t_H2/y,,,assumption,10000,200000
+basis.operating_hours_per_y,8000,h/y,,,assumption,7000,8500
+basis.feeds.NH3.T_K,298.15,K,,,assumption,273.15,313.15
+basis.feeds.NH3.P_bar,10.0,bar,,,assumption,8.0,20.0
+basis.feeds.NH3.purity_mol_frac,0.999,mol/mol,,,assumption,0.995,1.0
+basis.product.H2.P_bar,30.0,bar,https://www.energy.gov/cmei/fuels/gaseous-hydrogen-compression,Page statement: hydrogen is typically produced at 20-30 bar and compressed prior to transport.,published,20.0,70.0
+basis.product.H2.purity_mol_frac,0.9999,mol/mol,,,assumption,0.999,0.99999
+basis.utilities.cooling_water_supply_temperature,298.15,K,,,assumption,288.15,308.15
+basis.utilities.chilled_water_supply_temperature,278.15,K,,,assumption,273.15,288.15
+basis.utilities.electricity_primary_energy_factor,2.5,GJ_primary/GJ_electric,,,assumption,1.0,3.2
+price.ammonia,445.0,USD/t,prices.json:ammonia,prices.json entry ammonia,price_table,300.0,900.0
+price.electricity,80.0,USD/MWh,prices.json:electricity,prices.json entry electricity,price_table,40.0,150.0
+price.catalyst_support_and_manufacturing,20.0,USD/kg,prices.json:catalyst_support_and_manufacturing,prices.json entry catalyst_support_and_manufacturing,price_table,5.0,100.0
+price.metal_Ru,53852.5,USD/kg,prices.json:metal_Ru,prices.json entry metal_Ru,price_table,26926.25,107705.0
+price.metal_Fe,8.0,USD/kg,prices.json:metal_Fe,prices.json entry metal_Fe,price_table,4.0,16.0
+price.metal_Co,56.28401553583051,USD/kg,prices.json:metal_Co,prices.json entry metal_Co,price_table,28.142007767915256,112.56803107166103
+price.metal_Mo,91.22728409215301,USD/kg,prices.json:metal_Mo,prices.json entry metal_Mo,price_table,45.61364204607651,182.45456818430603
+price.metal_Ni,16.9094555095895,USD/kg,prices.json:metal_Ni,prices.json entry metal_Ni,price_table,8.45472775479475,33.818911019179
+price.metal_Cu,13.889122517655,USD/kg,prices.json:metal_Cu,prices.json entry metal_Cu,price_table,6.9445612588275,27.77824503531
+price.metal_Ba,0.3569000679809653,USD/kg,prices.json:metal_Ba,prices.json entry metal_Ba,price_table,0.17845003399048265,0.7138001359619306
+price.metal_Mg,2.5,USD/kg,prices.json:metal_Mg,prices.json entry metal_Mg,price_table,1.25,5.0
+price.metal_Al,3.9683,USD/kg,prices.json:metal_Al,prices.json entry metal_Al,price_table,1.98415,7.9366
+price.metal_Si,2.866006,USD/kg,prices.json:metal_Si,prices.json entry metal_Si,price_table,1.433003,5.732012
+price.capital_recovery_factor,0.0944,1/y,prices.json:capital_recovery_factor,prices.json entry capital_recovery_factor,price_table,0.08,0.13
+price.fixed_om_fraction_of_capex,0.04,1/y,prices.json:fixed_om_fraction_of_capex,prices.json entry fixed_om_fraction_of_capex,price_table,0.02,0.06
+reactor_pressure_bar,10.0,bar,,"Pressure-basis assumption aligned with delivered NH3 pressure, NH3 condensation, and PSA adsorption pressure.",assumption,5.0,15.0
+nh3_knockout_recovery,0.995,mol/mol,,Model boundary assumes residual NH3 is fully recovered across knockout plus PSA polishing; uncertainty spans 98-100%.,assumption,0.98,1.0
+psa_h2_recovery,0.98,mol/mol,,Assume hydrogen losses are recovered within PSA equalization/purge handling inside the battery limit; uncertainty spans 95-100%.,assumption,0.95,1.0
+psa_h2_purity,0.9999,mol/mol,,Engineering/modeling assumption documented in report,assumption,0.999,0.99999
+recuperator_effectiveness,0.75,fraction,,Engineering/modeling assumption documented in report,assumption,0.5,0.9
+electric_heater_efficiency,0.95,fraction,,Engineering/modeling assumption documented in report,assumption,0.85,0.99
+compressor_isentropic_efficiency,0.75,fraction,,Engineering/modeling assumption documented in report,assumption,0.6,0.85
+compressor_stage_pressure_ratio,3.0,ratio,,Engineering/modeling assumption documented in report,assumption,2.0,4.0
+psa_electricity_MWh_per_t_H2,0.25,MWh/t_H2,,Engineering/modeling assumption documented in report,assumption,0.05,0.6
+chilling_electricity_MWh_per_GJ_removed,0.05,MWh/GJ,https://betterbuildingssolutioncenter.energy.gov/sites/default/files/attachments/Better%20Plants-%20Process%20Cooling%20System%20Cheat%20Sheet.pdf,"Water-cooled chiller comparison table gives COP ranges 4.2-7.1; 1/(3.6 COP) gives about 0.039-0.066 MWh/GJ cooling, widened for auxiliaries.",published,0.039,0.08
+pump_electricity_MWh_per_t_recycle,0.002,MWh/t,,Engineering/modeling assumption documented in report,assumption,0.0005,0.01
+offsites_electricity_MWh_per_t_H2,0.08,MWh/t_H2,,Engineering/modeling assumption documented in report,assumption,0.03,0.2
+nh3_vaporization_GJ_per_t_NH3,1.37,GJ/t_NH3,,Engineering/modeling assumption documented in report,assumption,1.1,1.6
+feed_sensible_heat_kJ_per_kmol_K,80.0,kJ/kmol/K,,Engineering/modeling assumption documented in report,assumption,60.0,110.0
+product_sensible_heat_kJ_per_kmol_K,65.0,kJ/kmol/K,,Engineering/modeling assumption documented in report,assumption,45.0,90.0
+minimum_approach_temperature_K,30.0,K,,Engineering/modeling assumption documented in report,assumption,15.0,60.0
+default_catalyst_life_h,8000.0,h,,Engineering/modeling assumption documented in report,assumption,1000.0,40000.0
+minimum_catalyst_life_h,500.0,h,,Engineering/modeling assumption documented in report,assumption,100.0,2000.0
+catalyst_inventory_factor,1.25,installed/bare,,Engineering/modeling assumption documented in report,assumption,1.05,1.75
+catalyst_void_and_scale_factor,2.0,dimensionless,,Engineering/modeling assumption documented in report,assumption,1.2,5.0
+reactor_base_capex_usd,15000000.0,USD,,Engineering/modeling assumption documented in report,assumption,7000000.0,40000000.0
+vaporizer_base_capex_usd,3000000.0,USD,,Engineering/modeling assumption documented in report,assumption,1000000.0,8000000.0
+recuperator_base_capex_usd,5000000.0,USD,,Engineering/modeling assumption documented in report,assumption,2000000.0,12000000.0
+heater_base_capex_usd,8000000.0,USD,,Engineering/modeling assumption documented in report,assumption,3000000.0,20000000.0
+chiller_base_capex_usd,4000000.0,USD,,Engineering/modeling assumption documented in report,assumption,1500000.0,12000000.0
+knockout_base_capex_usd,1000000.0,USD,,Engineering/modeling assumption documented in report,assumption,300000.0,3000000.0
+recycle_pump_base_capex_usd,500000.0,USD,,Engineering/modeling assumption documented in report,assumption,150000.0,2000000.0
+psa_base_capex_usd,20000000.0,USD,,Engineering/modeling assumption documented in report,assumption,8000000.0,50000000.0
+compressor_base_capex_usd,12000000.0,USD,,Engineering/modeling assumption documented in report,assumption,5000000.0,30000000.0
+offsites_fraction_of_direct_capex,0.25,fraction,,Engineering/modeling assumption documented in report,assumption,0.15,0.45
+mixer_base_capex_usd,250000.0,USD,,Engineering/modeling assumption documented in report,assumption,100000.0,1000000.0
+capacity_scaling_exponent,0.65,dimensionless,,Engineering/modeling assumption documented in report,assumption,0.55,0.8
+reference_capacity_t_per_y,50000.0,t_H2/y,,Engineering/modeling assumption documented in report,assumption,50000.0,50000.0
+capital_activity_multiplier,0.15,fraction,,Engineering/modeling assumption documented in report,assumption,0.0,0.5
+reactor_reference_catalyst_kg,100000.0,kg,,Engineering/modeling assumption documented in report,assumption,20000.0,500000.0
+ambient_temperature_K,298.15,K,,Engineering/modeling assumption documented in report,assumption,288.15,308.15
+reactor_pressure_drop_bar,0.2,bar,,Engineering/modeling assumption documented in report,assumption,0.05,1.0
+compression_heat_capacity_ratio,1.4,dimensionless,,Engineering/modeling assumption documented in report,assumption,1.35,1.42
+gas_constant_kJ_per_kmol_K,8.314462618,kJ/kmol/K,,Engineering/modeling assumption documented in report,assumption,8.314462618,8.314462618
+reaction_heat_GJ_per_kmol_NH3,0.04611,GJ/kmol_NH3,,Engineering/modeling assumption documented in report,assumption,0.045,0.048
+maximum_recycle_ratio,20.0,mol/mol fresh,,Engineering/modeling assumption documented in report,assumption,5.0,50.0
+minimum_per_pass_conversion,0.2,fraction,,Engineering/modeling assumption documented in report,assumption,0.1,0.4
+equilibrium_margin,0.98,fraction,,Engineering/modeling assumption documented in report,assumption,0.9,0.995
+reaction_entropy_kJ_per_kmol_K,198.0,kJ/kmol/K,,Thermodynamic approximation bounded around standard-state value,assumption,190.0,205.0
+reaction_heat_capacity_increment_kJ_per_kmol_K,16.7,kJ/kmol_NH3/K,,Temperature correction matching gas-phase reaction enthalpy over the 523-723 K operating window,assumption,14.0,20.0
+maximum_per_pass_conversion,0.65,fraction,,Industrial operating constraint limiting catalyst-bed approach to equilibrium and local heat-transfer severity,assumption,0.50,0.85

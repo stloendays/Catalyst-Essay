@@ -1,0 +1,1 @@
+p='scripts/pdh_analysis.py';s=open(p).read();s=s.replace("'capex_usd':640e6","'capex_usd':1400e6");s=s.replace("cat=4.17e6/a['capacity_tpy']","cat=5.42e6/a['capacity_tpy']");s=s.replace("'low_capex':{'capex_usd':480e6},'high_capex':{'capex_usd':900e6}","'low_capex':{'capex_usd':1000e6},'high_capex':{'capex_usd':2000e6}");open(p,'w').write(s);exec(compile(s,p,'exec'))

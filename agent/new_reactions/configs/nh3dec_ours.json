@@ -1,0 +1,218 @@
+{
+ "name": "ammonia decomposition (cracking) to hydrogen",
+ "parameter_set": "ours",
+ "metal_usd_per_kg": {
+  "Ru": 53852.5,
+  "Os": 142650.0,
+  "Fe": 8.0,
+  "Rh": 265243.65919095,
+  "Ir": 252383.36056351,
+  "Co": 56.28401553583051,
+  "Re": 5757.64,
+  "Mo": 91.22728409215301,
+  "Ni": 16.9094555095895,
+  "W": 149.97,
+  "Pd": 40670.694409279,
+  "Pt": 51508.71107755406,
+  "Cu": 13.889122517655,
+  "Ag": 1823.590345370992,
+  "Au": 128732.2322756058,
+  "Al": 3.9683,
+  "Bi": 44.092,
+  "Cd": 3.9,
+  "Cr": 13.007,
+  "Ga": 580.0,
+  "Hf": 3800.0,
+  "Hg": 50.0,
+  "In": 370.0,
+  "La": 1.1728,
+  "Mn": 0.45,
+  "Nb": 40.0,
+  "Pb": 2.3369,
+  "Sc": 5200.0,
+  "Sn": 35.274,
+  "Ta": 219.78,
+  "Ti": 12.0,
+  "Tl": 9300.0,
+  "V": 19.756,
+  "Y": 40.0,
+  "Zn": 3.2849,
+  "Zr": 22.0,
+  "Ce": 2.1005306603773586,
+  "Si": 2.866006,
+  "Mg": 2.5,
+  "Ca": 0.3637940925436203,
+  "K": 1.4455393066229791,
+  "Ba": 0.3569000679809653,
+  "B": 1.0
+ },
+ "finance": {
+  "crf": 0.0944,
+  "fixed_om_frac": 0.04
+ },
+ "prices": {
+  "gas_usd_per_GJ": 23.92,
+  "power_usd_kWh": 0.08
+ },
+ "species": {
+  "NH3": {
+   "MW": 17.031,
+   "price_usd_t": 445.0
+  },
+  "N2": {
+   "MW": 28.014
+  },
+  "H2": {
+   "MW": 2.016
+  }
+ },
+ "stoich": {
+  "nu": {
+   "NH3": -1,
+   "N2": 0.5,
+   "H2": 1.5
+  },
+  "key": "NH3",
+  "product": "H2"
+ },
+ "thermo": {
+  "source": "nce_nh3_gillespie_beattie",
+  "dH_J_mol": 45900.0
+ },
+ "plant": {
+  "capacity_t_per_y": 66700,
+  "hours_per_y": 8000,
+  "P_bar": 5.0,
+  "feed_ratio": {},
+  "inert_ratio": 0.0,
+  "approach": 0.98,
+  "overall_conv": 1.0
+ },
+ "lab_feed": {
+  "default_y_key": 1.0,
+  "default_ratio": {
+   "H2": 0.0
+  }
+ },
+ "switches": {
+  "selectivity_loss": "lost"
+ },
+ "fixed_credits": [],
+ "lost_key_fuel_GJ_per_t": 18.6,
+ "energy": {
+  "pay_reaction_heat": true,
+  "furnace_eff": 0.931,
+  "e_proc_GJ_per_t_reactor_feed": 5.27,
+  "power_kWh_per_t_fresh": 50.0,
+  "power_kWh_per_t_recycle": 50.0,
+  "fresh_basis": "key"
+ },
+ "capex": {
+  "usd": 469935999.99999994,
+  "fixed_share": 0.5,
+  "throughput_share": 0.3,
+  "reactor_share": 0.2,
+  "reactor_basis": "catalyst"
+ },
+ "catalyst": {
+  "base_usd_kg": 20.0,
+  "life_y": 3.0,
+  "recoverable_metals": [
+   "Pt",
+   "Pd",
+   "Rh",
+   "Ru",
+   "Ir",
+   "Os",
+   "Au",
+   "Ag",
+   "Re"
+  ],
+  "metal_recovery": 0.9555,
+  "metal_financing": 0.08
+ },
+ "regeneration": {
+  "enabled": false,
+  "t_regen_h": 0.0,
+  "t_cycle_min_h": 0.0,
+  "regen_GJ_per_t_cat": 0.0
+ },
+ "reference": {
+  "name": "Ni catalyst, fired cracker (HS420 design)",
+  "T_K": 973.15,
+  "X": 0.846,
+  "S": 1.0,
+  "r": 0.34,
+  "t_cycle_h": null,
+  "elements": [
+   [
+    "Ni",
+    20.0
+   ]
+  ]
+ },
+ "uncertain": [
+  {
+   "path": "species.NH3.price_usd_t",
+   "low": 400.0,
+   "high": 563.0,
+   "why": "Tampa 2024 400-450 USD/t; HS420 green NH3 0.44 GBP/kg"
+  },
+  {
+   "path": "prices.gas_usd_per_GJ",
+   "low": 3.0,
+   "high": 30.3,
+   "why": "natural-gas firing vs NH3 firing at 563 USD/t"
+  },
+  {
+   "path": "capex.usd",
+   "low": 234967999.99999997,
+   "high": 704904000.0,
+   "why": "assumption +-50 %"
+  },
+  {
+   "path": "plant.P_bar",
+   "low": 2.0,
+   "high": 15.0,
+   "why": "HS420: 15 bar feed, 2.3 bar product"
+  },
+  {
+   "path": "reference.r",
+   "low": 0.1,
+   "high": 1.0,
+   "why": "assumption: GHSV 1000-10000 h-1"
+  },
+  {
+   "path": "catalyst.life_y",
+   "low": 1.0,
+   "high": 5.0,
+   "why": "assumption"
+  },
+  {
+   "path": "catalyst.metal_recovery",
+   "low": 0.9,
+   "high": 0.9555,
+   "why": "NCE Ru recovery range"
+  }
+ ],
+ "sources": {
+  "thermo": "NH3 harness gillespie_beattie_dG_form (provenance/nh3_final_1_2/source_harness/harness_core.py), K = exp(dG_f/kT) per NH3, ideal gas; dH 45.9 kJ/mol NH3 (standard enthalpy of formation) for the reaction heat",
+  "species.NH3.price_usd_t": "445 USD/t, Tampa CFR March 2024 (Argus/CRU, search summary) (S)",
+  "prices.gas_usd_per_GJ": "the cracker burns NH3 and off-gas (HS420 Table 3: reformer fuel 85 % NH3 / 15 % H2): NH3 price / LHV 18.6 GJ/t",
+  "plant.capacity_t_per_y": "200 t/d H2 (HS420 p.24) x 333 d",
+  "plant.P_bar": "assumption, 5 bar (Ru membrane demo at 5 bar, HS420 s3.2; fired design 15 bar feed / 2.3 bar product, HS420 Table 3)",
+  "reference.X": "84.6 % per pass, HS420 p.24: 'thermal efficiency of this design reaches 93.1% at a 84.6% conversion rate'",
+  "reference.T_K": "assumption 700 C within 600-950 C for Ni (Ammogen/Gemserv HYS2204, DESNZ 2025)",
+  "reference.elements": "Ni catalyst (Topsoe DNK-20/DNK-30 Ni grades, H2Retake page); 20 wt % Ni is an assumption",
+  "reference.r": "assumption: GHSV 3000 h-1 pure NH3, bed 1.0 kg/L, X 0.846",
+  "energy.furnace_eff": "93.1 % thermal efficiency, HS420 p.24",
+  "energy.e_proc_GJ_per_t_reactor_feed": "calibrated: heater duty 119 MWth for 200 t/d H2 (HS420 p.24) = 51.4 GJ/t H2 = reaction heat / 0.931 + 5.27 GJ x 6.66 t NH3 through the reactor per t H2",
+  "energy.power": "assumption 50 kWh/t NH3 (compression to 250 bar excluded)",
+  "capex.usd": "TCI 368 M GBP (HS420 p.33, centralised 200 t/d unit incl. cryogenic purification) x 1.277 USD/GBP (2019)",
+  "capex.shares": "assumption",
+  "catalyst": "Ru price 53,852.5 USD/kg and recovery 0.9555 (range 0.90-0.9555) as in the NCE NH3 analysis (figures/composite/fig2/fig2_ru_actual_cost.py); life 3 y assumption; base 20 USD/kg as for the other reactions",
+  "finance": "7 %/y, 20 y (as PDH, Enterprise Products EPA application); fixed O&M 4 %/y",
+  "check": "HS420 p.33: levelised cost 4.72-5.19 GBP/kg H2 including NH3 and compression to 250 bar; NH3 is ~54 % (10 % NH3 price -> +5.4 % H2 cost)",
+  "upstream": "Ecuity/Engie/STFC HS420 'Ammonia to Green Hydrogen' (BEIS 2020), https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/880826/HS420_-_Ecuity_-_Ammonia_to_Green_Hydrogen.pdf"
+ }
+}
