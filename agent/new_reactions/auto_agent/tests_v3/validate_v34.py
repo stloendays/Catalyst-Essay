@@ -190,7 +190,10 @@ with tempfile.TemporaryDirectory() as tmp:
         assert len(calls)==1 and result[0]['cache_hit'] and h.tok==before
         assert any('extraction_cache_hit' in e for e in h.events)
         (ws/'extracted/paper.json').unlink()
-        h.b_extract_papers('toy','A','B','none','new scope')
+        h.b_extract_papers('toy reworded','A','B','none','new scope')   # free-text wording does not change the key
+        assert len(calls)==1
+        (ws/'extracted/paper.json').unlink()
+        h.b_extract_papers('toy','A','C','none','scope')                  # different product species does
         assert len(calls)==2
         (ws/'extracted/paper.json').unlink()
         h.extract_model='different'
