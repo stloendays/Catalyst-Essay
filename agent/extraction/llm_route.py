@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import re
 import time
 import urllib.request
 from pathlib import Path
@@ -36,6 +37,7 @@ ROUTES = (tuple(r for r in POLICY.get("routes", []) if r in ALL_ROUTES)
 ADVISOR_CAP_USD = float(POLICY.get("advisor_cap_usd") or os.environ.get("LLM_ADVISOR_CAP_USD") or 0)
 RETURN_AFTER_S = float(POLICY.get("return_after_s") or os.environ.get("LLM_RETURN_AFTER_S") or 0)
 PRICE_PER_M = (5.0, 30.0)
+RESET_MARGIN_S = 60       # start using a route this long after its reset time
 # LLM_WAIT_ON_LIMIT=1: when the last route reports a usage limit with a reset time, wait for the reset instead of failing
 WAIT_ON_LIMIT = os.environ.get("LLM_WAIT_ON_LIMIT") == "1"
 MAX_WAIT_S = 6 * 3600
@@ -146,31 +148,66 @@ class Router:
             self.order.pop(0)
         self._next()
 
-    def _first_exhausted(self) -> None:
+    def _first_exhausted(self, err=None) -> None:
         d = _spend()
         if not (d.get("first_exhausted_at") and time.time() - d["first_exhausted_at"] < max(RETURN_AFTER_S, 1)):
             d["first_exhausted_at"] = time.time()
-            _spend_write(d)
+        m = re.search(r"resets_at['\"]?:\s*(\d{9,})", str(err or ""))
+        if m:
+            d["first_resets_at"] = int(m.group(1))
+        _spend_write(d)
+
+    @staticmethod
+    def _return_time():
+        """When the first route may be used again: return_after_s after it ran out, and not before its own reset."""
+        d = _spend()
+        since = d.get("first_exhausted_at")
+        if not since:
+            return 0
+        return max(since + RETURN_AFTER_S, d.get("first_resets_at") or 0)
+
+    def _back_to_first(self) -> bool:
+        client = make_client(self.first, self.model)
+        if client is None:
+            return False
+        if self.client is not None and self.client._route != self.first:
+            self.order.insert(0, self.client._route)
+        self.client = client
+        d = _spend()
+        d.pop("first_exhausted_at", None)
+        d.pop("first_resets_at", None)
+        _spend_write(d)
+        print(f"  route: back to {self.first}", flush=True)
+        return True
+
+    def wait_for_first(self, err=None) -> bool:
+        """The fallback route failed too (ch4_v34_t6, 2026-11-15: advisor key without credits; the build died after four
+        attempts): wait until the first route may be used again and go back to it."""
+        if self.client is None or self.client._route == self.first:
+            return False
+        t = self._return_time()
+        if not t:
+            return False
+        wait = t - time.time() + RESET_MARGIN_S
+        if wait > MAX_WAIT_S:
+            return False
+        if wait > 0:
+            print(f"  fallback {self.client._route} unavailable; waiting {wait / 60:.0f} min for {self.first}", flush=True)
+            time.sleep(wait)
+        return self._back_to_first()
 
     def before_call(self) -> None:
         """Return to the first route once return_after_s has passed; wait for that point when the advisor cap is used up."""
         if not self.client or self.client._route == self.first or not RETURN_AFTER_S:
             return
-        since = _spend().get("first_exhausted_at") or 0
+        t = self._return_time()
         capped = self.client._route == "advisor-openai" and ADVISOR_CAP_USD and _spend().get("advisor_usd", 0) >= ADVISOR_CAP_USD
-        if capped and time.time() - since < RETURN_AFTER_S:
-            wait = since + RETURN_AFTER_S - time.time() + 30
+        if capped and time.time() < t:
+            wait = t - time.time() + 30
             print(f"  advisor cap {ADVISOR_CAP_USD:.0f} USD reached; waiting {wait / 60:.0f} min for {self.first}", flush=True)
             time.sleep(wait)
-        if time.time() - since >= RETURN_AFTER_S:
-            client = make_client(self.first, self.model)
-            if client is not None:
-                self.order.insert(0, self.client._route)
-                self.client = client
-                d = _spend()
-                d.pop("first_exhausted_at", None)
-                _spend_write(d)
-                print(f"  route: back to {self.first}", flush=True)
+        if time.time() >= t:
+            self._back_to_first()
 
     def account(self, usage) -> None:
         """Add one response's tokens to the shared advisor spend (list-price basis)."""
@@ -182,9 +219,9 @@ class Router:
         d["advisor_usd"] = round(d.get("advisor_usd", 0) + (tin * PRICE_PER_M[0] + tout * PRICE_PER_M[1]) / 1e6, 4)
         _spend_write(d)
 
-    def _next(self) -> None:
+    def _next(self, err=None) -> None:
         if self.client is not None and self.client._route == self.first:
-            self._first_exhausted()
+            self._first_exhausted(err)
         while self.order:
             route = self.order.pop(0)
             if route == "advisor-openai" and ADVISOR_CAP_USD and _spend().get("advisor_usd", 0) >= ADVISOR_CAP_USD \
@@ -210,8 +247,8 @@ class Router:
             except Exception as e:  # noqa: BLE001 - classified below
                 if not is_exhausted(e):
                     raise
-                if not self.order and wait_for_reset(e):
+                if not self.order and (self.wait_for_first(e) or wait_for_reset(e)):
                     continue
                 print(f"  route {self.client._route} exhausted ({type(e).__name__}: {str(e)[:160]}); switching",
                       flush=True)
-                self._next()
+                self._next(e)

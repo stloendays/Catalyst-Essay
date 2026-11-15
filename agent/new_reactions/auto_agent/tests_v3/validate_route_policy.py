@@ -19,3 +19,14 @@ r2 = L.Router("m"); assert r2.client._route == "advisor-openai", "new build star
 t0 = time.time(); r.before_call()             # cap used: waits until 5 s after exhaustion, then back to personal
 assert r.client._route == "api-yes-personal" and time.time() - t0 > 1 and "first_exhausted_at" not in L._spend()
 print("route policy: personal -> advisor, shared 40 USD cap, wait and return after the pause: PASS")
+
+# the fallback fails too (ch4_v34_t6: advisor key without credits): wait for the first route and go back, do not die
+L.SPEND_FILE = __import__("pathlib").Path(tempfile.mkdtemp()) / "s.json"
+L.RESET_MARGIN_S = 1
+r = L.Router("m")
+r._next(Exception("Error code: 429 - {'type': 'usage_limit_reached', 'resets_at': %d}" % (time.time() + 8)))
+assert r.client._route == "advisor-openai" and L._spend()["first_resets_at"]
+t0 = time.time()
+assert r.wait_for_first(Exception("You have no credits remaining"))
+assert r.client._route == "api-yes-personal" and time.time() - t0 > 7 and not L._spend().get("first_exhausted_at")
+print("fallback without credits: waits for the first route's reset and returns: PASS")

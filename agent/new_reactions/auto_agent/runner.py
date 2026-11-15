@@ -213,9 +213,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 if "prompt_cache_key" in str(e) and kw.pop("prompt_cache_key", None):
                     continue
                 if llm_route.is_exhausted(e) and self.router.order:
-                    self.router._next()
+                    self.router._next(e)
                     continue
-                if llm_route.is_exhausted(e) and llm_route.wait_for_reset(e):
+                if llm_route.is_exhausted(e) and (self.router.wait_for_first(e) or llm_route.wait_for_reset(e)):
                     continue
                 attempt += 1
                 time.sleep(10 * attempt)
@@ -517,6 +517,12 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                     calls.append(o)
                 elif o.type == "message":
                     self.log({"turn": turn, "message": text[:1500]})
+                    hit = holdout_hit(getattr(self, "holdout", None), text)
+                    if self.build and hit:
+                        self.log({"turn": turn, "holdout_hit": hit, "where": "message"})
+                        self.write_ledger("invalid: holdout leak")
+                        print(f"stopped: agent message names a held-out source ({hit})")
+                        return
                 elif o.type == "web_search_call":
                     self.log({"turn": turn, "web_search": str(getattr(o, "action", ""))[:300]})
                     hit = holdout_hit(getattr(self, "holdout", None), str(getattr(o, "action", "")))
@@ -525,6 +531,13 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                         self.write_ledger("invalid: holdout leak")
                         print(f"stopped: web search reached a held-out source ({hit})")
                         return
+            for c in calls:
+                hit = holdout_hit(getattr(self, "holdout", None), c.arguments) if self.build else None
+                if hit:
+                    self.log({"turn": turn, "holdout_hit": hit, "where": f"tool {c.name} arguments"})
+                    self.write_ledger("invalid: holdout leak")
+                    print(f"stopped: tool call {c.name} carries a held-out source ({hit})")
+                    return
             if not calls:
                 items.append({"role": "user", "content": "Continue with the tools; call finish when report.md is written."})
                 continue
@@ -597,12 +610,27 @@ def holdout_needles(holdout):
     return [d.lower() for d in h.get("dois", [])] + [u.lower() for u in h.get("url_fragments", [])]
 
 
+def _norm(text):
+    """Lower case, '&' read as 'and', everything but letters and digits dropped: 'STORE&GO', 'Store & Go' and
+    'storeandgo' all become 'storeandgo' (ch4_v34_t4/t5, 2026-11-15, reached the held-out report through 'STORE&GO')."""
+    return re.sub(r"[^0-9a-z\u00c0-\u024f]+", "", (text or "").lower().replace("&", "and"))
+
+
 def holdout_hit(holdout, text):
-    """First held-out DOI or URL fragment in text (a web-search action), else None. A build whose web search reaches a
-    held-out source is invalid under the preregistration, so it is stopped at once instead of spending the rest of its
-    turns (nh3dec_b5 turn 62 opened the held-out TEA paper; nh3dec_b4 opened the held-out cracking-plant study)."""
+    """First held-out DOI, URL fragment or keyword set in text, else None; matched on the raw lower-case text and on the
+    normalised text. Checked on web-search actions, agent messages and every tool-call argument, so a held-out DOI the
+    agent writes into sources.csv stops the build at once (ch4_v34_t5 cited 10.1002/cite.202000187 and ran to the end).
+    A build that reaches a held-out source is invalid under the preregistration, so it is stopped instead of spending the
+    rest of its turns (nh3dec_b5 turn 62 opened the held-out TEA paper; nh3dec_b4 opened the held-out cracking-plant study)."""
     t = (text or "").lower()
-    return next((n for n in holdout_needles(holdout) if n in t), None)
+    n = _norm(text)
+    for needle in holdout_needles(holdout):
+        if needle in t or (len(_norm(needle)) >= 6 and _norm(needle) in n):
+            return needle
+    for ks in (holdout or {}).get("keyword_sets", []):
+        if ks and all(k.lower() in t or (len(_norm(k)) >= 4 and _norm(k) in n) for k in ks):
+            return " + ".join(ks)
+    return None
 
 
 def drop_holdout(holdout, results):
