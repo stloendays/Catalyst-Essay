@@ -185,7 +185,10 @@ class Router:
         attempts): wait until the first route may be used again and go back to it."""
         if self.client is None or self.client._route == self.first:
             return False
-        t = self._return_time()
+        d = _spend()
+        # the fallback itself is unusable, so there is nothing to spend the pause on: go back at the first route's own
+        # reset (ch4_v34_t9 waited for the 5 h pause although the personal quota had reset 2.5 h earlier)
+        t = d.get("first_resets_at") or self._return_time()
         if not t:
             return False
         wait = t - time.time() + RESET_MARGIN_S
