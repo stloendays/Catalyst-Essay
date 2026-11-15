@@ -22,7 +22,7 @@ of compression, heating, cooling and separation, utility accounting, capital bas
 report wording, formatting, table layout or documentation gaps; the harness checks file formats itself."""
 
 def enabled(h):
-    return getattr(h, 'build_version', '').startswith('V3.4')
+    return getattr(h, 'build_version', '').startswith(('V3.4', 'V3.5'))
 
 def read_file(h, path, start, n, force=False):
     p = h.path(path)
@@ -86,6 +86,16 @@ def digest(h):
         'open_critique': compact([x for r in load('critique.json').get('rounds', []) for x in r.get('issues', []) if not x.get('response')], 600),
         'stage_notes': compact(getattr(h, 'stage_notes', [])[-8:], 600),
     }
+    if getattr(h, 'build_version', '').startswith('V3.5'):
+        import csv
+        try:
+            with (h.ws / 'sources.csv').open(encoding='utf-8') as fh:
+                sections['design_variables'] = compact([dict(parameter=r['parameter'], value=r['value'], low=r['low'], high=r['high'])
+                    for r in csv.DictReader(fh) if r.get('type', '').strip().lower() == 'design'], 800)
+        except OSError:
+            sections['design_variables'] = 'absent'
+        opt = load('design_opt.json')
+        sections['last_optimisation'] = compact({k:v for k,v in opt.items() if k != 'rejected_points'}, 900)
     for name in ('energy_ledger.csv', 'capex_ledger.csv'):
         try:
             sections[name] = '\n'.join((h.ws / name).read_text(encoding='utf-8').splitlines()[:5])[:500]
@@ -155,7 +165,7 @@ def skeleton(flow):
 
 ALWAYS = {'read_file', 'write_file', 'set_stage', 'finish', 'workspace_digest'}
 LITERATURE = {'search_papers', 'screen_papers', 'download_papers', 'ocr_papers', 'extract_papers', 'check_records', 'extract_records'}
-MODEL = {'check_model', 'run_python', 'check_atomic', 'record_decision'}
+MODEL = {'optimize_design', 'check_model', 'run_python', 'check_atomic', 'record_decision'}
 
 def stage_tools(tools, stage):
     allowed = set(ALWAYS)

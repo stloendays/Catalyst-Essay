@@ -131,6 +131,7 @@ def validate():
     reaction, out, flow = fixtures()
     with tempfile.TemporaryDirectory(prefix="v3-offline-") as tmp:
         ws = Path(tmp)
+        (ws/"build_version.json").write_text(json.dumps({"version": "V3.1"}), encoding="utf-8")
         h = Harness(ws)
         b = basis_fixture()
         for name, doc in (("basis.json", b), ("flowsheet.json", flow)):

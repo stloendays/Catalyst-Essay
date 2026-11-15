@@ -1,0 +1,353 @@
+{
+ "rxn": "ch4",
+ "builds": {
+  "D:/agent_runs/ch4_v34_t7": {
+   "reference_cost": 2027.315431554476,
+   "parts": {
+    "feed": 1813.1236561110888,
+    "energy": 46.39799842863458,
+    "capital": 167.76666666666665,
+    "catalyst": 0.027110348085852606,
+    "other": 0.0
+   },
+   "largest": "feed",
+   "cheapest_common": "10_1038_s41467_024_47403_4#44",
+   "cheapest_catalyst": "CeAlOx/Ni/Ni-foam",
+   "n_costed": 255,
+   "top_attribution": "selectivity",
+   "spearman_vs_hand": 0.1593115148760672,
+   "tea": {
+    "H2 per t CH4": {
+     "model": 0.5128229506401932,
+     "target": 0.505,
+     "tol": 0.05,
+     "within": true,
+     "source": "D5.9 Table 4-1 p.35 (measured, Falkenhagen: 708 kW H2 -> 549 kW SNG, HHV) and Table 5-2 p.68 (5 MW design: 6450 kW H2)"
+    },
+    "CO2 per t CH4": {
+     "model": 2.7474325827340613,
+     "target": 2.785,
+     "tol": 0.05,
+     "within": true,
+     "source": "D5.9 Table 5-2 p.68: 460 m3(STP)/h CO2 per 5 MW SNG (design); Audi Werlte 2.8 t/t as support"
+    },
+    "purchased energy GJ per t": {
+     "model": 5.494499813917254,
+     "target": 3.84,
+     "tol": 0.35,
+     "within": false,
+     "source": "D5.9 Table 5-2 / p.70: methanation electricity 0.29 kWh/m3 SNG (25 kW/MW) = 1.46 GJe/t, primary at 0.38; CO2 supply and grid injection outside the boundary"
+    },
+    "installed capital per annual t": {
+     "model": 1248.263888888889,
+     "target": 621.1710466863287,
+     "tol": [
+      -0.3,
+      0.5
+     ],
+     "within": false,
+     "source": "D5.9 p.63, Table 1-2 p.7, Table 5-1 p.67: optimised Falkenhagen design 720 / ~475 / 360 EUR/kW SNG at 5 / 10 / 50 MW (EUR2017, 1.1297 USD/EUR); methanation unit only; tolerance AACE class 4",
+     "scaled_target": 621.1710466863287,
+     "scale_curve": [
+      [
+       2595,
+       1567
+      ],
+      [
+       5190,
+       1035
+      ],
+      [
+       25950,
+       784
+      ]
+     ]
+    }
+   },
+   "tea_within": 2,
+   "tea_n": 4,
+   "tea_far": [
+    "installed capital per annual t"
+   ],
+   "tea_pass": false,
+   "tea_verdict": "fail",
+   "group_targets": {},
+   "attribution_share": {
+    "selectivity": 0.998,
+    "activity": 0.001,
+    "temperature": 0.0,
+    "stability": 0.0,
+    "metal": 0.0
+   },
+   "energy_ledger": [
+    {
+     "unit": "CO2 feed compressor",
+     "type": "compressor",
+     "boundary_role": "feed_conditioning",
+     "shaft_power_GJ_per_t": 0.7284555674551336,
+     "electricity_GJ_per_t": 0.7284555674551336,
+     "cooling_duty_GJ_per_t": 0.43566990778042103,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 1.9169883354082464,
+     "energy_method": ""
+    },
+    {
+     "unit": "feed-effluent heat exchanger",
+     "type": "heat_exchanger",
+     "boundary_role": "feed_conditioning",
+     "shaft_power_GJ_per_t": 0.0,
+     "electricity_GJ_per_t": 0.0,
+     "cooling_duty_GJ_per_t": 4.917346412184133,
+     "cooling_medium": "process_stream",
+     "recovered_heat_GJ_per_t": 4.917346412184133,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.0,
+     "energy_method": ""
+    },
+    {
+     "unit": "cooled multibed methanation reactor",
+     "type": "reactor",
+     "boundary_role": "reaction",
+     "shaft_power_GJ_per_t": 0.0,
+     "electricity_GJ_per_t": 0.0,
+     "cooling_duty_GJ_per_t": 0.0,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.0,
+     "energy_method": ""
+    },
+    {
+     "unit": "waste heat boiler",
+     "type": "heat_exchanger",
+     "boundary_role": "reaction",
+     "shaft_power_GJ_per_t": 0.0,
+     "electricity_GJ_per_t": 0.0,
+     "cooling_duty_GJ_per_t": 6.417540440660093,
+     "cooling_medium": "cooling_water",
+     "recovered_heat_GJ_per_t": 6.417540440660093,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.0,
+     "energy_method": ""
+    },
+    {
+     "unit": "product cooler and water knockout",
+     "type": "knockout",
+     "boundary_role": "separation",
+     "shaft_power_GJ_per_t": 0.0,
+     "electricity_GJ_per_t": 0.10496712841046638,
+     "cooling_duty_GJ_per_t": 6.435041088798201,
+     "cooling_medium": "cooling_water",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.276229285290701,
+     "energy_method": ""
+    },
+    {
+     "unit": "SNG gas upgrader",
+     "type": "separation",
+     "boundary_role": "separation",
+     "shaft_power_GJ_per_t": 0.014009168793811007,
+     "electricity_GJ_per_t": 0.014009168793811007,
+     "cooling_duty_GJ_per_t": 0.0,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.0368662336679237,
+     "energy_method": "unitops.separator_energy"
+    },
+    {
+     "unit": "recycle compressor",
+     "type": "compressor",
+     "boundary_role": "recycle",
+     "shaft_power_GJ_per_t": 1.0432125955819838,
+     "electricity_GJ_per_t": 1.0432125955819838,
+     "cooling_duty_GJ_per_t": 0.5216062977909919,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 2.7452963041631153,
+     "energy_method": ""
+    },
+    {
+     "unit": "SNG product compressor",
+     "type": "compressor",
+     "boundary_role": "product_conditioning",
+     "shaft_power_GJ_per_t": 0.19726546904716155,
+     "electricity_GJ_per_t": 0.19726546904716155,
+     "cooling_duty_GJ_per_t": 0.0,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.5191196553872672,
+     "energy_method": ""
+    },
+    {
+     "unit": "cooling water system",
+     "type": "offsites",
+     "boundary_role": "utilities",
+     "shaft_power_GJ_per_t": 0.0,
+     "electricity_GJ_per_t": 0.0,
+     "cooling_duty_GJ_per_t": 0.0,
+     "cooling_medium": "",
+     "recovered_heat_GJ_per_t": 0.0,
+     "internal_fuel_GJ_per_t": 0.0,
+     "purchased_energy_GJ_per_t": 0.0,
+     "energy_method": ""
+    }
+   ],
+   "capex_ledger": [
+    {
+     "unit": "CO2 feed compressor",
+     "type": "compressor",
+     "boundary_role": "feed_conditioning",
+     "capex_usd": 14979166.666666666,
+     "usd_per_t_y": 149.79166666666666,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.12,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "feed-effluent heat exchanger",
+     "type": "heat_exchanger",
+     "boundary_role": "feed_conditioning",
+     "capex_usd": 9986111.111111112,
+     "usd_per_t_y": 99.86111111111111,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.08,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "cooled multibed methanation reactor",
+     "type": "reactor",
+     "boundary_role": "reaction",
+     "capex_usd": 41192708.333333336,
+     "usd_per_t_y": 411.92708333333337,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.33,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "waste heat boiler",
+     "type": "heat_exchanger",
+     "boundary_role": "reaction",
+     "capex_usd": 9986111.111111112,
+     "usd_per_t_y": 99.86111111111111,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.08,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "product cooler and water knockout",
+     "type": "knockout",
+     "boundary_role": "separation",
+     "capex_usd": 6241319.444444445,
+     "usd_per_t_y": 62.41319444444445,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.05,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "SNG gas upgrader",
+     "type": "separation",
+     "boundary_role": "separation",
+     "capex_usd": 14979166.666666666,
+     "usd_per_t_y": 149.79166666666666,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.12,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "recycle compressor",
+     "type": "compressor",
+     "boundary_role": "recycle",
+     "capex_usd": 12482638.88888889,
+     "usd_per_t_y": 124.8263888888889,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.1,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "SNG product compressor",
+     "type": "compressor",
+     "boundary_role": "product_conditioning",
+     "capex_usd": 4993055.555555556,
+     "usd_per_t_y": 49.93055555555556,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.04,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    },
+    {
+     "unit": "cooling water system",
+     "type": "offsites",
+     "boundary_role": "utilities",
+     "capex_usd": 9986111.111111112,
+     "usd_per_t_y": 99.86111111111111,
+     "method": "plant_specific_cost_share",
+     "size_basis": "whole-plant methanation specific CAPEX allocated at model annual capacity",
+     "share": 0.08,
+     "plant_cost_usd": 124826388.8888889,
+     "source_capacity": 100000.0,
+     "cost_year": 2021,
+     "installed": true,
+     "installation_factor": ""
+    }
+   ]
+  }
+ },
+ "agreement": {
+  "largest cost item": "robust (all agree)",
+  "controlling catalyst property": "robust (all agree)",
+  "cheapest catalyst (common records)": "robust (all agree)",
+  "reference cost spread max/min-1": 0.0,
+  "pairwise Spearman (common records)": {}
+ },
+ "primary_build_median_reference": "D:/agent_runs/ch4_v34_t7",
+ "holdout_pass_rule": {
+  "min_within": 4,
+  "rule": "pass = all four targets within tolerance; partial = three within and none beyond twice the tolerance; fail otherwise. Capital target = log-log interpolation of scale_curve at the build's capacity (evaluate_builds.py)."
+ },
+ "common_record_count": 255
+}

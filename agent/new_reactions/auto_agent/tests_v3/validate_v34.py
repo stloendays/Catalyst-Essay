@@ -38,7 +38,7 @@ def dump(ws, name, data):
 
 with tempfile.TemporaryDirectory() as tmp:
     ws = Path(tmp)
-    h = H(ws)
+    h = H(ws, version='V3.4-lean-chem')
     assert h.build_version == 'V3.4-lean-chem'
     (ws / 'read.txt').write_text('hello\nworld\n' * 300, encoding='utf-8')
     h._turn, h._call_id, h._history = 7, 'read1', []

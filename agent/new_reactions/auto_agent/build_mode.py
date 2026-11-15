@@ -66,8 +66,9 @@ except ImportError:  # runner.py is also invoked directly
     from physics_gate import check_flowsheet, check_physics
 
 import lean_chem
+import design_opt
 
-BUILD_MODE_VERSION = "V3.4-lean-chem"
+BUILD_MODE_VERSION = "V3.5-design-opt"
 CRITIC_MODEL = "gpt-5.6-luna"   # user 2026-11-13: the critic is a different model from the builder
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
@@ -228,9 +229,12 @@ def _tool(name, description, fields=None):
 
 _str = {"type": "string"}
 BUILD_TOOLS += [
+    _tool("optimize_design", "Deterministic bounded design search; writes design_opt.json without editing inputs."),
     _tool("record_decision", "Record a modeling choice and alternatives with evidence.",
           dict(topic={"type": "string", "enum": DECISION_TOPICS}, choice=_str,
-               alternatives={"type": "array", "items": _str}, reason=_str, evidence={"type": "array", "items": _str})),
+               alternatives={"type": "array", "items": {"anyOf": [_str, {"type": "object", "additionalProperties": False,
+                   "properties": {"name": _str, "energy_GJ_per_t": {"type": "number"}, "capex_usd": {"type": "number"}, "chosen": {"type": "boolean"}},
+                   "required": ["name", "energy_GJ_per_t", "capex_usd", "chosen"]}]}}, reason=_str, evidence={"type": "array", "items": _str})),
     _tool("assess_assumptions", "Probe all source/basis assumptions after check_model; write evidence_debt.json."),
     _tool("resolve_debt", "Resolve an assessed evidence debt.", dict(item=_str, action={"type": "string", "enum": ["narrowed", "kept_as_uncertainty"]}, note=_str, evidence=_str)),
     _tool("request_critique", "Request independent artifact-only process review by a different model (at most two rounds)."),
@@ -294,6 +298,11 @@ class BuildMixin:
         getattr(self, "stage_notes", []).append(f"{stage}: {note[:400]}")
         self.log({"stage": stage, "note": note[:300]})
         return json.dumps(dict(stage=stage))
+
+    def b_optimize_design(self):
+        if not design_opt.enabled(self):
+            return "refused: optimize_design requires V3.5"
+        return design_opt.run_tool(self.ws)
 
     def b_workspace_digest(self):
         return lean_chem.digest(self)
@@ -464,7 +473,7 @@ class BuildMixin:
                 tag = "reference" if rec is None else f"{rec['paper']}#{rec['idx']}"
                 if i <= 40:
                     fails["physics"].extend((failure if lean_chem.enabled(self) else f"{tag}: {failure}") for failure in check_physics(
-                        m, out, flowsheet, **({"basis": self._basis(), "ledger": self.build_version >= "V3.3.1"} if self._is_v3() else {})))
+                        m, out, flowsheet, **({"basis": self._basis(), "ledger": self.build_version >= "V3.3.1", "design": design_opt.enabled(self)} if self._is_v3() else {})))
                 if not (math.isfinite(c) and c > 0):
                     fails["finite_positive"].append(tag)
                 if abs(sum(out["parts"].values()) - c) > 0.005 * abs(c):
@@ -502,10 +511,15 @@ class BuildMixin:
                 elif typ == "assumption":
                     if not (row.get("low") or "").strip() or not (row.get("high") or "").strip():
                         src_fail.append(f"{row.get('parameter')}: assumption without low/high")
+                elif typ == "design" and design_opt.enabled(self):
+                    pass
                 elif typ == "price_table" and self._is_v3():
                     pass                                   # checked against prices.json below
                 else:
                     src_fail.append(f"{row.get('parameter')}: type must be measured, published, assumption or price_table")
+            if design_opt.enabled(self):
+                with sp.open(encoding="utf-8") as fh:
+                    src_fail += design_opt.source_failures(list(csv.DictReader(fh)))
             if self._is_v3() and (self.ws / "prices.json").exists():
                 src_fail += price_failures(self.ws)
         if src_fail:
@@ -515,6 +529,8 @@ class BuildMixin:
             fails["params"] = self._check_params(m)
             topics = {x.get("topic") for x in self._jsonlines("decisions.jsonl")}
             fails["decisions"] = ["missing decision: " + t for t in ("mechanism", "kinetics", "reactor", "separation", "boundary") if t not in topics]
+        if design_opt.enabled(self):
+            fails["decisions"] += design_opt.decision_failures(self._jsonlines("decisions.jsonl"))
         res = dict(passed=not any(fails.values()), records_tested=len(recs),
                    failures={k: v[:5] + ([f"... {len(v) - 5} more"] if len(v) > 5 else []) for k, v in fails.items() if v},
                    reference=dict(name=ref.get("name"), cost=ref.get("cost_usd_per_t"), parts=ref.get("parts"), operating=ref.get("operating")))

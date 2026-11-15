@@ -291,7 +291,7 @@ def check_flowsheet(path):
     return failures
 
 
-def check_physics(model_module, out, flowsheet, basis=None, ledger=False):
+def check_physics(model_module, out, flowsheet, basis=None, ledger=False, design=False):
     """Check one output, failing closed on malformed/missing/nonfinite physical fields. ledger=True (build mode V3.3.1 and
     later, with basis) adds the engineering-ledger checks: boundary roles, cooling utilities, separation energy basis and
     capital basis."""
@@ -489,6 +489,8 @@ def check_physics(model_module, out, flowsheet, basis=None, ledger=False):
         check("zero_duty", zero_duty)
         if ledger:
             ledger_checks(units, out, basis, failures)
+        if design:
+            design_checks(units, basis, failures, product=product)
     return failures
 
 
@@ -601,3 +603,32 @@ def ledger_checks(units, out, basis, failures):
             require(total <= 1 + 1e-6, f"capital_double_count: shares of plant cost {plant:.4g} sum to {total:g} > 1")
     check("ledger capital_basis", capital)
 
+
+
+def design_checks(units, basis, failures, product=None):
+    """V3.5 additions only; retain all earlier ledger checks and thresholds."""
+    from basis_gate import evidence
+    for u in units:
+        b = u.get('capex_basis') or {}
+        if b.get('method') == 'plant_specific_cost_share':
+            try:
+                exponent = _number(b['scale_exponent'])
+                if not .5 <= exponent <= .95:
+                    ev = b.get('exponent_evidence')
+                    if not isinstance(ev, dict) or ev.get('type') not in ('measured', 'published'):
+                        raise ValueError('scale_exponent outside [0.5, 0.95] requires measured/published exponent_evidence')
+                    evidence(ev, exponent)
+            except (KeyError, TypeError, ValueError) as exc:
+                failures.append(f"design capital_exponent {u.get('name')}: {exc}")
+        if u.get('type') == 'compressor' and u.get('boundary_role') == 'product_conditioning':
+            try:
+                species = u.get('product_species', product)
+                if species is None and len(basis['product']) == 1:
+                    species = next(iter(basis['product']))
+                pressure = basis['product'][species]['P_bar']
+                if isinstance(pressure, dict):
+                    pressure = pressure['value']
+                if _number(u['P_out_bar'], positive=True) > 1.02 * _number(pressure, positive=True):
+                    raise ValueError('product compressor P_out exceeds basis product pressure by >2%')
+            except (KeyError, TypeError, ValueError) as exc:
+                failures.append(f"design product_pressure {u.get('name')}: {exc}")

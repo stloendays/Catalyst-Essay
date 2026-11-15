@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import lean_chem
+import design_opt
 import base64
 import hashlib
 import csv
@@ -421,7 +422,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             return ""
         self._model_sha_checked = sha
         code = "import model\nr = model.reference()\nprint('model.py import check: reference cost', round(r['cost_usd_per_t'], 2))"
-        rc, so, se = run_tree(["bash", PY.replace("\\", "/"), "-c", code], str(self.ws), 120)
+        rc, so, se = run_tree([sys.executable, "-c", code], str(self.ws), 120)
         if rc == 0:
             return "\n" + (so or "").strip()[-200:]
         return "\nmodel.py import check FAILED:\n" + ((se or so or "[timeout]")[-1200:])
@@ -454,6 +455,8 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
             if lean_chem.enabled(self):
                 tools = lean_tools(tools)
                 instructions += lean_chem.PROMPT
+            if design_opt.enabled(self):
+                instructions += design_opt.PROMPT
         elif self.lean:
             self.setup_lean(self.lean)
             instructions = METHOD_LEAN.format(reaction=self.cfg["name"], key=self.cfg["stoich"]["key"], product=self.cfg["stoich"]["product"],
@@ -597,7 +600,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
 
 
 TOOL_TIMEOUT_S = 900   # amendment A3 (2026-11-13): fixed tools that execute the agent's code get a deadline
-TIMED_TOOLS = {"check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
+TIMED_TOOLS = {"optimize_design", "check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
                "check_records", "submit_flowsheet"}
 
 
@@ -642,7 +645,7 @@ def drop_holdout(holdout, results):
 
 # Outputs that only the fixed tools write (gate results). An agent edit through write_file/run_python is reverted, so a gate
 # result cannot be forged (nh3dec_b6 turn 206, 2026-11-13: the agent wrote its own empty evidence_debt.json).
-SEALED_OUTPUTS = ("model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
+SEALED_OUTPUTS = ("design_opt.json", "model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
                   "atomic_check.json", "three_optima.json", "unitops.py", "physics_gate.py", "mkm_solver.py", "prices.json")
 AGENT_WRITERS = {"write_file", "run_python"}
 
