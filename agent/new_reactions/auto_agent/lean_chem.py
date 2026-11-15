@@ -229,7 +229,10 @@ def extract_papers(h, reaction, key, product, cofeed, scope):
             chosen = [f for f in figs if f['caption'] and any(w in f['caption'].lower() for w in chain.PERF)][:8]
             images = [(f, hashlib.sha256((md.parent / (md.stem + '_figs') / f['file']).read_bytes()).hexdigest())
                       for f in chosen if (md.parent / (md.stem + '_figs') / f['file']).exists()]
-            prompt = json.dumps([system, chain.SCHEMA, md.read_text(encoding='utf-8'), images, 'medium'], sort_keys=True)
+            # cache key: fixed prompt template + reaction species, not the agent's free-text reaction/scope wording, which
+            # differs between builds (ch4_v34_t5 shared 5 papers with t4 and got 0 hits, 2026-11-15)
+            stable = [chain.EXTRACT_PROMPT, key.strip(), product.strip(), (cofeed or 'none').strip()]
+            prompt = json.dumps([stable, chain.SCHEMA, md.read_text(encoding='utf-8'), images, 'medium'], sort_keys=True)
             path = cache.path(pdf, prompt, h.extract_model)
             paths[md.stem] = path
             data = cache.get(path)
