@@ -95,3 +95,26 @@ GPT 预案：`docs/V3_5_PROGRESSIVE_WORKFLOW_CONSTRUCTION.md`（分支 `docs/v35
 **版本命名（采纳 GPT 的意见）：** 建模框架实现版本记为 `V3.6-hybrid-workflow`；路线图里程碑和模块版本（UO-1.1 等）分开记录。
 
 **测试安排：** GPT 建议先跑基线 3 次。V3.4 已有一次有效运行（t7），按用户要求直接用 V3.6 在甲烷化（开发集）上跑 3 次，与 t7 对比。
+
+
+## 9 V3.6-hybrid-workflow 实施（2026-11-15）
+
+实现保持 STAGES、unitops、既有物理阈值、价格、留出目标和评分不变。只有 build_version 以 V3.6 开头时启用新检查；V3.6 同时继承 V3.4 的精简工具和 V3.5 的设计检查。model.py 保留为组合层。
+
+- `registry.py` 登记 16 个可解析的模块（14 个 unitops、MKM、设计优化），提供版本、能力、输入输出单位、假设、单元字段谓词、对应既有测试和实现出处。split 只作物料分割，分离单元另须 energy_method；热回收标明简化估算；MKM 标明单位点平均场；优化标明局部有界搜索。
+- `computed_by` 是单元来源声明，逐个检查 reference 和全部可用候选记录。任何非零外购能耗、冷却负荷或投资的单元缺少来源或使用未登记/未验证模块时阻断；适用域外记录 WARNING。覆盖率按实际能耗、冷却、投资分别加权；含实验来源的单元不计入已验证来源分子。该占比统计已声明且被登记识别的来源，并不替代物理检查或证明任意 glue code 的数据流。
+- 实验模块使用 `modules/<name>.py`：`META.inputs`、`META.outputs` 为变量到单位的映射，`META.units` 覆盖所有输入输出名，另附 assumptions、applicability；暴露 `compute(**inputs)` 和 `tests()`。tests 执行自身断言，并返回含 conservation、limit、reference 三类的 `{kind, inputs}` 算例。框架对子进程输出检查有限值、单位键、能耗非负和重复确定性；20 s 超时；隔离工作目录、清理环境并通过 Python audit hooks 禁止网络、子进程和文件修改。它是离线实验执行隔离，不声称是运行任意敌对代码的 OS 安全边界。validation.json 绑定源码 SHA-256，源码变化即失效，通过后仍标实验模块，仅记录 promotion_candidate，不自动晋升。
+- `interfaces.py` 使用类型化 Verdict，输出 PASS / WARNING / BLOCK。反应器合同要求 physics.reactor 的 `inlet_kmol_per_t` / `outlet_kmol_per_t`（物种到 kmol/t 的映射），检查元素、平衡上限、反应热符号和流程物流物种。流程到 TEA 要求 `basis.utilities.primary_efficiency`（带 value/unit/evidence 的数值叶）、balances 中来自 basis 的 capacity_t_per_y / operating_hours_per_y，以及产品 boundary stream 的 P_bar / mol_frac；投资须有 cost_year，成本指数缺少来源时警告。
+- 使用原子层时，`atomic.ATOMIC` 另声明 `tof_unit`（s^-1、1/s 或 site^-1 s^-1）、site_density_evidence、dispersion_evidence、temperature_range_K、energy_reference_state、scaling_bep_source。缺少参考态/不兼容 TOF 单位阻断；位点证据、外推温区和标度来源缺失警告。原子层未启用且无 atomic.py 时不添加这两个合同。
+- check_model 写 `interface_check.json` 和 `module_coverage.json`，保留逐记录结果、警告和输入指纹；任何 BLOCK 使模型检查失败。finish 检查当前指纹，并要求报告逐条包含警告原文。实验代码和 validation.json 纳入指纹。
+- `workflow.py` 通过 plan_workflow(nodes) 和 revise_workflow(changes, reason) 保存 `workflow/rev_<n>.json`，只用独占创建，不覆盖历史；事件只追加到 workflow_events.jsonl。节点字段为 node_id/node_type/stage/depends_on/inputs/outputs/validation_policy/status/skip_reason；计算节点另声明 module_id/module_version 或 experimental。必经 node_type 为 evidence、basis、flowsheet、model_check、interface_check、independent_validation、report，分别唯一且不可移除/跳过。依赖无环，ready/running/validated 节点的依赖须先 validated；可选跳过理由至少 30 字符。revise 的 change 为 `{op: add, node_id, node}`、`{op: update, node_id, fields}` 或 `{op: remove, node_id, skip_reason}`；remove 保留跳过节点。finish 要求七个必经节点全为 validated，并保留原有物理、证据欠账与独立 critic 产物检查。节点状态由 Agent 通过工具更新，不取代实际检查结果。
+- design_int 的整数上下界逐个枚举（最多 256 个组合，每组合最多 40 次连续评估）；design 仅交给连续优化。`optimize_design(candidate=null)` 使用默认构型；非空 candidate 须是 model.CANDIDATES 的键，其值映射固定配置 PARAMS。每个整数组合保存起点、失败点、边界命中和收敛状态；不修改 model.py / sources.csv。basis.ranking_strategy 必填 shared_design 或 reference_reconstruction；per_catalyst 明确阻断。任何局部结果均不构成全局最优证明。
+- 新工具输出紧凑 JSON；workflow 工具各阶段可用，登记/验证工具在建模相关阶段可用。摘要显示最新工作流。runner 封存接口/覆盖产物、工作流修订和事件、实验验证记录；直接写入被撤销，新增伪造修订也被删除，写工具异常时仍恢复封存。
+
+离线验收入口：`tests_v3/run_v36_acceptance.py`，顺序执行 11 个既有检查脚本及 validate_v36.py，无 API/LLM。validate_v35 的旧版夹具显式固定 V3.5，而不是跟随最新默认版本；回放直接编译读取原模型，不在原目录生成字节码。完整结果和 t7 只读副本回放分别位于 `tests_v3/v36_test_results.json`、`tests_v3/v36_t7_replay.json`。回放只测试参考工厂，不重新抽取或归一化原始记录。
+
+A13 由 `holdout/make_prereg_a13.py` 生成，承接 A12 冻结列表并新增本次实现、测试和文档；不改写 A12 或任何既有留出 JSON。未启动开发集的三次在线运行，也未接入 IDAES。
+
+离线验收结果：12 个脚本通过、0 个失败；V3.6 的 6 组验收全部通过。沙箱的失败测试、非有限数、负能耗、重复不确定性和缺失单位键均被拒绝；四类接口各有 PASS/WARNING/BLOCK 对照。
+
+t7 只读副本回放：9 个非零单元缺少 computed_by；反应器到流程缺少 inlet_kmol_per_t，流程到 TEA 缺少 utilities.primary_efficiency，两类合同 BLOCK；另缺 ranking_strategy、工作流计划。已登记验证的能耗/冷却/投资份额均为 0%（来源声明覆盖统计，不是对原数值正确性的判定）。原运行文件 SHA-256 前后一致。V3.5 已有的投资指数、设计声明和备选方案问题仍由继承的规则保留。

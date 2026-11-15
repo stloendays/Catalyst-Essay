@@ -22,7 +22,7 @@ of compression, heating, cooling and separation, utility accounting, capital bas
 report wording, formatting, table layout or documentation gaps; the harness checks file formats itself."""
 
 def enabled(h):
-    return getattr(h, 'build_version', '').startswith(('V3.4', 'V3.5'))
+    return getattr(h, 'build_version', '').startswith(('V3.4', 'V3.5', 'V3.6'))
 
 def read_file(h, path, start, n, force=False):
     p = h.path(path)
@@ -86,7 +86,7 @@ def digest(h):
         'open_critique': compact([x for r in load('critique.json').get('rounds', []) for x in r.get('issues', []) if not x.get('response')], 600),
         'stage_notes': compact(getattr(h, 'stage_notes', [])[-8:], 600),
     }
-    if getattr(h, 'build_version', '').startswith('V3.5'):
+    if getattr(h, 'build_version', '').startswith(('V3.5', 'V3.6')):
         import csv
         try:
             with (h.ws / 'sources.csv').open(encoding='utf-8') as fh:
@@ -96,6 +96,10 @@ def digest(h):
             sections['design_variables'] = 'absent'
         opt = load('design_opt.json')
         sections['last_optimisation'] = compact({k:v for k,v in opt.items() if k != 'rejected_points'}, 900)
+    if getattr(h, 'build_version', '').startswith('V3.6'):
+        import workflow
+        doc = workflow.latest(h.ws)
+        sections['workflow'] = compact(dict(revision=doc['revision'], nodes=[{k:n[k] for k in ('node_id','status')} for n in doc['nodes']]) if doc else {}, 950)
     for name in ('energy_ledger.csv', 'capex_ledger.csv'):
         try:
             sections[name] = '\n'.join((h.ws / name).read_text(encoding='utf-8').splitlines()[:5])[:500]
@@ -167,8 +171,12 @@ ALWAYS = {'read_file', 'write_file', 'set_stage', 'finish', 'workspace_digest'}
 LITERATURE = {'search_papers', 'screen_papers', 'download_papers', 'ocr_papers', 'extract_papers', 'check_records', 'extract_records'}
 MODEL = {'optimize_design', 'check_model', 'run_python', 'check_atomic', 'record_decision'}
 
-def stage_tools(tools, stage):
+def stage_tools(tools, stage, hybrid=False):
     allowed = set(ALWAYS)
+    if hybrid:
+        allowed |= {'plan_workflow', 'revise_workflow'}
+        if stage in ('model_code', 'model_checks', 'atomic_model', 'feedback', 'reactor_flowsheet', 'analysis'):
+            allowed |= {'list_modules', 'describe_module', 'validate_module', 'optimize_design'}
     if stage in ('search', 'screening', 'download_ocr', 'extraction'):
         allowed |= LITERATURE | {'web_search'}
     elif stage in ('mechanism_kinetics', 'parameters'):

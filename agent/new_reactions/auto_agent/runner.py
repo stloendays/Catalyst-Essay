@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import lean_chem
 import design_opt
+import registry
 import base64
 import hashlib
 import csv
@@ -457,6 +458,10 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 instructions += lean_chem.PROMPT
             if design_opt.enabled(self):
                 instructions += design_opt.PROMPT
+            if registry.enabled(self):
+                from build_mode import hybrid_tools
+                tools = hybrid_tools(tools)
+                instructions += registry.PROMPT
         elif self.lean:
             self.setup_lean(self.lean)
             instructions = METHOD_LEAN.format(reaction=self.cfg["name"], key=self.cfg["stoich"]["key"], product=self.cfg["stoich"]["product"],
@@ -503,7 +508,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 warning = lean_chem.turn_warning(self)
                 if warning:
                     items.append({"role": "user", "content": warning})
-                request_tools = lean_chem.stage_tools(tools, self.stage)
+                request_tools = lean_chem.stage_tools(tools, self.stage, hybrid=registry.enabled(self))
                 self._history = items
             out, text, final = self.respond(items, instructions, request_tools, effort="medium")
             u = final.usage
@@ -571,10 +576,12 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                                   "l_" if self.lean and hasattr(self, "l_" + c.name) else
                                   "f_" if self.full and hasattr(self, "f_" + c.name) else "t_")
                         sealed = seal_snapshot(self.ws) if (self.build and c.name in AGENT_WRITERS) else None
-                        out_s = run_with_deadline(lambda: getattr(self, prefix + c.name)(**args),
-                                                  TOOL_TIMEOUT_S if (self.build and c.name in TIMED_TOOLS) else None)
-                        if sealed is not None:
-                            out_s += seal_restore(self.ws, sealed)
+                        try:
+                            out_s = run_with_deadline(lambda: getattr(self, prefix + c.name)(**args),
+                                                      TOOL_TIMEOUT_S if (self.build and c.name in TIMED_TOOLS) else None)
+                        finally:
+                            restored = seal_restore(self.ws, sealed) if sealed is not None else ''
+                        out_s += restored
                     except ToolTimeout:
                         out_s = (f"ERROR timeout: {c.name} exceeded {TOOL_TIMEOUT_S} s while executing your model.py/atomic.py; "
                                  "make them faster (vectorise, cache solutions, fewer grid points or solver iterations) and call it again")
@@ -600,7 +607,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
 
 
 TOOL_TIMEOUT_S = 900   # amendment A3 (2026-11-13): fixed tools that execute the agent's code get a deadline
-TIMED_TOOLS = {"optimize_design", "check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
+TIMED_TOOLS = {"validate_module", "optimize_design", "check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
                "check_records", "submit_flowsheet"}
 
 
@@ -645,17 +652,20 @@ def drop_holdout(holdout, results):
 
 # Outputs that only the fixed tools write (gate results). An agent edit through write_file/run_python is reverted, so a gate
 # result cannot be forged (nh3dec_b6 turn 206, 2026-11-13: the agent wrote its own empty evidence_debt.json).
-SEALED_OUTPUTS = ("design_opt.json", "model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
+SEALED_OUTPUTS = ("registry.py", "interfaces.py", "workflow.py", "interface_check.json", "module_coverage.json", "workflow_events.jsonl", "design_opt.json", "model_check.json", "evidence_debt.json", "critique.json", "sensitivity.json", "analysis.json",
                   "atomic_check.json", "three_optima.json", "unitops.py", "physics_gate.py", "mkm_solver.py", "prices.json")
 AGENT_WRITERS = {"write_file", "run_python"}
 
 
 def seal_snapshot(ws):
-    return {n: ((ws / n).read_bytes() if (ws / n).exists() else None) for n in SEALED_OUTPUTS}
+    names = set(SEALED_OUTPUTS) | {str(p.relative_to(ws)) for pattern in ('workflow/*.json', 'modules/*.validation.json') for p in ws.glob(pattern)}
+    return {n: ((ws / n).read_bytes() if (ws / n).exists() else None) for n in names}
 
 
 def seal_restore(ws, snap):
     changed = []
+    extra = {str(p.relative_to(ws)) for pattern in ('workflow/*.json', 'modules/*.validation.json') for p in ws.glob(pattern)}-set(snap)
+    snap = dict(snap, **{n:None for n in extra})
     for n, b in snap.items():
         p = ws / n
         now = p.read_bytes() if p.exists() else None
@@ -664,6 +674,7 @@ def seal_restore(ws, snap):
             if b is None:
                 p.unlink()
             else:
+                p.parent.mkdir(parents=True, exist_ok=True)
                 p.write_bytes(b)
     if not changed:
         return ""

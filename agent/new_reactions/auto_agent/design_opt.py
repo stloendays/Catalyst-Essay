@@ -20,9 +20,9 @@ or 0.6-0.9; exponents outside 0.5-0.95 require measured/published exponent_evide
 """
 
 def enabled(h):
-    return getattr(h, 'build_version', '').startswith('V3.5')
+    return getattr(h, 'build_version', '').startswith(('V3.5', 'V3.6'))
 
-def source_failures(rows):
+def source_failures(rows, hybrid=False):
     failures = []
     for row in rows:
         key = row.get('parameter', '')
@@ -31,13 +31,15 @@ def source_failures(rows):
                 ('_bar', 'pressure', 'temperature', 'recovery', 'purge', 'split'))):
             if len((row.get('note') or '').strip()) < 40:
                 failures.append(f'{key}: free design choice must be type=design, or note >=40 characters explaining why process-fixed')
-        if typ == 'design':
+        if typ == 'design' or (hybrid and typ == 'design_int'):
             try:
                 lo, v, hi = (float(row[k]) for k in ('low', 'value', 'high'))
                 if not all(math.isfinite(x) for x in (lo, v, hi)) or not lo <= v <= hi:
                     raise ValueError()
                 if not row.get('unit') or not (row.get('note') or '').strip():
                     raise ValueError()
+                if hybrid and typ == 'design_int' and not all(x.is_integer() for x in (lo, v, hi)):
+                    raise ValueError('integer bounds/value required')
             except (KeyError, TypeError, ValueError):
                 failures.append(f'{key}: design requires finite low <= value <= high, unit and note')
     return failures
@@ -67,7 +69,7 @@ def decision_failures(decisions):
     return failures
 
 
-def optimize(ws):
+def _continuous(ws, candidate=None, fixed=None, hybrid=False):
     """Runs in the tool subprocess, never writes the model or source register."""
     import importlib.util
     import sys
@@ -78,7 +80,7 @@ def optimize(ws):
     from physics_gate import check_physics
     ws = Path(ws)
     rows = list(csv.DictReader((ws / 'sources.csv').open(encoding='utf-8')))
-    errors = source_failures(rows)
+    errors = source_failures(rows, hybrid=hybrid)
     if errors:
         raise ValueError('; '.join(errors))
     variables = [r for r in rows if r['type'].strip().lower() == 'design']
@@ -93,6 +95,14 @@ def optimize(ws):
     m = importlib.util.module_from_spec(spec)
     with contextlib.redirect_stdout(io.StringIO()):
         spec.loader.exec_module(m)
+    if hybrid:
+        config = getattr(m, 'CANDIDATES', {}).get(candidate) if candidate is not None else {}
+        if not isinstance(config, dict):
+            raise ValueError('candidate must name a configuration in model.CANDIDATES')
+        if set(config) & set(keys):
+            raise ValueError('candidate must not override continuous design variables')
+        m.PARAMS.update(config)
+        m.PARAMS.update(fixed or {})
     for k, v in zip(keys, x0):
         if k not in m.PARAMS or not math.isclose(float(m.PARAMS[k]), v, rel_tol=1e-9, abs_tol=1e-12):
             raise ValueError(k + ': PARAMS differs from design source value')
@@ -117,6 +127,15 @@ def optimize(ws):
             with contextlib.redirect_stdout(io.StringIO()):
                 out = m.reference()
                 failures = check_physics(m, out, flow, basis=basis, ledger=True, design=True)
+                if hybrid:
+                    import registry
+                    import interfaces
+                    failures += registry.coverage(ws, out)['blocks']
+                    atomic = None
+                    if (ws/'atomic.py').exists():
+                        from atomic_layer import load_atomic
+                        atomic = load_atomic(ws).ATOMIC
+                    failures += interfaces.check(m, out, flow, basis, atomic)['blocks']
             metrics = dict(cost_usd_per_t=float(out['cost_usd_per_t']),
                            energy_GJ_per_t=float(out['balances']['energy_GJ_per_t']),
                            capex_usd=float(out['balances']['capex_usd']))
@@ -134,6 +153,7 @@ def optimize(ws):
     z0 = np.divide(x0-low, high-low, out=np.zeros_like(x0), where=high!=low)
     evaluate(z0)
     start = next(iter(cache.values())).copy()
+    starts_used, convergence = [], []
     if keys:
         # Coordinate low/mid/high starts, deterministic and linear in dimension.
         starts = [z0, np.full(len(keys), .5)]
@@ -142,35 +162,85 @@ def optimize(ws):
                 z = z0.copy(); z[i] = v; starts.append(z)
         try:
             for z in starts[:min(12, max(2, 20//max(1, len(keys))))]:
+                starts_used.append(dict(zip(keys, (low+z*(high-low)).tolist())))
                 evaluate(z)
             seeds = sorted(cache.values(), key=lambda e: e['objective'])[:3]
             for seed in seeds:
                 x = np.array(list(seed['values'].values()))
                 z = np.divide(x-low, high-low, out=np.zeros_like(x), where=high!=low)
-                minimize(evaluate, z, method='L-BFGS-B', bounds=[(0, 1)]*len(keys),
+                opt = minimize(evaluate, z, method='L-BFGS-B', bounds=[(0, 1)]*len(keys),
                          options=dict(maxfun=max(1, (40-len(cache))//len(seeds)), ftol=1e-12, gtol=1e-7))
+                convergence.append(dict(success=bool(opt.success), message=str(opt.message), start=seed['values']))
         except Budget:
-            pass
+            convergence.append(dict(success=False, message='evaluation budget reached'))
     def public(e):
         return {k:v for k,v in e.items() if k != 'objective'} if e else None
     result = dict(status='ok' if best else 'no_feasible_point', start=public(start), optimum=public(best),
                   evaluations=len(cache), rejected_points=rejected, variables_at_bound=[k for i,k in enumerate(keys)
                   if best and (math.isclose(best['values'][k], low[i], abs_tol=1e-7) or
                                math.isclose(best['values'][k], high[i], abs_tol=1e-7))])
+    if hybrid:
+        result.update(candidate=candidate, fixed_integers=fixed or {}, start_points=starts_used or [{}],
+                      convergence=convergence, method='local_bounded')
     (ws / 'design_opt.json').write_text(json.dumps(result, indent=1), encoding='utf-8')
     return result
 
 
-def run_tool(ws):
+def ranking_failures(basis):
+    strategy = basis.get('ranking_strategy')
+    if strategy == 'per_catalyst':
+        return ['ranking_strategy per_catalyst is not implemented; use shared_design or reference_reconstruction']
+    return [] if strategy in ('shared_design', 'reference_reconstruction') else ['basis.ranking_strategy required: shared_design | reference_reconstruction']
+
+
+def integer_configurations(rows):
+    from itertools import product
+    variables = [r for r in rows if r.get('type', '').strip().lower() == 'design_int']
+    if len({r['parameter'] for r in variables}) != len(variables):
+        raise ValueError('duplicate integer design parameter')
+    errors = source_failures(variables, hybrid=True)
+    if errors:
+        raise ValueError('; '.join(errors))
+    count = math.prod(int(float(r['high']))-int(float(r['low']))+1 for r in variables)
+    if count > 256:
+        raise ValueError('integer space exceeds 256 configurations; narrow declared bounds')
+    return [dict(zip([r['parameter'] for r in variables], values)) for values in product(
+        *(range(int(float(r['low'])), int(float(r['high']))+1) for r in variables))]
+
+
+def optimize(ws, candidate=None):
+    ws = Path(ws)
+    vp = ws/'build_version.json'
+    hybrid = vp.exists() and json.loads(vp.read_text(encoding='utf-8')).get('version', '').startswith('V3.6')
+    if not hybrid:
+        return _continuous(ws)
+    basis = json.loads((ws/'basis.json').read_text(encoding='utf-8'))
+    errors = ranking_failures(basis)
+    if errors:
+        raise ValueError('; '.join(errors))
+    with (ws/'sources.csv').open(encoding='utf-8') as f:
+        rows = list(csv.DictReader(f))
+    results = [_continuous(ws, candidate, fixed, True) for fixed in integer_configurations(rows)]
+    feasible = [r for r in results if r['optimum']]
+    winner = min(feasible, key=lambda r: r['optimum']['cost_usd_per_t']) if feasible else results[0]
+    result = dict(winner, integer_enumeration=results, ranking_strategy=basis['ranking_strategy'],
+                  total_evaluations=sum(r['evaluations'] for r in results))
+    (ws/'design_opt.json').write_text(json.dumps(result, indent=1), encoding='utf-8')
+    return result
+
+
+def run_tool(ws, candidate=None):
     import subprocess
     import sys
     command = [sys.executable, str(Path(__file__).resolve()), str(Path(ws).resolve())]
+    if candidate is not None:
+        command.append(candidate)
     p = subprocess.run(command, cwd=ws, capture_output=True, text=True, encoding='utf-8', timeout=840)
     if p.returncode:
         return json.dumps(dict(error=(p.stderr or p.stdout)[-1500:]))
     result = json.loads((Path(ws) / 'design_opt.json').read_text(encoding='utf-8'))
     # Compact summary; full variable maps and rejected points remain in the artifact.
-    summary = {k:v for k,v in result.items() if k != 'rejected_points'}
+    summary = {k:v for k,v in result.items() if k not in ('rejected_points', 'integer_enumeration')}
     summary['rejected_count'] = len(result['rejected_points'])
     text = json.dumps(summary, separators=(',', ':'))
     if len(text) > 3000:
@@ -182,4 +252,4 @@ def run_tool(ws):
 
 if __name__ == '__main__':
     import sys
-    optimize(Path(sys.argv[1]))
+    optimize(Path(sys.argv[1]), sys.argv[2] if len(sys.argv) > 2 else None)

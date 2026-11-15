@@ -67,8 +67,11 @@ except ImportError:  # runner.py is also invoked directly
 
 import lean_chem
 import design_opt
+import registry
+import interfaces
+import workflow
 
-BUILD_MODE_VERSION = "V3.5-design-opt"
+BUILD_MODE_VERSION = "V3.6-hybrid-workflow"
 CRITIC_MODEL = "gpt-5.6-luna"   # user 2026-11-13: the critic is a different model from the builder
 AGENT_ROOT = Path(r"D:\agent_runs")
 STAGES = ["search", "screening", "download_ocr", "extraction", "mechanism_kinetics", "reactor_flowsheet", "parameters",
@@ -299,10 +302,25 @@ class BuildMixin:
         self.log({"stage": stage, "note": note[:300]})
         return json.dumps(dict(stage=stage))
 
-    def b_optimize_design(self):
+    def b_list_modules(self):
+        return json.dumps(registry.list_modules(), separators=(',', ':'))
+
+    def b_describe_module(self, module_id):
+        return json.dumps(registry.describe_module(module_id), separators=(',', ':'))
+
+    def b_validate_module(self, name):
+        return json.dumps(registry.validate_module(self.ws, name), separators=(',', ':'))
+
+    def b_plan_workflow(self, nodes):
+        return json.dumps(workflow.plan(self.ws, nodes, STAGES), separators=(',', ':'))
+
+    def b_revise_workflow(self, changes, reason):
+        return json.dumps(workflow.revise(self.ws, changes, reason, STAGES), separators=(',', ':'))
+
+    def b_optimize_design(self, candidate=None):
         if not design_opt.enabled(self):
             return "refused: optimize_design requires V3.5"
-        return design_opt.run_tool(self.ws)
+        return design_opt.run_tool(self.ws, candidate if registry.enabled(self) else None)
 
     def b_workspace_digest(self):
         return lean_chem.digest(self)
@@ -466,11 +484,27 @@ class BuildMixin:
         recs = self._records()
         fails = {k: [] for k in ("finite_positive", "parts_sum", "conversion_range", "stoichiometry", "monotone_selectivity",
                                  "monotone_activity", "deterministic", "exception", "physics")}
+        hybrid_coverage, hybrid_interfaces = [], []
+        atomic_contract = None
+        if registry.enabled(self) and (getattr(self, 'atomic', False) or (self.ws/'atomic.py').exists()):
+            try:
+                from atomic_layer import load_atomic
+                atomic_contract = load_atomic(self.ws).ATOMIC
+            except Exception as exc:
+                atomic_contract = {}
+                fails.setdefault('interfaces', []).append('atomic interface data: '+str(exc))
         for i, rec in enumerate([None] + recs):
             try:
                 out = ref if rec is None else m.plant_cost(rec)
                 c = out["cost_usd_per_t"]
                 tag = "reference" if rec is None else f"{rec['paper']}#{rec['idx']}"
+                if registry.enabled(self):
+                    cov = registry.coverage(self.ws, out)
+                    inter = interfaces.check(m, out, flowsheet, self._basis(), atomic_contract)
+                    hybrid_coverage.append(dict(record=tag, **cov))
+                    hybrid_interfaces.append(dict(record=tag, **inter))
+                    fails.setdefault('module_coverage', []).extend(tag+': '+v for v in cov['blocks'])
+                    fails.setdefault('interfaces', []).extend(tag+': '+v for v in inter['blocks'])
                 if i <= 40:
                     fails["physics"].extend((failure if lean_chem.enabled(self) else f"{tag}: {failure}") for failure in check_physics(
                         m, out, flowsheet, **({"basis": self._basis(), "ledger": self.build_version >= "V3.3.1", "design": design_opt.enabled(self)} if self._is_v3() else {})))
@@ -511,7 +545,7 @@ class BuildMixin:
                 elif typ == "assumption":
                     if not (row.get("low") or "").strip() or not (row.get("high") or "").strip():
                         src_fail.append(f"{row.get('parameter')}: assumption without low/high")
-                elif typ == "design" and design_opt.enabled(self):
+                elif (typ == "design" and design_opt.enabled(self)) or (typ == "design_int" and registry.enabled(self)):
                     pass
                 elif typ == "price_table" and self._is_v3():
                     pass                                   # checked against prices.json below
@@ -519,7 +553,7 @@ class BuildMixin:
                     src_fail.append(f"{row.get('parameter')}: type must be measured, published, assumption or price_table")
             if design_opt.enabled(self):
                 with sp.open(encoding="utf-8") as fh:
-                    src_fail += design_opt.source_failures(list(csv.DictReader(fh)))
+                    src_fail += design_opt.source_failures(list(csv.DictReader(fh)), hybrid=registry.enabled(self))
             if self._is_v3() and (self.ws / "prices.json").exists():
                 src_fail += price_failures(self.ws)
         if src_fail:
@@ -531,6 +565,8 @@ class BuildMixin:
             fails["decisions"] = ["missing decision: " + t for t in ("mechanism", "kinetics", "reactor", "separation", "boundary") if t not in topics]
         if design_opt.enabled(self):
             fails["decisions"] += design_opt.decision_failures(self._jsonlines("decisions.jsonl"))
+        if registry.enabled(self):
+            fails['ranking_strategy'] = design_opt.ranking_failures(self._basis())
         res = dict(passed=not any(fails.values()), records_tested=len(recs),
                    failures={k: v[:5] + ([f"... {len(v) - 5} more"] if len(v) > 5 else []) for k, v in fails.items() if v},
                    reference=dict(name=ref.get("name"), cost=ref.get("cost_usd_per_t"), parts=ref.get("parts"), operating=ref.get("operating")))
@@ -543,6 +579,13 @@ class BuildMixin:
                                     for tag in tags if msg == tag or msg.startswith(tag + ": ")), msg)
                                for msg in messages]
             res["failures"] = lean_chem.diagnosis(fails)
+        if registry.enabled(self):
+            for name, results in (('module_coverage.json', hybrid_coverage), ('interface_check.json', hybrid_interfaces)):
+                artifact = dict(passed=bool(results) and all(r['passed'] for r in results), records=results,
+                                warnings=sorted({w for r in results for w in r['warnings']}), input_fingerprint=self._fingerprint())
+                (self.ws/name).write_text(json.dumps(artifact, indent=1), encoding='utf-8')
+            res['coverage'] = hybrid_coverage[0]['coverage'] if hybrid_coverage else {}
+            res['warnings'] = sorted({w for r in hybrid_coverage+hybrid_interfaces for w in r['warnings']})
         res["input_fingerprint"] = self._fingerprint()
         if self.build_version >= "V3.3.1":
             write_ledgers(self.ws, ref)
@@ -624,6 +667,11 @@ class BuildMixin:
             p = self.ws / name
             h.update(name.encode())
             h.update(p.read_bytes() if p.exists() else b"missing")
+        if registry.enabled(self):
+            for p in sorted((self.ws/'modules').glob('*')):
+                if p.is_file() and p.suffix in ('.py', '.json'):
+                    h.update(p.name.encode())
+                    h.update(p.read_bytes())
         return h.hexdigest()
 
     def _parameters(self):
@@ -804,6 +852,17 @@ class BuildMixin:
         if not self._is_v3():
             return []
         errors = []
+        if registry.enabled(self):
+            errors += workflow.finish_errors(self.ws, STAGES)
+            report_path = self.ws/'report.md'
+            report_text = report_path.read_text(encoding='utf-8') if report_path.exists() else ''
+            for name in ('interface_check.json', 'module_coverage.json'):
+                path = self.ws/name
+                artifact = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+                if not artifact.get('passed') or artifact.get('input_fingerprint') != self._fingerprint():
+                    errors.append('run current check_model: '+name)
+                errors += ['report must list WARNING: '+w for w in artifact.get('warnings', []) if w not in report_text]
+            errors += design_opt.ranking_failures(self._basis())
         for name in ("model_check.json", "evidence_debt.json", "critique.json"):
             if not (self.ws / name).exists():
                 errors.append("missing " + name)
@@ -1052,3 +1111,23 @@ def lean_tools(tools):
         result.append(_tool(batch, "Apply existing single actions in order and return combined results.",
                             dict(items={"type": "array", "items": copy.deepcopy(schema)})))
     return result
+
+
+def hybrid_tools(tools):
+    import copy
+    result = copy.deepcopy(tools)
+    opt = next(t for t in result if t.get('name') == 'optimize_design')
+    opt['parameters']['properties']['candidate'] = {'type': ['string', 'null']}
+    opt['parameters']['required'] = ['candidate']
+    additions = [
+        _tool('list_modules', 'Compact verified scientific module registry.'),
+        _tool('describe_module', 'Module units, applicability, assumptions and validation.', dict(module_id=_str)),
+        _tool('validate_module', 'Validate sandbox modules/<name>.py on current source.', dict(name=_str)),
+        _tool('plan_workflow', 'Create initial DAG; each node includes typed fields and validation policy.',
+              dict(nodes={'type':'array','items':{'type':'object','additionalProperties':True}})),
+        _tool('revise_workflow', 'Append DAG revision: changes [{op:add/update/remove,node_id,node/fields/skip_reason}], reason.',
+              dict(changes={'type':'array','items':{'type':'object','additionalProperties':True}}, reason=_str))]
+    for t in additions:
+        if t['name'] in ('plan_workflow', 'revise_workflow'):
+            t['strict'] = False
+    return result+additions

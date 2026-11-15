@@ -26,6 +26,7 @@ def source(ws, value=9, low=1, high=10, typ='design', note='Free pressure choice
 
 
 def fixture(ws, value=9, low=1, high=10, reject=False):
+    (ws/'build_version.json').write_text(json.dumps(dict(version='V3.5-design-opt')),encoding='utf-8')
     h=Harness(ws)
     reaction, out, flow=fixtures()
     basis=basis_fixture()
@@ -57,7 +58,7 @@ def validate():
     assert not d.source_failures([dict(parameter='catalyst_mass_kg',type='assumption')])
     with tempfile.TemporaryDirectory() as tmp:
         ws=Path(tmp); h=fixture(ws)
-        assert h.build_version==bm.BUILD_MODE_VERSION=='V3.5-design-opt'
+        assert h.build_version=='V3.5-design-opt'
         assert lean_chem.enabled(h)
         alternatives(h,2)
         assert json.loads(h.b_check_model())['passed']
@@ -132,7 +133,7 @@ def replay():
     sys.path.insert(0,str(run))
     try:
         spec=importlib.util.spec_from_file_location('replay_t7',run/'model.py')
-        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        m=importlib.util.module_from_spec(spec);exec(compile((run/'model.py').read_text(encoding='utf-8'),str(run/'model.py'),'exec'),m.__dict__)
         out=m.reference()
     finally:
         sys.path.remove(str(run))
