@@ -305,6 +305,14 @@ class BuildMixin:
     def b_list_modules(self):
         return json.dumps(registry.list_modules(), separators=(',', ':'))
 
+    def b_idaes_check(self):
+        import idaes_adapter
+        if not registry.enabled(self):
+            return json.dumps(dict(ok=False, error='idaes_check requires V3.6 or later'))
+        result = idaes_adapter.idaes_check(self._load_model())
+        (self.ws/'idaes_check.json').write_text(json.dumps(result,indent=1),encoding='utf-8')
+        return json.dumps(result,separators=(',', ':'))
+
     def b_describe_module(self, module_id):
         return json.dumps(registry.describe_module(module_id), separators=(',', ':'))
 
@@ -1120,6 +1128,7 @@ def hybrid_tools(tools):
     opt['parameters']['properties']['candidate'] = {'type': ['string', 'null']}
     opt['parameters']['required'] = ['candidate']
     additions = [
+        _tool('idaes_check', 'T1: IDAES ideal-gas reference cross-check (300 s); explain >5% differences in report.md.'),
         _tool('list_modules', 'Compact verified scientific module registry.'),
         _tool('describe_module', 'Module units, applicability, assumptions and validation.', dict(module_id=_str)),
         _tool('validate_module', 'Validate sandbox modules/<name>.py on current source.', dict(name=_str)),

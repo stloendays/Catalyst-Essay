@@ -15,7 +15,8 @@ import tempfile
 
 
 def enabled(h):
-    return getattr(h, 'build_version', '').startswith('V3.6')
+    match = re.match(r'V(\d+)\.(\d+)', getattr(h, 'build_version', ''))
+    return bool(match and tuple(map(int, match.groups())) >= (3, 6))
 
 
 PROMPT = """
@@ -25,6 +26,7 @@ Use list_modules/describe_module for contracts. Experimental modules expose META
 and tests() returning conservation/limit/reference cases {kind, inputs}; tests assert their expected results.
 META declares inputs, outputs (name:unit), units, assumptions, applicability. Call validate_module before use.
 check_model writes interface_check.json and module_coverage.json; copy every WARNING reason into report.md.
+After model_checks, call idaes_check on the reference plant and explain each unit differing by more than 5% in report.md.
 Plan/revise a workflow DAG; validate evidence, basis, flowsheet, model_check, interface_check,
 independent_validation (critic), report. Skips need >=30-character reasons. Revisions are immutable.
 Interface fields: physics.reactor.inlet_kmol_per_t and outlet_kmol_per_t {species: kmol per t}; physics.boundary.product {species: {P_bar, mol_frac}};
@@ -121,6 +123,60 @@ MODULES = {} if __name__ == '__main__' else {_e['module_id']: _e for _e in
 if MODULES:
     MODULES['mkm_solver.solve']['applicability_domain'] = [dict(field='site_model', op='eq', value='single_site_mean_field')]
     MODULES['design_opt.optimize']['applicability_domain'] = [dict(field='search_method', op='eq', value='local_bounded')]
+
+    # UO-2.0 T1 methods: explicit signatures and output units. No reaction identity.
+    from unitops_equipment import UO2_FUNCTIONS
+    _uo2_outputs = {
+        'cp_mix': {'cp_J_mol_K':'J/mol/K','heat_capacity_GJ_per_t_K':'GJ/t/K'},
+        'enthalpy_stream': {'enthalpy_GJ_per_t':'GJ/t formation or sensible'},
+        'antoine_psat': {'P_sat_bar':'bar'}, 'vapor_pressure': {'P_sat_bar':'bar'},
+        'flash_pt': {'vapor_fraction':'fraction','vapor_kmol_per_t':'kmol/t species mapping','liquid_kmol_per_t':'kmol/t species mapping'},
+        'dew_point': {'T_dew_K':'K'},
+        'water_knockout': {'vapor_kmol_per_t':'kmol/t species mapping','liquid_kmol_per_t':'kmol/t species mapping','cooling_duty_GJ_per_t':'GJ/t','purchased_energy_GJ_per_t':'GJ/t'},
+        'equilibrium_reactor': {'outlet_kmol_per_t':'kmol/t species mapping','extents_kmol_per_t':'kmol/t','heat_duty_GJ_per_t':'GJ/t signed'},
+        'adiabatic_temperature_rise': {'T_out_K':'K','delta_T_K':'K','outlet_kmol_per_t':'kmol/t species mapping'},
+        'staged_cooled_reactor': {'beds':'per-bed states','outlet_kmol_per_t':'kmol/t species mapping','cooling_duty_GJ_per_t':'GJ/t'},
+        'pfr_isothermal': {'outlet_kmol_per_h':'kmol/h species mapping','heat_duty_GJ_per_h':'GJ/h signed'},
+        'cstr': {'outlet_kmol_per_h':'kmol/h species mapping','heat_duty_GJ_per_h':'GJ/h signed'},
+        'catalyst_inventory': {'catalyst_kg':'kg'}, 'ergun_pressure_drop': {'dP_Pa':'Pa','dP_bar':'bar'},
+        'membrane_two_component': {'stage_cut':'fraction','permeate_purity':'fraction','retentate_purity':'fraction','power_GJ_per_t':'GJ/t','permeate_kmol_per_t':'kmol/t species mapping','retentate_kmol_per_t':'kmol/t species mapping'},
+        'psa_energy': {'power_GJ_per_t':'GJ/t','product_kmol_per_t':'kmol/t species mapping','tail_kmol_per_t':'kmol/t species mapping'},
+        'absorber_kremser': {'theoretical_stages':'stages','absorption_factor':'dimensionless'},
+        'stripper_heat': {'heat_duty_GJ_per_t':'GJ/t'},
+        'distillation_fug': {'N_min':'stages','R_min':'dimensionless','theoretical_stages':'stages','condenser_duty_GJ_per_t':'GJ/t','reboiler_duty_GJ_per_t':'GJ/t'},
+        'heat_exchanger': {'area_m2':'m2','LMTD_K':'K'},
+        'problem_table': {'hot_utility_kW':'kW','cold_utility_kW':'kW'},
+        'steam_generation': {'steam_kg_per_t':'kg/t','recovered_heat_GJ_per_t':'GJ/t'},
+        'turton_cost': {'capex_usd':'USD installed','capex_basis':'method, cost_year, installed, size_basis, source'},
+        'cepci': {'index':'dimensionless','year':'year'},
+        'lang_factor_total': {'capex_usd':'USD installed','capex_basis':'method, cost_year, installed, size_basis, source'},
+    }
+    _input_units = dict(stream='kmol/t species mapping',feed='kmol/t (reactors with rate laws: kmol/h)',T='K',P='bar absolute',
+                        reference_T='K',bracket='K pair',rate_fn='callable: flows kmol/h, T K, P bar -> rates kmol/m3/h',
+                        nu='species stoichiometry',nu_list='list of species stoichiometry',extent='kmol/t',
+                        duty='heat_exchanger: kW; steam_generation: GJ/t',U='W/m2/K',size_param='equipment-specific kW/m2/m3',
+                        production='kg/h',rate='kg/kgcat/h',deactivation='cycle mean activity fraction',
+                        P_ads='bar absolute',P_des='bar absolute',P_feed='bar absolute',P_permeate='bar absolute',P_required='bar absolute',
+                        streams='list {Tin:K,Tout:K,CP_kW_K:kW/K}',henry_bar='species H=p/x, bar at specified T and solvent',
+                        purchased_equipment_usd='mapping of purchase costs USD, common declared cost_year')
+    for name in UO2_FUNCTIONS:
+        fn = getattr(importlib.import_module('unitops'),name)
+        doc = inspect.getdoc(fn)
+        inputs = {p:_input_units.get(p, 'K' if p.startswith('T_') or p in ('inlet_T','max_T','dT_min') else
+                    'dimensionless or explicitly SI-suffixed; see docstring') for p in inspect.signature(fn).parameters}
+        mid='unitops.'+name
+        MODULES[mid]=dict(module_id=mid,version='UO-2.0',tier='T1',capability=doc.split('\n')[0],
+                          inputs=inputs,outputs=_uo2_outputs[name],assumptions=[doc],
+                          applicability_domain=[dict(field='applicability.status',op='eq',value='within_domain')],
+                          validation='tests_v3/validate_uo2.py',provenance=dict(implementation='unitops_equipment.py:'+name,documentation=doc))
+    MODULES['idaes_adapter.idaes_check']=dict(module_id='idaes_adapter.idaes_check',version='1.0',tier='T1',
+        capability='Independent IDAES ideal-gas reference snapshots, warning >5%; outside inner loop',
+        inputs={'model_module_or_reference_out':'module.reference() or plant output dict'},
+        outputs={'comparisons':'work/duty/flow relative differences','skipped':'unmapped units and reasons'},
+        assumptions=['Ideal gas; Raoult ideal liquid flash; explicit feed/state; 300 s subprocess; reference only'],
+        applicability_domain=[dict(field='phase',op='eq',value='gas')],
+        supported_units=['Compressor','PressureChanger','Heater','Flash','Mixer','Separator','StoichiometricReactor','EquilibriumReactor','GibbsReactor'],
+        validation='tests_v3/validate_idaes.py',provenance=dict(implementation='idaes_adapter.py'))
 
 
 def list_modules():

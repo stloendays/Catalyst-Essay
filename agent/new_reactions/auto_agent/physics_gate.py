@@ -61,16 +61,13 @@ SHOMATE = {
         (298, 1300, (-0.703029, 108.4773, -42.52157, 5.862788, 0.678565, -76.84376, 158.7163, -74.8731)),
         (1300, 6000, (85.81217, 11.26467, -2.114146, 0.13819, -26.42221, -153.5327, 224.4143, -74.8731)),
     ],
-    # C2H6: no gas Shomate entry; constant Cp298 fallback.
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C74840&Units=SI&Mask=1
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C74851&Units=SI&Mask=1
     "C2H4": [
         (298, 1200, (-6.38788, 184.4019, -112.9718, 28.49593, 0.31554, 48.17332, 163.1568, 52.46694)),
         (1200, 6000, (106.5104, 13.7326, -2.628481, 0.174595, -26.14469, -35.36237, 275.0424, 52.46694)),
     ],
-    # C3H8: no gas Shomate entry; constant Cp298 fallback.
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C74986&Units=SI&Mask=1
-    # C3H6: no gas Shomate entry; constant Cp298 fallback.
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C115071&Units=SI&Mask=1
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C630080&Units=SI&Mask=1
     "CO": [
@@ -104,10 +101,19 @@ SHOMATE = {
         (700, 2000, (30.03235, 8.772972, -3.988133, 0.788313, -0.741599, -11.32468, 236.1663, 0.0)),
         (2000, 6000, (20.91111, 10.72071, -2.020498, 0.146449, 9.245722, 5.337651, 237.6185, 0.0)),
     ],
-    # C2H5OH: no gas Shomate entry; constant Cp298 fallback.
-    # https://webbook.nist.gov/cgi/cbook.cgi?ID=C64175&Units=SI&Mask=1
-    # CH3OH: no gas Shomate entry; constant Cp298 fallback.
-    # https://webbook.nist.gov/cgi/cbook.cgi?ID=C67561&Units=SI&Mask=1
+    # CH3OH, C2H5OH: the WebBook has no gas-phase Shomate fit. A constant Cp298 understated the 298 -> 700 K enthalpy of
+    # methanol by 26 % (found 2026-11-15 by the independent-property cross-check, tests_v3/validate_idaes.py). Shomate A-E
+    # fitted here to the ideal-gas Cp of the `chemicals` / `thermo` packages (Bell et al., CoolProp HEOS fits of
+    # TRC/Poling data), 298-1000 K, max fit error 0.19 % (CH3OH) and 0.31 % (C2H5OH). F, G, H are unused: species_thermo
+    # integrates A-E from 298.15 K and anchors H and S at the tabulated values in THERMO.
+    # https://webbook.nist.gov/cgi/cbook.cgi?ID=C67561&Units=SI&Mask=1 ; https://webbook.nist.gov/cgi/cbook.cgi?ID=C64175&Units=SI&Mask=1
+    # C2H6, C3H8, C3H6: same gap (constant Cp298 fallback, 298 -> 700 K enthalpy 32-33 % low); same fitting method,
+    # max fit error 0.16 / 0.29 / 0.48 %. Matters for PDH (propane, propylene at ~900 K).
+    "C2H6": [(298.15, 1000, (-30.045452, 311.708479, -256.660614, 102.490342, 0.856261, 0.0, 0.0, 0.0))],
+    "C3H8": [(298.15, 1000, (-36.997970, 439.778008, -370.556764, 151.741268, 0.703837, 0.0, 0.0, 0.0))],
+    "C3H6": [(298.15, 1000, (7.609289, 232.428991, -144.668785, 62.655614, -0.143604, 0.0, 0.0, 0.0))],
+    "CH3OH": [(298.15, 1000, (-8.593114, 187.366224, -141.61178, 57.106053, 0.688259, 0.0, 0.0, 0.0))],
+    "C2H5OH": [(298.15, 1000, (-25.368881, 364.200377, -319.237635, 130.862016, 0.595134, 0.0, 0.0, 0.0))],
     # https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440371&Units=SI&Mask=1
     "Ar": [
         (298, 6000, (20.786, 2.825911e-07, -1.464191e-07, 1.092131e-08, -3.661371e-08, -6.19735, 179.999, 0.0)),

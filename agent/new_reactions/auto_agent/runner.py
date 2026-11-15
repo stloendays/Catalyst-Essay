@@ -509,6 +509,9 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
                 if warning:
                     items.append({"role": "user", "content": warning})
                 request_tools = lean_chem.stage_tools(tools, self.stage, hybrid=registry.enabled(self))
+                if registry.enabled(self) and self.stage in ('model_code', 'model_checks', 'atomic_model', 'feedback', 'analysis'):
+                    request_tools += [t for t in tools if t.get('name') == 'idaes_check' and
+                                      not any(x.get('name') == 'idaes_check' for x in request_tools)]
                 self._history = items
             out, text, final = self.respond(items, instructions, request_tools, effort="medium")
             u = final.usage
@@ -607,7 +610,7 @@ class Run(DBMixin, FullMixin, LeanMixin, BuildMixin):
 
 
 TOOL_TIMEOUT_S = 900   # amendment A3 (2026-11-13): fixed tools that execute the agent's code get a deadline
-TIMED_TOOLS = {"validate_module", "optimize_design", "check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
+TIMED_TOOLS = {"idaes_check", "validate_module", "optimize_design", "check_model", "check_atomic", "run_analysis", "run_three_optima", "run_sensitivity", "assess_assumptions",
                "check_records", "submit_flowsheet"}
 
 

@@ -1,4 +1,4 @@
-"""Generic unit-operation library for AI-built plant models (library UO-1.1, 2026-11-14; UO-1.0 shipped with build mode V3.3,
+"""Generic unit-operation library for AI-built plant models (library UO-2.0, 2026-11-15: equipment modules in unitops_equipment.py; UO-1.1 2026-11-14; UO-1.0 with V3.3,
 UO-1.1 with V3.3.1). Fixed infrastructure, like mkm_solver.py: it holds
 no reaction, catalyst or plant data and makes no design choice. It turns the agent's design decisions into energy numbers that
 are consistent with the physics gate, because it uses the same NIST thermodynamic data (physics_gate.species_thermo).
@@ -274,3 +274,14 @@ def plant_cost_share(plant_cost_usd, share, method="plant_specific_cost_share", 
         raise ValueError("share must be in [0, 1]")
     return dict(capex_usd=plant_cost_usd * share,
                 capex_basis=dict(method=method, plant_cost_usd=plant_cost_usd, share=share, installed=True, **basis))
+
+
+# Additive UO-2.0 public surface; existing functions above retain their contracts.
+from unitops_equipment import (  # noqa: E402,F401
+    cp_mix, enthalpy_stream, antoine_psat, vapor_pressure, flash_pt, dew_point,
+    water_knockout, equilibrium_reactor, adiabatic_temperature_rise,
+    staged_cooled_reactor, pfr_isothermal, cstr, catalyst_inventory,
+    ergun_pressure_drop, membrane_two_component, psa_energy, absorber_kremser,
+    stripper_heat, distillation_fug, heat_exchanger, problem_table,
+    steam_generation, turton_cost, cepci, lang_factor_total,
+)

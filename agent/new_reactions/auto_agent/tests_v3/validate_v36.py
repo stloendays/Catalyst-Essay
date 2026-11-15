@@ -83,13 +83,14 @@ def nodes():
 
 
 def test_registry():
-    assert len(registry.MODULES) == 16
+    # 16 legacy capabilities +25 UO-2.0 methods +1 IDAES T1 reference check.
+    assert len(registry.MODULES) == 42
     for mid in registry.MODULES:
         assert callable(registry.resolve(mid))
         e = registry.describe_module(mid)
         assert all(e[k] for k in ('version','capability','inputs','outputs','assumptions','validation','provenance'))
         assert len(json.dumps(e)) < 6000
-    assert len(json.dumps(registry.list_modules())) < 6000
+    assert len(json.dumps(registry.list_modules())) < 12000
     with tempfile.TemporaryDirectory() as tmp:
         m, out, flow, basis = scientific_fixture()
         ws = Path(tmp)
