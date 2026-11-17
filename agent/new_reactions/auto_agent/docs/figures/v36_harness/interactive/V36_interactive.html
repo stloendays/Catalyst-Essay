@@ -1,0 +1,332 @@
+<title>AI 建模流程 V3.6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three swim lanes (AI / 程序 / 人) on a zoomable canvas; a node opens a detail panel with 工具细则 / 功能解释 / 实例 */
+:root{
+  --bg:#F7F8F6; --surface:#FFFFFF; --ink:#1B1E24; --ink2:#3A404B; --line:#D6DAD3;
+  --ai:#467238; --ai-t:#E6EFE0; --pr:#304C86; --pr-t:#E4E9F3; --hu:#8A5638; --hu-t:#F6ECDD;
+  --red:#C8333C; --grey:#5E6470; --focus:#304C86;
+  --f-body:"Noto Sans SC","Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14171C; --surface:#1C2027; --ink:#ECEEF1; --ink2:#C3C8D0; --line:#323843;
+  --ai:#8BC27A; --ai-t:#1E2A1C; --pr:#8FA9E0; --pr-t:#1C2333; --hu:#D9A27F; --hu-t:#2C231C;
+  --red:#F07178; --grey:#A6ACB6; --focus:#8FA9E0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14171C; --surface:#1C2027; --ink:#ECEEF1; --ink2:#C3C8D0; --line:#323843;
+  --ai:#8BC27A; --ai-t:#1E2A1C; --pr:#8FA9E0; --pr-t:#1C2333; --hu:#D9A27F; --hu-t:#2C231C;
+  --red:#F07178; --grey:#A6ACB6; --focus:#8FA9E0; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 28px;max-width:1500px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:12px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+.sub{color:var(--ink2);font-size:14px;margin:2px 0 0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 12px;cursor:pointer}
+button:hover{border-color:var(--grey)}
+button:focus-visible,.node:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--surface)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.zoomval{font-family:var(--f-mono);font-size:13px;min-width:44px;text-align:center;color:var(--ink2)}
+.main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.main.open{grid-template-columns:minmax(0,1fr) 420px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:min(76vh,720px);position:relative;align-self:start}
+.canvas{position:relative;width:1240px;height:640px;transform-origin:0 0}
+.sizer{position:relative}
+svg.wires{position:absolute;inset:0;width:1240px;height:640px;overflow:visible}
+.lane{position:absolute;left:16px;right:16px;border-radius:16px}
+.lane .ln{position:absolute;left:22px;top:50%;transform:translateY(-50%)}
+.lane .ln b{display:block;font-size:26px;line-height:1.1}
+.lane .ln span{font-size:14px;color:var(--ink2)}
+.node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;padding:0;color:inherit;width:150px}
+.node .t{font-weight:700;font-size:17px;white-space:nowrap;margin-bottom:6px}
+.node .dot{width:20px;height:20px;border-radius:50%;background:var(--surface);border:3px solid currentColor;transition:transform .15s}
+.node:hover .dot,.node.sel .dot{transform:scale(1.3);background:currentColor}
+.node .n{font-size:13px;color:var(--ink2);text-align:center;margin-top:6px;line-height:1.35}
+.node .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;margin-top:6px}
+.node .chips i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;padding:0 5px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:var(--ink2)}
+.node.c-ai{color:var(--ai)} .node.c-pr{color:var(--pr)} .node.c-hu{color:var(--hu)}
+.node.done .dot{background:var(--hu);border-color:var(--hu)}
+.lib{position:absolute;left:150px;top:228px;width:420px;height:160px;border:1.5px dashed var(--pr);border-radius:12px;background:var(--surface);color:var(--pr);text-align:left;padding:12px 16px;cursor:pointer}
+.lib:hover,.lib.sel{border-style:solid}
+.lib b{font-size:16px}
+.lib .rows{color:var(--ink2);font-size:13px;margin-top:6px;line-height:1.7}
+.lib .rows em{font-style:normal;color:var(--pr);font-weight:500}
+.over .node .n,.over .node .chips,.over .lib .rows,.over .det{display:none}
+.det{position:absolute;font-size:13px;color:var(--grey)}
+.redlbl{position:absolute;font-size:14px;font-weight:700;color:var(--red)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink2);margin-top:10px}
+.legend span::before{content:"";display:inline-block;width:18px;height:0;border-top:3px solid var(--k);vertical-align:middle;margin-right:6px}
+.legend span.d::before{border-top-style:dashed}
+.hint{font-size:13px;color:var(--ink2)}
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;height:min(72vh,700px);overflow:auto;min-width:0}
+.panel[hidden]{display:none!important}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.ph h2{margin:0;font-size:20px}
+.ph .lane-tag{font-size:12px;font-weight:500;padding:1px 8px;border-radius:999px;border:1px solid currentColor;margin-left:6px;vertical-align:3px}
+.panel .one{color:var(--ink2);margin:6px 0 12px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:6px 10px;color:var(--ink2)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.tp ul{margin:0;padding-left:1.1em}
+.tp li{margin:0 0 8px}
+.tp code{font-family:var(--f-mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;word-break:break-all}
+.tp table{border-collapse:collapse;width:100%;font-size:13.5px;margin:6px 0 10px;font-variant-numeric:tabular-nums}
+.tp th,.tp td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.tp th{font-weight:700}
+.tp .ok{color:var(--ai);font-weight:700}
+.tp .bad{color:var(--red);font-weight:700}
+.tp .src{font-size:12.5px;color:var(--ink2);margin-top:8px}
+.tp p{margin:0 0 8px}
+@media (max-width:980px){.main.open{grid-template-columns:minmax(0,1fr)}.panel{height:auto;max-height:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>一次 AI 建模里，谁做什么（V3.6，可展开）</h1>
+    <p class="sub">点任一节点看<b>工具细则 · 功能解释 · 实例</b>；切到“总览”或缩小，只剩主流程。实例取自甲烷化开发集运行 ch4_v36_t14。</p>
+  </div>
+  <div class="tools">
+    <div class="seg" role="group" aria-label="显示层级">
+      <button id="bOver" aria-pressed="false">总览</button>
+      <button id="bDet" aria-pressed="true">细节</button>
+    </div>
+    <button id="zOut" aria-label="缩小">−</button><span class="zoomval" id="zv">100%</span><button id="zIn" aria-label="放大">+</button>
+    <button id="zFit">适应宽度</button>
+  </div>
+</header>
+
+<div class="main" id="main">
+  <div class="stage" id="stage"><div class="sizer" id="sizer"><div class="canvas" id="cv">
+    <div class="lane" style="top:16px;height:176px;background:var(--ai-t)"><div class="ln" style="color:var(--ai)"><b>AI</b><span>选择和拼装</span></div></div>
+    <div class="lane" style="top:208px;height:222px;background:var(--pr-t)"><div class="ln" style="color:var(--pr)"><b>程序</b><span>计算和检查</span></div></div>
+    <div class="lane" style="top:446px;height:178px;background:var(--hu-t)"><div class="ln" style="color:var(--hu)"><b>人</b><span>把关</span></div></div>
+    <svg class="wires" viewBox="0 0 1240 640" aria-hidden="true">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--red)"/></marker>
+        <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--grey)"/></marker>
+      </defs>
+      <path d="M250 96 H590" stroke="var(--ai)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M590 96 C650 96 640 300 690 300" stroke="var(--pr)" stroke-width="4" fill="none"/>
+      <path d="M690 300 H1080" stroke="var(--pr)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M1080 300 C1140 300 1170 420 1170 528" stroke="var(--hu)" stroke-width="4" fill="none"/>
+      <path d="M820 290 V200 H600 V110" stroke="var(--red)" stroke-width="2.4" fill="none" marker-end="url(#ar)"/>
+      <path d="M250 540 H550" stroke="var(--grey)" stroke-width="2.6" stroke-dasharray="8 6" fill="none"/>
+      <path d="M560 540 C640 540 640 420 580 392" stroke="var(--grey)" stroke-width="2.6" stroke-dasharray="8 6" fill="none" marker-end="url(#ag)"/>
+    </svg>
+    <div class="redlbl" style="left:640px;top:172px">不过关就退回改模型</div>
+    <div class="det" style="left:200px;top:462px">库里没有的计算（例如一种新的分离设备）</div>
+    <div class="det" style="left:640px;top:470px">通过后才进模块库</div>
+  </div></div></div>
+  <aside class="panel" id="panel" hidden aria-live="polite"></aside>
+</div>
+<div class="legend">
+  <span style="--k:var(--ai)">AI 的步骤</span><span style="--k:var(--pr)">程序的步骤</span><span style="--k:var(--hu)">人工</span><span style="--k:var(--red)">检查不过时的回路</span><span class="d" style="--k:var(--grey)">新模块入库路径</span>
+  <span class="hint">键盘：Tab 选节点，Enter 打开，Esc 折叠</span>
+</div>
+</div>
+
+<script>
+const N = [
+ {id:"lit",lane:"ai",x:250,y:96,t:"查文献",n:"抽出每个数据\n记下出处",chips:["search","screen","ocr","extract"],
+  one:"找论文、筛选、下载、OCR，把每个催化剂数据抽成一条带出处的记录。",
+  tools:`<ul>
+   <li>工具：<code>search_papers</code> → <code>screen_papers</code> → <code>download_papers</code> → <code>ocr_papers</code> → <code>extract_papers</code> → <code>check_records</code>。</li>
+   <li>每条记录必须带论文、页码、表或图的位置；没有出处的数不能进模型。</li>
+   <li>留出拦截全程生效：拼写先规范化，再按关键词组比对，消息和所有工具参数都查；一旦碰到留出来源，本次运行立即停止并判无效。</li>
+   <li>抽取结果可缓存复用（<code>--reuse-extraction</code>），重复运行不必再抽一遍。</li></ul>`,
+  what:`<p>这一步只收集证据，不做判断。AI 决定搜什么、留哪几篇，数值由抽取工具写成 <code>records.csv</code>，出处写进 <code>sources.csv</code>。</p><p>AI 看不到用来打分的参考工厂 TEA（留出值），所以它不能照着答案凑数。</p>`,
+  ex:`<table><tr><th>t14</th><th>数值</th></tr>
+   <tr><td>抽出的记录</td><td>245 条</td></tr><tr><td>来源</td><td>77 个</td></tr>
+   <tr><td>下载 / OCR / 抽取用时</td><td>1117 s / 328 s / 400 s</td></tr></table>
+   <p>同一批的 t13、t15 在网络搜索时碰到留出来源（STORE&amp;GO），被拦截自动停下，两次都判无效，没有进入结果。</p>`},
+ {id:"route",lane:"ai",x:420,y:96,t:"选工艺路线",n:"至少比较\n两种方案",chips:["record_decision","plan_workflow"],
+  one:"定机理、动力学形式、界区、反应器和分离方案，每项给出至少两个备选。",
+  tools:`<ul>
+   <li><code>record_decision</code>：每个选择写明备选、计算值和理由，存进 <code>decisions.jsonl</code>。</li>
+   <li><code>plan_workflow</code> / <code>revise_workflow</code>：写出本次运行的步骤图 <code>workflow/rev_n.json</code>。证据、界区、流程图、模型检查、接口检查、独立复核、报告 7 个节点必须有，不能删也不能跳；其他节点可以加、换、跳，跳过要写 30 字以上的理由。每改一次生成新版本，旧版本保留。</li>
+   <li><code>submit_flowsheet</code>：先交流程图，通过后才能写模型。</li>
+   <li><code>basis.json</code> 里必须声明排序策略：统一设计或参考工厂重建。</li></ul>`,
+  what:`<p>AI 做离散的选择（用哪种反应器、哪种分离），连续的数（温度、压力等）留给后面的程序去优化。</p><p>选择都留了记录，事后可以查它为什么这样选。</p>`,
+  ex:`<table><tr><th>决策</th><th>t14 的选择</th></tr>
+   <tr><td>界区</td><td>只算甲烷化岛：1000 t/y，4000 h/y；CO2 近常压进、H2 10 bar 进，SNG 98 mol% 10 bar 出；电解和 CO2 捕集在界外</td></tr>
+   <tr><td>分离</td><td>膜分离加循环：产品 CH4 99.16 mol%，分摊投资比备选方案低</td></tr>
+   <tr><td>机理</td><td>按可逆 Sabatier 总反应加各记录的选择性处理，不强定一个通用的决速步</td></tr>
+   <tr><td>工作流</td><td>rev_1 共 8 个节点（7 个必经 + 分析）；rev_2 记录全部验证通过</td></tr></table>`},
+ {id:"build",lane:"ai",x:590,y:96,t:"搭模型",n:"只用模块库\n里的计算拼装",chips:["model.py","computed_by"],
+  one:"AI 写 model.py 把单元连起来；能耗、冷却和投资必须由登记过的模块算。",
+  tools:`<ul>
+   <li><code>model.py</code> 只做组合层：连接物流、填参数，通用计算一律调模块库。</li>
+   <li>每个有能耗、冷却负荷或投资的单元都要写 <code>computed_by</code>，说明由哪个模块算出。没写，或用了没登记的模块，直接阻断；超出模块适用范围给警告。</li>
+   <li><code>list_modules</code> / <code>describe_module</code>：查有哪些模块、输入输出、单位和适用范围。</li>
+   <li>库里没有的计算走下方“人”这条线：AI 写实验模块 → 自动测试 → 人同意。</li></ul>`,
+  what:`<p>以前 AI 每次手写 400 多行完整工厂模型，错法每次不同。现在它只负责“拼”，算数交给测过的模块，所以不同运行建出来的模型结构可以互相比较。</p>`,
+  ex:`<p>t14 的流程：CO2 压缩 → 混合 → 进出料换热 → 甲烷化反应器 → 余热产汽 → 产品冷却 → 分水 → 膜提纯 → 产品压缩，另有循环压缩和吹扫。</p>
+   <table><tr><th></th><th>旧 V3.4 t7（回放）</th><th>V3.6 t14</th></tr>
+   <tr><td>缺 computed_by 的单元</td><td class="bad">9 个，阻断</td><td class="ok">0</td></tr>
+   <tr><td>模块覆盖检查</td><td class="bad">已验证覆盖 0%</td><td class="ok">通过</td></tr></table>`},
+ {id:"calc",lane:"pr",x:690,y:300,t:"计算",n:"物料、能量\n设备、投资",chips:["unitops","turton_cost"],
+  one:"模块库按 AI 填的参数算物料、能耗、设备尺寸和投资。",
+  tools:`<ul>
+   <li>统一基准：物料 kmol/t 产品，热量 GJ/t，温度 K，压力 bar 绝压。</li>
+   <li>工艺热负荷和实际外购能源分开记：冷却负荷要经冷却公用工程模块换算成电耗，不能直接当外购能。</li>
+   <li>投资用 Turton 关联式按设备尺寸算，再用 CEPCI 换到成本年份；Turton 和 Lang 因子两条路不能叠加。</li>
+   <li>结果逐单元写进 <code>energy_ledger.csv</code> 和 <code>capex_ledger.csv</code>。</li></ul>`,
+  what:`<p>这一步完全由程序算，AI 不填冷却 COP、分离系数这类容易出错的数。</p>`,
+  ex:`<table><tr><th>t14 账本中的一项</th><th>数值</th></tr>
+   <tr><td>CO2 进料压缩 轴功</td><td>0.557 GJ/t</td></tr>
+   <tr><td>其级间冷却负荷</td><td>0.244 GJ/t</td></tr>
+   <tr><td>其外购一次能源</td><td>1.47 GJ/t</td></tr>
+   <tr><td>全厂外购一次能源</td><td>3.52 GJ/t</td></tr>
+   <tr><td>单位产能投资</td><td>2224 USD/(t/y)</td></tr></table>`},
+ {id:"check",lane:"pr",x:820,y:300,t:"检查",n:"守恒、热力学\n上下游对得上",chips:["check_model","interfaces"],
+  one:"物理门控和接口契约逐项检查，任何一项阻断就退回改模型。",
+  tools:`<ul>
+   <li>物理门控：元素守恒、反应热符号、最小压缩功和最小分离功；还有上限，例如放热反应器不能配外购预热、投资要在同类装置的量级内。</li>
+   <li>接口契约，结果分通过 / 警告 / 阻断：<br>反应器 → 流程：进出口物种、元素、平衡上限；<br>流程 → TEA：界区、产能、产品压力和组成、成本年份；<br>用到原子层时另查 DFT → MKM、MKM → 反应器。</li>
+   <li>阻断：不往下游传，退回“搭模型”修改；警告：继续算，但警告原文必须写进报告。</li></ul>`,
+  what:`<p>红线就是这一步：检查不过，模型退回 AI 改。这样错误在算成本之前就被挡住，而不是等看到结果才发现。</p>`,
+  ex:`<table><tr><th>接口</th><th>t7 回放</th><th>t14</th></tr>
+   <tr><td>反应器 → 流程</td><td class="bad">阻断（缺进出口物种量）</td><td class="ok">通过</td></tr>
+   <tr><td>流程 → TEA</td><td class="bad">阻断（缺一次能源效率）</td><td class="ok">通过</td></tr></table>
+   <p>上限检查的来历：早先 V2 的一次运行投资比参考高约 46 倍（单位换算错），当时门控只查下限，没拦住。</p>`},
+ {id:"opt",lane:"pr",x:950,y:300,t:"优化",n:"压力、温度\n回收率",chips:["optimize_design"],
+  one:"AI 选好流程结构后，程序在上下限内优化温度、压力、转化率等连续变量。",
+  tools:`<ul>
+   <li><code>optimize_design</code>：整数变量（如压缩级数）逐个枚举，最多 256 种组合；连续变量做有上下限的局部搜索。</li>
+   <li>每个组合都记录起点、失败点、是否碰到边界、是否收敛。</li>
+   <li>不改 <code>model.py</code> 和 <code>sources.csv</code>；局部最优不当作全局最优。</li></ul>`,
+  what:`<p>以前 AI 会直接拍定渗透侧压力、产品压力这类数。现在它们声明为设计变量，交给程序来调。</p>`,
+  ex:`<table><tr><th>t14 设计变量（10 个，节选）</th><th>取值</th></tr>
+   <tr><td>反应温度</td><td>573 K</td></tr><tr><td>反应压力</td><td>10 bar</td></tr>
+   <tr><td>单程转化率</td><td>0.80</td></tr><tr><td>膜 CH4 回收率</td><td>0.99</td></tr>
+   <tr><td>吹扫比例</td><td>0.02</td></tr><tr><td>参考成本</td><td>2128.7 USD/t</td></tr></table>`},
+ {id:"review",lane:"pr",x:1080,y:300,t:"复核",n:"另一个模型挑错\nIDAES 复算",chips:["critique","idaes_check","sensitivity"],
+  one:"独立 Critic 只挑工程问题；参考工厂用 IDAES 再算一遍；做敏感性分析。",
+  tools:`<ul>
+   <li><code>request_critique</code>：另一个模型审查，只报工程问题，AI 必须逐条回应。</li>
+   <li><code>idaes_check</code>：把参考工厂的单元交给 IDAES（独立环境，真实 ipopt 求解）重算，功、热负荷、出口组成差别超过 5% 记警告，要在报告里解释。不进优化循环，不影响得分。</li>
+   <li><code>run_sensitivity</code>、<code>assess_assumptions</code>：关键假设变化时结论稳不稳。</li></ul>`,
+  what:`<p>前面的检查查的是“对不对得上”，这一步是换一个人、换一套软件再看一遍。</p><p>模块库本身已和 IDAES 对过：压缩机、换热器、闪蒸、平衡反应器四类差别在 0.0001% 以内。接 IDAES 时又用独立物性库核对，修正了甲醇、乙醇、乙烷、丙烷、丙烯 5 个物种的热容（原来 700 K 焓变偏低 26–33%）。</p>`,
+  ex:`<ul><li>Critic 第一轮指出：反应器出口的 CH4、H2O、CO 和 80% 转化率对不上，H 不守恒，0.630 kmol/t 的 CO 没有对应的反应。AI 按反应进度重算出口后通过。</li>
+   <li>IDAES 复算这次没跑通：反应器求解不可行，另有多个单元缺显式入口状态被跳过。下一版要让 AI 给每个单元写全入口状态。</li></ul>`},
+ {id:"lib",lane:"pr",t:"模块库 UO-2.0",lib:true,
+  one:"事先写好、逐个对照教科书或 NIST 算例测过的计算，共 42 个。AI 只能调用，不能改。",
+  tools:`<table><tr><th>类别</th><th>模块</th></tr>
+   <tr><td>相平衡</td><td>闪蒸（Rachford–Rice）、露点、分水</td></tr>
+   <tr><td>反应器</td><td>平衡反应器（Gibbs 最小化）、多段冷却反应器、PFR、CSTR、催化剂装量、床层压降（Ergun）</td></tr>
+   <tr><td>分离</td><td>膜分离、变压吸附、吸收塔（Kremser）、汽提、精馏简捷法（FUG）</td></tr>
+   <tr><td>换热</td><td>换热器面积（LMTD）、夹点分析、产蒸汽</td></tr>
+   <tr><td>动力设备</td><td>压缩机、泵、冷却公用工程、加热炉</td></tr>
+   <tr><td>投资</td><td>Turton 关联式、CEPCI、Lang 因子</td></tr>
+   <tr><td>复核</td><td>IDAES 适配器</td></tr></table>`,
+  what:`<p>每个模块都标明输入、输出、单位、假设和适用范围。超出适用范围时照样给结果，但带警告。物料分割只算物料平衡，热回收标为简化估算。</p>`,
+  ex:`<table><tr><th>测试算例</th><th>结果</th></tr>
+   <tr><td>三组分闪蒸气化率</td><td>β = 0.690730</td></tr>
+   <tr><td>绝热温升</td><td>527.242 K</td></tr>
+   <tr><td>换热器对数平均温差</td><td>89.628 K</td></tr>
+   <tr><td>10 bar 饱和蒸汽潜热</td><td>2014.4 kJ/kg</td></tr>
+   <tr><td>Turton 投资</td><td>9 类设备按书中表格手算</td></tr></table>`},
+ {id:"write",lane:"ai",x:250,y:540,t:"AI 写",n:"",chips:["modules/*.py"],
+  one:"库里没有的计算，AI 可以自己写成实验模块。",
+  tools:`<ul><li>写在运行目录 <code>modules/&lt;name&gt;.py</code>：<code>META</code> 声明输入、输出和每个量的单位，另写假设和适用范围；提供 <code>compute(**inputs)</code> 和自带的 <code>tests()</code>。</li>
+   <li>测试至少覆盖三类：守恒、极限情况、参考算例。</li></ul>`,
+  what:`<p>这保留了处理新反应的灵活性：遇到库里没有的设备，AI 不会卡住。</p>`,
+  ex:`<p>t14 写了 2 个实验模块：<code>activity_transfer</code>（实验室活性换算到工厂工况）和 <code>power_based_capital</code>（按功率估投资）。</p>`},
+ {id:"test",lane:"pr",x:400,y:540,t:"自动测试",n:"守恒、单位、极限情况",chips:["validate_module"],
+  one:"框架在隔离环境里跑实验模块的测试，再加通用检查。",
+  tools:`<ul><li>通用检查：结果是有限数、单位键齐全、能耗不为负、重复运行结果一致。</li>
+   <li>隔离运行：20 s 超时，禁止联网、开子进程和改文件。</li>
+   <li>验证记录绑定源码 SHA-256，代码一改就失效，要重新测。</li>
+   <li>不过的直接阻断；过了可以用，但结果标“实验模块”并带警告。</li></ul>`,
+  what:`<p>AI 自己写的计算先由程序检查一遍，挡住非有限数、负能耗、缺单位这类明显错误。</p>`,
+  ex:`<p>t14 的 2 个实验模块都通过测试；用到它们的单元在覆盖检查里都带“实验模块”警告，例如 CO2 进料压缩的投资由 <code>power_based_capital</code> 算出。</p>`},
+ {id:"approve",lane:"hu",x:550,y:540,t:"人同意",n:"",chips:["promotion"],
+  one:"实验模块不会自动进库，要人工批准，并在其他运行里复测。",
+  tools:`<ul><li>通过测试只记为“晋升候选”。</li><li>人工看过代码和测试，并在其他运行里复测后，才登记进模块库，之后所有运行都能用。</li></ul>`,
+  what:`<p>保证模块库里的每个计算都有人看过，库只会越来越可靠。</p>`,
+  ex:`<p>t14 的两个模块目前都是候选，还没有晋升。</p>`},
+ {id:"report",lane:"hu",x:1170,y:528,t:"人工审核",n:"看过才出报告",chips:["finish"],done:true,
+  one:"7 个必经节点全部验证通过、警告逐条写进报告，人看过后才算完成。",
+  tools:`<ul><li><code>finish</code> 要求工作流里 7 个必经节点都是“已验证”，检查结果的指纹和当前文件一致，报告逐条包含警告原文。</li>
+   <li>报告内容：成本、催化剂排序、敏感性和反向设计。</li>
+   <li>每次运行记录 token、用时、标价费用和人工干预次数；单次费用上限 60 USD。</li></ul>`,
+  what:`<p>程序判“能交”，人再判“能用”。打分用的参考工厂 TEA 在评估侧，AI 全程看不到。</p>`,
+  ex:`<table><tr><th>t14 对照参考工厂</th><th>模型</th><th>参考（容差）</th><th></th></tr>
+   <tr><td>H2 单耗 t/t</td><td>0.507</td><td>0.505（±5%）</td><td class="ok">通过</td></tr>
+   <tr><td>CO2 单耗 t/t</td><td>2.787</td><td>2.785（±5%）</td><td class="ok">通过</td></tr>
+   <tr><td>外购一次能源 GJ/t</td><td>3.52</td><td>3.84（±35%）</td><td class="ok">通过</td></tr>
+   <tr><td>投资 USD/(t/y)</td><td>2224</td><td>2773（−30%/+50%）</td><td class="ok">通过</td></tr></table>
+   <p>4 项全部通过。用时 74 min，模型调用 221 次，769 万 token，按标价约 42 USD，人工干预 0 次。</p>
+   <p class="src">来源：D:\\agent_runs\\ch4_v36_t14；evaluation/ch4_v36_test/ch4_builds.json</p>`}
+];
+const laneName={ai:"AI",pr:"程序",hu:"人"}, laneCol={ai:"var(--ai)",pr:"var(--pr)",hu:"var(--hu)"};
+const cv=document.getElementById('cv'), stage=document.getElementById('stage'), sizer=document.getElementById('sizer');
+const panel=document.getElementById('panel'), main=document.getElementById('main');
+let sel=null, tab="tools", scale=1, mode="det";
+
+N.forEach(d=>{
+  let el;
+  if(d.lib){
+    el=document.createElement('button'); el.className='lib';
+    el.innerHTML=`<b>模块库：事先写好、逐个测过</b><div class="rows"><em>42 个</em>，对照教科书或 NIST 算例测试<br>压缩机 · 泵 · 换热器 · 冷却 · 闪蒸分水<br>反应器 · 膜分离 · 变压吸附 · 精馏 · 设备投资<br>IDAES 复核</div>`;
+  } else {
+    el=document.createElement('button'); el.className='node c-'+d.lane+(d.done?' done':'');
+    el.style.left=d.x+'px'; el.style.top=(d.y+ (d.n?22:12))+'px';
+    el.innerHTML=`<span class="t">${d.t}</span><span class="dot"></span>${d.n?`<span class="n">${d.n.replace(/\n/g,'<br>')}</span>`:''}<span class="chips">${d.chips.map(c=>`<i>${c}</i>`).join('')}</span>`;
+    // anchor the dot (not the box centre) on the line
+    el.style.transform='translate(-50%,-38px)'; el.style.top=d.y+'px';
+  }
+  el.setAttribute('aria-label',d.t+'：打开细节');
+  el.addEventListener('click',()=>toggle(d.id));
+  d.el=el; cv.appendChild(el);
+});
+
+function toggle(id){ sel = sel===id ? null : id; render(); }
+function render(){
+  N.forEach(d=>d.el.classList.toggle('sel',d.id===sel));
+  if(!sel){ panel.hidden=true; main.classList.remove('open'); return; }
+  const d=N.find(x=>x.id===sel);
+  panel.hidden=false; main.classList.add('open');
+  panel.innerHTML=`<div class="ph"><h2 style="color:${laneCol[d.lane]}">${d.t}<span class="lane-tag">${laneName[d.lane]}</span></h2><button id="pc" aria-label="折叠">折叠</button></div>
+   <p class="one">${d.one}</p>
+   <div class="tabs" role="tablist">${[["tools","工具细则"],["what","功能解释"],["ex","实例"]].map(([k,v])=>`<button role="tab" data-k="${k}" aria-selected="${tab===k}">${v}</button>`).join('')}</div>
+   <div class="tp" role="tabpanel">${d[tab]}</div>`;
+  panel.querySelector('#pc').onclick=()=>{sel=null;render();};
+  panel.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.k;render();});
+  requestAnimationFrame(()=>{fitIfNeeded(); if(window.innerWidth<=980) panel.scrollIntoView({block:"nearest",behavior:"smooth"});});
+}
+function setScale(s){
+  scale=Math.max(.45,Math.min(1.6,s));
+  cv.style.transform=`scale(${scale})`;
+  sizer.style.width=(1240*scale)+'px'; sizer.style.height=(640*scale)+'px';
+  document.getElementById('zv').textContent=Math.round(scale*100)+'%';
+  applyMode();
+}
+function applyMode(){
+  const over = mode==="over" || scale<0.68;
+  cv.classList.toggle('over',over);
+  document.getElementById('bOver').setAttribute('aria-pressed',mode==="over");
+  document.getElementById('bDet').setAttribute('aria-pressed',mode==="det");
+}
+let userZoomed=false;
+function fit(){ setScale((stage.clientWidth-4)/1240); }
+function fitIfNeeded(){ if(!userZoomed) fit(); }
+document.getElementById('zIn').onclick=()=>{userZoomed=true;setScale(scale+.1)};
+document.getElementById('zOut').onclick=()=>{userZoomed=true;setScale(scale-.1)};
+document.getElementById('zFit').onclick=()=>{userZoomed=false;fit()};
+document.getElementById('bOver').onclick=()=>{mode="over";sel=null;render();applyMode()};
+document.getElementById('bDet').onclick=()=>{mode="det";applyMode()};
+stage.addEventListener('wheel',e=>{ if(e.ctrlKey){e.preventDefault();userZoomed=true;setScale(scale*(e.deltaY<0?1.08:1/1.08));} },{passive:false});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sel){sel=null;render();} });
+window.addEventListener('resize',fitIfNeeded);
+fit();
+</script>
